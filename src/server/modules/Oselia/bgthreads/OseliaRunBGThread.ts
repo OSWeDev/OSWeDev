@@ -194,6 +194,13 @@ export default class OseliaRunBGThread implements IBGThread {
             return;
         }
 
+        /**
+         * Cas du next_handleable_run pas dans le même thread, on doit modifier le thread dans ce cas
+         */
+        if (next_handleable_run.thread_id != thread.id) {
+            thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID).filter_by_id(next_handleable_run.thread_id).exec_as_server().select_vo<GPTAssistantAPIThreadVO>();
+        }
+
         switch (next_handleable_run.state) {
             case OseliaRunVO.STATE_TODO:
                 await this.handle_STATE_TODO(next_handleable_run, thread, assistant);
@@ -227,7 +234,13 @@ export default class OseliaRunBGThread implements IBGThread {
             current_run = await query(OseliaRunVO.API_TYPE_ID)
                 .filter_by_num_has(field_names<OseliaRunVO>().state, OseliaRunBGThread.EN_COURS_RUN_STATES)
                 .filter_by_id(thread_to_handle.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
-                .filter_is_null_or_empty(field_names<OseliaRunVO>().parent_run_id)
+                .add_filters([ContextFilterVO.or([
+                    // Ya pas de parent à ce run dans le thread :
+                    // Donc soit ya pas de parent tout cours, soit le parent est dans un autre thread
+                    filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().parent_run_id).is_null_or_empty(),
+                    filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().parent_run_id).by_num_not_in(
+                        query(OseliaRunVO.API_TYPE_ID).filter_by_num_eq(field_names<OseliaRunVO>().thread_id, thread_to_handle.id).field('id').exec_as_server()),
+                ])])
                 .set_sort(new SortByVO(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().version_timestamp, true))
                 .set_discarded_field_path(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().last_oselia_run_id)
                 .set_limit(1)
@@ -264,11 +277,7 @@ export default class OseliaRunBGThread implements IBGThread {
             return current_run;
         }
 
-        if (!current_run.use_splitter) {
-            throw new OseliaRunBGThreadException();
-        }
-
-        if (current_run.use_splitter && (current_run.state >= OseliaRunVO.STATE_SPLIT_ENDED)) {
+        if (current_run.state == OseliaRunVO.STATE_WAITING_SPLITS_END) {
             const children = await query(OseliaRunVO.API_TYPE_ID)
                 .filter_by_num_eq(field_names<OseliaRunVO>().parent_run_id, current_run.id)
                 .set_sort(new SortByVO(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().weight, true))
@@ -314,10 +323,11 @@ export default class OseliaRunBGThread implements IBGThread {
             await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_SPLITTING);
             await OseliaRunServerController.split_run(run, thread, assistant);
             return;
-        }
+        } else {
 
-        await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_RUNNING);
-        await OseliaRunServerController.run_run(run, thread, assistant);
+            await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_RUNNING);
+            await OseliaRunServerController.run_run(run, thread, assistant);
+        }
     }
 
     private async handle_STATE_WAIT_SPLITS_END_ENDED(

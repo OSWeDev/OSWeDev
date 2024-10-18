@@ -787,6 +787,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         try {
 
+            // !! FIXME TODO on refuse le split par l'assistant par ce qu'il fait nimp avec ça pour le moment
+            use_splitter = false;
+            // !! FIXME TODO on refuse le split par l'assistant par ce qu'il fait nimp avec ça pour le moment
+
             if (!name) {
                 ConsoleHandler.error('append_new_child_run_step:Name is mandatory');
                 return 'ERREUR: Le nom est obligatoire. Corriger et relancer la fonction';
@@ -865,6 +869,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             new_run_step.use_validator = (use_validator == null) ? false : use_validator;
             new_run_step.user_id = oselia_run.user_id;
             new_run_step.weight = weight;
+            new_run_step.referrer_id = oselia_run.referrer_id;
 
 
             if (in_a_separate_thread) {
@@ -874,10 +879,21 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     thread_vo: GPTAssistantAPIThreadVO;
                 } = await GPTAssistantAPIServerController.get_thread(new_run_step.user_id, null, new_run_step.assistant_id);
 
+                const referrers = await query(OseliaReferrerVO.API_TYPE_ID)
+                    .filter_by_id(thread_vo.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
+                    .exec_as_server()
+                    .select_vos<OseliaReferrerVO>();
+                if (!!referrers) {
+                    for (const referrer of referrers) {
+                        await OseliaServerController.link_thread_to_referrer(thread_vo, referrer);
+                    }
+                }
+
                 new_run_step.thread_id = thread.thread_vo.id;
                 thread.thread_vo.thread_title = (thread_vo.thread_title ? '[SUB] ' + thread_vo.thread_title + ' : ' : '[SUB] ') + new_run_step.name;
                 thread.thread_vo.needs_thread_title_build = false;
                 thread.thread_vo.thread_title_auto_build_locked = true;
+                thread.thread_vo.parent_thread_id = thread_vo.id;
                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread.thread_vo);
             }
 
@@ -1970,6 +1986,31 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             case OseliaRunVO.STATE_RUNNING:
                 new_state = OseliaRunVO.STATE_RUN_ENDED;
                 run.run_end_date = Dates.now();
+
+                /**
+                 * Si le run a généré des splitts dont on attend l'exec, on doit passer en STATE_WAITING_SPLITS_END plutôt que en run_ended
+                 */
+                const children_post_run = await query(OseliaRunVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<OseliaRunVO>().parent_run_id, run.id)
+                    .exec_as_server()
+                    .select_vos<OseliaRunVO>();
+                if ((!children_post_run) || (children_post_run.length == 0)) {
+                    break;
+                }
+
+                let all_children_ended = true;
+                for (const i in children_post_run) {
+                    if (OseliaRunBGThread.END_STATES.indexOf(children_post_run[i].state) < 0) {
+                        all_children_ended = false;
+                        break;
+                    }
+                }
+
+                if (!all_children_ended) {
+                    new_state = OseliaRunVO.STATE_WAITING_SPLITS_END;
+                    run.waiting_split_end_start_date = Dates.now();
+                }
+
                 break;
             case OseliaRunVO.STATE_VALIDATING:
 

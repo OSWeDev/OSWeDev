@@ -1393,7 +1393,8 @@ export default class GPTAssistantAPIServerController {
                                         }
                                     }
 
-                                    const function_to_call: () => Promise<any> = ModulesManager.getInstance().getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME)[function_vo.module_function];
+                                    const module_of_function_to_call = ModulesManager.getInstance().getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
+                                    const function_to_call: () => Promise<any> = module_of_function_to_call[function_vo.module_function];
                                     const ordered_args = function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread_vo, function_args, availableFunctionsParameters[function_vo.id]);
 
                                     oselia_run_function_call_vo.creation_date = Dates.now();
@@ -1420,7 +1421,7 @@ export default class GPTAssistantAPIServerController {
                                                 oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;
                                                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
-                                                function_response = await function_to_call.call(null, ...ordered_args);
+                                                function_response = await function_to_call.call(module_of_function_to_call, ...ordered_args);
                                             } catch (error) {
                                                 ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - PromisePipeline inner promise - error: ' + error);
                                                 function_response = "TECHNICAL MALFUNCTION : submit_tool_outputs - error: " + error;
@@ -1431,7 +1432,7 @@ export default class GPTAssistantAPIServerController {
                                         oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;
                                         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
-                                        function_response = await function_to_call.call(null, ...ordered_args);
+                                        function_response = await function_to_call.call(module_of_function_to_call, ...ordered_args);
                                     }
 
                                     oselia_run_function_call_vo.end_date = Dates.now();

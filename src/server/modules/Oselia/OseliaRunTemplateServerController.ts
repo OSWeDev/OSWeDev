@@ -6,9 +6,11 @@ import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerV
 import OseliaRunTemplateVO from '../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
 import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
 import TemplateHandlerServer from '../Mailer/TemplateHandlerServer';
+import ModuleOseliaServer from './ModuleOseliaServer';
 import OseliaServerController from './OseliaServerController';
 
 export default class OseliaRunTemplateServerController {
@@ -16,6 +18,7 @@ export default class OseliaRunTemplateServerController {
     public static async create_run_from_template(
         template: OseliaRunTemplateVO,
         initial_prompt_parameters: { [param_name: string]: string } = null,
+        initial_cache_values: { [param_name: string]: string } = null,
         referrer: OseliaReferrerVO = null,
         thread_vo: GPTAssistantAPIThreadVO = null,
         user: UserVO = null,
@@ -38,11 +41,27 @@ export default class OseliaRunTemplateServerController {
             }
             await OseliaServerController.link_thread_to_referrer(thread_vo, referrer);
 
+            if (initial_cache_values) {
+                for (const key in initial_cache_values) {
+                    const value = initial_cache_values[key];
+
+                    await ModuleOseliaServer.getInstance().set_cache_value(thread_vo, key, value, thread_vo.id);
+                }
+            }
+
             const oselia_run = new OseliaRunVO();
+            oselia_run.thread_title = await TemplateHandlerServer.apply_template(template.thread_title, user.lang_id, false, initial_prompt_parameters); // Comme on veut ouvrir au public, on peut pas accéder aux envs params
+
+            if (thread_vo.needs_thread_title_build) {
+                thread_vo.thread_title = oselia_run.thread_title;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+            }
+
             oselia_run.assistant_id = template.assistant_id;
             oselia_run.childrens_are_multithreaded = template.childrens_are_multithreaded;
             oselia_run.hide_outputs = template.hide_outputs;
             oselia_run.hide_prompt = template.hide_prompt;
+            oselia_run.initial_content_text = template.initial_content_text;
             oselia_run.initial_prompt_id = template.initial_prompt_id;
             oselia_run.initial_prompt_parameters = initial_prompt_parameters;
             oselia_run.name = template.name;
@@ -97,13 +116,27 @@ export default class OseliaRunTemplateServerController {
 
             oselia_run.childrens_are_multithreaded = template.childrens_are_multithreaded;
             oselia_run.thread_id = thread_vo.id;
-            oselia_run.thread_title = await TemplateHandlerServer.apply_template(template.thread_title, user.lang_id, false, initial_prompt_parameters); // Comme on veut ouvrir au public, on peut pas accéder aux envs params
             oselia_run.use_splitter = template.use_splitter;
             oselia_run.use_validator = template.use_validator;
             oselia_run.user_id = user.id;
             oselia_run.weight = template.weight;
             oselia_run.referrer_id = referrer.id;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run);
+
+            /**
+             * On doit créer les sous tâches aussi
+             */
+            const subs = await query(OseliaRunTemplateVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<OseliaRunTemplateVO>().parent_run_id, template.id)
+                .exec_as_server()
+                .select_vos<OseliaRunTemplateVO>();
+
+            for (const i in subs) {
+                const sub = subs[i];
+
+                await OseliaRunTemplateServerController.create_run_from_template(sub, initial_prompt_parameters, null, referrer, thread_vo, user, oselia_run.id);
+            }
+
             return oselia_run;
 
         } catch (error) {

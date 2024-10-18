@@ -79,7 +79,7 @@ export default class Patch20241016AddOseliaFunction_OSELIA_set_cache_value imple
             argument_value.required = true;
             argument_value.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_value.not_in_function_params = false;
-            argument_value.weight = 0;
+            argument_value.weight = 1;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_value);
         }
 
@@ -97,7 +97,7 @@ export default class Patch20241016AddOseliaFunction_OSELIA_set_cache_value imple
             argument_thread_id.required = true;
             argument_thread_id.type = GPTAssistantAPIFunctionParamVO.TYPE_INTEGER;
             argument_thread_id.not_in_function_params = false;
-            argument_thread_id.weight = 0;
+            argument_thread_id.weight = 2;
             argument_thread_id.default_json_value = JSON.stringify(0);
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_thread_id);
         }
