@@ -102,23 +102,32 @@ import Patch20240415Adduniqmail_id from './patchs/premodules/Patch20240415Adduni
 import Patch20240515RunStatusToEnum from './patchs/premodules/Patch20240515RunStatusToEnum';
 import Patch20240521ChangeFormatDbAssistants from './patchs/premodules/Patch20240521ChangeFormatDbAssistants';
 import Patch20240530AddUniqNameMailCategory from './patchs/premodules/Patch20240530AddUniqNameMailCategory';
-import Patch20240619DeclareFunctionOseliaGenerateImages from './patchs/premodules/Patch20240619DeclareFunctionOseliaGenerateImages';
+import Patch20240619DeclareFunctionOseliaGenerateImages from './patchs/postmodules/Patch20240619DeclareFunctionOseliaGenerateImages';
 import Patch20240827DeleteVersionedAssistantsWithoutInstructions from './patchs/premodules/Patch20240827DeleteVersionedAssistantsWithoutInstructions';
 import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20240926PreInitOseliaThreadRoles from './patchs/postmodules/Patch20240926PreInitOseliaThreadRoles';
-import Patch20240926AddOseliaFunction_TRELLO_trello_search_trello from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_search_trello';
-import Patch20240926AddOseliaFunction_TRELLO_trello_create_card from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_create_card';
-import Patch20240926AddOseliaFunction_TRELLO_trello_get_card from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_card';
-import Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board';
-import Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board';
-import Patch20240926AddOseliaFunction_TRELLO_trello_update_card from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_update_card';
-import Patch20240926AddOseliaFunction_TRELLO_trello_delete_card from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_delete_card';
-import Patch20240926AddOseliaFunction_TRELLO_trello_get_action from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_action';
-import Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards';
-import Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions';
+import Patch20240926AddOseliaFunction_TRELLO_trello_search_trello from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_search_trello';
+import Patch20240926AddOseliaFunction_TRELLO_trello_create_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_create_card';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_card';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board';
+import Patch20240926AddOseliaFunction_TRELLO_trello_update_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_update_card';
+import Patch20240926AddOseliaFunction_TRELLO_trello_delete_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_delete_card';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_action from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_action';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions';
 import Patch20240930AddOseliaFunction_get_thread_text_content from './patchs/postmodules/Patch20240930AddOseliaFunction_get_thread_text_content';
 import Patch20240930AddOseliaFunction_send_teams_messages from './patchs/postmodules/Patch20240930AddOseliaFunction_send_teams_messages';
+import Patch20241003AddParamForSplitterAndValidator from './patchs/postmodules/Patch20241003AddParamForSplitterAndValidator';
+import Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_step from './patchs/postmodules/Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_step';
+import Patch20241004AddOseliaFunction_OSELIA_refuse_run from './patchs/postmodules/Patch20241004AddOseliaFunction_OSELIA_refuse_run';
+import Patch20241004AddOseliaFunction_OSELIA_validate_run from './patchs/postmodules/Patch20241004AddOseliaFunction_OSELIA_validate_run';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_board from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actions from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actions';
+import Patch20241016AddOseliaFunction_OSELIA_get_cache_value from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_get_cache_value';
+import Patch20241016AddOseliaFunction_OSELIA_set_cache_value from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_set_cache_value';
+import Patch20241016AddOseliaFunction_OSELIA_get_assistant from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_get_assistant';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -249,15 +258,26 @@ export default abstract class GeneratorBase {
             Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board.getInstance(),
             Patch20240926AddOseliaFunction_TRELLO_trello_search_trello.getInstance(),
             Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_get_board.getInstance(),
             Patch20240926AddOseliaFunction_TRELLO_trello_update_card.getInstance(),
             Patch20240926AddOseliaFunction_TRELLO_trello_delete_card.getInstance(),
             Patch20240926AddOseliaFunction_TRELLO_trello_get_action.getInstance(),
             Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions.getInstance(),
             Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actions.getInstance(),
 
             Patch20240930AddOseliaFunction_get_thread_text_content.getInstance(),
 
             Patch20240930AddOseliaFunction_send_teams_messages.getInstance(),
+            Patch20241003AddParamForSplitterAndValidator.getInstance(),
+
+            Patch20241004AddOseliaFunction_OSELIA_refuse_run.getInstance(),
+            Patch20241004AddOseliaFunction_OSELIA_validate_run.getInstance(),
+            Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_step.getInstance(),
+
+            Patch20241016AddOseliaFunction_OSELIA_get_cache_value.getInstance(),
+            Patch20241016AddOseliaFunction_OSELIA_set_cache_value.getInstance(),
+            Patch20241016AddOseliaFunction_OSELIA_get_assistant.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }

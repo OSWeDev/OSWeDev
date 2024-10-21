@@ -1,3 +1,4 @@
+@use "sass:color";
 @import 'skin-variables.scss';
 
 .page_oselia {
@@ -14,8 +15,12 @@ $font-color-main: #000;
 $font-color-secondary: #4e4e4e;
 $button-background: $button_primary_bg_color;
 // $background-popup-user: lighten($button-background, 40%);
+// $background-popup-user: hsl(color.channel($button-background, "hue", $space: hsl), 100%, 80%);
+// $background-popup-user: hsl(color.hue($button-background), 100%, 80%);
 $background-popup-user: hsl(hue($button-background), 100%, 80%);
 // $background-popup: lighten(desaturate($button-background, 80%), 46%);
+// $background-popup: hsl(color.channel($button-background, "hue", $space: hsl), 50%, 95%);
+// $background-popup: hsl(color.hue($button-background), 50%, 95%);
 $background-popup: hsl(hue($button-background), 50%, 95%);
 $button-border: $button-background;
 $button-shadow: rgba($button-background, .38);

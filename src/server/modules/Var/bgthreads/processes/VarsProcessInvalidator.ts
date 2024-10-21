@@ -1,5 +1,6 @@
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import VarDataInvalidatorVO from '../../../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
@@ -14,6 +15,9 @@ import VarsComputationHole from './VarsComputationHole';
 export default class VarsProcessInvalidator {
 
     private static instance: VarsProcessInvalidator = null;
+
+    private static max_ordered_vos_cud_param_name: string = 'VarsProcessInvalidator.max_ordered_vos_cud';
+    private static max_invalidators_param_name: string = 'VarsProcessInvalidator.max_invalidators';
 
     private last_clear_datasources_cache: number = null;
 
@@ -76,7 +80,7 @@ export default class VarsProcessInvalidator {
             // VarsDatasVoUpdateHandler.invalidators = [];
 
             // On déploie les intersecteurs pour les demandes liées à des vars invalidées
-            const max_invalidators = 500;
+            const max_invalidators = await ModuleParams.getInstance().getParamValueAsInt(VarsProcessInvalidator.max_invalidators_param_name, 500, 30000);
             const invalidators = (VarsDatasVoUpdateHandler.invalidators && VarsDatasVoUpdateHandler.invalidators.length) ? VarsDatasVoUpdateHandler.invalidators.splice(0, max_invalidators).filter((e) => !!e) : [];
 
             let has_first_invalidator = false;
@@ -93,8 +97,8 @@ export default class VarsProcessInvalidator {
 
             if (VarsDatasVoUpdateHandler && VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) {
 
-                // On limite à 500VOs invalidés à la fois => plus ou moins arbitraire, faudrait probablement trouver des façons plus convenables de choisir ce nombre...
-                const max_ordered_vos_cud = 100;
+                // On limite à 200VOs invalidés à la fois => plus ou moins arbitraire, faudrait probablement trouver des façons plus convenables de choisir ce nombre...
+                const max_ordered_vos_cud = await ModuleParams.getInstance().getParamValueAsInt(VarsProcessInvalidator.max_ordered_vos_cud_param_name, 200, 30000);
                 const ordered_vos_cud = (VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) ? VarsDatasVoUpdateHandler.ordered_vos_cud.splice(0, max_ordered_vos_cud).filter((e) => !!e) : [];
 
                 if (ordered_vos_cud.length) {

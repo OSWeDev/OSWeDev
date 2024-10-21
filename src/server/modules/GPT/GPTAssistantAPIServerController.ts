@@ -1,4 +1,5 @@
 import { Thread } from 'openai/resources/beta/threads/threads';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
@@ -17,6 +18,7 @@ import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistan
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
 import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
+import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
@@ -34,13 +36,13 @@ import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServe
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
 import GPTAssistantAPIThreadMessageContentImageURLVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentImageURLVO';
 import { readFileSync } from 'fs';
-import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
 import OseliaThreadRoleVO from '../../../shared/modules/Oselia/vos/OseliaThreadRoleVO';
 import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
 import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 import GPTRealtimeAPIConversationItemVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIConversationItemVO';
 import GPTRealtimeAPISessionVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO';
+import OseliaRunFunctionCallVO from '../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 
 export default class GPTAssistantAPIServerController {
 
@@ -65,7 +67,7 @@ export default class GPTAssistantAPIServerController {
                 if (error.statusCode === 429) {
                     console.log(`Rate limit exceeded. Attempt ${attempt} of ${maxRetries}. Retrying in ${delay / 1000} seconds...`);
                     await ThreadHandler.sleep(delay, 'OpenAI - Rate limit exceeded');
-                } if ((error.statusCode === 400) && error.error && error.error.message && error.error.message.includes('\'tool_outputs\' too large')) {
+                } if ((error.status === 400) && error.error && error.error.message && error.error.message.includes('\'tool_outputs\' too large')) {
                     ConsoleHandler.error('GPTAssistantAPIServerController.wrap_api_call:\'tool_outputs\' too large: ' + JSON.stringify(error));
                     // TODO FIXME : Handle this error properly args.tool_outputs = null par exemple ou plutôt en forwardant le message d'erreur clairement ? ou en ellipsis sur le res trop long ?
                     throw error;
@@ -775,7 +777,7 @@ export default class GPTAssistantAPIServerController {
      * @param files ATTENTION : Limité à 10 fichiers dans l'API GPT pour le moment
      * @param user_id id de l'utilisateur qui demande
      * @param thread_title titre de la discussion => pour éviter de passer par le système de génération de titre
-     * @param hide_content si on veut cacher le contenu du message
+     * @param hide_prompt si on veut cacher le contenu du prompt/message initial
      * @returns
      */
     public static async ask_assistant(
@@ -785,7 +787,12 @@ export default class GPTAssistantAPIServerController {
         content_text: string,
         files: FileVO[],
         user_id: number = null,
-        hide_content: boolean = false): Promise<GPTAssistantAPIThreadMessageVO[]> {
+        hide_prompt: boolean = false,
+        oselia_run: OseliaRunVO = null,
+        oselia_run_purpose_state: number = null, // On utilise les states d'Osélia run pour identifier le but de ce run en particulier dans le run Osélia
+        additional_run_tools: GPTAssistantAPIFunctionVO[] = null,
+        referrer_id: number = null,
+    ): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
         // Objectif : Lancer le Run le plus vite possible, pour ne pas perdre de temps
 
@@ -861,7 +868,7 @@ export default class GPTAssistantAPIServerController {
                 user_id,
                 content_text,
                 files,
-                hide_content
+                hide_prompt
             );
 
             //  La discussion est en place, on peut demander à l'assistant de répondre
@@ -870,9 +877,6 @@ export default class GPTAssistantAPIServerController {
             run_vo.thread_id = thread_vo.id;
             run_vo.gpt_assistant_id = assistant_vo.gpt_assistant_id;
             run_vo.gpt_thread_id = thread_vo.gpt_thread_id;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
-
-            // à cette étape, le RUN est lancé côté OpenAI, on peut faire les chargements potentiellement nécessaires pour les fonctions
 
             // On récupère les fonctions configurées sur cet assistant
             const { availableFunctions, availableFunctionsParameters }: {
@@ -881,16 +885,78 @@ export default class GPTAssistantAPIServerController {
             } =
                 await GPTAssistantAPIServerController.get_availableFunctions_and_availableFunctionsParameters(assistant_vo, user_id, gpt_thread_id);
 
+            /**
+             * On ajoute les fonctions dédiées à ce run
+             */
+            if (additional_run_tools && additional_run_tools.length) {
+                const promises = [];
+                for (const i in additional_run_tools) {
+                    const tool = additional_run_tools[i];
+                    availableFunctions[tool.gpt_function_name] = tool;
+
+                    promises.push((async () => {
+                        const funct_params = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+                            .filter_by_num_eq(field_names<GPTAssistantAPIFunctionParamVO>().function_id, tool.id)
+                            .exec_as_server()
+                            .select_vos<GPTAssistantAPIFunctionParamVO>();
+                        availableFunctionsParameters[tool.id] = funct_params;
+                    })());
+                }
+                await all_promises(promises);
+            }
+
+            // On ajoute la possibilité de rajouter des fonctions dédiées à un run - en complément des fonctions de l'assistant
+            if (additional_run_tools && additional_run_tools.length) {
+                run_vo.tools = await GPTAssistantAPIServerSyncAssistantsController.get_tools_definition_from_functions(Object.values(availableFunctions));
+            }
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+
+            // On lie le run à la discussion
+            thread_vo.last_gpt_run_id = run_vo.id;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+
+            // Si on a un oselia_run, on le lie
+            if (oselia_run) {
+
+                switch (oselia_run_purpose_state) {
+                    case OseliaRunVO.STATE_SPLITTING:
+                        oselia_run.split_gpt_run_id = run_vo.id;
+                        break;
+                    case OseliaRunVO.STATE_RUNNING:
+                        oselia_run.run_gpt_run_id = run_vo.id;
+                        break;
+                    case OseliaRunVO.STATE_VALIDATING:
+                        oselia_run.validation_gpt_run_id = run_vo.id;
+                        break;
+                    default:
+                        throw new Error('ask_assistant:oselia_run_purpose_state:Not implemented');
+                }
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run);
+            }
+
+            // à cette étape, le RUN est lancé côté OpenAI, on peut faire les chargements potentiellement nécessaires pour les fonctions
+
 
             // On récupère aussi les informations liées au referrer si il y en a un, de manière à préparer l'exécution des fonctions du referre si on en a
             // TODO FIXME : on ne prend en compte que le dernier referrer pour le moment
-            const referrer: OseliaReferrerVO =
-                await query(OseliaReferrerVO.API_TYPE_ID)
-                    .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
-                    .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
-                    .exec_as_server()
-                    .set_limit(1)
-                    .select_vo<OseliaReferrerVO>();
+            const referrer_query = query(OseliaReferrerVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
+                .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
+                .exec_as_server()
+                .set_limit(1);
+            if (referrer_id) {
+                referrer_query.filter_by_id(referrer_id);
+            }
+            let referrer: OseliaReferrerVO = await referrer_query.select_vo<OseliaReferrerVO>();
+
+            if (referrer_id && (!referrer || (referrer.id != referrer_id))) {
+                referrer = await query(OseliaReferrerVO.API_TYPE_ID).filter_by_id(referrer_id).exec_as_server().select_vo<OseliaReferrerVO>();
+                const thread_referrer = new OseliaThreadReferrerVO();
+                thread_referrer.thread_id = thread_vo.id;
+                thread_referrer.referrer_id = referrer.id;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_referrer);
+            }
+
             const referrer_external_apis: OseliaReferrerExternalAPIVO[] = referrer ?
                 await query(OseliaReferrerExternalAPIVO.API_TYPE_ID)
                     .filter_by_id(referrer.id, OseliaReferrerVO.API_TYPE_ID)
@@ -916,6 +982,7 @@ export default class GPTAssistantAPIServerController {
 
             await GPTAssistantAPIServerController.handle_run(
                 run_vo,
+                oselia_run,
                 thread_vo,
                 availableFunctions,
                 availableFunctionsParameters,
@@ -1211,6 +1278,7 @@ export default class GPTAssistantAPIServerController {
 
     private static async handle_run(
         run_vo: GPTAssistantAPIRunVO,
+        oselia_run: OseliaRunVO,
         thread_vo: GPTAssistantAPIThreadVO,
         availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO },
         availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] },
@@ -1257,6 +1325,7 @@ export default class GPTAssistantAPIServerController {
 
                             promises.push((async () => {
                                 let function_response = null;
+                                const oselia_run_function_call_vo = new OseliaRunFunctionCallVO();
 
                                 try {
 
@@ -1325,14 +1394,38 @@ export default class GPTAssistantAPIServerController {
                                                     break;
                                             }
 
-                                            function_response = await ExternalAPIServerController.call_external_api(
-                                                method,
-                                                external_api_url,
-                                                function_args,
-                                                referrer_external_api.external_api_authentication_id,
-                                                referrer_external_api.accept,
-                                                referrer_external_api.content_type,
-                                            );
+                                            await all_promises([
+                                                (async () => {
+                                                    // On stocke l'info qu'on a lancé un appel de fonction externe
+                                                    oselia_run_function_call_vo.creation_date = Dates.now();
+                                                    oselia_run_function_call_vo.oselia_run_id = oselia_run ? oselia_run.id : null;
+                                                    oselia_run_function_call_vo.external_api_id = referrer_external_api.id;
+                                                    oselia_run_function_call_vo.function_call_parameters_initial = JSON.parse(tool_call.function.arguments);
+                                                    oselia_run_function_call_vo.function_call_parameters_transcripted = function_args;
+                                                    oselia_run_function_call_vo.gpt_function_id = function_vo.id;
+                                                    oselia_run_function_call_vo.gpt_run_id = run_vo.id;
+                                                    oselia_run_function_call_vo.start_date = Dates.now();
+                                                    oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;
+                                                    oselia_run_function_call_vo.thread_id = thread_vo.id;
+                                                    oselia_run_function_call_vo.user_id = thread_vo.user_id;
+                                                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+                                                })(),
+                                                (async () => {
+                                                    function_response = await ExternalAPIServerController.call_external_api(
+                                                        method,
+                                                        external_api_url,
+                                                        function_args,
+                                                        referrer_external_api.external_api_authentication_id,
+                                                        referrer_external_api.accept,
+                                                        referrer_external_api.content_type,
+                                                    );
+                                                })()
+                                            ]);
+
+                                            oselia_run_function_call_vo.end_date = Dates.now();
+                                            oselia_run_function_call_vo.result = function_response;
+                                            oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_DONE;
+                                            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
                                             if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
                                                 ConsoleHandler.log('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - REFERRER ExternalAPI Call - answer - ' + JSON.stringify(function_response));
@@ -1345,16 +1438,33 @@ export default class GPTAssistantAPIServerController {
                                             ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - Failed REFERRER ExternalAPI Call - referrer - ' +
                                                 referrer.name + ' - external api name - ' + referrer_external_api.name + ' - error: ' + error);
                                             function_response = "TECHNICAL MALFUNCTION : REFERRER ExternalAPI Call Failed.";
+
+                                            oselia_run_function_call_vo.end_date = Dates.now();
+                                            oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_ERROR;
+                                            oselia_run_function_call_vo.error_msg = error;
+                                            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+
                                             throw new Error('Failed REFERRER ExternalAPI Call - referrer - ' +
                                                 referrer.name + ' - external api name - ' + referrer_external_api.name + ' - error: ' + error);
                                         }
                                     }
 
-                                    const function_to_call: () => Promise<any> = ModulesManager.getInstance().getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME)[function_vo.module_function];
+                                    const module_of_function_to_call = ModulesManager.getInstance().getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
+                                    const function_to_call: () => Promise<any> = module_of_function_to_call[function_vo.module_function];
                                     const ordered_args = function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread_vo, function_args, availableFunctionsParameters[function_vo.id]);
+
+                                    oselia_run_function_call_vo.creation_date = Dates.now();
+                                    oselia_run_function_call_vo.oselia_run_id = oselia_run ? oselia_run.id : null;
+                                    oselia_run_function_call_vo.function_call_parameters_initial = JSON.parse(tool_call.function.arguments);
+                                    oselia_run_function_call_vo.function_call_parameters_transcripted = function_args;
+                                    oselia_run_function_call_vo.gpt_function_id = function_vo.id;
+                                    oselia_run_function_call_vo.gpt_run_id = run_vo.id;
+                                    oselia_run_function_call_vo.thread_id = thread_vo.id;
+                                    oselia_run_function_call_vo.user_id = thread_vo.user_id;
 
                                     // Si la fonction est définie comme utilisant un PromisePipeline, on l'utilise, et on l'initialise si il est pas encore créé
                                     if (function_vo.use_promise_pipeline) {
+                                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
                                         if (!GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id]) {
                                             GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id] = new PromisePipeline(function_vo.promise_pipeline_max_concurrency, 'Oselia-PromisePipeline-' + function_vo.gpt_function_name);
@@ -1363,15 +1473,28 @@ export default class GPTAssistantAPIServerController {
                                         // On attend non seulement le push mais la résolution de la méthode push
                                         await (await GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id].push(async () => {
                                             try {
-                                                function_response = await function_to_call.call(null, ...ordered_args);
+                                                oselia_run_function_call_vo.start_date = Dates.now();
+                                                oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;
+                                                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+
+                                                function_response = await function_to_call.call(module_of_function_to_call, ...ordered_args);
                                             } catch (error) {
                                                 ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - PromisePipeline inner promise - error: ' + error);
                                                 function_response = "TECHNICAL MALFUNCTION : submit_tool_outputs - error: " + error;
                                             }
                                         }))();
                                     } else {
-                                        function_response = await function_to_call.call(null, ...ordered_args);
+                                        oselia_run_function_call_vo.start_date = Dates.now();
+                                        oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;
+                                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+
+                                        function_response = await function_to_call.call(module_of_function_to_call, ...ordered_args);
                                     }
+
+                                    oselia_run_function_call_vo.end_date = Dates.now();
+                                    oselia_run_function_call_vo.result = function_response;
+                                    oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_DONE;
+                                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
                                     function_response = await this.handle_function_response(function_response, tool_outputs, function_vo, tool_call.id);
                                     return;
@@ -1379,6 +1502,11 @@ export default class GPTAssistantAPIServerController {
                                 } catch (error) {
                                     ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - error: ' + error);
                                     function_response = "TECHNICAL MALFUNCTION : submit_tool_outputs - error: " + error;
+
+                                    oselia_run_function_call_vo.end_date = Dates.now();
+                                    oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_ERROR;
+                                    oselia_run_function_call_vo.error_msg = error;
+                                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
                                 }
                                 tool_outputs.push({
                                     tool_call_id: tool_call.id,
@@ -1390,14 +1518,59 @@ export default class GPTAssistantAPIServerController {
 
                         await all_promises(promises);
 
-                        // Submit tool outputs
-                        await GPTAssistantAPIServerController.wrap_api_call(
-                            ModuleGPTServer.openai.beta.threads.runs.submitToolOutputs,
-                            ModuleGPTServer.openai.beta.threads.runs,
-                            thread_vo.gpt_thread_id,
-                            run.id,
-                            { tool_outputs: tool_outputs }
-                        );
+                        // // On doit vérifier que les outputs sont bien limités à 512kb comme demandé par OpenAI
+                        // // (512kb et non kB donc a priori en nombre de lettres ça fait plutôt 512 / 8 = 64k lettres)
+                        // // et si ce n'est pas le cas, on doit les tronquer et ajouter un message d'erreur
+                        // let total_size = 0;
+                        // const max_size = 60 * 1024; // On laisse un peu de marge pour les messages d'erreur et être sûr de ne pas dépasser
+                        // for (const i in tool_outputs) {
+                        //     const this_elt_size = tool_outputs[i].output.length;
+
+                        //     if ((total_size + this_elt_size) > max_size) {
+                        //         tool_outputs[i].output = ((max_size - total_size) > 0) ?
+                        //             tool_outputs[i].output.substring(0, max_size - total_size) :
+                        //             "";
+                        //         tool_outputs[i].output += "[... output too big, truncated to respect OpenAI 512kb limits. try filtering the request ...]";
+                        //     }
+                        //     total_size += this_elt_size;
+                        // }
+
+                        try {
+                            // Submit tool outputs
+                            await GPTAssistantAPIServerController.wrap_api_call(
+                                ModuleGPTServer.openai.beta.threads.runs.submitToolOutputs,
+                                ModuleGPTServer.openai.beta.threads.runs,
+                                thread_vo.gpt_thread_id,
+                                run.id,
+                                { tool_outputs: tool_outputs }
+                            );
+                        } catch (error) {
+
+                            if ((error.status === 400) && error.error && error.error.message && error.error.message.includes('\'tool_outputs\' too large')) {
+
+                                // Submit tool outputs - on a un message d'erreur, on doit tronquer les outputs - mais on sait pas lesquels - on log pour le moment la taille pour en déduire une limite à fixer en amont
+                                let total_size = 0;
+                                for (const i in tool_outputs) {
+                                    const this_elt_size = tool_outputs[i].output.length;
+
+                                    total_size += this_elt_size;
+                                    ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - output size:i:' + i + ':' + this_elt_size + ':total:' + total_size);
+
+                                    tool_outputs[i].output = '[... output too big, truncated to respect OpenAI 512kb limits. try filtering the request ...]';
+                                }
+
+                                await GPTAssistantAPIServerController.wrap_api_call(
+                                    ModuleGPTServer.openai.beta.threads.runs.submitToolOutputs,
+                                    ModuleGPTServer.openai.beta.threads.runs,
+                                    thread_vo.gpt_thread_id,
+                                    run.id,
+                                    { tool_outputs: tool_outputs }
+                                );
+                            } else {
+                                ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - error: ' + error);
+                                throw error;
+                            }
+                        }
                         break;
 
                     } else {

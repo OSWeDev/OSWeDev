@@ -11,6 +11,9 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
+import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
+import ConfigurationService from '../../env/ConfigurationService';
+import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 
 export default class OseliaServerController {
 
@@ -57,6 +60,61 @@ export default class OseliaServerController {
 
         try {
 
+            const assistant = await this.get_prompt_assistant(prompt,);
+            const prompt_string = await this.get_prompt_string(prompt, assistant, user_id, prompt_parameters, thread_title, thread);
+            return await GPTAssistantAPIServerController.ask_assistant(
+                assistant.gpt_assistant_id,
+                thread.gpt_thread_id,
+                thread_title,
+                prompt_string,
+                files,
+                user_id
+            );
+        } catch (error) {
+            ConsoleHandler.error('Error in prompt_oselia', error);
+        }
+
+        return null;
+    }
+
+    public static async get_prompt_assistant(
+        prompt: OseliaPromptVO,
+    ): Promise<GPTAssistantAPIAssistantVO> {
+
+        try {
+
+            if ((!prompt) || (!prompt.prompt)) {
+                ConsoleHandler.error('No prompt provided');
+                return null;
+            }
+
+            let assistant: GPTAssistantAPIAssistantVO = null;
+            if (prompt.default_assistant_id) {
+                assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                    .filter_by_id(prompt.default_assistant_id)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIAssistantVO>();
+            }
+
+            return assistant;
+        } catch (error) {
+            ConsoleHandler.error('Error in get_prompt_assistant', error);
+        }
+
+        return null;
+    }
+
+    public static async get_prompt_string(
+        prompt: OseliaPromptVO,
+        assistant: GPTAssistantAPIAssistantVO,
+        user_id: number,
+        prompt_parameters: { [param_name: string]: string },
+        thread_title: string,
+        thread: GPTAssistantAPIThreadVO = null,
+    ): Promise<string> {
+
+        try {
+
             if ((!prompt) || (!prompt.prompt)) {
                 ConsoleHandler.error('No prompt provided');
                 return null;
@@ -81,14 +139,6 @@ export default class OseliaServerController {
             if (!prompt_string) {
                 ConsoleHandler.error('No prompt string provided');
                 return null;
-            }
-
-            let assistant: GPTAssistantAPIAssistantVO = null;
-            if (prompt.default_assistant_id) {
-                assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
-                    .filter_by_id(prompt.default_assistant_id)
-                    .exec_as_server()
-                    .select_vo<GPTAssistantAPIAssistantVO>();
             }
 
             if (!thread) {
@@ -122,18 +172,12 @@ export default class OseliaServerController {
             }
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
 
-            prompt_string = OseliaServerController.apply_prompt_parameters(prompt_string, prompt_parameters);
-            await GPTAssistantAPIServerController.ask_assistant(
-                assistant.gpt_assistant_id,
-                thread.gpt_thread_id,
-                thread_title,
-                prompt_string,
-                files,
-                user_id
-            );
+            return OseliaServerController.apply_prompt_parameters(prompt_string, prompt_parameters);
         } catch (error) {
-            ConsoleHandler.error('Error in prompt_oselia', error);
+            ConsoleHandler.error('Error in get_prompt_string', error);
         }
+
+        return null;
     }
 
     public static apply_prompt_parameters(
@@ -146,5 +190,27 @@ export default class OseliaServerController {
         }
 
         return res;
+    }
+
+    public static async get_self_referrer(): Promise<OseliaReferrerVO> {
+        const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaReferrerVO>().referrer_origin, ConfigurationService.node_configuration.base_url)
+            .exec_as_server()
+            .select_vo<OseliaReferrerVO>();
+
+        if (!referrer) {
+            ConsoleHandler.error('OseliaServerController:get_self_referrer:Referrer SELF not found !');
+            throw new Error('OseliaServerController:get_self_referrer:Referrer SELF not found !');
+        }
+
+        return referrer;
+    }
+
+    public static async link_thread_to_referrer(thread: GPTAssistantAPIThreadVO, referrer: OseliaReferrerVO) {
+
+        const thread_referrer: OseliaThreadReferrerVO = new OseliaThreadReferrerVO();
+        thread_referrer.thread_id = thread.id;
+        thread_referrer.referrer_id = referrer.id;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_referrer);
     }
 }

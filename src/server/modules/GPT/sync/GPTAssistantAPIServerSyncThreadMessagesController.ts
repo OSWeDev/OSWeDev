@@ -235,14 +235,17 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
             // On met à jour le vo avec les infos de l'objet OpenAI si c'est nécessaire
             // On récupère le poids, en listant les messages du thread dans OpenAI
+            // On ne fait cette recherche que si le vo.weight est null, car sinon on a déjà fait la recherche
             let weight: number = null;
-            const thread_messages: Message[] = await GPTAssistantAPIServerSyncThreadMessagesController.get_all_messages(vo.gpt_thread_id);
-            for (const i in thread_messages) {
-                const thread_message = thread_messages[i];
+            if (vo.weight == null) {
+                const thread_messages: Message[] = await GPTAssistantAPIServerSyncThreadMessagesController.get_all_messages(vo.gpt_thread_id);
+                for (const i in thread_messages) {
+                    const thread_message = thread_messages[i];
 
-                if (thread_message.id == gpt_obj.id) {
-                    weight = parseInt(i);
-                    break;
+                    if (thread_message.id == gpt_obj.id) {
+                        weight = parseInt(i);
+                        break;
+                    }
                 }
             }
             if (GPTAssistantAPIServerSyncThreadMessagesController.thread_message_has_diff(vo, attachments, /*message_contents_full,*/ gpt_obj) || vo.archived) {

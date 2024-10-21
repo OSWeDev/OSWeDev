@@ -25,13 +25,13 @@
             height: 2em;
             width: 100%;
 
-            @if $logo_url {
-                background: url(#{$logo_url});
-            }
-
             background-position: center;
             background-repeat: no-repeat;
             background-size: contain;
+
+            @if $logo_url {
+                background: url(#{$logo_url});
+            }
         }
 
         .login-box-body,
@@ -55,18 +55,6 @@
             .h6 {
                 font-family: 'Source Sans Pro', sans-serif;
             }
-
-            // .form-control:not(select) {
-            //     -webkit-appearance: none;
-            //     -moz-appearance: none;
-            //     appearance: none;
-            // }
-
-            // .form-control {
-            //     border-radius: 0;
-            //     box-shadow: none;
-            //     border-color: #d2d6de;
-            // }
 
             .form-group i {
                 position: relative;

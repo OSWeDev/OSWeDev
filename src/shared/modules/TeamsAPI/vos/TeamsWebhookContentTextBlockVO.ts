@@ -29,7 +29,8 @@ export default class TeamsWebhookContentTextBlockVO {
          * On traduit le HTML en markdown pour Teams
          */
 
-        this.text = TeamsWebhookContentTextBlockVO.nhm.translate(text);
+        // this.text = TeamsWebhookContentTextBlockVO.nhm.translate(text);
+        this.text = text;
         return this;
     }
 

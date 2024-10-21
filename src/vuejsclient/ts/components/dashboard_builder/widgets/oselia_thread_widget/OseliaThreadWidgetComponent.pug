@@ -95,10 +95,11 @@
                                 .thread_message_input_voice 
                                     button.fa-solid.fa-microphone(v-on:click='start_voice_record')
                             .thread_message_input_file_system
+                            .thread_message_input_button.thread_message_input_file_system
                                 button.fa-solid.fa-files(v-on:click='open_file_system_upload')
-                            .thread_message_input_file
+                            .thread_message_input_button.thread_message_input_file
                                 button.fa-solid.fa-paperclip(v-on:click='open_file_upload')
-                            .thread_message_input_image
+                            .thread_message_input_button.thread_message_input_image
                                 button.fa-solid.fa-images(v-on:click='open_image_upload')
                                 template(v-if="enable_image_upload_menu")
                                     .image_upload_menu
@@ -108,8 +109,13 @@
                                         .image_upload_menu_item(v-on:click='open_link_image')
                                             i.fa-duotone.fa-images
                                             | {{ label('oselia_thread_widget_component.image_upload_menu_item.link') }}
-                            .thread_message_expand
+                            .thread_message_input_button.thread_message_expand
                                 button.fa-solid.fa-up-right-and-down-left-from-center(v-on:click='expand_window')
+                            .thread_message_input_button.thread_message_debug(v-if="has_access_to_debug")
+                                template(v-if="!get_show_hidden_messages")
+                                    button.fa-solid.fa-bug(v-on:click='switch_show_hidden_messages')
+                                template(v-else)
+                                    button.fa-solid.fa-bug-slash(v-on:click='switch_show_hidden_messages')
                                 
                         .thread_message_input_send
                             template(v-if='get_too_many_assistants')

@@ -333,14 +333,14 @@ export default class ModuleGPT extends Module {
 
     private initializeGPTAssistantAPIAssistantVO() {
 
-        const label = ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().gpt_assistant_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().gpt_assistant_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
 
-        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().nom, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const label = ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().nom, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
 
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().model, ModuleTableFieldVO.FIELD_TYPE_string, 'Modèle', false);
-        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().instructions, ModuleTableFieldVO.FIELD_TYPE_string, 'Instructions', true);
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().instructions, ModuleTableFieldVO.FIELD_TYPE_textarea, 'Instructions', true);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().tools_code_interpreter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Outils - Interpréteur de code', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().tools_file_search, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Outils - Recherche de fichiers', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().tools_functions, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Outils - Fonctions', true, true, false);
@@ -513,11 +513,16 @@ export default class ModuleGPT extends Module {
         const current_oselia_assistant_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().current_oselia_assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant Osélia en cours de run', false);
         const current_oselia_prompt_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().current_oselia_prompt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Prompt Osélia en cours de réponse', false);
 
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().parent_thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Thread parent', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
+
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().oselia_is_running, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Osélia en cours de réflexion', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().tool_resources, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Ressources des outils', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().metadata, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Métadonnées', false);
+
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().has_no_run_ready_to_handle, ModuleTableFieldVO.FIELD_TYPE_boolean, 'N\'a pas de run prêt à être traité', true, true, false);
 
         const label = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().thread_title, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre du thread', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().needs_thread_title_build, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Dois build le titre', true, true, false);
@@ -525,6 +530,9 @@ export default class ModuleGPT extends Module {
 
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().has_content, ModuleTableFieldVO.FIELD_TYPE_boolean, 'N\'est pas vide', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().oswedev_created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création OsWeDev', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
+
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().last_gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dernier run GPT', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunVO.API_TYPE_ID);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIThreadVO, label, 'GPT Assistant API - Thread');
 

@@ -26,7 +26,6 @@
                 "allowEmptyCase": true
             }
         ],
-        "no-case-declarations": "warn",
         "no-unused-vars": "off",
         "@stylistic/comma-dangle": [
             "warn",
@@ -59,6 +58,7 @@
         "no-async-promise-executor": "off",
         "no-useless-escape": "warn",
         "prefer-const": "warn",
-        "no-extra-boolean-cast": "off"
+        "no-extra-boolean-cast": "off",
+        "no-case-declarations": "off"
     }
 }

@@ -19,6 +19,7 @@ import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
 import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIThreadMessageContentImageFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentImageFileVO';
 import GPTAssistantAPIThreadMessageContentVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
@@ -28,13 +29,18 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
 import OseliaController from '../../../shared/modules/Oselia/OseliaController';
 import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
+import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
+import OseliaThreadCacheVO from '../../../shared/modules/Oselia/vos/OseliaThreadCacheVO';
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 import OseliaUserReferrerOTTVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerOTTVO';
 import OseliaUserReferrerVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerVO';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
+import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import ExternalAPIServerController from '../API/ExternalAPIServerController';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -57,17 +63,17 @@ import GPTAssistantAPIServerSyncAssistantsController from '../GPT/sync/GPTAssist
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import OseliaRunServerController from './OseliaRunServerController';
 import OseliaServerController from './OseliaServerController';
 import OseliaOldRunsResyncBGThread from './bgthreads/OseliaOldRunsResyncBGThread';
 import GPTAssistantAPIThreadMessageContentTextVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentTextVO';
 import PushDataServerController from '../PushData/PushDataServerController';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
-import StackContext from '../../StackContext';
 import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
-import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO';
 import SocketWrapper from '../PushData/vos/SocketWrapper';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
+import OseliaRunBGThread from './bgthreads/OseliaRunBGThread';
 import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuilderBGThread';
 import EnvHandler from '../../../shared/tools/EnvHandler';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
@@ -188,6 +194,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaThreadTitleBuilderBGThread.getInstance());
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaOldRunsResyncBGThread.getInstance());
+        ModuleBGThreadServer.getInstance().registerBGThread(OseliaRunBGThread.getInstance());
 
         ForkedTasksController.register_task(ModuleOseliaServer.TASK_NAME_clear_reapply_referrers_triggers_OnThisThread, this.clear_reapply_referrers_triggers_OnThisThread.bind(this));
         // ForkedTasksController.register_task(ModuleOseliaServer.TASK_NAME_init_missing_thread_titles, this.init_missing_thread_titles.bind(this));
@@ -208,6 +215,14 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         postCreateTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
         postUpdateTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
         postDeleteTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
+
+        postCreateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.reset_has_no_run_ready_to_handle_on_thread);
+        postUpdateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.reset_has_no_run_ready_to_handle_on_thread_on_u);
+        postDeleteTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.reset_has_no_run_ready_to_handle_on_thread);
+
+        postUpdateTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, this, this.update_oselia_run_step_on_u_gpt_run);
+
+        postUpdateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.update_parent_oselia_run_step_on_u_oselia_run);
 
         preCreateTrigger.registerHandler(ExternalAPIAuthentificationVO.API_TYPE_ID, this, this.init_api_key_from_mdp);
         preUpdateTrigger.registerHandler(ExternalAPIAuthentificationVO.API_TYPE_ID, this, this.init_api_key_from_mdp_preu);
@@ -363,7 +378,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 });
 
             const data = (response as ChatCompletion).choices[0];
-            ConsoleHandler.log('Images analysé avec succès : ' + file_vo.path)
+            ConsoleHandler.log('Images analysé avec succès : ' + file_vo.path);
             return data.message.content;
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:analyse_image:Error while analysing image:" + error);
@@ -432,7 +447,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
                     const new_thread = (await GPTAssistantAPIServerController.get_thread(null, null, assistant.id)).thread_vo;
 
-                    const file_name = 'oselia_' + new_thread.gpt_thread_id + '.txt'
+                    const file_name = 'oselia_' + new_thread.gpt_thread_id + '.txt';
                     const text_file = new FileVO();
                     text_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
                     text_file.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(text_file)).id;
@@ -467,9 +482,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     ): Promise<string> {
         try {
             // On envoie une notification à Teams
-            const open_oselia: ActionURLVO = await TeamsAPIServerController.create_action_button_open_oselia(thread_vo.id);
-            const action_button_teams = new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Osélia');
-            await TeamsAPIServerController.send_teams_oselia_info(title, content, thread_vo.id, [action_button_teams]);
+            await TeamsAPIServerController.send_teams_oselia_info(title, content, thread_vo.id);
             return 'Message envoyé';
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:send_message_to_teams_info_oselia:Error while sending message to Teams:" + error);
@@ -484,9 +497,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     ): Promise<string> {
         try {
             // On envoie une notification à Teams
-            const open_oselia: ActionURLVO = await TeamsAPIServerController.create_action_button_open_oselia(thread_vo.id);
-            const action_button_teams = new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Osélia');
-            await TeamsAPIServerController.send_teams_oselia_warn(title, content, thread_vo.id, [action_button_teams]);
+            await TeamsAPIServerController.send_teams_oselia_warn(title, content, thread_vo.id);
             return 'Message envoyé';
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:send_message_to_teams_warn_oselia:Error while sending message to Teams:" + error);
@@ -501,9 +512,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     ): Promise<string> {
         try {
             // On envoie une notification à Teams
-            const open_oselia: ActionURLVO = await TeamsAPIServerController.create_action_button_open_oselia(thread_vo.id);
-            const action_button_teams = new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Osélia');
-            await TeamsAPIServerController.send_teams_oselia_success(title, content, thread_vo.id, [action_button_teams]);
+            await TeamsAPIServerController.send_teams_oselia_success(title, content, thread_vo.id);
             return 'Message envoyé';
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:send_message_to_teams_success_oselia:Error while sending message to Teams:" + error);
@@ -518,9 +527,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     ): Promise<string> {
         try {
             // On envoie une notification à Teams
-            const open_oselia: ActionURLVO = await TeamsAPIServerController.create_action_button_open_oselia(thread_vo.id);
-            const action_button_teams = new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Osélia');
-            await TeamsAPIServerController.send_teams_oselia_error(title, content, thread_vo.id, [action_button_teams]);
+            await TeamsAPIServerController.send_teams_oselia_error(title, content, thread_vo.id);
             return 'Message envoyé';
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:send_message_to_teams_error_oselia:Error while sending message to Teams:" + error);
@@ -681,6 +688,374 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         return ActionURLServerTools.create_info_cr(action_url, 'Redirection vers la discussion avec Osélia');
     }
 
+    /**
+     * Fonction pour l'assistant qui permet de valider un run oselia
+     * @param thread_vo le thread qui gère la discussion avec l'assistant
+     */
+    public async validate_oselia_run(
+        thread_vo: GPTAssistantAPIThreadVO,
+    ): Promise<string> {
+        if ((!thread_vo) || (!thread_vo.last_gpt_run_id)) {
+            ConsoleHandler.error('validate_oselia_run:Impossible de trouver le thread ou le dernier run gpt:' + JSON.stringify(thread_vo));
+            return 'ERREUR: Impossible de trouver le thread ou le dernier run gpt. Il peut être pertinent de retenter un appel à la fonction';
+        }
+
+        const gpt_run = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
+            .filter_by_id(thread_vo.last_gpt_run_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIRunVO>();
+
+        if (!gpt_run) {
+            ConsoleHandler.error('validate_oselia_run:Impossible de trouver le run gpt:' + thread_vo.last_gpt_run_id);
+            return 'ERREUR: Impossible de trouver le run gpt. Il peut être pertinent de retenter un appel à la fonction';
+        }
+
+        const oselia_run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
+        if (!oselia_run) {
+            ConsoleHandler.error('validate_oselia_run:Impossible de trouver le run oselia associé au run gpt:' + gpt_run.id);
+            return 'ERREUR: Impossible de trouver le run oselia associé au run gpt. Il peut être pertinent de retenter un appel à la fonction';
+        }
+
+        await OseliaRunServerController.update_oselia_run_state(oselia_run, OseliaRunVO.STATE_VALIDATION_ENDED);
+        return 'OK - Run validé';
+    }
+
+    /**
+     * Fonction pour l'assistant qui permet de refuser un run oselia et demander une nouvelle exécution avec un prompt modifié
+     * @param thread_vo le thread qui gère la discussion avec l'assistant
+     * @param rerun_reason la raison du rerun - version longue
+     * @param rerun_name le nom du rerun - la raison en très court
+     * @param rerun_new_initial_prompt le nouveau prompt qui permettra de corriger le run
+     */
+    public async refuse_oselia_run(
+        thread_vo: GPTAssistantAPIThreadVO,
+        rerun_reason: string,
+        rerun_name: string,
+        rerun_new_initial_prompt: string,
+    ): Promise<string> {
+        if ((!thread_vo) || (!thread_vo.last_gpt_run_id)) {
+            ConsoleHandler.error('refuse_oselia_run:Impossible de trouver le thread ou le dernier run gpt:' + JSON.stringify(thread_vo));
+            return 'ERREUR: Impossible de trouver le thread ou le dernier run gpt. Il peut être pertinent de retenter un appel à la fonction';
+        }
+
+        const gpt_run = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
+            .filter_by_id(thread_vo.last_gpt_run_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIRunVO>();
+
+        if (!gpt_run) {
+            ConsoleHandler.error('refuse_oselia_run:Impossible de trouver le run gpt:' + thread_vo.last_gpt_run_id);
+            return 'ERREUR: Impossible de trouver le run gpt. Il peut être pertinent de retenter un appel à la fonction';
+        }
+
+        const oselia_run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
+        if (!oselia_run) {
+            ConsoleHandler.error('refuse_oselia_run:Impossible de trouver le run oselia associé au run gpt:' + gpt_run.id);
+            return 'ERREUR: Impossible de trouver le run oselia associé au run gpt. Il peut être pertinent de retenter un appel à la fonction';
+        }
+
+        oselia_run.rerun_new_initial_prompt = rerun_new_initial_prompt;
+        oselia_run.rerun_reason = rerun_reason;
+        oselia_run.rerun_name = rerun_name;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run);
+        await OseliaRunServerController.update_oselia_run_state(oselia_run, OseliaRunVO.STATE_NEEDS_RERUN);
+
+        return 'OK - Run refusé et demande de rerun effectuée';
+    }
+
+    /**
+     * Fonction pour charger un assistant depuis son nom
+     * @param thread_vo le thread qui gère la discussion avec l'assistant
+     * @param assistant_name le nom de l'assistant à charger
+     */
+    public async get_assistant(
+        thread_vo: GPTAssistantAPIThreadVO,
+        assistant_name: string,
+    ): Promise<string> {
+        if (!thread_vo) {
+            ConsoleHandler.error('get_assistant:Impossible de trouver le thread:' + JSON.stringify(thread_vo));
+            return 'ERREUR TECHNIQUE: Impossible de trouver le thread. Il peut être pertinent de retenter un appel à la fonction';
+        }
+
+        const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIAssistantVO>().nom, assistant_name)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIRunVO>();
+
+        if (!assistant) {
+            ConsoleHandler.error('get_assistant:Impossible de trouver l\'assistant:' + assistant_name);
+            return 'ERREUR: Impossible de trouver l\'assistant par son nom. Corriger et relancer la fonction';
+        }
+
+        return JSON.stringify(assistant);
+    }
+
+
+    /**
+     * La méthode qui devient une fonction pour l'assistant et qui permet de définir les tâches à venir
+     * @param thread_vo le thread qui gère la discussion avec l'assistant
+     * @param name le nom de la tâche
+     * @param prompt le prompt de la tâche
+     * @param weight le poids de la tâche - pour l'ordre d'exécution
+     * @param use_validator si la tâche doit être validée automatiquement - par défaut non
+     * @param hide_outputs si les sorties doivent être cachées - par défaut non
+     * @param in_a_separate_thread si la tâche doit être exécutée dans un thread séparé - par défaut non
+     * @param assistant_id l'id de l'assistant à utiliser pour la tâche - par défaut 0 ou null pour indiquer l'assistant actuel
+     */
+    public async append_new_child_run_step(
+        thread_vo: GPTAssistantAPIThreadVO,
+        name: string,
+        prompt: string,
+        weight: number,
+        use_splitter: boolean,
+        childrens_are_multithreaded: boolean,
+        use_validator: boolean,
+        hide_outputs: boolean,
+        in_a_separate_thread: boolean,
+        assistant_id: number,
+    ): Promise<string> {
+
+        try {
+
+            // !! FIXME TODO on refuse le split par l'assistant par ce qu'il fait nimp avec ça pour le moment
+            use_splitter = false;
+            // !! FIXME TODO on refuse le split par l'assistant par ce qu'il fait nimp avec ça pour le moment
+
+            if (!name) {
+                ConsoleHandler.error('append_new_child_run_step:Name is mandatory');
+                return 'ERREUR: Le nom est obligatoire. Corriger et relancer la fonction';
+            }
+
+            if (!prompt) {
+                ConsoleHandler.error('append_new_child_run_step:Prompt is mandatory');
+                return 'ERREUR: Le prompt est obligatoire. Corriger et relancer la fonction';
+            }
+
+            if (weight == null) {
+                ConsoleHandler.error('append_new_child_run_step:Weight is mandatory');
+                return 'ERREUR: Le poids est obligatoire. Corriger et relancer la fonction';
+            }
+
+            if ((!thread_vo) || (!thread_vo.last_gpt_run_id)) {
+                ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le thread ou le dernier run gpt:' + JSON.stringify(thread_vo));
+                return 'ERREUR: Impossible de trouver le thread ou le dernier run gpt. Il peut être pertinent de retenter un appel à la fonction';
+            }
+
+            const gpt_run = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
+                .filter_by_id(thread_vo.last_gpt_run_id)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIRunVO>();
+
+            if (!gpt_run) {
+                ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run gpt:' + thread_vo.last_gpt_run_id);
+                return 'ERREUR: Impossible de trouver le run gpt. Il peut être pertinent de retenter un appel à la fonction';
+            }
+
+            const oselia_run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
+            if (!oselia_run) {
+                ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run oselia associé au run gpt:' + gpt_run.id);
+                return 'ERREUR: Impossible de trouver le run oselia associé au run gpt. Il peut être pertinent de retenter un appel à la fonction';
+            }
+
+            const prefix_prompt_step_oselia = await ModuleParams.getInstance().getParamValueAsString(OseliaRunServerController.PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX);
+
+            if (!prefix_prompt_step_oselia) {
+                ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le paramètre de configuration:' + OseliaRunServerController.PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX);
+                return 'ERREUR: Impossible de trouver le paramètre de configuration. Il peut être pertinent de retenter un appel à la fonction';
+            }
+
+            const new_run_step = new OseliaRunVO();
+
+            // Si un assistant_id est fourni on le teste
+            if ((!!assistant_id) && (assistant_id != gpt_run.assistant_id)) {
+                const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                    .filter_by_id(assistant_id)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIAssistantVO>();
+
+                if (!assistant) {
+                    ConsoleHandler.error('append_new_child_run_step:Assistant not found:' + assistant_id);
+                    return 'ERREUR: Assistant [id:' + assistant_id + '] non trouvé. Corriger et relancer la fonction';
+                }
+            }
+
+            new_run_step.assistant_id = (!!assistant_id) ? assistant_id : gpt_run.assistant_id;
+
+            new_run_step.thread_id = in_a_separate_thread ? null : thread_vo.id;
+            new_run_step.parent_run_id = oselia_run.id;
+            new_run_step.childrens_are_multithreaded = (childrens_are_multithreaded == null) ? false : childrens_are_multithreaded;
+            new_run_step.file_id_ranges = oselia_run.file_id_ranges;
+            new_run_step.hide_outputs = (hide_outputs == null) ? false : hide_outputs;
+            new_run_step.hide_prompt = true;
+            new_run_step.initial_content_text = prefix_prompt_step_oselia + prompt;
+            new_run_step.initial_prompt_id = null;
+            new_run_step.initial_prompt_parameters = null;
+            new_run_step.name = name;
+            new_run_step.parent_run_id = oselia_run.id;
+            new_run_step.start_date = Dates.now();
+            new_run_step.state = OseliaRunVO.STATE_TODO;
+            new_run_step.thread_title = null;
+            new_run_step.use_splitter = (use_splitter == null) ? false : use_splitter;
+            new_run_step.use_validator = (use_validator == null) ? false : use_validator;
+            new_run_step.user_id = oselia_run.user_id;
+            new_run_step.weight = weight;
+            new_run_step.referrer_id = oselia_run.referrer_id;
+
+
+            if (in_a_separate_thread) {
+                // On le crée tout de suite pour le lien en parent au thread actuel
+                const thread: {
+                    thread_gpt: Thread;
+                    thread_vo: GPTAssistantAPIThreadVO;
+                } = await GPTAssistantAPIServerController.get_thread(new_run_step.user_id, null, new_run_step.assistant_id);
+
+                const referrers = await query(OseliaReferrerVO.API_TYPE_ID)
+                    .filter_by_id(thread_vo.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
+                    .exec_as_server()
+                    .select_vos<OseliaReferrerVO>();
+                if (!!referrers) {
+                    for (const referrer of referrers) {
+                        await OseliaServerController.link_thread_to_referrer(thread_vo, referrer);
+                    }
+                }
+
+                new_run_step.thread_id = thread.thread_vo.id;
+                thread.thread_vo.thread_title = (thread_vo.thread_title ? '[SUB] ' + thread_vo.thread_title + ' : ' : '[SUB] ') + new_run_step.name;
+                thread.thread_vo.needs_thread_title_build = false;
+                thread.thread_vo.thread_title_auto_build_locked = true;
+                thread.thread_vo.parent_thread_id = thread_vo.id;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread.thread_vo);
+            }
+
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_run_step);
+
+            return 'OK - Tâche ajoutée';
+        } catch (error) {
+            ConsoleHandler.error("ModuleOseliaServer:append_new_child_run_step:Error while appending new child run step:" + error);
+            return "Erreur lors de l'ajout de la tâche:" + error + ". Il peut être pertinent de corriger si possible et de retenter un appel à la fonction";
+        }
+    }
+
+    /**
+     * Fonction pour interroger le cache du thread (ou du thread parent de manière récursive)
+     * @param thread_vo
+     * @param key
+     * @returns en priorité la valeur du cache local au thread si on trouve, sinon on cherche dans le cache du thread parent, et si on trouve rien c'est null.
+     */
+    public async get_cache_value(
+        thread_vo: GPTAssistantAPIThreadVO,
+        key: string,
+    ): Promise<string> {
+
+        /**
+         * Par défaut on cherche en local et si on trouve pas on cherche chez le thread_parent si yen a un
+         */
+
+        if (!thread_vo) {
+            ConsoleHandler.error('get_cache_value:Thread not found');
+            return 'ERREUR Technique: Thread non trouvé: réeesayer';
+        }
+
+        if (!key) {
+            ConsoleHandler.error('get_cache_value:Key is mandatory');
+            return 'ERREUR: La clé est obligatoire: corriger et réessayer';
+        }
+
+        const cache = await query(OseliaThreadCacheVO.API_TYPE_ID)
+            .filter_by_id(thread_vo.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaThreadCacheVO>().key, key)
+            .exec_as_server()
+            .select_vo<OseliaThreadCacheVO>();
+
+        if (cache) {
+            return cache.value;
+        }
+
+        if (!thread_vo.parent_thread_id) {
+            return null;
+        }
+
+        const parent_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(thread_vo.parent_thread_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!parent_thread) {
+            ConsoleHandler.error('get_cache_value:Parent thread not found');
+            return 'ERREUR Technique: Thread parent non trouvé: réeesayer';
+        }
+
+        return await this.get_cache_value(parent_thread, key);
+    }
+
+    /**
+     * Fonction pour mettre à jour le cache du thread (ou des threads parents à la demande)
+     * @param thread_vo
+     * @param key
+     * @param value la valeur à mettre à jour au format string
+     * @param thread_id si on veut mettre à jour le cache d'un autre thread que le thread actuel (uniquement un thread parent de celui-ci)
+     * @returns OK , KO
+     */
+    public async set_cache_value(
+        thread_vo: GPTAssistantAPIThreadVO,
+        key: string,
+        value: string,
+        thread_id: number,
+    ): Promise<string> {
+
+        if (!thread_vo) {
+            ConsoleHandler.error('set_cache_value:Thread not found');
+            return 'ERREUR Technique: Thread non trouvé: réeesayer';
+        }
+
+        if (!key) {
+            ConsoleHandler.error('set_cache_value:Key is mandatory');
+            return 'ERREUR: La clé est obligatoire: corriger et réessayer';
+        }
+
+        // Si on fourni un thread_id, on doit check qu'il existe et qu'il s'agit d'un thread parent du thread actuel
+        if ((!!thread_id) && (thread_id != thread_vo.id)) {
+
+            let thread_parent_id = thread_vo.parent_thread_id;
+            while (thread_parent_id && (thread_parent_id != thread_id)) {
+                const thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                    .filter_by_id(thread_id)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIThreadVO>();
+
+                if (!thread) {
+                    ConsoleHandler.error('set_cache_value:Thread not found:' + thread_id);
+                    return 'ERREUR: Thread non trouvé: corriger et réeesayer';
+                }
+                thread_parent_id = thread.parent_thread_id;
+            }
+
+            if (!thread_parent_id) {
+                ConsoleHandler.error('set_cache_value:Thread not parent of thread:' + thread_id);
+                return 'ERREUR: Thread non parent du thread: corriger et réeesayer';
+            }
+        }
+
+        // Si on fourni pas de thread_id, on prend le thread actuel
+        thread_id = (!!thread_id) ? thread_id : thread_vo.id;
+
+        let cache = await query(OseliaThreadCacheVO.API_TYPE_ID)
+            .filter_by_id(thread_id, GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaThreadCacheVO>().key, key)
+            .exec_as_server()
+            .select_vo<OseliaThreadCacheVO>();
+
+        if (!cache) {
+            cache = new OseliaThreadCacheVO();
+            cache.thread_id = thread_id;
+            cache.key = key;
+        }
+
+        cache.value = value;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cache);
+
+        return 'OK';
+    }
 
     private async set_screen_track(track: MediaStreamTrack): Promise<void> {
         ModuleOseliaServer.screen_track = track;
@@ -1842,4 +2217,285 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     //     }
     //     await promise_pipeline.end();
     // }
+
+    private async reset_has_no_run_ready_to_handle_on_thread(run: OseliaRunVO) {
+        if ((!run) || (!run.thread_id)) {
+            return;
+        }
+
+        const thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(run.thread_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!thread) {
+            return;
+        }
+
+        thread.has_no_run_ready_to_handle = false;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
+    }
+
+    private async reset_has_no_run_ready_to_handle_on_thread_on_u(vo_holder: DAOUpdateVOHolder<OseliaRunVO>) {
+        await this.reset_has_no_run_ready_to_handle_on_thread(vo_holder.post_update_vo);
+    }
+
+    private async update_oselia_run_step_on_u_gpt_run(vo_holder: DAOUpdateVOHolder<GPTAssistantAPIRunVO>) {
+        const gpt_run: GPTAssistantAPIRunVO = vo_holder.post_update_vo;
+
+        if (!gpt_run) {
+            return;
+        }
+
+        // On update uniquement si le gpt_run est terminé
+        if (
+            (gpt_run.status != GPTAssistantAPIRunVO.STATUS_COMPLETED) &&
+            (gpt_run.status != GPTAssistantAPIRunVO.STATUS_CANCELLED) &&
+            (gpt_run.status != GPTAssistantAPIRunVO.STATUS_CANCELLING) &&
+            (gpt_run.status != GPTAssistantAPIRunVO.STATUS_EXPIRED) &&
+            (gpt_run.status != GPTAssistantAPIRunVO.STATUS_FAILED)
+        ) {
+            return;
+        }
+
+        const run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
+
+        if (!run) {
+            return;
+        }
+
+        // Si le run GPT est en erreur, on met le run Osélia en erreur
+        switch (gpt_run.status) {
+            case GPTAssistantAPIRunVO.STATUS_CANCELLED:
+            case GPTAssistantAPIRunVO.STATUS_CANCELLING:
+                if (gpt_run.last_error && gpt_run.last_error.message) {
+                    run.error_msg = gpt_run.last_error.code + ':' + gpt_run.last_error.message;
+                }
+                await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_CANCELLED);
+                return;
+            case GPTAssistantAPIRunVO.STATUS_EXPIRED:
+                if (gpt_run.last_error && gpt_run.last_error.message) {
+                    run.error_msg = gpt_run.last_error.code + ':' + gpt_run.last_error.message;
+                }
+                await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_EXPIRED);
+                return;
+            case GPTAssistantAPIRunVO.STATUS_FAILED:
+                if (gpt_run.last_error && gpt_run.last_error.message) {
+                    run.error_msg = gpt_run.last_error.code + ':' + gpt_run.last_error.message;
+                }
+                await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
+                return;
+        }
+
+        let needs_update = true;
+        let new_state = null;
+        switch (run.state) {
+            case OseliaRunVO.STATE_NEEDS_RERUN:
+                // On doit relancer le run du coup suite à la fait du gpt_run
+                // On crée un nouveau OseliaRun en weight +1 et on décale tous les runs (suivants) de ce niveau de 1
+                const current_level_next_runs = await query(OseliaRunVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<OseliaRunVO>().parent_run_id, run.parent_run_id)
+                    .filter_by_num_sup(field_names<OseliaRunVO>().weight, run.weight)
+                    .exec_as_server()
+                    .select_vos<OseliaRunVO>();
+                for (const i in current_level_next_runs) {
+                    current_level_next_runs[i].weight++;
+                }
+                await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(current_level_next_runs);
+
+                new_state = OseliaRunVO.STATE_RERUN_ASKED;
+
+                const rerun = new OseliaRunVO();
+                rerun.assistant_id = run.assistant_id;
+                rerun.childrens_are_multithreaded = run.childrens_are_multithreaded;
+                rerun.file_id_ranges = run.file_id_ranges;
+                rerun.hide_outputs = run.hide_outputs;
+                rerun.hide_prompt = run.hide_prompt;
+                rerun.initial_content_text = run.rerun_new_initial_prompt;
+                rerun.initial_prompt_id = null;
+                rerun.initial_prompt_parameters = null;
+                rerun.name = run.rerun_name;
+                rerun.parent_run_id = run.parent_run_id;
+                rerun.weight = run.weight + 1;
+                rerun.user_id = run.user_id;
+                rerun.state = OseliaRunVO.STATE_TODO;
+                rerun.start_date = Dates.now();
+                rerun.thread_id = run.thread_id;
+                rerun.rerun_of_run_id = run.id;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rerun);
+                break;
+            case OseliaRunVO.STATE_SPLITTING:
+
+                const children = await query(OseliaRunVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<OseliaRunVO>().parent_run_id, run.id)
+                    .exec_as_server()
+                    .select_vos<OseliaRunVO>();
+                if ((!children) || (children.length == 0)) {
+                    // Si on a pas d'enfants, il y a eu une erreur dans le gpt_run dédié au split, qui visiblement n'a pas fait son taf correctement
+                    run.error_msg = 'No children runs created on a split run, but gpt_run is ended';
+                    // FIXME TODO on pourrait ajouter des actions urls en fait au message pour proposer de reboot le split / run
+                    await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
+                    return;
+                }
+
+                run.split_end_date = Dates.now();
+                run.waiting_split_end_start_date = Dates.now();
+                new_state = OseliaRunVO.STATE_WAITING_SPLITS_END; // on a pas vraiment besoin du STATE_SPLIT_ENDED, on passe en STATE_WAITING_SPLITS_END directement (et donc les 2 dates)
+                break;
+            case OseliaRunVO.STATE_RUNNING:
+                new_state = OseliaRunVO.STATE_RUN_ENDED;
+                run.run_end_date = Dates.now();
+
+                /**
+                 * Si le run a généré des splitts dont on attend l'exec, on doit passer en STATE_WAITING_SPLITS_END plutôt que en run_ended
+                 */
+                const children_post_run = await query(OseliaRunVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<OseliaRunVO>().parent_run_id, run.id)
+                    .exec_as_server()
+                    .select_vos<OseliaRunVO>();
+                if ((!children_post_run) || (children_post_run.length == 0)) {
+                    break;
+                }
+
+                let all_children_ended = true;
+                for (const i in children_post_run) {
+                    if (OseliaRunBGThread.END_STATES.indexOf(children_post_run[i].state) < 0) {
+                        all_children_ended = false;
+                        break;
+                    }
+                }
+
+                if (!all_children_ended) {
+                    new_state = OseliaRunVO.STATE_WAITING_SPLITS_END;
+                    run.waiting_split_end_start_date = Dates.now();
+                }
+
+                break;
+            case OseliaRunVO.STATE_VALIDATING:
+
+                // Si on arrive ici, c'est que le gpt_run de validation s'est terminé SANS validation, donc a priori on a un souci à résoudre,
+                //  et pour autant, il n'y a pas eu de relance automatique du prompt avec correctif
+
+                // On tente de relancer le run avec un prompt de correction indiquant qu'il faut dans tous les cas valider ou refuser mais on peut pas rester comme ça
+                ConsoleHandler.warn('update_oselia_run_step_on_u_gpt_run:Validation GPT Run ended without validation or rerun. This is unexpected:' + run.id + ': auto rerun');
+
+                const assistant = await OseliaRunServerController.get_run_assistant(run);
+                const thread = await OseliaRunServerController.get_run_thread(run, assistant);
+                const files = await OseliaRunServerController.get_run_files(run);
+
+                const validate_run_function = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleOseliaServer.getInstance().name)
+                    .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_function, reflect<ModuleOseliaServer>().validate_oselia_run)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIFunctionVO>();
+                const refuse_run_function = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleOseliaServer.getInstance().name)
+                    .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_function, reflect<ModuleOseliaServer>().refuse_oselia_run)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIFunctionVO>();
+
+                if ((!validate_run_function) || (!refuse_run_function)) {
+                    throw new Error('validate_run:forgot to validate: No validate_run_function or refuse_run_function found');
+                }
+
+                const prompt_prefix_validator = await ModuleParams.getInstance().getParamValueAsString(
+                    OseliaRunServerController.PARAM_NAME_REMEMBER_TO_VALIDATE_PROMPT_PREFIX,
+                    'Il est obligatoire de valider ou refuser explicitement le run en appelant la fonction validate_run_function ou refuse_run_function.'
+                );
+
+                await GPTAssistantAPIServerController.ask_assistant(
+                    assistant.gpt_assistant_id,
+                    thread.gpt_thread_id,
+                    run.thread_title,
+                    prompt_prefix_validator,
+                    files,
+                    run.user_id,
+                    true,
+                    run,
+                    run.state,
+                    [validate_run_function, refuse_run_function],
+                    run.referrer_id,
+                );
+
+                needs_update = false;
+                // //  je sais pas exactement ce que ça veut dire pour le moment, on va en faire un échec, une erreur de validation, et on verra si ça prend du sens par la suite
+                // run.error_msg = 'Validation GPT Run ended without validation or rerun. This is unexpected.';
+                // await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
+                break;
+            default:
+                needs_update = false;
+                // throw new Error('update_oselia_run_step_on_u_gpt_run:Unexpected run state:' + run.state + ':' + run.id);
+                break;
+        }
+
+        if (needs_update) {
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run);
+        }
+
+        if (new_state != null) {
+            await OseliaRunServerController.update_oselia_run_state(run, new_state);
+        }
+    }
+
+    private async update_parent_oselia_run_step_on_u_oselia_run(vo_holder: DAOUpdateVOHolder<OseliaRunVO>) {
+        const run_vo = vo_holder.post_update_vo;
+
+        if (!run_vo) {
+            return;
+        }
+
+        // Pas de parent, on ne fait rien
+        if (!run_vo.parent_run_id) {
+            return;
+        }
+
+        // Si on a pas terminé ce run, on ne fait rien
+        if (OseliaRunBGThread.END_STATES.indexOf(run_vo.state) < 0) {
+            return;
+        }
+
+        const parent_run = await query(OseliaRunVO.API_TYPE_ID)
+            .filter_by_id(run_vo.parent_run_id)
+            .exec_as_server()
+            .select_vo<OseliaRunVO>();
+
+        if (!parent_run) {
+            return;
+        }
+
+        // Si tous les runs enfants sont terminés, on peut passer le parent en terminé
+        const children_runs = await query(OseliaRunVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<OseliaRunVO>().parent_run_id, parent_run.id)
+            .exec_as_server()
+            .select_vos<OseliaRunVO>();
+
+        let all_children_ended = true;
+        let has_child_error = false;
+        for (const i in children_runs) {
+            const child_state = children_runs[i].state;
+
+            if (OseliaRunBGThread.END_STATES.indexOf(child_state) < 0) {
+                all_children_ended = false;
+                break;
+            }
+
+            if (OseliaRunBGThread.ERROR_END_STATES.indexOf(child_state) >= 0) {
+                has_child_error = true;
+            }
+        }
+
+        if (all_children_ended) {
+
+            parent_run.waiting_split_end_end_date = Dates.now();
+
+            if (has_child_error) {
+                parent_run.error_msg = 'Some children runs ended with errors/expired/cancelled';
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(parent_run);
+                OseliaRunServerController.update_oselia_run_state(parent_run, OseliaRunVO.STATE_ERROR);
+            } else {
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(parent_run);
+                OseliaRunServerController.update_oselia_run_state(parent_run, OseliaRunVO.STATE_WAIT_SPLITS_END_ENDED);
+            }
+        }
+    }
 }
