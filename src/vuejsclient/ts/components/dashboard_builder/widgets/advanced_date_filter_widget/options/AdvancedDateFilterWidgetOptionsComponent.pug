@@ -135,3 +135,59 @@
                 :width="100"
                 :labels="{checked: t('YES'), unchecked: t('NO')}" 
             )
+
+        .is_relative_to_other_filter.mt-2
+            .input_label {{ label('advanced_date_filter_widget_component.is_relative_to_other_filter') }}
+
+            toggle-button(
+                @change="switch_is_relative_to_other_filter" 
+                :value="is_relative_to_other_filter" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: t('YES'), unchecked: t('NO')}" 
+            )
+
+        template(v-if="is_relative_to_other_filter")
+            .relative_to_other_filter_id.mt-2
+                .input_label {{ label('advanced_date_filter_widget_component.relative_to_other_filter_id') }}
+                .input_wrapper
+                    select(v-model="relative_to_other_filter_id")
+                        option(v-for="(filter, name) in other_filters_by_name" :value="filter.id") {{ name }}
+
+        .is_relative_to_today.mt-2
+            .input_label {{ label('advanced_date_filter_widget_component.is_relative_to_today') }}
+
+            toggle-button(
+                @change="switch_is_relative_to_today" 
+                :value="is_relative_to_today" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: t('YES'), unchecked: t('NO')}" 
+            )
+
+        template(v-if="is_relative_to_today")
+            .auto_select_relative_date_min
+                .input_label {{ label('advanced_date_filter_widget_component.auto_select_relative_date_min') }}
+                .input_wrapper
+                    input(
+                        type="number"
+                        v-model="auto_select_relative_date_min"
+                    )
+            .auto_select_relative_date_max
+                .input_label {{ label('advanced_date_filter_widget_component.auto_select_relative_date_max') }}
+                .input_wrapper
+                    input(
+                        type="number"
+                        v-model="auto_select_relative_date_max"
+                    )
+
+        .hide_filter.mt-2
+            .input_label {{ label('advanced_date_filter_widget_component.hide_filter') }}
+
+            toggle-button(
+                @change="switch_hide_filter" 
+                :value="hide_filter" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: t('YES'), unchecked: t('NO')}" 
+            )

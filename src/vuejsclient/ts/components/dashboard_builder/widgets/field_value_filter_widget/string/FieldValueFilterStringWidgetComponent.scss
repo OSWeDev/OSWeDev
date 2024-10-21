@@ -2,14 +2,13 @@
 
 .field_value_filter_string_widget_component {
     height: -webkit-fill-available;
+    vertical-align: middle;
 
     .vo_field_ref_label {
         font-size: 1.2em;
         margin-bottom: 0.4em;
         line-height: 1em;
     }
-
-    vertical-align: middle;
 
     .vo_field_ref_advanced {
         right: 1em;
@@ -20,6 +19,7 @@
     .advanced_string_filter_content {
         display: inline-block;
         width: 40%;
+        margin-right: 0.3em;
 
         input {
             width: -webkit-fill-available;
@@ -35,8 +35,6 @@
                 margin-left: 0;
             }
         }
-
-        margin-right: 0.3em;
     }
 
     .advanced_string_filter_add_filter {

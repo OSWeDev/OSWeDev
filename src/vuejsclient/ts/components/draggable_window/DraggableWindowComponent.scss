@@ -2,14 +2,6 @@
 
 .dragsize {
 
-    &.closed {
-        overflow-y: hidden;
-
-        .dragsize_handle {
-            width: 446px;
-        }
-    }
-
     background: rgba(255, 255, 255, 1);
     border: solid 1px #CCC;
     z-index: 10000;
@@ -18,6 +10,14 @@
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
     box-shadow: -1px 1px 3px #888;
+
+    &.closed {
+        overflow-y: hidden;
+
+        .dragsize_handle {
+            width: 446px;
+        }
+    }
 
     &.vdr.row.draggable {
         position: fixed;

@@ -3,7 +3,7 @@ include ../../../../../views/mixins/loading.pug
 .suivi_competences_widget_component
     .text-center.mb-4.row.hidden-print
         .col-md-3.text-left
-            template(v-if="has_active_filters && selected_rapport")
+            template(v-if="has_active_filters && selected_rapport && selected_grille?.show_btn_details")
                 toggle-button(
                     @change="switch_show_details" 
                     :value="show_details" 
@@ -67,9 +67,18 @@ include ../../../../../views/mixins/loading.pug
         .col-md-3.text-right
             template(v-if="selected_rapport")
                 .actions
-                    i.fa.fa-trash.fa-duotone.btn.btn-danger.ml-2(@click="delete_selected_rapport")
-                    i.fa.fa-download.fa-duotone.btn.btn-primary.ml-2(@click="export_selected_rapport")
-                    i.fa.fa-print.fa-duotone.btn.btn-primary.ml-2(@click="print_selected_rapport")
+                    i.fa.fa-trash.fa-duotone.btn.btn-danger.ml-2(
+                        v-tooltip="label('suivi_competences_widget_component.delete.tooltip.' + page_widget.id)" 
+                        @click="delete_selected_rapport"
+                    )
+                    i.fa.fa-download.fa-duotone.btn.btn-primary.ml-2(
+                        v-tooltip="label('suivi_competences_widget_component.export.tooltip.' + page_widget.id)" 
+                        @click="export_selected_rapport"
+                    )
+                    i.fa.fa-print.fa-duotone.btn.btn-primary.ml-2(
+                        v-tooltip="label('suivi_competences_widget_component.print.tooltip.' + page_widget.id)" 
+                        @click="print_selected_rapport"
+                    )
 
     template(v-if="selected_rapport && has_active_filters && (action_rapport == edit_action_rapport)")
         Suivicompetenceswidgetcontainer(

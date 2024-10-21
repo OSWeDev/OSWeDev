@@ -137,7 +137,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         AdvancedStringFilter.FILTER_TYPE_EST_VIDE,
         AdvancedStringFilter.FILTER_TYPE_NEST_PAS,
         AdvancedStringFilter.FILTER_TYPE_NEST_PAS_NULL,
-        AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE
+        AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE,
+        AdvancedStringFilter.FILTER_TYPE_REGEXP,
     ];
 
     get has_content_filter_type(): { [filter_type: number]: boolean } {
@@ -152,6 +153,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             [AdvancedStringFilter.FILTER_TYPE_NEST_PAS]: true,
             [AdvancedStringFilter.FILTER_TYPE_NEST_PAS_NULL]: false,
             [AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE]: false,
+            [AdvancedStringFilter.FILTER_TYPE_REGEXP]: true,
         };
 
         return res;
@@ -1812,6 +1814,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     case AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE:
                         translated_active_options = filter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_has_none('');
                         break;
+                    case AdvancedStringFilter.FILTER_TYPE_REGEXP:
+                        translated_active_options = filter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_regexp(advanced_filter.filter_content);
+                        break;
                 }
                 break;
 
@@ -1868,6 +1873,11 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
             case ContextFilterVO.TYPE_TEXT_INCLUDES_ANY:
                 advanced_filter.filter_type = AdvancedStringFilter.FILTER_TYPE_CONTIENT;
+                advanced_filter.filter_content = filter_.param_text;
+                break;
+
+            case ContextFilterVO.TYPE_REGEXP_ANY:
+                advanced_filter.filter_type = AdvancedStringFilter.FILTER_TYPE_REGEXP;
                 advanced_filter.filter_content = filter_.param_text;
                 break;
 

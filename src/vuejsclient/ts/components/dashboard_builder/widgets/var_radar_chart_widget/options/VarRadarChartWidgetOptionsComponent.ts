@@ -64,6 +64,7 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
     private title_display: boolean = false;
     private has_dimension: boolean = true;
     private sort_dimension_by_asc: boolean = false;
+    private hide_filter: boolean = false;
     private dimension_is_vo_field_ref: boolean = false;
 
     private legend_font_size: string = null;
@@ -72,6 +73,7 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
     private title_font_size: string = null;
     private title_padding: string = null;
     private max_dimension_values: string = null;
+    private max_dataset_values: string = null;
     private border_width_1: string = null;
 
     private border_width_2: string = null;
@@ -154,6 +156,16 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
         return Object.assign(new VOFieldRefVO(), options.sort_dimension_by_vo_field_ref);
     }
 
+    get multiple_dataset_vo_field_ref(): VOFieldRefVO {
+        let options: VarRadarChartWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.multiple_dataset_vo_field_ref)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.multiple_dataset_vo_field_ref);
+    }
+
     private async remove_sort_dimension_by_vo_field_ref() {
         this.next_update_options = this.widget_options;
 
@@ -183,6 +195,39 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
         sort_dimension_by_vo_field_ref.weight = 0;
 
         this.next_update_options.sort_dimension_by_vo_field_ref = sort_dimension_by_vo_field_ref;
+
+        await this.throttled_update_options();
+    }
+
+    private async remove_multiple_dataset_vo_field_ref() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            return null;
+        }
+
+        if (!this.next_update_options.multiple_dataset_vo_field_ref) {
+            return null;
+        }
+
+        this.next_update_options.multiple_dataset_vo_field_ref = null;
+
+        await this.throttled_update_options();
+    }
+
+    private async add_multiple_dataset_vo_field_ref(api_type_id: string, field_id: string) {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        let multiple_dataset_vo_field_ref = new VOFieldRefVO();
+        multiple_dataset_vo_field_ref.api_type_id = api_type_id;
+        multiple_dataset_vo_field_ref.field_id = field_id;
+        multiple_dataset_vo_field_ref.weight = 0;
+
+        this.next_update_options.multiple_dataset_vo_field_ref = multiple_dataset_vo_field_ref;
 
         await this.throttled_update_options();
     }
@@ -223,6 +268,18 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
         }
 
         this.next_update_options.sort_dimension_by_asc = !this.next_update_options.sort_dimension_by_asc;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_hide_filter() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.hide_filter = !this.next_update_options.hide_filter;
 
         await this.throttled_update_options();
     }
@@ -469,8 +526,10 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
                         (this.widget_options.title_padding == options.title_padding) &&
                         (this.widget_options.has_dimension == options.has_dimension) &&
                         (this.widget_options.max_dimension_values == options.max_dimension_values) &&
+                        (this.widget_options.max_dataset_values == options.max_dataset_values) &&
                         (this.widget_options.sort_dimension_by_vo_field_ref == options.sort_dimension_by_vo_field_ref) &&
                         (this.widget_options.sort_dimension_by_asc == options.sort_dimension_by_asc) &&
+                        (this.widget_options.hide_filter == options.hide_filter) &&
 
                         (this.widget_options.dimension_is_vo_field_ref == options.dimension_is_vo_field_ref) &&
                         ObjectHandler.are_equal(this.widget_options.dimension_vo_field_ref, options.dimension_vo_field_ref) &&
@@ -520,7 +579,9 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
 
             this.has_dimension = true;
             this.max_dimension_values = '10';
+            this.max_dataset_values = '10';
             this.sort_dimension_by_asc = true;
+            this.hide_filter = false;
             this.dimension_is_vo_field_ref = true;
             this.dimension_custom_filter_name = null;
             this.tmp_selected_dimension_custom_filter_segment_type = this.dimension_custom_filter_segment_types[0];
@@ -572,8 +633,14 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
         if (((!this.widget_options.max_dimension_values) && this.max_dimension_values) || (this.widget_options.max_dimension_values && (this.max_dimension_values != this.widget_options.max_dimension_values.toString()))) {
             this.max_dimension_values = this.widget_options.max_dimension_values ? this.widget_options.max_dimension_values.toString() : null;
         }
+        if (((!this.widget_options.max_dataset_values) && this.max_dataset_values) || (this.widget_options.max_dataset_values && (this.max_dataset_values != this.widget_options.max_dataset_values.toString()))) {
+            this.max_dataset_values = this.widget_options.max_dataset_values ? this.widget_options.max_dataset_values.toString() : null;
+        }
         if (this.sort_dimension_by_asc != this.widget_options.sort_dimension_by_asc) {
             this.sort_dimension_by_asc = this.widget_options.sort_dimension_by_asc;
+        }
+        if (this.hide_filter != this.widget_options.hide_filter) {
+            this.hide_filter = this.widget_options.hide_filter;
         }
         if (this.dimension_is_vo_field_ref != this.widget_options.dimension_is_vo_field_ref) {
             this.dimension_is_vo_field_ref = this.widget_options.dimension_is_vo_field_ref;
@@ -1023,6 +1090,48 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
             ConsoleHandler.error(error);
         }
     }
+
+    @Watch('max_dataset_values')
+    private async onchange_max_dataset_values() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.max_dataset_values) {
+
+            if (this.widget_options.max_dataset_values) {
+                this.widget_options.max_dataset_values = 10;
+                await this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.max_dataset_values != parseInt(this.max_dataset_values)) {
+                if (this.widget_options.dimension_is_vo_field_ref) {
+                    if (parseInt(this.max_dataset_values) >= 0) {
+                        this.next_update_options = this.widget_options;
+                        this.next_update_options.max_dataset_values = parseInt(this.max_dataset_values);
+                    }
+                    await this.throttled_update_options();
+                } else {
+                    if (parseInt(this.max_dataset_values) > 0) {
+                        this.next_update_options = this.widget_options;
+                        this.next_update_options.max_dataset_values = parseInt(this.max_dataset_values);
+                    } else {
+                        this.snotify.error('Un custom filter doit avoir un maximum de valeurs à afficher supérieur à 0');
+                        this.next_update_options = this.widget_options;
+                        this.next_update_options.max_dataset_values = 10;
+                    }
+                    await this.throttled_update_options();
+                }
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
     private async update_colors() {
         if (!this.widget_options) {
             return;

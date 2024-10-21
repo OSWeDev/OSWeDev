@@ -1,4 +1,4 @@
-import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';

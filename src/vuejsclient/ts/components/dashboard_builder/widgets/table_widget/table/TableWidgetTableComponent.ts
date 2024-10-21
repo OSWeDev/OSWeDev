@@ -46,11 +46,11 @@ import ModuleDataExport from '../../../../../../../shared/modules/DataExport/Mod
 import ExportVarIndicatorVO from '../../../../../../../shared/modules/DataExport/vos/ExportVarIndicatorVO';
 import ExportVarcolumnConfVO from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConfVO';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
-import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
+import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import ModuleVocus from '../../../../../../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -257,7 +257,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             (pw) => pw.widget_id == var_widget_id
         );
 
-        for (const key in var_page_widgets) {
+        for (let key in var_page_widgets) {
             const var_page_widget = var_page_widgets[key];
 
             const options = JSON.parse(var_page_widget.json_options);
@@ -265,7 +265,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             const var_widget_options = new VarWidgetOptions().from(options);
             const name = var_widget_options.get_title_name_code_text(var_page_widget.id);
 
-            const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+            let conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
                 options.var_id,
                 var_widget_options.filter_custom_field_filters,
                 var_widget_options.filter_type,
@@ -282,6 +282,70 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             varcolumn_conf
         );
     }
+    // /**
+    //  * Var Indicator
+    //  *  - All vars indicator on the actual page to be exported
+    //  *
+    //  * @return {ExportVarIndicatorVO[]}
+    //  */
+    // get vars_indicator(): ExportVarIndicatorVO[] {
+
+    //     if (!this.widget_options) {
+    //         return;
+    //     }
+    //     let res: ExportVarIndicatorVO[] = [];
+    //     let res_columns: ExportVarcolumnConfVO[] = [];
+    //     const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO }[] = [{}];
+
+    //     // Find id of widget that have type "var"
+    //     const var_widget_id = Object.values(this.widgets_by_id)?.find((e) => e.name == 'var').id;
+
+    //     // var_widget_id required to continue
+    //     if (!var_widget_id) {
+    //         return;
+    //     }
+
+    //     // Find all var widgets of actual page
+    //     const var_page_widgets = Object.values(this.all_page_widget)?.filter(
+    //         (pw) => pw.widget_id == var_widget_id
+    //     );
+
+    //     for (const key in var_page_widgets) {
+    //         const var_page_widget = var_page_widgets[key];
+    //         const options = JSON.parse(var_page_widget.json_options);
+
+    //         const var_widget_options = new VarWidgetOptions().from(options);
+    //         const name = var_widget_options.get_title_name_code_text(var_page_widget.id);
+
+    //     if (var_widget_options.vars && var_widget_options.vars.length) {
+    //         for (let j = 0; j < var_widget_options.vars.length; j++) {
+    //             const current_var = var_widget_options.vars[j];
+    //             const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+    //                 options.var_id,
+    //                 var_widget_options.filter_custom_field_filters[j],
+    //                 current_var.filter_type,
+    //                 current_var.filter_additional_params,
+    //             );
+    //             res_columns.push(conf);
+    //         }
+    //     }
+    //     for (const conf in res_columns) {
+    //         const column = {};
+    //         column[name] = conf;
+    //         varcolumn_conf.push(column[name]);
+    //     }
+    // }
+
+    // // returns ordered_column_list, column_labels and varcolumn_conf
+    // for (const key in varcolumn_conf) {
+    //     res.push(ExportVarIndicatorVO.create_new(
+    //         ['name', 'value'],
+    //         { name: 'Nom', value: 'Valeur' },
+    //         varcolumn_conf[key]
+    //     ));
+    // }
+    //     return res;
+    // }
 
     get show_bulk_select_all(): boolean {
         return this.widget_options && this.widget_options.show_bulk_select_all;
@@ -621,6 +685,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         const res: TableColumnDescVO[] = [];
         let sticky_left: number = 0;
         let max_id: number = 0;
+        let new_weight: number = 0;
 
         for (const i in options.columns) {
 
@@ -647,83 +712,87 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 continue;
             }
 
-            res.push(Object.assign(new TableColumnDescVO(), column));
-        }
-
-        if (options.has_column_dynamic && options.column_dynamic_page_widget_id && options.column_dynamic_component) {
-            let column_dynamic_page_widget = this.all_page_widgets_by_id[options.column_dynamic_page_widget_id];
-
-            let options_column_dynamic_page_widget = JSON.parse(column_dynamic_page_widget.json_options);
-            let vo_field_ref: VOFieldRefVO = options_column_dynamic_page_widget?.vo_field_ref;
-
-            if (!!vo_field_ref?.api_type_id && !!vo_field_ref?.field_id) {
-                let vo_field_ref_filter: ContextFilterVO = null;
+            // Si on est sur une colonne dynamic, on va renseigner les colonnes dynamiques
+            if (column.type == TableColumnDescVO.TYPE_dynamic) {
                 if (
-                    this.get_active_field_filters &&
-                    this.get_active_field_filters[vo_field_ref.api_type_id] &&
-                    this.get_active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]
+                    column.column_dynamic_page_widget_id &&
+                    (column.column_dynamic_component || column.column_dynamic_var)
                 ) {
-                    vo_field_ref_filter = this.get_active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
-                }
+                    let column_dynamic_page_widget = this.all_page_widgets_by_id[column.column_dynamic_page_widget_id];
 
-                if (!!vo_field_ref_filter) {
-                    let is_type_date: boolean = VOFieldRefVOHandler.is_type_date(vo_field_ref);
+                    let options_column_dynamic_page_widget = JSON.parse(column_dynamic_page_widget.json_options);
+                    let vo_field_ref: VOFieldRefVO = options_column_dynamic_page_widget?.vo_field_ref;
 
-                    if (is_type_date) {
-                        RangeHandler.foreach_ranges_sync(vo_field_ref_filter.param_tsranges, (date: number) => {
+                    if (!!vo_field_ref?.api_type_id && !!vo_field_ref?.field_id) {
+                        let vo_field_ref_filter: ContextFilterVO = null;
+                        if (
+                            this.get_active_field_filters &&
+                            this.get_active_field_filters[vo_field_ref.api_type_id] &&
+                            this.get_active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]
+                        ) {
+                            vo_field_ref_filter = this.get_active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
+                        }
 
-                            max_id++;
+                        if (!!vo_field_ref_filter) {
+                            let is_type_date: boolean = VOFieldRefVOHandler.is_type_date(vo_field_ref);
 
-                            let new_column = new TableColumnDescVO();
-                            new_column.type = TableColumnDescVO.TYPE_component;
-                            new_column.component_name = options.column_dynamic_component;
-                            new_column.id = max_id;
-                            new_column.readonly = true;
-                            new_column.exportable = true;
-                            new_column.hide_from_table = false;
-                            new_column.sortable = true;
-                            new_column.filter_by_access = null;
-                            new_column.show_if_any_filter_active = [];
-                            new_column.do_not_user_filter_active_ids = [];
-                            new_column.enum_bg_colors = null;
-                            new_column.enum_fg_colors = null;
-                            new_column.can_filter_by = false;
-                            new_column.column_width = 0;
-                            new_column.default_sort_field = null;
-                            new_column.filter_custom_field_filters = {};
-                            new_column.kanban_column = false;
-                            new_column.api_type_id = vo_field_ref.api_type_id;
-                            new_column.field_id = vo_field_ref.field_id;
+                            if (is_type_date) {
+                                RangeHandler.foreach_ranges_sync(vo_field_ref_filter.param_tsranges, (date: number) => {
 
-                            let format: string = null;
-                            switch (options.column_dynamic_time_segment) {
-                                case TimeSegment.TYPE_DAY:
-                                    format = 'DD/MM/YYYY';
-                                    break;
+                                    max_id++;
 
-                                case TimeSegment.TYPE_MONTH:
-                                    format = 'MM/YYYY';
-                                    break;
+                                    let new_column = new TableColumnDescVO();
+                                    new_column.id = max_id;
+                                    new_column.readonly = column.readonly;
+                                    new_column.exportable = column.exportable;
+                                    new_column.hide_from_table = column.hide_from_table;
+                                    new_column.sortable = column.sortable;
+                                    new_column.filter_by_access = column.filter_by_access;
+                                    new_column.show_if_any_filter_active = column.show_if_any_filter_active;
+                                    new_column.do_not_user_filter_active_ids = column.do_not_user_filter_active_ids;
+                                    new_column.enum_bg_colors = column.enum_bg_colors;
+                                    new_column.enum_fg_colors = column.enum_fg_colors;
+                                    new_column.can_filter_by = column.can_filter_by;
+                                    new_column.column_width = column.column_width;
+                                    new_column.default_sort_field = column.default_sort_field;
+                                    new_column.filter_custom_field_filters = column.filter_custom_field_filters;
+                                    new_column.kanban_column = column.kanban_column;
+                                    new_column.filter_additional_params = column.filter_additional_params;
+                                    new_column.filter_type = column.filter_type;
+                                    new_column.custom_class_css = column.custom_class_css;
+                                    new_column.api_type_id = vo_field_ref.api_type_id;
+                                    new_column.field_id = vo_field_ref.field_id;
+                                    new_column.weight = new_weight;
 
-                                case TimeSegment.TYPE_YEAR:
-                                    format = 'YYYY';
-                                    break;
+                                    if (column.column_dynamic_component) {
+                                        new_column.type = TableColumnDescVO.TYPE_component;
+                                        new_column.component_name = column.column_dynamic_component;
+                                    } else if (column.column_dynamic_var) {
+                                        new_column.type = TableColumnDescVO.TYPE_var_ref;
+                                        new_column.var_id = VarsController.var_conf_by_name[column.column_dynamic_var].id;
+                                        new_column.var_unicity_id = Math.round(Dates.now_ms() + (Math.random() * 1000));
+                                    }
 
-                                default:
-                                    break;
+                                    new_weight++;
+
+                                    new_column.custom_label = Dates.format_segment(date, column.column_dynamic_time_segment);
+                                    new_column.custom_values = [RangeHandler.create_single_elt_TSRange(date, column.column_dynamic_time_segment)];
+                                    res.push(new_column);
+                                }, column.column_dynamic_time_segment);
                             }
-
-                            if (!format) {
-                                return;
-                            }
-
-                            new_column.custom_label = Dates.format(date, format);
-                            new_column.custom_values = [RangeHandler.create_single_elt_TSRange(date, options.column_dynamic_time_segment)];
-                            res.push(new_column);
-                        }, options.column_dynamic_time_segment);
+                        }
                     }
                 }
+
+                continue;
             }
+
+            let cloned_column: TableColumnDescVO = Object.assign(new TableColumnDescVO(), column);
+
+            cloned_column.weight = new_weight;
+            new_weight++;
+
+            res.push(cloned_column);
         }
 
         WeightHandler.getInstance().sortByWeight(res);
@@ -1870,7 +1939,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             // exec regex on translated text
             const rgx_result = rgx.exec(translated_text);
 
-            const { page_widget_id } = rgx_result?.groups;
+            const { page_widget_id } = rgx_result ? rgx_result.groups : null;
 
             // TODO: find field_filter by page_widget_id instead of filter_name
             const page_widget = this.all_page_widget.find((pw: DashboardPageWidgetVO) => {

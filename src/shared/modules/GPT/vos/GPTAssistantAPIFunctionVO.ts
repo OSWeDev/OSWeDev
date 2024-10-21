@@ -20,6 +20,13 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase, IVersi
 
     public prepend_thread_vo: boolean;
 
+    /**
+     * L'API GPT attend une string, donc si la fonction renvoie autre chose il faut le JSON.stringify
+     */
+    public json_stringify_output: boolean;
+
+    public archived: boolean;
+
     // IVersionedVO
     public parent_id: number;
     public trashed: boolean;
@@ -43,7 +50,11 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase, IVersi
             description: this.gpt_function_description,
 
             name: this.gpt_function_name,
-            parameters: gpt_params
+            parameters: {
+                type: 'object',
+                properties: gpt_params,
+                required: params.filter((param) => param.required).map((param) => param.gpt_funcparam_name),
+            }
         };
 
         return ret;

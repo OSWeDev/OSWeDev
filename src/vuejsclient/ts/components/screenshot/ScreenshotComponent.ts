@@ -20,7 +20,6 @@ export default class ScreenshotComponent extends VueComponentBase {
 
     @Prop({ default: null })
     protected filevo: FileVO;
-
     protected has_valid_file_linked: boolean = false;
 
     protected uid: number = null;
@@ -34,9 +33,121 @@ export default class ScreenshotComponent extends VueComponentBase {
         }
     }
 
+    /**
+     * Updates the state of the "is_taking" property.
+     * If "is_taking" is true, it hides elements with the class "hide_from_screenshot".
+     * If "is_taking" is false, it shows elements with the class "hide_from_screenshot".
+     */
+    @Watch('is_taking', { immediate: true })
+    public async updateIsTaking() {
+        if (this.is_taking) {
+            const toHide = document.getElementsByClassName('hide_from_screenshot');
+            for (let i = 0; i < toHide.length; i++) {
+                const element = toHide[i] as HTMLElement;
+                element.style.display = 'none';
+            }
+        } else {
+            const toHide = document.getElementsByClassName('hide_from_screenshot');
+            for (let i = 0; i < toHide.length; i++) {
+                const element = toHide[i] as HTMLElement;
+                element.style.display = '';
+            }
+        }
+    }
+
     public async mounted() {
         this.uid = ScreenshotComponent.__UID++;
     }
+
+    public async do_take_fullsize_screenshot() {
+        this.is_taking = true;
+        try {
+            const canvas = await this.take_fullsize_screenshot();
+            await canvas.toBlob(async (imgData) => {
+                if (!imgData) {
+                    this.is_taking = false;
+                    // JNE : A mon avis ça arrive au chargement de l'appli si on essaie d'aller trop vite. Si c'est bloquant, on peut essayer de relancer auto la capture plus tard.
+                    ConsoleHandler.error('No imgData');
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png');
+
+                const res = await AjaxCacheClientController.getInstance().post(
+                    null,
+                    '/ModuleFileServer/upload',
+                    [FileVO.API_TYPE_ID],
+                    formData,
+                    null,
+                    null,
+                    false,
+                    30000);
+
+                const newvo = JSON.parse(res);
+
+                this.$emit('uploaded', newvo);
+            }, 'image/png');
+            this.is_taking = false;
+
+        } catch (error) {
+            this.is_taking = false;
+            // Gestion des erreurs avec des détails supplémentaires
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+        }
+    }
+
+    public async do_take_video_capture() {
+        this.is_taking = true;
+        try {
+            const canvasList = await this.take_video_capture();
+            const voList = [];
+            for (let i = 0; i < canvasList.length; i++) {
+                this.is_taking = true;
+                const canvas = canvasList[i];
+
+                // Encapsuler canvas.toBlob dans une Promise
+                const imgData = await new Promise<Blob | null>((resolve) => {
+                    canvas.toBlob((blob) => {
+                        resolve(blob);
+                    }, 'image/png');
+                });
+
+                if (!imgData) {
+                    this.is_taking = false;
+                    ConsoleHandler.error('No imgData');
+                    return;
+                }
+
+                console.dir(imgData);
+
+                const formData = new FormData();
+                formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png');
+
+                const res = await AjaxCacheClientController.getInstance().post(
+                    null,
+                    '/ModuleFileServer/upload',
+                    [FileVO.API_TYPE_ID],
+                    formData,
+                    null,
+                    null,
+                    false,
+                    30000
+                );
+
+                const newvo = JSON.parse(res);
+                voList.push(newvo);
+                // Emettre l'événement après chaque upload réussi
+                this.is_taking = false;
+            }
+            this.$emit('uploaded', voList);
+
+        } catch (error) {
+            this.is_taking = false;
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+        }
+    }
+
+
 
     public async take_screenshot() {
         const self = this;
@@ -54,53 +165,128 @@ export default class ScreenshotComponent extends VueComponentBase {
                     },
                     scrollX: 0,
                     scrollY: -window.scrollY
-                }).then(
-                    async (canvas) => {
+                }
+            ).then(async (canvas) => {
 
-                        try {
+                try {
 
-                            const height = canvas.height;
-                            const width = canvas.width;
+                    canvas.toBlob(async (imgData: Blob) => {
 
-                            const coef_height = ((height > (210 - 20)) ? (210 - 20) / height : 1);
-                            const coef_width = ((width > (297 - 20)) ? (297 - 20) / width : 1);
-                            const coef = (coef_height < coef_width) ? coef_height : coef_width;
-                            canvas.toBlob(async (imgData: Blob) => {
-
-                                if (!imgData) {
-                                    self.is_taking = false;
-                                    // JNE : A mon avis ça arrive au chargement de l'appli si on essaie d'aller trop vite. Si c'est bloquant, on peut essayer de relancer auto la capture plus tard.
-                                    ConsoleHandler.error('No imgData');
-                                    return;
-                                }
-
-                                const formData = new FormData();
-                                formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png');
-
-                                const res = await AjaxCacheClientController.getInstance().post(
-                                    null,
-                                    '/ModuleFileServer/upload',
-                                    [FileVO.API_TYPE_ID],
-                                    formData,
-                                    null,
-                                    null,
-                                    false,
-                                    30000);
-
-                                const newvo = JSON.parse(res);
-
-                                self.$emit('uploaded', newvo);
-                                self.is_taking = false;
-                            }, 'image/png');
-
-                        } catch (error) {
-                            ConsoleHandler.error(error);
+                        if (!imgData) {
                             self.is_taking = false;
+                            // JNE : A mon avis ça arrive au chargement de l'appli si on essaie d'aller trop vite. Si c'est bloquant, on peut essayer de relancer auto la capture plus tard.
+                            ConsoleHandler.error('No imgData');
+                            return;
                         }
-                    });
+
+                        const formData = new FormData();
+                        formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png');
+
+                        const res = await AjaxCacheClientController.getInstance().post(
+                            null,
+                            '/ModuleFileServer/upload',
+                            [FileVO.API_TYPE_ID],
+                            formData,
+                            null,
+                            null,
+                            false,
+                            30000);
+
+                        const newvo = JSON.parse(res);
+
+                        self.$emit('uploaded', newvo);
+                        self.is_taking = false;
+                    }, 'image/png');
+
+                } catch (error) {
+                    ConsoleHandler.error(error);
+                    self.is_taking = false;
+                }
+            });
         } catch (error) {
             ConsoleHandler.error(error);
             this.is_taking = false;
         }
+    }
+
+
+    private async take_fullsize_screenshot() {
+        try {
+            // Capture de l'écran
+            const captureStream = (await navigator.mediaDevices as any).getDisplayMedia({ preferCurrentTab: true });
+            const track = captureStream.getVideoTracks()[0];
+            const image_capture: ImageCapture = new ImageCapture(track);
+
+            // Capture de l'image du flux vidéo
+            const imageBitmap = await image_capture.grabFrame();
+
+            // Arrêter le flux pour libérer les ressources
+            track.stop();
+
+            // Création du canvas et dessin de l'image capturée
+            const canvas = document.createElement("canvas");
+            canvas.width = imageBitmap.width;
+            canvas.height = imageBitmap.height;
+            canvas.getContext("2d").drawImage(imageBitmap, 0, 0);
+
+            // Retourner le canvas
+            return canvas;
+        } catch (error) {
+            console.error("Erreur lors de la capture de l'écran :", error);
+            return null;
+        }
+    }
+
+    private async take_video_capture() {
+        try {
+            // Capture de l'écran
+            const capturedCanvas = [];
+            const captureStream = (await navigator.mediaDevices as any).getDisplayMedia({ preferCurrentTab: true });
+            const track = captureStream.getVideoTracks()[0];
+            await this.add_countdown_element();
+            for (let i = 0; i < 2; i++) {
+                document.getElementById("countdown").style.display = "flex";
+                await this.countdown(4);
+                document.getElementById("countdown").style.display = "none";
+                const image_capture: ImageCapture = new ImageCapture(track);
+                // Capture de l'image du flux vidéo
+                const imageBitmap = await image_capture.grabFrame();
+
+                // Création du canvas et dessin de l'image capturée
+                const canvas = document.createElement("canvas");
+                canvas.width = imageBitmap.width;
+                canvas.height = imageBitmap.height;
+                canvas.getContext("2d").drawImage(imageBitmap, 0, 0);
+                capturedCanvas.push(canvas);
+                console.log("Image capturée");
+            }
+
+            track.stop(); // Arrêter le flux pour libérer les ressources
+
+            // Retourner le tableau de canvas
+            return capturedCanvas;
+        } catch (error) {
+            console.error("Erreur lors de la capture de l'écran :", error);
+            return null;
+        }
+    }
+
+    // Fonction de compte à rebours
+    private async countdown(seconds) {
+        for (let i = seconds; i > 0; i--) {
+            document.getElementById("countdown").textContent = i;
+            console.log(`Capture d'écran dans ${i} seconde${i > 1 ? 's' : ''}...`);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Attendre 1 seconde
+        }
+    }
+
+    private async add_countdown_element() {
+        const main = document.getElementById("VueMain");
+        const countdownText = document.createTextNode("0");
+        const div = document.createElement("div");
+        div.id = "countdown";
+        div.appendChild(countdownText);
+        div.className = "videoCapture";
+        main.appendChild(div);
     }
 }

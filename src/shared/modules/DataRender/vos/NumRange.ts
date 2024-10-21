@@ -6,6 +6,22 @@ export default class NumRange implements IRange {
 
     public static RANGE_TYPE: number = 1;
 
+    public min: number;
+    public max: number;
+
+    public min_inclusiv: boolean;
+    public max_inclusiv: boolean;
+
+    public segment_type: number;
+    public range_type: number = NumRange.RANGE_TYPE;
+
+    /**
+     * Ignore this property - only used for type checking
+     */
+    private is_num_range: boolean = true;
+
+    private constructor() { }
+
     /**
      * Test d'incohérence sur des ensembles qui indiqueraient inclure le min mais pas le max et où min == max (ou inversement)
      */
@@ -144,15 +160,4 @@ export default class NumRange implements IRange {
 
         return res;
     }
-
-    public min: number;
-    public max: number;
-
-    public min_inclusiv: boolean;
-    public max_inclusiv: boolean;
-
-    public segment_type: number;
-    public range_type: number = NumRange.RANGE_TYPE;
-
-    private constructor() { }
 }

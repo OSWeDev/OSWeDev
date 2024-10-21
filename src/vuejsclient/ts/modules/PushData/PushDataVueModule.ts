@@ -24,6 +24,18 @@ import VOEventRegistrationsHandler from "./VOEventRegistrationsHandler";
 
 export default class PushDataVueModule extends VueModuleBase {
 
+    private static instance: PushDataVueModule = null;
+
+    public throttled_notifications_handler = ThrottleHelper.declare_throttle_with_stackable_args(
+        this.notifications_handler.bind(this), 100, { leading: true, trailing: true });
+
+    protected socket;
+
+    private constructor() {
+
+        super(ModulePushData.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): PushDataVueModule {
         if (!PushDataVueModule.instance) {
@@ -32,8 +44,6 @@ export default class PushDataVueModule extends VueModuleBase {
 
         return PushDataVueModule.instance;
     }
-
-    private static instance: PushDataVueModule = null;
 
     private static async joinAllRoomsAgain() {
         for (const room_id in VOEventRegistrationsHandler.registered_vo_create_callbacks) {
@@ -71,15 +81,6 @@ export default class PushDataVueModule extends VueModuleBase {
             }
             await ModulePushData.getInstance().join_io_room(room_fields);
         }
-    }
-
-    public throttled_notifications_handler = ThrottleHelper.declare_throttle_with_stackable_args(
-        this.notifications_handler.bind(this), 100, { leading: true, trailing: true });
-    protected socket;
-
-    private constructor() {
-
-        super(ModulePushData.getInstance().name);
     }
 
     public initialize() {
@@ -250,7 +251,8 @@ export default class PushDataVueModule extends VueModuleBase {
 
     private async notifications_handler(notifications: NotificationVO[]) {
 
-        if (!(VueAppBase.instance_ && LocaleManager.getInstance().i18n)) {
+        if (!VueAppBase.instance_) {
+            ConsoleHandler.error("notifications_handler:!VueAppBase.instance_: Might loose some notifications:" + JSON.stringify(notifications));
             return;
         }
         notifications = APIControllerWrapper.try_translate_vos_from_api(notifications);
@@ -275,6 +277,11 @@ export default class PushDataVueModule extends VueModuleBase {
 
             switch (notification.notification_type) {
                 case NotificationVO.TYPE_NOTIF_SIMPLE:
+                    if (!LocaleManager.getInstance().i18n) {
+                        ConsoleHandler.warn("notifications_handler:LocaleManager.getInstance().i18n not ready, skipping notification:" + notification);
+                        break;
+                    }
+
                     TYPE_NOTIF_SIMPLE.push(notification);
                     break;
                 case NotificationVO.TYPE_NOTIF_DAO:
@@ -290,6 +297,11 @@ export default class PushDataVueModule extends VueModuleBase {
                     TYPE_NOTIF_TECH.push(notification);
                     break;
                 case NotificationVO.TYPE_NOTIF_PROMPT:
+                    if (!LocaleManager.getInstance().i18n) {
+                        ConsoleHandler.warn("notifications_handler:LocaleManager.getInstance().i18n not ready, skipping notification:" + notification);
+                        break;
+                    }
+
                     TYPE_NOTIF_PROMPT.push(notification);
                     break;
                 case NotificationVO.TYPE_NOTIF_REDIRECT:
@@ -360,8 +372,7 @@ export default class PushDataVueModule extends VueModuleBase {
             const notification = notifications[i];
 
             for (const j in VOEventRegistrationsHandler.registered_vo_create_callbacks[notification.room_id]) {
-                const vos: IDistantVOBase[] = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
-                const vo = vos[0];
+                const vo = notification.vos[0];
 
                 VOEventRegistrationsHandler.registered_vo_create_callbacks[notification.room_id][j](vo);
             }
@@ -373,8 +384,7 @@ export default class PushDataVueModule extends VueModuleBase {
             const notification = notifications[i];
 
             for (const j in VOEventRegistrationsHandler.registered_vo_update_callbacks[notification.room_id]) {
-                const vos: IDistantVOBase[] = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
-                VOEventRegistrationsHandler.registered_vo_update_callbacks[notification.room_id][j](vos[0], vos[1]);
+                VOEventRegistrationsHandler.registered_vo_update_callbacks[notification.room_id][j](notification.vos[0], notification.vos[1]);
             }
         }
     }
@@ -384,8 +394,7 @@ export default class PushDataVueModule extends VueModuleBase {
             const notification = notifications[i];
 
             for (const j in VOEventRegistrationsHandler.registered_vo_delete_callbacks[notification.room_id]) {
-                const vos: IDistantVOBase[] = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
-                VOEventRegistrationsHandler.registered_vo_delete_callbacks[notification.room_id][j](vos[0]);
+                VOEventRegistrationsHandler.registered_vo_delete_callbacks[notification.room_id][j](notification.vos[0]);
             }
         }
     }
@@ -394,7 +403,7 @@ export default class PushDataVueModule extends VueModuleBase {
         for (const i in notifications) {
             const notification = notifications[i];
 
-            const api_result: APINotifTypeResultVO = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos))[0];
+            const api_result: APINotifTypeResultVO = notification.vos[0] as APINotifTypeResultVO;
 
             if (!api_result) {
                 ConsoleHandler.error("API result not found for notification:" + notification);
@@ -406,7 +415,7 @@ export default class PushDataVueModule extends VueModuleBase {
                 continue;
             }
 
-            if (!ClientAPIController.api_waiting_for_result_notif_solvers) {
+            if ((!ClientAPIController.api_waiting_for_result_notif_solvers) || (!ClientAPIController.api_waiting_for_result_notif_solvers[api_result.api_call_id])) {
                 ClientAPIController.api_waiting_for_result_notif_waiting_for_solvers[api_result.api_call_id] = () => {
                     ClientAPIController.api_waiting_for_result_notif_solvers[api_result.api_call_id](api_result.res);
                 };
@@ -572,10 +581,9 @@ export default class PushDataVueModule extends VueModuleBase {
             const notification = notifications[i];
 
             if (notification.vos) {
-                const tmp = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
-                if (tmp && tmp.length) {
-                    for (const j in tmp) {
-                        const e: VarDataValueResVO = tmp[j];
+                if (notification.vos && notification.vos.length) {
+                    for (const j in notification.vos) {
+                        const e: VarDataValueResVO = notification.vos[j] as VarDataValueResVO;
 
 
                         // On log les notifications sur l'index sélectionné en description actuellement
@@ -664,10 +672,9 @@ export default class PushDataVueModule extends VueModuleBase {
             const notification = notifications[i];
 
             if (notification.vos) {
-                const tmp = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
-                if (tmp && tmp.length) {
-                    for (const j in tmp) {
-                        const vo = tmp[j];
+                if (notification.vos && notification.vos.length) {
+                    for (const j in notification.vos) {
+                        const vo = notification.vos[j] as any;
 
                         switch (vo.marker) {
                             case NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME:

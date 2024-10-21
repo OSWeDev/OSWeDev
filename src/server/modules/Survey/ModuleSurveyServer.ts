@@ -184,12 +184,12 @@ export default class ModuleSurveyServer extends ModuleServerBase {
             survey.id = res.id;
 
 
-            await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'survey.survey.success', true);
+            await PushDataServerController.notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'survey.survey.success', true);
 
             return true;
         } catch (error) {
             ConsoleHandler.error(error);
-            await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'survey.survey.error', true);
+            await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'survey.survey.error', true);
             return false;
         }
     }

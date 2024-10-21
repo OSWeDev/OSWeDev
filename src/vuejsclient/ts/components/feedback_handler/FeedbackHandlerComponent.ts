@@ -244,15 +244,36 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         return true;
     }
 
-    private async uploadedCapture1(fileVo: FileVO) {
+    private async uploadedCapture1(fileVo: FileVO | FileVO[]) {
+        if (Array.isArray(fileVo)) {
+            this.tmp_capture_1_vo = fileVo[0];
+            if (fileVo.length > 1) {
+                this.tmp_capture_2_vo = fileVo[1];
+            }
+            if (fileVo.length > 2) {
+                this.tmp_capture_3_vo = fileVo[2];
+            }
+            return;
+        }
         this.tmp_capture_1_vo = fileVo;
     }
 
-    private async uploadedCapture2(fileVo: FileVO) {
+    private async uploadedCapture2(fileVo: FileVO | FileVO[]) {
+        if (Array.isArray(fileVo)) {
+            this.tmp_capture_2_vo = fileVo[0];
+            if (fileVo.length > 1) {
+                this.tmp_capture_3_vo = fileVo[1];
+            }
+            return;
+        }
         this.tmp_capture_2_vo = fileVo;
     }
 
-    private async uploadedCapture3(fileVo: FileVO) {
+    private async uploadedCapture3(fileVo: FileVO | FileVO[]) {
+        if (Array.isArray(fileVo)) {
+            this.tmp_capture_3_vo = fileVo[0];
+            return;
+        }
         this.tmp_capture_3_vo = fileVo;
     }
 

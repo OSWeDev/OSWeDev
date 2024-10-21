@@ -1,5 +1,9 @@
 .var_desc {
 
+    padding: 10px;
+    max-width: 32em;
+    word-break: break-all;
+
     i.is_pixel {
         color: #002454;
         font-size: large;
@@ -25,10 +29,6 @@
         padding: 2px 1em;
         margin: 2px;
     }
-
-    padding: 10px;
-    max-width: 32em;
-    word-break: break-all;
 
     .var_controller_ref {
         border-radius: 4px;
@@ -57,15 +57,14 @@
             white-space: pre-wrap;
             color: whitesmoke;
             background: none;
+            margin-bottom: .6em;
+            word-break: break-word;
 
             input,
             textarea {
                 color: black;
                 width: 100%;
             }
-
-            margin-bottom: .6em;
-            word-break: break-word;
         }
     }
 

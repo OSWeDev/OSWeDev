@@ -1,4 +1,4 @@
-import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import MatroidController from '../../../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
@@ -28,7 +28,7 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
     private static instance: VarsProcessUpdateDB = null;
 
     private constructor() {
-        super('VarsProcessUpdateDB', VarDAGNode.TAG_5_NOTIFIED_END, VarDAGNode.TAG_6_UPDATING_IN_DB, VarDAGNode.TAG_6_UPDATED_IN_DB, 10, true);
+        super('VarsProcessUpdateDB', VarDAGNode.TAG_5_NOTIFIED_END, VarDAGNode.TAG_6_UPDATING_IN_DB, VarDAGNode.TAG_6_UPDATED_IN_DB, 2, true);
     }
 
     protected worker_sync(node: VarDAGNode): boolean {

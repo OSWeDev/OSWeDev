@@ -200,7 +200,7 @@ export default class VarsTabsSubsController {
 
                         sub.last_notif_value_ts = var_data.value_ts;
 
-                        const sockets: SocketWrapper[] = PushDataServerController.getInstance().getUserSockets(parseInt(user_id.toString()), client_tab_id);
+                        const sockets: SocketWrapper[] = PushDataServerController.getUserSockets(parseInt(user_id.toString()), client_tab_id);
 
                         for (const j in sockets) {
                             const socket: SocketWrapper = sockets[j];
@@ -218,7 +218,7 @@ export default class VarsTabsSubsController {
         for (const socketid in datas_by_socketid_for_notif) {
 
             // datas_by_socketid_for_notif[socketid].forEach((vd) => ConsoleHandler.log('REMOVETHIS:notify_vardatas.2:' + vd.index + ':'));
-            await PushDataServerController.getInstance().notifyVarsDatasBySocket(socketid, datas_by_socketid_for_notif[socketid]);
+            await PushDataServerController.notifyVarsDatasBySocket(socketid, datas_by_socketid_for_notif[socketid]);
         }
         return true;
     }

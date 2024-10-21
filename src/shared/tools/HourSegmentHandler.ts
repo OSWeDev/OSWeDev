@@ -393,7 +393,7 @@ export default class HourSegmentHandler {
         return HourSegmentHandler.getCorrespondingHourSegment(max, segment_type);
     }
 
-    public static getCorrespondingMomentUnitOfTime(segment_type: number): unitOfTime.Base {
+    public static getCorrespondingMomentUnitOfTime(segment_type: number): unitOfTime.DurationConstructor {
         switch (segment_type) {
             case HourSegment.TYPE_HOUR:
                 return 'hour';

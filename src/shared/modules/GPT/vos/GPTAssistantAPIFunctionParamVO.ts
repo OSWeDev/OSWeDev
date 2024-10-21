@@ -16,7 +16,6 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase, I
         "array",
         "null"
     ];
-
     public static TYPE_STRING: number = 0;
     public static TYPE_NUMBER: number = 1;
     public static TYPE_BOOLEAN: number = 2;
@@ -24,6 +23,26 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase, I
     public static TYPE_OBJECT: number = 4;
     public static TYPE_ARRAY: number = 5;
     public static TYPE_NULL: number = 6;
+
+    public static TYPE_FROM_OPENAI: { [type: string]: number } = {
+        'string': GPTAssistantAPIFunctionParamVO.TYPE_STRING,
+        'number': GPTAssistantAPIFunctionParamVO.TYPE_NUMBER,
+        'boolean': GPTAssistantAPIFunctionParamVO.TYPE_BOOLEAN,
+        'integer': GPTAssistantAPIFunctionParamVO.TYPE_INTEGER,
+        'object': GPTAssistantAPIFunctionParamVO.TYPE_OBJECT,
+        'array': GPTAssistantAPIFunctionParamVO.TYPE_ARRAY,
+        'null': GPTAssistantAPIFunctionParamVO.TYPE_NULL,
+    };
+
+    public static TYPE_TO_OPENAI: { [type: number]: string } = {
+        [GPTAssistantAPIFunctionParamVO.TYPE_STRING]: 'string',
+        [GPTAssistantAPIFunctionParamVO.TYPE_NUMBER]: 'number',
+        [GPTAssistantAPIFunctionParamVO.TYPE_BOOLEAN]: 'boolean',
+        [GPTAssistantAPIFunctionParamVO.TYPE_INTEGER]: 'integer',
+        [GPTAssistantAPIFunctionParamVO.TYPE_OBJECT]: 'object',
+        [GPTAssistantAPIFunctionParamVO.TYPE_ARRAY]: 'array',
+        [GPTAssistantAPIFunctionParamVO.TYPE_NULL]: 'null',
+    };
 
     public id: number;
     public _type: string = GPTAssistantAPIFunctionParamVO.API_TYPE_ID;
@@ -43,7 +62,20 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase, I
 
     public array_items_type: number;
 
+    /**
+     * Pour les params d'url, on propose de ne pas transmettre ce param comme param de fonction.
+     *  Pas obligatoire puisque des fois l'API peut avoir besoin de ce param pour construire l'URL ET en param de fonction
+     */
+    public not_in_function_params: boolean;
+
+    /**
+     * A voir si on peut faire évoluer mais pour le moment à saisir en JSON ("1" si string 1 dans le champs de saisie, ou 1 si number 1, etc...)
+     */
+    public default_json_value: string;
+
     public weight: number;
+
+    public archived: boolean;
 
     // IVersionedVO
     public parent_id: number;
@@ -53,6 +85,50 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase, I
     public version_timestamp: number;
     public version_edit_author_id: number;
     public version_edit_timestamp: number;
+
+    public static from_GPT_FunctionParameters(from: any): GPTAssistantAPIFunctionParamVO {
+
+        if (!from) {
+            return null;
+        }
+
+        const res: GPTAssistantAPIFunctionParamVO = new GPTAssistantAPIFunctionParamVO();
+
+        res.type = GPTAssistantAPIFunctionParamVO.TYPE_FROM_OPENAI[from.type];
+        res.gpt_funcparam_description = from.description;
+
+        if (from.default) {
+            res.default_json_value = JSON.stringify(from.default);
+        }
+
+        if (from.enum) {
+            if (res.type == GPTAssistantAPIFunctionParamVO.TYPE_STRING) {
+                res.string_enum = from.enum;
+            }
+
+            if ((res.type == GPTAssistantAPIFunctionParamVO.TYPE_NUMBER) || (res.type == GPTAssistantAPIFunctionParamVO.TYPE_INTEGER)) {
+                res.number_enum = from.enum;
+            }
+        }
+
+        if (from.properties) {
+            res.object_fields = [];
+
+            for (const i in from.properties) {
+                const field: GPTAssistantAPIFunctionParamVO = GPTAssistantAPIFunctionParamVO.from_GPT_FunctionParameters(from.properties[i]);
+
+                field.gpt_funcparam_name = i;
+
+                res.object_fields.push(field);
+            }
+        }
+
+        if (from.items) {
+            res.array_items_type = GPTAssistantAPIFunctionParamVO.TYPE_FROM_OPENAI[from.items.type];
+        }
+
+        return res;
+    }
 
     public to_GPT_FunctionParameters(): FunctionParameters {
 
@@ -67,6 +143,10 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase, I
 
         if (((this.type == GPTAssistantAPIFunctionParamVO.TYPE_NUMBER) || (this.type == GPTAssistantAPIFunctionParamVO.TYPE_INTEGER)) && this.number_enum) {
             res['enum'] = this.number_enum;
+        }
+
+        if (this.default_json_value) {
+            res['default'] = JSON.parse(this.default_json_value);
         }
 
         if ((this.type == GPTAssistantAPIFunctionParamVO.TYPE_OBJECT) && this.object_fields) {

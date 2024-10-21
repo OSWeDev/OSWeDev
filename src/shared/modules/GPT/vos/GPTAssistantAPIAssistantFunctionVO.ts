@@ -10,4 +10,5 @@ export default class GPTAssistantAPIAssistantFunctionVO implements IDistantVOBas
 
     public assistant_id: number;
     public function_id: number;
+    public weight: number;
 }

@@ -78,7 +78,7 @@ export default class NotificationVO implements IDistantVOBase {
     public creation_date: number;
     public read_date: number;
 
-    public vos: string;
+    public vos: IDistantVOBase[];
 
     public room_id: string;
 

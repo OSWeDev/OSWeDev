@@ -47,7 +47,7 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
     private widget: DashboardWidgetVO = null;
 
     private mounted() {
-        if ((!this.page_widget?.id)) {
+        if ((!this.page_widget?.id) || (this.page_widget.page_id != this.dashboard_page?.id)) {
             return;
         }
 
@@ -62,7 +62,7 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
 
     @Watch('page_widget', { immediate: true })
     private async onchange_widget() {
-        if (!this.page_widget) {
+        if ((!this.page_widget) || (this.page_widget.page_id != this.dashboard_page?.id)) {
             return;
         }
 

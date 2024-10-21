@@ -1,4 +1,4 @@
-import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../../modules/Var/vos/VarDAGNode';
 import AnimationController from "../../../../shared/modules/Animation/AnimationController";
 import ThemeModuleDataRangesVO from "../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO";
 import AnimationParametersVO from "../../../../shared/modules/Animation/vos/AnimationParametersVO";

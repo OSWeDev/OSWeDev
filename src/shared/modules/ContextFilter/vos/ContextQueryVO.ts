@@ -365,6 +365,24 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     }
 
     /**
+     * Ajouter un field construit par ailleurs
+     */
+    public add_field_obj(
+        field: ContextQueryFieldVO,
+    ): ContextQueryVO {
+
+        if (!this.fields) {
+            this.fields = [];
+        }
+
+        this.fields.push(field);
+
+        this.update_active_api_type_ids_from_fields([field]);
+
+        return this;
+    }
+
+    /**
      * has_field
      *  - Check if the given field_id is in the fields
      */
@@ -696,6 +714,14 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     }
 
     /**
+     * Filtrer via une REGEXP
+     * @param regexp le texte qui représente la regexp
+     */
+    public filter_by_reg_exp(field_id: string, regexp: string, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_reg_exp(regexp)]);
+    }
+
+    /**
      * Filtrer par text strictement égal
      * @param field_id le field qu'on veut filtrer
      * @param alias
@@ -897,6 +923,10 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
                 const matroid_field = matroid_fields[j];
                 const matroid_field_id = matroid_field.field_id;
                 const target_field_id = (fields_ids_mapper && fields_ids_mapper[matroid_field_id]) ? fields_ids_mapper[matroid_field_id] : matroid_field_id;
+
+                if (!target_moduletable.getFieldFromId(target_field_id)) {
+                    continue;
+                }
 
                 let this_filter = null;
                 switch (matroid_field.field_type) {
@@ -1212,6 +1242,13 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
 
         log_func('ContextQueryVO - base_api_type_id:' + this.base_api_type_id);
         log_func('               - active_api_type_ids: ' + this.active_api_type_ids);
+        log_func('               - query_limit: ' + this.query_limit);
+        log_func('               - query_offset: ' + this.query_offset);
+        log_func('               - throttle_query_select: ' + this.throttle_query_select);
+        log_func('               - sort_by: ' + JSON.stringify(this.sort_by));
+        log_func('               - is_server: ' + this.is_server);
+        log_func('               - max_age_ms: ' + this.max_age_ms);
+        log_func('               - do_count_results: ' + this.do_count_results);
 
         const fields_num = (this.fields ? this.fields.length : 0);
         if (fields_num) {

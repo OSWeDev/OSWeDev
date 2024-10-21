@@ -1,0 +1,4 @@
+.oselia_last_thread(:class="{selected: thread && (current_thread_id === thread.id)}")
+    template(v-if='thread')
+        .oselia_last_thread_title(@click='select_thread') {{ thread.thread_title }}
+                

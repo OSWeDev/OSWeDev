@@ -1,8 +1,20 @@
 .ts_ranges_input
-    v-date-picker(
-        mode='multiple'
-        v-model='selectedDates'
-        :required="required"
-        :disabled-dates='disabled_dates'
-        is-inline
-    )
+    template(v-if="is_type_quarter")
+        Vuequarterselect(
+            :key="custom_key"
+            :multiple="true"
+            :default-value="selectedDates"
+            :disabled="disabled"
+            :placeholder="label('ts_ranges_input.placeholder.quarters')"
+            :option-format="option_format_quarter"
+            :format="option_format_quarter_selected"
+            @change="onchange_selected_quarters"
+        )
+    template(v-else)
+        v-date-picker(
+            mode='multiple'
+            v-model='selectedDates'
+            :required="required"
+            :disabled-dates='disabled_dates'
+            is-inline
+        )

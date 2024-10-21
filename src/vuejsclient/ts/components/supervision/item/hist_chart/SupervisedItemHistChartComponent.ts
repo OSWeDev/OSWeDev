@@ -9,6 +9,8 @@ import ISupervisedItem from '../../../../../../shared/modules/Supervision/interf
 import ISupervisedItemGraphSegmentation from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemGraphSegmentation';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../../../VueComponentBase';
+import { _adapters, CategoryScale, LinearScale, LogarithmicScale, RadialLinearScale, TimeScale } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 @Component({
     template: require('./SupervisedItemHistChartComponent.pug'),
@@ -42,7 +44,9 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
     private debounced_rerender = debounce(this.rerender, 500);
 
     public async created() {
-        window['Chart'] = Chart;
+        let chart = Chart;
+        chart.register(ChartDataLabels, CategoryScale, LinearScale, LogarithmicScale, TimeScale, RadialLinearScale);
+        window['Chart'] = chart;
         Chart['helpers'] = helpers;
 
         await import("chart.js-plugin-labels-dv");

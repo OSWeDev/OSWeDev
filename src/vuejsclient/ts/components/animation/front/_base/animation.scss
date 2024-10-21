@@ -304,6 +304,48 @@
                 }
             }
         }
+
+        .reset_theme,
+        .reset_module {
+            cursor: pointer;
+            margin-bottom: 15px;
+            float: left;
+            padding: 2px 4px 1px 4px;
+            margin-bottom: 0;
+            margin-right: 10px;
+            border-radius: 5px;
+            width: 33px;
+            text-align: center;
+            min-height: 34px;
+            min-width: 34px;
+            border-width: 3px;
+            border: 3px solid $animation_secondary;
+            background: none !important;
+
+            i {
+                color: $animation_secondary;
+                font-size: 24px;
+                line-height: 28px;
+
+                &:before {
+                    margin-right: 0;
+                }
+            }
+
+            &:hover {
+                border: 3px solid $animation_rouge;
+                i {
+                    color: $animation_rouge;
+                }
+            }
+
+            &.not_resetable,
+            &.not_resetable:hover {
+                border: none !important;
+                cursor: initial;
+            }
+
+        }
     }
 
     .documents {
@@ -329,8 +371,16 @@
         }
     }
 
+    .theme {
+        .theme_name {
+            margin-bottom: 6px;
+            margin-left: 44px;
+            margin-right: 44px;
+        }
+    }
+
     .modules {
-        .module {
+        .module{
             cursor: pointer;
             margin-bottom: 15px;
 

@@ -1,6 +1,7 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
+import APIDefinition from '../API/vos/APIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import ModuleTableController from '../DAO/ModuleTableController';
@@ -51,16 +52,8 @@ export default class ModuleContextFilter extends Module {
     public static APINAME_build_select_query: string = "build_select_query";
     public static APINAME_build_select_query_str: string = "build_select_query_str";
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleContextFilter {
-        if (!ModuleContextFilter.instance) {
-            ModuleContextFilter.instance = new ModuleContextFilter();
-        }
-
-        return ModuleContextFilter.instance;
-    }
-
     private static instance: ModuleContextFilter = null;
+
 
     /**
      * Compter les segmentations valides à partir des filtres passés en paramètres (pour un type segmenté donné)
@@ -158,6 +151,15 @@ export default class ModuleContextFilter extends Module {
         this.forceActivationOnInstallation();
     }
 
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleContextFilter {
+        if (!ModuleContextFilter.instance) {
+            ModuleContextFilter.instance = new ModuleContextFilter();
+        }
+
+        return ModuleContextFilter.instance;
+    }
+
     public initialize() {
         this.init_ContextFilterVO();
         this.init_SortByVO();
@@ -179,7 +181,8 @@ export default class ModuleContextFilter extends Module {
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
-            CountValidSegmentationsParamVOStatic
+            CountValidSegmentationsParamVOStatic,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectVosParamVO, any[]>(
@@ -190,7 +193,8 @@ export default class ModuleContextFilter extends Module {
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
-            SelectVosParamVOStatic
+            SelectVosParamVOStatic,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectFilterVisibleOptionsParamVO, DataFilterOption[]>(
@@ -201,7 +205,8 @@ export default class ModuleContextFilter extends Module {
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
-            SelectFilterVisibleOptionsParamVOStatic
+            SelectFilterVisibleOptionsParamVOStatic,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectDatatableRowsParamVO, any[]>(
@@ -212,7 +217,8 @@ export default class ModuleContextFilter extends Module {
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
-            SelectDatatableRowsParamVOStatic
+            SelectDatatableRowsParamVOStatic,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectCountParamVO, any[]>(
@@ -223,7 +229,8 @@ export default class ModuleContextFilter extends Module {
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
-            SelectCountParamVOStatic
+            SelectCountParamVOStatic,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<QueryVOFromUniqueFieldContextFiltersParamVO, any[]>(
@@ -232,7 +239,8 @@ export default class ModuleContextFilter extends Module {
             (params: QueryVOFromUniqueFieldContextFiltersParamVO) => {
                 return [params.api_type_id];
             },
-            QueryVOFromUniqueFieldContextFiltersParamVOStatic
+            QueryVOFromUniqueFieldContextFiltersParamVOStatic,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<BuildSelectQueryParamVO, ParameterizedQueryWrapper>(
@@ -243,7 +251,8 @@ export default class ModuleContextFilter extends Module {
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
-            BuildSelectQueryParamVOStatic
+            BuildSelectQueryParamVOStatic,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<BuildSelectQueryParamVO, string>(
             null,
@@ -253,7 +262,8 @@ export default class ModuleContextFilter extends Module {
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
-            BuildSelectQueryParamVOStatic
+            BuildSelectQueryParamVOStatic,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectVosParamVO, IDistantVOBase[]>(
@@ -264,7 +274,8 @@ export default class ModuleContextFilter extends Module {
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
-            SelectVosParamVOStatic
+            SelectVosParamVOStatic,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<DeleteVosParamVO, InsertOrDeleteQueryResult[]>(
@@ -273,7 +284,8 @@ export default class ModuleContextFilter extends Module {
             (params: DeleteVosParamVO) => {
                 return params.context_query ? [params.context_query.base_api_type_id] : null;
             },
-            DeleteVosParamVOStatic
+            DeleteVosParamVOStatic,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<UpdateVosParamVO<any>, InsertOrDeleteQueryResult[]>(
@@ -282,7 +294,8 @@ export default class ModuleContextFilter extends Module {
             (params: UpdateVosParamVO<any>) => {
                 return params.context_query ? [params.context_query.base_api_type_id] : null;
             },
-            UpdateVosParamVOStatic
+            UpdateVosParamVOStatic,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
     }
 
@@ -395,14 +408,16 @@ export default class ModuleContextFilter extends Module {
 
     private init_ContextQueryFieldVO() {
 
-        const datatable_fields = [
-            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Api_type_id', true),
-            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du champs', true),
-            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().alias, ModuleTableFieldVO.FIELD_TYPE_string, 'Alias', false),
-            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().aggregator, ModuleTableFieldVO.FIELD_TYPE_enum, 'Aggrégateur', false).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
-            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().modifier, ModuleTableFieldVO.FIELD_TYPE_enum, 'Modificateur', false).setEnumValues(ContextQueryFieldVO.FIELD_MODIFIER_LABELS),
-            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().cast_with, ModuleTableFieldVO.FIELD_TYPE_string, 'Caster avec', false),
-        ];
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Api_type_id', false);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du champs', false);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().alias, ModuleTableFieldVO.FIELD_TYPE_string, 'Alias', false);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().aggregator, ModuleTableFieldVO.FIELD_TYPE_enum, 'Aggrégateur', true, true, VarConfVO.NO_AGGREGATOR).setEnumValues(VarConfVO.AGGREGATOR_LABELS);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().modifier, ModuleTableFieldVO.FIELD_TYPE_enum, 'Modificateur', true, true, ContextQueryFieldVO.FIELD_MODIFIER_NONE).setEnumValues(ContextQueryFieldVO.FIELD_MODIFIER_LABELS);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().cast_with, ModuleTableFieldVO.FIELD_TYPE_string, 'Caster avec', false);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().operator, ModuleTableFieldVO.FIELD_TYPE_enum, 'Opérateur', true, true, ContextQueryFieldVO.FIELD_OPERATOR_NONE).setEnumValues(ContextQueryFieldVO.FIELD_OPERATOR_LABELS);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().operator_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champs de l\'opérateur', false);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().static_value, ModuleTableFieldVO.FIELD_TYPE_string, 'Valeur statique', false);
+
         const datatable = ModuleTableController.create_new(this.name, ContextQueryFieldVO, null, "Champs de requête");
     }
 

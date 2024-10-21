@@ -1,3 +1,4 @@
+import TeamsWebhookContentActionOpenUrlVO from "../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO";
 
 export default class SendTeamsLevelParam {
 
@@ -5,6 +6,8 @@ export default class SendTeamsLevelParam {
         public level: string,
         public title: string,
         public message: string,
-        public webhook: string = null
+        public actions: TeamsWebhookContentActionOpenUrlVO[],
+        public groupid: string,
+        public channelid: string,
     ) { }
 }

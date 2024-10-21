@@ -1,11 +1,5 @@
 import { IDatabase } from 'pg-promise';
-import ModuleGPTServer from '../../../server/modules/GPT/ModuleGPTServer';
 import IGeneratorWorker from '../../IGeneratorWorker';
-import OseliaPromptVO from '../../../shared/modules/Oselia/vos/OseliaPromptVO';
-import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
-import { field_names } from '../../../shared/tools/ObjectHandler';
-import ModuleFeedbackServer from '../../../server/modules/Feedback/ModuleFeedbackServer';
 
 export default class Patch20240409AddOseliaPromptAndAssistantForFeedback implements IGeneratorWorker {
 

@@ -244,7 +244,6 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'VO Type', false);
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().field_id, ModuleTableFieldVO.FIELD_TYPE_string, 'ID Champs', false);
 
-        var_id;
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().var_unicity_id, ModuleTableFieldVO.FIELD_TYPE_int, 'Unicité pour colonnes de type var', false);
 
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().component_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Composant', false);
@@ -292,6 +291,10 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().custom_label, ModuleTableFieldVO.FIELD_TYPE_string, "Label personnalisé");
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().custom_class_css, ModuleTableFieldVO.FIELD_TYPE_string, "Classe CSS personnalisé");
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().custom_values, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, "Valeurs personnalisées");
+        ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().column_dynamic_page_widget_id, ModuleTableFieldVO.FIELD_TYPE_int, "Widget de la colonne dynamique");
+        ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().column_dynamic_component, ModuleTableFieldVO.FIELD_TYPE_string, "Composant de la colonne dynamique");
+        ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().column_dynamic_var, ModuleTableFieldVO.FIELD_TYPE_string, "Variable de la colonne dynamique");
+        ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().column_dynamic_time_segment, ModuleTableFieldVO.FIELD_TYPE_int, "Segment de la colonne dynamique");
 
 
         ModuleTableController.create_new(this.name, TableColumnDescVO, null, "Référence de champs");

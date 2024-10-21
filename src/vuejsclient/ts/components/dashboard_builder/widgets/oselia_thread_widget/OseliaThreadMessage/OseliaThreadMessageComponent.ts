@@ -21,6 +21,14 @@ import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import TablePaginationComponent from '../../table_widget/pagination/TablePaginationComponent';
 import OseliaThreadMessageActionURLComponent from '../OseliaThreadMessageActionURL/OseliaThreadMessageActionURLComponent';
 import './OseliaThreadMessageComponent.scss';
+import VueMarkdown from 'vue-markdown-render';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import OseliaThreadFeedbackComponent from '../OseliaThreadFeedback/OseliaThreadFeedbackComponent';
+import ImageViewComponent from '../../../../image/View/ImageViewComponent';
+import GPTAssistantAPIThreadMessageAttachmentVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageAttachmentVO';
+import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
+import GPTAssistantAPIFileVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
 
 @Component({
     template: require('./OseliaThreadMessageComponent.pug'),
@@ -30,10 +38,14 @@ import './OseliaThreadMessageComponent.scss';
         Tablepaginationcomponent: TablePaginationComponent,
         Oseliathreadmessageactionurlcomponent: OseliaThreadMessageActionURLComponent,
         Mailideventscomponent: MailIDEventsComponent,
-        Oseliathreadmessageemailcomponent: MailIDEventsComponent
+        Oseliathreadmessageemailcomponent: MailIDEventsComponent,
+        Oseliathreadfeedbackcomponent: OseliaThreadFeedbackComponent,
+        Vuemarkdown: VueMarkdown,
+        Imageviewcomponent: ImageViewComponent,
     }
 })
 export default class OseliaThreadMessageComponent extends VueComponentBase {
+
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
@@ -52,7 +64,9 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private thread_message: GPTAssistantAPIThreadMessageVO;
+
     public thread_message_contents: GPTAssistantAPIThreadMessageContentVO[] = [];
+    private thread_message_files: { [key: string]: FileVO }[] = [];
 
     private is_loading_thread_message: boolean = true;
 
@@ -60,44 +74,65 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     private user_name: string = null;
 
     private new_message_text: string = null;
+    private current_thread_message_id: number = null;
+
+    private is_editing_content: boolean[] = [];
+    private changed_input: boolean[] = [];
+
+    private show_feedback: boolean = false;
+
+    private markdown_options = {
+        html: true,
+        linkify: true,
+        typographer: true,
+    };
 
     private throttle_load_thread_message = ThrottleHelper.declare_throttle_without_args(this.load_thread_message.bind(this), 10);
+    private throttle_load_thread_message_attachments = ThrottleHelper.declare_throttle_without_args(this.load_thread_message_attachments.bind(this), 10);
+
+    get is_default_avatar() {
+        return (!this.avatar_url) || (this.avatar_url == ModuleAccessPolicy.AVATAR_DEFAULT_URL);
+    }
 
     get role_assistant() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
     }
     get role_assistant_avatar_url() {
         return '/vuejsclient/public/img/avatars/oselia.png';
     }
 
     get role_system() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_SYSTEM;
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_SYSTEM;
     }
     get role_system_avatar_url() {
         return '/vuejsclient/public/img/avatars/system.png';
     }
 
     get role_tool() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_TOOL;
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TOOL;
     }
     get role_tool_avatar_url() {
         return '/vuejsclient/public/img/avatars/tool.png';
     }
 
     get role_function() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_FUNCTION;
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_FUNCTION;
     }
     get role_function_avatar_url() {
         return '/vuejsclient/public/img/avatars/function.png';
     }
 
     get role_user() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_USER;
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
     }
 
     get is_self_user() {
 
         if ((!this.thread_message) || (!this.thread_message.user_id)) {
+            return false;
+        }
+
+        if (this.thread_message.role != GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
             return false;
         }
 
@@ -122,7 +157,100 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     @Watch('thread_message', { immediate: true })
     private async on_change_thread_message() {
-        this.throttle_load_thread_message();
+        await this.throttle_load_thread_message();
+        await this.throttle_load_thread_message_attachments();
+    }
+
+    @Watch('thread_message_contents', { deep: true })
+    private on_change_thread_message_contents() {
+        this.is_editing_content = this.thread_message_contents ? this.thread_message_contents.map(() => false) : [];
+        this.changed_input = this.thread_message_contents ? this.thread_message_contents.map(() => false) : [];
+    }
+
+    private async copy(ref: string) {
+
+        // // On récupère le texte du message, donc le texte brut de tous les contenus de type texte
+        // let text = '';
+
+        // for (const i in this.thread_message_contents) {
+        //     const content = this.thread_message_contents[i];
+
+        //     if (content.type == GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT) {
+        //         text += ((text == '') ? '\n\n' : '') + (content.content_type_text ? content.content_type_text.value : '');
+        //     }
+        // }
+
+        // await navigator.clipboard.writeText(text);
+
+        let selection = null;
+        try {
+
+            const range = document.createRange();
+            let ref_node = this.$refs[ref];
+            if (Array.isArray(ref_node)) {
+                ref_node = ref_node[0];
+            }
+            if (ref_node && (ref_node as any).$el) {
+                ref_node = (ref_node as any).$el;
+            }
+
+            const textToCopy = (ref_node as any).textContent || (ref_node as any).innerText;
+
+            if (!textToCopy) {
+                await this.$snotify.error(this.label('oselia_thread_message.copy_failed'));
+                return;
+            }
+
+            navigator.clipboard.writeText(textToCopy.trim()).then(async () => {
+                await this.$snotify.success(this.label('oselia_thread_message.copy_success'));
+            }).catch(async (err) => {
+                await this.$snotify.error(this.label('oselia_thread_message.copy_failed'));
+            });
+
+            // range.selectNode(ref_node as any);
+            // selection = window.getSelection();
+            // selection.removeAllRanges();
+            // selection.addRange(range);
+
+            // const successful = document.execCommand('copy');
+            // if (successful) {
+            //     await this.$snotify.success(this.label('oselia_thread_message.copy_success'));
+            // } else {
+            //     await this.$snotify.error(this.label('oselia_thread_message.copy_failed'));
+            // }
+        } catch (err) {
+            await this.$snotify.error(this.label('oselia_thread_message.copy_failed'));
+            console.error('Unable to copy', err);
+        }
+
+        if (selection) {
+            selection.removeAllRanges(); // Deselect the content
+        }
+    }
+
+    private async rerun() {
+        throw new Error('Not implemented');
+    }
+
+    private async cancel_edit_thread_message_content(message_content: GPTAssistantAPIThreadMessageContentVO, i: number) {
+        this.is_editing_content[i] = false;
+        this.changed_input[i] = false;
+
+        this.thread_message_contents[i] = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID).filter_by_id(message_content.id).select_vo<GPTAssistantAPIThreadMessageContentVO>();
+    }
+
+    private async save_edit_thread_message_content(message_content: GPTAssistantAPIThreadMessageContentVO, i: number) {
+        this.is_editing_content[i] = false;
+        this.changed_input[i] = false;
+
+        /**
+         * TODO FIXME : Ici on devrait avoir un trigger côté serveur pour relancer le run qui suivait ce message - potentiellement pas le message content suivant du coup.
+         * Le truc c'est que contrairement à GPT, faut bien récupérer l'assistant du run, puisqu'il évolue dans la discussion potentiellement.
+         * Et donc faut aussi gérer une logique d'arborescence de discussion et pas de thread linéaire pour stocker toutes les variantes de la discussion.
+         * Pour le moment, on propose de modifier les messages, et avec un bouton dédié à chaque contenu issu d'un assistant,
+         *  de run à nouveau l'assistant pour la section de la discussion concernée, sans impacter le reste - on perd l'ancien résultat du coup si on fait ça...
+         */
+        await ModuleDAO.getInstance().insertOrUpdateVO(message_content);
     }
 
     private async force_reload() {
@@ -142,15 +270,28 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     private async load_thread_message() {
 
-        this.is_loading_thread_message = true;
-        this.thread_message_contents = [];
-        await this.unregister_all_vo_event_callbacks();
-
         if (!this.thread_message) {
 
+            this.thread_message_contents = [];
+            this.is_editing_content = [];
+            this.changed_input = [];
             this.is_loading_thread_message = false;
+            await this.unregister_all_vo_event_callbacks();
             return;
         }
+
+        if (this.current_thread_message_id == this.thread_message.id) {
+            return;
+        }
+
+        this.current_thread_message_id = this.thread_message.id;
+
+        this.is_loading_thread_message = true;
+        this.thread_message_contents = [];
+        this.is_editing_content = [];
+        this.changed_input = [];
+
+        await this.unregister_all_vo_event_callbacks();
 
         // On récupère les contenus du message
         await this.register_vo_updates_on_list(
@@ -166,6 +307,39 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
         this.$nextTick(() => {
             this.$emit('thread_message_updated');
         });
+    }
+
+    private async load_thread_message_attachments() {
+
+        this.is_loading_thread_message = true;
+        if (!this.thread_message || !this.thread_message.attachments) {
+            this.is_loading_thread_message = false;
+            return;
+        }
+
+        // On récupère les contenus des attachments
+        for (const attachment of this.thread_message.attachments) {
+            if (attachment.file_id) {
+                const gpt_files: GPTAssistantAPIFileVO[] = await query(GPTAssistantAPIFileVO.API_TYPE_ID)
+                    .filter_by_id(attachment.file_id)
+                    .select_vos<GPTAssistantAPIFileVO>();
+                const files: FileVO[] = [];
+                for (const gpt_file of gpt_files) {
+                    const file = await query(FileVO.API_TYPE_ID)
+                        .filter_by_id(gpt_file.file_id)
+                        .select_vos<FileVO>();
+                    files.push(file[0]);
+                }
+                if (files.length > 0) {
+                    for (const file of files) {
+                        this.thread_message_files.push({ ['.' + file.path.split('.').pop()]: file });
+                    }
+                }
+            }
+        }
+
+
+        this.is_loading_thread_message = false;
     }
 
     private async load_avatar_url_and_user_name() {

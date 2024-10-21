@@ -176,13 +176,13 @@ export default class CRUDFormServices {
 
             switch (field.type) {
                 case DatatableField.SIMPLE_FIELD_TYPE:
-                    obj[field.datatable_field_uid] = ((obj[field.datatable_field_uid]) ? obj[field.datatable_field_uid] : (field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_default);
+                    obj[field.datatable_field_uid] = ((obj[field.datatable_field_uid] != null) ? obj[field.datatable_field_uid] : (field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_default);
                     break;
                 case DatatableField.MANY_TO_ONE_FIELD_TYPE:
-                    obj[field.datatable_field_uid] = ((obj[field.datatable_field_uid]) ? obj[field.datatable_field_uid] : (field as ManyToOneReferenceDatatableFieldVO<any>).srcField.field_default);
+                    obj[field.datatable_field_uid] = ((obj[field.datatable_field_uid] != null) ? obj[field.datatable_field_uid] : (field as ManyToOneReferenceDatatableFieldVO<any>).srcField.field_default);
                     break;
                 case DatatableField.REF_RANGES_FIELD_TYPE:
-                    obj[field.datatable_field_uid] = ((obj[field.datatable_field_uid]) ? obj[field.datatable_field_uid] : (field as RefRangesReferenceDatatableFieldVO<any>).srcField.field_default);
+                    obj[field.datatable_field_uid] = ((obj[field.datatable_field_uid] != null) ? obj[field.datatable_field_uid] : (field as RefRangesReferenceDatatableFieldVO<any>).srcField.field_default);
                     break;
 
                 default:

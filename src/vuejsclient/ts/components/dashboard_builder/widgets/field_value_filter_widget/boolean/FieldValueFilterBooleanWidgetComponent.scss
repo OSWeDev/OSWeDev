@@ -22,6 +22,7 @@
     .advanced_string_filter_content {
         display: inline-block;
         width: 40%;
+        margin-right: .3em;
 
         input {
             width: -webkit-fill-available;
@@ -29,8 +30,6 @@
             border: none;
             margin-left: 1em;
         }
-
-        margin-right: .3em;
     }
 
     .advanced_string_filter_add_filter {

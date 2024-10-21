@@ -34,6 +34,9 @@ export default class ModuleAPI extends Module {
         ModuleTableFieldController.create_new(ExternalAPIAuthentificationVO.API_TYPE_ID, field_names<ExternalAPIAuthentificationVO>().type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type d\'authentification', true).setEnumValues(ExternalAPIAuthentificationVO.TYPE_LABELS);
 
         ModuleTableFieldController.create_new(ExternalAPIAuthentificationVO.API_TYPE_ID, field_names<ExternalAPIAuthentificationVO>().api_key, ModuleTableFieldVO.FIELD_TYPE_string, 'Clé API', false);
+        ModuleTableFieldController.create_new(ExternalAPIAuthentificationVO.API_TYPE_ID, field_names<ExternalAPIAuthentificationVO>().basic_login, ModuleTableFieldVO.FIELD_TYPE_string, 'Login', false);
+        ModuleTableFieldController.create_new(ExternalAPIAuthentificationVO.API_TYPE_ID, field_names<ExternalAPIAuthentificationVO>().basic_password, ModuleTableFieldVO.FIELD_TYPE_password, 'Mot de passe', false);
+
         ModuleTableFieldController.create_new(ExternalAPIAuthentificationVO.API_TYPE_ID, field_names<ExternalAPIAuthentificationVO>().custom_header_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du header personnalisé', false);
 
         ModuleTableFieldController.create_new(ExternalAPIAuthentificationVO.API_TYPE_ID, field_names<ExternalAPIAuthentificationVO>().oauth_client_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Client ID OAuth', false);

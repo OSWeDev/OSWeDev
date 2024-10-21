@@ -21,19 +21,19 @@ import ModuleAnimationImportModuleDefaultFormats from "./ModuleAnimationImportMo
 
 export default class ModuleAnimationImportModuleServer extends DataImportModuleBase<AnimationImportModuleVO> {
 
+    private static instance: ModuleAnimationImportModuleServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleAnimationImportModule.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAnimationImportModuleServer {
         if (!ModuleAnimationImportModuleServer.instance) {
             ModuleAnimationImportModuleServer.instance = new ModuleAnimationImportModuleServer();
         }
         return ModuleAnimationImportModuleServer.instance;
-    }
-
-    private static instance: ModuleAnimationImportModuleServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleAnimationImportModule.getInstance().name);
     }
 
     // /**
@@ -57,10 +57,6 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
     //     access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAnimation.POLICY_BO_OTHERS_ACCESS).id;
     //     access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
     // }
-
-    public get_merged_api_type_ids(): string[] {
-        return [AnimationModuleVO.API_TYPE_ID];
-    }
 
     public async validate_formatted_data(module_datas: AnimationImportModuleVO[]): Promise<AnimationImportModuleVO[]> {
 

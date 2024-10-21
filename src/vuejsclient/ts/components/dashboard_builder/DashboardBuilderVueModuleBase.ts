@@ -10,9 +10,9 @@ import SuiviCompetencesWidgetOptionsVO from '../../../../shared/modules/Dashboar
 import TableWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import VarMixedChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
+import VarPieChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
 import VarRadarChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
@@ -25,10 +25,8 @@ import OseliaThreadWidgetOptions from './widgets/oselia_thread_widget/options/Os
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptions';
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
-import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
-
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
     protected static instance: DashboardBuilderVueModuleBase = null;
@@ -118,7 +116,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_BulkOps();
 
         await this.initializeWidget_Var();
-
         await this.initializeWidget_ValueTable();
         await this.initializeWidget_DataTable();
 
@@ -227,7 +224,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptionsVO(
             null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false,
-            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false, false, null, null, null
+            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false, [], null
         ), TableWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import('./widgets/table_widget/TableWidgetComponent'));
@@ -269,7 +266,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptionsVO(
             null, false, 100, null, false, false, false, false, false, true, true, true, true, true, true, false, null, false, 5, false,
-            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false, false, null, null, null
+            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false, [], null
         ), TableWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import('./widgets/table_widget/TableWidgetComponent'));
@@ -351,7 +348,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(
             AdvancedDateFilter,
-            () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null, false, false, false),
+            () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null, false, false, false, false, null, false, false, null, null),
             AdvancedDateFilterWidgetOptions.get_selected_fields
         );
 
@@ -396,7 +393,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarPieChart.default_background = '#f5f5f5';
         VarPieChart.icon_component = 'Varpiechartwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarPieChart, () => VarPieChartWidgetOptions.createDefault(), VarPieChartWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarPieChart, () => VarPieChartWidgetOptionsVO.createDefault(), VarPieChartWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Varpiechartwidgetcomponent', () => import('./widgets/var_pie_chart_widget/VarPieChartWidgetComponent'));
         Vue.component('Varpiechartwidgetoptionscomponent', () => import('./widgets/var_pie_chart_widget/options/VarPieChartWidgetOptionsComponent'));

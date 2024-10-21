@@ -27,19 +27,19 @@ import ModuleTranslationsImportDefaultFormats from './ModuleTranslationsImportDe
 
 export default class ModuleTranslationsImportServer extends DataImportModuleBase<ImportTranslationRaw> {
 
+    private static instance: ModuleTranslationsImportServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleTranslationsImport.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ModuleTranslationsImportServer {
         if (!ModuleTranslationsImportServer.instance) {
             ModuleTranslationsImportServer.instance = new ModuleTranslationsImportServer();
         }
         return ModuleTranslationsImportServer.instance;
-    }
-
-    private static instance: ModuleTranslationsImportServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleTranslationsImport.getInstance().name);
     }
 
     /**
@@ -61,10 +61,6 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
         access_dependency.src_pol_id = access.id;
         access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleTranslation.POLICY_BO_OTHERS_ACCESS).id;
         access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
-    }
-
-    public get_merged_api_type_ids(): string[] {
-        return [TranslatableTextVO.API_TYPE_ID, LangVO.API_TYPE_ID, TranslationVO.API_TYPE_ID];
     }
 
     public async validate_formatted_data(datas: ImportTranslationRaw[], historic: DataImportHistoricVO): Promise<ImportTranslationRaw[]> {

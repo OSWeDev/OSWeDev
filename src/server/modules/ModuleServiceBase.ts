@@ -137,6 +137,7 @@ import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
+import ParamsManager from '../../shared/modules/Params/ParamsManager';
 
 export default abstract class ModuleServiceBase {
 
@@ -290,14 +291,31 @@ export default abstract class ModuleServiceBase {
                 ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
             }
         }
-
-        // On lance la configuration des modules, et avant on configure les apis des modules server
+        // On configure les apis des modules server
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:START');
         }
-        await this.configure_server_modules_apis();
+        this.configure_server_modules_apis();
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:END');
+        }
+
+        // On lance le preload des params des modules
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ParamsManager:reloadPreloadParams:START');
+        }
+        await ParamsManager.reloadPreloadParams();
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ParamsManager:reloadPreloadParams:END');
+        }
+
+        // On lance la configuration des modules
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_init:START');
+        }
+        await this.configure_server_modules_init();
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_init:END');
         }
 
         // On charge le cache des tables segmentées. On cherche à être exhaustifs pour le coup
@@ -342,12 +360,21 @@ export default abstract class ModuleServiceBase {
         }
     }
 
-    public async configure_server_modules_apis() {
+    public configure_server_modules_apis() {
         for (const i in this.server_modules) {
             const server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
                 server_module.registerServerApiHandlers();
+            }
+        }
+    }
+
+    public async configure_server_modules_init() {
+        for (const i in this.server_modules) {
+            const server_module: ModuleServerBase = this.server_modules[i];
+
+            if (server_module.actif) {
                 await server_module.configure();
             }
         }

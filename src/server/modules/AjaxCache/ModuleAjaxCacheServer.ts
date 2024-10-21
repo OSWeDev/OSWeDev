@@ -118,7 +118,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                     case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
                         try {
-                            param = (wrapped_request.postdatas) ? ObjectHandler.try_get_json(wrapped_request.postdatas) : wrapped_request.postdatas;
+                            param = (wrapped_request.postdatas && ObjectHandler.try_is_json(wrapped_request.postdatas)) ? ObjectHandler.try_get_json(wrapped_request.postdatas) : wrapped_request.postdatas;
                             // On doit traduire ici ce qui ne l'a pas été puisque encodé en JSON
                             param = APIControllerWrapper.try_translate_vo_from_api(param);
                         } catch (error) {

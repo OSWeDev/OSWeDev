@@ -4,6 +4,17 @@
         min-height: 10em;
     }
 
+    .btn-group.link_ref {
+        margin-left: .4rem;
+        display: inline-block;
+        margin-top: 5px;
+        vertical-align: unset;
+
+        .btn {
+            margin: 0;
+        }
+    }
+
     .datatable_field_alert {
         float: right;
     }

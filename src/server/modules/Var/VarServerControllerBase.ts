@@ -2,7 +2,7 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
-import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -10,6 +10,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import VarsServerController from './VarsServerController';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default abstract class VarServerControllerBase<TData extends VarDataBaseVO> {
 
@@ -199,11 +200,30 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
             const vo_create_or_delete = c_or_d_vos[k];
 
             await promise_pipeline.push(async () => {
+                const start_: number = Dates.now_ms();
+
+                if (ConfigurationService.node_configuration.debug_vars_invalidation_param_intersector) {
+                    ConsoleHandler.log("VarServerControllerBase.get_invalid_params_intersectors_on_POST_C_POST_D_group:START:" + this.varConf.name + " - " + JSON.stringify(vo_create_or_delete));
+                }
+
                 const tmp = await this.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
+
+                if (ConfigurationService.node_configuration.debug_vars_invalidation_param_intersector) {
+                    ConsoleHandler.log("VarServerControllerBase.get_invalid_params_intersectors_on_POST_C_POST_D_group:END_AWAIT:" + this.varConf.name + " - tmp_length:" + tmp?.length + " - " + JSON.stringify(vo_create_or_delete));
+                }
+
                 if ((!tmp) || (!tmp.length)) {
+                    if (ConfigurationService.node_configuration.debug_vars_invalidation_param_intersector) {
+                        ConsoleHandler.log("VarServerControllerBase.get_invalid_params_intersectors_on_POST_C_POST_D_group:END:" + this.varConf.name + " - " + JSON.stringify(vo_create_or_delete));
+                        ConsoleHandler.log("VarServerControllerBase.get_invalid_params_intersectors_on_POST_C_POST_D_group:NO_INTERSECTOR:" + this.varConf.name + " - " + (Dates.now_ms() - start_) + "ms");
+                    }
                     return;
                 }
                 tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                if (ConfigurationService.node_configuration.debug_vars_invalidation_param_intersector) {
+                    ConsoleHandler.log("VarServerControllerBase.get_invalid_params_intersectors_on_POST_C_POST_D_group:END:" + this.varConf.name + " - " + JSON.stringify(vo_create_or_delete));
+                    ConsoleHandler.log("VarServerControllerBase.get_invalid_params_intersectors_on_POST_C_POST_D_group:HAS_INTERSECTOR:END_TIME:" + this.varConf.name + " - " + (Dates.now_ms() - start_) + "ms");
+                }
             });
         }
 
@@ -249,11 +269,26 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
             const u_vo_holder = u_vo_holders[k];
 
             await promise_pipeline.push(async () => {
+                const start_: number = Dates.now_ms();
+                if (ConfigurationService.node_configuration.debug_vars_invalidation_param_intersector) {
+                    ConsoleHandler.log("VarServerControllerBase.get_invalid_params_intersectors_on_POST_U_group:START:" + this.varConf.name + " - " + JSON.stringify(u_vo_holder));
+                }
                 const tmp = await this.get_invalid_params_intersectors_on_POST_U(u_vo_holder);
+                if (ConfigurationService.node_configuration.debug_vars_invalidation_param_intersector) {
+                    ConsoleHandler.log("VarServerControllerBase.get_invalid_params_intersectors_on_POST_U_group:END_AWAIT:" + this.varConf.name + " - tmp_length:" + tmp?.length + " - " + JSON.stringify(u_vo_holder));
+                }
                 if ((!tmp) || (!tmp.length)) {
+                    if (ConfigurationService.node_configuration.debug_vars_invalidation_param_intersector) {
+                        ConsoleHandler.log("VarServerControllerBase.get_invalid_params_intersectors_on_POST_U_group:END:" + this.varConf.name + " - " + JSON.stringify(u_vo_holder));
+                        ConsoleHandler.log("VarServerControllerBase.get_invalid_params_intersectors_on_POST_U_group:END_TIME:NO_INTERSECTOR:" + this.varConf.name + " - " + (Dates.now_ms() - start_) + "ms");
+                    }
                     return;
                 }
                 tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                if (ConfigurationService.node_configuration.debug_vars_invalidation_param_intersector) {
+                    ConsoleHandler.log("VarServerControllerBase.get_invalid_params_intersectors_on_POST_U_group:END:" + this.varConf.name + " - " + JSON.stringify(u_vo_holder));
+                    ConsoleHandler.log("VarServerControllerBase.get_invalid_params_intersectors_on_POST_U_group:END_TIME:HAS_INTERSECTOR:" + this.varConf.name + " - " + (Dates.now_ms() - start_) + "ms");
+                }
             });
         }
 

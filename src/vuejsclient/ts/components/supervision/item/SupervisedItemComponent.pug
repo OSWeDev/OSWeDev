@@ -37,28 +37,28 @@
                     //- option de de traitement de la ligne de supervision
                     .col-sm-4.supervised_item_controls
                         .btn-group.d-print-none.pull-right
-                            button.btn.btn-sm.m-1.btn-primary(@click="reload")
+                            button.btn.btn-sm.m-1.btn-primary(@click="reload" v-tooltip='label("supervised_item_controls.desc_btn.reload")')
                                 i.fa-duotone.fa-refresh
 
-                            button.btn.btn-sm.m-1.btn-primary(@click="invalidate")
+                            button.btn.btn-sm.m-1.btn-primary(@click="invalidate" v-tooltip='label("supervised_item_controls.desc_btn.invalidate")')
                                 i.fa-duotone.fa-cogs
 
                             template(v-if='is_paused')
-                                button.btn.btn-sm.m-1.btn-primary(@click="switch_paused")
+                                button.btn.btn-sm.m-1.btn-primary(@click="switch_paused" v-tooltip='label("supervised_item_controls.desc_btn.switch_paused_turn_off")')
                                     i.fa-duotone.fa-play
                             template(v-else)
-                                button.btn.btn-sm.m-1.btn-primary(@click="switch_paused")
+                                button.btn.btn-sm.m-1.btn-primary(@click="switch_paused" v-tooltip='label("supervised_item_controls.desc_btn.switch_paused_turn_on")')
                                     i.fa-duotone.fa-pause
 
                             template(v-if='!can_not_switch_read')
                                 template(v-if='is_read')
-                                    button.btn.btn-sm.m-1.btn-primary(@click="switch_read")
+                                    button.btn.btn-sm.m-1.btn-primary(@click="switch_read" v-tooltip='label("supervised_item_controls.desc_btn.switch_read_turn_off")')
                                         i.fa-duotone.fa-envelope-open
                                 template(v-if='!is_read')
-                                    button.btn.btn-sm.m-1.btn-primary(@click="switch_read")
+                                    button.btn.btn-sm.m-1.btn-primary(@click="switch_read" v-tooltip='label("supervised_item_controls.desc_btn.switch_read_turn_on")')
                                         i.fa-duotone.fa-envelope
                             template(v-else)
-                                button.btn.btn-sm.m-1.btn-default(@click="switch_read" :disabled="true")
+                                button.btn.btn-sm.m-1.btn-default(@click="switch_read" :disabled="true" v-tooltip='label("supervised_item_controls.desc_btn.switch_read_disabled")')
                                     i.fa-duotone.fa-envelope-open
 
         .row

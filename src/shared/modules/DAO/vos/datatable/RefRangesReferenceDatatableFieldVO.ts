@@ -91,6 +91,10 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
         return e as unknown as U;
     }
 
+    public dataToCreateIHM<T, U>(e: T, vo: IDistantVOBase): U {
+        return e as unknown as U;
+    }
+
     public dataToHumanReadableField(e: IDistantVOBase): any {
         let res = "";
 

@@ -219,7 +219,7 @@ export default class ForkedTasksController {
                     return false;
                 }
 
-                const fork = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread];
+                let fork = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread];
 
                 if (!ForkServerController.forks_alive[fork.uid]) {
                     delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
@@ -232,9 +232,33 @@ export default class ForkedTasksController {
                     new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params, result_task_uid),
                     fork.child_process,
                     fork)) {
-                    delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
                     ConsoleHandler.error('exec_self_on_bgthread_and_return_value:Un message n\'a pas pu être envoyé :' + task_uid + ':');
-                    thrower("Failed to send message to bgthread :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
+
+                    if ((!ForkServerController.forks_alive[fork.uid]) || (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread] != fork)) {
+                        ConsoleHandler.error('exec_self_on_bgthread_and_return_value:Un message n\'a pas pu être envoyé, fork not alive ou fork changed :' + task_uid + ':' + bgthread + ': Waiting 90 seconds before retrying');
+                        await ThreadHandler.sleep(90000, 'exec_self_on_bgthread_and_return_value:Un message n\'a pas pu être envoyé, fork not alive ou fork changed');
+
+                        fork = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread];
+
+                        if (!ForkServerController.forks_alive[fork.uid]) {
+                            delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
+                            ConsoleHandler.error("POST RETRY: Target not ALIVE for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
+                            thrower("POST RETRY: Target not ALIVE for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
+                            return false;
+                        }
+
+                        if (!await ForkMessageController.send(
+                            new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params, result_task_uid),
+                            fork.child_process,
+                            fork)) {
+                            ConsoleHandler.error('POST RETRY: exec_self_on_bgthread_and_return_value:Un message n\'a pas pu être envoyé :' + task_uid + ':');
+                            delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
+                            thrower("POST RETRY: Failed to send message to bgthread :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
+                        }
+                    } else {
+                        delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
+                        thrower("Failed to send message to bgthread :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
+                    }
                 }
 
                 return false;

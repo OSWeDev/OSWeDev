@@ -216,7 +216,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
                 continue;
             }
 
-            PushDataServerController.getInstance().notify_vo_creation(room_id, vo);
+            PushDataServerController.notify_vo_creation(room_id, vo);
         }
     }
     private async handlePostUpdate_io_rooms(vo_updtae_wrapper: DAOUpdateVOHolder<IDistantVOBase>) {
@@ -236,7 +236,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
             }
 
             if (!ignore_pre_vo) {
-                PushDataServerController.getInstance().notify_vo_update(room_id, vo_updtae_wrapper.pre_update_vo, vo_updtae_wrapper.post_update_vo);
+                PushDataServerController.notify_vo_update(room_id, vo_updtae_wrapper.pre_update_vo, vo_updtae_wrapper.post_update_vo);
                 continue;
             }
 
@@ -249,7 +249,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
             }
 
             if (!ignore_post_vo) {
-                PushDataServerController.getInstance().notify_vo_update(room_id, vo_updtae_wrapper.pre_update_vo, vo_updtae_wrapper.post_update_vo);
+                PushDataServerController.notify_vo_update(room_id, vo_updtae_wrapper.pre_update_vo, vo_updtae_wrapper.post_update_vo);
                 continue;
             }
         }
@@ -274,7 +274,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
                 continue;
             }
 
-            PushDataServerController.getInstance().notify_vo_deletion(room_id, vo);
+            PushDataServerController.notify_vo_deletion(room_id, vo);
         }
     }
 
@@ -319,7 +319,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         const uid = StackContext.get('UID');
         const client_tab_id = StackContext.get('CLIENT_TAB_ID');
 
-        const sockets: SocketWrapper[] = PushDataServerController.getInstance().getUserSockets(parseInt(uid.toString()), client_tab_id);
+        const sockets: SocketWrapper[] = PushDataServerController.getUserSockets(parseInt(uid.toString()), client_tab_id);
 
         try {
 
@@ -367,7 +367,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         const uid = StackContext.get('UID');
         const client_tab_id = StackContext.get('CLIENT_TAB_ID');
 
-        const sockets: SocketWrapper[] = PushDataServerController.getInstance().getUserSockets(parseInt(uid.toString()), client_tab_id);
+        const sockets: SocketWrapper[] = PushDataServerController.getUserSockets(parseInt(uid.toString()), client_tab_id);
 
         try {
 
@@ -380,12 +380,12 @@ export default class ModulePushDataServer extends ModuleServerBase {
     }
 
     private async set_prompt_result(notification: NotificationVO) {
-        if (!PushDataServerController.getInstance().registered_prompts_cbs_by_uid[notification.prompt_uid]) {
+        if (!PushDataServerController.registered_prompts_cbs_by_uid[notification.prompt_uid]) {
             ConsoleHandler.error('set_prompt_result:prompt unknown:' + notification.prompt_uid + ':' + notification.prompt_result + ':');
             return;
         }
 
-        const callback = PushDataServerController.getInstance().registered_prompts_cbs_by_uid[notification.prompt_uid];
+        const callback = PushDataServerController.registered_prompts_cbs_by_uid[notification.prompt_uid];
         try {
             await callback(notification.prompt_result);
         } catch (error) {

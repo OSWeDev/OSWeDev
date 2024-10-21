@@ -41,6 +41,8 @@ export default class TSRangeComponent extends VueComponentBase {
                 return Dates.format(RangeHandler.getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD, false);
             case TimeSegment.TYPE_YEAR:
                 return Dates.year(RangeHandler.getSegmentedMin(this.range)).toString();
+            case TimeSegment.TYPE_QUARTER:
+                return Dates.format_segment(RangeHandler.getSegmentedMin(this.range), TimeSegment.TYPE_QUARTER).toString();
 
             default: return null;
         }
@@ -70,6 +72,8 @@ export default class TSRangeComponent extends VueComponentBase {
                 return Dates.format(RangeHandler.getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD, false);
             case TimeSegment.TYPE_YEAR:
                 return Dates.year(RangeHandler.getSegmentedMax(this.range)).toString();
+            case TimeSegment.TYPE_QUARTER:
+                return Dates.format_segment(RangeHandler.getSegmentedMax(this.range), TimeSegment.TYPE_QUARTER).toString();
 
             default: return null;
         }

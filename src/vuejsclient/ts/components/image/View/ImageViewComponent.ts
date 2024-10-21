@@ -1,10 +1,11 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ImageVO from '../../../../../shared/modules/Image/vos/ImageVO';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import VueComponentBase from '../../VueComponentBase';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
+import './ImageViewComponent.scss';
 
 @Component({
     template: require('./ImageViewComponent.pug'),
@@ -19,9 +20,12 @@ export default class ImageViewComponent extends VueComponentBase {
     public storeData: (vo: IDistantVOBase) => void;
 
     @Prop({ default: null })
-    protected imagevo_id: number;
+    private imagevo_id: number;
 
-    private imagevo: ImageVO = null;
+    @Prop({ default: false })
+    private download_link: boolean;
+
+    private imagevo: FileVO = null;
 
     @Watch('imagevo_id', { immediate: true })
     public async onChange_imagevo_id() {
@@ -32,14 +36,14 @@ export default class ImageViewComponent extends VueComponentBase {
             return;
         }
 
-        if (this.getStoredDatas[ImageVO.API_TYPE_ID] && this.getStoredDatas[ImageVO.API_TYPE_ID][this.imagevo_id]) {
-            this.imagevo = this.getStoredDatas[ImageVO.API_TYPE_ID][this.imagevo_id] as ImageVO;
+        if (this.getStoredDatas[FileVO.API_TYPE_ID] && this.getStoredDatas[FileVO.API_TYPE_ID][this.imagevo_id]) {
+            this.imagevo = this.getStoredDatas[FileVO.API_TYPE_ID][this.imagevo_id] as FileVO;
             return;
         }
 
         const self = this;
         this.$nextTick(async () => {
-            self.imagevo = await query(ImageVO.API_TYPE_ID).filter_by_id(self.imagevo_id).select_vo<ImageVO>();
+            self.imagevo = await query(FileVO.API_TYPE_ID).filter_by_id(self.imagevo_id).select_vo<FileVO>();
             self.storeData(self.imagevo);
         });
     }

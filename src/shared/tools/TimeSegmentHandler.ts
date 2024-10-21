@@ -323,6 +323,7 @@ export default class TimeSegmentHandler {
         switch (timeSegment.type) {
             case TimeSegment.TYPE_YEAR:
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+            case TimeSegment.TYPE_QUARTER:
                 // Impossible de gérer ce cas;
                 return null;
             case TimeSegment.TYPE_MONTH:
@@ -382,6 +383,7 @@ export default class TimeSegmentHandler {
         switch (timeSegment.type) {
             case TimeSegment.TYPE_YEAR:
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+            case TimeSegment.TYPE_QUARTER:
             case TimeSegment.TYPE_MONTH:
             case TimeSegment.TYPE_WEEK:
             case TimeSegment.TYPE_DAY:
@@ -429,6 +431,7 @@ export default class TimeSegmentHandler {
         switch (type_inclusion) {
             case TimeSegment.TYPE_YEAR:
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+            case TimeSegment.TYPE_QUARTER:
             case TimeSegment.TYPE_WEEK:
                 return res;
             case TimeSegment.TYPE_MONTH:
@@ -620,7 +623,7 @@ export default class TimeSegmentHandler {
         return TimeSegmentHandler.getCorrespondingTimeSegment(max, segment_type);
     }
 
-    public static getCorrespondingMomentUnitOfTime(segment_type: number): unitOfTime.Base {
+    public static getCorrespondingMomentUnitOfTime(segment_type: number): unitOfTime.DurationConstructor {
         switch (segment_type) {
             case TimeSegment.TYPE_DAY:
                 return 'day';
@@ -637,6 +640,8 @@ export default class TimeSegmentHandler {
                 return 'minute';
             case TimeSegment.TYPE_SECOND:
                 return 'second';
+            case TimeSegment.TYPE_QUARTER:
+                return 'quarter';
         }
         return null;
     }

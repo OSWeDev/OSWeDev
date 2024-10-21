@@ -1,12 +1,12 @@
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
-import StringAndBooleanParamVO, { StringAndBooleanParamVOStatic } from '../API/vos/apis/StringAndBooleanParamVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import Module from '../Module';
+import UpdateTeamsMessageVO, { UpdateTeamsMessageVOStatic } from './params/UpdateTeamsMessageVO';
 import ActionURLCRVO from './vos/ActionURLCRVO';
 import ActionURLUserVO from './vos/ActionURLUserVO';
 import ActionURLVO from './vos/ActionURLVO';
@@ -17,6 +17,16 @@ export default class ModuleActionURL extends Module {
 
     public static APINAME_action_url: string = "action_url";
 
+    private static instance: ModuleActionURL = null;
+
+    public action_url: (code: string, do_not_redirect: boolean) => Promise<boolean> = APIControllerWrapper.sah<UpdateTeamsMessageVO, boolean>(ModuleActionURL.APINAME_action_url);
+
+    private constructor() {
+
+        super("action_url", ModuleActionURL.MODULE_NAME);
+        this.forceActivationOnInstallation();
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ModuleActionURL {
         if (!ModuleActionURL.instance) {
@@ -25,23 +35,13 @@ export default class ModuleActionURL extends Module {
         return ModuleActionURL.instance;
     }
 
-    private static instance: ModuleActionURL = null;
-
-    public action_url: (code: string, do_not_redirect: boolean) => Promise<boolean> = APIControllerWrapper.sah<StringAndBooleanParamVO, boolean>(ModuleActionURL.APINAME_action_url);
-
-    private constructor() {
-
-        super("action_url", ModuleActionURL.MODULE_NAME);
-        this.forceActivationOnInstallation();
-    }
-
     public registerApis() {
 
-        APIControllerWrapper.registerApi(new GetAPIDefinition<StringAndBooleanParamVO, boolean>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<UpdateTeamsMessageVO, boolean>(
             null,
             ModuleActionURL.APINAME_action_url,
             [ActionURLVO.API_TYPE_ID],
-            StringAndBooleanParamVOStatic
+            UpdateTeamsMessageVOStatic
         ));
     }
 
@@ -75,22 +75,23 @@ export default class ModuleActionURL extends Module {
     private initializeActionURL() {
         const label = ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
 
-        const fields = [
-            ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().valid_ts_range, ModuleTableFieldVO.FIELD_TYPE_tsrange, 'Période de validité', true),
-            ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_code, ModuleTableFieldVO.FIELD_TYPE_string, 'Code', true),
-            label,
-            ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', true, true, ActionURLVO.STATE_ACTIVATED).setEnumValues(ActionURLVO.STATE_LABELS),
-            ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_callback_module_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Module de callback', true),
-            ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_callback_function_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Fonction de callback', true),
-            ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().params_json, ModuleTableFieldVO.FIELD_TYPE_string, 'Paramètres', false),
-            ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_remaining_counter, ModuleTableFieldVO.FIELD_TYPE_int, 'Nombre d\'utilisations restantes', true, true, 1),
-            ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().button_translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom du bouton', false).set_translatable_params_field_name(field_names<ActionURLVO>().button_translatable_name_params_json),
-            ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().button_translatable_name_params_json, ModuleTableFieldVO.FIELD_TYPE_string, 'Paramètres du nom du bouton (JSON)', false),
-            ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().button_fc_icon_classnames, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Icones du bouton', false),
-            ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().button_bootstrap_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de bouton', true, true, ActionURLVO.BOOTSTRAP_BUTTON_TYPE_PRIMARY).setEnumValues(ActionURLVO.BOOTSTRAP_BUTTON_TYPE_LABELS),
-        ];
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().valid_ts_range, ModuleTableFieldVO.FIELD_TYPE_tsrange, 'Période de validité', true);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_code, ModuleTableFieldVO.FIELD_TYPE_string, 'Code', true);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', true, true, ActionURLVO.STATE_ACTIVATED).setEnumValues(ActionURLVO.STATE_LABELS);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_callback_module_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Module de callback', true);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_callback_function_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Fonction de callback', true);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().params_json, ModuleTableFieldVO.FIELD_TYPE_string, 'Paramètres', false);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_remaining_counter, ModuleTableFieldVO.FIELD_TYPE_int, 'Nombre d\'utilisations restantes', true, true, 1);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().button_translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom du bouton', false).set_translatable_params_field_name(field_names<ActionURLVO>().button_translatable_name_params_json);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().button_translatable_name_params_json, ModuleTableFieldVO.FIELD_TYPE_string, 'Paramètres du nom du bouton (JSON)', false);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().button_fc_icon_classnames, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Icones du bouton', false);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().button_bootstrap_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de bouton', true, true, ActionURLVO.BOOTSTRAP_BUTTON_TYPE_PRIMARY).setEnumValues(ActionURLVO.BOOTSTRAP_BUTTON_TYPE_LABELS);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().teams_auto_close_message_on_completion, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Fermer le message Teams quand action_remaining_counter == 0', true, true, true);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().teams_message_id, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du message Teams', false);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().teams_group_id, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du groupe Teams', false);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().teams_channel_id, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du canal Teams', false);
 
-        const table = ModuleTableController.create_new(this.name, ActionURLVO, label, 'URLs d\'action');
+        ModuleTableController.create_new(this.name, ActionURLVO, label, 'URLs d\'action');
     }
 
     private initializeActionURLUserVO() {

@@ -4,14 +4,6 @@ import { field_names } from '../../shared/tools/ObjectHandler';
 
 export default class ModulesManagerServer {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModulesManagerServer {
-        if (!ModulesManagerServer.instance) {
-            ModulesManagerServer.instance = new ModulesManagerServer();
-        }
-        return ModulesManagerServer.instance;
-    }
-
     private static instance: ModulesManagerServer = null;
 
     /**
@@ -26,6 +18,14 @@ export default class ModulesManagerServer {
      */
 
     private constructor() { }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModulesManagerServer {
+        if (!ModulesManagerServer.instance) {
+            ModulesManagerServer.instance = new ModulesManagerServer();
+        }
+        return ModulesManagerServer.instance;
+    }
 
     public async preload_modules() {
 

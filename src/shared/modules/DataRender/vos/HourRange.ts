@@ -6,8 +6,24 @@ import HourSegment from './HourSegment';
 
 export default class HourRange implements IRange {
 
-
     public static RANGE_TYPE: number = 3;
+
+    public min: number;
+    public max: number;
+
+    public min_inclusiv: boolean;
+    public max_inclusiv: boolean;
+
+    public segment_type: number;
+    public range_type: number = HourRange.RANGE_TYPE;
+
+    /**
+     * Ignore this property - only used for type checking
+     */
+    private is_hour_range: boolean = true;
+
+    private constructor() { }
+
 
     public static createNew(min: number, max: number, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): HourRange {
         if ((!min) || (!max) || (min && max && (Durations.as(min, HourSegment.TYPE_SECOND) > Durations.as(max, HourSegment.TYPE_SECOND)))) {
@@ -126,15 +142,4 @@ export default class HourRange implements IRange {
 
         return res;
     }
-
-    public min: number;
-    public max: number;
-
-    public min_inclusiv: boolean;
-    public max_inclusiv: boolean;
-
-    public segment_type: number;
-    public range_type: number = HourRange.RANGE_TYPE;
-
-    private constructor() { }
 }

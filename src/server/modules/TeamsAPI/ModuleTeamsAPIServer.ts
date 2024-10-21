@@ -1,5 +1,7 @@
+import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleTeamsAPI from '../../../shared/modules/TeamsAPI/ModuleTeamsAPI';
 import ModuleServerBase from '../ModuleServerBase';
+import SendMessageWorker from './Worker/SendMessageWorker';
 
 export default class ModuleTeamsAPIServer extends ModuleServerBase {
 
@@ -22,5 +24,6 @@ export default class ModuleTeamsAPIServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+        ManualTasksController.getInstance().registered_manual_tasks_by_name['SEND MESSAGE TO TEAMS'] = SendMessageWorker.getInstance().work.bind(SendMessageWorker.getInstance());
     }
 }

@@ -142,7 +142,7 @@ export default class PasswordReset {
 
         if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
             // On est en readonly partout, donc on informe sur impossibilité de se connecter
-            await PushDataServerController.getInstance().notifySession(
+            await PushDataServerController.notifySession(
                 'error.global_update_blocker.activated.___LABEL___',
                 NotificationVO.SIMPLE_ERROR
             );

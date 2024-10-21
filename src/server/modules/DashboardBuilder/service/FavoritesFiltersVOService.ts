@@ -15,6 +15,11 @@ import ModuleDataExportServer from "../../DataExport/ModuleDataExportServer";
  */
 export default class FavoritesFiltersVOService {
 
+
+    private static instance: FavoritesFiltersVOService = null;
+
+    private constructor() { }
+
     /**
      * can_export_favorites_filters
      * - This method is responsible for checking if the given favorites_filters can be exported
@@ -201,10 +206,6 @@ export default class FavoritesFiltersVOService {
 
         return FavoritesFiltersVOService.instance;
     }
-
-    private static instance: FavoritesFiltersVOService = null;
-
-    private constructor() { }
 
     /**
      * Start Export Datatable Using Favorites Filters

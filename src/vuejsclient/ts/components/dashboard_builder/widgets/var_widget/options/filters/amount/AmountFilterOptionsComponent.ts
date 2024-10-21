@@ -15,18 +15,6 @@ export default class AmountFilterOptionsComponent extends VueComponentBase {
 
     private fractional_digits: number = 0;
     private only_positive: boolean = false;
-    private implemented_currency: string[] = [
-        "€",
-        "$",
-        "£",
-        "¥",
-        "AU$",
-        "CA$",
-        "CHF",
-        "CN¥",
-        "HK$",
-        "NZ$"
-    ];
     private currency: string = '€';
     private humanize: boolean = true;
 
@@ -59,7 +47,6 @@ export default class AmountFilterOptionsComponent extends VueComponentBase {
         }
     }
 
-    @Watch('currency')
     private onchange_inputs() {
         const options = [
             this.fractional_digits,

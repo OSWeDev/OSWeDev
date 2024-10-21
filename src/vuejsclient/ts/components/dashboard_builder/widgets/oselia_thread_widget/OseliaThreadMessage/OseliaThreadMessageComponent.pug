@@ -1,62 +1,132 @@
-.thread_message
+.thread_message(:class='{ thread_message_self: is_self_user, thread_message_other_user: ((thread_message.role == role_user) && (!is_self_user)), thread_message_assistant: thread_message.role == role_assistant, thread_message_system: thread_message.role == role_system, thread_message_tool: thread_message.role == role_tool, thread_message_function: thread_message.role == role_function }')
 
     template(v-if='is_loading_thread_message')
         .is_loading_thread_message
             i.fa-duotone.fa-spinner-third.fa-spin
 
     template(v-else)
-        .thread_message_header
-            .thread_message_header_left
-                template(v-if='thread_message.role_type == role_assistant')
-                    .thread_message_header_left_avatar
-                        img(:src='role_assistant_avatar_url')
-                    .thread_message_header_left_username
-                        | {{ label('oselia_thread_widget_component.thread_message_header_left_username.oselia') }}
-                template(v-else-if='thread_message.role_type == role_system')
-                    .thread_message_header_left_avatar
-                        img(:src='role_system_avatar_url')
-                    .thread_message_header_left_username
-                        | {{ label('oselia_thread_widget_component.thread_message_header_left_username.system') }}
-                template(v-else-if='thread_message.role_type == role_tool')
-                    .thread_message_header_left_avatar
-                        img(:src='role_tool_avatar_url')
-                    .thread_message_header_left_username
-                        | {{ label('oselia_thread_widget_component.thread_message_header_left_username.tool') }}
-                template(v-else-if='thread_message.role_type == role_function')
-                    .thread_message_header_left_avatar
-                        img(:src='role_function_avatar_url')
-                    .thread_message_header_left_username
-                        | {{ label('oselia_thread_widget_component.thread_message_header_left_username.function') }}
-                template(v-else-if='thread_message.role_type == role_user')
-                    .thread_message_header_left_avatar
-                        img(:src='avatar_url')
-                    .thread_message_header_left_username
-                        template(v-if='is_self_user')
-                            | {{ label('oselia_thread_widget_component.thread_message_header_left_username.me') }}
+        template(v-if="thread_message_contents && thread_message_contents.length")
+            .thread_message_header
+                .thread_message_header_left
+                    template(v-if='thread_message.role == role_assistant')
+                        .thread_message_header_left_avatar
+                            img(:src='role_assistant_avatar_url')
+                        .thread_message_header_left_username
+                            | {{ label('oselia_thread_widget_component.thread_message_header_left_username.oselia') }}
+                    template(v-else-if='thread_message.role == role_system')
+                        .thread_message_header_left_avatar
+                            img(:src='role_system_avatar_url')
+                        .thread_message_header_left_username
+                            | {{ label('oselia_thread_widget_component.thread_message_header_left_username.system') }}
+                    template(v-else-if='thread_message.role == role_tool')
+                        .thread_message_header_left_avatar
+                            img(:src='role_tool_avatar_url')
+                        .thread_message_header_left_username
+                            | {{ label('oselia_thread_widget_component.thread_message_header_left_username.tool') }}
+                    template(v-else-if='thread_message.role == role_function')
+                        .thread_message_header_left_avatar
+                            img(:src='role_function_avatar_url')
+                        .thread_message_header_left_username
+                            | {{ label('oselia_thread_widget_component.thread_message_header_left_username.function') }}
+                    template(v-else-if='thread_message.role == role_user')
+                        .thread_message_header_left_avatar(v-if='!is_default_avatar')
+                            img(:src='avatar_url')
+                        .thread_message_header_left_username
+                            template(v-if='is_self_user')
+                                | {{ label('oselia_thread_widget_component.thread_message_header_left_username.me') }}
+                            template(v-else)
+                                | {{ user_name }}
+                .thread_message_header_right
+                    .thread_message_header_right_date
+                        | {{ format_date(thread_message.date, t('DD/MM/YYYY HH:mm:ss')) }}
+            
+            .thread_message_attachments
+                template(v-for='item in thread_message_files')
+                    template(v-for="(value, key) in item")
+                        template(v-if="value.path")
+                            .thread_message_attachment
+                                template(v-if="key == '.png' || key == '.jpg' || key == '.jpeg' || key == '.gif' || key == '.webp'")
+                                    img(:src="'/' + value.path")
+                                template(v-else-if="key == '.pdf'")
+                                    img(:src="'/vuejsclient/public/img/pdf.png'")
+                                template(v-else-if="key == '.csv'")
+                                    img(:src="'/vuejsclient/public/img/csv.png'")
+                                template(v-else-if="key == '.xlsx'")
+                                    img(:src="'/vuejsclient/public/img/xlsx.png'")
+                                template(v-else-if="key == '.txt'")
+                                    img(:src="'/vuejsclient/public/img/txt.png'")
+                                span 
+                                .thread_message_attachment_content
+                                    .thread_message_attachment_content_title 
+                                        | {{ value.path.split('/').pop() }}
+                                    .thread_message_attachment_content_description
+                                        template(v-if="key == '.png' || key == '.jpg' || key == '.jpeg' || key == '.gif' || key == '.webp'")
+                                            | {{ label('oselia_thread_widget_component.thread_message_attachment_image') }}
+                                        template(v-else) 
+                                            | {{ label('oselia_thread_widget_component.thread_message_attachment_file') }}
+            .thread_message_body(ref='thread_message_body_ref')
+                template(v-for='(message_content, i) in thread_message_contents')
+                    .thread_message_body_content(:class='"thread_message_body_content_type_" + message_content.type')
+                        template(v-if='is_editing_content[i]')
+                            .thread_message_body_edit
+                                .thread_message_body_edit_textarea
+                                    Vuequilleditor.valign-middle(
+                                        v-model="message_content.content_type_text.value" 
+                                        @input="changed_input[i] = true")
+                                .thread_message_body_edit_buttons
+                                    button.btn.btn-secondary(@click='cancel_edit_thread_message_content(message_content, i)') {{ label('oselia_thread_widget_component.thread_message_body_edit_buttons.cancel') }}
+                                    button.btn.btn-primary(@click='save_edit_thread_message_content(message_content, i)' :disabled='!changed_input[i]') {{ label('oselia_thread_widget_component.thread_message_body_edit_buttons.save') }}
                         template(v-else)
-                            | {{ user_name }}
-            .thread_message_header_right
-                .thread_message_header_right_date
-                    | {{ format_date(thread_message.date, t('DD/MM/YYYY HH:mm:ss')) }}
+                            template(v-if='message_content.type == message_content_type_text')
 
-        .thread_message_body
-            template(v-for='message_content in thread_message_contents')
-                .thread_message_body_content(:class='"thread_message_body_content_type_" + message_content.content_type')
-                    template(v-if='message_content.content_type == message_content_type_text')
-                        .thread_message_body_text(v-html='message_content.value')
-                    template(v-else-if='message_content.content_type == message_content_type_action_url')
-                        .thread_message_body_action_url
-                            Oseliathreadmessageactionurlcomponent(
-                                :action_url_id='message_content.action_url_id'
-                                @thread_message_action_url_updated='$emit("thread_message_updated")'
-                            )
-                    template(v-else-if='message_content.content_type == message_content_type_email')
-                        .thread_message_body_email
-                            Oseliathreadmessageemailcomponent(:mail_id='message_content.email_id')
+                                .sized_by_markdown
+                                    .thread_message_copy(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.copy")')
+                                        .thread_message_copy_button(@click='copy("thread_message_body_content_" + i + "_ref")')
+                                            i.fa-regular.fa-copy
 
-                    //- TODO
-                    //- template(v-else-if='message_content.content_type == message_content_type_image')
-                    //-     .thread_message_body_image
-                    //-         img(:src='message_content.assistant_file_id')
+                                    Vuemarkdown.thread_message_body_text(:source='message_content.content_type_text.value' :ref='"thread_message_body_content_" + i + "_ref"' :options='markdown_options')
+                                .thread_message_header_right
+                                    .thread_message_header_right_date
+                                        | {{ format_date(thread_message.date, t('DD/MM/YYYY HH:mm:ss')) }}
+                                //- .thread_message_footer_actions
+                                //-     .thread_message_footer_action
+                                //-         .thread_message_copy(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.copy")')
+                                //-             .thread_message_copy_button(@click='copy("thread_message_body_content_" + i + "_ref")')
+                                //-                 i.fa-regular.fa-copy
 
-        //- .thread_message_footer => on peut vouloir compléter cette partie pour modifier et rerun un message iso l'interface openai
+                                    //- template(v-if='is_self_user')
+                                        //- .thread_message_footer_action
+                                        //-     .thread_message_body_text_edit(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.edit")')
+                                        //-         .thread_message_body_text_edit_button(@click='edit_thread_message_content(message_content)')
+                                        //-             i.fa-duotone.fa-pen-to-square
+
+                                    //- template(v-if='thread_message.role == role_assistant')
+                                    //-     .thread_message_footer_action
+                                    //-         .thread_message_feedback(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.feedback")'  :class='{ active: show_feedback }')
+                                    //-             .thread_message_feedback_button(@click='show_feedback = !show_feedback')
+                                    //-                 i.fa-duotone.fa-comments
+
+                            template(v-else-if='message_content.type == message_content_type_action_url')
+                                .thread_message_body_action_url
+                                    Oseliathreadmessageactionurlcomponent(
+                                        :action_url_id='message_content.content_type_action_url_id'
+                                        @thread_message_action_url_updated='$emit("thread_message_updated")'
+                                    )
+                            template(v-else-if='message_content.type == message_content_type_email')
+                                .thread_message_body_email
+                                    Oseliathreadmessageemailcomponent(:mail_id='message_content.content_type_email_id')
+
+                            template(v-else-if='message_content.type == message_content_type_image')
+                                .thread_message_body_image
+                                    Imageviewcomponent(
+                                        :download_link='true'
+                                        :imagevo_id='message_content.content_type_image_file.file_id'
+                                    )
+            
+            //- template(v-if='thread_message.role == role_assistant')
+            //-     template(v-if='show_feedback')
+            //-         Oseliathreadfeedbackcomponent(
+            //-             :thread='thread'
+            //-         )
+
+            //- .thread_message_footer => on peut vouloir compléter cette partie pour modifier et rerun un message iso l'interface openai

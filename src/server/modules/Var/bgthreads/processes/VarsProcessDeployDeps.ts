@@ -1,4 +1,4 @@
-import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import VarsDeployDepsHandler from '../../VarsDeployDepsHandler';
@@ -18,7 +18,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
     private static instance: VarsProcessDeployDeps = null;
 
     private constructor() {
-        super('VarsProcessDeployDeps', VarDAGNode.TAG_1_NOTIFIED_START, VarDAGNode.TAG_2_DEPLOYING, VarDAGNode.TAG_2_DEPLOYED, 10, false, ConfigurationService.node_configuration.max_varsprocessdeploydeps);
+        super('VarsProcessDeployDeps', VarDAGNode.TAG_1_NOTIFIED_START, VarDAGNode.TAG_2_DEPLOYING, VarDAGNode.TAG_2_DEPLOYED, 2, false, ConfigurationService.node_configuration.max_varsprocessdeploydeps);
     }
 
     protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {

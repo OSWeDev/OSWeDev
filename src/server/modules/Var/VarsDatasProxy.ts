@@ -2,7 +2,7 @@
 
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import VarsController from '../../../shared/modules/Var/VarsController';
-import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
@@ -14,6 +14,8 @@ import ConfigurationService from '../../env/ConfigurationService';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import CurrentVarDAGHolder from './CurrentVarDAGHolder';
 import VarsBGThreadNameHolder from './VarsBGThreadNameHolder';
+import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 
 /**
  * L'objectif est de créer un proxy d'accès aux données des vars_datas en base pour qu'on puisse intercaler un buffer de mise à jour progressif en BDD
@@ -215,6 +217,21 @@ export default class VarsDatasProxy {
                 indexs)) {
 
                 return null;
+            }
+
+            /**
+             * Si on est en attente d'un computation_hole, on patiente avant d'empiler ces nouvelles demandes
+             */
+            let n = 0;
+            while (VarsComputationHole.waiting_for_computation_hole) {
+                await ThreadHandler.sleep(100, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole');
+                n++;
+                if (ConfigurationService.node_configuration.debug_vars) {
+                    ConsoleHandler.throttle_log('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole');
+                    if (n % 50 == 0) { // On log toutes les 5 secondes
+                        ConsoleHandler.log('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole - ' + n + ' - Indexes: ' + indexs.join(' && '));
+                    }
+                }
             }
 
             const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification');

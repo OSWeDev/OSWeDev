@@ -220,6 +220,9 @@ export default class TSTZInputComponent extends VueComponentBase {
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
                 date = '01/01/' + Dates.format(Dates.startOf(Dates.parse(date_string, 'DD/MM/YYYY', false), TimeSegment.TYPE_YEAR), 'YYYY', false) + ' 00:00:00';
                 break;
+            case TimeSegment.TYPE_QUARTER:
+                date = this.label('time_segment.quarter') + Dates.quarter(Dates.parse(date_string, 'DD/MM/YYYY', false)) + ' 00:00:00';
+                break;
             case TimeSegment.TYPE_MONTH:
                 date = '01/' + Dates.format(Dates.startOf(Dates.parse(date_string, 'DD/MM/YYYY', false), TimeSegment.TYPE_MONTH), 'MM/YYYY', false) + ' 00:00:00';
                 break;

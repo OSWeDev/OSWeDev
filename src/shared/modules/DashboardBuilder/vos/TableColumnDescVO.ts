@@ -24,6 +24,7 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     public static TYPE_select_box: number = 3;
     public static TYPE_component: number = 4;
     public static TYPE_header: number = 5;
+    public static TYPE_dynamic: number = 6;
 
     public static SORT_asc: number = 0;
     public static SORT_desc: number = 1;
@@ -177,7 +178,12 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
 
     public custom_label: string;
     public custom_class_css: string;
-    public custom_values: any[];
+    public custom_values: any;
+
+    public column_dynamic_page_widget_id: number;
+    public column_dynamic_component: string;
+    public column_dynamic_var: string;
+    public column_dynamic_time_segment: number;
 
     get is_enum(): boolean {
         if ((!this) || (!this.api_type_id) || (!this.field_id)) {

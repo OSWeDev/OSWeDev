@@ -4,12 +4,17 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import ModuleFile from '../../../../../../shared/modules/File/ModuleFile';
+import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
+import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../../../../shared/modules/GPT/ModuleGPT';
 import GPTAssistantAPIAssistantVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIThreadMessageVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
@@ -18,6 +23,7 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../../VueAppController';
+import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
@@ -25,8 +31,10 @@ import DatatableComponentField from '../../../datatable/component/fields/Datatab
 import MailIDEventsComponent from '../../../mail_id_events/MailIDEventsComponent';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
+import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
 import './OseliaThreadWidgetComponent.scss';
+import OseliaLeftPanelComponent from './OseliaLeftPanel/OseliaLeftPanelComponent';
 
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
@@ -35,10 +43,16 @@ import './OseliaThreadWidgetComponent.scss';
         Datatablecomponentfield: DatatableComponentField,
         Tablepaginationcomponent: TablePaginationComponent,
         Mailideventscomponent: MailIDEventsComponent,
-        Oseliathreadmessagecomponent: OseliaThreadMessageComponent
+        Oseliathreadmessagecomponent: OseliaThreadMessageComponent,
+        Oselialeftpanelcomponent: OseliaLeftPanelComponent,
     }
 })
 export default class OseliaThreadWidgetComponent extends VueComponentBase {
+
+    @ModuleOseliaAction
+    private set_left_panel_open: (left_panel_open: boolean) => void;
+    @ModuleOseliaGetter
+    private get_left_panel_open: boolean;
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
@@ -64,27 +78,52 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
 
+    @ModuleOseliaGetter
+    private get_too_many_assistants: boolean;
+    @ModuleOseliaGetter
+    private get_can_run_assistant: boolean;
+    @ModuleOseliaGetter
+    private get_oselia_first_loading_done: boolean;
+
+    @ModuleOseliaAction
+    private set_too_many_assistants: (too_many_assistants: boolean) => void;
+    @ModuleOseliaAction
+    private set_can_run_assistant: (can_run_assistant: boolean) => void;
+    @ModuleOseliaAction
+    private set_oselia_first_loading_done: (oselia_first_loading_done: boolean) => void;
+
     public thread_messages: GPTAssistantAPIThreadMessageVO[] = [];
     public thread: GPTAssistantAPIThreadVO = null;
 
     private has_access_to_thread: boolean = false;
     private is_loading_thread: boolean = true;
 
-    private too_many_assistants: boolean = false;
-    private can_run_assistant: boolean = false;
     private assistant_is_busy: boolean = false;
 
     private current_thread_id: number = null;
-
     private assistant: GPTAssistantAPIAssistantVO = null;
 
+    private selected_file_system: FileVO = null;
     private new_message_text: string = null;
-
+    private is_dragging: boolean = false;
+    private thread_files: { [key: string]: FileVO }[] = [];
+    private enable_image_upload_menu: boolean = false;
+    private enable_link_image_menu: boolean = false;
+    private enable_file_system_menu: boolean = false;
+    private link_image_url: string = null;
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
 
     get role_assistant_avatar_url() {
         return '/vuejsclient/public/img/avatars/oselia.png';
+    }
+
+    @Watch('get_too_many_assistants')
+    @Watch('get_can_run_assistant')
+    private init_oselia_first_loading_done() {
+        if ((!this.get_oselia_first_loading_done) && (!this.get_too_many_assistants) && this.get_can_run_assistant) {
+            this.set_oselia_first_loading_done(true);
+        }
     }
 
     @Watch('get_active_field_filters', { immediate: true, deep: true })
@@ -94,6 +133,35 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.throttle_load_thread();
     }
 
+    @Watch('selected_file_system')
+    private async on_selected_file_system_change() {
+        if (!this.selected_file_system) {
+            return;
+        }
+        // const file: File = this.selected_file_system;
+        // const formData = new FormData();
+        // const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
+        // formData.append('file', file, file_name);
+        // await AjaxCacheClientController.getInstance().post(
+        //     null,
+        //     '/ModuleFileServer/upload',
+        //     [FileVO.API_TYPE_ID],
+        //     formData,
+        //     null,
+        //     null,
+        //     false,
+        //     30000).then(async () => {
+        //         // Upload via insert or update
+        //         const new_file = new FileVO();
+        //         new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
+        //         const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
+        //         new_file.id = resnew_file.id;
+        //         this.thread_files.push({ ['.' + file.name.split('.').pop()]: new_file });
+        //     });
+        this.selected_file_system = null;
+        this.enable_file_system_menu = false;
+    }
+
     @Watch('thread', { immediate: true })
     private async onchange_thread() {
         this.throttle_register_thread();
@@ -101,6 +169,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     private async beforeDestroy() {
         await this.unregister_all_vo_event_callbacks();
+    }
+
+    private openLeftPanel() {
+        this.set_left_panel_open(true);
     }
 
     private async load_thread() {
@@ -114,8 +186,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             this.is_loading_thread = false;
             this.has_access_to_thread = false;
             this.thread = null;
-            this.too_many_assistants = false;
-            this.can_run_assistant = false;
+
+            this.try_set_too_many_assistants(false);
+            this.try_set_can_run_assistant(false);
+
             return;
         }
 
@@ -123,6 +197,145 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
         this.is_loading_thread = false;
         this.has_access_to_thread = !!this.thread;
+    }
+
+    private async handle_drag_over(event: DragEvent) {
+        if (this.has_access_to_thread && !this.is_loading_thread) {
+            this.is_dragging = true;
+        }
+    }
+
+    private async handle_drag_leave(event: DragEvent) {
+        if (this.has_access_to_thread && !this.is_loading_thread) {
+            this.is_dragging = false;
+        }
+    }
+
+    private async handle_drop(event: DragEvent) {
+        if (this.has_access_to_thread && !this.is_loading_thread) {
+            this.is_dragging = false;
+        }
+    }
+
+    private async open_image_upload() {
+        this.enable_image_upload_menu = !this.enable_image_upload_menu;
+        this.enable_link_image_menu = false;
+        this.enable_file_system_menu = false;
+    }
+
+    private async remove_file(index: number) {
+        await this.thread_files.splice(index, 1);
+    }
+
+    private async open_file_system_upload() {
+        this.enable_file_system_menu = !this.enable_file_system_menu;
+        this.enable_image_upload_menu = false;
+        this.enable_link_image_menu = false;
+    }
+
+    private async open_file_upload() {
+        this.enable_image_upload_menu = false;
+        this.enable_link_image_menu = false;
+        this.enable_file_system_menu = false;
+        try {
+            const [fileHandle] = await (window as any).showOpenFilePicker({
+                multiple: false // Pour permettre la sélection de plusieurs fichiers, mettre à true
+            });
+
+            // Upload inspiré de feedback handler
+            await this.do_upload_file(fileHandle);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    private async upload_image() {
+        try {
+            const [fileHandle] = await (window as any).showOpenFilePicker({
+                types: [
+                    {
+                        description: 'Images',
+                        accept: {
+                            'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.svg']
+                        }
+                    }
+                ],
+                excludeAcceptAllOption: true, // Exclure l'option "Tous les fichiers"
+                multiple: false // Pour permettre la sélection de plusieurs fichiers, mettre à true
+            });
+            await this.do_upload_file(fileHandle);
+            this.enable_image_upload_menu = false;
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    private async do_upload_file(fileHandle: FileSystemFileHandle) {
+        const file: File = await fileHandle.getFile();
+        // Upload inspiré de feedback handler
+        const formData = new FormData();
+        const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
+        formData.append('file', file, file_name);
+        await AjaxCacheClientController.getInstance().post(
+            null,
+            '/ModuleFileServer/upload',
+            [FileVO.API_TYPE_ID],
+            formData,
+            null,
+            null,
+            false,
+            30000).then(async () => {
+                // Upload via insert or update
+                const new_file = new FileVO();
+                new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
+                const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
+                new_file.id = resnew_file.id;
+                this.thread_files.push({ ['.' + file.name.split('.').pop()]: new_file });
+            });
+    }
+
+    private async handle_hover() {
+        alert("hover");
+    }
+
+    private async open_link_image() {
+        this.enable_link_image_menu = !this.enable_link_image_menu;
+    }
+
+    private async upload_link_image() {
+        if (!this.link_image_url) {
+            return;
+        }
+        // Do something with the image here
+
+        this.link_image_url = null;
+        this.enable_link_image_menu = false;
+        this.enable_file_system_menu = false;
+    }
+
+    private async cancel_link_image() {
+        this.link_image_url = null;
+        this.enable_link_image_menu = false;
+        this.enable_file_system_menu = false;
+    }
+
+    private get_files(): FileVO[] {
+        let files = [];
+        this.get_files_system().then((res) => {
+            files = res;
+        }).catch((err) => {
+            ConsoleHandler.error(err);
+        });
+
+        return files;
+    }
+    private async get_files_system(): Promise<FileVO[]> {
+        let files = await query(FileVO.API_TYPE_ID)
+            .set_limit(10)
+            .select_vos<FileVO>().then((files) => {
+                return files;
+            });
+        return [];
     }
 
     private async register_thread() {
@@ -144,7 +357,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
         // On check qu'on a un assistant et un seul
         if (this.assistant) {
-            this.can_run_assistant = true;
+            this.try_set_can_run_assistant(true);
         }
 
         // On récupère les contenus du message
@@ -222,12 +435,12 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 .select_vo<GPTAssistantAPIAssistantVO>();
 
             if (!default_assistant) {
-                this.too_many_assistants = nb_assistants > 1;
+                this.try_set_too_many_assistants(nb_assistants > 1);
                 return;
             }
 
             this.assistant = default_assistant;
-            this.too_many_assistants = false;
+            this.try_set_too_many_assistants(false);
             return;
         }
 
@@ -236,7 +449,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
 
         if (nb_assistants > 1) {
-            this.too_many_assistants = true;
+            this.try_set_too_many_assistants(true);
             return;
         }
 
@@ -251,7 +464,13 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async scroll_to_bottom() {
-        const thread_container_el = this.$refs.thread_container as HTMLElement;
+        let thread_container_el: any = this.$parent;
+
+        if ((!thread_container_el) || (!thread_container_el.$refs) || (!thread_container_el.$refs.widget_component_wrapper)) {
+            return;
+        }
+
+        thread_container_el = thread_container_el.$refs.widget_component_wrapper as HTMLElement;
 
         if (!thread_container_el) {
             return;
@@ -272,47 +491,105 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
         const self = this;
         this.assistant_is_busy = true;
-        self.snotify.async(self.label('OseliaThreadWidgetComponent.send_message.start'), () =>
-            new Promise(async (resolve, reject) => {
+        // self.snotify.async(self.label('OseliaThreadWidgetComponent.send_message.start'), () =>
+        //     new Promise(async (resolve, reject) => {
 
-                try {
-                    const responses = await ModuleGPT.getInstance().ask_assistant(
-                        self.assistant.gpt_assistant_id,
-                        self.thread.gpt_thread_id,
-                        self.new_message_text,
-                        [],
-                        VueAppController.getInstance().data_user.id
-                    );
-                    if (!responses || !responses.length) {
-                        throw new Error('No response');
-                    }
+        let files = self.thread_files.map((file) => {
+            return file[Object.keys(file)[0]];
+        });
+        try {
+            const message = self.new_message_text;
+            self.new_message_text = null;
+            const responses = await ModuleGPT.getInstance().ask_assistant(
+                self.assistant.gpt_assistant_id,
+                self.thread.gpt_thread_id,
+                null,
+                message,
+                files,
+                VueAppController.getInstance().data_user.id
+            );
 
-                    self.new_message_text = null;
+            this.thread_files = []; // empty the thread files
 
-                    // self.throttle_load_thread();
+            // if (!responses || !responses.length) {
+            //     throw new Error('No response');
+            // }
+            /**
+             * Il faut changer de technique pour identifier des erreurs de l'API
+             * On devrait pas renvoyer les nouveaux messages maintenant, ça n'a plus de sens, mais bien l'état de le requête - réussie ou échouée
+             */
 
-                    resolve({
-                        body: self.label('OseliaThreadWidgetComponent.send_message.ok'),
-                        config: {
-                            timeout: 10000,
-                            showProgressBar: true,
-                            closeOnClick: false,
-                            pauseOnHover: true,
-                        },
-                    });
-                } catch (error) {
-                    ConsoleHandler.error(error);
-                    reject({
-                        body: self.label('OseliaThreadWidgetComponent.send_message.failed'),
-                        config: {
-                            timeout: 10000,
-                            showProgressBar: true,
-                            closeOnClick: false,
-                            pauseOnHover: true,
-                        },
-                    });
-                }
-                self.assistant_is_busy = false;
-            }));
+            // self.throttle_load_thread();
+
+            // resolve({
+            //     body: self.label('OseliaThreadWidgetComponent.send_message.ok'),
+            //     config: {
+            //         timeout: 10000,
+            //         showProgressBar: true,
+            //         closeOnClick: false,
+            //         pauseOnHover: true,
+            //     },
+            // });
+        } catch (error) {
+            ConsoleHandler.error(error);
+            this.snotify.error(self.label('OseliaThreadWidgetComponent.send_message.failed'));
+            // reject({
+            //     body: self.label('OseliaThreadWidgetComponent.send_message.failed'),
+            //     config: {
+            //         timeout: 10000,
+            //         showProgressBar: true,
+            //         closeOnClick: false,
+            //         pauseOnHover: true,
+            //     },
+            // });
+        }
+        self.assistant_is_busy = false;
+        // }));
+    }
+
+    private handle_new_message_text_keydown(event: KeyboardEvent) {
+        this.$nextTick(() => {
+            setTimeout(this.adjustTextareaHeight.bind(this), 10);
+        });
+
+        if (event.key === 'Enter') {
+            if (event.shiftKey) {
+                // Ajoute une nouvelle ligne
+                return;
+            } else {
+                // Empêche le comportement par défaut
+                event.preventDefault();
+                // Exécute la fonction send
+                this.send_message();
+            }
+        }
+    }
+
+    private adjustTextareaHeight() {
+        const textarea = this.$refs.new_message_textarea_ref as HTMLTextAreaElement;
+        textarea.style.height = 'auto'; // Reset the height
+        const scrollHeight = textarea.scrollHeight; // Get the scroll height
+
+        const maxRows = 10;
+        const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight);
+        const maxHeight = lineHeight * maxRows;
+
+        textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+
+        this.$nextTick(() => {
+            setTimeout(this.scroll_to_bottom.bind(this), 10);
+        });
+    }
+
+    private try_set_too_many_assistants(too_many_assistants: boolean) {
+        if (this.get_too_many_assistants != too_many_assistants) {
+            this.set_too_many_assistants(too_many_assistants);
+        }
+    }
+
+    private try_set_can_run_assistant(can_run_assistant: boolean) {
+        if (this.get_can_run_assistant != can_run_assistant) {
+            this.set_can_run_assistant(can_run_assistant);
+        }
     }
 }

@@ -1,6 +1,16 @@
 .var_pie_chart_widget_options_component
 
     template(v-if='widget_options')
+        .hide_filter
+            .input_label {{ label('var_pie_chart_widget_options_component.hide_filter') }}
+
+            toggle-button(
+                @change="switch_hide_filter" 
+                :value="hide_filter" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: t('YES'), unchecked: t('NO')}" 
+            )
 
         .options_separator_lvl1 {{ label('var_pie_chart_widget_options_component.separator.widget_options') }}
         .widget_title(v-if='title_name_code_text')
@@ -25,7 +35,7 @@
                     :value="title_display" 
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                 )
         template(v-if='title_display')
             .title_font_color
@@ -54,7 +64,7 @@
                     :value="label_display" 
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                 )
         .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.chart_legend_options') }}
         .field_legend_display
@@ -65,9 +75,9 @@
                     :value="legend_display" 
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                 )
-        
+
         template(v-if='legend_display')
             .legend_position 
                 .input_label {{ label('var_pie_chart_widget_options_component.legend_position') }}
@@ -81,7 +91,7 @@
 
                         :searchable="true"
                         :internal-search="true"
-                        
+
                         select-label=''
                         select-group-label=''
                         selected-label=''
@@ -89,7 +99,7 @@
                         deselect-group-label=''
 
                         placeholder=''
-                        
+
                         name="legend_position_selector_1"
                     )
             .legend_font_color
@@ -124,7 +134,7 @@
                         :value="legend_use_point_style" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     )
 
         .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.chart_render_options') }}
@@ -164,7 +174,7 @@
         //-             :value="has_dimension" 
         //-             :sync="false"
         //-             :width="60"
-        //-             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+        //-             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
         //-         )
 
         template(v-if='has_dimension')
@@ -176,9 +186,9 @@
                         :value="dimension_is_vo_field_ref" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     )
-            
+
             template(v-if='dimension_is_vo_field_ref')
                 .field_ref
                     .input_label {{ label('var_pie_chart_widget_options_component.dimension_vo_field_ref') }}
@@ -212,7 +222,7 @@
 
                             :searchable="true"
                             :internal-search="true"
-                            
+
                             select-label=''
                             select-group-label=''
                             selected-label=''
@@ -220,7 +230,7 @@
                             deselect-group-label=''
 
                             placeholder=''
-                            
+
                             name="dimension_custom_filter_segment_type_selector_1"
                         )
 
@@ -250,7 +260,7 @@
                         :value="sort_dimension_by_asc" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     )
 
         .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.datas_filter_options') }}
@@ -277,7 +287,7 @@
 
                     :searchable="true"
                     :internal-search="true"
-                    
+
                     select-label=''
                     select-group-label=''
                     selected-label=''
@@ -285,7 +295,7 @@
                     deselect-group-label=''
 
                     placeholder=''
-                    
+
                     name="var_name_selector_1"
                 )
                     .lang_selector_option(slot="noOptions") -
@@ -304,7 +314,7 @@
                         :value="bg_gradient" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     )
         template(v-if='bg_gradient')
             .bg_color_1
@@ -320,7 +330,7 @@
 
                 :searchable="true"
                 :internal-search="true"
-                
+
                 select-label=''
                 select-group-label=''
                 selected-label=''
@@ -328,7 +338,7 @@
                 deselect-group-label=''
 
                 placeholder=''
-                
+
                 name="color_palette_selector"               
             )
         .border_color_1
@@ -341,7 +351,7 @@
                     type="number"
                     v-model="border_width_1"
                 )
-        
+
         template(v-if='fields_that_could_get_custom_filter_1 && fields_that_could_get_custom_filter_1.length>0')
             .fields_that_could_get_custom_filter_1
                 template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter_1')

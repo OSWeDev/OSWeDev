@@ -1,14 +1,17 @@
 .table_widget_column
     template(v-if='!column')
         .new_column_select_type 
-            .new_column_select_type_label {{ label('table_widget_column.new_header_column_select_type_label') }}
+            .new_header_column
+                .new_column_select_type_label {{ label('table_widget_column.new_header_column_select_type_label') }}
 
-            .d-flex.justify-content-between.mb-2
-                form
-                    input.form.control.mr-3(:class='{"is-invalid": error}' type="text" placeholder="..." v-model="new_header_columns")
-                    p.text-danger(v-if='error') l'entête existe déja
-                    button.btn.btn-success(type="submit" @click="add_header") Valider l'entête
+                .d-flex.justify-content-between.mb-2
+                    form
+                        input.form.control.mr-3(:class='{"is-invalid": error}' type="text" placeholder="..." v-model="new_header_columns")
+                        p.text-danger(v-if='error') l'entête existe déja
+                        button.btn.btn-success(type="submit" @click="add_header") Valider l'entête
 
+            .new_dynamic_column.mb-2
+                button.btn.btn-success(type="submit" @click="add_dynamic_column") {{ label('table_widget_column.add_dynamic_column') }}
 
             .new_column_select_type_label {{ label('table_widget_column.new_column_select_type_label') }}
 
@@ -361,6 +364,7 @@
                         template(v-if="tmp_font_color_header")
                             i.fa-solid.fa-times(@click="clear_tmp_font_color_header")
 
+                    hr.my-12
                     .conditional_cell_color_wrapper.mt-3(v-if='column.type == 2')
                         .label.mb-0
                             label {{ label('table_widget_column_conf.editable_column.conditional_cell_color') }}
@@ -378,7 +382,7 @@
                                                     option(v-for='condition in selectionnable_cell_color_conditions' :value='condition.value') {{ condition.label }}
                                             .col-md-6.value_input
                                                 label.col-md-6 {{ label('table_widget_column_conf.editable_column.conditional_cell_color.value') }}
-                                                input.col-md-6(type='number' min='0' v-model='conditional_cell_color.value')
+                                                input.col-md-6(type='text' v-model='conditional_cell_color.value')
                                     .col-md-12
                                         .row
                                             .col-md-12.bg_color
@@ -402,7 +406,108 @@
 
                 hr.my-12
 
-                .widget_filter_options(v-if='(column.type == 1) || (column.type == 2)')
+                template(v-if="column.type == 6")
+                    .column_dynamic_page_widget_id.mt-1
+                        .input_label {{ label('table_widget_options_component.column_dynamic_page_widget_id') }}
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="false"
+                            v-model="column_dynamic_page_widget"
+                            :placeholder="label('table_widget_options_component.column_dynamic_page_widget_id')"
+                            :options="page_widget_options"
+                            :custom-label="page_widget_label"
+                            :allow-empty="true",
+                            autocomplete="off"
+
+                            :searchable="true"
+                            :internal-search="true"
+
+                            track-by="id"
+
+                            id="column_dynamic_page_widget"
+
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                        )
+
+                    template(v-if="column_dynamic_page_widget_id")
+                        template(v-if="column_dynamic_page_widget_is_type_date")
+                            .column_dynamic_time_segment.mt-1
+                                .input_label {{ label('table_widget_options_component.column_dynamic_time_segment') }}
+                                .input_wrapper
+                                    multiselect(
+                                        :preselect-first="false"
+                                        :multiple="false"
+                                        :close-on-select="false"
+                                        v-model="tmp_column_dynamic_time_segment"
+                                        :options="segmentation_type_options"
+                                        label="label"
+                                        autocomplete="off"
+
+                                        :searchable="true"
+                                        :internal-search="false"
+
+                                        track-by="id"
+
+                                        :select-label='label("multiselect.selectLabel")'
+                                        :select-group-label='label("multiselect.selectGroupLabel")'
+                                        :selected-label='label("multiselect.selectedLabel")'
+                                        :deselect-label='label("multiselect.deselectLabel")'
+                                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                    )
+
+                        .column_dynamic_component.mt-1
+                            .input_label {{ label('table_widget_options_component.column_dynamic_component') }}
+                            .input_wrapper
+                                multiselect(
+                                    :preselect-first="false"
+                                    :multiple="false"
+                                    v-model="column_dynamic_component"
+                                    :placeholder="label('table_widget_options_component.column_dynamic_component')"
+                                    :options="component_options"
+                                    :custom-label="component_label"
+                                    :allow-empty="false",
+                                    autocomplete="off"
+
+                                    :searchable="true"
+                                    :internal-search="true"
+
+                                    :select-label='label("multiselect.selectLabel")'
+                                    :select-group-label='label("multiselect.selectGroupLabel")'
+                                    :selected-label='label("multiselect.selectedLabel")'
+                                    :deselect-label='label("multiselect.deselectLabel")'
+                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                )
+
+                        .column_dynamic_var.mt-1.mb-1
+                            .input_label {{ label('table_widget_options_component.column_dynamic_var') }}
+                            .input_wrapper
+                                multiselect(
+                                    :preselect-first="false"
+                                    :multiple="false"
+                                    v-model="column_dynamic_var"
+                                    :placeholder="label('table_widget_column.column_dynamic_var')"
+                                    :options="vars_options"
+                                    :custom-label="var_label"
+                                    :allow-empty="false",
+                                    autocomplete="off"
+
+                                    :searchable="true"
+                                    :internal-search="true"
+
+                                    id="column_dynamic_var"
+
+                                    :select-label='label("multiselect.selectLabel")'
+                                    :select-group-label='label("multiselect.selectGroupLabel")'
+                                    :selected-label='label("multiselect.selectedLabel")'
+                                    :deselect-label='label("multiselect.deselectLabel")'
+                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                )
+
+                .widget_filter_options(v-if='(column.type == 1) || (column.type == 2) || (column.type == 6)')
                     .widget_filter_options_label {{ label('table_widget_column_conf.filter_options') }}
                     .widget_filter_options_wrapper
                         Widgetfilteroptionscomponent(

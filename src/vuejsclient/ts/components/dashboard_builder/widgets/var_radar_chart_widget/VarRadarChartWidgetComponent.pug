@@ -1,10 +1,10 @@
 .var_radar_chart_widget_component(:style='widget_options ? {background: widget_options.bg_color ? widget_options.bg_color : "inherit", title_font_color: "inherit"} : {}')
 
-    template(v-if='current_var_params && current_var_dataset_descriptor && current_options')
+    template(v-if='current_var_params_by_datasets && current_var_dataset_descriptor && current_options')
         .chart_wrapper
             .chart_frame
                 var-radar-chart(
-                    :var_params="current_var_params"
+                    :var_params_by_datasets="current_var_params_by_datasets"
                     :getlabel="getlabel"
                     :var_dataset_descriptor="current_var_dataset_descriptor"
                     :options="current_options"

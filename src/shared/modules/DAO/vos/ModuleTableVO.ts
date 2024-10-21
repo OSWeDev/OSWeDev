@@ -28,6 +28,11 @@ export default class ModuleTableVO implements IDistantVOBase {
     public uid: string;
 
     /**
+     * Ajout pour expliquer le type de données, son usage, ... que ce soit pour les devs, les utilisateurs finaux, ou encore les assistants
+     */
+    public description: string;
+
+    /**
      * Infos liées à la segmentation d'une table
      *  Techniquement on a un segment_type déclaré sur le field directement, mais on imagine un cas de segmentation
      *      de table de log à la journée, le log est segmenté à la seconde par contre, donc les segmentations sont différentiés
@@ -70,6 +75,23 @@ export default class ModuleTableVO implements IDistantVOBase {
     public mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_name_a: string]: string } };
 
     public constructor() { }
+
+    /**
+     * @deprecated use ModuleTableController.table_label_function_by_vo_type instead
+     * Or it needs to be optimized for recurring calls
+     */
+    get table_label_function(): <T extends IDistantVOBase>(vo: T) => string {
+        return ModuleTableController.table_label_function_by_vo_type[this.vo_type];
+    }
+
+    get name(): string {
+        return (this.prefix ? this.prefix + "_" : "") + this.table_name + ((this.suffix != "") ? "_" + this.suffix : "");
+    }
+
+    public set_description(description: string): ModuleTableVO {
+        this.description = description;
+        return this;
+    }
 
     /**
      * On ne peut segmenter que sur un field de type range ou ranges pour le moment
@@ -343,10 +365,6 @@ export default class ModuleTableVO implements IDistantVOBase {
         return null;
     }
 
-    get name(): string {
-        return (this.prefix ? this.prefix + "_" : "") + this.table_name + ((this.suffix != "") ? "_" + this.suffix : "");
-    }
-
     public set_bdd_suffix_prefix_table_name(
         table_name: string,
         table_name_suffix: string = "",
@@ -395,13 +413,5 @@ export default class ModuleTableVO implements IDistantVOBase {
      */
     public voConstructor(): IDistantVOBase {
         return new ModuleTableController.vo_constructor_by_vo_type[this.vo_type]();
-    }
-
-    /**
-     * @deprecated use ModuleTableController.table_label_function_by_vo_type instead
-     * Or it needs to be optimized for recurring calls
-     */
-    get table_label_function(): <T extends IDistantVOBase>(vo: T) => string {
-        return ModuleTableController.table_label_function_by_vo_type[this.vo_type];
     }
 }

@@ -25,6 +25,7 @@ import Snotify from 'vue-snotify';
 import { ClientTable } from "vue-tables-2";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
+import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import ModuleAccessPolicy from "../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import ModuleTableController from "../shared/modules/DAO/ModuleTableController";
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
@@ -58,7 +59,6 @@ import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import ModuleSuiviCompetences from "../shared/modules/SuiviCompetences/ModuleSuiviCompetences";
 import SuiviCompetencesVueController from "./ts/components/SuiviCompetences/SuiviCompetencesVueController";
-require('moment-json-parser').overrideDefault();
 
 // const loadComponent = async (component) => {
 //     try {
@@ -74,11 +74,6 @@ export default abstract class VueAppBase {
 
     public static instance_: VueAppBase;
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): VueAppBase {
-        return this.instance_;
-    }
-
     public vueInstance: VueComponentBase & Vue;
     public vueRouter: VueRouter;
 
@@ -87,6 +82,11 @@ export default abstract class VueAppBase {
         private initializeModulesDatas: () => Promise<unknown>,
     ) {
         VueAppBase.instance_ = this;
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): VueAppBase {
+        return this.instance_;
     }
 
     public async runApp() {
@@ -113,6 +113,7 @@ export default abstract class VueAppBase {
         await all_promises(promises);
 
         PushDataVueModule.getInstance();
+
         StatsVueModule.getInstance();
 
         await this.initializeVueAppModulesDatas();
@@ -469,6 +470,7 @@ export default abstract class VueAppBase {
         Vue.component('Crudcomponentfield', () => import('./ts/components/crud/component/field/CRUDComponentField'));
         Vue.component('Multipleselectfiltercomponent', MultipleSelectFilterComponent);
         Vue.component('Datepicker', Datepicker);
+        Vue.component('Vuequarterselect', VueQuarterSelect);
         Vue.component('Alertcomponent', AlertComponent);
         Vue.component('Alertslistcontainercomponent', AlertsListContainerComponent);
         Vue.component('Numrangecomponent', () => import('./ts/components/ranges/numrange/NumRangeComponent'));
@@ -544,8 +546,6 @@ export default abstract class VueAppBase {
         };
     }
 
-    protected abstract createVueMain(): VueComponentBase;
-    protected abstract initializeVueAppModulesDatas(): Promise<any>;
     protected async postInitializationHook() { }
     protected async postMountHook() { }
 
@@ -561,4 +561,7 @@ export default abstract class VueAppBase {
             }
         }
     }
+
+    protected abstract createVueMain(): VueComponentBase;
+    protected abstract initializeVueAppModulesDatas(): Promise<any>;
 }

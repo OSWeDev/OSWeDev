@@ -5,7 +5,7 @@
                 i.fa-solid.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="delete_widget")  
             .copy_widget 
                 i.fa-solid.fa-duotone.fa-clone(@click="copy_widget")     
-        .widget_component_wrapper
+        .widget_component_wrapper(ref='widget_component_wrapper')
             .widget_component(
                 ref='widget_component_ref'
                 :is='widget.widget_component' 

@@ -5,6 +5,10 @@ import ConfigurationService from '../../env/ConfigurationService';
 
 export default class FileServerController {
 
+    private static instance: FileServerController = null;
+
+    private constructor() { }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): FileServerController {
         if (!FileServerController.instance) {
@@ -12,10 +16,6 @@ export default class FileServerController {
         }
         return FileServerController.instance;
     }
-
-    private static instance: FileServerController = null;
-
-    private constructor() { }
 
     /**
      *
@@ -84,7 +84,7 @@ export default class FileServerController {
         });
     }
 
-    public async writeFile(filepath: string, fileContent: string) {
+    public async writeFile(filepath: string, fileContent: any) {
         return new Promise((resolve, reject) => {
             fs.writeFile(filepath, fileContent, function (err) {
                 if (err) {

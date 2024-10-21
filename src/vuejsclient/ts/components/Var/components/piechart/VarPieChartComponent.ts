@@ -1,6 +1,6 @@
 import { debounce } from 'lodash';
 import { Pie } from 'vue-chartjs';
-import Chart from "chart.js/auto";
+import Chart, { CategoryScale, LinearScale, LogarithmicScale, RadialLinearScale, TimeScale } from "chart.js/auto";
 import * as helpers from "chart.js/helpers";
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import VarPieDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarPieDataSetDescriptor';
@@ -14,7 +14,6 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
-import VarPieChartWidgetOptions from '../../../dashboard_builder/widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 @Component({
     template: require('./VarPieChartComponent.pug'),
@@ -73,15 +72,233 @@ export default class VarPieChartComponent extends VueComponentBase {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
 
-    public async created() {
-        let chart = Chart;
-        chart.register(ChartDataLabels)
-        window['Chart'] = chart;
-        Chart['helpers'] = helpers;
+    get chart_data() {
+        if (!this.all_data_loaded) {
+            return null;
+        }
 
-        // await import("chart.js-plugin-labels-dv");
-        await import("chartjs-plugin-datalabels");
+        return {
+            labels: this.labels,
+            datasets: this.datasets
+        };
     }
+
+    get chart_options() {
+        const self = this;
+        return Object.assign(
+            {
+                options: {
+                    events: ['click', 'mousemove', 'mouseout']
+                },
+
+                onClick: (point, event) => {
+                    if (!self.isDescMode) {
+                        return;
+                    }
+
+                    self.$modal.show(
+                        VarDatasRefsParamSelectComponent,
+                        { var_params: this.var_params },
+                        {
+                            width: 465,
+                            height: 'auto',
+                            scrollable: true
+                        }
+                    );
+                },
+                onHover: (event, chartElement) => {
+                    if (chartElement.length) {
+                        const index = chartElement[0].index;
+                        if (event.type === 'mousemove') {
+                            this.hovered_index = index.toString();
+                            this.hovered = true;
+                        }
+
+                    } else {
+                        this.hovered_index = 'null';
+                        this.hovered = false;
+                    }
+                },
+            },
+            this.options
+        );
+    }
+
+    get chart_plugins() {
+        const self = this;
+        let plugins = [
+            this.plugins
+        ];
+
+        return plugins;
+    }
+
+
+    get datasets(): any[] {
+
+        const res: any[] = [];
+
+        if (!this.all_data_loaded) {
+            return null;
+        }
+
+        const dataset_datas: number[] = [];
+        const backgrounds: string[] = [];
+        const bordercolors: string[] = [];
+        const borderwidths: number[] = [];
+        for (const j in this.var_params.filter((entry, id, self) =>
+            !self.slice(id + 1).some((otherEntry) => otherEntry.id === entry.id)
+        )) {
+            const var_param: VarDataBaseVO = this.var_params[j];
+            // dataset_datas.push(this.get_filtered_value(this.var_datas[var_param.index]));
+            dataset_datas.push(this.var_datas[var_param.id].value);
+
+            if (this.hovered) {
+                if (this.hovered_index == j) {
+                    if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
+                        if (this.var_dataset_descriptor.backgrounds[j].includes('rgba')) {
+                            backgrounds.push(this.var_dataset_descriptor.backgrounds[j].replace(/[^,]+(?=\))/, "1"));
+                        } else {
+                            backgrounds.push(this.var_dataset_descriptor.backgrounds[j].slice(0, this.var_dataset_descriptor.backgrounds[j].length - 2) + 'FF');
+                        }
+                    }
+                } else {
+                    if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
+                        if (this.var_dataset_descriptor.backgrounds[j].includes('rgba')) {
+                            backgrounds.push(this.var_dataset_descriptor.backgrounds[j].replace(/[^,]+(?=\))/, "0.2"));
+                        } else {
+                            backgrounds.push(this.var_dataset_descriptor.backgrounds[j].slice(0, this.var_dataset_descriptor.backgrounds[j].length - 2) + '33');
+                        }
+                    }
+                }
+            } else {
+                if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
+                    backgrounds.push(this.var_dataset_descriptor.backgrounds[j]);
+                } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[0]) {
+                    backgrounds.push(this.var_dataset_descriptor.backgrounds[0]);
+                } else {
+                    backgrounds.push('#e1ddd5'); // pourquoi #e1ddd5 ? par défaut c'est 'rgba(0, 0, 0, 0.1)'
+                }
+            }
+            if (this.var_dataset_descriptor && this.var_dataset_descriptor.bordercolors[j]) {
+                bordercolors.push(this.var_dataset_descriptor.bordercolors[j]);
+            } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.bordercolors[0]) {
+                bordercolors.push(this.var_dataset_descriptor.bordercolors[0]);
+            } else {
+                bordercolors.push('#fff');
+            }
+
+            if (this.var_dataset_descriptor && this.var_dataset_descriptor.borderwidths[j]) {
+                borderwidths.push(this.var_dataset_descriptor.borderwidths[j]);
+            } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.borderwidths[0]) {
+                borderwidths.push(this.var_dataset_descriptor.borderwidths[0]);
+            } else {
+                borderwidths.push(2);
+            }
+
+        }
+
+        const dataset = {
+            label: '',
+            data: dataset_datas,
+            backgroundColor: backgrounds,
+            borderColor: bordercolors,
+            borderWidth: borderwidths,
+        };
+
+        res.push(dataset);
+
+        return res;
+    }
+
+    get labels(): string[] {
+        const res = [];
+
+        for (const i in this.var_params) {
+            if (this.getlabel && this.getlabel(this.var_params[i])) {
+                if (this.getlabel(this.var_params[i]).length <= 1) {
+                    res.push(this.getlabel(this.var_params[i]));
+                } else {
+                    res.push(this.getlabel(this.var_params[i])[i]);
+                }
+            } else {
+                res.push(this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
+            }
+        }
+        return res;
+    }
+
+    get all_data_loaded(): boolean {
+
+        if ((!this.var_params) || (!this.var_params.length) || (!this.var_dataset_descriptor)) {
+            return false;
+        }
+
+        for (const i in this.var_params) {
+            const var_param = this.var_params[i];
+
+            if ((!this.var_datas) || (!this.var_datas[var_param.id]) || (typeof this.var_datas[var_param.id].value === 'undefined')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Watch('var_params', { immediate: true })
+    private async onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
+
+        // On doit vérifier qu'ils sont bien différents
+        if (VarsController.isSameParamArray(new_var_params, old_var_params)) {
+            return;
+        }
+
+        if (old_var_params && old_var_params.length) {
+            console.log('unregister');
+            await VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
+        }
+
+        if (new_var_params && new_var_params.length) {
+            console.log('register');
+            await VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
+        }
+
+        // this.set_datasets();
+        // this.set_labels();
+        // this.onchange_all_data_loaded();
+    }
+
+    @Watch('var_dataset_descriptor')
+    private async onchange_descriptors(new_var_dataset_descriptor: VarPieDataSetDescriptor, old_var_dataset_descriptor: VarPieDataSetDescriptor) {
+
+        // On doit vérifier qu'ils sont bien différents
+        new_var_dataset_descriptor = new_var_dataset_descriptor ? new_var_dataset_descriptor : null;
+        old_var_dataset_descriptor = old_var_dataset_descriptor ? old_var_dataset_descriptor : null;
+        let same: boolean = true;
+        if (((!old_var_dataset_descriptor) && (!!new_var_dataset_descriptor)) ||
+            ((!!old_var_dataset_descriptor) && (!new_var_dataset_descriptor)) ||
+            ((!!new_var_dataset_descriptor) && (!!old_var_dataset_descriptor) && (new_var_dataset_descriptor.var_name != old_var_dataset_descriptor.var_name))) {
+            same = false;
+        }
+        if (same) {
+            return;
+        }
+
+        // sur chaque dimension
+        if ((!!old_var_dataset_descriptor) && (this.var_params) && this.var_params.length) {
+            await VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
+        }
+        if ((!!new_var_dataset_descriptor) && (this.var_params) && this.var_params.length) {
+            await VarsClientController.getInstance().registerParams(this.var_params, this.varUpdateCallbacks);
+        }
+
+        // this.onchange_all_data_loaded();
+    }
+
+    @Watch('data')
+    private async onchange_datasets() {
+        await this.debounced_render_or_update_chart_js();
+    }
+
     @Watch('chart_plugins', { immediate: true })
     @Watch('chart_data')
     @Watch('chart_options')
@@ -93,6 +310,16 @@ export default class VarPieChartComponent extends VueComponentBase {
         this.current_chart_data = this.chart_data;
         this.current_chart_options = this.chart_options;
         this.current_chart_plugins = this.chart_plugins;
+    }
+
+    public async created() {
+        let chart = Chart;
+        chart.register(ChartDataLabels, CategoryScale, LinearScale, LogarithmicScale, TimeScale, RadialLinearScale);
+        window['Chart'] = chart;
+        Chart['helpers'] = helpers;
+
+        // await import("chart.js-plugin-labels-dv");
+        await import("chartjs-plugin-datalabels");
     }
 
     /**
@@ -171,22 +398,6 @@ export default class VarPieChartComponent extends VueComponentBase {
         await VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
     }
 
-    get all_data_loaded(): boolean {
-
-        if ((!this.var_params) || (!this.var_params.length) || (!this.var_dataset_descriptor)) {
-            return false;
-        }
-
-        for (const i in this.var_params) {
-            const var_param = this.var_params[i];
-
-            if ((!this.var_datas) || (!this.var_datas[var_param.id]) || (typeof this.var_datas[var_param.id].value === 'undefined')) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private get_filtered_value(var_data: VarDataValueResVO) {
 
         if (!var_data) {
@@ -209,191 +420,6 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         return this.filter.apply(null, params);
-    }
-
-    @Watch('var_params', { immediate: true })
-    private async onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
-
-        // On doit vérifier qu'ils sont bien différents
-        if (VarsController.isSameParamArray(new_var_params, old_var_params)) {
-            return;
-        }
-
-        if (old_var_params && old_var_params.length) {
-            console.log('unregister')
-            await VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
-        }
-
-        if (new_var_params && new_var_params.length) {
-            console.log('register')
-            await VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
-        }
-
-        // this.set_datasets();
-        // this.set_labels();
-        // this.onchange_all_data_loaded();
-    }
-
-    @Watch('var_dataset_descriptor')
-    private async onchange_descriptors(new_var_dataset_descriptor: VarPieDataSetDescriptor, old_var_dataset_descriptor: VarPieDataSetDescriptor) {
-
-        // On doit vérifier qu'ils sont bien différents
-        new_var_dataset_descriptor = new_var_dataset_descriptor ? new_var_dataset_descriptor : null;
-        old_var_dataset_descriptor = old_var_dataset_descriptor ? old_var_dataset_descriptor : null;
-        let same: boolean = true;
-        if (((!old_var_dataset_descriptor) && (!!new_var_dataset_descriptor)) ||
-            ((!!old_var_dataset_descriptor) && (!new_var_dataset_descriptor)) ||
-            ((!!new_var_dataset_descriptor) && (!!old_var_dataset_descriptor) && (new_var_dataset_descriptor.var_name != old_var_dataset_descriptor.var_name))) {
-            same = false;
-        }
-        if (same) {
-            return;
-        }
-
-        // sur chaque dimension
-        if ((!!old_var_dataset_descriptor) && (this.var_params) && this.var_params.length) {
-            await VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
-        }
-        if ((!!new_var_dataset_descriptor) && (this.var_params) && this.var_params.length) {
-            await VarsClientController.getInstance().registerParams(this.var_params, this.varUpdateCallbacks);
-        }
-
-        // this.onchange_all_data_loaded();
-    }
-
-    get chart_data() {
-        if (!this.all_data_loaded) {
-            return null;
-        }
-
-        return {
-            labels: this.labels,
-            datasets: this.datasets
-        };
-    }
-
-    get chart_options() {
-        const self = this;
-        return Object.assign(
-            {
-                options: {
-                    events: ['click', 'mousemove', 'mouseout']
-                },
-
-                onClick: (point, event) => {
-                    if (!self.isDescMode) {
-                        return;
-                    }
-
-                    self.$modal.show(
-                        VarDatasRefsParamSelectComponent,
-                        { var_params: this.var_params },
-                        {
-                            width: 465,
-                            height: 'auto',
-                            scrollable: true
-                        }
-                    );
-                },
-                onHover: (event, chartElement) => {
-                    if (chartElement.length) {
-                        const index = chartElement[0].index;
-                        if (event.type === 'mousemove') {
-                            this.hovered_index = index.toString();
-                            this.hovered = true;
-                        }
-
-                    } else {
-                        this.hovered_index = 'null';
-                        this.hovered = false;
-                    }
-                },
-            },
-            this.options
-        );
-    }
-
-    get chart_plugins() {
-        const self = this;
-        let plugins = [
-            this.plugins
-        ]
-
-        return plugins;
-    }
-
-
-    get datasets(): any[] {
-
-        const res: any[] = [];
-
-        if (!this.all_data_loaded) {
-            return null;
-        }
-
-        const dataset_datas: number[] = [];
-        const backgrounds: string[] = [];
-        const bordercolors: string[] = [];
-        const borderwidths: number[] = [];
-        for (const j in this.var_params.filter((entry, id, self) =>
-            !self.slice(id + 1).some((otherEntry) => otherEntry.id === entry.id)
-        )) {
-            const var_param: VarDataBaseVO = this.var_params[j];
-            // dataset_datas.push(this.get_filtered_value(this.var_datas[var_param.index]));
-            dataset_datas.push(this.var_datas[var_param.id].value);
-
-            if (this.hovered) {
-                if (this.hovered_index == j) {
-                    if (this.var_dataset_descriptor.backgrounds[j].includes('rgba')) {
-                        backgrounds.push(this.var_dataset_descriptor.backgrounds[j].replace(/[^,]+(?=\))/, "1"));
-                    } else {
-                        backgrounds.push(this.var_dataset_descriptor.backgrounds[j].slice(0, this.var_dataset_descriptor.backgrounds[j].length - 2) + 'FF')
-                    }
-                } else {
-                    if (this.var_dataset_descriptor.backgrounds[j].includes('rgba')) {
-                        backgrounds.push(this.var_dataset_descriptor.backgrounds[j].replace(/[^,]+(?=\))/, "0.2"));
-                    } else {
-                        backgrounds.push(this.var_dataset_descriptor.backgrounds[j].slice(0, this.var_dataset_descriptor.backgrounds[j].length - 2) + '33')
-                    }
-                }
-            } else {
-                if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
-                    backgrounds.push(this.var_dataset_descriptor.backgrounds[j]);
-                } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[0]) {
-                    backgrounds.push(this.var_dataset_descriptor.backgrounds[0]);
-                } else {
-                    backgrounds.push('#e1ddd5'); // pourquoi #e1ddd5 ? par défaut c'est 'rgba(0, 0, 0, 0.1)'
-                }
-            }
-            if (this.var_dataset_descriptor && this.var_dataset_descriptor.bordercolors[j]) {
-                bordercolors.push(this.var_dataset_descriptor.bordercolors[j]);
-            } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.bordercolors[0]) {
-                bordercolors.push(this.var_dataset_descriptor.bordercolors[0]);
-            } else {
-                bordercolors.push('#fff');
-            }
-
-            if (this.var_dataset_descriptor && this.var_dataset_descriptor.borderwidths[j]) {
-                borderwidths.push(this.var_dataset_descriptor.borderwidths[j]);
-            } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.borderwidths[0]) {
-                borderwidths.push(this.var_dataset_descriptor.borderwidths[0]);
-            } else {
-                borderwidths.push(2);
-            }
-
-        }
-
-        const dataset = {
-            label: '',
-            data: dataset_datas,
-            backgroundColor: backgrounds,
-            borderColor: bordercolors,
-            borderWidth: borderwidths,
-        };
-
-        res.push(dataset);
-
-        return res;
     }
 
     private render_chart_js() {
@@ -446,27 +472,5 @@ export default class VarPieChartComponent extends VueComponentBase {
             // Issu de Bar
             this.$data._chart.update();
         }
-    }
-
-    @Watch('data')
-    private async onchange_datasets() {
-        await this.debounced_render_or_update_chart_js();
-    }
-
-    get labels(): string[] {
-        const res = [];
-
-        for (const i in this.var_params) {
-            if (this.getlabel && this.getlabel(this.var_params[i])) {
-                if (this.getlabel(this.var_params[i]).length <= 1) {
-                    res.push(this.getlabel(this.var_params[i]))
-                } else {
-                    res.push(this.getlabel(this.var_params[i])[i])
-                }
-            } else {
-                res.push(this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)))
-            }
-        }
-        return res;
     }
 }

@@ -21,14 +21,10 @@ export default abstract class DataImportModuleBase<ImportedData extends IImporte
     public registerApis() { }
     public initialize() { }
 
-    public abstract hook_merge_imported_datas_in_database(datas: ImportedData[], historic: DataImportHistoricVO, format: DataImportFormatVO): Promise<boolean>;
-
-    // Méthode qui doit renvoyer la liste des api_types_ids qui sont concernés par ce post-traitement d'import.
-    //  Permet d'informer immédiatement d'un changement de données au niveau client
-    public abstract get_merged_api_type_ids(): string[];
-
     // Par défaut, pas de filtrage complémentaire
     public async validate_formatted_data(datas: ImportedData[], historic: DataImportHistoricVO, format: DataImportFormatVO): Promise<ImportedData[]> {
         return datas;
     }
+
+    public abstract hook_merge_imported_datas_in_database(datas: ImportedData[], historic: DataImportHistoricVO, format: DataImportFormatVO): Promise<boolean>;
 }

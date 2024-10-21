@@ -17,7 +17,6 @@ import ThrottledSelectQueryParam from "./vos/ThrottledSelectQueryParam";
 
 export default class ThrottledQueryServerController {
 
-
     private static current_select_query_promises: { [parameterized_full_query: string]: Promise<any> } = {};
     private static current_promise_resolvers: { [query_index: number]: (value: unknown) => void } = {};
 

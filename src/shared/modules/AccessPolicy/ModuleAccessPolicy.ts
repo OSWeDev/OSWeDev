@@ -94,10 +94,13 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_logout = "logout";
     public static APINAME_delete_session = "delete_session";
     public static APINAME_get_my_sid = "get_my_sid";
+    public static APINAME_get_my_session_id = "get_my_session_id";
     public static APINAME_sendrecapture = "sendrecapture";
 
     public static APINAME_GET_AVATAR_URL = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_url";
     public static APINAME_GET_AVATAR_NAME = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_name";
+
+    public static AVATAR_DEFAULT_URL = '/vuejsclient/public/img/avatars/unknown.png';
 
     public static APINAME_send_session_share_email = "send_session_share_email";
     public static APINAME_send_session_share_sms = "send_session_share_sms";
@@ -123,6 +126,7 @@ export default class ModuleAccessPolicy extends Module {
     public logout: () => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_logout);
     public delete_session: () => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_delete_session);
     public get_my_sid: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_get_my_sid);
+    public get_my_session_id: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_get_my_session_id);
     public send_session_share_email: (url: string, email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_send_session_share_email);
     public send_session_share_sms: (text: string, phone: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_send_session_share_sms);
     public change_lang: (lang_id: number) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_change_lang);
@@ -130,7 +134,7 @@ export default class ModuleAccessPolicy extends Module {
     public getLoggedUserName: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME);
     public impersonateLogin: (email: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonateLogin);
     public impersonate: (uid: number) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonate);
-    public loginAndRedirect: (email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT);
+    public loginAndRedirect: (email: string, password: string, redirect_to: string, sso: boolean) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT);
     public signinAndRedirect: (nom: string, email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT);
     public getAccessMatrix: (inherited_only: boolean) => Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX);
     public togglePolicy: (policy_id: number, role_id: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS);
@@ -190,8 +194,14 @@ export default class ModuleAccessPolicy extends Module {
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<void, string>(
-            ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS,
+            null,
             ModuleAccessPolicy.APINAME_get_my_sid,
+            []
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, string>(
+            null,
+            ModuleAccessPolicy.APINAME_get_my_session_id,
             []
         ));
 

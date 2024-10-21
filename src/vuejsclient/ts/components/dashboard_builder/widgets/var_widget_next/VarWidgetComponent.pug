@@ -1,0 +1,78 @@
+.var_widget_component(
+        :style='widget_style'
+    )
+    template(v-if="widget_options ? (widget_options.style ? (widget_options.style === 'weather' ? true : false) : false) : false")
+        .row
+            .col-sm-12
+                .widget-header
+                    .icon
+                        span
+                            i.fa-duotone(:class='widget_options.icon_text ? (widget_options.icon_size ? widget_options.icon_text+" fa-"+ widget_options.icon_size + "x" : "") : "" ' :style='widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {}' )
+                    .text
+                        span
+                            Inlinetranslatabletext(:code_text="title_name_code_text" :style='widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {}')
+        .row
+        .col-sm-12
+            .widget-content
+                .row 
+                    span
+                        label.mb-0(v-if="subtitle" :style='widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {}') {{ subtitle }}
+                .row
+                    .col-xs-4.indicateur
+                        template(v-if="var_condition_icon")
+                            i.fa(:class="var_condition_icon")
+                    .col-xs-4
+                        .row(v-if="var_param_principal")
+                            .col-sm-12.data_principal.text-center(v-if="var_param_principal")
+                                .is_label.mb-0(v-if="var_param_principal_label && var_param_principal_show_label") 
+                                    Inlinetranslatabletext(:code_text="var_param_principal_label" :style='widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {}')
+                                var-data(
+                                        :var_param='var_param_principal',
+                                        :filter='var_param_principal_filter',
+                                        :filter_additional_params='var_param_principal_filter_additional_params',
+                                        :show_import='false',
+                                        :class='var_param_principal_is_condition_target ? "danger-"+danger_level :  ""'
+                                        :style='var_param_principal_is_condition_target ? {} : (widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {})'
+                                    )
+                        .row(v-if="var_param_a_date")
+                            .col-sm-12.data_a_date.text-center(v-if="var_param_a_date")
+                                .is_label.mb-0(v-if="var_param_a_date_label && var_param_a_date_show_label") 
+                                    Inlinetranslatabletext(:code_text="var_param_a_date_label" :style='widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {}')
+                                var-data(
+                                    :var_param='var_param_a_date',
+                                    :filter='var_param_a_date_filter',
+                                    :filter_additional_params='var_param_a_date_filter_additional_params',
+                                    :show_import='false',
+                                    :class='var_param_a_date_is_condition_target ? "danger-"+danger_level :  ""'
+                                    :style='var_param_a_date_is_condition_target ? {} : (widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {})'
+                                )
+                    .col-xs-4
+                        .row
+                            .col-sm-12.data_complementaire.text-center(v-if="var_param_complementaire")
+                                label.mb-0(v-if="var_param_complementaire_label && var_param_complementaire_show_label") 
+                                    Inlinetranslatabletext(:code_text="var_param_complementaire_label" :style='widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {}')
+                                var-data(
+                                    :var_param='var_param_complementaire',
+                                    :filter='var_param_complementaire_filter',
+                                    :filter_additional_params='var_param_complementaire_filter_additional_params',
+                                    :show_import='false',
+                                    :class='var_param_complementaire_is_condition_target ? "danger-"+danger_level :  ""'
+                                    :style='var_param_complementaire_is_condition_target ? {} : (widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {})'
+                                )
+
+                        .row
+                            .col-sm-12.data_complementaire_supp.text-center(v-if="(var_param_complementaire_supp)")
+                                label.mb-0(v-if="var_param_complementaire_supp_label && var_param_complementaire_supp_show_label") 
+                                    Inlinetranslatabletext(:code_text="var_param_complementaire_supp_label" :style='widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {}')
+                                var-data(
+                                    :var_param='var_param_complementaire_supp',
+                                    :filter='var_param_complementaire_supp_filter',
+                                    :filter_additional_params='var_param_complementaire_supp_filter_additional_params',
+                                    :show_import='false',
+                                    :class='var_param_complementaire_supp_is_condition_target ? "danger-"+danger_level :  ""'
+                                    :style='var_param_complementaire_supp_is_condition_target ? {} : (widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {})'
+                                )
+    template(v-else-if="widget_options ? (widget_options.style ? (widget_options.style === 'minimalist' ? true : false) : false) : false")
+        span 
+            .row
+                label.mb-0 "not implemented yet"

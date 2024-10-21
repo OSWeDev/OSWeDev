@@ -8,6 +8,13 @@ export default class ExportVarIndicatorVO implements IDistantVOBase {
 
     public static API_TYPE_ID: string = "export_var_indicator";
 
+    public id: number;
+    public _type: string = ExportVarIndicatorVO.API_TYPE_ID;
+
+    public ordered_column_list: string[];
+    public column_labels: { [column_field_name: string]: string };
+    public varcolumn_conf: { [var_name_label: string]: ExportVarcolumnConfVO };
+
     public static create_new(
         ordered_column_list: string[],
         column_labels: { [column_field_name: string]: string },
@@ -21,11 +28,4 @@ export default class ExportVarIndicatorVO implements IDistantVOBase {
 
         return res;
     }
-
-    public id: number;
-    public _type: string = ExportVarIndicatorVO.API_TYPE_ID;
-
-    public ordered_column_list: string[];
-    public column_labels: { [column_field_name: string]: string };
-    public varcolumn_conf: { [var_name_label: string]: ExportVarcolumnConfVO };
 }

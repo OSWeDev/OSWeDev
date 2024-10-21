@@ -5,12 +5,15 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleSharepoint from '../../../shared/modules/Sharepoint/ModuleSharepoint';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import FileHandler from '../../../shared/tools/FileHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
@@ -129,8 +132,16 @@ export default class ModuleSharepointServer extends ModuleServerBase {
         filename: string = null,
         file_access_policy_name: string = null) {
 
+        // On utilise le robot pour l'export
+        const robot_user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq(field_names<UserVO>().name, 'robot').exec_as_server().select_vo<UserVO>();
+        if (!robot_user) {
+            ConsoleHandler.error('Impossible de trouver l\'utilisateur robot');
+            return;
+        }
+
         const file: FileVO = await ModuleDataExportServer.getInstance().exportModuletableDataToXLSXFile(
             api_type_id,
+            robot_user.id,
             lang_id,
             filename,
             file_access_policy_name

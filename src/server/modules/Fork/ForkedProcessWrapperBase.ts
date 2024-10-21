@@ -23,13 +23,9 @@ import StatsServerController from '../Stats/StatsServerController';
 import ForkMessageController from './ForkMessageController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
+import PushDataServerController from '../PushData/PushDataServerController';
 
 export default abstract class ForkedProcessWrapperBase {
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ForkedProcessWrapperBase {
-        return ForkedProcessWrapperBase.instance;
-    }
 
     protected static instance: ForkedProcessWrapperBase;
 
@@ -44,7 +40,7 @@ export default abstract class ForkedProcessWrapperBase {
      * ----- Local thread cache
      */
 
-    constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
+    public constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
         // On initialise le Controller pour les APIs
         APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
@@ -63,6 +59,7 @@ export default abstract class ForkedProcessWrapperBase {
         }).catch((error) => ConsoleHandler.error(error));
 
         ModulesManager.isServerSide = true;
+        PushDataServerController.initialize();
 
         // Les bgthreads peuvent être register et run - reste à définir lesquels
         BGThreadServerController.init();
@@ -107,6 +104,11 @@ export default abstract class ForkedProcessWrapperBase {
 
     get process_UID(): number {
         return this.UID;
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ForkedProcessWrapperBase {
+        return ForkedProcessWrapperBase.instance;
     }
 
     public async run() {

@@ -9,6 +9,7 @@ import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../../ts/components/VueComponentBase';
 import { ModuleDAOGetter } from '../../../../../ts/components/dao/store/DaoStore';
 import "./ImpersonateComponent.scss";
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./ImpersonateComponent.pug')
@@ -32,26 +33,6 @@ export default class ImpersonateComponent extends VueComponentBase {
     private throttle_onVoChange = ThrottleHelper.declare_throttle_without_args(this.throttled_onVoChange, 10);
     private throttle_onUidChange = ThrottleHelper.declare_throttle_without_args(this.throttled_onUidChange, 10);
 
-    @Watch('vo', { immediate: true })
-    private async onVoChange() {
-        this.throttle_onVoChange();
-    }
-
-    private throttled_onVoChange() {
-        this.uid = this.vo ? this.vo[this.userid_field_id] : null;
-    }
-
-    @Watch('uid', { immediate: true })
-    private async onUidChange() {
-        this.throttle_onUidChange();
-    }
-
-    private async throttled_onUidChange() {
-        this.user_vo = this.uid ?
-            await query(UserVO.API_TYPE_ID).filter_by_id(this.uid).select_vo<UserVO>()
-            : null;
-    }
-
     get can_impersonate() {
         if ((!this.user_vo) || this.user_vo.invalidated || this.user_vo.archived || this.user_vo.blocked) {
             return false;
@@ -70,7 +51,7 @@ export default class ImpersonateComponent extends VueComponentBase {
             if (column.api_type_id != UserVO.API_TYPE_ID) {
                 continue;
             }
-            if (column.type != TableColumnDescVO.TYPE_crud_actions) {
+            if ((column.type != TableColumnDescVO.TYPE_crud_actions) && (column.field_id != field_names<UserVO>().id)) {
                 continue;
             }
 
@@ -80,6 +61,25 @@ export default class ImpersonateComponent extends VueComponentBase {
         return 'id';
     }
 
+    @Watch('vo', { immediate: true })
+    private async onVoChange() {
+        this.throttle_onVoChange();
+    }
+
+    @Watch('uid', { immediate: true })
+    private async onUidChange() {
+        this.throttle_onUidChange();
+    }
+
+    private throttled_onVoChange() {
+        this.uid = this.vo ? this.vo[this.userid_field_id] : null;
+    }
+
+    private async throttled_onUidChange() {
+        this.user_vo = this.uid ?
+            await query(UserVO.API_TYPE_ID).filter_by_id(this.uid).select_vo<UserVO>()
+            : null;
+    }
     private async impersonate() {
         if (!this.uid) {
             return;

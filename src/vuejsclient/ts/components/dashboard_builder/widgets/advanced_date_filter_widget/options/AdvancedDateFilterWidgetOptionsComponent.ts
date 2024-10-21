@@ -41,6 +41,8 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
 
     @ModuleDashboardPageGetter
     private get_custom_filters: string[];
+    @ModuleDashboardPageGetter
+    private get_page_widgets: DashboardPageWidgetVO[];
 
     @ModuleDashboardPageAction
     private set_custom_filters: (custom_filters: string[]) => void;
@@ -50,7 +52,13 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     private hide_opts: boolean = false;
     private refuse_left_open: boolean = false;
     private refuse_right_open: boolean = false;
+    private is_relative_to_other_filter: boolean = false;
+    private is_relative_to_today: boolean = false;
+    private hide_filter: boolean = false;
     private tmp_default_value: AdvancedDateFilterOptDescVO = null;
+    private relative_to_other_filter_id: number = null;
+    private auto_select_relative_date_min: number = null;
+    private auto_select_relative_date_max: number = null;
 
     private next_update_options: AdvancedDateFilterWidgetOptions = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -65,6 +73,12 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
             this.hide_opts = false;
             this.refuse_left_open = false;
             this.refuse_right_open = false;
+            this.is_relative_to_other_filter = false;
+            this.is_relative_to_today = false;
+            this.hide_filter = false;
+            this.relative_to_other_filter_id = null;
+            this.auto_select_relative_date_min = null;
+            this.auto_select_relative_date_max = null;
             this.tmp_default_value = null;
             this.editable_opts = null;
             this.is_vo_field_ref = true;
@@ -85,6 +99,24 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         }
         if (this.refuse_right_open != this.widget_options.refuse_right_open) {
             this.refuse_right_open = this.widget_options.refuse_right_open;
+        }
+        if (this.is_relative_to_other_filter != this.widget_options.is_relative_to_other_filter) {
+            this.is_relative_to_other_filter = this.widget_options.is_relative_to_other_filter;
+        }
+        if (this.is_relative_to_today != this.widget_options.is_relative_to_today) {
+            this.is_relative_to_today = this.widget_options.is_relative_to_today;
+        }
+        if (this.hide_filter != this.widget_options.hide_filter) {
+            this.hide_filter = this.widget_options.hide_filter;
+        }
+        if (this.relative_to_other_filter_id != this.widget_options.relative_to_other_filter_id) {
+            this.relative_to_other_filter_id = this.widget_options.relative_to_other_filter_id;
+        }
+        if (this.auto_select_relative_date_min != this.widget_options.auto_select_relative_date_min) {
+            this.auto_select_relative_date_min = this.widget_options.auto_select_relative_date_min;
+        }
+        if (this.auto_select_relative_date_max != this.widget_options.auto_select_relative_date_max) {
+            this.auto_select_relative_date_max = this.widget_options.auto_select_relative_date_max;
         }
         if (this.is_vo_field_ref != this.widget_options.is_vo_field_ref) {
             this.is_vo_field_ref = this.widget_options.is_vo_field_ref;
@@ -126,11 +158,53 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         }
     }
 
+    @Watch('relative_to_other_filter_id')
+    private async onchange_relative_to_other_filter_id() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.relative_to_other_filter_id != this.relative_to_other_filter_id) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.relative_to_other_filter_id = this.relative_to_other_filter_id;
+
+            this.throttled_update_options();
+        }
+    }
+
+    @Watch('auto_select_relative_date_min')
+    private async onchange_auto_select_relative_date_min() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.auto_select_relative_date_min != this.auto_select_relative_date_min) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.auto_select_relative_date_min = ((this.auto_select_relative_date_min != null) ? parseInt(this.auto_select_relative_date_min.toString()) : null);
+
+            this.throttled_update_options();
+        }
+    }
+
+    @Watch('auto_select_relative_date_max')
+    private async onchange_auto_select_relative_date_max() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.auto_select_relative_date_max != this.auto_select_relative_date_max) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.auto_select_relative_date_max = ((this.auto_select_relative_date_max != null) ? parseInt(this.auto_select_relative_date_max.toString()) : null);
+
+            this.throttled_update_options();
+        }
+    }
+
     private async switch_is_vo_field_ref() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new AdvancedDateFilterWidgetOptions(this.is_vo_field_ref == null ? true : this.is_vo_field_ref, null, null, null, false, null, false, false, false);
+            this.next_update_options = new AdvancedDateFilterWidgetOptions(this.is_vo_field_ref == null ? true : this.is_vo_field_ref, null, null, null, false, null, false, false, false, false, null, false, false, null, null);
         }
 
         this.next_update_options.is_vo_field_ref = !this.next_update_options.is_vo_field_ref;
@@ -300,6 +374,10 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
 
         this.next_update_options.opts[i] = update_opt;
 
+        if (this.next_update_options.default_value?.id == update_opt.id) {
+            this.next_update_options.default_value = update_opt;
+        }
+
         await this.throttled_update_options();
     }
 
@@ -350,7 +428,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     }
 
     private get_default_options(): AdvancedDateFilterWidgetOptions {
-        return new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null, false, false, false);
+        return new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null, false, false, false, false, null, false, false, null, null);
     }
 
     private async switch_is_checkbox() {
@@ -413,6 +491,51 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         }
     }
 
+    private async switch_is_relative_to_other_filter() {
+        this.is_relative_to_other_filter = !this.is_relative_to_other_filter;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.is_relative_to_other_filter != this.is_relative_to_other_filter) {
+            this.next_update_options.is_relative_to_other_filter = this.is_relative_to_other_filter;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_is_relative_to_today() {
+        this.is_relative_to_today = !this.is_relative_to_today;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.is_relative_to_today != this.is_relative_to_today) {
+            this.next_update_options.is_relative_to_today = this.is_relative_to_today;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_hide_filter() {
+        this.hide_filter = !this.hide_filter;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.hide_filter != this.hide_filter) {
+            this.next_update_options.hide_filter = this.hide_filter;
+            await this.throttled_update_options();
+        }
+    }
+
     get has_existing_other_custom_filters(): boolean {
         if (!this.other_custom_filters) {
             return false;
@@ -469,6 +592,12 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
                     options.hide_opts,
                     options.refuse_left_open,
                     options.refuse_right_open,
+                    options.is_relative_to_other_filter,
+                    options.relative_to_other_filter_id,
+                    options.hide_filter,
+                    options.is_relative_to_today,
+                    options.auto_select_relative_date_min,
+                    options.auto_select_relative_date_max,
                 ) : null;
             }
         } catch (error) {
@@ -510,6 +639,59 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
             }
             return 0;
         });
+
+        return res;
+    }
+
+    get other_filters_by_name(): { [filter_name: string]: DashboardPageWidgetVO } {
+        if (!this.get_page_widgets) {
+            return null;
+        }
+
+        let res: { [filter_name: string]: DashboardPageWidgetVO } = {};
+
+        for (let i in this.get_page_widgets) {
+            let get_page_widget = this.get_page_widgets[i];
+
+            if (get_page_widget.id == this.page_widget.id) {
+                continue;
+            }
+
+            if (get_page_widget.widget_id !== this.page_widget.widget_id) {
+                continue;
+            }
+
+            if (!get_page_widget.json_options) {
+                continue;
+            }
+
+            let other_filter_options = JSON.parse(get_page_widget.json_options) as AdvancedDateFilterWidgetOptions;
+            if (!other_filter_options) {
+                continue;
+            }
+
+            if (!!other_filter_options.is_vo_field_ref) {
+                if ((!other_filter_options.vo_field_ref) || (!other_filter_options.vo_field_ref.api_type_id) || (!other_filter_options.vo_field_ref.field_id)) {
+                    continue;
+                }
+
+                let name = 'Widget ID:' + get_page_widget.id + ' : ' + other_filter_options.vo_field_ref.api_type_id + '.' + other_filter_options.vo_field_ref.field_id;
+                if (!!res[name]) {
+                    continue;
+                }
+                res[name] = get_page_widget;
+            } else {
+                if (!other_filter_options.custom_filter_name) {
+                    continue;
+                }
+
+                let name = 'Widget ID:' + get_page_widget.id + ' : ' + other_filter_options.custom_filter_name;
+                if (!!res[name]) {
+                    continue;
+                }
+                res[name] = get_page_widget;
+            }
+        }
 
         return res;
     }

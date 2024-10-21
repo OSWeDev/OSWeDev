@@ -4,6 +4,7 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleServerBase from '../ModuleServerBase';
+import { head } from 'lodash';
 
 export default class ModuleRequestServer extends ModuleServerBase {
 
@@ -75,15 +76,10 @@ export default class ModuleRequestServer extends ModuleServerBase {
             if (add_content_length_to_headers && ((method == ModuleRequest.METHOD_POST) || (method == ModuleRequest.METHOD_PATCH)) && !!dataPosts && (dataPosts.length > 0)) {
                 // .byteLength pour avoir la gestion des caractères spéciaux tel que les accents
                 headers['Content-Length'] = Buffer.byteLength(dataPosts);
+                headers['Content-Type'] = 'application/json';
             }
 
             function callback(res: http.IncomingMessage) {
-
-                if (res.statusCode >= 400) {
-                    reject({ message: 'Request failed with status code ' + res.statusCode, headers: res.headers });
-                    ConsoleHandler.error('Request failed with status code ' + res.statusCode + ' : ' + path + ' : ' + JSON.stringify(res.headers));
-                    return;
-                }
 
                 let result: Buffer[] = [];
 
@@ -102,6 +98,12 @@ export default class ModuleRequestServer extends ModuleServerBase {
                                 ConsoleHandler.error(e + ' : sendRequestFromApp full response buffer : ' + buffer.toString());
                             }
                         }
+                    }
+
+                    if (res.statusCode >= 400) {
+                        reject({ message: 'Request failed with status code ' + res.statusCode + ' :buffer: ' + JSON.stringify(buffer), headers: res.headers });
+                        ConsoleHandler.error('Request failed with status code ' + res.statusCode + ' : ' + path + ' : ' + JSON.stringify(buffer) + ' : ' + JSON.stringify(res.headers));
+                        return;
                     }
 
                     if (result_headers) {

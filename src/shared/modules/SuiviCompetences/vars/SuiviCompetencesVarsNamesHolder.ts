@@ -3,6 +3,10 @@ export default class SuiviCompetencesVarsNamesHolder {
 
     public static VarDaySuiviCompetencesNiveauMaturiteSousGroupeController_VAR_NAME: string = 'VarDaySuiviCompetencesNiveauMaturiteSousGroupeController';
     public static VarDaySuiviCompetencesNiveauMaturiteGroupeController_VAR_NAME: string = 'VarDaySuiviCompetencesNiveauMaturiteGroupeController';
+    public static VarDayLastSuiviCompetencesNiveauMaturiteGroupeController_VAR_NAME: string = 'VarDayLastSuiviCompetencesNiveauMaturiteGroupeController';
+    public static VarDayLastSuiviCompetencesNiveauMaturiteSousGroupeController_VAR_NAME: string = 'VarDayLastSuiviCompetencesNiveauMaturiteSousGroupeController';
+    public static VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController_VAR_NAME: string = 'VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController';
+    public static VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController_VAR_NAME: string = 'VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController';
 
     public static getInstance(): SuiviCompetencesVarsNamesHolder {
         if (!SuiviCompetencesVarsNamesHolder.instance) {

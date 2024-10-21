@@ -1,4 +1,4 @@
-import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import UserLogVarsNamesHolder from '../../../../../shared/modules/UserLogVars/vars/UserLogVarsNamesHolder';
 import UserMinDataRangesVO from '../../../../../shared/modules/UserLogVars/vars/vos/UserMinDataRangesVO';

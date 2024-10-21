@@ -1,0 +1,7 @@
+.oselia_last_threads
+    template(v-for='thread in threads')
+        Oselialastthreadcomponent(
+            :thread="thread"
+            :key="thread.id"
+            :current_thread_id="current_thread_id"
+        )

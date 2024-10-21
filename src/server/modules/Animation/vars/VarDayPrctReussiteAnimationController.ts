@@ -3,14 +3,13 @@ import ThemeModuleDataRangesVO from '../../../../shared/modules/Animation/params
 import AnimationQRVO from '../../../../shared/modules/Animation/vos/AnimationQRVO';
 import AnimationUserModuleVO from '../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import AnimationUserQRVO from '../../../../shared/modules/Animation/vos/AnimationUserQRVO';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
+import VarDAGNode from '../../../modules/Var/vos/VarDAGNode';
 import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
-import DataSourceControllerBase from '../../Var/datasource/DataSourceControllerBase';
 import VarServerControllerBase from '../../Var/VarServerControllerBase';
+import DataSourceControllerBase from '../../Var/datasource/DataSourceControllerBase';
 import QRsRangesDatasourceController from '../datasources/QRsRangesDatasourceController';
 import UMsRangesDatasourceController from '../datasources/UMsRangesDatasourceController';
 import UQRsRangesDatasourceController from '../datasources/UQRsRangesDatasourceController';

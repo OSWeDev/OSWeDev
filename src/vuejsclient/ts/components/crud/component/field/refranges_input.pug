@@ -13,13 +13,20 @@
         template(v-if="field.is_required")
             i.fa-duotone.fa-asterisk.mandatory
 
-    .btn-group.link_ref.hidden-print(v-show='can_insert_or_update_target && show_insert_or_update_target')
-        template(v-if="field_value")
-            a.btn.btn-sm.btn-primary.mr-1(:href="get_crud_link(field.targetModuleTable.vo_type, field_value)" :target="!is_dashboard_builder ? '_blank' : ''")
-                i.fa-duotone.fa-pencil
+    //- .btn-group.link_ref.hidden-print(v-show='can_insert_or_update_target && show_insert_or_update_target')
+    //-     template(v-if="field_value")
+    //-         a.btn.btn-sm.btn-primary.mr-1(:href="get_crud_link(field.targetModuleTable.vo_type, field_value)" :target="!is_dashboard_builder ? '_blank' : ''")
+    //-             i.fa-duotone.fa-pencil
 
-        a.btn.btn-sm.btn-success(:href="get_crud_link(field.targetModuleTable.vo_type, null)" :target="!is_dashboard_builder ? '_blank' : ''")
+    //-     a.btn.btn-sm.btn-success(:href="get_crud_link(field.targetModuleTable.vo_type, null)" :target="!is_dashboard_builder ? '_blank' : ''")
+    //-         i.fa-duotone.fa-plus-circle
+    .btn-group.link_ref.hidden-print(v-show='can_insert_or_update_target && show_insert_or_update_target')
+        //- template(v-if="field_value")
+        //-     a.btn.btn-sm.btn-primary.mr-1(@click="set_show_inline_form_in_crud(false)")
+        //-         i.fa-duotone.fa-pencil
+        a.btn.btn-sm.btn-success(@click="set_show_inline_form_in_crud(true)")
             i.fa-duotone.fa-plus-circle
+
 
     multiselect(
         :class="{'valign-middle': show_pencil_btn}"

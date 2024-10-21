@@ -41,6 +41,7 @@ export default class EnvParam implements IEnvParam {
     public debug_vars?: boolean = false;
     public debug_vars_processes?: boolean = false;
     public debug_vars_invalidation?: boolean = false;
+    public debug_vars_invalidation_param_intersector?: boolean = false;
     public debug_vars_current_tree?: boolean = false;
     public debug_vars_db_param_builder?: boolean = false;
     public debug_vars_server_subs_cbs?: boolean = false;
@@ -107,21 +108,48 @@ export default class EnvParam implements IEnvParam {
      */
     public is_main_prod_env: boolean = false;
 
-    public open_api_api_key?: string = null;
+    public open_api_api_key: string = null;
 
     public debug_add_var_columns_values_for_xlsx_datas?: boolean = false;
 
     public block_teams_messages?: boolean = true;
 
-    public teams_webhook__tech_error?: string = null;
-    public teams_webhook__tech_warn?: string = null;
-    public teams_webhook__tech_info?: string = null;
-    public teams_webhook__tech_success?: string = null;
+    // TEAMS Webhooks
+    public teams_webhook_send_message?: string = null;
+    public teams_webhook_update_message?: string = null;
 
-    public teams_webhook__throttle_ms?: number = 15000;
-    public teams_webhook__message_max_size?: number = 10000;
-    public teams_webhook__message_max_size_auto_summarize?: boolean = false;
+    // TEAMS Organisations
+    public teams_groupid__oselia?: string = null;
+    public teams_groupid__tech?: string = null;
+
+    // TEAMS Channels
+    public teams_channelid__oselia_error?: string = null;
+    public teams_channelid__oselia_warn?: string = null;
+    public teams_channelid__oselia_info?: string = null;
+    public teams_channelid__oselia_success?: string = null;
+    public teams_channelid__oselia_action_needed?: string = null;
+
+    public teams_channelid__tech_error?: string = null;
+    public teams_channelid__tech_warn?: string = null;
+    public teams_channelid__tech_info?: string = null;
+    public teams_channelid__tech_success?: string = null;
+
+    public teams_throttle_ms?: number = 15000;
+    public teams_message_max_size?: number = 10000;
+    public teams_message_max_size_auto_summarize?: boolean = false;
 
     public express_secret: string = null;
     public logo_path?: string = null;
+
+    public debug_openai_sync?: boolean = true;
+    public debug_oselia_referrer_origin?: boolean = false;
+    public debug_openai_generate_image?: boolean = false;
+
+    public block_openai_sync_push_to_openai?: boolean = false;
+    public unblock_openai_push_to_openai_gpt_assistant_thread?: boolean = false;
+    public unblock_openai_push_to_openai_gpt_assistant_thread_msg?: boolean = false;
+    public unblock_openai_push_to_openai_gpt_assistant_run?: boolean = false;
+    public unblock_openai_push_to_openai_gpt_assistant?: boolean = false;
+
+    public silent_no_sort_by_but_query_limit?: boolean = true;
 }

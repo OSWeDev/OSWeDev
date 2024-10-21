@@ -32,7 +32,6 @@ import "./CRUDCreateFormComponent.scss";
 })
 export default class CRUDCreateFormComponent extends VueComponentBase {
 
-
     @ModuleDAOGetter
     private getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 

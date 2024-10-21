@@ -108,7 +108,7 @@ export default class ModulePushData extends Module {
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().read, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Lu', false),
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true),
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().read_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de lecture', false),
-            ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().vos, ModuleTableFieldVO.FIELD_TYPE_string, 'vos', false),
+            ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().vos, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'vos', false),
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().notif_route, ModuleTableFieldVO.FIELD_TYPE_string, 'Route pour redirection', false),
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().notif_route_params_name, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Paramètres d\'URL', false),
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().notif_route_params_values, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Valeurs des paramètres d\'URL', false),

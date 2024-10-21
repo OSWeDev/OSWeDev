@@ -30,7 +30,7 @@ export default class SuiviCompetencesIndicateurVO implements IDistantVOBase {
     public static fields(): Array<DatatableField<any, any>> {
         const fields: Array<DatatableField<any, any>> = [];
         const moduleTable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[SuiviCompetencesIndicateurVO.API_TYPE_ID];
-        const moduleTable_fields: Array<ModuleTableFieldVO> = moduleTable.get_fields();
+        const moduleTable_fields: ModuleTableFieldVO[] = moduleTable.get_fields();
 
         if (moduleTable_fields) {
             for (const i in moduleTable_fields) {

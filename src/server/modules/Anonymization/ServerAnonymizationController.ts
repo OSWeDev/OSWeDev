@@ -18,6 +18,28 @@ export default class ServerAnonymizationController {
     public static registered_anonymization_field_conf_by_id: { [id: number]: AnonymizationFieldConfVO } = {};
 
     /**
+     * TODO ATTENTION : On gère pas les threads pour le moment, par ce que a priori il faut toujours pouvoir identifier le user_id donc toujours
+     *  être sur une demande liée au main thread. Idem les conf sont chargées par le main thread et modifiables uniquement par le main thread...
+     *  donc a priori on a rien à gérer sur les bg en l'état. Par contre ça pose la question des exports en bg thread... ?
+     */
+
+    /**
+     * ATTENTION : cache des known_values côté serveur mainthread mais conf accessible partout
+     */
+    /**
+     * On stocke les vos anonymisés par fields / vo avec le nouveau nom, par id du vo
+     *  on ne peut anonymiser par ce système que des champs texte
+     *  on ne peut anonymiser une valeur null
+     *  on anonymise champs par champs et on met en cache en fonction de la valeur initiale du champs et non de l'id de l'objet (pour
+     *      concerver le lien sur un champ à valeur non unique, on retrouvera le côté non unique mais anonymisé)
+     */
+    private static registered_anonymization_values: { [vo_type: string]: { [field_id: string]: { [before_anonymization: string]: string } } } = {};
+
+    private static registered_anonymization_user_conf_by_field_conf_id: { [anon_field_id: number]: { [user_id: number]: AnonymizationUserConfVO } } = {};
+    private static registered_anonymization_user_conf_by_vo_type: { [vo_type: string]: { [user_id: number]: AnonymizationUserConfVO[] } } = {};
+
+
+    /**
      * On doit broadcaster la conf, on init les values partout mais elles seront utilisées que sur le main
      */
     public static register_anonymization_field_conf(anonymization_field_conf: AnonymizationFieldConfVO) {
@@ -59,7 +81,7 @@ export default class ServerAnonymizationController {
             if (ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[vo._type] &&
                 ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[vo._type][uid]) {
 
-                await PushDataServerController.getInstance().notifySimpleWARN(uid, null, "check_is_anonymise.failed" + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION, true);
+                await PushDataServerController.notifySimpleWARN(uid, null, "check_is_anonymise.failed" + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION, true);
                 ConsoleHandler.warn("Refused CUD on anonymized VO:" + vo._type + ":id:" + vo.id + ":uid:" + uid + ":");
                 continue;
             }
@@ -253,27 +275,6 @@ export default class ServerAnonymizationController {
             ServerAnonymizationController.register_anonymization_user_conf(users_confs[i]);
         }
     }
-
-    /**
-     * TODO ATTENTION : On gère pas les threads pour le moment, par ce que a priori il faut toujours pouvoir identifier le user_id donc toujours
-     *  être sur une demande liée au main thread. Idem les conf sont chargées par le main thread et modifiables uniquement par le main thread...
-     *  donc a priori on a rien à gérer sur les bg en l'état. Par contre ça pose la question des exports en bg thread... ?
-     */
-
-    /**
-     * ATTENTION : cache des known_values côté serveur mainthread mais conf accessible partout
-     */
-    /**
-     * On stocke les vos anonymisés par fields / vo avec le nouveau nom, par id du vo
-     *  on ne peut anonymiser par ce système que des champs texte
-     *  on ne peut anonymiser une valeur null
-     *  on anonymise champs par champs et on met en cache en fonction de la valeur initiale du champs et non de l'id de l'objet (pour
-     *      concerver le lien sur un champ à valeur non unique, on retrouvera le côté non unique mais anonymisé)
-     */
-    private static registered_anonymization_values: { [vo_type: string]: { [field_id: string]: { [before_anonymization: string]: string } } } = {};
-
-    private static registered_anonymization_user_conf_by_field_conf_id: { [anon_field_id: number]: { [user_id: number]: AnonymizationUserConfVO } } = {};
-    private static registered_anonymization_user_conf_by_vo_type: { [vo_type: string]: { [user_id: number]: AnonymizationUserConfVO[] } } = {};
 
 
     private static anonymize<T>(vo: T, anonymization_field_conf: AnonymizationFieldConfVO) {
