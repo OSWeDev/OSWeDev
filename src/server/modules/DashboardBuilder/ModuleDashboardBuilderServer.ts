@@ -3589,6 +3589,34 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Bouton \"J'aime\"" },
             'dashboards.widgets.icons_tooltips.cmslikebutton.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ image à utiliser pour le template (dynamique)" },
+            'cms_image.widget_option.field_ref_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Fichier à uploader" },
+            'cms_image.widget_option.file_id.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Utiliser en mode template (dynamique)" },
+            'cms_image.widget_option.use_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Utiliser en mode template (dynamique)" },
+            'cms_bloc_text.widget_option.use_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ contenu à utiliser pour le template (dynamique)" },
+            'cms_image.widget_option.contenu_field_ref_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ sous-titre à utiliser pour le template (dynamique)" },
+            'cms_image.widget_option.sous_titre_field_ref_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ titre à utiliser pour le template (dynamique)" },
+            'cms_image.widget_option.titre_field_ref_for_template.___LABEL___'
+        ));
 
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);

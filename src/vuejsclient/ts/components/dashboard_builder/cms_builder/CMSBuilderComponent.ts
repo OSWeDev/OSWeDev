@@ -10,13 +10,17 @@ import DashboardBuilderBoardManager from '../../../../../shared/modules/Dashboar
 import DashboardPageVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
 import DashboardPageWidgetVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
 import DashboardVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
+import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
+import DashboardActiveonViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
 import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import ModuleDataImport from '../../../../../shared/modules/DataImport/ModuleDataImport';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import ModuleTranslation from '../../../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import LangVO from '../../../../../shared/modules/Translation/vos/LangVO';
@@ -30,11 +34,6 @@ import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import VueAppController from '../../../../VueAppController';
-import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
-import TranslatableTextController from '../../InlineTranslatableText/TranslatableTextController';
-import { ModuleTranslatableTextAction } from '../../InlineTranslatableText/TranslatableTextStore';
-import VueComponentBase from '../../VueComponentBase';
-import './CMSBuilderComponent.scss';
 import DashboardBuilderBoardComponent from '../../dashboard_builder/board/DashboardBuilderBoardComponent';
 import DroppableVoFieldsComponent from '../../dashboard_builder/droppable_vo_fields/DroppableVoFieldsComponent';
 import { ModuleDroppableVoFieldsAction } from '../../dashboard_builder/droppable_vo_fields/DroppableVoFieldsStore';
@@ -45,11 +44,11 @@ import TablesGraphComponent from '../../dashboard_builder/tables_graph/TablesGra
 import DashboardBuilderWidgetsComponent from '../../dashboard_builder/widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from '../../dashboard_builder/widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from '../../dashboard_builder/widgets/IExportableWidgetOptions';
-import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
-import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
-import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
-import DashboardActiveonViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
-import { clone, cloneDeep } from 'lodash';
+import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
+import TranslatableTextController from '../../InlineTranslatableText/TranslatableTextController';
+import { ModuleTranslatableTextAction } from '../../InlineTranslatableText/TranslatableTextStore';
+import VueComponentBase from '../../VueComponentBase';
+import './CMSBuilderComponent.scss';
 
 @Component({
     template: require('./CMSBuilderComponent.pug'),
@@ -79,15 +78,6 @@ export default class CMSBuilderComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private dashboard_id: string;
-
-    @Prop({ default: null })
-    private dashboard_vo_action: string;
-
-    @Prop({ default: null })
-    private dashboard_vo_id: string;
-
-    @Prop({ default: null })
-    private api_type_id_action: string;
 
     @ModuleDashboardPageAction
     private set_page_widgets_components_by_pwid: (page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) => void;
@@ -785,7 +775,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
         );
 
         // On ne prend que les widgets du viewport actif
-        if (this.selected_viewport?.id) {
+        if (this.selected_viewport?.id && page_widgets?.length) {
             page_widgets = page_widgets.filter((pw) => pw.dashboard_viewport_id == this.selected_viewport.id);
         }
 
@@ -1252,7 +1242,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
         this.dashboards = await this.load_all_dashboards(
             { refresh: true },
         );
-        if (this.dashboards?.length > 0) {
+        if ((this.dashboards?.length > 0) && !this.dashboard) {
             this.dashboard = this.dashboards[0];
         }
 

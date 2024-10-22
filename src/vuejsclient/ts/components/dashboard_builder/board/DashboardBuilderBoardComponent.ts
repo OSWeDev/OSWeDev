@@ -147,11 +147,34 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     }
 
     get style_gridlayout(): string {
-        if (this.editable) {
-            return 'max-width: ' + this.selected_viewport.screen_min_width + 'px; border-left: 2px solid #ccc; border-right: 2px solid #ccc; border-radius: 8px; margin-left: auto; margin-right: auto;';
-        } else {
-            return '';
+        let res: string = '';
+
+        if (this.editable && this.selected_viewport) {
+            // On récupère le viewport précédent pour avoir le min_width qu'on va mettre en max
+            let previous_viewport: DashboardViewportVO = null;
+
+            for (const i in this.viewports) {
+                const viewport: DashboardViewportVO = this.viewports[i];
+
+                if (viewport.id != this.selected_viewport.id) {
+                    continue;
+                }
+
+                if (i == '0') {
+                    break;
+                }
+
+                previous_viewport = this.viewports[(parseInt(i) - 1)];
+
+                break;
+            }
+
+            if (previous_viewport) {
+                res += 'max-width: ' + (previous_viewport.screen_min_width - 1) + 'px; border-left: 2px solid #ccc; border-right: 2px solid #ccc; border-radius: 8px; margin-left: auto; margin-right: auto;';
+            }
         }
+
+        return res;
     }
 
     @Watch("selected_viewport", { immediate: true })

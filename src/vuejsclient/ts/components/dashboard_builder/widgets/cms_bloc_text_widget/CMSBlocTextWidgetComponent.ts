@@ -10,6 +10,9 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
+import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 
 @Component({
     template: require('./CMSBlocTextWidgetComponent.pug'),
@@ -28,6 +31,9 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
+
+    @ModuleDashboardPageGetter
+    private get_cms_vo: IDistantVOBase;
 
     private titre: string = null;
     private sous_titre: string = null;
@@ -62,6 +68,21 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
         return options;
     }
 
+    get cms_vo_api_type_id() {
+        return this.$route.params.cms_vo_api_type_id;
+    }
+
+    get cms_vo_id() {
+        return this.$route.params.cms_vo_id;
+    }
+
+    @Watch('get_cms_vo')
+    private onchange_get_cms_vo() {
+        this.titre = this.get_value(this.widget_options.titre, this.widget_options.titre_field_ref_for_template);
+        this.sous_titre = this.get_value(this.widget_options.sous_titre, this.widget_options.sous_titre_field_ref_for_template);
+        this.contenu = this.get_value(this.widget_options.contenu, this.widget_options.contenu_field_ref_for_template);
+    }
+
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.widget_options) {
@@ -77,9 +98,10 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
 
             return;
         }
-        this.titre = this.widget_options.titre.toUpperCase();
-        this.sous_titre = this.widget_options.sous_titre;
-        this.contenu = this.widget_options.contenu;
+
+        this.titre = this.get_value(this.widget_options.titre, this.widget_options.titre_field_ref_for_template);
+        this.sous_titre = this.get_value(this.widget_options.sous_titre, this.widget_options.sous_titre_field_ref_for_template);
+        this.contenu = this.get_value(this.widget_options.contenu, this.widget_options.contenu_field_ref_for_template);
 
         this.alignement_titre = this.widget_options.alignement_titre;
         this.alignement_sous_titre = this.widget_options.alignement_sous_titre;
@@ -107,4 +129,15 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
         }
     }
 
+    private get_value(data: any, field_ref: VOFieldRefVO): string {
+        if (!this.widget_options.use_for_template) {
+            return data;
+        }
+
+        if (this.get_cms_vo && field_ref?.field_id) {
+            return this.get_cms_vo[field_ref.field_id];
+        }
+
+        return null;
+    }
 }

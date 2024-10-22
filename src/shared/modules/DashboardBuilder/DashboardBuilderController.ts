@@ -24,8 +24,7 @@ export default class DashboardBuilderController {
 
     public static ROUTE_NAME_CRUD: string = "__CRUD";
     public static ROUTE_NAME_CRUD_ALL: string = "__all";
-    public static ROUTE_NAME_CMS_CRUD: string = "_CMS__CRUD";
-    public static ROUTE_NAME_CMS_CRUD_ALL: string = "_CMS__all";
+    public static ROUTE_NAME_CMS_TEMPLATE: string = "_CMS__TEMPLATE";
 
     private static instance: DashboardBuilderController = null;
 
@@ -72,7 +71,7 @@ export default class DashboardBuilderController {
         return routes;
     }
 
-    public addRouteForCMS(path: string, name: string, component: any, crud: boolean): RouteConfig[] {
+    public addRouteForCMS(path: string, name: string, component: any): RouteConfig[] {
         const routes = [{
             path: path,
             name: name,
@@ -80,25 +79,14 @@ export default class DashboardBuilderController {
             props: true,
         }];
 
-        if (crud) {
-            name += DashboardBuilderController.ROUTE_NAME_CMS_CRUD;
+        name += DashboardBuilderController.ROUTE_NAME_CMS_TEMPLATE;
 
-            routes.push({
-                path: path + '/:cms_vo_action/:cms_vo_id',
-                name: name,
-                component: component,
-                props: true,
-            });
-
-            name += DashboardBuilderController.ROUTE_NAME_CMS_CRUD_ALL;
-
-            routes.push({
-                path: path + '/:cms_vo_action/:cms_vo_id/:api_type_id_action',
-                name: name,
-                component: component,
-                props: true,
-            });
-        }
+        routes.push({
+            path: path + '/:cms_vo_api_type_id/:cms_vo_id',
+            name: name,
+            component: component,
+            props: true,
+        });
 
         return routes;
     }

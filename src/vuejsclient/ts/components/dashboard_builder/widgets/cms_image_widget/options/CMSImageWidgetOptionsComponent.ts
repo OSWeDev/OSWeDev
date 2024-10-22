@@ -14,6 +14,11 @@ import './CMSImageWidgetOptionsComponent.scss';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
 import AjaxCacheClientController from '../../../../../modules/AjaxCache/AjaxCacheClientController';
+import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import { isEqual } from 'lodash';
+import ModuleTableFieldController from '../../../../../../../shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 
 @Component({
     template: require('./CMSImageWidgetOptionsComponent.pug')
@@ -29,6 +34,11 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
     private file_id: number = null;
     private file_path: string = null;
     private radius: number = null;
+    private use_for_template: boolean = false;
+    private field_ref_for_template: VOFieldRefVO = null;
+    private all_field_ref_for_template_options: VOFieldRefVO[] = [];
+    private field_ref_for_template_options: VOFieldRefVO[] = [];
+    private multiselect_loading: boolean = false;
 
     private next_update_options: CMSImageWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -115,11 +125,15 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
             this.file_id = null;
             this.radius = 0;
             this.file_path = null;
+            this.use_for_template = false;
+            this.field_ref_for_template = null;
 
             return;
         }
         this.file_id = this.widget_options.file_id;
         this.radius = this.widget_options.radius;
+        this.use_for_template = this.widget_options.use_for_template;
+        this.field_ref_for_template = this.widget_options.field_ref_for_template;
 
         if (this.file_id) {
             let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
@@ -129,16 +143,24 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
 
     @Watch('file_id')
     @Watch('radius')
+    @Watch('use_for_template')
+    @Watch('field_ref_for_template')
     private async onchange_image() {
         if (!this.widget_options) {
             return;
         }
 
-        if (this.widget_options.file_id != this.file_id ||
-            this.widget_options.radius != this.radius) {
+        if (
+            this.widget_options.file_id != this.file_id ||
+            this.widget_options.radius != this.radius ||
+            this.widget_options.use_for_template != this.use_for_template ||
+            !isEqual(this.widget_options.field_ref_for_template, this.field_ref_for_template)
+        ) {
 
             this.next_update_options.file_id = this.file_id;
             this.next_update_options.radius = this.radius;
+            this.next_update_options.use_for_template = this.use_for_template;
+            this.next_update_options.field_ref_for_template = this.field_ref_for_template;
 
             if (this.file_id) {
                 let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
@@ -152,7 +174,6 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
     private async mounted() {
 
         if (!this.widget_options) {
-
             this.next_update_options = this.get_default_options();
         } else {
 
@@ -161,10 +182,15 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
 
         this.file_id = this.next_update_options.file_id;
         this.radius = this.next_update_options.radius;
+        this.use_for_template = this.next_update_options.use_for_template;
+        this.field_ref_for_template = this.next_update_options.field_ref_for_template;
+
         if (this.file_id) {
             let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
             this.file_path = file ? file.path : null;
         }
+
+        this.set_all_field_ref_for_template_options();
 
         await this.throttled_update_options();
     }
@@ -173,6 +199,8 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
         return CMSImageWidgetOptionsVO.createNew(
             null,
             0,
+            false,
+            null,
         );
     }
 
@@ -193,4 +221,88 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
         this.$emit('update_layout_widget', this.page_widget);
     }
 
+    private async switch_use_for_template() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.use_for_template = !this.next_update_options.use_for_template;
+
+        await this.throttled_update_options();
+    }
+
+    private fieldRefOptionLabel(field_ref: VOFieldRefVO): string {
+        let field = null;
+        const moduletable = ModuleTableController.module_tables_by_vo_type[field_ref.api_type_id];
+
+        if (
+            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[field_ref.api_type_id] &&
+            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[field_ref.api_type_id][field_ref.field_id]
+        ) {
+            field = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[field_ref.api_type_id][field_ref.field_id];
+        }
+
+        return ((moduletable?.label?.code_text) ? this.t(moduletable.label.code_text) : field_ref.api_type_id) + ' => ' + ((field?.field_label_translatable_code) ? this.t(field.field_label_translatable_code) : field_ref.field_id);
+    }
+
+    private multiselect_search_change(query_str: string) {
+        this.multiselect_loading = true;
+
+        const field_ref_for_template_options: VOFieldRefVO[] = [];
+
+        if (query_str?.length >= 3) {
+            for (const i in this.all_field_ref_for_template_options) {
+                const field_ref: VOFieldRefVO = this.all_field_ref_for_template_options[i];
+
+                if (this.fieldRefOptionLabel(field_ref).toLowerCase().indexOf(query_str.toLowerCase()) >= 0) {
+                    field_ref_for_template_options.push(field_ref);
+                }
+            }
+        }
+
+        this.field_ref_for_template_options = field_ref_for_template_options;
+
+        this.multiselect_loading = false;
+    }
+
+    private set_all_field_ref_for_template_options() {
+        const res: VOFieldRefVO[] = [];
+
+        for (const api_type_id in ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name) {
+            const moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
+
+            // Pour l'instant on ne prend que les tables du schema REF
+            if (moduletable.database != 'ref') {
+                continue;
+            }
+
+            for (const field_name in ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[api_type_id]) {
+                const field = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[api_type_id][field_name];
+
+                // On prend que les fields de type image ou foreign key
+                if (
+                    field.field_type != ModuleTableFieldVO.FIELD_TYPE_image_field &&
+                    field.field_type != ModuleTableFieldVO.FIELD_TYPE_image_ref &&
+                    field.field_type != ModuleTableFieldVO.FIELD_TYPE_foreign_key &&
+                    field.field_type != ModuleTableFieldVO.FIELD_TYPE_refrange_array &&
+                    field.field_type != ModuleTableFieldVO.FIELD_TYPE_file_ref &&
+                    field.field_type != ModuleTableFieldVO.FIELD_TYPE_file_field
+                ) {
+                    continue;
+                }
+
+                const field_ref = new VOFieldRefVO();
+
+                field_ref.id = field.id;
+                field_ref.api_type_id = api_type_id;
+                field_ref.field_id = field_name;
+
+                res.push(field_ref);
+            }
+        }
+
+        this.all_field_ref_for_template_options = res;
+    }
 }

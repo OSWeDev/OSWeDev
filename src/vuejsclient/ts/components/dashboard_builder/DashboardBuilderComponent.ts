@@ -1271,7 +1271,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.dashboards = await this.load_all_dashboards(
             { refresh: true },
         );
-        if (this.dashboards?.length > 0) {
+        if ((this.dashboards?.length > 0) && !this.dashboard) {
             this.dashboard = this.dashboards[0];
         }
 

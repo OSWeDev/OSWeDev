@@ -113,7 +113,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
                 url,
                 main_route_name,
                 () => import('./viewer/DashboardViewerComponent'),
-                true,
             ));
 
             url = "/cms_builder";
@@ -135,7 +134,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
                 url,
                 main_route_name,
                 () => import('./cms_builder/CMSBuilderComponent'),
-                true,
             ));
         }
 
