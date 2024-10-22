@@ -34,6 +34,8 @@ export default class CMSImageWidgetComponent extends VueComponentBase {
     private radius: number = null;
     private use_for_template: boolean = false;
     private field_ref_for_template: VOFieldRefVO = null;
+    private mise_en_page: number = null;
+    private position: number = null;
 
     get widget_options(): CMSImageWidgetOptionsVO {
         if (!this.page_widget) {
@@ -57,12 +59,61 @@ export default class CMSImageWidgetComponent extends VueComponentBase {
         return this.file_path ? this.file_path : null;
     }
 
-    get img_style(): string {
-        return this.radius ? 'border-radius: ' + this.radius + '%; max-height: 100%; max-width: 100%; object-fit: cover' : 'max-height: 100%; max-width: 100%; object-fit: cover';
-    }
+    get widget_style() {
+        const res = {};
 
-    get widget_style(): string {
-        return 'height: 100%; width: 100%; display: flex; justify-content: center; align-items: normal;';
+        if (this.radius) {
+            res['borderRadius'] = this.radius + '%';
+        }
+
+        if (this.img_path) {
+            res['backgroundImage'] = 'url("' + this.img_path + '")';
+        }
+
+        if (this.mise_en_page) {
+            switch (this.mise_en_page) {
+                case CMSImageWidgetOptionsVO.MISE_EN_PAGE_COUVRIR:
+                    res['backgroundSize'] = 'cover';
+                    break;
+                case CMSImageWidgetOptionsVO.MISE_EN_PAGE_CONTENIR:
+                    res['backgroundSize'] = 'contain';
+                    break;
+            }
+        }
+
+        if (this.position) {
+            switch (this.position) {
+                case CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE:
+                    res['backgroundPosition'] = 'center center';
+                    break;
+                case CMSImageWidgetOptionsVO.POSITION_CENTRE_GAUCHE:
+                    res['backgroundPosition'] = 'center left';
+                    break;
+                case CMSImageWidgetOptionsVO.POSITION_CENTRE_DROITE:
+                    res['backgroundPosition'] = 'center right';
+                    break;
+                case CMSImageWidgetOptionsVO.POSITION_CENTRE_HAUT:
+                    res['backgroundPosition'] = 'center top';
+                    break;
+                case CMSImageWidgetOptionsVO.POSITION_CENTRE_BAS:
+                    res['backgroundPosition'] = 'center bottom';
+                    break;
+                case CMSImageWidgetOptionsVO.POSITION_HAUT_GAUCHE:
+                    res['backgroundPosition'] = 'left top';
+                    break;
+                case CMSImageWidgetOptionsVO.POSITION_HAUT_DROITE:
+                    res['backgroundPosition'] = 'right top';
+                    break;
+                case CMSImageWidgetOptionsVO.POSITION_BAS_GAUCHE:
+                    res['backgroundPosition'] = 'left bottom';
+                    break;
+                case CMSImageWidgetOptionsVO.POSITION_BAS_DROITE:
+                    res['backgroundPosition'] = 'right bottom';
+                    break;
+            }
+        }
+
+        return res;
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
@@ -79,15 +130,20 @@ export default class CMSImageWidgetComponent extends VueComponentBase {
         this.radius = this.widget_options.radius;
         this.use_for_template = this.widget_options.use_for_template;
         this.field_ref_for_template = this.widget_options.field_ref_for_template;
+        this.mise_en_page = this.widget_options.mise_en_page;
+        this.position = this.widget_options.position;
+
+        let file_path: string = null;
 
         if (this.file_id) {
             const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
-            this.file_path = file ? file.path : null;
+            file_path = file ? file.path : null;
         }
+
+        this.file_path = file_path;
     }
 
     private async mounted() {
         this.onchange_widget_options();
     }
-
 }
