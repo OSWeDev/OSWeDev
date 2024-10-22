@@ -153,7 +153,7 @@ export default class ModuleOselia extends Module {
             .set_many_to_one_target_moduletable_name(OseliaReferrerExternalAPIVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().function_call_parameters_initial, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Paramètres de la fonction - initial', false);
         ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().function_call_parameters_transcripted, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Paramètres de la fonction - transcripté', false);
-        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().result, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Résultat', false);
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().result, ModuleTableFieldVO.FIELD_TYPE_string, 'Résultat', false);
         ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false)
             .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false);
@@ -168,7 +168,9 @@ export default class ModuleOselia extends Module {
     public initializeOseliaRunTemplateVO() {
         const label = ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().template_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du template', true);
         ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'étape', true);
-        ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true)
+        ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().oselia_thread_default_assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant Osélia par défaut', false)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().thread_title, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre du thread - si création', false);
         ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().hide_prompt, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Masquer le prompt', true, true, false);
@@ -190,6 +192,14 @@ export default class ModuleOselia extends Module {
             .set_many_to_one_target_moduletable_name(OseliaRunTemplateVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
 
+        ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().run_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de run', true, true, OseliaRunVO.RUN_TYPE_ASSISTANT).setEnumValues(OseliaRunVO.RUN_TYPE_LABELS);
+        ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().for_each_array_cache_key, ModuleTableFieldVO.FIELD_TYPE_string, 'Cache key - for each array', true, true, 'FOR_EACH_ARRAY');
+        ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().for_each_index_cache_key, ModuleTableFieldVO.FIELD_TYPE_string, 'Cache key - for each index', true, true, 'FOR_EACH_INDEX');
+        ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().for_each_element_cache_key, ModuleTableFieldVO.FIELD_TYPE_string, 'Cache key - for each element', true, true, 'FOR_EACH_ELEMENT');
+        ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().for_each_element_run_template_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template de run pour chaque élément du foreach', false)
+            .set_many_to_one_target_moduletable_name(OseliaRunTemplateVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().for_each_parent_thread_id_cache_key, ModuleTableFieldVO.FIELD_TYPE_string, 'Cache key - for each parent thread id', true, true, 'PARENT_THREAD_ID');
+
         ModuleTableController.create_new(this.name, OseliaRunTemplateVO, label, 'Oselia - Run Template');
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[OseliaRunTemplateVO.API_TYPE_ID]);
     }
@@ -197,7 +207,9 @@ export default class ModuleOselia extends Module {
     public initializeOseliaRunVO() {
 
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'étape', true);
-        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true)
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().oselia_thread_default_assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant Osélia par défaut', false)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().referrer_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Partenaire', false)
             .set_many_to_one_target_moduletable_name(OseliaReferrerVO.API_TYPE_ID);
@@ -254,6 +266,14 @@ export default class ModuleOselia extends Module {
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().rerun_new_initial_prompt, ModuleTableFieldVO.FIELD_TYPE_string, 'Nouveau prompt initial pour rerun', false);
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().rerun_of_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Rerun de', false)
             .set_many_to_one_target_moduletable_name(OseliaRunVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().run_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de run', true, true, OseliaRunVO.RUN_TYPE_ASSISTANT).setEnumValues(OseliaRunVO.RUN_TYPE_LABELS);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().for_each_array_cache_key, ModuleTableFieldVO.FIELD_TYPE_string, 'Cache key - for each array', true, true, 'FOR_EACH_ARRAY');
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().for_each_index_cache_key, ModuleTableFieldVO.FIELD_TYPE_string, 'Cache key - for each index', true, true, 'FOR_EACH_INDEX');
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().for_each_element_cache_key, ModuleTableFieldVO.FIELD_TYPE_string, 'Cache key - for each element', true, true, 'FOR_EACH_ELEMENT');
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().for_each_element_run_template_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template de run pour chaque élément du foreach', false)
+            .set_many_to_one_target_moduletable_name(OseliaRunTemplateVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().for_each_parent_thread_id_cache_key, ModuleTableFieldVO.FIELD_TYPE_string, 'Cache key - for each parent thread id', true, true, 'PARENT_THREAD_ID');
 
         ModuleTableController.create_new(this.name, OseliaRunVO, null, 'Oselia - Run');
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[OseliaRunVO.API_TYPE_ID]);

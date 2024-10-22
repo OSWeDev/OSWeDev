@@ -164,6 +164,22 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             { 'fr-fr': 'Nous allons vous demander l\'autorisation de capturer votre écran, veuillez accepter' },
             'oselia.screenshot.notify.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Cache' },
+            'oselia_thread_widget_component.thread_cached_datas_header.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Sous-threads' },
+            'oselia_thread_widget_component.sub_threads_header.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Thread parent' },
+            'oselia_thread_widget_component.parent_thread.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Appels de fonctions' },
+            'oselia_thread_widget_component.function_calls_header.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Tâches Osélia' },
+            'oselia_thread_widget_component.oselia_runs_header.___LABEL___'));
+
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaThreadTitleBuilderBGThread.getInstance());
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaOldRunsResyncBGThread.getInstance());
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaRunBGThread.getInstance());
@@ -877,15 +893,15 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 const thread: {
                     thread_gpt: Thread;
                     thread_vo: GPTAssistantAPIThreadVO;
-                } = await GPTAssistantAPIServerController.get_thread(new_run_step.user_id, null, new_run_step.assistant_id);
+                } = await GPTAssistantAPIServerController.get_thread(new_run_step.user_id, null, new_run_step.oselia_thread_default_assistant_id ? new_run_step.oselia_thread_default_assistant_id : new_run_step.assistant_id);
 
                 const referrers = await query(OseliaReferrerVO.API_TYPE_ID)
                     .filter_by_id(thread_vo.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
                     .exec_as_server()
                     .select_vos<OseliaReferrerVO>();
-                if (!!referrers) {
+                if (referrers && (referrers.length > 0)) {
                     for (const referrer of referrers) {
-                        await OseliaServerController.link_thread_to_referrer(thread_vo, referrer);
+                        await OseliaServerController.link_thread_to_referrer(thread.thread_vo, referrer);
                     }
                 }
 
@@ -938,11 +954,11 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             .select_vo<OseliaThreadCacheVO>();
 
         if (cache) {
-            return cache.value;
+            return (cache.value == null) ? '<aucune donnée pour cette clé de cache>' : cache.value;
         }
 
         if (!thread_vo.parent_thread_id) {
-            return null;
+            return '<aucune donnée pour cette clé de cache>';
         }
 
         const parent_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
@@ -981,6 +997,11 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         if (!key) {
             ConsoleHandler.error('set_cache_value:Key is mandatory');
             return 'ERREUR: La clé est obligatoire: corriger et réessayer';
+        }
+
+        if (key.indexOf('{') >= 0) {
+            ConsoleHandler.error('set_cache_value:Key cannot contain {');
+            return 'ERREUR: La clé ne peut pas contenir { : corriger et réeesayer';
         }
 
         // Si on fourni un thread_id, on doit check qu'il existe et qu'il s'agit d'un thread parent du thread actuel
@@ -1948,6 +1969,14 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
                 const rerun = new OseliaRunVO();
                 rerun.assistant_id = run.assistant_id;
+                rerun.oselia_thread_default_assistant_id = run.oselia_thread_default_assistant_id;
+
+                rerun.for_each_array_cache_key = run.for_each_array_cache_key;
+                rerun.for_each_element_cache_key = run.for_each_element_cache_key;
+                rerun.for_each_element_run_template_id = run.for_each_element_run_template_id;
+                rerun.for_each_index_cache_key = run.for_each_index_cache_key;
+                rerun.run_type = run.run_type;
+
                 rerun.childrens_are_multithreaded = run.childrens_are_multithreaded;
                 rerun.file_id_ranges = run.file_id_ranges;
                 rerun.hide_outputs = run.hide_outputs;

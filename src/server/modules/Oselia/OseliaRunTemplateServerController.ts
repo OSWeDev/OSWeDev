@@ -36,7 +36,7 @@ export default class OseliaRunTemplateServerController {
             }
 
             if (!thread_vo) {
-                const thread: { thread_gpt; thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread();
+                const thread: { thread_gpt; thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(null, null, template.oselia_thread_default_assistant_id);
                 thread_vo = thread.thread_vo;
             }
             await OseliaServerController.link_thread_to_referrer(thread_vo, referrer);
@@ -57,7 +57,14 @@ export default class OseliaRunTemplateServerController {
                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
             }
 
+            oselia_run.run_type = template.run_type;
+            oselia_run.for_each_array_cache_key = template.for_each_array_cache_key;
+            oselia_run.for_each_element_cache_key = template.for_each_element_cache_key;
+            oselia_run.for_each_element_run_template_id = template.for_each_element_run_template_id;
+            oselia_run.for_each_index_cache_key = template.for_each_index_cache_key;
+
             oselia_run.assistant_id = template.assistant_id;
+            oselia_run.oselia_thread_default_assistant_id = template.oselia_thread_default_assistant_id;
             oselia_run.childrens_are_multithreaded = template.childrens_are_multithreaded;
             oselia_run.hide_outputs = template.hide_outputs;
             oselia_run.hide_prompt = template.hide_prompt;

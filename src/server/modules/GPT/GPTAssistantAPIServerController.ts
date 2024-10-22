@@ -1367,7 +1367,7 @@ export default class GPTAssistantAPIServerController {
                                             ]);
 
                                             oselia_run_function_call_vo.end_date = Dates.now();
-                                            oselia_run_function_call_vo.result = function_response;
+                                            oselia_run_function_call_vo.result = function_vo.json_stringify_output ? JSON.stringify(function_response) : function_response;
                                             oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_DONE;
                                             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
@@ -1436,7 +1436,7 @@ export default class GPTAssistantAPIServerController {
                                     }
 
                                     oselia_run_function_call_vo.end_date = Dates.now();
-                                    oselia_run_function_call_vo.result = function_response;
+                                    oselia_run_function_call_vo.result = function_vo.json_stringify_output ? JSON.stringify(function_response) : function_response;
                                     oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_DONE;
                                     await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 

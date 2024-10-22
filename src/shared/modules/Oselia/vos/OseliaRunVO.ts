@@ -5,6 +5,13 @@ import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
     public static API_TYPE_ID: string = "oselia_run";
 
+    public static RUN_TYPE_LABELS: string[] = [
+        "OseliaRunVO.RUN_TYPE_ASSISTANT",
+        "OseliaRunVO.RUN_TYPE_FOREACH_IN_SEPARATED_THREADS",
+    ];
+    public static RUN_TYPE_ASSISTANT: number = 0;
+    public static RUN_TYPE_FOREACH_IN_SEPARATED_THREADS: number = 1;
+
     public static STATE_LABELS: string[] = [
         "OseliaRunVO.STATE_TODO",
         "OseliaRunVO.STATE_SPLITTING",
@@ -66,6 +73,11 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
      * L'assistant qui devra prendre en charge ce run
      */
     public assistant_id: number;
+
+    /**
+     * L'assistant par défaut pour les discussions Oselia sur ce thread si on crée un nouveau thread
+     */
+    public oselia_thread_default_assistant_id: number;
 
     /**
      * Referrer
@@ -147,6 +159,38 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
      */
     public use_validator: boolean;
 
+    /**
+     * Type de run (assistant, foreach, ...)
+     */
+    public run_type: number;
+
+    /**
+     * Cache key pour la map/tableau utilisé par le foreach
+     *  defaults to "FOR_EACH_ARRAY" si null
+     */
+    public for_each_array_cache_key: string;
+
+    /**
+     * Cache key pour l'index de l'élément de map tableau à utiliser pour chaque élément du foreach (nécéssite un new_thread dans cette configuration d'usage du cache)
+     *  defaults to "FOR_EACH_INDEX" si null
+     */
+    public for_each_index_cache_key: string;
+
+    /**
+     * Cache key pour l'élément de map tableau à utiliser pour chaque élément du foreach (nécéssite un new_thread dans cette configuration d'usage du cache)
+     *  defaults to "FOR_EACH_ELEMENT" si null
+     */
+    public for_each_element_cache_key: string;
+
+    /**
+     * Template de run pour chaque élément du foreach
+     */
+    public for_each_element_run_template_id: number;
+
+    /**
+     * Sur un FOR_EACH on passe aussi le parent_thread_id dans la clé PARENT_THREAD_ID (ou la clé indiquée dans ce paramètre)
+     */
+    public for_each_parent_thread_id_cache_key: string;
 
     /**
      * Date à laquelle on a débuté le run

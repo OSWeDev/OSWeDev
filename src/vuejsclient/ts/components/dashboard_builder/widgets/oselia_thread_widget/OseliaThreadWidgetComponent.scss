@@ -178,6 +178,93 @@ $button-hover-shadow: none;
             overflow-y: auto;
             height: -webkit-fill-available;
 
+            .oselia_runs,
+            .thread_cached_datas,
+            .function_calls,
+            .parent_thread,
+            .sub_threads {
+                max-width: 768px;
+                margin: auto;
+                background: white;
+                border-radius: 1em;
+                padding: 1em;
+                margin-top: 2em;
+                margin-bottom: -1em;
+
+                .thread_cached_datas_header,
+                .oselia_runs_header,
+                .function_calls_header,
+                .sub_threads_header {
+                    font-weight: bold;
+                    cursor: pointer;
+
+                    i {
+                        margin-left: 0.4em;
+                    }
+                }
+
+                .thread_cached_datas_content,
+                .function_calls_content,
+                .oselia_runs_content,
+                .sub_threads_content {
+                    margin-top: .4em;
+
+                    .sub_thread {
+                        cursor: pointer;
+                        margin-bottom: .4em;
+                        text-decoration: underline;
+                    }
+
+                    .thread_cached_data,
+                    .function_call {
+                        margin-bottom: 1em;
+
+                        .thread_cached_data_key,
+                        .function_call_name {
+                            display: inline-block;
+                            width: 30%;
+                        }
+
+                        span.vjs-tree__brackets {
+                            color: #ffc854;
+                        }
+
+                        span.vjs-key {
+                            color: #8bd1ff;
+                        }
+
+                        .thread_cached_data_value,
+                        .function_call_function_call_parameters_initial {
+                            display: inline-block;
+                            width: 70%;
+                            max-height: 200px;
+                            overflow: auto;
+                            background: black;
+                            color: white;
+                            padding: 1em;
+                            vertical-align: middle;
+                        }
+
+                        .function_call_result {
+                            margin-top: .4em;
+                            display: inline-block;
+                            width: 100%;
+                            max-height: 400px;
+                            overflow: auto;
+                            background: black;
+                            color: white;
+                            padding: 1em;
+                            vertical-align: middle;
+                        }
+                    }
+                }
+            }
+
+            .parent_thread {
+                font-weight: bold;
+                cursor: pointer;
+            }
+
             .thread_message_input {
 
                 margin: auto;

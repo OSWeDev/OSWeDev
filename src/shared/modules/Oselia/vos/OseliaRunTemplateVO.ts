@@ -24,6 +24,11 @@ export default class OseliaRunTemplateVO implements IDistantVOBase, IVersionedVO
     public assistant_id: number;
 
     /**
+     * L'assistant par défaut pour les discussions Oselia sur ce thread si on crée un nouveau thread
+     */
+    public oselia_thread_default_assistant_id: number;
+
+    /**
      * Le titre du thread dans le cas d'une création d'un thread - template utilisant les params des mails
      *   dont on peut mettre une trad ou un paramètre (les paramètres sont ceux de initial_prompt_parameters)
      */
@@ -39,6 +44,39 @@ export default class OseliaRunTemplateVO implements IDistantVOBase, IVersionedVO
      * Cacher les messages de l'étape
      */
     public hide_outputs: boolean;
+
+    /**
+     * Type de run (assistant, foreach, ...)
+     */
+    public run_type: number;
+
+    /**
+     * Cache key pour la map/tableau utilisé par le foreach
+     *  defaults to "FOR_EACH_ARRAY" si null
+     */
+    public for_each_array_cache_key: string;
+
+    /**
+     * Cache key pour l'index de l'élément de map tableau à utiliser pour chaque élément du foreach (nécéssite un new_thread dans cette configuration d'usage du cache)
+     *  defaults to "FOR_EACH_INDEX" si null
+     */
+    public for_each_index_cache_key: string;
+
+    /**
+     * Cache key pour l'élément de map tableau à utiliser pour chaque élément du foreach (nécéssite un new_thread dans cette configuration d'usage du cache)
+     *  defaults to "FOR_EACH_ELEMENT" si null
+     */
+    public for_each_element_cache_key: string;
+
+    /**
+     * Template de run pour chaque élément du foreach
+     */
+    public for_each_element_run_template_id: number;
+
+    /**
+     * Sur un FOR_EACH on passe aussi le parent_thread_id dans la clé PARENT_THREAD_ID (ou la clé indiquée dans ce paramètre)
+     */
+    public for_each_parent_thread_id_cache_key: string;
 
     /**
      * Soit on a un context_text, soit on a un prompt_id et les paramètres associés

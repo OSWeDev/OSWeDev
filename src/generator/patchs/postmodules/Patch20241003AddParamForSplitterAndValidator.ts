@@ -34,7 +34,7 @@ export default class Patch20241003AddParamForSplitterAndValidator implements IGe
         );
         await ModuleParams.getInstance().setParamValue(
             OseliaRunServerController.PARAM_NAME_VALIDATOR_PROMPT_PREFIX,
-            '<Tu dois maintenant valider que l\'on a bien les réponses au prompt suivant, et qu\'il n\'y a pas eu d\'hallucination de la part de l\'assistant. Tu dois vérifier que tout est bien justifié. ' +
+            '<Tu dois maintenant valider que l\'on a bien les réponses au prompt suivant, et qu\'il n\'y a pas eu d\'hallucination de la part de l\'assistant. Tu dois vérifier que tout est bien justifié et si besoin appel les fonctions disponibles pour confirmer ou infirmer. ' +
             'Au besoin, si la justification d\'une information n\'est pas accessible ou tu as un doute, tu préfèrera refuser le run en posant une question qui te permettra au prochain run de faire un choix en valider et refuser. Par exemple, ' +
             'tu ne trouves pas dans les appels de fonctions ou dans les éléments disponibles dans la discussion, ou dans la discussion elle-même, le lien entre un nom et un code, ' +
             'mais pourtant ce lien est nécessaire pour justifier le message de l\'assistant. Dans ce cas, demande la source du lien ou de vérifier que ce lien est bien justifié. ' +

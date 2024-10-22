@@ -6,19 +6,23 @@ import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssis
 import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import OseliaPromptVO from '../../../shared/modules/Oselia/vos/OseliaPromptVO';
+import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
+import OseliaThreadCacheVO from '../../../shared/modules/Oselia/vos/OseliaThreadCacheVO';
+import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 import OseliaUserPromptVO from '../../../shared/modules/Oselia/vos/OseliaUserPromptVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
-import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
-import ConfigurationService from '../../env/ConfigurationService';
-import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 
 export default class OseliaServerController {
 
     public static PROMPT_PARAM_PREFIX: string = '{{PROMPT_PARAM.';
     public static PROMPT_PARAM_SUFFIX: string = '}}';
+
+    public static CACHE_PARAM_PREFIX: string = '{{CACHE_PARAM.';
+    public static CACHE_PARAM_SUFFIX: string = '}}';
 
     public static authorized_oselia_partners: string[] = [];
 
@@ -172,7 +176,10 @@ export default class OseliaServerController {
             }
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
 
-            return OseliaServerController.apply_prompt_parameters(prompt_string, prompt_parameters);
+            prompt_string = await OseliaServerController.apply_cache_parameters(prompt_string, thread);
+            prompt_string = OseliaServerController.apply_prompt_parameters(prompt_string, prompt_parameters);
+
+            return prompt_string;
         } catch (error) {
             ConsoleHandler.error('Error in get_prompt_string', error);
         }
@@ -190,6 +197,63 @@ export default class OseliaServerController {
         }
 
         return res;
+    }
+
+    public static async get_cache_datas(thread: GPTAssistantAPIThreadVO): Promise<{ [param_name: string]: string }> {
+        /**
+         * On charge le cache des threads parents, puis du courant qui surcharge
+         */
+
+        if (!thread) {
+            return {};
+        }
+
+        let cache_datas: { [param_name: string]: string } = {};
+        if (thread.parent_thread_id) {
+            const parent_thread: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                .filter_by_id(thread.parent_thread_id)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIThreadVO>();
+
+            if (!parent_thread) {
+                throw new Error('OseliaServerController:get_cache_datas:Parent thread not found !');
+            }
+
+            cache_datas = await OseliaServerController.get_cache_datas(parent_thread);
+        }
+
+        const this_thread_cache_datas_entries: OseliaThreadCacheVO[] = await query(OseliaThreadCacheVO.API_TYPE_ID)
+            .filter_by_id(thread.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<OseliaThreadCacheVO>();
+
+        for (const i in this_thread_cache_datas_entries) {
+            const entry = this_thread_cache_datas_entries[i];
+            cache_datas[entry.key] = entry.value;
+        }
+
+        return cache_datas;
+    }
+
+    public static async apply_cache_parameters(
+        prompt_string_with_cache_parameters: string,
+        thread: GPTAssistantAPIThreadVO,
+    ): Promise<string> {
+        const cache_datas: { [param_name: string]: string } = await OseliaServerController.get_cache_datas(thread);
+        const regExp = new RegExp('{{CACHE_PARAM[.]([^}]*)}}', 'i');
+        while (regExp.test(prompt_string_with_cache_parameters)) {
+            const regexpres: string[] = regExp.exec(prompt_string_with_cache_parameters);
+            let varname: string = regexpres[1];
+            varname = varname ? varname.toLowerCase() : varname;
+
+            if (varname && (cache_datas[varname] != null)) {
+                prompt_string_with_cache_parameters = prompt_string_with_cache_parameters.replace(regExp, cache_datas[varname]);
+            } else {
+                prompt_string_with_cache_parameters = prompt_string_with_cache_parameters.replace(regExp, '');
+            }
+        }
+
+        return prompt_string_with_cache_parameters;
     }
 
     public static async get_self_referrer(): Promise<OseliaReferrerVO> {

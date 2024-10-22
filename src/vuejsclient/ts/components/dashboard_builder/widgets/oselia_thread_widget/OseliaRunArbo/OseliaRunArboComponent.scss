@@ -1,0 +1,81 @@
+@import 'skin-variables.scss';
+
+.oselia_run_arbo {
+
+    margin-left: 1em;
+
+    .oselia_run_arbo_run_header {
+        cursor: pointer;
+        margin-bottom: .4em;
+
+        display: flex;
+        color: white;
+        border-radius: .4em;
+        padding: .4em;
+
+        >div {
+            margin: 0 .4em;
+        }
+
+        &.oselia_run_state_0 {
+            background-color: white;
+            color: black;
+        }
+
+        &.oselia_run_state_1 {
+            background-color: $button_primary_bg_color;
+        }
+
+        &.oselia_run_state_2 {
+            background-color: $button_primary_bg_color;
+        }
+
+        &.oselia_run_state_3 {
+            background-color: $button_primary_bg_color;
+        }
+
+        &.oselia_run_state_4 {
+            background-color: $button_primary_bg_color;
+        }
+
+        &.oselia_run_state_5 {
+            background-color: $button_primary_bg_color;
+        }
+
+        &.oselia_run_state_6 {
+            background-color: $button_primary_bg_color;
+        }
+
+        &.oselia_run_state_7 {
+            background-color: $button_primary_bg_color;
+        }
+
+        &.oselia_run_state_8 {
+            background-color: $button_primary_bg_color;
+        }
+
+        &.oselia_run_state_9 {
+            background-color: $success_color;
+        }
+
+        &.oselia_run_state_10 {
+            background-color: $danger_color;
+        }
+
+        &.oselia_run_state_11 {
+            background-color: $button_warning_color;
+        }
+
+        &.oselia_run_state_12 {
+            background-color: $button_warning_color;
+        }
+
+        &.oselia_run_state_13 {
+            background-color: $button_warning_color;
+        }
+
+        &.oselia_run_state_14 {
+            background-color: $button_warning_color;
+        }
+    }
+}
