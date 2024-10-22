@@ -39,6 +39,27 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
     private all_field_ref_for_template_options: VOFieldRefVO[] = [];
     private field_ref_for_template_options: VOFieldRefVO[] = [];
     private multiselect_loading: boolean = false;
+    private position: string = null;
+    private position_selected: string = null;
+    private mise_en_page: string = null;
+    private mise_en_page_selected: string = null;
+
+    private position_options: string[] = [
+        this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE),
+        this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_GAUCHE),
+        this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_DROITE),
+        this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_HAUT),
+        this.label(CMSImageWidgetOptionsVO.POSITION_HAUT_GAUCHE),
+        this.label(CMSImageWidgetOptionsVO.POSITION_HAUT_DROITE),
+        this.label(CMSImageWidgetOptionsVO.POSITION_BAS_GAUCHE),
+        this.label(CMSImageWidgetOptionsVO.POSITION_BAS_DROITE),
+    ];
+
+    private mise_en_page_options: string[] = [
+        this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_DEFAUT),
+        this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_COUVRIR),
+        this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_CONTENIR),
+    ];
 
     private next_update_options: CMSImageWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -119,6 +140,16 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
         };
     }
 
+    @Watch('position_selected')
+    private async onchange_position_selected() {
+        this.position = this.position_selected;
+    }
+
+    @Watch('mise_en_page_selected')
+    private async onchange_mise_en_page_selected() {
+        this.mise_en_page = this.mise_en_page_selected;
+    }
+
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.widget_options) {
@@ -127,6 +158,8 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
             this.file_path = null;
             this.use_for_template = false;
             this.field_ref_for_template = null;
+            this.position = this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE);
+            this.mise_en_page = this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_DEFAUT);
 
             return;
         }
@@ -134,9 +167,11 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
         this.radius = this.widget_options.radius;
         this.use_for_template = this.widget_options.use_for_template;
         this.field_ref_for_template = this.widget_options.field_ref_for_template;
+        this.position = this.widget_options.position;
+        this.mise_en_page = this.widget_options.mise_en_page;
 
         if (this.file_id) {
-            let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
+            const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
             this.file_path = file ? file.path : null;
         }
     }
@@ -145,6 +180,8 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
     @Watch('radius')
     @Watch('use_for_template')
     @Watch('field_ref_for_template')
+    @Watch('position')
+    @Watch('mise_en_page')
     private async onchange_image() {
         if (!this.widget_options) {
             return;
@@ -154,13 +191,17 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
             this.widget_options.file_id != this.file_id ||
             this.widget_options.radius != this.radius ||
             this.widget_options.use_for_template != this.use_for_template ||
-            !isEqual(this.widget_options.field_ref_for_template, this.field_ref_for_template)
+            !isEqual(this.widget_options.field_ref_for_template, this.field_ref_for_template) ||
+            this.widget_options.mise_en_page != this.mise_en_page ||
+            this.widget_options.position != this.position
         ) {
 
             this.next_update_options.file_id = this.file_id;
             this.next_update_options.radius = this.radius;
             this.next_update_options.use_for_template = this.use_for_template;
             this.next_update_options.field_ref_for_template = this.field_ref_for_template;
+            this.next_update_options.position = this.position;
+            this.next_update_options.mise_en_page = this.mise_en_page;
 
             if (this.file_id) {
                 let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
@@ -186,11 +227,13 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
         this.field_ref_for_template = this.next_update_options.field_ref_for_template;
 
         if (this.file_id) {
-            let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
+            const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
             this.file_path = file ? file.path : null;
         }
 
         this.set_all_field_ref_for_template_options();
+        this.position_selected = this.next_update_options?.position ? this.next_update_options.position : this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE);
+        this.mise_en_page_selected = this.next_update_options?.mise_en_page ? this.next_update_options.mise_en_page : this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_DEFAUT);
 
         await this.throttled_update_options();
     }
@@ -201,6 +244,8 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
             0,
             false,
             null,
+            this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE),
+            this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_DEFAUT),
         );
     }
 

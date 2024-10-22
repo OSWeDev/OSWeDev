@@ -52,3 +52,53 @@
                         type="number"
                         v-model="radius"
                     )
+
+        .position
+            .input_label {{ label('cms_image.widget_option.position') }}
+            .input_wrapper
+                multiselect.var_name_selector(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="position_selected"
+                    :options="position_options"
+                    :allow-empty="false",
+
+                    :searchable="true"
+                    :internal-search="true"
+
+                    select-label=''
+                    select-group-label=''
+                    selected-label=''
+                    deselect-label=''
+                    deselect-group-label=''
+
+                    placeholder=''
+
+                    name="position_selector"
+
+                )
+
+        .mise_en_page
+            .input_label {{ label('cms_image.widget_option.mise_en_page') }}
+            .input_wrapper
+                multiselect.var_name_selector(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="mise_en_page_selected"
+                    :options="mise_en_page_options"
+                    :allow-empty="false",
+
+                    :searchable="true"
+                    :internal-search="true"
+
+                    select-label=''
+                    select-group-label=''
+                    selected-label=''
+                    deselect-label=''
+                    deselect-group-label=''
+
+                    placeholder=''
+
+                    name="mise_en_page_selector"
+
+                )

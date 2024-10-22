@@ -58,6 +58,8 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline', 'strike'],      // Boutons pour le gras, italique, souligné, barré
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                [{ 'size': ['small', false, 'large', 'huge'] }],
                 [{ 'color': [] }, { 'background': [] }],        // dropdown with defaults from theme
                 [{ 'list': 'ordered' }, { 'list': 'bullet' }],  // Boutons pour les listes
                 [{ 'script': 'sub' }, { 'script': 'super' }],   // indice et exposant
