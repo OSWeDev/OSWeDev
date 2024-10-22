@@ -47,6 +47,8 @@ import OseliaReferrerVO from '../../../../../../shared/modules/Oselia/vos/Oselia
 import OseliaUserReferrerVO from '../../../../../../shared/modules/Oselia/vos/OseliaUserReferrerVO';
 import OseliaUserReferrerOTTVO from '../../../../../../shared/modules/Oselia/vos/OseliaUserReferrerOTTVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import OseliaRunVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunVO';
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
     components: {
@@ -59,6 +61,11 @@ import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByV
     }
 })
 export default class OseliaThreadWidgetComponent extends VueComponentBase {
+
+    @ModuleOseliaGetter
+    private get_show_hidden_messages: boolean;
+    @ModuleOseliaAction
+    private set_show_hidden_messages: (show_hidden_messages: boolean) => void;
 
     @ModuleOseliaAction
     private set_left_panel_open: (left_panel_open: boolean) => void;
@@ -108,6 +115,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     public thread_messages: GPTAssistantAPIThreadMessageVO[] = [];
     public thread: GPTAssistantAPIThreadVO = null;
+    public oselia_runs: OseliaRunVO[] = [];
+
     private has_access_to_thread: boolean = false;
     private is_loading_thread: boolean = true;
     private assistant_is_busy: boolean = false;
@@ -131,6 +140,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private is_recording_voice: boolean = false;
     private voice_record: MediaRecorder = null;
     private use_realtime_voice: boolean = false;
+    private has_access_to_debug: boolean = false;
+
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
 
@@ -201,9 +212,16 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.set_left_panel_open(true);
     }
 
-    private mounted() {
+    private switch_show_hidden_messages() {
+        this.set_show_hidden_messages(!this.get_show_hidden_messages);
+    }
+
+    private async mounted() {
         this.use_realtime_voice = ConfigurationService.node_configuration.unblock_realtime_api;
+
         this.frame = parent.document.getElementById('OseliaContainer');
+
+        this.has_access_to_debug = await ModuleAccessPolicy.getInstance().testAccess(ModuleOselia.POLICY_BO_ACCESS);
 
         window.addEventListener('paste', e => {
             if (e.clipboardData.files.length > 0) {
@@ -232,6 +250,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         if (!this.page_widget) {
 
             this.thread_messages = [];
+            this.oselia_runs = [];
             this.assistant = null;
             this.is_loading_thread = false;
             this.has_access_to_thread = false;
@@ -348,25 +367,25 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     private async start_voice_record() {
         const audioChunks = [];
-    
+
         if (!this.is_recording_voice) {
             // Commencer l'enregistrement vocal
             try {
                 // await ModuleGPT.getInstance().connect_to_realtime_voice(null,null,this.data_user.id);
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 this.voice_record = new MediaRecorder(stream);
-    
+
                 if (!this.voice_record) {
                     return;
                 }
-    
+
                 this.voice_record.start();
-    
+
                 // Collecte des données à chaque fois que des données sont disponibles
                 this.voice_record.ondataavailable = (e) => {
                     audioChunks.push(e.data);
                 };
-    
+
                 // Lorsque l'enregistrement est arrêté, créez le fichier audio et jouez-le
                 this.voice_record.onstop = () => {
                     const blob = new Blob(audioChunks, { type: 'audio/mpeg-3' });
@@ -383,10 +402,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 this.voice_record.stop();  // Cela déclenche l'événement 'onstop' ci-dessus
             }
         }
-    
+
         this.is_recording_voice = !this.is_recording_voice;
     }
-    
+
     private async do_upload_file(fileHandle?: FileSystemFileHandle, files?: File) {
         let file: File;
         if (files) {
@@ -398,7 +417,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         const formData = new FormData();
         const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
         formData.append('file', file, file_name);
-        
+
         await AjaxCacheClientController.getInstance().post(
             null,
             '/ModuleFileServer/upload',
@@ -506,6 +525,13 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
             reflect<this>().thread_messages,
             [filter(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().thread_id).by_num_eq(this.thread.id)]
+        );
+
+        // On récupère les contenus des runs
+        await this.register_vo_updates_on_list(
+            OseliaRunVO.API_TYPE_ID,
+            reflect<this>().oselia_runs,
+            [filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().thread_id).by_num_eq(this.thread.id)]
         );
 
         this.$nextTick(() => {

@@ -99,18 +99,19 @@ table.VueTables__table {
                     font-size: smaller;
                 }
             }
-        // &:first-child td {
-        //     position: sticky;
-        //     top: 123px;
-        //     z-index: 1000;
-        //     background-color: #aaa;
-        // }
-        // &:nth-child(2) td {
-        //     position: sticky;
-        //     top: 161px;
-        //     z-index: 1000;
-        //     background-color: #aaa;
-        // }
+
+            // &:first-child td {
+            //     position: sticky;
+            //     top: 123px;
+            //     z-index: 1000;
+            //     background-color: #aaa;
+            // }
+            // &:nth-child(2) td {
+            //     position: sticky;
+            //     top: 161px;
+            //     z-index: 1000;
+            //     background-color: #aaa;
+            // }
         }
     }
 
@@ -137,6 +138,8 @@ table.VueTables__table {
 }
 
 button {
+    display: none;
+
     &.action-button {
 
         &.selectall,

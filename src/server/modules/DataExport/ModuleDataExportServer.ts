@@ -67,6 +67,7 @@ import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
 import default_export_mail_html_template from './default_export_mail_html_template.html';
 import TableWidgetManager from '../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
+import TemplateHandlerServer from '../Mailer/TemplateHandlerServer';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -654,7 +655,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 await ModuleMailerServer.getInstance().sendMail({
                     to: user.email,
                     subject: translated_mail_subject.translated,
-                    html: await ModuleMailerServer.getInstance().prepareHTML(default_export_mail_html_template, user.lang_id, {
+                    html: await TemplateHandlerServer.apply_template(default_export_mail_html_template, user.lang_id, true, {
                         FILE_URL: ConfigurationService.node_configuration.base_url + filepath.substring(2, filepath.length)
                     })
                 });

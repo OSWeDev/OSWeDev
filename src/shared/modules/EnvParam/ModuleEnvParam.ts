@@ -136,6 +136,8 @@ export default class ModuleEnvParam extends Module {
         // MUTE__NO_SORT_BY_BUT_QUERY_LIMIT ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().mute__no_sort_by_but_query_limit, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Mute no sort by but query limit', true);
 
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_reruns_of_oselia, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug reruns of Oselia', true, true, false);
+
         // DEBUG_SLOW_QUERIES_MS_LIMIT ?: number;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_slow_queries_ms_limit, ModuleTableFieldVO.FIELD_TYPE_int, 'Debug slow queries ms limit', false);
         // DEBUG_SLOW_QUERIES ?: boolean;

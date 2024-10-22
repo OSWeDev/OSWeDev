@@ -6,6 +6,12 @@ import TimeSegment from "../../DataRender/vos/TimeSegment";
 
 export default class Dates {
 
+    /**
+     * @param date String or Date
+     * @param format default null
+     * @param localized_src default true. If false, the date is considered as UTC, else it is considered as local
+     * @returns timestamp in secs
+     */
     public static parse(date: string | Date, format: string = null, localized_src: boolean = true): number {
         try {
             if (!date) {

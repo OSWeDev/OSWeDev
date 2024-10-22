@@ -15,19 +15,19 @@ import TemplateHandlerServer from './TemplateHandlerServer';
 
 export default class ModuleMailerServer extends ModuleServerBase {
 
+    private static instance: ModuleMailerServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleMailer.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleMailerServer.instance) {
             ModuleMailerServer.instance = new ModuleMailerServer();
         }
         return ModuleMailerServer.instance;
-    }
-
-    private static instance: ModuleMailerServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleMailer.getInstance().name);
     }
 
     // istanbul ignore next: cannot test configure
@@ -105,11 +105,6 @@ export default class ModuleMailerServer extends ModuleServerBase {
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleMailer.APINAME_sendMail, this.sendMail.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleMailer.APINAME_prepareHTML, this.prepareHTML.bind(this));
-    }
-
-    public async prepareHTML(template: string, lang_id: number, vars: { [name: string]: string } = null): Promise<string> {
-        return TemplateHandlerServer.getInstance().prepareHTML(template, lang_id, vars);
     }
 
     public async sendMail(mailOptions: SendMailOptions): Promise<any> {

@@ -146,5 +146,23 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_board_acti
             argument_since.weight = 4;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_since);
         }
+
+        let argument_filter = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'filter')
+            .filter_by_id(function_TRELLO_trello_get_board_actions.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_filter) {
+            argument_filter = new GPTAssistantAPIFunctionParamVO();
+            argument_filter.archived = false;
+            argument_filter.function_id = function_TRELLO_trello_get_board_actions.id;
+            argument_filter.gpt_funcparam_description = "A comma-separated list of action types.";
+            argument_filter.gpt_funcparam_name = "filter";
+            argument_filter.required = false;
+            argument_filter.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
+            argument_filter.not_in_function_params = false;
+            argument_filter.weight = 5;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_filter);
+        }
     }
 }

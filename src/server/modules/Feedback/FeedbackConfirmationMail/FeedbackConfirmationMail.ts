@@ -11,6 +11,7 @@ import TranslationVO from '../../../../shared/modules/Translation/vos/Translatio
 import StackContext from '../../../StackContext';
 import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
+import TemplateHandlerServer from '../../Mailer/TemplateHandlerServer';
 import SendInBlueMailServerController from '../../SendInBlue/SendInBlueMailServerController';
 import FeedbackConfirmationMail_html_template from './FeedbackConfirmationMail_html_template.html';
 
@@ -72,7 +73,7 @@ export default class FeedbackConfirmationMail {
             await ModuleMailerServer.getInstance().sendMail({
                 to: user.email,
                 subject: translated_mail_subject.translated,
-                html: await ModuleMailerServer.getInstance().prepareHTML(FeedbackConfirmationMail_html_template, user.lang_id, {
+                html: await TemplateHandlerServer.apply_template(FeedbackConfirmationMail_html_template, user.lang_id, true, {
                     FEEDBACK_TITLE: feedback.title,
                     FEEDBACK_ID: feedback.id.toString()
                 })

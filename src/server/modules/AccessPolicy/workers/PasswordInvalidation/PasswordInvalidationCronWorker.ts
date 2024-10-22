@@ -15,6 +15,7 @@ import SendInBlueMailVO from '../../../../../shared/modules/SendInBlue/vos/SendI
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import ModuleAccessPolicyServer from '../../ModuleAccessPolicyServer';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import TemplateHandlerServer from '../../../Mailer/TemplateHandlerServer';
 
 
 export default class PasswordInvalidationCronWorker implements ICronWorker {
@@ -102,7 +103,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
                         await ModuleMailerServer.getInstance().sendMail({
                             to: user.email,
                             subject: translated_mail_subject.translated,
-                            html: await ModuleMailerServer.getInstance().prepareHTML(reminder1_mail_html_template, user.lang_id, {
+                            html: await TemplateHandlerServer.apply_template(reminder1_mail_html_template, user.lang_id, true, {
                                 EMAIL: user.email
                             })
                         });
@@ -145,7 +146,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
                         await ModuleMailerServer.getInstance().sendMail({
                             to: user.email,
                             subject: translated_mail_subject.translated,
-                            html: await ModuleMailerServer.getInstance().prepareHTML(reminder2_mail_html_template, user.lang_id, {
+                            html: await TemplateHandlerServer.apply_template(reminder2_mail_html_template, user.lang_id, true, {
                                 EMAIL: user.email
                             })
                         });
@@ -190,7 +191,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
                         await ModuleMailerServer.getInstance().sendMail({
                             to: user.email,
                             subject: translated_mail_subject.translated,
-                            html: await ModuleMailerServer.getInstance().prepareHTML(invalidation_mail_html_template, user.lang_id, {
+                            html: await TemplateHandlerServer.apply_template(invalidation_mail_html_template, user.lang_id, true, {
                                 EMAIL: user.email
                             })
                         });

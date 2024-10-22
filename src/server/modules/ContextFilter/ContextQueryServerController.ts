@@ -1623,7 +1623,7 @@ export default class ContextQueryServerController {
         for (const key in context_query.union_queries) {
             const union_context_query = context_query.union_queries[key];
 
-            const union_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[context_query.base_api_type_id];
+            const union_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[union_context_query.base_api_type_id];
             fields_by_vo_type[union_context_query.base_api_type_id] = Object.values(union_fields);
         }
 

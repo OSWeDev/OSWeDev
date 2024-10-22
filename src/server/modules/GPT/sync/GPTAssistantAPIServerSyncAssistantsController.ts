@@ -405,7 +405,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
         const res: GPTAssistantAPIToolResourcesVO = new GPTAssistantAPIToolResourcesVO();
 
         const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2);
-        if (data.code_interpreter) {
+        if (data.code_interpreter && data.code_interpreter.file_ids && data.code_interpreter.file_ids.length) {
             res.code_interpreter_gpt_file_ids = cloneDeep(data.code_interpreter.file_ids);
 
             const code_interpreter_file_ids_ranges: NumRange[] = [];
@@ -419,13 +419,18 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                         throw new Error('GPTAssistantAPIToolResourcesVO: file not found:' + gpt_file_id);
                     }
 
-                    code_interpreter_file_ids_ranges.push(RangeHandler.create_single_elt_NumRange(assistant_file.id, NumSegment.TYPE_INT));
+                    const range = RangeHandler.create_single_elt_NumRange(assistant_file.id, NumSegment.TYPE_INT);
+                    if (!range) {
+                        throw new Error('GPTAssistantAPIToolResourcesVO: file not found:' + gpt_file_id);
+                    }
+
+                    code_interpreter_file_ids_ranges.push(range);
                 });
             }
             res.code_interpreter_file_ids_ranges = code_interpreter_file_ids_ranges;
         }
 
-        if (data.file_search) {
+        if (data.file_search && data.file_search.vector_store_ids && data.file_search.vector_store_ids.length) {
             res.file_search_gpt_vector_store_ids = cloneDeep(data.file_search.vector_store_ids);
 
             const file_search_vector_store_ids_ranges: NumRange[] = [];
@@ -439,7 +444,12 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                         throw new Error('GPTAssistantAPIToolResourcesVO: vector store not found:' + gpt_vector_store_id);
                     }
 
-                    file_search_vector_store_ids_ranges.push(RangeHandler.create_single_elt_NumRange(vector_store_file.id, NumSegment.TYPE_INT));
+                    const range = RangeHandler.create_single_elt_NumRange(vector_store_file.id, NumSegment.TYPE_INT);
+                    if (!range) {
+                        throw new Error('GPTAssistantAPIToolResourcesVO: vector store not found:' + gpt_vector_store_id);
+                    }
+
+                    file_search_vector_store_ids_ranges.push(range);
                 });
             }
             res.file_search_vector_store_ids_ranges = file_search_vector_store_ids_ranges;
@@ -458,17 +468,46 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
         const res: AssistantCreateParams.ToolResources = {};
 
-        if (vo.code_interpreter_gpt_file_ids) {
+        if (vo.code_interpreter_gpt_file_ids && vo.code_interpreter_gpt_file_ids.length) {
             res.code_interpreter = {
                 file_ids: cloneDeep(vo.code_interpreter_gpt_file_ids)
             };
         }
 
-        if (vo.file_search_gpt_vector_store_ids) {
+        if (vo.file_search_gpt_vector_store_ids && vo.file_search_gpt_vector_store_ids.length) {
             res.file_search = {
                 vector_store_ids: cloneDeep(vo.file_search_gpt_vector_store_ids)
             };
         }
+
+        return res;
+    }
+
+    public static async get_tools_definition_from_functions(functions: GPTAssistantAPIFunctionVO[]): Promise<AssistantTool[]> {
+        const res = [];
+
+        if ((!functions) || (!functions.length)) {
+            return null;
+        }
+
+        const promises = [];
+        for (const i in functions) {
+            const func = functions[i];
+
+            promises.push((async () => {
+                const params = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+                    .filter_by_id(func.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                    .set_sort(new SortByVO(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().weight, true))
+                    .exec_as_server()
+                    .select_vos<GPTAssistantAPIFunctionParamVO>();
+                res.push({
+                    type: "function",
+                    function: func.to_GPT_FunctionDefinition(params)
+                });
+            })());
+        }
+
+        await all_promises(promises);
 
         return res;
     }
@@ -762,24 +801,11 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 .exec_as_server()
                 .select_vos<GPTAssistantAPIFunctionVO>();
 
-            const promises = [];
-            for (const i in functions) {
-                const func = functions[i];
+            const get_tools_definition_from_functions = await GPTAssistantAPIServerSyncAssistantsController.get_tools_definition_from_functions(functions);
 
-                promises.push((async () => {
-                    const params = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
-                        .filter_by_id(func.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
-                        .set_sort(new SortByVO(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().weight, true))
-                        .exec_as_server()
-                        .select_vos<GPTAssistantAPIFunctionParamVO>();
-                    res.push({
-                        type: "function",
-                        function: func.to_GPT_FunctionDefinition(params)
-                    });
-                })());
+            if (get_tools_definition_from_functions && get_tools_definition_from_functions.length) {
+                res.push(...get_tools_definition_from_functions);
             }
-
-            await all_promises(promises);
         }
 
         return res;

@@ -19,13 +19,6 @@ export default class SupervisionBGThread implements IBGThread {
     public static MAX_timeout_PARAM_NAME: string = 'SupervisionBGThread.MAX_timeout';
     public static MIN_timeout_PARAM_NAME: string = 'SupervisionBGThread.MIN_timeout';
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!SupervisionBGThread.instance) {
-            SupervisionBGThread.instance = new SupervisionBGThread();
-        }
-        return SupervisionBGThread.instance;
-    }
 
     private static instance: SupervisionBGThread = null;
 
@@ -45,6 +38,14 @@ export default class SupervisionBGThread implements IBGThread {
 
     get name(): string {
         return "SupervisionBGThread";
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!SupervisionBGThread.instance) {
+            SupervisionBGThread.instance = new SupervisionBGThread();
+        }
+        return SupervisionBGThread.instance;
     }
 
     /**
