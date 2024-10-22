@@ -2,8 +2,8 @@ include ../../../../../views/mixins/loading.pug
 
 .cms_bloc_text_widget_component
     template(v-if='titre')
-        h1(v-html="titre" :style="style_titre")
+        div(v-html="titre" class="ql-editor" style="word-wrap: break-word;")
     template(v-if='sous_titre')
-        h2(v-html="sous_titre" :style="style_sous_titre")
+        div(v-html="sous_titre" class="ql-editor" style="word-wrap: break-word;")
     template(v-if='contenu')
         div(v-html="contenu" class="ql-editor" style="word-wrap: break-word;")

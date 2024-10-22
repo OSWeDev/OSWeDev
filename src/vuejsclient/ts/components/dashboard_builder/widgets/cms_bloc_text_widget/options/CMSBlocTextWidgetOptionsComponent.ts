@@ -29,13 +29,8 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private titre: string = null;
-    private alignement_titre: string = null;
-    private alignement_titre_selected: string = null;
     private sous_titre: string = null;
-    private alignement_sous_titre: string = null;
-    private alignement_sous_titre_selected: string = null;
     private contenu: string = null;
-    private alignement_contenu_selected: string = null;
     private use_for_template: boolean = false;
     private titre_field_ref_for_template: VOFieldRefVO = null;
     private sous_titre_field_ref_for_template: VOFieldRefVO = null;
@@ -47,12 +42,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
     private contenu_field_ref_for_template_options: VOFieldRefVO[] = [];
     private multiselect_loading: boolean = false;
 
-    private alignement_options: string[] = [
-        this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE),
-        this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_CENTRE),
-        this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_DROITE),
-        this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_JUSTIFIE),
-    ];
 
     private optionsEditeur = {
         modules: {
@@ -92,25 +81,12 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         return options;
     }
 
-    @Watch('alignement_titre_selected')
-    private async onchange_alignement_titre_selected() {
-        this.alignement_titre = this.alignement_titre_selected;
-    }
-
-    @Watch('alignement_sous_titre_selected')
-    private async onchange_alignement_sous_titre_selected() {
-        this.alignement_sous_titre = this.alignement_sous_titre_selected;
-    }
-
-
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.widget_options) {
             this.titre = null;
             this.sous_titre = null;
             this.contenu = null;
-            this.alignement_titre = this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE);
-            this.alignement_sous_titre = this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE);
             this.use_for_template = false;
             this.titre_field_ref_for_template = null;
             this.sous_titre_field_ref_for_template = null;
@@ -121,8 +97,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         this.titre = this.widget_options.titre;
         this.sous_titre = this.widget_options.sous_titre;
         this.contenu = this.widget_options.contenu;
-        this.alignement_titre = this.widget_options.alignement_titre;
-        this.alignement_sous_titre = this.widget_options.alignement_sous_titre;
         this.use_for_template = this.widget_options.use_for_template;
         this.titre_field_ref_for_template = this.widget_options.titre_field_ref_for_template;
         this.sous_titre_field_ref_for_template = this.widget_options.sous_titre_field_ref_for_template;
@@ -132,9 +106,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
     @Watch('titre')
     @Watch('sous_titre')
     @Watch('contenu')
-    @Watch('alignement_titre')
-    @Watch('alignement_sous_titre')
-    @Watch('alignement_contenu')
     @Watch('use_for_template')
     @Watch('titre_field_ref_for_template')
     @Watch('sous_titre_field_ref_for_template')
@@ -147,8 +118,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         if (this.widget_options.titre != this.titre ||
             this.widget_options.sous_titre != this.sous_titre ||
             this.widget_options.contenu != this.contenu ||
-            this.widget_options.alignement_titre != this.alignement_titre ||
-            this.widget_options.alignement_sous_titre != this.alignement_sous_titre ||
             this.widget_options.use_for_template != this.use_for_template ||
             !isEqual(this.widget_options.titre_field_ref_for_template, this.titre_field_ref_for_template) ||
             !isEqual(this.widget_options.sous_titre_field_ref_for_template, this.sous_titre_field_ref_for_template) ||
@@ -157,8 +126,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
             this.next_update_options.titre = this.titre;
             this.next_update_options.sous_titre = this.sous_titre;
             this.next_update_options.contenu = this.contenu;
-            this.next_update_options.alignement_titre = this.alignement_titre;
-            this.next_update_options.alignement_sous_titre = this.alignement_sous_titre;
             this.next_update_options.use_for_template = this.use_for_template;
             this.next_update_options.titre_field_ref_for_template = this.titre_field_ref_for_template;
             this.next_update_options.sous_titre_field_ref_for_template = this.sous_titre_field_ref_for_template;
@@ -178,9 +145,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
             this.next_update_options = this.widget_options;
         }
 
-        this.alignement_titre_selected = this.next_update_options.alignement_titre;
-        this.alignement_sous_titre_selected = this.next_update_options.alignement_sous_titre;
-
         this.set_all_field_ref_for_template_options();
 
         await this.throttled_update_options();
@@ -189,9 +153,7 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
     private get_default_options(): CMSBlocTextWidgetOptionsVO {
         return CMSBlocTextWidgetOptionsVO.createNew(
             "",
-            this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE),
             "",
-            this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE),
             "",
             false,
             null,
