@@ -19,6 +19,7 @@ import { isEqual } from 'lodash';
 import ModuleTableFieldController from '../../../../../../../shared/modules/DAO/ModuleTableFieldController';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 
 @Component({
     template: require('./CMSImageWidgetOptionsComponent.pug')
@@ -39,26 +40,25 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
     private all_field_ref_for_template_options: VOFieldRefVO[] = [];
     private field_ref_for_template_options: VOFieldRefVO[] = [];
     private multiselect_loading: boolean = false;
-    private position: string = null;
-    private position_selected: string = null;
-    private mise_en_page: string = null;
-    private mise_en_page_selected: string = null;
+    private position: number = null;
+    private position_selected: DataFilterOption = null;
+    private mise_en_page: number = null;
+    private mise_en_page_selected: DataFilterOption = null;
 
-    private position_options: string[] = [
-        this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE),
-        this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_GAUCHE),
-        this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_DROITE),
-        this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_HAUT),
-        this.label(CMSImageWidgetOptionsVO.POSITION_HAUT_GAUCHE),
-        this.label(CMSImageWidgetOptionsVO.POSITION_HAUT_DROITE),
-        this.label(CMSImageWidgetOptionsVO.POSITION_BAS_GAUCHE),
-        this.label(CMSImageWidgetOptionsVO.POSITION_BAS_DROITE),
+    private position_options: DataFilterOption[] = [
+        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE),
+        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_GAUCHE_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_GAUCHE),
+        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_DROITE_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_DROITE),
+        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_HAUT_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_HAUT),
+        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_HAUT_GAUCHE_LABEL), CMSImageWidgetOptionsVO.POSITION_HAUT_GAUCHE),
+        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_HAUT_DROITE_LABEL), CMSImageWidgetOptionsVO.POSITION_HAUT_DROITE),
+        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_BAS_GAUCHE_LABEL), CMSImageWidgetOptionsVO.POSITION_BAS_GAUCHE),
+        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_BAS_DROITE_LABEL), CMSImageWidgetOptionsVO.POSITION_BAS_DROITE),
     ];
 
-    private mise_en_page_options: string[] = [
-        this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_DEFAUT),
-        this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_COUVRIR),
-        this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_CONTENIR),
+    private mise_en_page_options: DataFilterOption[] = [
+        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_COUVRIR_LABEL), CMSImageWidgetOptionsVO.MISE_EN_PAGE_COUVRIR),
+        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_CONTENIR_LABEL), CMSImageWidgetOptionsVO.MISE_EN_PAGE_CONTENIR),
     ];
 
     private next_update_options: CMSImageWidgetOptionsVO = null;
@@ -142,12 +142,12 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
 
     @Watch('position_selected')
     private async onchange_position_selected() {
-        this.position = this.position_selected;
+        this.position = this.position_selected?.id;
     }
 
     @Watch('mise_en_page_selected')
     private async onchange_mise_en_page_selected() {
-        this.mise_en_page = this.mise_en_page_selected;
+        this.mise_en_page = this.mise_en_page_selected?.id;
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
@@ -158,8 +158,8 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
             this.file_path = null;
             this.use_for_template = false;
             this.field_ref_for_template = null;
-            this.position = this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE);
-            this.mise_en_page = this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_DEFAUT);
+            this.position = CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE;
+            this.mise_en_page = CMSImageWidgetOptionsVO.MISE_EN_PAGE_COUVRIR;
 
             return;
         }
@@ -217,7 +217,6 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
         if (!this.widget_options) {
             this.next_update_options = this.get_default_options();
         } else {
-
             this.next_update_options = this.widget_options;
         }
 
@@ -225,6 +224,8 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
         this.radius = this.next_update_options.radius;
         this.use_for_template = this.next_update_options.use_for_template;
         this.field_ref_for_template = this.next_update_options.field_ref_for_template;
+        this.position = this.next_update_options.position;
+        this.mise_en_page = this.next_update_options.mise_en_page;
 
         if (this.file_id) {
             const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
@@ -232,8 +233,17 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
         }
 
         this.set_all_field_ref_for_template_options();
-        this.position_selected = this.next_update_options?.position ? this.next_update_options.position : this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE);
-        this.mise_en_page_selected = this.next_update_options?.mise_en_page ? this.next_update_options.mise_en_page : this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_DEFAUT);
+
+        if (!this.position) {
+            this.position = CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE;
+        }
+
+        if (!this.mise_en_page) {
+            this.mise_en_page = CMSImageWidgetOptionsVO.MISE_EN_PAGE_COUVRIR;
+        }
+
+        this.position_selected = this.position_options.find((option) => option.id == this.position);
+        this.mise_en_page_selected = this.mise_en_page_options.find((option) => option.id == this.mise_en_page);
 
         await this.throttled_update_options();
     }
@@ -244,8 +254,8 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
             0,
             false,
             null,
-            this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE),
-            this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_DEFAUT),
+            CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE,
+            CMSImageWidgetOptionsVO.MISE_EN_PAGE_COUVRIR,
         );
     }
 
@@ -349,5 +359,10 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
         }
 
         this.all_field_ref_for_template_options = res;
+    }
+
+    private clear_file_path() {
+        this.file_id = null;
+        this.file_path = null;
     }
 }

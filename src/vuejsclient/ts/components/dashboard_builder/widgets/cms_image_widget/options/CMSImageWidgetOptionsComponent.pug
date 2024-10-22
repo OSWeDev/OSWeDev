@@ -43,7 +43,12 @@
             .image_bloc
                 .input_label {{ label('cms_image.widget_option.file_id') }}
                 .input_wrapper
-                    vue-dropzone(ref="filedropzone" id="filedropzone" :options="dropzoneOptions")
+                    template(v-if="file_path && file_id")
+                        .file_path 
+                            i.fa.fa-close.mr-5(@click="clear_file_path")
+                            span {{ file_path }}
+                    template(v-else)
+                        vue-dropzone(ref="filedropzone" id="filedropzone" :options="dropzoneOptions")
 
             .radius_bloc 
                 .input_label {{ label('cms_image.widget_option.radius') }}
@@ -62,20 +67,13 @@
                     v-model="position_selected"
                     :options="position_options"
                     :allow-empty="false",
+                    label="label",
 
                     :searchable="true"
                     :internal-search="true"
 
-                    select-label=''
-                    select-group-label=''
-                    selected-label=''
-                    deselect-label=''
-                    deselect-group-label=''
-
-                    placeholder=''
-
                     name="position_selector"
-
+                    track-by="id"
                 )
 
         .mise_en_page
@@ -87,18 +85,11 @@
                     v-model="mise_en_page_selected"
                     :options="mise_en_page_options"
                     :allow-empty="false",
+                    label="label",
 
                     :searchable="true"
                     :internal-search="true"
 
-                    select-label=''
-                    select-group-label=''
-                    selected-label=''
-                    deselect-label=''
-                    deselect-group-label=''
-
-                    placeholder=''
-
                     name="mise_en_page_selector"
-
+                    track-by="id"
                 )
