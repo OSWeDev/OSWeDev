@@ -57,7 +57,7 @@ export default class VarsDatasProxy {
                     this_not_found_indexes[var_data_indexes[i]] = true;
                 }
 
-                const bdd_res: T[] = await query(api_type_id).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, var_data_indexes).select_vos<T>();
+                const bdd_res: T[] = await query(api_type_id).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, var_data_indexes).exec_as_server().select_vos<T>();
 
                 for (const i in bdd_res) {
                     const var_data = bdd_res[i];

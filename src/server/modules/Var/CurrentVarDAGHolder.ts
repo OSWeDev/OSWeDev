@@ -11,6 +11,8 @@ import VarsBGThreadNameHolder from "./VarsBGThreadNameHolder";
 import ForkServerController from "../Fork/ForkServerController";
 import TeamsAPIServerController from "../TeamsAPI/TeamsAPIServerController";
 import ConfigurationService from "../../env/ConfigurationService";
+import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
+import TimeSegment from "../../../shared/modules/DataRender/vos/TimeSegment";
 
 export default class CurrentVarDAGHolder {
 
@@ -19,6 +21,7 @@ export default class CurrentVarDAGHolder {
     public static has_send_kill_bgthread: boolean = false;
     public static check_current_vardag_throttler = ThrottleHelper.declare_throttle_without_args(this.check_current_vardag.bind(this), 2000);
     public static console_log_throttler = ThrottleHelper.declare_throttle_with_mappable_args(this.console_log, 10000);
+    public static last_check_current_vardag: number = null;
 
     /**
      * On lance un process qui va registerStats sur le VarDAG courant, régulièrement
@@ -55,11 +58,19 @@ export default class CurrentVarDAGHolder {
     private static async check_current_vardag() {
         // Si je n'ai pas de nodes, je ne fais rien
         if (!CurrentVarDAGHolder.current_vardag?.nb_nodes) {
+            this.previous_vardag_deps = null;
             return;
         }
 
+        // On fait un check toutes les 1 seconde pour éviter d'avoir un kill trop tôt
+        if (this.last_check_current_vardag && (Dates.diff(Dates.now(), this.last_check_current_vardag, TimeSegment.TYPE_SECOND) < 1)) {
+            return;
+        }
+
+        this.last_check_current_vardag = Dates.now();
+
         // On va check le last_registration pour le bgthread VarsProcessInvalidator afin de voir s'il n'est pas HS
-        let last_registration_delay: number = VarsProcessInvalidator.getInstance().get_last_registration_delay();
+        const last_registration_delay: number = VarsProcessInvalidator.getInstance().get_last_registration_delay();
 
         // Si on est en dessous du warn, on sort car pas de pb pour l'instant
         if (last_registration_delay < VarsProcessInvalidator.WARN_MAX_EXECUTION_TIME_SECOND) {
@@ -68,10 +79,10 @@ export default class CurrentVarDAGHolder {
         }
 
         // On va récupérer current_step_tags pour voir si identique au précédent
-        let previous_vardag_deps: { [dep_name: string]: { tags: string[], outgoing_deps: string[], incoming_deps: string[] } } = {};
+        const previous_vardag_deps: { [dep_name: string]: { tags: string[], outgoing_deps: string[], incoming_deps: string[] } } = {};
 
-        for (let n_name in CurrentVarDAGHolder.current_vardag.nodes) {
-            let node: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[n_name];
+        for (const n_name in CurrentVarDAGHolder.current_vardag.nodes) {
+            const node: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[n_name];
 
             if (!node) {
                 continue;
@@ -85,15 +96,15 @@ export default class CurrentVarDAGHolder {
                 };
             }
 
-            for (let dep_name in node.incoming_deps) {
+            for (const dep_name in node.incoming_deps) {
                 previous_vardag_deps[n_name].incoming_deps.push(dep_name);
             }
 
-            for (let dep_name in node.outgoing_deps) {
+            for (const dep_name in node.outgoing_deps) {
                 previous_vardag_deps[n_name].outgoing_deps.push(dep_name);
             }
 
-            for (let tag_name in node.tags) {
+            for (const tag_name in node.tags) {
                 if (node.tags[tag_name]) {
                     previous_vardag_deps[n_name].tags.push(tag_name);
                 }
