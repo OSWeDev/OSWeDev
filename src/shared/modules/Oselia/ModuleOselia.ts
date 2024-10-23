@@ -4,6 +4,7 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import ExternalAPIAuthentificationVO from '../API/vos/ExternalAPIAuthentificationVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
@@ -75,6 +76,8 @@ export default class ModuleOselia extends Module {
     public static APINAME_get_screen_track: string = "oselia__get_screen_track";
     public static APINAME_account_waiting_link_status: string = "oselia__account_waiting_link_status";
 
+    public static APINAME_replay_function_call: string = "oselia__replay_function_call";
+
     // public static APINAME_get_thread_text_content: string = "get_thread_text_content";
 
     private static instance: ModuleOselia = null;
@@ -92,6 +95,8 @@ export default class ModuleOselia extends Module {
     public set_screen_track: (track: MediaStreamTrack) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_set_screen_track);
     public get_screen_track: () => Promise<MediaStreamTrack | null> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_screen_track);
     public account_waiting_link_status: (referrer_user_ott: string) => Promise<'validated' | 'waiting' | 'none'> = APIControllerWrapper.sah(ModuleOselia.APINAME_account_waiting_link_status);
+
+    public replay_function_call: (function_call_id: number) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_replay_function_call);
 
     private constructor() {
 
@@ -161,6 +166,9 @@ export default class ModuleOselia extends Module {
         ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin', false);
         ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', true, false, OseliaRunFunctionCallVO.STATE_TODO).setEnumValues(OseliaRunFunctionCallVO.STATE_LABELS);
         ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().error_msg, ModuleTableFieldVO.FIELD_TYPE_string, 'Erreur', false);
+
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().replay_from_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Replay de', false)
+            .set_many_to_one_target_moduletable_name(OseliaRunFunctionCallVO.API_TYPE_ID);
 
         ModuleTableController.create_new(this.name, OseliaRunFunctionCallVO, null, 'Oselia - Run Function Call');
     }
@@ -350,6 +358,13 @@ export default class ModuleOselia extends Module {
             ModuleOselia.APINAME_open_oselia_db,
             null,
             OpenOseliaDBParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, void>(
+            ModuleOselia.POLICY_BO_ACCESS,
+            ModuleOselia.APINAME_replay_function_call,
+            [OseliaRunFunctionCallVO.API_TYPE_ID],
+            NumberParamVOStatic,
         ));
     }
 

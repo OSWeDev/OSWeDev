@@ -70,6 +70,9 @@ import OseliaServerController from './OseliaServerController';
 import OseliaOldRunsResyncBGThread from './bgthreads/OseliaOldRunsResyncBGThread';
 import OseliaRunBGThread from './bgthreads/OseliaRunBGThread';
 import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuilderBGThread';
+import OseliaRunFunctionCallVO from '../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
+import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
+import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -102,6 +105,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_account_waiting_link_status, this.account_waiting_link_status.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_set_screen_track, this.set_screen_track.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_get_screen_track, this.get_screen_track.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_replay_function_call, this.replay_function_call.bind(this));
     }
 
     // istanbul ignore next: cannot test configure
@@ -2166,6 +2170,121 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(parent_run);
                 OseliaRunServerController.update_oselia_run_state(parent_run, OseliaRunVO.STATE_WAIT_SPLITS_END_ENDED);
             }
+        }
+    }
+
+    private async replay_function_call(function_call_id: number) {
+
+        if (!function_call_id) {
+            return;
+        }
+
+        const function_call = await query(OseliaRunFunctionCallVO.API_TYPE_ID)
+            .filter_by_id(function_call_id)
+            .select_vo<OseliaRunFunctionCallVO>();
+
+        if (!function_call) {
+            ConsoleHandler.error('replay_function_call:No function_call found for function_call_id:' + function_call_id);
+            return;
+        }
+
+        const oselia_run = await query(OseliaRunVO.API_TYPE_ID)
+            .filter_by_id(function_call.oselia_run_id)
+            .select_vo<OseliaRunVO>();
+
+        if (!oselia_run) {
+            ConsoleHandler.error('replay_function_call:No oselia_run found for function_call_id:' + function_call_id);
+            return;
+        }
+
+        const thread_vo = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(oselia_run.thread_id)
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!thread_vo) {
+            ConsoleHandler.error('replay_function_call:No thread_vo found for function_call_id:' + function_call_id);
+            return;
+        }
+
+        const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
+            .filter_by_id(oselia_run.referrer_id)
+            .select_vo<OseliaReferrerVO>();
+
+        if (!referrer) {
+            ConsoleHandler.error('replay_function_call:No referrer found for function_call_id:' + function_call_id);
+            return;
+        }
+
+        const function_vo = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .filter_by_id(function_call.gpt_function_id)
+            .select_vo<GPTAssistantAPIFunctionVO>();
+
+        if (!function_vo) {
+            ConsoleHandler.error('replay_function_call:No function_vo found for function_call_id:' + function_call_id);
+            return;
+        }
+
+        const function_params: GPTAssistantAPIFunctionParamVO[] = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_id(function_call.gpt_function_id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .select_vos<GPTAssistantAPIFunctionParamVO>();
+
+        const availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] } = {};
+        const availableFunctionsParametersByParamName: { [function_id: number]: { [param_name: string]: GPTAssistantAPIFunctionParamVO } } = {};
+        const referrer_external_api_by_name: { [external_api_name: string]: OseliaReferrerExternalAPIVO } = {};
+
+        for (const i in function_params) {
+            const function_param = function_params[i];
+
+            if (!availableFunctionsParameters[function_param.function_id]) {
+                availableFunctionsParameters[function_param.function_id] = [];
+            }
+
+            availableFunctionsParameters[function_param.function_id].push(function_param);
+
+            if (!availableFunctionsParametersByParamName[function_param.function_id]) {
+                availableFunctionsParametersByParamName[function_param.function_id] = {};
+            }
+
+            availableFunctionsParametersByParamName[function_param.function_id][function_param.gpt_funcparam_name] = function_param;
+        }
+
+        const referrer_external_apis: OseliaReferrerExternalAPIVO[] = referrer ?
+            await query(OseliaReferrerExternalAPIVO.API_TYPE_ID)
+                .filter_by_id(referrer.id, OseliaReferrerVO.API_TYPE_ID)
+                .exec_as_server()
+                .select_vos<OseliaReferrerExternalAPIVO>()
+            : [];
+
+        for (const i in referrer_external_apis) {
+            const referrer_external_api = referrer_external_apis[i];
+            referrer_external_api_by_name[referrer_external_api.name] = referrer_external_api;
+        }
+
+        const oselia_run_function_call_vo = new OseliaRunFunctionCallVO();
+
+        try {
+
+            await GPTAssistantAPIServerController.do_function_call(
+                oselia_run,
+                null,
+                thread_vo,
+                referrer,
+                function_vo,
+                oselia_run_function_call_vo,
+                function_vo.gpt_function_name,
+                JSON.stringify(function_call.function_call_parameters_initial),
+                availableFunctionsParameters,
+                availableFunctionsParametersByParamName,
+                referrer_external_api_by_name,
+            );
+
+        } catch (error) {
+            ConsoleHandler.error('REPLAY function CALL: error: ' + error);
+
+            oselia_run_function_call_vo.end_date = Dates.now();
+            oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_ERROR;
+            oselia_run_function_call_vo.error_msg = error;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
         }
     }
 }

@@ -531,6 +531,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         return json;
     }
 
+    private async replay_from_id(function_call_id: number) {
+        await ModuleOselia.getInstance().replay_function_call(function_call_id);
+    }
+
     private thread_message_updated() {
         //TODO fixme, on devrait redécaler en bas peut-etre que si on était déjà en bas.
         this.$nextTick(() => {
