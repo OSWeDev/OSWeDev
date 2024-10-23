@@ -84,7 +84,7 @@
                                 i.fa-duotone.fa-chevron-up(v-else)
                             .function_calls_content(v-if='expand_function_calls')
                                 template(v-for='function_call in function_calls')
-                                    .function_call(:class='{"is_replay":function_call.replay_from_id}')
+                                    .function_call(:class='{"is_replay":!!function_call.replay_from_id}')
                                         .function_call_name {{ functions_by_id[function_call.gpt_function_id].gpt_function_name }}
                                             i(@click='replay_from_id(function_call.id)').fa-duotone.fa-play-circle
                                         vue-json-pretty.function_call_function_call_parameters_initial(:data='try_parse_json(function_call.function_call_parameters_initial)' :deep='1')

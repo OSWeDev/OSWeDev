@@ -2188,17 +2188,12 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return;
         }
 
-        const oselia_run = await query(OseliaRunVO.API_TYPE_ID)
+        const oselia_run = function_call.oselia_run_id ? await query(OseliaRunVO.API_TYPE_ID)
             .filter_by_id(function_call.oselia_run_id)
-            .select_vo<OseliaRunVO>();
-
-        if (!oselia_run) {
-            ConsoleHandler.error('replay_function_call:No oselia_run found for function_call_id:' + function_call_id);
-            return;
-        }
+            .select_vo<OseliaRunVO>() : null;
 
         const thread_vo = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
-            .filter_by_id(oselia_run.thread_id)
+            .filter_by_id(function_call.thread_id)
             .select_vo<GPTAssistantAPIThreadVO>();
 
         if (!thread_vo) {
@@ -2207,13 +2202,15 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
 
         const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
-            .filter_by_id(oselia_run.referrer_id)
+            .filter_by_id(function_call.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .using(OseliaThreadReferrerVO.API_TYPE_ID)
+            .set_limit(1)
             .select_vo<OseliaReferrerVO>();
 
-        if (!referrer) {
-            ConsoleHandler.error('replay_function_call:No referrer found for function_call_id:' + function_call_id);
-            return;
-        }
+        // if (!referrer) {
+        //     ConsoleHandler.error('replay_function_call:No referrer found for function_call_id:' + function_call_id);
+        //     return;
+        // }
 
         const function_vo = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
             .filter_by_id(function_call.gpt_function_id)
@@ -2261,6 +2258,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
 
         const oselia_run_function_call_vo = new OseliaRunFunctionCallVO();
+        oselia_run_function_call_vo.replay_from_id = function_call.id;
 
         try {
 

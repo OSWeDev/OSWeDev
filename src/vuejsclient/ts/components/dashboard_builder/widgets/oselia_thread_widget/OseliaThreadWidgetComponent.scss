@@ -257,6 +257,15 @@ $button-hover-shadow: none;
                             vertical-align: middle;
                         }
                     }
+
+                    .function_call {
+                        background: aliceblue;
+                        padding: .4em;
+
+                        &.is_replay {
+                            background: #EEE;
+                        }
+                    }
                 }
             }
 
