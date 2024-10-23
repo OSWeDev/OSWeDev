@@ -127,6 +127,7 @@ import Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actions from './pat
 import Patch20241016AddOseliaFunction_OSELIA_get_cache_value from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_get_cache_value';
 import Patch20241016AddOseliaFunction_OSELIA_set_cache_value from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_set_cache_value';
 import Patch20241016AddOseliaFunction_OSELIA_get_assistant from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_get_assistant';
+import Patch20241023AddOseliaFunction_azure_get_last_unread_email from './patchs/postmodules/Patch20241023AddOseliaFunction_azure_get_last_unread_email';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -278,6 +279,8 @@ export default abstract class GeneratorBase {
             Patch20241016AddOseliaFunction_OSELIA_set_cache_value.getInstance(),
             Patch20241016AddOseliaFunction_OSELIA_get_assistant.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
+
+            Patch20241023AddOseliaFunction_azure_get_last_unread_email.getInstance(),
         ];
     }
 

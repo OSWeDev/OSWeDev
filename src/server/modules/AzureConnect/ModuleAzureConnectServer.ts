@@ -9,6 +9,8 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import AzureConnectServerController from './AzureConnectServerController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { Client } from '@microsoft/microsoft-graph-client';
+import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 
 export default class ModuleAzureConnectServer extends ModuleServerBase {
 
@@ -37,6 +39,43 @@ export default class ModuleAzureConnectServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleAzureConnect.APINAME_azure_connect_callback, this.azure_connect_callback.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAzureConnect.APINAME_azure_connect, this.azure_connect.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAzureConnect.APINAME_azure_refresh_token, this.azure_refresh_token.bind(this));
+    }
+
+    public async azure_get_last_unread_email(
+        thread_vo: GPTAssistantAPIThreadVO,
+        tenantId: string,
+        clientId: string,
+        email: string,
+        mark_as_read: boolean = false,
+    ): Promise<Client> {
+
+        try {
+
+            if ((!AzureConnectServerController.registered_azure_client) ||
+                (!AzureConnectServerController.registered_azure_client[tenantId]) ||
+                (!AzureConnectServerController.registered_azure_client[tenantId][clientId])) {
+                ConsoleHandler.error('get_emails: no client found for tenantId: ' + tenantId + ' and clientId: ' + clientId);
+                return null;
+            }
+
+            const client = AzureConnectServerController.registered_azure_client[tenantId][clientId];
+
+            const res = await client
+                .api('/users/' + email + '/mailFolders/inbox/messages')
+                .filter('isRead eq false') // Filtre les mails non lus
+                .top(1)  // Limite à 1 mail
+                .get();
+
+            if (res && res.value && res.value.length && mark_as_read) {
+                await client
+                    .api('/users/' + email + '/messages/' + res.value[0].id)
+                    .update({ isRead: true });
+            }
+
+            return res.value;
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     // istanbul ignore next: cannot test configure
