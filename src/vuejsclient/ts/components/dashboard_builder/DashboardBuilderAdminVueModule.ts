@@ -81,6 +81,23 @@ export default class DashboardBuilderAdminVueModule extends DashboardBuilderVueM
 
             //TODO FIXME ajouter les liens pour chaque checklist
             await MenuController.getInstance().declare_menu_element(menuCMSPointer);
+
+
+            const main_route_name_cms_config: string = 'CMSConfig';
+
+            const menuCMSConfigPointer = MenuElementVO.create_new(
+                ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                main_route_name_cms_config,
+                "fa-gear",
+                10,
+                main_route_name_cms_config,
+                true,
+                menuBranch.id
+            );
+
+            //TODO FIXME ajouter les liens pour chaque checklist
+            await MenuController.getInstance().declare_menu_element(menuCMSConfigPointer);
         }
 
         if (!this.policies_loaded[ModuleDashboardBuilder.POLICY_BO_ACCESS]) {

@@ -135,6 +135,16 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
                 main_route_name,
                 () => import('./cms_builder/CMSBuilderComponent'),
             ));
+
+            url = "/cms_config";
+            main_route_name = 'CMSConfig';
+
+            this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForCMS(
+                url,
+                main_route_name,
+                () => import('./cms_config/CMSConfigComponent'),
+            ));
+
         }
 
         await this.initializeDefaultWidgets();
@@ -171,6 +181,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await this.initializeWidget_ResetFilters();
         await this.initializeWidget_BlocText();
+        await this.initializeWidget_ListObject();
         await this.initializeWidget_SuiviCompetences();
 
         await this.initializeWidget_SaveFavoritesFilters();
@@ -642,6 +653,26 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('BlocTextwidgetcomponent', () => import('./widgets/bloc_text_widget/BlocTextWidgetComponent'));
         Vue.component('BlocTextwidgetoptionscomponent', () => import('./widgets/bloc_text_widget/options/BlocTextWidgetOptionsComponent'));
         Vue.component('BlocTextwidgeticoncomponent', () => import('./widgets/bloc_text_widget/icon/BlocTextWidgetIconComponent'));
+    }
+
+    private async initializeWidget_ListObject() {
+        const ListObject = new DashboardWidgetVO();
+
+        ListObject.default_height = 5;
+        ListObject.default_width = 2;
+        ListObject.name = DashboardWidgetVO.WIDGET_NAME_listobject;
+        ListObject.widget_component = 'ListObjectwidgetcomponent';
+        ListObject.options_component = 'ListObjectwidgetoptionscomponent';
+        ListObject.weight = 3;
+        ListObject.default_background = '#f5f5f5';
+        ListObject.icon_component = 'ListObjectwidgeticoncomponent';
+        ListObject.is_filter = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(ListObject, null, null);
+
+        Vue.component('ListObjectwidgetcomponent', () => import('./widgets/list_object_widget/ListObjectWidgetComponent'));
+        Vue.component('ListObjectwidgetoptionscomponent', () => import('./widgets/list_object_widget/options/ListObjectWidgetOptionsComponent'));
+        Vue.component('ListObjectwidgeticoncomponent', () => import('./widgets/list_object_widget/icon/ListObjectWidgetIconComponent'));
     }
 
     private async initializeWidget_SuiviCompetences() {

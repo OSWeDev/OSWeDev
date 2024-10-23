@@ -16,7 +16,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import './BlocTextWidgetOptionsComponent.scss';
 
 @Component({
-    template: require('./BlocTextWidgetOptionsComponent.pug')
+    template: require('./BlocTextWidgetOptionsComponent.pug'),
 })
 export default class BlocTextWidgetOptionsComponent extends VueComponentBase {
 

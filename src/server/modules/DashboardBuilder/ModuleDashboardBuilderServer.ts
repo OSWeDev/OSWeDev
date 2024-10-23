@@ -1086,6 +1086,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Insérer un bloc de texte'
         }, 'dashboards.widgets.icons_tooltips.BlocText.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Insérer une liste d\'objets'
+        }, 'dashboards.widgets.icons_tooltips.listobject.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Min/Max relatifs à l\'année actuelle'
         }, 'year_filter_widget_component.year_relative_mode.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -1554,6 +1557,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'CMS Builder'
         }, 'menu.menuelements.admin.CMSBuilder.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'CMS Config'
+        }, 'menu.menuelements.admin.CMSConfig.___LABEL___'));
+
 
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -3491,6 +3498,73 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Justifié" },
             'cms_bloc_text.alignement.justifie.___LABEL___'
         ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Justifié" },
+            'cms_bloc_text.alignement.justifie.___LABEL___'
+        ));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Options de la liste" },
+            'list_object_widget_options_component.separator.widget_options.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Titres" },
+            'list_object_widget_options_component.widget_title.title.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Sous-titres" },
+            'list_object_widget_options_component.widget_subtitle.subtitle.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Images" },
+            'list_object_widget_options_component.widget_image.image.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Nombres" },
+            'list_object_widget_options_component.widget_number.number.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Nombre d\'éléments" },
+            'list_object_widget_options_component.number_of_elements.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Tri d\'affichage" },
+            'list_object_widget_options_component.sort_dimension_by.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Orientation" },
+            'list_object_widget_options_component.display_orientation.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Les éléments sont des boutons" },
+            'list_object_widget_options_component.button_for_elements.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "URL" },
+            'list_object_widget_options_component.url.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Utiliser blank" },
+            'list_object_widget_options_component.use_blank.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Utiliser blank" },
+            'list_object_widget_options_component.filter_field_ref.___LABEL___'
+        ));
+
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "URL" },

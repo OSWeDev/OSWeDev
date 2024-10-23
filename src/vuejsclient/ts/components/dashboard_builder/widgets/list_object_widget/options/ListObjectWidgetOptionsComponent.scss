@@ -1,0 +1,48 @@
+.list_object_widget_options_component {
+
+    >div {
+        margin-bottom: 0.5em;
+
+        .input_label {
+            font-size: small;
+            color: #555;
+        }
+
+        input[type="text"] {
+            padding: 0.3em;
+            border: solid 1px #BBB;
+            border-radius: 2px;
+
+            &.multiselect__input {
+                border:none;
+            }
+        }
+
+        .switch_toggle {
+            display: flex;
+            justify-content: space-evenly;
+            
+            .input {
+                background-color: #fff;
+                border-radius: 24px;
+                border-style: solid;
+                font-family: "Google Sans",Roboto,Arial,sans-serif;
+                font-weight: 500;
+                justify-content: center;
+                padding: 2px 24px;
+                border-width: medium;
+            }
+
+            .input:hover {
+                background: #F6F9FE;
+                color: #174ea6;
+            }
+
+            .selected {
+                background: #3abe06;
+                color: #fbfdff;
+            }
+           
+        }
+    }
+}
