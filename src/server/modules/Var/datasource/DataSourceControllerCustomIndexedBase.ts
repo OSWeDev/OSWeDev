@@ -145,9 +145,10 @@ export default abstract class DataSourceControllerCustomIndexedBase extends Data
                  * On ajoute un sémaphore pour éviter de faire 10 fois la requête sur un batch
                  */
                 if (CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[this.name][data_index.index] === true) {
-                    return new Promise((resolve, reject) => {
+                    await (new Promise((resolve, reject) => {
                         CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name][data_index.index][node.var_data.index] = resolve;
-                    });
+                    }));
+                    continue;
                 }
                 CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[this.name][data_index.index] = true;
 

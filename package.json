@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.32.9",
+    "version": "0.32.9-pre15",
     "description": "",
     "repository": {
         "type": "git",
@@ -46,11 +46,11 @@
         "adm-zip": "0.5.9",
         "axios": "^1.7.2",
         "bootstrap": "4.4.1",
-        "chart.js": "4.2.1",
+        "chart.js": "4.3.0",
         "chart.js-plugin-labels-dv": "4.0.0",
-        "chartjs-chart-geo": "^4.3.0",
-        "chartjs-plugin-datalabels": "^2.2.0",
-        "chartjs-plugin-piechart-outlabels": "^0.1.4",
+        "chartjs-chart-geo": "4.3.0",
+        "chartjs-plugin-datalabels": "2.2.0",
+        "chartjs-plugin-piechart-outlabels": "0.1.4",
         "compression": "1.7.2",
         "cookie-parser": "1.4.4",
         "cron": "2.0.0",

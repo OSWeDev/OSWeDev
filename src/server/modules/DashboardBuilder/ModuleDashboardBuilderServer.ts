@@ -238,6 +238,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options des dimensions'
         }, 'var_radar_chart_widget_options_component.separator.datas_dimension_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Multi dataset'
+        }, 'var_radar_chart_widget_options_component.separator.multiple_dataset.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
@@ -326,6 +329,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser la somme des deux variables comme valeur max ?'
         }, 'var_radar_chart_widget_options_component.max_is_sum_of_var_1_and_2.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Sélectionner le champ permettant de faire du multi dataset (plusieurs radars superposés)'
+        }, 'var_radar_chart_widget_options_component.multiple_dataset_vo_field_ref.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Maximum de radars superposés'
+        }, 'var_radar_chart_widget_options_component.max_dataset_values.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du graphique'
@@ -3544,6 +3555,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Préréglage de la palette" },
             'var_charts_options_component.use_palette.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Masquer le filtre" },
+            'var_mixed_charts_widget_options_component.hide_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Masquer le filtre" },
+            'var_radar_chart_widget_options_component.hide_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Masquer le filtre" },
+            'var_pie_chart_widget_options_component.hide_filter.___LABEL___'
         ));
 
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

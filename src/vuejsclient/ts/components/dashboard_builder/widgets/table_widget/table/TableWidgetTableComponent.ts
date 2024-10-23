@@ -317,33 +317,33 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     //         const var_widget_options = new VarWidgetOptions().from(options);
     //         const name = var_widget_options.get_title_name_code_text(var_page_widget.id);
 
-        //     if (var_widget_options.vars && var_widget_options.vars.length) {
-        //         for (let j = 0; j < var_widget_options.vars.length; j++) {
-        //             const current_var = var_widget_options.vars[j];
-        //             const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
-        //                 options.var_id,
-        //                 var_widget_options.filter_custom_field_filters[j],
-        //                 current_var.filter_type,
-        //                 current_var.filter_additional_params,
-        //             );
-        //             res_columns.push(conf);
-        //         }
-        //     }
-        //     for (const conf in res_columns) {
-        //         const column = {};
-        //         column[name] = conf;
-        //         varcolumn_conf.push(column[name]);
-        //     }
-        // }
+    //     if (var_widget_options.vars && var_widget_options.vars.length) {
+    //         for (let j = 0; j < var_widget_options.vars.length; j++) {
+    //             const current_var = var_widget_options.vars[j];
+    //             const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+    //                 options.var_id,
+    //                 var_widget_options.filter_custom_field_filters[j],
+    //                 current_var.filter_type,
+    //                 current_var.filter_additional_params,
+    //             );
+    //             res_columns.push(conf);
+    //         }
+    //     }
+    //     for (const conf in res_columns) {
+    //         const column = {};
+    //         column[name] = conf;
+    //         varcolumn_conf.push(column[name]);
+    //     }
+    // }
 
-        // // returns ordered_column_list, column_labels and varcolumn_conf
-        // for (const key in varcolumn_conf) {
-        //     res.push(ExportVarIndicatorVO.create_new(
-        //         ['name', 'value'],
-        //         { name: 'Nom', value: 'Valeur' },
-        //         varcolumn_conf[key]
-        //     ));
-        // }
+    // // returns ordered_column_list, column_labels and varcolumn_conf
+    // for (const key in varcolumn_conf) {
+    //     res.push(ExportVarIndicatorVO.create_new(
+    //         ['name', 'value'],
+    //         { name: 'Nom', value: 'Valeur' },
+    //         varcolumn_conf[key]
+    //     ));
+    // }
     //     return res;
     // }
 
@@ -770,7 +770,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                                     } else if (column.column_dynamic_var) {
                                         new_column.type = TableColumnDescVO.TYPE_var_ref;
                                         new_column.var_id = VarsController.var_conf_by_name[column.column_dynamic_var].id;
-                                        new_column.var_unicity_id = Dates.now();
+                                        new_column.var_unicity_id = Math.round(Dates.now_ms() + (Math.random() * 1000));
                                     }
 
                                     new_weight++;
