@@ -138,6 +138,8 @@ import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
 import ParamsManager from '../../shared/modules/Params/ParamsManager';
+import ModuleLogger from '../../shared/modules/Logger/ModuleLogger';
+import ModuleLoggerServer from './Logger/ModuleLoggerServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -280,7 +282,7 @@ export default abstract class ModuleServiceBase {
         } else {
 
             if (ConfigurationService.node_configuration.debug_start_server) {
-                ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:START');
+                ConsoleHandler.debug('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:START');
             }
             for (const i in this.registered_modules) {
                 const registered_module = this.registered_modules[i];
@@ -288,43 +290,43 @@ export default abstract class ModuleServiceBase {
                 await PreloadedModuleServerController.load_or_create_module_is_actif(registered_module);
             }
             if (ConfigurationService.node_configuration.debug_start_server) {
-                ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
+                ConsoleHandler.debug('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
             }
         }
         // On configure les apis des modules server
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:START');
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:configure_server_modules_apis:START');
         }
         this.configure_server_modules_apis();
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:END');
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:configure_server_modules_apis:END');
         }
 
         // On lance le preload des params des modules
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ParamsManager:reloadPreloadParams:START');
+            ConsoleHandler.debug('ParamsManager:reloadPreloadParams:START');
         }
         await ParamsManager.reloadPreloadParams();
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ParamsManager:reloadPreloadParams:END');
+            ConsoleHandler.debug('ParamsManager:reloadPreloadParams:END');
         }
 
         // On lance la configuration des modules
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_init:START');
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:configure_server_modules_init:START');
         }
         await this.configure_server_modules_init();
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_init:END');
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:configure_server_modules_init:END');
         }
 
         // On charge le cache des tables segmentées. On cherche à être exhaustifs pour le coup
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:START');
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:START');
         }
         await this.preload_segmented_known_databases();
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:END');
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:END');
         }
 
         // A mon avis c'est de la merde ça... on charge où la vérif des params, le hook install, ... ?
@@ -409,7 +411,7 @@ export default abstract class ModuleServiceBase {
             const server_module: ModuleServerBase = this.server_modules[i];
 
             if (ConfigurationService.node_configuration.debug_start_server) {
-                ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':START');
+                ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':START');
             }
 
             if (server_module.actif) {
@@ -421,26 +423,26 @@ export default abstract class ModuleServiceBase {
                 ]);
 
                 if (ConfigurationService.node_configuration.debug_start_server) {
-                    ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerCrons');
+                    ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':registerCrons');
                 }
 
                 server_module.registerCrons();
 
                 if (ConfigurationService.node_configuration.debug_start_server) {
-                    ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerAccessHooks');
+                    ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':registerAccessHooks');
                 }
                 server_module.registerAccessHooks();
 
                 if (app) {
                     if (ConfigurationService.node_configuration.debug_start_server) {
-                        ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerExpressApis');
+                        ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':registerExpressApis');
                     }
                     server_module.registerExpressApis(app);
                 }
             }
 
             if (ConfigurationService.node_configuration.debug_start_server) {
-                ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':END');
+                ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':END');
             }
         }
     }
@@ -604,6 +606,7 @@ export default abstract class ModuleServiceBase {
             ModuleBGThread.getInstance(),
             ModuleParams.getInstance(),
             ModuleAnonymization.getInstance(),
+            ModuleLogger.getInstance(),
         ];
     }
 
@@ -672,6 +675,7 @@ export default abstract class ModuleServiceBase {
             ModuleAzureMemoryCheck.getInstance(),
             ModuleOselia.getInstance(),
             ModuleSuiviCompetences.getInstance(),
+            ModuleLogger.getInstance(),
         ];
     }
 
@@ -738,6 +742,7 @@ export default abstract class ModuleServiceBase {
             ModuleAzureMemoryCheckServer.getInstance(),
             ModuleOseliaServer.getInstance(),
             ModuleSuiviCompetencesServer.getInstance(),
+            ModuleLoggerServer.getInstance(),
         ];
     }
 

@@ -105,7 +105,7 @@ import Patch20240827DeleteVersionedAssistantsWithoutInstructions from './patchs/
 import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
-import ParamsManager from '../shared/modules/Params/ParamsManager';
+import Patch20241010CreateLogType from './patchs/postmodules/Patch20241010CreateLogType';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -229,6 +229,7 @@ export default abstract class GeneratorBase {
             Patch20240905InitAllThreadsOseliaToHavingContents.getInstance(),
             Patch20240905AddOseliaAssistantThreadTitleWriter.getInstance(),
             Patch20240906DeleteOldAssistantObjDBLinks.getInstance(),
+            Patch20241010CreateLogType.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }
