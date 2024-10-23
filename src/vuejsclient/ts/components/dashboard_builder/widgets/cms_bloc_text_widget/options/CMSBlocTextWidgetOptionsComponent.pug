@@ -42,34 +42,7 @@
                                 :deselect-group-label='label("multiselect.deselectGroupLabel")'
                             )
                 template(v-else)
-                    input(
-                        type="text"
-                        v-model="titre"
-                    )
-        .alignement_titre
-            .input_label {{ label('cms_bloc_text.widget_option.alignement_titre') }}
-            .input_wrapper
-                multiselect.var_name_selector(
-                    :preselect-first="false"
-                    :multiple="false"
-                    v-model="alignement_titre_selected"
-                    :options="alignement_options"
-                    :allow-empty="false",
-
-                    :searchable="true"
-                    :internal-search="true"
-
-                    select-label=''
-                    select-group-label=''
-                    selected-label=''
-                    deselect-label=''
-                    deselect-group-label=''
-
-                    placeholder=''
-
-                    name="titre_alignement_selector"
-
-                )
+                    Vuequilleditor(v-model='titre', :options="optionsEditeur")
 
         .sous_titre
             .input_label {{ label('cms_bloc_text.widget_option.sous_titre') }}
@@ -103,35 +76,7 @@
                             )
 
                 template(v-else)
-                    input(
-                        type="text"
-                        v-model="sous_titre"
-                    )
-
-        .alignement_sous_titre
-            .input_label {{ label('cms_bloc_text.widget_option.alignement_sous_titre') }}
-            .input_wrapper
-                multiselect.var_name_selector(
-                    :preselect-first="false"
-                    :multiple="false"
-                    v-model="alignement_sous_titre_selected"
-                    :options="alignement_options"
-                    :allow-empty="false",
-
-                    :searchable="true"
-                    :internal-search="true"
-
-                    select-label=''
-                    select-group-label=''
-                    selected-label=''
-                    deselect-label=''
-                    deselect-group-label=''
-
-                    placeholder=''
-
-                    name="sous_titre_alignement_selector"
-
-                )
+                    Vuequilleditor(v-model='sous_titre', :options="optionsEditeur")
 
         .contenu
             .input_label {{ label('cms_bloc_text.widget_option.contenu') }}

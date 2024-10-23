@@ -3709,6 +3709,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'cms_image.position.centre_haut.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Centré en base" },
+            'cms_image.position.centre_bas.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "En haut à gauche" },
             'cms_image.position.haut_gauche.___LABEL___'
         ));

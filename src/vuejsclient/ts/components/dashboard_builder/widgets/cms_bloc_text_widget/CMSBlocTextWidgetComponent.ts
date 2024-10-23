@@ -39,16 +39,9 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
     private sous_titre: string = null;
     private contenu: string = null;
 
-    private alignement_titre: string = null;
-    private alignement_sous_titre: string = null;
-
     private style_titre: string = null;
     private style_sous_titre: string = null;
     private style_contenu: string = null;
-
-    get base_style(): string {
-        return "word-wrap: break-word;";
-    }
 
     get widget_options(): CMSBlocTextWidgetOptionsVO {
         if (!this.page_widget) {
@@ -90,43 +83,16 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
             this.sous_titre = null;
             this.contenu = null;
 
-            this.alignement_titre = this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE);
-            this.alignement_sous_titre = this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE);
-
-            this.style_titre = this.base_style + this.style_alignments(this.alignement_titre);
-            this.style_sous_titre = this.base_style + this.style_alignments(this.alignement_sous_titre);
-
             return;
         }
 
         this.titre = this.get_value(this.widget_options.titre, this.widget_options.titre_field_ref_for_template);
         this.sous_titre = this.get_value(this.widget_options.sous_titre, this.widget_options.sous_titre_field_ref_for_template);
         this.contenu = this.get_value(this.widget_options.contenu, this.widget_options.contenu_field_ref_for_template);
-
-        this.alignement_titre = this.widget_options.alignement_titre;
-        this.alignement_sous_titre = this.widget_options.alignement_sous_titre;
-
-        this.style_titre = this.base_style + this.style_alignments(this.widget_options.alignement_titre);
-        this.style_sous_titre = this.base_style + this.style_alignments(this.widget_options.alignement_sous_titre);
     }
 
     private async mounted() {
         this.onchange_widget_options();
-    }
-
-    private style_alignments(text_alignement: string): string {
-        switch (text_alignement) {
-            case this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE):
-                return 'text-align: start;';
-            case this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_CENTRE):
-                return 'text-align: center;';
-            case this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_DROITE):
-                return 'text-align: end;';
-            case this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_JUSTIFIE):
-                return 'text-align: justify;';
-            default:
-                break;
-        }
     }
 
     private get_value(data: any, field_ref: VOFieldRefVO): string {
