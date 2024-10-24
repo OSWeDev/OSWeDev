@@ -137,6 +137,8 @@ import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
+import ModuleAzureConnect from '../../shared/modules/AzureConnect/ModuleAzureConnect';
+import ModuleAzureConnectServer from './AzureConnect/ModuleAzureConnectServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -645,6 +647,7 @@ export default abstract class ModuleServiceBase {
             ModuleAzureMemoryCheck.getInstance(),
             ModuleOselia.getInstance(),
             ModuleSuiviCompetences.getInstance(),
+            ModuleAzureConnect.getInstance(),
         ];
     }
 
@@ -711,6 +714,7 @@ export default abstract class ModuleServiceBase {
             ModuleAzureMemoryCheckServer.getInstance(),
             ModuleOseliaServer.getInstance(),
             ModuleSuiviCompetencesServer.getInstance(),
+            ModuleAzureConnectServer.getInstance(),
         ];
     }
 

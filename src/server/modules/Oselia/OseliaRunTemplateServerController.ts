@@ -52,8 +52,10 @@ export default class OseliaRunTemplateServerController {
             const oselia_run = new OseliaRunVO();
             oselia_run.thread_title = await TemplateHandlerServer.apply_template(template.thread_title, user.lang_id, false, initial_prompt_parameters); // Comme on veut ouvrir au public, on peut pas accéder aux envs params
 
-            if (thread_vo.needs_thread_title_build) {
+            if (!thread_vo.thread_title_auto_build_locked) {
                 thread_vo.thread_title = oselia_run.thread_title;
+                thread_vo.thread_title_auto_build_locked = true;
+                thread_vo.needs_thread_title_build = false;
                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
             }
 

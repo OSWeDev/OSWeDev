@@ -51,27 +51,16 @@ export default class Patch20241023AddOseliaFunction_azure_get_last_unread_email 
 
     public async create_params_description_if_not_exists(func: GPTAssistantAPIFunctionVO) {
 
-        // tenantId: string,
-        const tenantId_param: GPTAssistantAPIFunctionParamVO = new GPTAssistantAPIFunctionParamVO();
-        tenantId_param.gpt_funcparam_name = 'tenantId';
-        tenantId_param.gpt_funcparam_description = 'tenantId de l\'application Azure';
-        tenantId_param.function_id = func.id;
-        tenantId_param.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
-        tenantId_param.required = true;
-        tenantId_param.weight = 0;
-        tenantId_param.default_json_value = null;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(tenantId_param);
-
-        // clientId: string,
-        const clientId_param: GPTAssistantAPIFunctionParamVO = new GPTAssistantAPIFunctionParamVO();
-        clientId_param.gpt_funcparam_name = 'clientId';
-        clientId_param.gpt_funcparam_description = 'clientId de l\'application Azure';
-        clientId_param.function_id = func.id;
-        clientId_param.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
-        clientId_param.required = true;
-        clientId_param.weight = 1;
-        clientId_param.default_json_value = null;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(clientId_param);
+        // registration_name: string,
+        const registration_name_param: GPTAssistantAPIFunctionParamVO = new GPTAssistantAPIFunctionParamVO();
+        registration_name_param.gpt_funcparam_name = 'registration_name';
+        registration_name_param.gpt_funcparam_description = 'registration_name de la connexion Azure';
+        registration_name_param.function_id = func.id;
+        registration_name_param.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
+        registration_name_param.required = true;
+        registration_name_param.weight = 0;
+        registration_name_param.default_json_value = null;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(registration_name_param);
 
         // email: string,
         const email_param: GPTAssistantAPIFunctionParamVO = new GPTAssistantAPIFunctionParamVO();
