@@ -10,7 +10,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
     public title: VOFieldRefVO;
     public subtitle: VOFieldRefVO;
     public number: VOFieldRefVO;
-    public filter_field_ref: VOFieldRefVO;
+    public sort_field_ref: VOFieldRefVO;
     public button_elements: boolean;
     public url: VOFieldRefVO;
     public blank: boolean;
@@ -23,7 +23,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         title: VOFieldRefVO,
         subtitle: VOFieldRefVO,
         number: VOFieldRefVO,
-        filter_field_ref: VOFieldRefVO,
+        sort_field_ref: VOFieldRefVO,
         button_elements: boolean,
         url: VOFieldRefVO,
         blank: boolean
@@ -36,7 +36,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         res.title = title;
         res.subtitle = subtitle;
         res.number = number;
-        res.filter_field_ref = filter_field_ref;
+        res.sort_field_ref = sort_field_ref;
         res.button_elements = button_elements;
         res.url = url;
         res.blank = blank;

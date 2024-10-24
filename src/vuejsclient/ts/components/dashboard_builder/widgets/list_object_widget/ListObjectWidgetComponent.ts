@@ -107,7 +107,7 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     }
 
     private async get_titles() {
-        if (!this.widget_options.filter_field_ref || !this.widget_options.title || !this.widget_options.title.api_type_id || !this.widget_options.title.field_id) {
+        if (!this.widget_options.title || !this.widget_options.title.api_type_id || !this.widget_options.title.field_id) {
             return [];
         }
         const query_ = await query(this.widget_options.title.api_type_id)
@@ -119,14 +119,15 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
-        if (this.widget_options.sort_dimension_by)
+        if (this.widget_options.sort_dimension_by && this.widget_options.sort_field_ref) {
             query_.set_sort(new SortByVO(
-                this.widget_options.filter_field_ref.api_type_id,
-                this.widget_options.filter_field_ref.field_id,
+                this.widget_options.sort_field_ref.api_type_id,
+                this.widget_options.sort_field_ref.field_id,
                 this.sort_by_asc
             ));
+        }
 
-        const titles = await query_.select_vos()
+        const titles = await query_.select_vos();
         const res = [];
         for (const title of titles) {
             res.push(title[this.widget_options.title.field_id]);
@@ -135,7 +136,7 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     }
 
     private async get_subtitles() {
-        if (!this.widget_options.filter_field_ref || !this.widget_options.subtitle || !this.widget_options.subtitle.api_type_id || !this.widget_options.subtitle.field_id) {
+        if (!this.widget_options.subtitle || !this.widget_options.subtitle.api_type_id || !this.widget_options.subtitle.field_id) {
             return [];
         }
         const query_ = await query(this.widget_options.subtitle.api_type_id)
@@ -147,14 +148,15 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
-        if (this.widget_options.sort_dimension_by)
+        if (this.widget_options.sort_dimension_by && this.widget_options.sort_field_ref) {
             query_.set_sort(new SortByVO(
-                this.widget_options.filter_field_ref.api_type_id,
-                this.widget_options.filter_field_ref.field_id,
+                this.widget_options.sort_field_ref.api_type_id,
+                this.widget_options.sort_field_ref.field_id,
                 this.sort_by_asc
             ));
+        }
 
-        const subtitles = await query_.select_vos()
+        const subtitles = await query_.select_vos();
         const res = [];
         for (const subtitle of subtitles) {
             res.push(subtitle[this.widget_options.subtitle.field_id]);
@@ -163,7 +165,7 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     }
 
     private async get_images() {
-        if (!this.widget_options.filter_field_ref || !this.widget_options.image_id || !this.widget_options.image_id.api_type_id || !this.widget_options.image_id.field_id) {
+        if (!this.widget_options.image_id || !this.widget_options.image_id.api_type_id || !this.widget_options.image_id.field_id) {
             return [];
         }
         const query_ = await query(this.widget_options.image_id.api_type_id)
@@ -175,20 +177,21 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
-        if (this.widget_options.sort_dimension_by)
+        if (this.widget_options.sort_dimension_by && this.widget_options.sort_field_ref) {
             query_.set_sort(new SortByVO(
-                this.widget_options.filter_field_ref.api_type_id,
-                this.widget_options.filter_field_ref.field_id,
+                this.widget_options.sort_field_ref.api_type_id,
+                this.widget_options.sort_field_ref.field_id,
                 this.sort_by_asc
             ));
+        }
 
-        const images = await query_.select_vos()
+        const images = await query_.select_vos();
         const res = [];
         for (const image of images) {
             res.push(image[this.widget_options.image_id.field_id]);
         }
 
-        const file_res: FileVO[] = []
+        const file_res: FileVO[] = [];
         for (let res_ of res) {
             file_res.push(await query(FileVO.API_TYPE_ID).filter_by_id(res_).select_vo());
         }
@@ -196,7 +199,7 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     }
 
     private async get_numbers() {
-        if (!this.widget_options.filter_field_ref || !this.widget_options.number || !this.widget_options.number.api_type_id || !this.widget_options.number.field_id) {
+        if (!this.widget_options.number || !this.widget_options.number.api_type_id || !this.widget_options.number.field_id) {
             return [];
         }
         const query_ = await query(this.widget_options.number.api_type_id)
@@ -208,14 +211,15 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
-        if (this.widget_options.sort_dimension_by)
+        if (this.widget_options.sort_dimension_by && this.widget_options.sort_field_ref) {
             query_.set_sort(new SortByVO(
-                this.widget_options.filter_field_ref.api_type_id,
-                this.widget_options.filter_field_ref.field_id,
+                this.widget_options.sort_field_ref.api_type_id,
+                this.widget_options.sort_field_ref.field_id,
                 this.sort_by_asc
             ));
+        }
 
-        const numbers = await query_.select_vos()
+        const numbers = await query_.select_vos();
         const res = [];
         for (const number of numbers) {
             res.push(number[this.widget_options.number.field_id]);
@@ -224,7 +228,7 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     }
 
     private async get_urls() {
-        if (!this.widget_options.filter_field_ref || !this.widget_options.url || !this.widget_options.url.api_type_id || !this.widget_options.url.field_id) {
+        if (!this.widget_options.url || !this.widget_options.url.api_type_id || !this.widget_options.url.field_id) {
             return [];
         }
         const query_ = await query(this.widget_options.url.api_type_id)
@@ -236,14 +240,15 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
-        if (this.widget_options.sort_dimension_by)
+        if (this.widget_options.sort_dimension_by && this.widget_options.sort_field_ref) {
             query_.set_sort(new SortByVO(
-                this.widget_options.filter_field_ref.api_type_id,
-                this.widget_options.filter_field_ref.field_id,
+                this.widget_options.sort_field_ref.api_type_id,
+                this.widget_options.sort_field_ref.field_id,
                 this.sort_by_asc
             ));
+        }
 
-        const urls = await query_.select_vos()
+        const urls = await query_.select_vos();
         const res = [];
         for (const url of urls) {
             res.push(url[this.widget_options.url.field_id]);

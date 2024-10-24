@@ -3691,8 +3691,8 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
-            { 'fr-fr': "Utiliser blank" },
-            'list_object_widget_options_component.filter_field_ref.___LABEL___'
+            { 'fr-fr': "Champ pour trier" },
+            'list_object_widget_options_component.sort_field_ref.___LABEL___'
         ));
 
 
