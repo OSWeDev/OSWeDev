@@ -14,6 +14,7 @@ import IForkMessageWrapper from './interfaces/IForkMessageWrapper';
 import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMessage';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 
 export default class ForkMessageController {
 
@@ -98,16 +99,16 @@ export default class ForkMessageController {
                 return;
             }
 
-            res = sendHandle.send(msg, (error: Error) => {
+            res = sendHandle.send(msg, async (error: Error) => {
                 if (error) {
-                    self.handle_send_error({
+                    await self.handle_send_error({
                         message: msg,
                         sendHandle: sendHandle,
                         forked_target: forked_target
                     }, error);
                 }
 
-                resolve(!error);
+                await resolve(!error);
             });
 
             if (ForkMessageController.stacked_msg_waiting && ForkMessageController.stacked_msg_waiting.length) {
@@ -134,8 +135,8 @@ export default class ForkMessageController {
                 return;
             }
 
-            msg_wrapper.sendHandle.send(msg_wrapper.message, (error: Error) => {
-                self.handle_send_error(msg_wrapper, error);
+            msg_wrapper.sendHandle.send(msg_wrapper.message, async (error: Error) => {
+                await self.handle_send_error(msg_wrapper, error);
             });
         });
 
@@ -148,7 +149,7 @@ export default class ForkMessageController {
     private static last_log_msg_error: number = 0;
     private static throttled_retry = throttle(ForkMessageController.retry.bind(ForkMessageController), 500);
 
-    private static handle_send_error(msg_wrapper: IForkMessageWrapper, error: Error) {
+    private static async handle_send_error(msg_wrapper: IForkMessageWrapper, error: Error) {
         if (error) {
 
             /**
@@ -161,10 +162,41 @@ export default class ForkMessageController {
             }
 
             /**
-             * si le pid du sendHandle est plus actif, ça sert à rien de retenter
+             * si le pid du sendHandle est plus actif, on doit tenter de trouver le nouveau pid correspondant à ce thread
              */
             if (msg_wrapper.sendHandle && msg_wrapper.sendHandle.pid && !msg_wrapper.sendHandle.connected) {
-                ConsoleHandler.error('ForkMessageController.handle_send_error: sendHandle.pid:' + msg_wrapper.sendHandle.pid + ' is not connected');
+                ConsoleHandler.error('ForkMessageController.handle_send_error: sendHandle.pid:' + msg_wrapper.sendHandle.pid + ' is not connected: Trying to find new handler for pid: ' + msg_wrapper.sendHandle.pid + ' ...');
+
+                let n = 3; // On limite à 90 secondes
+                let found_bgthread_id: number = null;
+                while ((n-- > 0) && ((!found_bgthread_id) || (!(ForkServerController.forks[found_bgthread_id] && ForkServerController.forks[found_bgthread_id].child_process.connected)))) {
+
+                    await ThreadHandler.sleep(30000, 'ForkMessageController.handle_send_error: sendHandle.pid:' + msg_wrapper.sendHandle.pid + ' is not connected: Trying to find new handler for thread_id: ' + found_bgthread_id + ' ... waiting 30s - ' + n);
+
+                    for (const bgthread_id in ForkServerController.forks_alive_historic_pids) {
+                        const historic_ids = ForkServerController.forks_alive_historic_pids[bgthread_id];
+
+                        for (let i in historic_ids) {
+                            if (historic_ids[i] == msg_wrapper.sendHandle.pid) {
+                                found_bgthread_id = parseInt(bgthread_id.toString());
+                                break;
+                            }
+                        }
+
+                        if (found_bgthread_id) {
+                            break;
+                        }
+                    }
+                }
+
+                if (found_bgthread_id && ForkServerController.forks[found_bgthread_id] && ForkServerController.forks[found_bgthread_id].child_process.connected) {
+                    ConsoleHandler.error('ForkMessageController.handle_send_error: sendHandle.pid:' + msg_wrapper.sendHandle.pid + ' is not connected: Found new handler for thread_id: ' + found_bgthread_id + ' ... sending message to new handler with pid : ' + ForkServerController.forks[found_bgthread_id].child_process.pid);
+                    const forked_target = ForkServerController.forks[found_bgthread_id];
+                    ForkMessageController.send(msg_wrapper.message, forked_target.child_process, forked_target);
+                    return;
+                } else {
+                    ConsoleHandler.error('ForkMessageController.handle_send_error: sendHandle.pid:' + msg_wrapper.sendHandle.pid + ' is not connected: No new pid found');
+                }
             }
 
             ForkMessageController.stacked_msg_waiting.push(msg_wrapper);

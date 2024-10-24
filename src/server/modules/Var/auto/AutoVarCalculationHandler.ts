@@ -2,20 +2,21 @@ import TimeSegment from "../../../../shared/modules/DataRender/vos/TimeSegment";
 import Dates from "../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import Durations from "../../../../shared/modules/FormatDatesNombres/Dates/Durations";
 import VarConfVO from "../../../../shared/modules/Var/vos/VarConfVO";
+import VarDAGNode from "../vos/VarDAGNode";
+import AutoVarDatasourceController from "./AutoVarDatasourceController";
 
 export default class AutoVarCalculationHandler {
 
-    public static do_calculation(deps_values: number[], auto_operator: number): number {
+    private static DEP_PREFIX: string = 'DEP';
+    private static DEP_SEPARATOR: string = '_';
 
-        const res = null;
+    public static do_calculation(varDAGNode: VarDAGNode, deps_values: number[], auto_operator: number, var_conf: VarConfVO): number {
+
         switch (auto_operator) {
 
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_VOFIELDREF:
-                AutoVarCalculationHandler.assert_has_1_dep(auto_operator, deps_values);
-                return AutoVarCalculationHandler.return_null_if_has_null_undefined_or_nan_dep(
-                    deps_values,
-                    () => deps_values[0]
-                );
+                AutoVarCalculationHandler.assert_has_0_dep(auto_operator, deps_values);
+                return varDAGNode.datasources[AutoVarDatasourceController.getInstance(var_conf).name];
 
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_NOT:
                 AutoVarCalculationHandler.assert_has_1_dep(auto_operator, deps_values);
@@ -177,7 +178,7 @@ export default class AutoVarCalculationHandler {
                     deps_values,
                     () => {
                         let a = deps_values[1] ? (deps_values[0] % deps_values[1]) : null;
-                        if (a == -0) {
+                        if (Object.is(a, -0)) {
                             a = 0;
                         }
                         return a;
@@ -295,10 +296,7 @@ export default class AutoVarCalculationHandler {
         }
     }
 
-    private static DEP_PREFIX: string = 'DEP';
-    private static DEP_SEPARATOR: string = '_';
-
-    private static return_null_if_has_null_undefined_or_nan_dep(deps_values: number[], else_function: () => number): number {
+    public static return_null_if_has_null_undefined_or_nan_dep(deps_values: number[], else_function: () => number): number {
         if ((!deps_values) || (deps_values.length == 0)) {
             return null;
         }
@@ -312,17 +310,23 @@ export default class AutoVarCalculationHandler {
         return else_function();
     }
 
-    private static assert_has_1_dep(auto_operator: number, deps_values: number[]): void {
+    public static assert_has_0_dep(auto_operator: number, deps_values: number[]): void {
+        if ((!deps_values) || (deps_values.length == 0)) {
+            return;
+        }
+        throw new Error('AutoVarCalculationHandler.assert_has_0_dep: auto_operator needs no dep : ' + auto_operator);
+    }
+    public static assert_has_1_dep(auto_operator: number, deps_values: number[]): void {
         if ((!deps_values) || (deps_values.length != 1)) {
             throw new Error('AutoVarCalculationHandler.assert_has_1_dep: auto_operator needs 1 dep : ' + auto_operator);
         }
     }
-    private static assert_has_2_deps(auto_operator: number, deps_values: number[]): void {
+    public static assert_has_2_deps(auto_operator: number, deps_values: number[]): void {
         if ((!deps_values) || (deps_values.length != 2)) {
             throw new Error('AutoVarCalculationHandler.assert_has_2_deps: auto_operator needs 2 deps : ' + auto_operator);
         }
     }
-    private static assert_has_3_deps(auto_operator: number, deps_values: number[]): void {
+    public static assert_has_3_deps(auto_operator: number, deps_values: number[]): void {
         if ((!deps_values) || (deps_values.length != 3)) {
             throw new Error('AutoVarCalculationHandler.getValue: auto_operator needs 3 deps : ' + auto_operator);
         }

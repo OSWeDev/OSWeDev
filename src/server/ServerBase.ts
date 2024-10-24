@@ -68,9 +68,9 @@ import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconne
 import ForkMessageController from './modules/Fork/ForkMessageController';
 import IFork from './modules/Fork/interfaces/IFork';
 import PingForkMessage from './modules/Fork/messages/PingForkMessage';
+import OseliaServerController from './modules/Oselia/OseliaServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
-require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
 
@@ -204,6 +204,8 @@ export default abstract class ServerBase {
         this.connectionString = this.envParam.connection_string;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
         this.port = process.env.PORT ? process.env.PORT : this.envParam.port;
+
+        PushDataServerController.initialize();
 
         // this.jwtSecret = 'This is the jwt secret for the rest part';
 
@@ -489,7 +491,7 @@ export default abstract class ServerBase {
                         if (uid && client_tab_id) {
                             StatsController.register_stat_COMPTEUR('express', 'version', 'reload');
                             ConsoleHandler.log("ServerExpressController:version:uid:" + uid + ":client_tab_id:" + client_tab_id + ": asking for reload");
-                            await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
+                            await PushDataServerController.notifyTabReload(uid, client_tab_id);
                         }
 
                         res.setHeader("cache-control", "no-cache");
@@ -542,6 +544,38 @@ export default abstract class ServerBase {
 
         this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), express.static(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '')));
 
+        // Middleware pour définir dynamiquement les en-têtes X-Frame-Options
+        this.app.use((req, res, next) => {
+            let origin = req.get('Origin');
+            if ((!origin) || !(origin.length)) {
+                origin = req.get('Referer');
+            }
+
+            if (!/^(https?:\/\/[^/]+\/).*/i.test(origin)) {
+                origin = origin + '/';
+            }
+
+            // On veut que la partie de l'URL qui nous intéresse (https://www.monsite.com) et pas le reste
+            origin = origin.replace(/^(https?:\/\/[^/]+)\/?.*/i, '$1');
+
+            if (origin && (ConfigurationService.node_configuration.base_url.toLowerCase().startsWith(origin.toLowerCase()) || OseliaServerController.has_authorization(origin))) {
+                res.setHeader('X-Frame-Options', `ALLOW-FROM ${origin}`);
+
+                if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
+                    ConsoleHandler.log("ServerExpressController:origin:" + origin + ":X-Frame-Options:ALLOW-FROM");
+                }
+
+            } else {
+                res.setHeader('X-Frame-Options', 'DENY');
+
+                if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
+                    ConsoleHandler.log("ServerExpressController:origin:" + origin + ":X-Frame-Options:DENY");
+                }
+            }
+
+            next();
+        });
+
         /**
          * @depracated : DELETE When ok
          */
@@ -579,7 +613,7 @@ export default abstract class ServerBase {
                 if (uid && /^\/public\/[^/]+\.js$/i.test(url)) {
                     StatsController.register_stat_COMPTEUR('express', 'public', 'reload');
                     ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload after failing loading component");
-                    await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
+                    await PushDataServerController.notifyTabReload(uid, client_tab_id);
                 } else {
                     ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + url + ": no uid or not a component - doing nothing...:uid:" + uid + ":client_tab_id:" + client_tab_id);
                 }
@@ -625,7 +659,7 @@ export default abstract class ServerBase {
                     req.session.sid = sid;
                 }
             } catch (error) {
-
+                ConsoleHandler.error('ServerBase:express:use:cookie: ' + error);
             }
             next();
         });
@@ -709,7 +743,7 @@ export default abstract class ServerBase {
                                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                                 async () => {
 
-                                    await PushDataServerController.getInstance().unregisterSession(session);
+                                    await PushDataServerController.unregisterSession(session);
                                     session.destroy(async () => {
                                         await ServerBase.getInstance().redirect_login_or_home(req, res);
                                     });
@@ -736,7 +770,7 @@ export default abstract class ServerBase {
                             await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                             async () => {
 
-                                await PushDataServerController.getInstance().unregisterSession(session);
+                                await PushDataServerController.unregisterSession(session);
                                 session.destroy(async () => {
                                     await ServerBase.getInstance().redirect_login_or_home(req, res);
                                 });
@@ -746,7 +780,7 @@ export default abstract class ServerBase {
                     }
                 }
 
-                PushDataServerController.getInstance().registerSession(session);
+                PushDataServerController.registerSession(session);
 
                 if (MaintenanceServerController.getInstance().has_planned_maintenance) {
 
@@ -839,7 +873,8 @@ export default abstract class ServerBase {
         this.app.use(
             async (req, res, next) => {
                 if (req.url.indexOf('/f/') >= 0) {
-                    req.session.last_fragmented_url = req.url;
+                    // req.session.last_fragmented_url = req.url;
+                    // à creuser mais si on stocke ici en session, ça pose des pbs ensuite quand on logas, ... et je suppode que le /f/ résoud le pb en fait directement donc j'aurai tendance à voir si on peut pas le supprimer tout simplement...
                     res.redirect(307, req
                         .url
                         .replace(/\/f\//, '/#/'));
@@ -1064,7 +1099,7 @@ export default abstract class ServerBase {
                         await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                         async () => {
 
-                            await PushDataServerController.getInstance().unregisterSession(session);
+                            await PushDataServerController.unregisterSession(session);
                             session.destroy(async () => {
                                 await ServerBase.getInstance().redirect_login_or_home(req, res);
                             });
@@ -1073,7 +1108,7 @@ export default abstract class ServerBase {
                 }
                 session.last_check_blocked_or_expired = Dates.now();
 
-                PushDataServerController.getInstance().registerSession(session);
+                PushDataServerController.registerSession(session);
 
                 // On stocke le log de connexion en base
                 const user_log: UserLogVO = new UserLogVO();
@@ -1357,13 +1392,13 @@ export default abstract class ServerBase {
                     return;
                 }
 
-                PushDataServerController.getInstance().registerSocket(session, socket);
+                PushDataServerController.registerSocket(session, socket);
             }.bind(ServerBase.getInstance()));
 
             io.on('disconnect', function (socket: socketIO.Socket) {
                 const session: IServerUserSession = socket.handshake['session'];
 
-                PushDataServerController.getInstance().unregisterSocket(session, socket);
+                PushDataServerController.unregisterSocket(session, socket);
             });
 
             io.on('error', function (err) {

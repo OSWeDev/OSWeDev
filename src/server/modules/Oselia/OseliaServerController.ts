@@ -14,10 +14,29 @@ import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerControl
 
 export default class OseliaServerController {
 
+    public static PROMPT_PARAM_PREFIX: string = '{{PROMPT_PARAM.';
+    public static PROMPT_PARAM_SUFFIX: string = '}}';
+
+    public static authorized_oselia_partners: string[] = [];
+
+    public static has_authorization(partner_origin: string): boolean {
+        for (const i in OseliaServerController.authorized_oselia_partners) {
+            if (partner_origin.startsWith(OseliaServerController.authorized_oselia_partners[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static wrap_param_name_for_prompt(param_name: string): string {
+        return OseliaServerController.PROMPT_PARAM_PREFIX + param_name + OseliaServerController.PROMPT_PARAM_SUFFIX;
+    }
+
     public static async prompt_oselia_by_prompt_name(
         prompt_name: string,
         prompt_parameters: { [param_name: string]: string },
-        thread: GPTAssistantAPIThreadVO,
+        thread_title: string,
+        thread: GPTAssistantAPIThreadVO = null,
         user_id: number = null,
         files: FileVO[] = null): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
@@ -25,13 +44,14 @@ export default class OseliaServerController {
             .filter_by_text_eq(field_names<OseliaPromptVO>().name, prompt_name)
             .exec_as_server()
             .select_vo<OseliaPromptVO>();
-        return await OseliaServerController.prompt_oselia(prompt, prompt_parameters, thread, user_id, files);
+        return await OseliaServerController.prompt_oselia(prompt, prompt_parameters, thread_title, thread, user_id, files);
     }
 
     public static async prompt_oselia(
         prompt: OseliaPromptVO,
         prompt_parameters: { [param_name: string]: string },
-        thread: GPTAssistantAPIThreadVO,
+        thread_title: string,
+        thread: GPTAssistantAPIThreadVO = null,
         user_id: number = null,
         files: FileVO[] = null): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
@@ -79,6 +99,22 @@ export default class OseliaServerController {
                 thread = new_thread.thread_vo;
             }
 
+            if (!thread.thread_title) {
+                thread.thread_title = thread_title;
+                thread.needs_thread_title_build = !thread_title;
+            }
+
+            // Si on a des paramètres on les ajoute aux metadatas du thread
+            if (prompt_parameters) {
+                if (!thread.metadata) {
+                    thread.metadata = {};
+                }
+                for (const i in prompt_parameters) {
+                    thread.metadata[i] = prompt_parameters[i];
+                }
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
+            }
+
             thread.current_oselia_prompt_id = prompt.id;
             if (assistant) {
                 thread.current_default_assistant_id = assistant.id;
@@ -89,6 +125,7 @@ export default class OseliaServerController {
             await GPTAssistantAPIServerController.ask_assistant(
                 assistant.gpt_assistant_id,
                 thread.gpt_thread_id,
+                thread_title,
                 prompt_string,
                 files,
                 user_id
@@ -104,7 +141,7 @@ export default class OseliaServerController {
         let res = prompt_string_with_parameters;
 
         for (const i in prompt_parameters) {
-            res = res.split('{' + i + '}').join(prompt_parameters[i]);
+            res = res.split(OseliaServerController.PROMPT_PARAM_PREFIX + i + OseliaServerController.PROMPT_PARAM_SUFFIX).join(prompt_parameters[i]);
         }
 
         return res;

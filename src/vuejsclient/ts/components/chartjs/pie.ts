@@ -5,6 +5,8 @@ import * as helpers from "chart.js/helpers";
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import VueComponentBase from '../VueComponentBase';
 import ChartJsDataSetDescriptor from './descriptor/ChartJsDataSetDescriptor';
+import { _adapters, CategoryScale, LinearScale, LogarithmicScale, RadialLinearScale, TimeScale } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 @Component({
     template: require('./pie.pug'),
@@ -29,7 +31,9 @@ export default class ChartJsPieComponent extends VueComponentBase {
     private debounced_rerender = debounce(this.rerender, 500);
 
     public async created() {
-        window['Chart'] = Chart;
+        let chart = Chart;
+        chart.register(ChartDataLabels, CategoryScale, LinearScale, LogarithmicScale, TimeScale, RadialLinearScale);
+        window['Chart'] = chart;
         Chart['helpers'] = helpers;
 
         await import("chart.js-plugin-labels-dv");

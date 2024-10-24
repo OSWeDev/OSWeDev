@@ -34,12 +34,15 @@ export default class ModuleOselia extends Module {
 
     public static OSELIA_DB_ID_PARAM_NAME: string = 'ModuleOselia.oselia_db_id';
 
+    public static WEBHOOK_TEAMS_PARAM_NAME: string = 'ModuleOselia.WEBHOOK_TEAMS';
+
     /**
      * Droit d'accès aux discussions sur le front
      */
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.FO_ACCESS';
     public static POLICY_THREAD_MESSAGE_FEEDBACK_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.THREAD_MESSAGE_FEEDBACK_ACCESS';
     public static POLICY_THREAD_FEEDBACK_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.THREAD_FEEDBACK_ACCESS';
+    public static POLICY_GENERATED_IMAGES_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.GENERATED_IMAGES_FO_ACCESS';
 
     public static POLICY_GET_REFERRER_NAME: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.GET_REFERRER_NAME';
     public static POLICY_GET_TOKEN_OSELIA: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.GET_TOKEN_OSELIA';
@@ -85,6 +88,7 @@ export default class ModuleOselia extends Module {
         this.initializeOseliaReferrerVO();
         this.initializeOseliaUserReferrerVO();
         this.initializeOseliaReferrerExternalAPIVO();
+        // this.initializeOseliaReferrerExternalAPIParamVO();
         this.initializeOseliaThreadReferrerVO();
         this.initializeOseliaUserReferrerOTTVO();
         this.initializeOseliaChatVO();
@@ -160,6 +164,8 @@ export default class ModuleOselia extends Module {
         ModuleTableFieldController.create_new(OseliaReferrerVO.API_TYPE_ID, field_names<OseliaReferrerVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
 
         ModuleTableFieldController.create_new(OseliaReferrerVO.API_TYPE_ID, field_names<OseliaReferrerVO>().referrer_code, ModuleTableFieldVO.FIELD_TYPE_password, 'Code Partenaire', true);
+        ModuleTableFieldController.create_new(OseliaReferrerVO.API_TYPE_ID, field_names<OseliaReferrerVO>().referrer_origin, ModuleTableFieldVO.FIELD_TYPE_string, 'Origine Partenaire (https://xxx.com)', false);
+
         ModuleTableFieldController.create_new(OseliaReferrerVO.API_TYPE_ID, field_names<OseliaReferrerVO>().actif, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true, true, true);
 
         ModuleTableFieldController.create_new(OseliaReferrerVO.API_TYPE_ID, field_names<OseliaReferrerVO>().activate_trigger_hooks, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activer les Hooks', true, true, false);
@@ -239,6 +245,9 @@ export default class ModuleOselia extends Module {
 
         ModuleTableFieldController.create_new(OseliaReferrerExternalAPIVO.API_TYPE_ID, field_names<OseliaReferrerExternalAPIVO>().external_api_url, ModuleTableFieldVO.FIELD_TYPE_string, 'URL API', true);
 
+        ModuleTableFieldController.create_new(OseliaReferrerExternalAPIVO.API_TYPE_ID, field_names<OseliaReferrerExternalAPIVO>().accept, ModuleTableFieldVO.FIELD_TYPE_string, 'Accept', true, true, 'application/json');
+        ModuleTableFieldController.create_new(OseliaReferrerExternalAPIVO.API_TYPE_ID, field_names<OseliaReferrerExternalAPIVO>().content_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Content-Type', true, true, 'application/json');
+
 
         VersionedVOController.getInstance().registerModuleTable(
             ModuleTableController.create_new(
@@ -249,6 +258,26 @@ export default class ModuleOselia extends Module {
             )
         );
     }
+
+    // private initializeOseliaReferrerExternalAPIParamVO() {
+
+    //     ModuleTableFieldController.create_new(OseliaReferrerExternalAPIParamVO.API_TYPE_ID, field_names<OseliaReferrerExternalAPIParamVO>().external_api_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'API externe', true)
+    //         .set_many_to_one_target_moduletable_name(OseliaReferrerExternalAPIVO.API_TYPE_ID);
+
+    //     ModuleTableFieldController.create_new(OseliaReferrerExternalAPIParamVO.API_TYPE_ID, field_names<OseliaReferrerExternalAPIParamVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
+
+    //     ModuleTableFieldController.create_new(OseliaReferrerExternalAPIParamVO.API_TYPE_ID, field_names<OseliaReferrerExternalAPIParamVO>().actif, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true, true, true);
+
+    //     VersionedVOController.getInstance().registerModuleTable(
+    //         ModuleTableController.create_new(
+    //             this.name,
+    //             OseliaReferrerExternalAPIParamVO,
+    //             ModuleTableFieldController.create_new(OseliaReferrerExternalAPIParamVO.API_TYPE_ID, field_names<OseliaReferrerExternalAPIParamVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true),
+    //             DefaultTranslationVO.create_new({ 'fr-fr': "Param pour API externe Osélia" })
+    //         )
+    //     );
+    // }
+
 
     private initializeOseliaThreadReferrerVO() {
 

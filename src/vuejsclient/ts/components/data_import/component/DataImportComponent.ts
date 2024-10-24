@@ -144,349 +144,6 @@ export default class DataImportComponent extends DataImportComponentBase {
 
     private debounced_reload_datas = debounce(this.reload_datas, 300);
 
-    @Watch("$route")
-    public async onrouteChange() {
-        await this.handle_modal_show_hide();
-    }
-
-    @Watch('getOptions')
-    public onChangeOptions() {
-        if (this.importing_multiple_segments) {
-            this.snotify.info(this.label('imports.stop_imports_multiples'));
-            this.importing_multiple_segments = false;
-        }
-    }
-
-    @Watch('autovalidate')
-    public onChangeAutovalidate() {
-        if (this.importing_multiple_segments) {
-            this.snotify.info(this.label('imports.stop_imports_multiples'));
-            this.importing_multiple_segments = false;
-        }
-    }
-
-    @Watch('lower_selected_date_index')
-    public onChangeLowerSelectedDateIndex() {
-        if (this.importing_multiple_segments) {
-            this.snotify.info(this.label('imports.stop_imports_multiples'));
-            this.importing_multiple_segments = false;
-        }
-    }
-
-    @Watch('upper_selected_date_index')
-    public onChangeUpperSelectedDateIndex() {
-        if (this.importing_multiple_segments) {
-            this.snotify.info(this.label('imports.stop_imports_multiples'));
-            this.importing_multiple_segments = false;
-        }
-    }
-
-    @Watch('valid_api_type_ids', { immediate: true })
-    @Watch('getsegments')
-    public async onchange_getsegments() {
-        await this.debounced_reload_datas();
-    }
-
-    @Watch('import_historics')
-    public async loadRawImportedDatasSelected_segment(timeSegment: TimeSegment) {
-        await this.loadRawImportedDatas(this.selected_segment);
-    }
-
-    @Watch('selected_segment')
-    public async onchange_selected_segment() {
-        if (this.selected_segment && this.import_historics) {
-            this.show_new_import = (!this.import_historics[this.selected_segment.index]) ? true : false;
-        }
-    }
-
-    @Watch('selected_import_is_finished')
-    public async onselected_import_is_finished() {
-        if (!this.importing_multiple_segments) {
-            return;
-        }
-
-        if (!this.selected_import_is_finished) {
-            return;
-        }
-
-        // On attend un peu pour lancer potentiellement le suivant, il y a des délais de mise à jour des historiques parfois, il faut les prendre en compte
-        setTimeout(this.continue_multiple_importation.bind(this), 1000);
-    }
-
-    public toggleShowNewImport(): void {
-        this.show_new_import = !this.show_new_import;
-    }
-
-    public async uploadedFile(target_segment_date_index: number, fileVo: FileVO) {
-        if ((!fileVo) || (!fileVo.id)) {
-            return;
-        }
-
-        let segment_date_index: number = target_segment_date_index;
-        // Si on ne fournit pas le segment, c'est qu'on veut faire un import sur les segments sélectionnés
-        if (!segment_date_index) {
-            if ((!this.lower_selected_segment) || (!this.upper_selected_segment) || (this.upper_selected_segment.index < this.lower_selected_segment.index)) {
-                return;
-            }
-            segment_date_index = this.lower_selected_segment.index;
-            this.importing_multiple_segments_current_segment = this.lower_selected_segment;
-            this.importing_multiple_segments_filevo_id = fileVo.id;
-            this.importing_multiple_segments = true;
-        } else {
-            this.importing_multiple_segments = false;
-        }
-
-        await this.importSegment(segment_date_index, fileVo.id);
-    }
-
-    public async initialize_on_mount() {
-        if (this.getlower_segment) {
-
-            if (!this.lower_selected_date_index) {
-                this.lower_selected_date_index = this.getlower_segment.dateIndex;
-            }
-            if (!this.upper_selected_date_index) {
-                this.upper_selected_date_index = TimeSegmentHandler.getPreviousTimeSegment(this.getlower_segment, this.getsegment_type, -this.getsegment_number + 1).dateIndex;
-            }
-        }
-    }
-
-    public async on_show_modal() {
-
-        this.selected_segment = null;
-        if (!this.initial_selected_segment) {
-            return;
-        }
-        for (const i in this.getsegments) {
-            if (this.getsegments[i].index == this.initial_selected_segment) {
-                await this.select_segment(this.getsegments[i]);
-                return;
-            }
-        }
-
-        // Si le segment est pas chargé on le cible pour le trouver dans la liste
-        this.setlower_segment(TimeSegmentHandler.getCorrespondingTimeSegment(this.initial_selected_segment, this.getsegment_type, -Math.floor(this.getsegment_number / 2)));
-        await this.select_segment(TimeSegmentHandler.getCorrespondingTimeSegment(this.initial_selected_segment, this.getsegment_type));
-    }
-
-    public hasSelectedOptions(historic: DataImportHistoricVO): boolean {
-        return this.getHistoricOptionsTester(historic, this.getOptions);
-    }
-
-    protected async mounted() {
-        this.autovalidate = this.autovalidate_default_value;
-        await this.on_mount();
-    }
-
-    private define_lower_selection(segment: TimeSegment) {
-        this.lower_selected_date_index = segment.dateIndex;
-    }
-
-    private define_upper_selection(segment: TimeSegment) {
-        this.upper_selected_date_index = segment.dateIndex;
-    }
-
-    private async select_segment(segment: TimeSegment) {
-        await this.loadRawImportedDatas(segment);
-        this.selected_segment = segment;
-    }
-
-    private async loadRawImportedDatas(timeSegment: TimeSegment) {
-        const promises: Array<Promise<any>> = [];
-        const files_ids: number[] = [];
-
-        if ((!this.import_historics) || (!timeSegment) || (!this.import_historics[timeSegment.index])) {
-            return;
-        }
-
-        ConsoleHandler.log('loadRawImportedDatas:' + timeSegment.index);
-
-        for (const i in this.import_historics[timeSegment.index]) {
-
-            const historic: DataImportHistoricVO = this.import_historics[timeSegment.index][i];
-            this.pushPromisesToLoadDataFromHistoric(historic, files_ids, promises);
-        }
-
-        await all_promises(promises);
-    }
-
-    private async continue_importation(api_type_id: string) {
-        if ((!this.selected_segment) || (!this.import_historics) || (!this.import_historics[this.selected_segment.index])) {
-            return;
-        }
-
-        if (this.import_historics[this.selected_segment.index][api_type_id].state != ModuleDataImport.IMPORTATION_STATE_FORMATTED) {
-            return;
-        }
-
-        this.import_historics[this.selected_segment.index][api_type_id].state = ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT;
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.import_historics[this.selected_segment.index][api_type_id]);
-
-        this.storeData(this.import_historics[this.selected_segment.index][api_type_id]);
-    }
-
-    private async cancel_importation(api_type_id: string) {
-        if ((!this.selected_segment) || (!this.import_historics) || (!this.import_historics[this.selected_segment.index])) {
-            return;
-        }
-
-        if (this.import_historics[this.selected_segment.index][api_type_id].state != ModuleDataImport.IMPORTATION_STATE_FORMATTED) {
-            return;
-        }
-
-        this.import_historics[this.selected_segment.index][api_type_id].state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.import_historics[this.selected_segment.index][api_type_id]);
-
-        this.storeData(this.import_historics[this.selected_segment.index][api_type_id]);
-    }
-
-    private async checkReplaceExistingImport(segment_date_index: number, done) {
-        const self = this;
-
-        if (((!!segment_date_index) && ((!!this.import_historics) && (!!this.import_historics[segment_date_index]))) ||
-            ((!segment_date_index) && this.has_imports_on_selected_segments)) {
-            self.snotify.confirm(self.label('import.new_historic_confirmation.body'), self.label('import.new_historic_confirmation.title'), {
-                timeout: 10000,
-                showProgressBar: true,
-                closeOnClick: false,
-                pauseOnHover: true,
-                buttons: [
-                    {
-                        text: self.t('YES'),
-                        action: (toast) => {
-                            done();
-                            self.$snotify.remove(toast.id);
-                            self.snotify.info(self.label('import.upload_started'));
-                        },
-                        bold: false
-                    },
-                    {
-                        text: self.t('NO'),
-                        action: (toast) => {
-                            done(self.label('import.new_historic_confirmation.cancelled'));
-                            self.$snotify.remove(toast.id);
-                        }
-                    }
-                ]
-            });
-        } else {
-            done();
-            self.snotify.info(self.label('import.upload_started'));
-        }
-    }
-
-    private async continue_multiple_importation() {
-        if (!this.importing_multiple_segments) {
-            return;
-        }
-
-        if (!this.selected_import_is_finished) {
-            return;
-        }
-
-        // On est en import multiple, soit on passe au suivant, soit c'est terminé
-        this.importing_multiple_segments_current_segment = TimeSegmentHandler.getPreviousTimeSegment(this.importing_multiple_segments_current_segment, this.getsegment_type, -1);
-        if (this.upper_selected_segment.index < this.importing_multiple_segments_current_segment.index) {
-            this.importing_multiple_segments = false;
-            return;
-        }
-        await this.importSegment(this.importing_multiple_segments_current_segment.index, this.importing_multiple_segments_filevo_id);
-    }
-
-    private async planif_reimport(segment: TimeSegment) {
-        if ((!this.import_historics) || (!this.import_historics[segment.index])) {
-            return;
-        }
-
-        for (const i in this.import_historics[segment.index]) {
-            let historic: DataImportHistoricVO = this.import_historics[segment.index][i];
-
-            while (historic.reimport_of_dih_id) {
-                historic = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(historic.reimport_of_dih_id).select_vo<DataImportHistoricVO>();
-            }
-
-            await ModuleDataImport.getInstance().reimportdih(historic);
-        }
-
-        this.snotify.info(this.label('imports.reimport.planified'));
-    }
-
-    private async importSegment(segment_date_index: number, filevo_id: number) {
-        const importHistorics: DataImportHistoricVO[] = [];
-        for (const i in this.valid_api_type_ids) {
-            const api_type_id: string = this.valid_api_type_ids[i];
-
-            const importHistoric: DataImportHistoricVO = new DataImportHistoricVO();
-            importHistoric.api_type_id = api_type_id;
-            importHistoric.file_id = filevo_id;
-            importHistoric.autovalidate = this.autovalidate;
-            importHistoric.segment_type = this.getsegment_type;
-            importHistoric.import_type = DataImportHistoricVO.IMPORT_TYPE_REPLACE;
-            importHistoric.params = JSON.stringify(this.getOptions);
-            importHistoric.segment_date_index = segment_date_index;
-            importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
-            importHistoric.user_id = (VueAppController.getInstance().data_user) ? VueAppController.getInstance().data_user.id : null;
-
-            importHistorics.push(importHistoric);
-            const res = await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
-            importHistoric.id = res.id;
-
-            this.storeData(importHistoric);
-        }
-
-        this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(segment_date_index) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);
-
-        this.openModalDateIndex(segment_date_index);
-    }
-
-    private openModalDateIndex(segment_date_index: number) {
-        this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(segment_date_index) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);
-    }
-
-    private openModal(segment: TimeSegment) {
-        this.openModalDateIndex(segment.index);
-    }
-
-    private getRaw_datas_path(import_state: string): { [api_type_id: string]: string } {
-        const res: { [api_type_id: string]: string } = {};
-
-        if ((!this.import_historics) || (!this.selected_segment) || (!this.import_historics[this.selected_segment.index])) {
-            return res;
-        }
-
-        for (const i in this.import_historics[this.selected_segment.index]) {
-            const historic: DataImportHistoricVO = this.import_historics[this.selected_segment.index][i];
-
-            res[historic.api_type_id] = this.getCRUDLink(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(historic.api_type_id)) + (import_state ? "?FILTER__importation_state=" + import_state : '');
-        }
-        return res;
-    }
-
-    private async reload_datas() {
-        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([DataImportHistoricVO.API_TYPE_ID]);
-
-        if (!this.getsegments || !this.getsegments.length || !this.valid_api_type_ids || !this.valid_api_type_ids.length) {
-            return;
-        }
-
-        const num_ranges: NumRange[] = [];
-
-        for (const i in this.getsegments) {
-            const segment: TimeSegment = this.getsegments[i];
-
-            num_ranges.push(RangeHandler.create_single_elt_NumRange(segment.index, NumRange.RANGE_TYPE));
-        }
-
-        const dihs: DataImportHistoricVO[] = await query(DataImportHistoricVO.API_TYPE_ID)
-            .filter_by_text_including(field_names<DataImportHistoricVO>().api_type_id, this.valid_api_type_ids)
-            .filter_by_num_x_ranges(field_names<DataImportHistoricVO>().segment_date_index, num_ranges)
-            .select_vos<DataImportHistoricVO>();
-
-        this.storeDatas({
-            API_TYPE_ID: DataImportHistoricVO.API_TYPE_ID,
-            vos: dihs
-        });
-    }
 
     get import_historics(): { [segment_date_index: number]: { [api_type_id: string]: DataImportHistoricVO } } {
         const res: { [segment_date_index: number]: { [api_type_id: string]: DataImportHistoricVO } } = {};
@@ -999,6 +656,50 @@ export default class DataImportComponent extends DataImportComponentBase {
         return res;
     }
 
+    get dropzoneOptions(): { [segment_date_index: number]: any } {
+
+        const res: { [segment_date_index: number]: any } = {};
+        const self = this;
+
+        for (const i in this.getsegments) {
+            const segment = this.getsegments[i];
+
+            res[segment.index] = ((segment_date_index: number): any => {
+                return {
+                    createImageThumbnails: false,
+                    acceptedFiles: self.acceptedFiles,
+                    timeout: 3600000,
+                    init: function () {
+                        this.on('maxfilesexceeded', function (file) {
+                            this.removeFile(file);
+                        });
+                    },
+                    error: (infos, error_message) => {
+                        self.snotify.error(error_message);
+                    },
+                    accept: async (file, done) => {
+
+                        await this.checkReplaceExistingImport(segment_date_index, done);
+                        // this.checkUnfinishedImportsAndReplacement(segment_date_index, done);
+                    },
+                };
+            })(segment.index);
+        }
+        return res;
+    }
+
+    get has_imports_on_selected_segments(): boolean {
+        let segment: TimeSegment = this.lower_selected_segment;
+        while (segment.index <= this.upper_selected_segment.index) {
+
+            if ((!!this.import_historics) && (!!this.import_historics[segment.index])) {
+                return true;
+            }
+            segment = TimeSegmentHandler.getPreviousTimeSegment(segment, this.getsegment_type, -1);
+        }
+        return false;
+    }
+
     get imported(): { [api_type_id: string]: boolean } {
         const res: { [api_type_id: string]: boolean } = {};
 
@@ -1243,47 +944,347 @@ export default class DataImportComponent extends DataImportComponentBase {
         };
     }
 
-    get dropzoneOptions(): { [segment_date_index: number]: any } {
+    @Watch("$route")
+    public async onrouteChange() {
+        await this.handle_modal_show_hide();
+    }
 
-        const res: { [segment_date_index: number]: any } = {};
+    @Watch('getOptions')
+    public onChangeOptions() {
+        if (this.importing_multiple_segments) {
+            this.snotify.info(this.label('imports.stop_imports_multiples'));
+            this.importing_multiple_segments = false;
+        }
+    }
+
+    @Watch('autovalidate')
+    public onChangeAutovalidate() {
+        if (this.importing_multiple_segments) {
+            this.snotify.info(this.label('imports.stop_imports_multiples'));
+            this.importing_multiple_segments = false;
+        }
+    }
+
+    @Watch('lower_selected_date_index')
+    public onChangeLowerSelectedDateIndex() {
+        if (this.importing_multiple_segments) {
+            this.snotify.info(this.label('imports.stop_imports_multiples'));
+            this.importing_multiple_segments = false;
+        }
+    }
+
+    @Watch('upper_selected_date_index')
+    public onChangeUpperSelectedDateIndex() {
+        if (this.importing_multiple_segments) {
+            this.snotify.info(this.label('imports.stop_imports_multiples'));
+            this.importing_multiple_segments = false;
+        }
+    }
+
+    @Watch('valid_api_type_ids', { immediate: true })
+    @Watch('getsegments')
+    public async onchange_getsegments() {
+        await this.debounced_reload_datas();
+    }
+
+    @Watch('import_historics')
+    public async loadRawImportedDatasSelected_segment(timeSegment: TimeSegment) {
+        await this.loadRawImportedDatas(this.selected_segment);
+    }
+
+    @Watch('selected_segment')
+    public async onchange_selected_segment() {
+        if (this.selected_segment && this.import_historics) {
+            this.show_new_import = (!this.import_historics[this.selected_segment.index]) ? true : false;
+        }
+    }
+
+    @Watch('selected_import_is_finished')
+    public async onselected_import_is_finished() {
+        if (!this.importing_multiple_segments) {
+            return;
+        }
+
+        if (!this.selected_import_is_finished) {
+            return;
+        }
+
+        // On attend un peu pour lancer potentiellement le suivant, il y a des délais de mise à jour des historiques parfois, il faut les prendre en compte
+        setTimeout(this.continue_multiple_importation.bind(this), 1000);
+    }
+
+    public toggleShowNewImport(): void {
+        this.show_new_import = !this.show_new_import;
+    }
+
+    public async uploadedFile(target_segment_date_index: number, fileVo: FileVO) {
+        if ((!fileVo) || (!fileVo.id)) {
+            return;
+        }
+
+        let segment_date_index: number = target_segment_date_index;
+        // Si on ne fournit pas le segment, c'est qu'on veut faire un import sur les segments sélectionnés
+        if (!segment_date_index) {
+            if ((!this.lower_selected_segment) || (!this.upper_selected_segment) || (this.upper_selected_segment.index < this.lower_selected_segment.index)) {
+                return;
+            }
+            segment_date_index = this.lower_selected_segment.index;
+            this.importing_multiple_segments_current_segment = this.lower_selected_segment;
+            this.importing_multiple_segments_filevo_id = fileVo.id;
+            this.importing_multiple_segments = true;
+        } else {
+            this.importing_multiple_segments = false;
+        }
+
+        await this.importSegment(segment_date_index, fileVo.id);
+    }
+
+    public async initialize_on_mount() {
+        if (this.getlower_segment) {
+
+            if (!this.lower_selected_date_index) {
+                this.lower_selected_date_index = this.getlower_segment.dateIndex;
+            }
+            if (!this.upper_selected_date_index) {
+                this.upper_selected_date_index = TimeSegmentHandler.getPreviousTimeSegment(this.getlower_segment, this.getsegment_type, -this.getsegment_number + 1).dateIndex;
+            }
+        }
+    }
+
+    public async on_show_modal() {
+
+        this.selected_segment = null;
+        if (!this.initial_selected_segment) {
+            return;
+        }
+        for (const i in this.getsegments) {
+            if (this.getsegments[i].index == this.initial_selected_segment) {
+                await this.select_segment(this.getsegments[i]);
+                return;
+            }
+        }
+
+        // Si le segment est pas chargé on le cible pour le trouver dans la liste
+        this.setlower_segment(TimeSegmentHandler.getCorrespondingTimeSegment(this.initial_selected_segment, this.getsegment_type, -Math.floor(this.getsegment_number / 2)));
+        await this.select_segment(TimeSegmentHandler.getCorrespondingTimeSegment(this.initial_selected_segment, this.getsegment_type));
+    }
+
+    public hasSelectedOptions(historic: DataImportHistoricVO): boolean {
+        return this.getHistoricOptionsTester(historic, this.getOptions);
+    }
+
+    protected async mounted() {
+        this.autovalidate = this.autovalidate_default_value;
+        await this.on_mount();
+    }
+
+    private define_lower_selection(segment: TimeSegment) {
+        this.lower_selected_date_index = segment.dateIndex;
+    }
+
+    private define_upper_selection(segment: TimeSegment) {
+        this.upper_selected_date_index = segment.dateIndex;
+    }
+
+    private async select_segment(segment: TimeSegment) {
+        await this.loadRawImportedDatas(segment);
+        this.selected_segment = segment;
+    }
+
+    private async loadRawImportedDatas(timeSegment: TimeSegment) {
+        const promises: Array<Promise<any>> = [];
+        const files_ids: number[] = [];
+
+        if ((!this.import_historics) || (!timeSegment) || (!this.import_historics[timeSegment.index])) {
+            return;
+        }
+
+        ConsoleHandler.log('loadRawImportedDatas:' + timeSegment.index);
+
+        for (const i in this.import_historics[timeSegment.index]) {
+
+            const historic: DataImportHistoricVO = this.import_historics[timeSegment.index][i];
+            this.pushPromisesToLoadDataFromHistoric(historic, files_ids, promises);
+        }
+
+        await all_promises(promises);
+    }
+
+    private async continue_importation(api_type_id: string) {
+        if ((!this.selected_segment) || (!this.import_historics) || (!this.import_historics[this.selected_segment.index])) {
+            return;
+        }
+
+        if (this.import_historics[this.selected_segment.index][api_type_id].state != ModuleDataImport.IMPORTATION_STATE_FORMATTED) {
+            return;
+        }
+
+        this.import_historics[this.selected_segment.index][api_type_id].state = ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT;
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.import_historics[this.selected_segment.index][api_type_id]);
+
+        this.storeData(this.import_historics[this.selected_segment.index][api_type_id]);
+    }
+
+    private async cancel_importation(api_type_id: string) {
+        if ((!this.selected_segment) || (!this.import_historics) || (!this.import_historics[this.selected_segment.index])) {
+            return;
+        }
+
+        if (this.import_historics[this.selected_segment.index][api_type_id].state != ModuleDataImport.IMPORTATION_STATE_FORMATTED) {
+            return;
+        }
+
+        this.import_historics[this.selected_segment.index][api_type_id].state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.import_historics[this.selected_segment.index][api_type_id]);
+
+        this.storeData(this.import_historics[this.selected_segment.index][api_type_id]);
+    }
+
+    private async checkReplaceExistingImport(segment_date_index: number, done) {
         const self = this;
 
-        for (const i in this.getsegments) {
-            const segment = this.getsegments[i];
+        if (((!!segment_date_index) && ((!!this.import_historics) && (!!this.import_historics[segment_date_index]))) ||
+            ((!segment_date_index) && this.has_imports_on_selected_segments)) {
+            self.snotify.confirm(self.label('import.new_historic_confirmation.body'), self.label('import.new_historic_confirmation.title'), {
+                timeout: 10000,
+                showProgressBar: true,
+                closeOnClick: false,
+                pauseOnHover: true,
+                buttons: [
+                    {
+                        text: self.t('YES'),
+                        action: (toast) => {
+                            done();
+                            self.$snotify.remove(toast.id);
+                            self.snotify.info(self.label('import.upload_started'));
+                        },
+                        bold: false
+                    },
+                    {
+                        text: self.t('NO'),
+                        action: (toast) => {
+                            done(self.label('import.new_historic_confirmation.cancelled'));
+                            self.$snotify.remove(toast.id);
+                        }
+                    }
+                ]
+            });
+        } else {
+            done();
+            self.snotify.info(self.label('import.upload_started'));
+        }
+    }
 
-            res[segment.index] = ((segment_date_index: number): any => {
-                return {
-                    createImageThumbnails: false,
-                    acceptedFiles: self.acceptedFiles,
-                    timeout: 3600000,
-                    init: function () {
-                        this.on('maxfilesexceeded', function (file) {
-                            this.removeFile(file);
-                        });
-                    },
-                    error: (infos, error_message) => {
-                        self.snotify.error(error_message);
-                    },
-                    accept: async (file, done) => {
+    private async continue_multiple_importation() {
+        if (!this.importing_multiple_segments) {
+            return;
+        }
 
-                        await this.checkReplaceExistingImport(segment_date_index, done);
-                        // this.checkUnfinishedImportsAndReplacement(segment_date_index, done);
-                    },
-                };
-            })(segment.index);
+        if (!this.selected_import_is_finished) {
+            return;
+        }
+
+        // On est en import multiple, soit on passe au suivant, soit c'est terminé
+        this.importing_multiple_segments_current_segment = TimeSegmentHandler.getPreviousTimeSegment(this.importing_multiple_segments_current_segment, this.getsegment_type, -1);
+        if (this.upper_selected_segment.index < this.importing_multiple_segments_current_segment.index) {
+            this.importing_multiple_segments = false;
+            return;
+        }
+        await this.importSegment(this.importing_multiple_segments_current_segment.index, this.importing_multiple_segments_filevo_id);
+    }
+
+    private async planif_reimport(segment: TimeSegment) {
+        if ((!this.import_historics) || (!this.import_historics[segment.index])) {
+            return;
+        }
+
+        for (const i in this.import_historics[segment.index]) {
+            let historic: DataImportHistoricVO = this.import_historics[segment.index][i];
+
+            while (historic.reimport_of_dih_id) {
+                historic = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(historic.reimport_of_dih_id).select_vo<DataImportHistoricVO>();
+            }
+
+            await ModuleDataImport.getInstance().reimportdih(historic);
+        }
+
+        this.snotify.info(this.label('imports.reimport.planified'));
+    }
+
+    private async importSegment(segment_date_index: number, filevo_id: number) {
+        const importHistorics: DataImportHistoricVO[] = [];
+        for (const i in this.valid_api_type_ids) {
+            const api_type_id: string = this.valid_api_type_ids[i];
+
+            const importHistoric: DataImportHistoricVO = new DataImportHistoricVO();
+            importHistoric.api_type_id = api_type_id;
+            importHistoric.file_id = filevo_id;
+            importHistoric.autovalidate = this.autovalidate;
+            importHistoric.segment_type = this.getsegment_type;
+            importHistoric.import_type = DataImportHistoricVO.IMPORT_TYPE_REPLACE;
+            importHistoric.params = JSON.stringify(this.getOptions);
+            importHistoric.segment_date_index = segment_date_index;
+            importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
+            importHistoric.user_id = (VueAppController.getInstance().data_user) ? VueAppController.getInstance().data_user.id : null;
+
+            importHistorics.push(importHistoric);
+            const res = await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+            importHistoric.id = res.id;
+
+            this.storeData(importHistoric);
+        }
+
+        this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(segment_date_index) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);
+
+        this.openModalDateIndex(segment_date_index);
+    }
+
+    private openModalDateIndex(segment_date_index: number) {
+        this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(segment_date_index) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);
+    }
+
+    private openModal(segment: TimeSegment) {
+        this.openModalDateIndex(segment.index);
+    }
+
+    private getRaw_datas_path(import_state: string): { [api_type_id: string]: string } {
+        const res: { [api_type_id: string]: string } = {};
+
+        if ((!this.import_historics) || (!this.selected_segment) || (!this.import_historics[this.selected_segment.index])) {
+            return res;
+        }
+
+        for (const i in this.import_historics[this.selected_segment.index]) {
+            const historic: DataImportHistoricVO = this.import_historics[this.selected_segment.index][i];
+
+            res[historic.api_type_id] = this.getCRUDLink(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(historic.api_type_id)) + (import_state ? "?FILTER__importation_state=" + import_state : '');
         }
         return res;
     }
 
-    get has_imports_on_selected_segments(): boolean {
-        let segment: TimeSegment = this.lower_selected_segment;
-        while (segment.index <= this.upper_selected_segment.index) {
+    private async reload_datas() {
+        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([DataImportHistoricVO.API_TYPE_ID]);
 
-            if ((!!this.import_historics) && (!!this.import_historics[segment.index])) {
-                return true;
-            }
-            segment = TimeSegmentHandler.getPreviousTimeSegment(segment, this.getsegment_type, -1);
+        if (!this.getsegments || !this.getsegments.length || !this.valid_api_type_ids || !this.valid_api_type_ids.length) {
+            return;
         }
-        return false;
+
+        const num_ranges: NumRange[] = [];
+
+        for (const i in this.getsegments) {
+            const segment: TimeSegment = this.getsegments[i];
+
+            num_ranges.push(RangeHandler.create_single_elt_NumRange(segment.index, NumRange.RANGE_TYPE));
+        }
+
+        const dihs: DataImportHistoricVO[] = await query(DataImportHistoricVO.API_TYPE_ID)
+            .filter_by_text_including(field_names<DataImportHistoricVO>().api_type_id, this.valid_api_type_ids)
+            .filter_by_num_x_ranges(field_names<DataImportHistoricVO>().segment_date_index, num_ranges)
+            .select_vos<DataImportHistoricVO>();
+
+        this.storeDatas({
+            API_TYPE_ID: DataImportHistoricVO.API_TYPE_ID,
+            vos: dihs
+        });
     }
 }

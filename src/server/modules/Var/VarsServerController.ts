@@ -1,6 +1,6 @@
 
 
-import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModulesManager from '../../../shared/modules/ModulesManager';

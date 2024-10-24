@@ -1,0 +1,14 @@
+.oselia_last_thread {
+    padding: .2em .4em;
+    font-size: large;
+    cursor: pointer;
+    transition: all ease-in-out .4s;
+    min-width: 400px;
+
+    &:hover,
+    &.selected {
+        background: #888;
+        color: white;
+        border-radius: 10px;
+    }
+}

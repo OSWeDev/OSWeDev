@@ -10,6 +10,7 @@ import SuiviCompetencesWidgetOptionsVO from '../../../../shared/modules/Dashboar
 import TableWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import VarMixedChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
+import VarPieChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
 import VarRadarChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
@@ -27,7 +28,6 @@ import SupervisionWidgetOptions from './widgets/supervision_widget/options/Super
 import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
-
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
     protected static instance: DashboardBuilderVueModuleBase = null;
@@ -171,7 +171,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_BulkOps();
 
         await this.initializeWidget_Var();
-
         await this.initializeWidget_ValueTable();
         await this.initializeWidget_DataTable();
 
@@ -455,7 +454,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarPieChart.default_background = '#f5f5f5';
         VarPieChart.icon_component = 'Varpiechartwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarPieChart, () => VarPieChartWidgetOptions.createDefault(), VarPieChartWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarPieChart, () => VarPieChartWidgetOptionsVO.createDefault(), VarPieChartWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Varpiechartwidgetcomponent', () => import('./widgets/var_pie_chart_widget/VarPieChartWidgetComponent'));
         Vue.component('Varpiechartwidgetoptionscomponent', () => import('./widgets/var_pie_chart_widget/options/VarPieChartWidgetOptionsComponent'));

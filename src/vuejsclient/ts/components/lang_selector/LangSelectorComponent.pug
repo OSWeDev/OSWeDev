@@ -11,7 +11,7 @@
             :custom-label="langLabel"
             :searchable="true"
             :internal-search="true"
-            
+
             select-label=''
             select-group-label=''
             selected-label=''
@@ -19,14 +19,14 @@
             deselect-group-label=''
 
             placeholder=''
-            
+
             track-by="id"
 
             name="lang_selector_list"
         )
-            
+
             .lang_selector_option(slot="option", slot-scope="props")
-                gb-flag.lang_selector_flag.pull-right(:code="props.option.code_flag ? props.option.code_flag : props.option.code_lang" size="mini")
+                gb-flag.lang_selector_flag.pull-right(v-if="props.option.code_flag" :code="props.option.code_flag" size="mini")
                 .lang_selector_option_label {{ ((label('lang_selector.lang_prefix') && (label('lang_selector.lang_prefix') !='null')) ? label('lang_selector.lang_prefix'): '') + (props.option.code_flag ? props.option.code_flag : props.option.code_lang) + ((label('lang_selector.lang_suffix') && (label('lang_selector.lang_suffix') != 'null')) ? label('lang_selector.lang_suffix') : '') }}
 
             .lang_selector_option(slot="noOptions") -

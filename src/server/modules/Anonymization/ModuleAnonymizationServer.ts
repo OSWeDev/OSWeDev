@@ -23,19 +23,19 @@ import ServerAnonymizationController from './ServerAnonymizationController';
 
 export default class ModuleAnonymizationServer extends ModuleServerBase {
 
+    private static instance: ModuleAnonymizationServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleAnonymization.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleAnonymizationServer.instance) {
             ModuleAnonymizationServer.instance = new ModuleAnonymizationServer();
         }
         return ModuleAnonymizationServer.instance;
-    }
-
-    private static instance: ModuleAnonymizationServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleAnonymization.getInstance().name);
     }
 
     /**

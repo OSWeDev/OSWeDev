@@ -13,6 +13,7 @@ export default class TimeSegment implements ISegment {
         "timesegment.minute.type_name",
         "timesegment.second.type_name",
         "timesegment.quarter.type_name",
+        "timesegment.ms.type_name",
     ];
     public static TYPE_YEAR: number = 0;
     public static TYPE_MONTH: number = 1;
@@ -23,6 +24,7 @@ export default class TimeSegment implements ISegment {
     public static TYPE_MINUTE: number = 6;
     public static TYPE_SECOND: number = 7;
     public static TYPE_QUARTER: number = 8;
+    public static TYPE_MS: number = 9;
     public static TYPE_NAMES_ENUM: { [type: number]: string } = {
         [TimeSegment.TYPE_YEAR]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_YEAR],
         [TimeSegment.TYPE_MONTH]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_MONTH],
@@ -33,6 +35,7 @@ export default class TimeSegment implements ISegment {
         [TimeSegment.TYPE_MINUTE]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_MINUTE],
         [TimeSegment.TYPE_SECOND]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_SECOND],
         [TimeSegment.TYPE_QUARTER]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_QUARTER],
+        [TimeSegment.TYPE_MS]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_MS],
     };
 
     private constructor(public index: number, public type: number) { }

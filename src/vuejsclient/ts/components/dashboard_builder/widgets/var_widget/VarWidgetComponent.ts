@@ -30,35 +30,6 @@ import VarWidgetOptions from './options/VarWidgetOptions';
 })
 export default class VarWidgetComponent extends VueComponentBase {
 
-    public static get_var_custom_filters(
-        var_custom_filters: { [var_param_field_name: string]: string },
-        get_active_field_filters: FieldFiltersVO
-    ): { [var_param_field_name: string]: ContextFilterVO } {
-
-        /**
-         * On crée le custom_filters
-         */
-        const custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
-
-        for (const var_param_field_name in var_custom_filters) {
-            const custom_filter_name = var_custom_filters[var_param_field_name];
-
-            if (!custom_filter_name) {
-                continue;
-            }
-
-            const custom_filter = get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
-
-            if (!custom_filter) {
-                continue;
-            }
-
-            custom_filters[var_param_field_name] = custom_filter;
-        }
-
-        return custom_filters;
-    }
-
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
 
@@ -102,17 +73,105 @@ export default class VarWidgetComponent extends VueComponentBase {
         return this.widget_options.var_id;
     }
 
-    @Watch('get_active_field_filters', { deep: true })
-    private async onchange_active_field_filters() {
-        await this.throttled_update_visible_options();
-    }
-
     get var_custom_filters(): { [var_param_field_name: string]: string } {
         if (!this.widget_options) {
             return null;
         }
 
         return ObjectHandler.hasAtLeastOneAttribute(this.widget_options.filter_custom_field_filters) ? this.widget_options.filter_custom_field_filters : null;
+    }
+
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    }
+
+    get title_name_code_text() {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    get widget_options() {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: VarWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as VarWidgetOptions;
+                options = options ? new VarWidgetOptions(
+                    options.var_id,
+                    options.filter_type,
+                    options.filter_custom_field_filters,
+                    options.filter_additional_params,
+                    options.bg_color,
+                    options.fg_color_value,
+                    options.fg_color_text) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    get var_filter(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return (this.widget_options.filter_type && this.const_filters[this.widget_options.filter_type]) ? this.const_filters[this.widget_options.filter_type].read : undefined;
+    }
+
+    get var_filter_additional_params(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.filter_additional_params ? ObjectHandler.try_get_json(this.widget_options.filter_additional_params) : undefined;
+    }
+
+    public static get_var_custom_filters(
+        var_custom_filters: { [var_param_field_name: string]: string },
+        get_active_field_filters: FieldFiltersVO
+    ): { [var_param_field_name: string]: ContextFilterVO } {
+
+        /**
+         * On crée le custom_filters
+         */
+        const custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
+
+        for (const var_param_field_name in var_custom_filters) {
+            const custom_filter_name = var_custom_filters[var_param_field_name];
+
+            if (!custom_filter_name) {
+                continue;
+            }
+
+            const custom_filter = get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
+
+            if (!custom_filter) {
+                continue;
+            }
+
+            custom_filters[var_param_field_name] = custom_filter;
+        }
+
+        return custom_filters;
+    }
+
+    @Watch('widget_options', { immediate: true })
+    private async onchange_widget_options() {
+        await this.throttled_update_visible_options();
+    }
+
+    @Watch('get_active_field_filters', { deep: true })
+    private async onchange_active_field_filters() {
+        await this.throttled_update_visible_options();
     }
 
     // @Watch('get_custom_filters', { deep: true })
@@ -133,10 +192,6 @@ export default class VarWidgetComponent extends VueComponentBase {
 
 
         await this.throttle_do_update_visible_options();
-    }
-
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
     }
 
     private has_widget_validation_filtres(): boolean {
@@ -237,60 +292,5 @@ export default class VarWidgetComponent extends VueComponentBase {
         // } else {
         //     this.filter_visible_options = tmp;
         // }
-    }
-
-    @Watch('widget_options', { immediate: true })
-    private async onchange_widget_options() {
-        await this.throttled_update_visible_options();
-    }
-
-    get title_name_code_text() {
-
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get widget_options() {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: VarWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as VarWidgetOptions;
-                options = options ? new VarWidgetOptions(
-                    options.var_id,
-                    options.filter_type,
-                    options.filter_custom_field_filters,
-                    options.filter_additional_params,
-                    options.bg_color,
-                    options.fg_color_value,
-                    options.fg_color_text) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
-    }
-
-    get var_filter(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return (this.widget_options.filter_type && this.const_filters[this.widget_options.filter_type]) ? this.const_filters[this.widget_options.filter_type].read : undefined;
-    }
-
-    get var_filter_additional_params(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.filter_additional_params ? ObjectHandler.try_get_json(this.widget_options.filter_additional_params) : undefined;
     }
 }

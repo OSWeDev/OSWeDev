@@ -187,66 +187,342 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
     private show_export_alert: boolean = false;
 
-    public async getquerystr() {
-        if (!this.actual_rows_query) {
-            return null;
-        }
-        const query_string: string = await this.actual_rows_query.get_select_query_str();
-        await navigator.clipboard.writeText(query_string);
-        await this.$snotify.success(this.label('copied_to_clipboard'));
+
+
+    // /**
+    //  * Export de la page lue
+    //  */
+    // private async do_export_page_to_xlsx() {
+    //     let param: ExportDataToXLSXParamVO = this.get_export_params_for_xlsx();
+
+    //     if (!!param) {
+
+    //         await ModuleDataExport.getInstance().exportDataToXLSX(
+    //             param.filename,
+    //             param.datas,
+    //             param.ordered_column_list,
+    //             param.column_labels,
+    //             param.api_type_id,
+    //             param.is_secured,
+    //             param.file_access_policy_name
+    //         );
+    //     }
+    // }
+
+    get contextmenu_items(): any {
+        const contextmenu_items: any = {};
+
+        contextmenu_items['archive'] = {
+            name: this.label('TableWidgetTableComponent.contextmenu.archive'),
+            disabled: function (key, opt) {
+                const elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                const use_kanban_card_archive_if_exists = elt.getAttribute('use_kanban_card_archive_if_exists');
+                if (!use_kanban_card_archive_if_exists) {
+                    return true;
+                }
+
+                const kanban_api_type_id = elt.getAttribute('kanban_api_type_id');
+                const kanban_moduletable = ModuleTableController.module_tables_by_vo_type[kanban_api_type_id];
+                const item_id = elt.getAttribute('item_id');
+                return (!item_id) || !ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[kanban_api_type_id][field_names<IArchivedVOBase>().archived];
+            },
+            callback: async (key, opt) => {
+                const elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                const use_kanban_card_archive_if_exists = elt.getAttribute('use_kanban_card_archive_if_exists');
+                if (!use_kanban_card_archive_if_exists) {
+                    return;
+                }
+
+                const item_id = elt.getAttribute('item_id');
+
+                if (!item_id) {
+                    return;
+                }
+
+                const kanban_api_type_id = elt.getAttribute('kanban_api_type_id');
+                const kanban_moduletable = ModuleTableController.module_tables_by_vo_type[kanban_api_type_id];
+
+                if (!ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[kanban_api_type_id][field_names<IArchivedVOBase>().archived]) {
+                    return;
+                }
+
+                await query(this.kanban_column.api_type_id)
+                    .filter_by_id(parseInt(item_id))
+                    .update_vos<IArchivedVOBase>({
+                        [field_names<IArchivedVOBase>().archived]: true,
+                    });
+                this.throttle_do_update_visible_options();
+            }
+        };
+
+        return contextmenu_items;
     }
 
-    private get_links_titles(row: any): string[] {
-        if ((!this.sorted_link_datatable_field_uids) || !this.sorted_link_datatable_field_uids.length) {
-            return [];
+
+    get can_refresh(): boolean {
+        return this.widget_options && this.widget_options.refresh_button;
+    }
+
+    get show_export_maintenance_alert(): boolean {
+        return this.widget_options && this.widget_options.has_export_maintenance_alert;
+    }
+
+    get can_export(): boolean {
+        return this.widget_options && this.widget_options.export_button;
+    }
+
+    get default_export_option(): number {
+        return this.widget_options && this.widget_options.export_button && this.widget_options.has_default_export_option && this.widget_options.default_export_option ? this.widget_options.default_export_option : null;
+    }
+
+    get show_limit_selectable(): boolean {
+        return this.widget_options && this.widget_options.show_limit_selectable;
+    }
+
+    get show_pagination_resumee(): boolean {
+        return this.widget_options && this.widget_options.show_pagination_resumee;
+    }
+
+    get show_pagination_slider(): boolean {
+        return this.widget_options && this.widget_options.show_pagination_slider;
+    }
+
+    get show_pagination_form(): boolean {
+        return this.widget_options && this.widget_options.show_pagination_form;
+    }
+
+    get show_pagination_list(): boolean {
+        return this.widget_options && this.widget_options.show_pagination_list;
+    }
+
+    get has_table_total_footer(): boolean {
+        return this.widget_options && this.widget_options.has_table_total_footer;
+    }
+
+    get limit_selectable(): string[] {
+        return (this.widget_options && this.widget_options.limit_selectable) ? this.widget_options.limit_selectable.split(",") : null;
+    }
+
+    get can_create(): boolean {
+        if (!this.crud_activated_api_type) {
+            return false;
         }
 
-        const res: string[] = []; //number
+        return this.can_create_right && this.widget_options.create_button;
+    }
 
-        for (const i in this.sorted_link_datatable_field_uids) {
-            const datatable_field_uid = this.sorted_link_datatable_field_uids[i];
+    get can_update(): boolean {
+        if (!this.crud_activated_api_type) {
+            return false;
+        }
 
-            if (row[datatable_field_uid]) {
-                res.push(this.columns_by_field_id[datatable_field_uid].custom_label ?? this.t(this.columns_by_field_id[datatable_field_uid].get_translatable_name_code_text(this.page_widget.id)));
+        return this.can_update_right && this.widget_options.update_button;
+    }
+
+    get can_delete(): boolean {
+        if (!this.crud_activated_api_type) {
+            return false;
+        }
+
+        return this.can_delete_right && this.widget_options.delete_button;
+    }
+
+    get can_delete_all(): boolean {
+        if (!this.crud_activated_api_type) {
+            return false;
+        }
+
+        return this.can_delete_all_right && this.widget_options.delete_all_button;
+    }
+
+    get can_open_vocus(): boolean {
+        if (!this.crud_activated_api_type) {
+            return false;
+        }
+
+        return this.can_open_vocus_right && this.widget_options.vocus_button;
+    }
+
+    get columns_custom_filters(): { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } {
+        const res: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = {};
+
+        for (const i in this.columns) {
+            const column = this.columns[i];
+
+            if (column.type !== TableColumnDescVO.TYPE_var_ref) {
+                continue;
             }
+
+            res[column.datatable_field_uid] = VarWidgetComponent.get_var_custom_filters(
+                ObjectHandler.hasAtLeastOneAttribute(column.filter_custom_field_filters) ? column.filter_custom_field_filters : null,
+                this.get_active_field_filters);
+        }
+
+        return res;
+    }
+
+    get do_not_use_filter_by_datatable_field_uid(): { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } {
+        const res: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = {};
+
+        for (const i in this.columns) {
+            const column = this.columns[i];
+
+            if (column.type !== TableColumnDescVO.TYPE_var_ref) {
+                continue;
+            }
+
+            const do_not_use: { [vo_type: string]: { [field_id: string]: boolean } } = {};
+
+            // On supprime les filtres à ne pas prendre en compte pour créer le bon param
+            if (column.do_not_user_filter_active_ids && column.do_not_user_filter_active_ids.length) {
+                const all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+
+                for (const j in column.do_not_user_filter_active_ids) {
+                    const page_filter_id = column.do_not_user_filter_active_ids[j];
+
+                    const page_widget: DashboardPageWidgetVO = all_page_widgets_by_id[page_filter_id];
+                    if (!page_widget) {
+                        continue;
+                    }
+
+                    const page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+
+                    if (page_widget_options?.vo_field_ref) {
+                        if (!do_not_use[page_widget_options.vo_field_ref.api_type_id]) {
+                            do_not_use[page_widget_options.vo_field_ref.api_type_id] = {};
+                        }
+
+                        do_not_use[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id] = true;
+                    }
+                }
+            }
+
+            if (Object.keys(do_not_use).length > 0) {
+                res[column.datatable_field_uid] = do_not_use;
+            }
+        }
+
+        return res;
+    }
+
+    get varcolumn_conf(): { [datatable_field_uid: string]: ExportVarcolumnConfVO } {
+        const res: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = {};
+
+        for (const i in this.columns) {
+            const column = this.columns[i];
+
+            if (column.type !== TableColumnDescVO.TYPE_var_ref) {
+                continue;
+            }
+
+            const varcolumn_conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+                column.var_id,
+                column.filter_custom_field_filters
+            );
+
+            res[column.datatable_field_uid] = varcolumn_conf;
+        }
+
+        return res;
+    }
+
+    get datatable_columns_labels(): any {
+        const res: any = {};
+
+        for (const i in this.columns) {
+            const column = this.columns[i];
+
+            if (column.type == TableColumnDescVO.TYPE_header) {
+                for (const key in column.children) {
+                    const child = column.children[key];
+                    res[child.datatable_field_uid] = child.custom_label ?? this.t(child.get_translatable_name_code_text(this.page_widget.id));
+                }
+            } else {
+                res[column.datatable_field_uid] = column.custom_label ?? this.t(column.get_translatable_name_code_text(this.page_widget.id));
+            }
+        }
+
+        return res;
+    }
+
+    get exportable_datatable_custom_field_columns(): { [datatable_field_uid: string]: string } {
+        const res: { [datatable_field_uid: string]: string } = {};
+
+        for (const i in this.columns) {
+            const column: TableColumnDescVO = this.columns[i];
+
+            if (!column.exportable) {
+                continue;
+            }
+
+            if (column.type != TableColumnDescVO.TYPE_component) {
+                continue;
+            }
+
+            res[column.datatable_field_uid] = column.component_name;
+        }
+
+        return res;
+    }
+
+    get export_datatable(): Datatable<any> {
+        const res = new Datatable(this.crud_activated_api_type);
+
+        for (const i in this.fields) {
+            const field = this.fields[i];
+
+            if (field.type == DatatableField.CRUD_ACTIONS_FIELD_TYPE) {
+                continue;
+            }
+
+            if (field.type == DatatableField.INPUT_FIELD_TYPE) {
+                continue;
+            }
+
+            res.pushField(field);
         }
         return res;
     }
 
-    private get_links(row: any): string[] { //number
+    get exportable_datatable_columns(): string[] {
+        const res: string[] = [];
 
-        if ((!this.sorted_link_datatable_field_uids) || !this.sorted_link_datatable_field_uids.length) {
-            return [];
-        }
+        for (const i in this.columns) {
+            const column: TableColumnDescVO = this.columns[i];
+            if (column.type == TableColumnDescVO.TYPE_header) {
+                for (const key in column.children) {
+                    const child = column.children[key];
+                    if (!child.exportable) {
+                        continue;
+                    }
+                    res.push(child.datatable_field_uid);
+                }
+            }
 
-        const res: string[] = []; //number
+            if (!column.exportable) {
+                continue;
+            }
 
-        for (const i in this.sorted_link_datatable_field_uids) {
-            const datatable_field_uid = this.sorted_link_datatable_field_uids[i];
+            if (FieldFiltersVOManager.is_column_filtered(column, this.filter_by_access_cache, this.get_active_field_filters, this.all_page_widgets_by_id)) {
+                continue;
+            }
 
-            if (row[datatable_field_uid]) {
-                res.push(row[datatable_field_uid]);
+            if (column.type != TableColumnDescVO.TYPE_header) {
+
+                res.push(column.datatable_field_uid);
             }
         }
-        return res;
-    }
 
-
-    private get_images_ids(row: any): string[] { //number
-
-        if ((!this.sorted_image_datatable_field_uids) || !this.sorted_image_datatable_field_uids.length) {
-            return [];
-        }
-
-        const res: string[] = []; //number
-
-        for (const i in this.sorted_image_datatable_field_uids) {
-            const datatable_field_uid = this.sorted_image_datatable_field_uids[i];
-
-            if (row[datatable_field_uid]) {
-                res.push(row[datatable_field_uid]);
-            }
-        }
         return res;
     }
 
@@ -311,17 +587,20 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         return res;
     }
 
-    get kanban_column_field(): ModuleTableFieldVO {
-        if (!this.kanban_column) {
-            return null;
-        }
-
-        return ModuleTableController.module_tables_by_vo_type[this.kanban_column.api_type_id].get_field_by_id(this.kanban_column.field_id);
+    get dashboard_vo_action() {
+        return this.$route.params.dashboard_vo_action;
     }
 
-    private async on_change_kanban_element(evt, originalEvent) {
-        ConsoleHandler.log('on_change_kanban_element:' + evt + ':' + originalEvent);
-        return true;
+    get dashboard_vo_id() {
+        return this.$route.params.dashboard_vo_id;
+    }
+
+    get api_type_id_action() {
+        return this.$route.params.api_type_id_action;
+    }
+
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
     }
 
     get kanban_columns_drag_options() {
@@ -345,6 +624,591 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             onAdd: this.on_move_kanban_element.bind(this),
             onUpdate: this.on_move_kanban_element.bind(this),
         };
+    }
+
+    get kanban_column_field(): ModuleTableFieldVO {
+        if (!this.kanban_column) {
+            return null;
+        }
+
+        return ModuleTableController.module_tables_by_vo_type[this.kanban_column.api_type_id].get_field_by_id(this.kanban_column.field_id);
+    }
+
+    /**
+     * Savoir si la colonne kanban est plutôt un enum (return false) ou un champs d'un autre vo que celui qu'on affiche dans la table (return true)
+     */
+    get kanban_column_is_ref_to_other_api_type_id() {
+        return this.kanban_column && this.kanban_column.api_type_id && this.crud_activated_api_type && (this.kanban_column.api_type_id != this.crud_activated_api_type);
+    }
+
+    get kanban_vo_table_needs_only_kanban_column_and_possibly_weight_to_create() {
+
+        if (!this.kanban_column_is_ref_to_other_api_type_id) {
+            return false;
+        }
+
+        const kanban_table = ModuleTableController.module_tables_by_vo_type[this.kanban_column.api_type_id];
+        if (!kanban_table) {
+            return false;
+        }
+
+        const fields = kanban_table.get_fields();
+        for (const i in fields) {
+            const field = fields[i];
+            if ((field.field_id != this.kanban_column.field_id) && (field.field_id != 'weight') && (field.field_required && !field.has_default)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+    }
+
+    get can_getquerystr() {
+        return this.is_edit_mode;
+    }
+
+    get vocus_button(): boolean {
+        return (this.widget_options && this.widget_options.vocus_button);
+    }
+
+    get show_select(): boolean {
+        return (!!this.crud_activated_api_type);
+    }
+
+    get show_crud_actions(): boolean {
+        return (!!this.crud_activated_api_type);
+    }
+
+    get crud_activated_api_type(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        if (this.api_type_id_action) {
+            return this.api_type_id_action;
+        }
+
+        return this.widget_options.crud_api_type_id;
+    }
+
+    get hide_pagination_bottom(): boolean {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.hide_pagination_bottom;
+    }
+
+    get update_button(): boolean {
+        return (this.widget_options && this.widget_options.update_button);
+    }
+
+    get delete_button(): boolean {
+        return (this.widget_options && this.widget_options.delete_button);
+    }
+
+    get columns_by_field_id(): { [datatable_field_uid: string]: TableColumnDescVO } {
+        const res: { [datatable_field_uid: string]: TableColumnDescVO } = {};
+
+        for (const i in this.columns) {
+            const column = this.columns[i];
+
+            res[column.datatable_field_uid] = column;
+        }
+        return res;
+    }
+
+    get table_header_title(): string {
+        if ((!this.widget_options) || (!this.page_widget)) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.widget_options.get_title_name_code_text(this.page_widget.id)];
+    }
+
+    get columns(): TableColumnDescVO[] {
+        const options: TableWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.columns)) {
+            return null;
+        }
+
+        const res: TableColumnDescVO[] = [];
+        let sticky_left: number = 0;
+        for (const i in options.columns) {
+
+            const column = options.columns[i];
+
+            if (column.readonly == null) {
+                column.readonly = true;
+            }
+            if (column.column_width == null) {
+                column.column_width = 0;
+            }
+            if (column.is_sticky) {
+                this.sticky_left_by_col_id[column.id] = sticky_left;
+                sticky_left += parseInt(column.column_width.toString());
+                this.has_sticky_cols = true;
+                this.last_sticky_col_id = column.id;
+            }
+
+            if (FieldFiltersVOManager.is_column_filtered(column, this.filter_by_access_cache, this.get_active_field_filters, this.all_page_widgets_by_id)) {
+                continue;
+            }
+
+            res.push(Object.assign(new TableColumnDescVO(), column));
+        }
+        WeightHandler.getInstance().sortByWeight(res);
+        //je crée un clone de res pour pouvoir l'utiliser sans qu'il se mettent a jour
+        // let array_of_header = cloneDeep(res);
+        // let index_for_push: number[] = [];
+        // //je releve les index des colonnes qui sont pas de type header
+        // for (const key in array_of_header) {
+        //     let header = array_of_header[key];
+        //     if (header.type == TableColumnDescVO.TYPE_header) {
+        //         index_for_push.push(array_of_header.indexOf(header));
+        //     }
+        // }
+        // vue que je ne peut pas effacer un element en garentissant que j effacer le bonne element j'ajoute dans un nouveau tableau
+        // let final_array_of_header = [];
+        // for (let j = 0; j < index_for_push.length; j++) {
+        //     const index = index_for_push[j];
+        //     final_array_of_header.push(array_of_header[index]);
+        // }
+        // //j'ajoute le array des header nettoyer dans la variable d'iteration du pug
+        // this.array_of_headers = res;
+        // this.array_of_headers = final_array_of_header;
+        // vue que je ne peut pas effacer un element en garentissant que j effacer le bonne element j'ajoute dans un nouveau tableau pour l'affichage final dans le dashboardboardbuilder
+        for (const u in res) {
+            const column = res[u];
+            const final_res = [];
+            if (column.type == TableColumnDescVO.TYPE_header || column.children.length > 0) {
+                //pour mettre a plat les colonne pour l affichage
+                for (const r in column.children) {
+                    const children = column.children[r];
+                    const index = column.children.indexOf(children);
+                    // column.children.push(Object.assign(new TableColumnDescVO(), children));
+                    final_res.push(Object.assign(new TableColumnDescVO(), children));
+                    // res.push(Object.assign(new TableColumnDescVO(), children));
+                    // column.children.splice(index, 1);
+                }
+                column.children = final_res;
+            }
+            // else {
+            //     final_res.push(Object.assign(new TableColumnDescVO(), column));
+            //     continue;
+            // }
+        }
+        // res = final_res;
+        return res;
+    }
+
+    get colspan_total(): number {
+        if (!this.columns || !this.columns.length) {
+            return null;
+        }
+
+        let res: number = 0;
+
+        for (const i in this.columns) {
+            if (this.columns[i].hide_from_table) {
+                continue;
+            }
+
+            if (!this.is_column_type_number(this.columns[i])) {
+                res++;
+                continue;
+            }
+
+            return res;
+        }
+    }
+
+    get colspan_total_with_hidden(): number {
+        if (!this.columns || !this.columns.length) {
+            return null;
+        }
+
+        let res: number = 0;
+
+        for (const i in this.columns) {
+            if (!this.is_column_type_number(this.columns[i])) {
+                res++;
+                continue;
+            }
+
+            return res;
+        }
+    }
+
+    get fields(): { [column_id: number]: DatatableField<any, any> } {
+        const res: { [column_id: number]: DatatableField<any, any> } = {};
+
+        if (!this.widget_options) {
+            return res;
+        }
+
+        for (const i in this.columns) {
+            const column: TableColumnDescVO = this.columns[i];
+            let moduleTable: ModuleTableVO;
+
+            if (column.type != TableColumnDescVO.TYPE_header) {
+                moduleTable = ModuleTableController.module_tables_by_vo_type[column.api_type_id];
+            }
+
+            switch (column.type) {
+                case TableColumnDescVO.TYPE_component:
+                    res[column.id] = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
+                    break;
+                case TableColumnDescVO.TYPE_var_ref:
+                    const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
+                        column.id.toString(),
+                        column.var_id,
+                        column.filter_type,
+                        column.filter_additional_params,
+                        this.dashboard.id
+                    ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
+                    res[column.id] = var_data_field;
+                    break;
+                case TableColumnDescVO.TYPE_vo_field_ref:
+                    const field = moduleTable.get_field_by_id(column.field_id);
+                    // let field_type = field ? field.field_type : moduletablfiel
+                    // switch (field.field_type) {
+
+                    // let data_field: SimpleDatatableFieldVO<any, any> = SimpleDatatableFieldVO.createNew(field.field_id, field.field_label.code_text);
+                    // data_field.setModuleTable(moduleTable);
+                    // res[column.id] = data_field;
+                    // break;
+                    // default:
+
+                    if (!field) {
+                        res[column.id] = SimpleDatatableFieldVO.createNew(column.field_id).setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
+                        break;
+                    }
+
+                    const data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
+
+                    // sur un simple on set le label
+                    if (data_field['set_translatable_title']) {
+                        data_field['set_translatable_title'](field.field_label.code_text);
+                    }
+
+                    data_field.setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
+                    res[column.id] = data_field;
+                    //         break;
+                    // }
+                    break;
+                case TableColumnDescVO.TYPE_crud_actions:
+                    res[column.id] = CRUDActionsDatatableFieldVO.createNew().setModuleTable(moduleTable);
+                    break;
+                case TableColumnDescVO.TYPE_select_box:
+                    res[column.id] = SelectBoxDatatableFieldVO.createNew().setModuleTable(moduleTable);
+                    break;
+            }
+        }
+        // for (let i in this.widget_options.columns) {
+        //     let column: TableColumnDescVO = this.widget_options.columns[i];
+        //     let moduleTable: ModuleTableVO;
+
+        //     if (column.type != TableColumnDescVO.TYPE_header) {
+        //         moduleTable = ModuleTableController.module_tables_by_vo_type[column.api_type_id];
+        //     }
+
+        //     switch (column.type) {
+        //         case TableColumnDescVO.TYPE_component:
+        //             res[column.id] = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
+        //             break;
+        //         case TableColumnDescVO.TYPE_var_ref:
+        //             let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
+        //                 column.id.toString(), column.var_id, column.filter_type, column.filter_additional_params,
+        //                 this.dashboard.id, column.get_translatable_name_code_text(this.page_widget.id)).auto_update_datatable_field_uid_with_vo_type();
+        //             res[column.id] = var_data_field;
+        //             break;
+        //         case TableColumnDescVO.TYPE_header:
+        //             //to do surment a complete
+        //             let semaphore: string;
+        //             for (let f = 0; f < column.children.length; f++) {
+        //                 let children = column.children[f];
+        //                 if (!semaphore || children.field_id != semaphore) {
+        //                     moduleTable = ModuleTableController.module_tables_by_vo_type[children.api_type_id];
+        //                     let result = this.switch_for_type_header(children, moduleTable);
+        //                     result.is_required = true;
+        //                     res[children.id] = result;
+        //                 }
+        //                 semaphore = children.field_id;
+
+        //             }
+
+        //             break;
+        //         case TableColumnDescVO.TYPE_vo_field_ref:
+        //             let field = moduleTable.get_field_by_id(column.field_id);
+        //             // let field_type = field ? field.field_type : moduletablfiel
+        //             // switch (field.field_type) {
+
+        //             // let data_field: SimpleDatatableFieldVO<any, any> = SimpleDatatableFieldVO.createNew(field.field_id, field.field_label.code_text);
+        //             // data_field.setModuleTable(moduleTable);
+        //             // res[column.id] = data_field;
+        //             // break;
+        //             // default:
+
+        //             // if (!field) {
+        //             //     res[column.id] = SimpleDatatableFieldVO.createNew(column.field_id).setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type().set_translatable_title();
+        //             //     break;
+        //             // }
+
+        //             let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
+
+        //             // sur un simple on set le label
+        //             if (data_field['set_translatable_title']) {
+        //                 data_field['set_translatable_title'](field.field_label.code_text);
+        //             }
+
+        //             data_field.setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
+        //             res[column.id] = data_field;
+        //             //         break;
+        //             // }
+        //             break;
+        //         case TableColumnDescVO.TYPE_crud_actions:
+        //             res[column.id] = CRUDActionsDatatableFieldVO.createNew().setModuleTable(moduleTable);
+        //             break;
+        //         case TableColumnDescVO.TYPE_select_box:
+        //             res[column.id] = SelectBoxDatatableFieldVO.createNew().setModuleTable(moduleTable);
+        //             break;
+        //     }
+        // }
+        return res;
+    }
+
+    get has_group_headers() {
+        if (!this.columns) {
+            return false;
+        }
+
+        return !!this.columns.find((column) => column.type == TableColumnDescVO.TYPE_header);
+    }
+
+    get title_name_code_text() {
+        if (!this.widget_options) {
+            return null;
+        }
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    get widget_options(): TableWidgetOptionsVO {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: TableWidgetOptionsVO = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
+                options = options ? new TableWidgetOptionsVO().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    get kanban_column(): TableColumnDescVO {
+        if (!this.columns) {
+            return null;
+        }
+
+        for (const i in this.columns) {
+            const column: TableColumnDescVO = this.columns[i];
+
+            if (column.kanban_column) {
+                return column;
+            }
+        }
+
+        return null;
+    }
+
+    @Watch('get_active_field_filters', { deep: true })
+    private async onchange_active_field_filters() {
+        await this.throttle_update_visible_options();
+    }
+
+    @Watch('widget_options', { immediate: true })
+    private async onchange_widget_options() {
+        if (this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
+
+        // Si j'ai un tri par defaut, je l'applique au tableau
+        if (this.columns) {
+            this.order_asc_on_id = null;
+            this.order_desc_on_id = null;
+
+            for (const i in this.columns) {
+                if (this.columns[i].default_sort_field == TableColumnDescVO.SORT_asc) {
+                    this.order_asc_on_id = this.columns[i].id;
+                    break;
+                } else if (this.columns[i].default_sort_field == TableColumnDescVO.SORT_desc) {
+                    this.order_desc_on_id = this.columns[i].id;
+                    break;
+                }
+            }
+        }
+
+        this.limit = (!this.widget_options || (this.widget_options.limit == null)) ? TableWidgetOptionsVO.DEFAULT_LIMIT : this.widget_options.limit;
+        this.tmp_nbpages_pagination_list = (!this.widget_options || (this.widget_options.nbpages_pagination_list == null)) ? TableWidgetOptionsVO.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
+
+        const promises = [
+            this.loaded_once ? this.throttle_do_update_visible_options() : this.throttle_update_visible_options(), // Pour éviter de forcer le chargement de la table sans avoir cliqué sur le bouton de validation des filtres
+            this.update_filter_by_access_cache()
+        ];
+        await all_promises(promises);
+    }
+
+    @Watch('columns')
+    private async onchange_columns() {
+        await this.throttle_update_visible_options();
+    }
+
+    @Watch('dashboard_page', { immediate: true })
+    private async onchange_dashboard_page() {
+        if (!this.dashboard_page) {
+            return;
+        }
+    }
+
+    @Watch('dashboard_vo_action', { immediate: true })
+    @Watch('dashboard_vo_id', { immediate: true })
+    @Watch('api_type_id_action', { immediate: true })
+    private async onchange_dashboard_vo_props() {
+        await this.debounced_onchange_dashboard_vo_route_param();
+    }
+
+    @Watch('kanban_column', { immediate: true })
+    private async onchange_kanban_column() {
+
+        if (!this.kanban_column) {
+            this.can_create_kanban_column = false;
+            return;
+        }
+
+        if (this.kanban_column.api_type_id == this.crud_activated_api_type) {
+            this.can_create_kanban_column = false;
+            return;
+        }
+
+        this.can_create_kanban_column = await ModuleAccessPolicy.getInstance().testAccess(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.kanban_column.api_type_id));
+    }
+
+    @Watch('crud_activated_api_type', { immediate: true })
+    private async onchange_crud_activated_api_type() {
+        if (!this.crud_activated_api_type) {
+            return;
+        }
+
+        if (this.can_open_vocus_right == null) {
+            this.can_open_vocus_right = await ModuleAccessPolicy.getInstance().testAccess(ModuleVocus.POLICY_BO_ACCESS);
+        }
+
+        if (this.can_delete_right == null) {
+            this.can_delete_right = await ModuleAccessPolicy.getInstance().testAccess(
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.crud_activated_api_type));
+        }
+
+        if (this.can_delete_all_right == null) {
+            const crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud_activated_api_type];
+            if (!crud) {
+                this.can_delete_all_right = this.can_delete_right;
+            } else {
+                this.can_delete_all_right = this.can_delete_right && await ModuleAccessPolicy.getInstance().testAccess(crud.delete_all_access_right);
+            }
+        }
+
+        if (this.can_update_right == null) {
+            this.can_update_right = await ModuleAccessPolicy.getInstance().testAccess(
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
+        }
+
+        if (this.can_create_right == null) {
+            this.can_create_right = await ModuleAccessPolicy.getInstance().testAccess(
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
+        }
+    }
+
+    public async getquerystr() {
+        if (!this.actual_rows_query) {
+            return null;
+        }
+        const query_string: string = await this.actual_rows_query.get_select_query_str();
+        await navigator.clipboard.writeText(query_string);
+        await this.$snotify.success(this.label('copied_to_clipboard'));
+    }
+
+    private get_links_titles(row: any): string[] {
+        if ((!this.sorted_link_datatable_field_uids) || !this.sorted_link_datatable_field_uids.length) {
+            return [];
+        }
+
+        const res: string[] = []; //number
+
+        for (const i in this.sorted_link_datatable_field_uids) {
+            const datatable_field_uid = this.sorted_link_datatable_field_uids[i];
+
+            if (row[datatable_field_uid]) {
+                res.push(this.columns_by_field_id[datatable_field_uid].custom_label ?? this.t(this.columns_by_field_id[datatable_field_uid].get_translatable_name_code_text(this.page_widget.id)));
+            }
+        }
+        return res;
+    }
+
+    private get_links(row: any): string[] { //number
+
+        if ((!this.sorted_link_datatable_field_uids) || !this.sorted_link_datatable_field_uids.length) {
+            return [];
+        }
+
+        const res: string[] = []; //number
+
+        for (const i in this.sorted_link_datatable_field_uids) {
+            const datatable_field_uid = this.sorted_link_datatable_field_uids[i];
+
+            if (row[datatable_field_uid]) {
+                res.push(row[datatable_field_uid]);
+            }
+        }
+        return res;
+    }
+
+
+    private get_images_ids(row: any): string[] { //number
+
+        if ((!this.sorted_image_datatable_field_uids) || !this.sorted_image_datatable_field_uids.length) {
+            return [];
+        }
+
+        const res: string[] = []; //number
+
+        for (const i in this.sorted_image_datatable_field_uids) {
+            const datatable_field_uid = this.sorted_image_datatable_field_uids[i];
+
+            if (row[datatable_field_uid]) {
+                res.push(row[datatable_field_uid]);
+            }
+        }
+        return res;
+    }
+
+    private async on_change_kanban_element(evt, originalEvent) {
+        ConsoleHandler.log('on_change_kanban_element:' + evt + ':' + originalEvent);
+        return true;
     }
 
     private async create_new_kanban_column() {
@@ -405,40 +1269,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     private get_elt_id(elt) {
         return elt.id || elt['__crud_actions'];
     }
-
-    /**
-     * Savoir si la colonne kanban est plutôt un enum (return false) ou un champs d'un autre vo que celui qu'on affiche dans la table (return true)
-     */
-    get kanban_column_is_ref_to_other_api_type_id() {
-        return this.kanban_column && this.kanban_column.api_type_id && this.crud_activated_api_type && (this.kanban_column.api_type_id != this.crud_activated_api_type);
-    }
-
-    private async open_create_column() {
-        await this.get_Crudcreatemodalcomponent.open_modal(this.kanban_column.api_type_id, this.throttled_update_visible_options.bind(this));
-    }
-
-    get kanban_vo_table_needs_only_kanban_column_and_possibly_weight_to_create() {
-
-        if (!this.kanban_column_is_ref_to_other_api_type_id) {
-            return false;
-        }
-
-        const kanban_table = ModuleTableController.module_tables_by_vo_type[this.kanban_column.api_type_id];
-        if (!kanban_table) {
-            return false;
-        }
-
-        const fields = kanban_table.get_fields();
-        for (const i in fields) {
-            const field = fields[i];
-            if ((field.field_id != this.kanban_column.field_id) && (field.field_id != 'weight') && (field.field_required && !field.has_default)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
 
     private async on_move_columns_kanban_element(evt, originalEvent) {
         const self = this;
@@ -809,19 +1639,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         await all_promises(promises);
     }
 
-    get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
-    }
-
-    get can_getquerystr() {
-        return this.is_edit_mode;
-    }
-
-    @Watch('columns')
-    private async onchange_columns() {
-        await this.throttle_update_visible_options();
-    }
-
     /**
      * On doit avoir accepté sur la tableau, sur le champs, etre readonly
      */
@@ -1059,90 +1876,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
     }
 
-    get can_refresh(): boolean {
-        return this.widget_options && this.widget_options.refresh_button;
-    }
-
-    get show_export_maintenance_alert(): boolean {
-        return this.widget_options && this.widget_options.has_export_maintenance_alert;
-    }
-
-    get can_export(): boolean {
-        return this.widget_options && this.widget_options.export_button;
-    }
-
-    get default_export_option(): number {
-        return this.widget_options && this.widget_options.export_button && this.widget_options.has_default_export_option && this.widget_options.default_export_option ? this.widget_options.default_export_option : null;
-    }
-
-    get show_limit_selectable(): boolean {
-        return this.widget_options && this.widget_options.show_limit_selectable;
-    }
-
-    get show_pagination_resumee(): boolean {
-        return this.widget_options && this.widget_options.show_pagination_resumee;
-    }
-
-    get show_pagination_slider(): boolean {
-        return this.widget_options && this.widget_options.show_pagination_slider;
-    }
-
-    get show_pagination_form(): boolean {
-        return this.widget_options && this.widget_options.show_pagination_form;
-    }
-
-    get show_pagination_list(): boolean {
-        return this.widget_options && this.widget_options.show_pagination_list;
-    }
-
-    get has_table_total_footer(): boolean {
-        return this.widget_options && this.widget_options.has_table_total_footer;
-    }
-
-    get limit_selectable(): string[] {
-        return (this.widget_options && this.widget_options.limit_selectable) ? this.widget_options.limit_selectable.split(",") : null;
-    }
-
-    get can_create(): boolean {
-        if (!this.crud_activated_api_type) {
-            return false;
-        }
-
-        return this.can_create_right && this.widget_options.create_button;
-    }
-
-    get can_update(): boolean {
-        if (!this.crud_activated_api_type) {
-            return false;
-        }
-
-        return this.can_update_right && this.widget_options.update_button;
-    }
-
-    get can_delete(): boolean {
-        if (!this.crud_activated_api_type) {
-            return false;
-        }
-
-        return this.can_delete_right && this.widget_options.delete_button;
-    }
-
-    get can_delete_all(): boolean {
-        if (!this.crud_activated_api_type) {
-            return false;
-        }
-
-        return this.can_delete_all_right && this.widget_options.delete_all_button;
-    }
-
-    get can_open_vocus(): boolean {
-        if (!this.crud_activated_api_type) {
-            return false;
-        }
-
-        return this.can_open_vocus_right && this.widget_options.vocus_button;
-    }
-
     private async mounted() {
         await ValidationFiltersWidgetController.getInstance().register_updater(
             this.dashboard_page.dashboard_id,
@@ -1162,71 +1895,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         });
 
         this.stopLoading();
-    }
-
-    @Watch('dashboard_page', { immediate: true })
-    private async onchange_dashboard_page() {
-        if (!this.dashboard_page) {
-            return;
-        }
-    }
-
-    @Watch('dashboard_vo_action', { immediate: true })
-    @Watch('dashboard_vo_id', { immediate: true })
-    @Watch('api_type_id_action', { immediate: true })
-    private async onchange_dashboard_vo_props() {
-        await this.debounced_onchange_dashboard_vo_route_param();
-    }
-
-    @Watch('kanban_column', { immediate: true })
-    private async onchange_kanban_column() {
-
-        if (!this.kanban_column) {
-            this.can_create_kanban_column = false;
-            return;
-        }
-
-        if (this.kanban_column.api_type_id == this.crud_activated_api_type) {
-            this.can_create_kanban_column = false;
-            return;
-        }
-
-        this.can_create_kanban_column = await ModuleAccessPolicy.getInstance().testAccess(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.kanban_column.api_type_id));
-    }
-
-    @Watch('crud_activated_api_type', { immediate: true })
-    private async onchange_crud_activated_api_type() {
-        if (!this.crud_activated_api_type) {
-            return;
-        }
-
-        if (this.can_open_vocus_right == null) {
-            this.can_open_vocus_right = await ModuleAccessPolicy.getInstance().testAccess(ModuleVocus.POLICY_BO_ACCESS);
-        }
-
-        if (this.can_delete_right == null) {
-            this.can_delete_right = await ModuleAccessPolicy.getInstance().testAccess(
-                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.crud_activated_api_type));
-        }
-
-        if (this.can_delete_all_right == null) {
-            const crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud_activated_api_type];
-            if (!crud) {
-                this.can_delete_all_right = this.can_delete_right;
-            } else {
-                this.can_delete_all_right = this.can_delete_right && await ModuleAccessPolicy.getInstance().testAccess(crud.delete_all_access_right);
-            }
-        }
-
-        if (this.can_update_right == null) {
-            this.can_update_right = await ModuleAccessPolicy.getInstance().testAccess(
-                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
-        }
-
-        if (this.can_create_right == null) {
-            this.can_create_right = await ModuleAccessPolicy.getInstance().testAccess(
-                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
-        }
     }
 
     private async open_update(type: string, id: number) {
@@ -1296,46 +1964,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
     }
 
-    get vocus_button(): boolean {
-        return (this.widget_options && this.widget_options.vocus_button);
-    }
-
-    get show_select(): boolean {
-        return (!!this.crud_activated_api_type);
-    }
-
-    get show_crud_actions(): boolean {
-        return (!!this.crud_activated_api_type);
-    }
-
-    get crud_activated_api_type(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        if (this.api_type_id_action) {
-            return this.api_type_id_action;
-        }
-
-        return this.widget_options.crud_api_type_id;
-    }
-
-    get hide_pagination_bottom(): boolean {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.hide_pagination_bottom;
-    }
-
-    get update_button(): boolean {
-        return (this.widget_options && this.widget_options.update_button);
-    }
-
-    get delete_button(): boolean {
-        return (this.widget_options && this.widget_options.delete_button);
-    }
-
     private async sort_by(column: TableColumnDescVO) {
         if (!column) {
             this.order_asc_on_id = null;
@@ -1390,277 +2018,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
     }
 
-    get columns_by_field_id(): { [datatable_field_uid: string]: TableColumnDescVO } {
-        const res: { [datatable_field_uid: string]: TableColumnDescVO } = {};
-
-        for (const i in this.columns) {
-            const column = this.columns[i];
-
-            res[column.datatable_field_uid] = column;
-        }
-        return res;
-    }
-
-    get table_header_title(): string {
-        if ((!this.widget_options) || (!this.page_widget)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.widget_options.get_title_name_code_text(this.page_widget.id)];
-    }
-
-    get columns(): TableColumnDescVO[] {
-        const options: TableWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.columns)) {
-            return null;
-        }
-
-        const res: TableColumnDescVO[] = [];
-        let sticky_left: number = 0;
-        for (const i in options.columns) {
-
-            const column = options.columns[i];
-
-            if (column.readonly == null) {
-                column.readonly = true;
-            }
-            if (column.column_width == null) {
-                column.column_width = 0;
-            }
-            if (column.is_sticky) {
-                this.sticky_left_by_col_id[column.id] = sticky_left;
-                sticky_left += parseInt(column.column_width.toString());
-                this.has_sticky_cols = true;
-                this.last_sticky_col_id = column.id;
-            }
-
-            if (FieldFiltersVOManager.is_column_filtered(column, this.filter_by_access_cache, this.get_active_field_filters, this.all_page_widgets_by_id)) {
-                continue;
-            }
-
-            res.push(Object.assign(new TableColumnDescVO(), column));
-        }
-        WeightHandler.getInstance().sortByWeight(res);
-        //je crée un clone de res pour pouvoir l'utiliser sans qu'il se mettent a jour
-        // let array_of_header = cloneDeep(res);
-        // let index_for_push: number[] = [];
-        // //je releve les index des colonnes qui sont pas de type header
-        // for (const key in array_of_header) {
-        //     let header = array_of_header[key];
-        //     if (header.type == TableColumnDescVO.TYPE_header) {
-        //         index_for_push.push(array_of_header.indexOf(header));
-        //     }
-        // }
-        // vue que je ne peut pas effacer un element en garentissant que j effacer le bonne element j'ajoute dans un nouveau tableau
-        // let final_array_of_header = [];
-        // for (let j = 0; j < index_for_push.length; j++) {
-        //     const index = index_for_push[j];
-        //     final_array_of_header.push(array_of_header[index]);
-        // }
-        // //j'ajoute le array des header nettoyer dans la variable d'iteration du pug
-        // this.array_of_headers = res;
-        // this.array_of_headers = final_array_of_header;
-        // vue que je ne peut pas effacer un element en garentissant que j effacer le bonne element j'ajoute dans un nouveau tableau pour l'affichage final dans le dashboardboardbuilder
-        for (const u in res) {
-            const column = res[u];
-            const final_res = [];
-            if (column.type == TableColumnDescVO.TYPE_header || column.children.length > 0) {
-                //pour mettre a plat les colonne pour l affichage
-                for (const r in column.children) {
-                    const children = column.children[r];
-                    const index = column.children.indexOf(children);
-                    // column.children.push(Object.assign(new TableColumnDescVO(), children));
-                    final_res.push(Object.assign(new TableColumnDescVO(), children));
-                    // res.push(Object.assign(new TableColumnDescVO(), children));
-                    // column.children.splice(index, 1);
-                }
-                column.children = final_res;
-            }
-            // else {
-            //     final_res.push(Object.assign(new TableColumnDescVO(), column));
-            //     continue;
-            // }
-        }
-        // res = final_res;
-        return res;
-    }
-
-    get colspan_total(): number {
-        if (!this.columns || !this.columns.length) {
-            return null;
-        }
-
-        let res: number = 0;
-
-        for (const i in this.columns) {
-            if (this.columns[i].hide_from_table) {
-                continue;
-            }
-
-            if (!this.is_column_type_number(this.columns[i])) {
-                res++;
-                continue;
-            }
-
-            return res;
-        }
-    }
-
-    get colspan_total_with_hidden(): number {
-        if (!this.columns || !this.columns.length) {
-            return null;
-        }
-
-        let res: number = 0;
-
-        for (const i in this.columns) {
-            if (!this.is_column_type_number(this.columns[i])) {
-                res++;
-                continue;
-            }
-
-            return res;
-        }
-    }
-
-    get fields(): { [column_id: number]: DatatableField<any, any> } {
-        const res: { [column_id: number]: DatatableField<any, any> } = {};
-
-        if (!this.widget_options) {
-            return res;
-        }
-
-        for (const i in this.columns) {
-            const column: TableColumnDescVO = this.columns[i];
-            let moduleTable: ModuleTableVO;
-
-            if (column.type != TableColumnDescVO.TYPE_header) {
-                moduleTable = ModuleTableController.module_tables_by_vo_type[column.api_type_id];
-            }
-
-            switch (column.type) {
-                case TableColumnDescVO.TYPE_component:
-                    res[column.id] = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
-                    break;
-                case TableColumnDescVO.TYPE_var_ref:
-                    const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
-                        column.id.toString(),
-                        column.var_id,
-                        column.filter_type,
-                        column.filter_additional_params,
-                        this.dashboard.id
-                    ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
-                    res[column.id] = var_data_field;
-                    break;
-                case TableColumnDescVO.TYPE_vo_field_ref:
-                    const field = moduleTable.get_field_by_id(column.field_id);
-                    // let field_type = field ? field.field_type : moduletablfiel
-                    // switch (field.field_type) {
-
-                    // let data_field: SimpleDatatableFieldVO<any, any> = SimpleDatatableFieldVO.createNew(field.field_id, field.field_label.code_text);
-                    // data_field.setModuleTable(moduleTable);
-                    // res[column.id] = data_field;
-                    // break;
-                    // default:
-
-                    if (!field) {
-                        res[column.id] = SimpleDatatableFieldVO.createNew(column.field_id).setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
-                        break;
-                    }
-
-                    const data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
-
-                    // sur un simple on set le label
-                    if (data_field['set_translatable_title']) {
-                        data_field['set_translatable_title'](field.field_label.code_text);
-                    }
-
-                    data_field.setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
-                    res[column.id] = data_field;
-                    //         break;
-                    // }
-                    break;
-                case TableColumnDescVO.TYPE_crud_actions:
-                    res[column.id] = CRUDActionsDatatableFieldVO.createNew().setModuleTable(moduleTable);
-                    break;
-                case TableColumnDescVO.TYPE_select_box:
-                    res[column.id] = SelectBoxDatatableFieldVO.createNew().setModuleTable(moduleTable);
-                    break;
-            }
-        }
-        // for (let i in this.widget_options.columns) {
-        //     let column: TableColumnDescVO = this.widget_options.columns[i];
-        //     let moduleTable: ModuleTableVO;
-
-        //     if (column.type != TableColumnDescVO.TYPE_header) {
-        //         moduleTable = ModuleTableController.module_tables_by_vo_type[column.api_type_id];
-        //     }
-
-        //     switch (column.type) {
-        //         case TableColumnDescVO.TYPE_component:
-        //             res[column.id] = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
-        //             break;
-        //         case TableColumnDescVO.TYPE_var_ref:
-        //             let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
-        //                 column.id.toString(), column.var_id, column.filter_type, column.filter_additional_params,
-        //                 this.dashboard.id, column.get_translatable_name_code_text(this.page_widget.id)).auto_update_datatable_field_uid_with_vo_type();
-        //             res[column.id] = var_data_field;
-        //             break;
-        //         case TableColumnDescVO.TYPE_header:
-        //             //to do surment a complete
-        //             let semaphore: string;
-        //             for (let f = 0; f < column.children.length; f++) {
-        //                 let children = column.children[f];
-        //                 if (!semaphore || children.field_id != semaphore) {
-        //                     moduleTable = ModuleTableController.module_tables_by_vo_type[children.api_type_id];
-        //                     let result = this.switch_for_type_header(children, moduleTable);
-        //                     result.is_required = true;
-        //                     res[children.id] = result;
-        //                 }
-        //                 semaphore = children.field_id;
-
-        //             }
-
-        //             break;
-        //         case TableColumnDescVO.TYPE_vo_field_ref:
-        //             let field = moduleTable.get_field_by_id(column.field_id);
-        //             // let field_type = field ? field.field_type : moduletablfiel
-        //             // switch (field.field_type) {
-
-        //             // let data_field: SimpleDatatableFieldVO<any, any> = SimpleDatatableFieldVO.createNew(field.field_id, field.field_label.code_text);
-        //             // data_field.setModuleTable(moduleTable);
-        //             // res[column.id] = data_field;
-        //             // break;
-        //             // default:
-
-        //             // if (!field) {
-        //             //     res[column.id] = SimpleDatatableFieldVO.createNew(column.field_id).setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type().set_translatable_title();
-        //             //     break;
-        //             // }
-
-        //             let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
-
-        //             // sur un simple on set le label
-        //             if (data_field['set_translatable_title']) {
-        //                 data_field['set_translatable_title'](field.field_label.code_text);
-        //             }
-
-        //             data_field.setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
-        //             res[column.id] = data_field;
-        //             //         break;
-        //             // }
-        //             break;
-        //         case TableColumnDescVO.TYPE_crud_actions:
-        //             res[column.id] = CRUDActionsDatatableFieldVO.createNew().setModuleTable(moduleTable);
-        //             break;
-        //         case TableColumnDescVO.TYPE_select_box:
-        //             res[column.id] = SelectBoxDatatableFieldVO.createNew().setModuleTable(moduleTable);
-        //             break;
-        //     }
-        // }
-        return res;
-    }
     private switch_for_type_header(column: TableColumnDescVO, moduleTable: ModuleTableVO) {
         let res: DatatableField<any, any>;
         switch (column.type) {
@@ -1713,11 +2070,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 break;
         }
         return res;
-    }
-
-    @Watch('get_active_field_filters', { deep: true })
-    private async onchange_active_field_filters() {
-        await this.throttle_update_visible_options();
     }
 
     private async throttled_update_visible_options(force: boolean = false) {
@@ -2142,62 +2494,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         this.update_cpt_live--;
     }
 
-    get kanban_column(): TableColumnDescVO {
-        if (!this.columns) {
-            return null;
-        }
-
-        for (const i in this.columns) {
-            const column: TableColumnDescVO = this.columns[i];
-
-            if (column.kanban_column) {
-                return column;
-            }
-        }
-
-        return null;
-    }
-
     private async refresh() {
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_datatable_rows));
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_count));
         await this.throttle_do_update_visible_options();
-    }
-
-    @Watch('widget_options', { immediate: true })
-    private async onchange_widget_options() {
-        if (this.old_widget_options) {
-            if (isEqual(this.widget_options, this.old_widget_options)) {
-                return;
-            }
-        }
-
-        this.old_widget_options = cloneDeep(this.widget_options);
-
-        // Si j'ai un tri par defaut, je l'applique au tableau
-        if (this.columns) {
-            this.order_asc_on_id = null;
-            this.order_desc_on_id = null;
-
-            for (const i in this.columns) {
-                if (this.columns[i].default_sort_field == TableColumnDescVO.SORT_asc) {
-                    this.order_asc_on_id = this.columns[i].id;
-                    break;
-                } else if (this.columns[i].default_sort_field == TableColumnDescVO.SORT_desc) {
-                    this.order_desc_on_id = this.columns[i].id;
-                    break;
-                }
-            }
-        }
-
-        this.limit = (!this.widget_options || (this.widget_options.limit == null)) ? TableWidgetOptionsVO.DEFAULT_LIMIT : this.widget_options.limit;
-        this.tmp_nbpages_pagination_list = (!this.widget_options || (this.widget_options.nbpages_pagination_list == null)) ? TableWidgetOptionsVO.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
-
-        const promises = [
-            this.loaded_once ? this.throttle_do_update_visible_options() : this.throttle_update_visible_options(), // Pour éviter de forcer le chargement de la table sans avoir cliqué sur le bouton de validation des filtres
-            this.update_filter_by_access_cache()
-        ];
-        await all_promises(promises);
     }
 
     private async update_filter_by_access_cache() {
@@ -2215,39 +2515,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             }
         }
         await all_promises(promises);
-    }
-
-    get has_group_headers() {
-        if (!this.columns) {
-            return false;
-        }
-
-        return !!this.columns.find((column) => column.type == TableColumnDescVO.TYPE_header);
-    }
-
-    get title_name_code_text() {
-        if (!this.widget_options) {
-            return null;
-        }
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get widget_options(): TableWidgetOptionsVO {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: TableWidgetOptionsVO = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
-                options = options ? new TableWidgetOptionsVO().from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 
     private open_vocus(api_type_id: string, id: number) {
@@ -2396,160 +2663,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         );
     }
 
-    get columns_custom_filters(): { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } {
-        const res: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = {};
-
-        for (const i in this.columns) {
-            const column = this.columns[i];
-
-            if (column.type !== TableColumnDescVO.TYPE_var_ref) {
-                continue;
-            }
-
-            res[column.datatable_field_uid] = VarWidgetComponent.get_var_custom_filters(
-                ObjectHandler.hasAtLeastOneAttribute(column.filter_custom_field_filters) ? column.filter_custom_field_filters : null,
-                this.get_active_field_filters);
-        }
-
-        return res;
-    }
-
-    get do_not_use_filter_by_datatable_field_uid(): { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } {
-        const res: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = {};
-
-        for (const i in this.columns) {
-            const column = this.columns[i];
-
-            if (column.type !== TableColumnDescVO.TYPE_var_ref) {
-                continue;
-            }
-
-            const do_not_use: { [vo_type: string]: { [field_id: string]: boolean } } = {};
-
-            // On supprime les filtres à ne pas prendre en compte pour créer le bon param
-            if (column.do_not_user_filter_active_ids && column.do_not_user_filter_active_ids.length) {
-                const all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
-
-                for (const j in column.do_not_user_filter_active_ids) {
-                    const page_filter_id = column.do_not_user_filter_active_ids[j];
-
-                    const page_widget: DashboardPageWidgetVO = all_page_widgets_by_id[page_filter_id];
-                    if (!page_widget) {
-                        continue;
-                    }
-
-                    const page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
-
-                    if (page_widget_options?.vo_field_ref) {
-                        if (!do_not_use[page_widget_options.vo_field_ref.api_type_id]) {
-                            do_not_use[page_widget_options.vo_field_ref.api_type_id] = {};
-                        }
-
-                        do_not_use[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id] = true;
-                    }
-                }
-            }
-
-            if (Object.keys(do_not_use).length > 0) {
-                res[column.datatable_field_uid] = do_not_use;
-            }
-        }
-
-        return res;
-    }
-
-    get varcolumn_conf(): { [datatable_field_uid: string]: ExportVarcolumnConfVO } {
-        const res: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = {};
-
-        for (const i in this.columns) {
-            const column = this.columns[i];
-
-            if (column.type !== TableColumnDescVO.TYPE_var_ref) {
-                continue;
-            }
-
-            const varcolumn_conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
-                column.var_id,
-                column.filter_custom_field_filters
-            );
-
-            res[column.datatable_field_uid] = varcolumn_conf;
-        }
-
-        return res;
-    }
-
-    get datatable_columns_labels(): any {
-        const res: any = {};
-
-        for (const i in this.columns) {
-            const column = this.columns[i];
-
-            if (column.type == TableColumnDescVO.TYPE_header) {
-                for (const key in column.children) {
-                    const child = column.children[key];
-                    res[child.datatable_field_uid] = child.custom_label ?? this.t(child.get_translatable_name_code_text(this.page_widget.id));
-                }
-            } else {
-                res[column.datatable_field_uid] = column.custom_label ?? this.t(column.get_translatable_name_code_text(this.page_widget.id));
-            }
-        }
-
-        return res;
-    }
-
-    get exportable_datatable_custom_field_columns(): { [datatable_field_uid: string]: string } {
-        const res: { [datatable_field_uid: string]: string } = {};
-
-        for (const i in this.columns) {
-            const column: TableColumnDescVO = this.columns[i];
-
-            if (!column.exportable) {
-                continue;
-            }
-
-            if (column.type != TableColumnDescVO.TYPE_component) {
-                continue;
-            }
-
-            res[column.datatable_field_uid] = column.component_name;
-        }
-
-        return res;
-    }
-
-    get exportable_datatable_columns(): string[] {
-        const res: string[] = [];
-
-        for (const i in this.columns) {
-            const column: TableColumnDescVO = this.columns[i];
-            if (column.type == TableColumnDescVO.TYPE_header) {
-                for (const key in column.children) {
-                    const child = column.children[key];
-                    if (!child.exportable) {
-                        continue;
-                    }
-                    res.push(child.datatable_field_uid);
-                }
-            }
-
-            if (!column.exportable) {
-                continue;
-            }
-
-            if (FieldFiltersVOManager.is_column_filtered(column, this.filter_by_access_cache, this.get_active_field_filters, this.all_page_widgets_by_id)) {
-                continue;
-            }
-
-            if (column.type != TableColumnDescVO.TYPE_header) {
-
-                res.push(column.datatable_field_uid);
-            }
-        }
-
-        return res;
-    }
-
     private get_exportable_datatable_data(): any[] {
         const exportable_datatable_data = [];
 
@@ -2572,25 +2685,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         return exportable_datatable_data;
-    }
-
-    get export_datatable(): Datatable<any> {
-        const res = new Datatable(this.crud_activated_api_type);
-
-        for (const i in this.fields) {
-            const field = this.fields[i];
-
-            if (field.type == DatatableField.CRUD_ACTIONS_FIELD_TYPE) {
-                continue;
-            }
-
-            if (field.type == DatatableField.INPUT_FIELD_TYPE) {
-                continue;
-            }
-
-            res.pushField(field);
-        }
-        return res;
     }
 
     /**
@@ -2823,22 +2917,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         await all_promises(promises);
     }
 
-    get dashboard_vo_action() {
-        return this.$route.params.dashboard_vo_action;
-    }
-
-    get dashboard_vo_id() {
-        return this.$route.params.dashboard_vo_id;
-    }
-
-    get api_type_id_action() {
-        return this.$route.params.api_type_id_action;
-    }
-
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
-    }
-
     private has_widget_validation_filtres(): boolean {
 
         if (!this.all_page_widget) {
@@ -2860,82 +2938,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         return false;
     }
 
-    // /**
-    //  * Export de la page lue
-    //  */
-    // private async do_export_page_to_xlsx() {
-    //     let param: ExportDataToXLSXParamVO = this.get_export_params_for_xlsx();
-
-    //     if (!!param) {
-
-    //         await ModuleDataExport.getInstance().exportDataToXLSX(
-    //             param.filename,
-    //             param.datas,
-    //             param.ordered_column_list,
-    //             param.column_labels,
-    //             param.api_type_id,
-    //             param.is_secured,
-    //             param.file_access_policy_name
-    //         );
-    //     }
-    // }
-
-    get contextmenu_items(): any {
-        const contextmenu_items: any = {};
-
-        contextmenu_items['archive'] = {
-            name: this.label('TableWidgetTableComponent.contextmenu.archive'),
-            disabled: function (key, opt) {
-                const elt = opt.$trigger[0];
-
-                if (!elt) {
-                    return true;
-                }
-
-                const use_kanban_card_archive_if_exists = elt.getAttribute('use_kanban_card_archive_if_exists');
-                if (!use_kanban_card_archive_if_exists) {
-                    return true;
-                }
-
-                const kanban_api_type_id = elt.getAttribute('kanban_api_type_id');
-                const kanban_moduletable = ModuleTableController.module_tables_by_vo_type[kanban_api_type_id];
-                const item_id = elt.getAttribute('item_id');
-                return (!item_id) || !ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[kanban_api_type_id][field_names<IArchivedVOBase>().archived];
-            },
-            callback: async (key, opt) => {
-                const elt = opt.$trigger[0];
-
-                if (!elt) {
-                    return;
-                }
-
-                const use_kanban_card_archive_if_exists = elt.getAttribute('use_kanban_card_archive_if_exists');
-                if (!use_kanban_card_archive_if_exists) {
-                    return;
-                }
-
-                const item_id = elt.getAttribute('item_id');
-
-                if (!item_id) {
-                    return;
-                }
-
-                const kanban_api_type_id = elt.getAttribute('kanban_api_type_id');
-                const kanban_moduletable = ModuleTableController.module_tables_by_vo_type[kanban_api_type_id];
-
-                if (!ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[kanban_api_type_id][field_names<IArchivedVOBase>().archived]) {
-                    return;
-                }
-
-                await query(this.kanban_column.api_type_id)
-                    .filter_by_id(parseInt(item_id))
-                    .update_vos<IArchivedVOBase>({
-                        [field_names<IArchivedVOBase>().archived]: true,
-                    });
-                this.throttle_do_update_visible_options();
-            }
-        };
-
-        return contextmenu_items;
+    private async open_create_column() {
+        await this.get_Crudcreatemodalcomponent.open_modal(this.kanban_column.api_type_id, this.throttled_update_visible_options.bind(this));
     }
 }

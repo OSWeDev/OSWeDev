@@ -18,19 +18,19 @@ import ModuleAnimationImportQRDefaultFormats from "./ModuleAnimationImportQRDefa
 
 export default class ModuleAnimationImportQRServer extends DataImportModuleBase<AnimationImportQRVO> {
 
+    private static instance: ModuleAnimationImportQRServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleAnimationImportQR.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAnimationImportQRServer {
         if (!ModuleAnimationImportQRServer.instance) {
             ModuleAnimationImportQRServer.instance = new ModuleAnimationImportQRServer();
         }
         return ModuleAnimationImportQRServer.instance;
-    }
-
-    private static instance: ModuleAnimationImportQRServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleAnimationImportQR.getInstance().name);
     }
 
     // /**
@@ -53,10 +53,6 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
     //     access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAnimation.POLICY_BO_OTHERS_ACCESS).id;
     //     access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
     // }
-
-    public get_merged_api_type_ids(): string[] {
-        return [AnimationQRVO.API_TYPE_ID];
-    }
 
     public async validate_formatted_data(qr_datas: AnimationImportQRVO[]): Promise<AnimationImportQRVO[]> {
 

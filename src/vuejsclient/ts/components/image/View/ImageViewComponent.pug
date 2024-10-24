@@ -1,2 +1,7 @@
-.image_wrapper
-    img(v-if='imagevo' :src='imagevo.path')
+.ImageViewComponent
+    template(v-if='download_link')
+        .download_link
+            a(v-if="(!!imagevo) && imagevo.id" :href="'/' + imagevo.path" target='_blank' :download="imagevo.path.substring(imagevo.path.lastIndexOf('/') + 1)" v-tooltip='label("image_view_component.download")')
+                img(v-if='imagevo' :src='imagevo.path')
+    template(v-else)
+        img(v-if='imagevo' :src='imagevo.path')

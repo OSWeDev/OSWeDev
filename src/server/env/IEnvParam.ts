@@ -88,17 +88,44 @@ export default interface IEnvParam {
 
     open_api_api_key?: string;
 
-    teams_webhook__tech_error?: string;
-    teams_webhook__tech_warn?: string;
-    teams_webhook__tech_info?: string;
-    teams_webhook__tech_success?: string;
+    // TEAMS Webhooks
+    teams_webhook_send_message?: string;
+    teams_webhook_update_message?: string;
 
-    teams_webhook__throttle_ms?: number;
-    teams_webhook__message_max_size?: number;
-    teams_webhook__message_max_size_auto_summarize?: boolean;
+    // TEAMS Organisations
+    teams_groupid__oselia?: string;
+    teams_groupid__tech?: string;
+
+    // TEAMS Channels
+    teams_channelid__oselia_error?: string;
+    teams_channelid__oselia_warn?: string;
+    teams_channelid__oselia_info?: string;
+    teams_channelid__oselia_success?: string;
+    teams_channelid__oselia_action_needed?: string;
+
+    teams_channelid__tech_error?: string;
+    teams_channelid__tech_warn?: string;
+    teams_channelid__tech_info?: string;
+    teams_channelid__tech_success?: string;
+
+    teams_throttle_ms?: number;
+    teams_message_max_size?: number;
+    teams_message_max_size_auto_summarize?: boolean;
 
     block_teams_messages?: boolean;
 
     express_secret: string;
     logo_path?: string;
+
+    debug_openai_sync?: boolean;
+    debug_oselia_referrer_origin?: boolean;
+    debug_openai_generate_image?: boolean;
+
+    block_openai_sync_push_to_openai?: boolean;
+    unblock_openai_push_to_openai_gpt_assistant_thread?: boolean;
+    unblock_openai_push_to_openai_gpt_assistant_thread_msg?: boolean;
+    unblock_openai_push_to_openai_gpt_assistant_run?: boolean;
+    unblock_openai_push_to_openai_gpt_assistant?: boolean;
+
+    silent_no_sort_by_but_query_limit?: boolean;
 }

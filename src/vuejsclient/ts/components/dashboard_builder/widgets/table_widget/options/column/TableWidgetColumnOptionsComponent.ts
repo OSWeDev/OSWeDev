@@ -698,7 +698,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         const new_column = new TableColumnDescVO();
         new_column.type = TableColumnDescVO.TYPE_var_ref;
         new_column.var_id = VarsController.var_conf_by_name[this.new_column_select_type_var_ref].id;
-        new_column.var_unicity_id = Dates.now();
+        new_column.var_unicity_id = Math.round(Dates.now_ms() + (Math.random() * 1000));
         new_column.id = this.get_new_column_id();
         new_column.readonly = true;
         new_column.exportable = true;

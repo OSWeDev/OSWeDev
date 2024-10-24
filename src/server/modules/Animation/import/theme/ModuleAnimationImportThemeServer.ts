@@ -18,19 +18,19 @@ import ModuleAnimationImportThemeDefaultFormats from "./ModuleAnimationImportThe
 
 export default class ModuleAnimationImportThemeServer extends DataImportModuleBase<AnimationImportThemeVO> {
 
+    private static instance: ModuleAnimationImportThemeServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleAnimationImportTheme.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAnimationImportThemeServer {
         if (!ModuleAnimationImportThemeServer.instance) {
             ModuleAnimationImportThemeServer.instance = new ModuleAnimationImportThemeServer();
         }
         return ModuleAnimationImportThemeServer.instance;
-    }
-
-    private static instance: ModuleAnimationImportThemeServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleAnimationImportTheme.getInstance().name);
     }
 
     // /**
@@ -56,10 +56,6 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
     //     access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAnimation.POLICY_BO_OTHERS_ACCESS).id;
     //     access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
     // }
-
-    public get_merged_api_type_ids(): string[] {
-        return [TranslatableTextVO.API_TYPE_ID, LangVO.API_TYPE_ID, AnimationThemeVO.API_TYPE_ID];
-    }
 
     public async validate_formatted_data(themes_data: AnimationImportThemeVO[]): Promise<AnimationImportThemeVO[]> {
 

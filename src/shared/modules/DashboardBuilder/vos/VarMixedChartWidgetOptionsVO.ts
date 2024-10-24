@@ -15,6 +15,69 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
 
     public static TITLE_CODE_PREFIX: string = "VarMixedChartWidgetOptions.title.";
 
+
+    public constructor(
+
+        /**
+         * Paramètres du widget
+         */
+        public bg_color?: string,
+
+        /**
+         * Paramètres du graph
+         */
+        public legend_display?: boolean,
+        public legend_position?: string,
+        public legend_font_color?: string,
+        public legend_font_size?: number,
+        public legend_box_width?: number,
+        public legend_padding?: number,
+        public legend_use_point_style?: boolean,
+
+        public title_display?: boolean,
+        public title_font_color?: string,
+        public title_font_size?: number,
+        public title_padding?: number,
+
+        // --- Specify the field tu customize the LineChart ---
+
+        public has_dimension?: boolean,
+        public max_dimension_values?: number, // Permet de limiter le nombre de vars affichées (par défaut 10)
+        public sort_dimension_by_vo_field_ref?: VOFieldRefVO,
+        public sort_dimension_by_asc?: boolean,
+        public sort_dimension_by_vo_field_ref_label?: VOFieldRefVO,
+
+        /**
+         * Si on a une dimension, on défini le champ ref ou le custom filter, et le segment_type
+         */
+        public dimension_is_vo_field_ref?: boolean,
+        public dimension_vo_field_ref?: VOFieldRefVO,
+        public dimension_custom_filter_name?: string,
+        public dimension_custom_filter_segment_type?: number,
+
+        /**
+         * On gère un filtre global identique en param sur les 2 vars (si pas de dimension)
+         *  par ce qu'on considère qu'on devrait pas avoir 2 formats différents à ce stade
+         */
+        public filter_type?: string,
+        public filter_additional_params?: string,
+
+        // --- Var Options We should be able to add as many vars as we can ---
+        public var_charts_options?: VarChartOptionsVO[],
+        public var_chart_scales_options?: VarChartScalesOptionsVO[],
+
+        public scale_x_title?: string,
+        public scale_y_title?: string,
+        public show_scale_x?: boolean,
+        public show_scale_y?: boolean,
+        public scale_options_x?: Partial<Scale>,
+        public scale_options_y?: Partial<Scale>,
+        public scale_options_r?: Partial<Scale>,
+        public hide_filter?: boolean,
+    ) {
+        super();
+    }
+
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         if (page_widget.json_options) {
             let options = JSON.parse(page_widget.json_options) as VarMixedChartWidgetOptionsVO;
@@ -89,70 +152,9 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
             false,
             null,
             null,
-            null
+            null,
+            false,
         );
-    }
-
-
-    public constructor(
-
-        /**
-         * Paramètres du widget
-         */
-        public bg_color?: string,
-
-        /**
-         * Paramètres du graph
-         */
-        public legend_display?: boolean,
-        public legend_position?: string,
-        public legend_font_color?: string,
-        public legend_font_size?: number,
-        public legend_box_width?: number,
-        public legend_padding?: number,
-        public legend_use_point_style?: boolean,
-
-        public title_display?: boolean,
-        public title_font_color?: string,
-        public title_font_size?: number,
-        public title_padding?: number,
-
-        // --- Specify the field tu customize the LineChart ---
-
-        public has_dimension?: boolean,
-        public max_dimension_values?: number, // Permet de limiter le nombre de vars affichées (par défaut 10)
-        public sort_dimension_by_vo_field_ref?: VOFieldRefVO,
-        public sort_dimension_by_asc?: boolean,
-        public sort_dimension_by_vo_field_ref_label?: VOFieldRefVO,
-
-        /**
-         * Si on a une dimension, on défini le champ ref ou le custom filter, et le segment_type
-         */
-        public dimension_is_vo_field_ref?: boolean,
-        public dimension_vo_field_ref?: VOFieldRefVO,
-        public dimension_custom_filter_name?: string,
-        public dimension_custom_filter_segment_type?: number,
-
-        /**
-         * On gère un filtre global identique en param sur les 2 vars (si pas de dimension)
-         *  par ce qu'on considère qu'on devrait pas avoir 2 formats différents à ce stade
-         */
-        public filter_type?: string,
-        public filter_additional_params?: string,
-
-        // --- Var Options We should be able to add as many vars as we can ---
-        public var_charts_options?: VarChartOptionsVO[],
-        public var_chart_scales_options?: VarChartScalesOptionsVO[],
-
-        public scale_x_title?: string,
-        public scale_y_title?: string,
-        public show_scale_x?: boolean,
-        public show_scale_y?: boolean,
-        public scale_options_x?: Partial<Scale>,
-        public scale_options_y?: Partial<Scale>,
-        public scale_options_r?: Partial<Scale>,
-    ) {
-        super();
     }
 
     public get_title_name_code_text(page_widget_id: number): string {

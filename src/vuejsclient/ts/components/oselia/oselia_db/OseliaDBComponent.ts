@@ -8,6 +8,7 @@ import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import VueComponentBase from '../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../dashboard_builder/page/DashboardPageStore';
 import './OseliaDBComponent.scss';
+import { ModuleOseliaGetter } from '../../dashboard_builder/widgets/oselia_thread_widget/OseliaStore';
 
 @Component({
     template: require('./OseliaDBComponent.pug'),
@@ -26,11 +27,13 @@ export default class OseliaDBComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
 
+    @ModuleOseliaGetter
+    private get_oselia_first_loading_done: boolean;
+
     private oselia_db_id: number = null;
 
     private async mounted() {
         this.oselia_db_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_DB_ID_PARAM_NAME);
-
         if (!this.oselia_db_id) {
             this.$router.push({
                 name: 'oselia_referrer_not_found'
