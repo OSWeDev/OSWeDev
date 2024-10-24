@@ -125,6 +125,16 @@ export default class MenuOrganizerComponent extends VueComponentBase {
         this.update_nested_item(item);
     }
 
+    private async trash_selected() {
+        if (!this.selected_item) {
+            return;
+        }
+
+        await ModuleDAO.getInstance().deleteVOs([this.selected_item]);
+
+        await this.reload_from_db();
+    }
+
     private update_nested_item(item: MenuElementVO) {
         for (const i in this.nestable_items) {
             const nestable_item = this.nestable_items[i];
