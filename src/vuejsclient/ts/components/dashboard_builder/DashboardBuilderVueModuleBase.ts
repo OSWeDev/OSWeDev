@@ -667,6 +667,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ListObject.default_background = '#f5f5f5';
         ListObject.icon_component = 'ListObjectwidgeticoncomponent';
         ListObject.is_filter = true;
+        ListObject.is_cms_compatible = true;
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(ListObject, null, null);
 
