@@ -2,22 +2,17 @@
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
+import VarDAGNode from '../../../modules/Var/vos/VarDAGNode';
 import CurrentBatchDSCacheHolder from '../CurrentBatchDSCacheHolder';
 import DataSourceControllerBase from './DataSourceControllerBase';
-import VarsProcessBase from '../bgthreads/processes/VarsProcessBase';
 
 export default abstract class DataSourceControllerTSRangeIndexedBase extends DataSourceControllerBase {
 
-    /**
-     * On utilise une clé unique (au sein d'un datasource) pour identifier la data liée à un var data
-     *  et on fournit une fonction simple pour traduire le var_data en clé unique de manière à gérer le cache
-     *  de façon centralisée. Par défaut on utilise l'index mais très important d'optimiser cette fonction sur chaque DS
-     *  typiquement si on charge toujours la même data indépendemment du var_data....
-     */
-    public abstract get_data_index(var_data: VarDataBaseVO): TSRange[];
+    public get_data_from_cache(var_data: VarDataBaseVO, ds_res: any, index_value: number): any {
+        return ds_res;
+    }
 
     /**
      * Par défaut on décrit une gestion de type index de matroid
@@ -33,34 +28,57 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
         StatsController.register_stat_COMPTEUR('DataSources', this.name, 'load_node_data_IN');
         const time_load_node_data_in = Dates.now_ms();
 
-        const data_index: TSRange[] = this.get_data_index(node.var_data) as TSRange[];
+        const data_indexs: TSRange[] = this.get_data_index(node.var_data) as TSRange[];
 
-        if ((!data_index) || (!data_index.length)) {
+        if ((!data_indexs) || (!data_indexs.length)) {
             node.datasources[this.name] = null;
             return;
         }
 
         node.datasources[this.name] = {};
-        if (!CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]) {
-            CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name] = {};
-        }
 
-        await RangeHandler.foreach_ranges(data_index, async (date: number) => {
+        await RangeHandler.foreach_ranges(data_indexs, async (data_index: number) => {
 
-            const ms_i = date;
-            if (typeof CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][ms_i] === 'undefined') {
+            if (typeof CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index] === 'undefined') {
 
                 StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
+                if (!CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name]) {
+                    CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name] = {};
+                }
+
+                if (!CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index]) {
+                    CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index] = {};
+                }
+                CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index][node.var_data.index] = node;
+
+                if (!CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name]) {
+                    CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name] = {};
+                }
+
+                if (!CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name][data_index]) {
+                    CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name][data_index] = {};
+                }
+
+                /**
+                 * On ajoute un sémaphore pour éviter de faire 10 fois la requête sur un batch
+                 */
+                if (CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[this.name][data_index] === true) {
+                    return new Promise((resolve, reject) => {
+                        CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name][data_index][node.var_data.index] = resolve;
+                    });
+                }
+                CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[this.name][data_index] = true;
+
                 const time_in = Dates.now_ms();
 
-                const data = await this.get_data(node.var_data);
+                const datas = await this.get_data(node.var_data);
 
                 const time_out = Dates.now_ms();
                 // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
                 StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
 
-                for (const j in data) {
-                    const e = data[j];
+                for (const j in datas) {
+                    const e = datas[j];
 
                     /**
                      * On ne change pas les datas qu'on avait déjà
@@ -69,10 +87,41 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
                         CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][j] = ((typeof e === 'undefined') ? null : e);
                     }
                 }
+
+                const nodes_waiting_for_semaphore_indexes = Object.keys(CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index]);
+
+                delete CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[this.name][data_index];
+
+                for (const j in nodes_waiting_for_semaphore_indexes) {
+                    const index = nodes_waiting_for_semaphore_indexes[j];
+
+                    if (CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index]) {
+                        CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index][index].datasources[this.name][data_index] = this.get_data_from_cache(
+                            CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index][index].var_data,
+                            CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index],
+                            null
+                        );
+                    }
+
+                    delete CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index][index];
+
+                    const cb = CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name][data_index][index];
+                    delete CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name][data_index][index];
+
+                    if (cb) {
+                        await cb("DataSourceControllerCustomIndexedBase.promises_waiting_for_semaphore");
+                    }
+                }
+
+                return;
             }
 
-            if (CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][ms_i]) {
-                node.datasources[this.name][ms_i] = CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][ms_i];
+            if (CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index]) {
+                node.datasources[this.name][data_index] = this.get_data_from_cache(
+                    node.var_data,
+                    CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index],
+                    null
+                );
             }
         });
 
@@ -80,6 +129,14 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
         // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
         StatsController.register_stat_DUREE('DataSources', this.name, 'load_node_data', time_load_node_data_out - time_load_node_data_in);
     }
+
+    /**
+     * On utilise une clé unique (au sein d'un datasource) pour identifier la data liée à un var data
+     *  et on fournit une fonction simple pour traduire le var_data en clé unique de manière à gérer le cache
+     *  de façon centralisée. Par défaut on utilise l'index mais très important d'optimiser cette fonction sur chaque DS
+     *  typiquement si on charge toujours la même data indépendemment du var_data....
+     */
+    public abstract get_data_index(var_data: VarDataBaseVO): TSRange[];
 
     /**
      * Dans ce cas la fonction qui load les datas doit aussi faire le lien entre le int qui vient du TSRange -valueOf- et chaque valeur

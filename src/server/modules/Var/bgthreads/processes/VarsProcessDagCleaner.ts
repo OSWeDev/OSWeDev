@@ -1,4 +1,4 @@
-import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import CurrentVarDAGHolder from '../../CurrentVarDAGHolder';
@@ -18,7 +18,7 @@ export default class VarsProcessDagCleaner extends VarsProcessBase {
 
     // Cas particulier de la suppression de noeud, si le noeud existe encore en post traitement, on doit le tagguer à supprimer pour le prochain tour
     private constructor() {
-        super('VarsProcessDagCleaner', VarDAGNode.TAG_7_IS_DELETABLE, VarDAGNode.TAG_7_DELETING, VarDAGNode.TAG_6_UPDATED_IN_DB, 10, true);
+        super('VarsProcessDagCleaner', VarDAGNode.TAG_7_IS_DELETABLE, VarDAGNode.TAG_7_DELETING, VarDAGNode.TAG_6_UPDATED_IN_DB, 2, true);
     }
 
     protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {

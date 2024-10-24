@@ -88,7 +88,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         return FileServerController.getInstance().dirCreate(filepath);
     }
 
-    public async writeFile(filepath: string, fileContent: string) {
+    public async writeFile(filepath: string, fileContent: any) {
         return FileServerController.getInstance().writeFile(filepath, fileContent);
     }
 
@@ -105,9 +105,6 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         return FileServerController.getInstance().getWriteStream(filepath, flags);
     }
 
-    protected abstract getNewVo(): T;
-    protected abstract get_vo_type(): string;
-
     private async uploadFile(req: Request, res: Response) {
 
         let import_file: fileUpload.UploadedFile = null;
@@ -121,12 +118,12 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
             }
         } catch (error) {
             console.error(error);
-            await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'file.upload.error');
+            await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'file.upload.error');
             res.json(JSON.stringify(null));
             return;
         }
 
-        await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'file.upload.success');
+        await PushDataServerController.notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'file.upload.success');
 
         let file_name: string = import_file.name;
         const folder_name: string = ModuleFile.FILES_ROOT + 'upload/';
@@ -140,7 +137,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         return import_file.mv(filepath, async (err) => {
             if (err) {
                 console.error(err);
-                await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'file.upload.error');
+                await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'file.upload.error');
                 res.json(JSON.stringify(null));
                 return;
             }
@@ -156,7 +153,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
 
                 const insertres: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(filevo);
                 if ((!insertres) || (!insertres.id)) {
-                    await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'file.upload.error');
+                    await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'file.upload.error');
                     res.json(JSON.stringify(null));
                     return;
                 }
@@ -182,4 +179,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         }
         return false;
     }
+
+    protected abstract getNewVo(): T;
+    protected abstract get_vo_type(): string;
 }

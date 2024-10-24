@@ -34,6 +34,14 @@ export default class ExternalAPIAuthentificationVO implements IDistantVOBase, IV
 
     public type: number;
     public api_key: string;
+
+    /**
+     * Pour les types API_KEY_BASIC et API_KEY_BEARER
+     */
+    public basic_login: string;
+    public basic_password: string;
+
+
     public custom_header_name: string;
 
     public oauth_client_id: string;

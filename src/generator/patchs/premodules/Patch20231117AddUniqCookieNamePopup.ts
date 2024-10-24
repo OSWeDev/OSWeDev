@@ -6,6 +6,14 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20231117AddUniqCookieNamePopup implements IGeneratorWorker {
 
+    private static instance: Patch20231117AddUniqCookieNamePopup = null;
+    private constructor() { }
+
+
+    get uid(): string {
+        return 'Patch20231117AddUniqCookieNamePopup';
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): Patch20231117AddUniqCookieNamePopup {
         if (!Patch20231117AddUniqCookieNamePopup.instance) {
@@ -14,13 +22,6 @@ export default class Patch20231117AddUniqCookieNamePopup implements IGeneratorWo
         return Patch20231117AddUniqCookieNamePopup.instance;
     }
 
-    private static instance: Patch20231117AddUniqCookieNamePopup = null;
-
-    get uid(): string {
-        return 'Patch20231117AddUniqCookieNamePopup';
-    }
-
-    private constructor() { }
 
     public async work(db: IDatabase<any>) {
         try {

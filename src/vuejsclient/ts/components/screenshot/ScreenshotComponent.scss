@@ -27,3 +27,25 @@
         max-height: -webkit-fill-available;
     }
 }
+
+.videoCapture {
+    display: flex;
+    margin: auto;
+    width: fit-content;
+    padding: 10px;
+    left: 50%;
+    top: 10%;
+    position: fixed;
+    font-size: 6em;
+    animation-name: countdown;
+    animation-duration: 4s;
+    opacity: 0%;
+}
+
+@keyframes countdown {
+    0%   {opacity:100%;  top:0%;}
+    25% {opacity:100%;  top:10%;}
+    50% {opacity:100%;  top:10%;}
+    75% {opacity:100%;  top:10%;}
+    100%   {opacity:0%;  top:0%;}
+}

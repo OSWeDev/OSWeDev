@@ -539,3 +539,66 @@ i.fa-spin:before {
         }
     }
 }
+
+@media (max-width: 640px) {
+
+    /** SKIN spécifique pour Oselia */
+    body.page-oselia {
+
+        header,
+        footer {
+            display: none;
+        }
+
+        .content {
+            padding: 0 !important;
+        }
+
+        .main-header,
+        .main-sidebar {
+            display: none;
+        }
+
+        .dashboard_viewer {
+
+            margin-bottom: 0;
+
+            .row.header_wrapper,
+            .row.pages_wrapper,
+            .row.no_page_wrapper {
+                display: none;
+            }
+
+            .favorites_filters_modal_component_wrapper {
+                display: none;
+            }
+
+            .header {
+
+                .name,
+                .edit {
+                    display: none;
+                }
+            }
+
+            .widget_name__fieldvaluefilter,
+            .widget_name__datatable {
+                display: none;
+            }
+
+            .grid_item_wrapper.widget_name__oseliathread {
+                margin: 0 !important;
+            }
+
+            .vue-grid-layout {
+                height: 100% !important;
+                margin: 0 !important;
+            }
+        }
+
+        .vars_manager,
+        .footer_fixed {
+            display: none;
+        }
+    }
+}

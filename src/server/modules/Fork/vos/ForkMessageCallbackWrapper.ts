@@ -17,7 +17,7 @@ export default class ForkMessageCallbackWrapper {
         public task_uid: string, // principalement pour du debug quand il y a un timeout
         public task_params: any,
 
-        public timeout: number = 300) {
+        public timeout: number = 3600) { // FIXME:TODO: Ya un truc à creuser là dessus.... si on fait un export extrêmement lourd,  on veut pas de timeout. Le reste du temps, on veut un timeout plutôt faible type 300....
 
         this.creation_time = Dates.now();
     }

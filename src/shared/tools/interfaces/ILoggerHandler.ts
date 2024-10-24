@@ -1,4 +1,4 @@
 export default interface ILoggerHandler {
-    log(msg: string, ...params);
+    log(log_type: number, date: number, msg: string, ...params);
     force_flush();
 }

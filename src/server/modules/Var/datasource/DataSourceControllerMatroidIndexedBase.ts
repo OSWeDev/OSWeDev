@@ -1,11 +1,14 @@
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDAGNode from '../../../modules/Var/vos/VarDAGNode';
 import DataSourceControllerBase from './DataSourceControllerBase';
-import VarsProcessBase from '../bgthreads/processes/VarsProcessBase';
 
 export default abstract class DataSourceControllerMatroidIndexedBase extends DataSourceControllerBase {
+
+    public get_data_from_cache(var_data: VarDataBaseVO, ds_res: any, index_value: number): any {
+        return ds_res;
+    }
 
     /**
      * On utilise une clé unique (au sein d'un datasource) pour identifier la data liée à un var data
@@ -40,7 +43,7 @@ export default abstract class DataSourceControllerMatroidIndexedBase extends Dat
         // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
         StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
 
-        node.datasources[this.name] = ((typeof data === 'undefined') ? null : data);
+        node.datasources[this.name] = ((typeof data === 'undefined') ? null : this.get_data_from_cache(node.var_data, data, null));
 
         const time_load_node_data_out = Dates.now_ms();
         // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel

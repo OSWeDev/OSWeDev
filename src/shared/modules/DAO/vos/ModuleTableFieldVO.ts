@@ -155,6 +155,11 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     public is_unique: boolean; // false by default
 
     /**
+     * Ajout pour expliquer le type de données, son usage, ... que ce soit pour les devs, les utilisateurs finaux, ou encore les assistants
+     */
+    public description: string;
+
+    /**
      * @deprecated use ModuleTableController.module_tables_by_vo_type[this.module_table_vo_type]; instead
      * Or it needs to be optimized for recurring calls
      */
@@ -202,9 +207,14 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             return null;
         }
 
-        let moduletable = ModuleTableController.module_tables_by_vo_type[this.module_table_vo_type];
+        const moduletable = ModuleTableController.module_tables_by_vo_type[this.module_table_vo_type];
 
         return "fields.labels." + moduletable.full_name + "." + this.field_name + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+    }
+
+    public set_description(description: string): ModuleTableFieldVO {
+        this.description = description;
+        return this;
     }
 
     public flag_as_secure_boolean_switch_only_server_side(): ModuleTableFieldVO {

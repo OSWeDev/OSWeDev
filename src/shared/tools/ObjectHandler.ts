@@ -1,5 +1,4 @@
 import ModuleTableController from '../modules/DAO/ModuleTableController';
-import ModuleTableVO from '../modules/DAO/vos/ModuleTableVO';
 import NumRange from '../modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../modules/IDistantVOBase';
 import ConsoleHandler from './ConsoleHandler';
@@ -45,6 +44,16 @@ export default class ObjectHandler {
         } catch (error) {
             return e;
         }
+    }
+
+    public static try_is_json(e: any): boolean {
+        try {
+            return (e && (typeof e === 'string') && (
+                (e.startsWith('{') && e.endsWith('}')) ||
+                (e.startsWith('[') && e.endsWith(']'))
+            )) ? (JSON.parse(e) ? true : false) : false;
+        } catch (error) { /* empty */ }
+        return false;
     }
 
     /**

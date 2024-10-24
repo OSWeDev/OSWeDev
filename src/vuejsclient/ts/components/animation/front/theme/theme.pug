@@ -2,8 +2,16 @@
 .rootElt.theme
     template(v-if="is_ready")
 
-        //- display header of theme (title, progress bar with %)
+        //- display header of theme (title, progress bar with %, reset)
+        //- Btn for reset theme action
+        .reset_theme(
+            v-if="isThemeResetable"
+            v-tooltip.top='label("animation.theme.reset.tooltip")'
+            @click='resetTheme(theme)'
+        )
+            i.fa-duotone.fa-trash-alt
         .theme_name {{ theme.name }}
+
         .description(v-if="theme.description", v-html="theme.description")
         .prct_avancement
             .barre-total
@@ -24,6 +32,15 @@
                         .col-sm-12
                             .text-left.module_infos
 
+                                //- btn for reset module action
+                                .reset_module(:class="{not_resetable: !(!reset_theme_processing && !reset_module_processing[anim_module.id] && !!um_by_module_id && !!um_by_module_id[anim_module.id])}")
+                                    div(
+                                        v-if="!reset_theme_processing && !reset_module_processing[anim_module.id] && !!um_by_module_id && !!um_by_module_id[anim_module.id]"
+                                        v-tooltip.top='label("animation.module.reset.tooltip")'
+                                        @click='resetModule(anim_module)'
+                                    )
+                                        i.fa-duotone.fa-trash-alt
+
                                 //- button for documentation
                                 .documentation.main(:class="{no_doc: !document_by_module_id[anim_module.id]}")
                                     template(v-if="document_by_module_id[anim_module.id]")
@@ -32,9 +49,9 @@
 
                                 //- display module line
                                 .theme_container(@click="go_to_route_module(anim_module)")
-                                
+
                                     //- square for progress status
-                                    .prct_avancement_module(:class="get_class_prct_avancement_module(anim_module)")
+                                    .prct_avancement_module(:class="class_prct_avancement_by_module[anim_module.id]")
 
                                     //- title and status (en cours)
                                     .module_name

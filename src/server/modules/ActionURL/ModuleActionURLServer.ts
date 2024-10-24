@@ -11,15 +11,32 @@ import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModulesManager from '../../../shared/modules/ModulesManager';
+import TeamsWebhookContentAdaptiveCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAdaptiveCardVO';
+import TeamsWebhookContentAttachmentsVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAttachmentsVO';
+import TeamsWebhookContentTextBlockVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentTextBlockVO';
+import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import LangVO from '../../../shared/modules/Translation/vos/LangVO';
+import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import LocaleManager from '../../../shared/tools/LocaleManager';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
+import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
+import ConfigurationService from '../../env/ConfigurationService';
 
 export default class ModuleActionURLServer extends ModuleServerBase {
+
+    private static instance: ModuleActionURLServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleActionURL.getInstance().name);
+    }
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -27,13 +44,6 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             ModuleActionURLServer.instance = new ModuleActionURLServer();
         }
         return ModuleActionURLServer.instance;
-    }
-
-    private static instance: ModuleActionURLServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleActionURL.getInstance().name);
     }
 
     // istanbul ignore next: cannot test registerAccessPolicies
@@ -105,6 +115,10 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             return false;
         }
 
+        // Si l'action n'est plus appelable, on modifie le message dans Teams pour supprimer le bouton
+        // TODO
+        // TeamsAPIServerController.update_teams_message(messageId, canalId, groupId);
+
         try {
             const action_res = await this.do_action_url(action_url, code, uid, req, res);
             if ((!res.headersSent) && (!do_not_redirect)) {
@@ -153,6 +167,43 @@ export default class ModuleActionURLServer extends ModuleServerBase {
         if (action_cr) {
             action_cr.action_url_id = action_url.id;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_cr);
+        }
+
+        /**
+         * Si on a une action url à la fois en teams_auto_close_message_on_completion et dont on a plus d'action, on envoie le CR à la place du message actuel
+         */
+        if (action_url.teams_auto_close_message_on_completion && (action_url.action_remaining_counter == 0)) {
+            let title_content = 'Action réalisée';
+            let message_content = ' ';
+
+            if (action_cr) {
+
+                const lang = await query(LangVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).select_vo<LangVO>();
+                const title_text = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq(field_names<TranslatableTextVO>().code_text, action_cr.translatable_cr_title).exec_as_server().select_vo<TranslatableTextVO>();
+                const content_text = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq(field_names<TranslatableTextVO>().code_text, action_cr.translatable_cr_content).exec_as_server().select_vo<TranslatableTextVO>();
+
+                if (lang && title_text && content_text) {
+                    const title_translation = await ModuleTranslation.getInstance().getTranslation(lang.id, title_text.id);
+                    const content_translation = await ModuleTranslation.getInstance().getTranslation(lang.id, title_text.id);
+
+                    if (title_translation && content_translation) {
+                        title_content = LocaleManager.getInstance().t(title_translation.translated, action_cr.translatable_cr_title_params_json);
+                        message_content = LocaleManager.getInstance().t(content_translation.translated, action_cr.translatable_cr_content_params_json);
+                    }
+                } else {
+                    title_content = action_cr.translatable_cr_title;
+                    message_content = action_cr.translatable_cr_content;
+                }
+            }
+            const body = [];
+
+            const title_elt = new TeamsWebhookContentTextBlockVO().set_text((ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + title_content).set_weight("bolder").set_size("large");
+            body.push(title_elt);
+            const content_elt = new TeamsWebhookContentTextBlockVO().set_text(message_content).set_size("small");
+            body.push(content_elt);
+
+            const nouveau_contenu: TeamsWebhookContentVO = new TeamsWebhookContentVO().set_attachments([new TeamsWebhookContentAttachmentsVO().set_name("Update").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body))]);
+            await TeamsAPIServerController.update_teams_message(action_url.teams_message_id, action_url.teams_channel_id, action_url.teams_group_id, nouveau_contenu);
         }
 
         return (!action_cr) ||

@@ -9,10 +9,14 @@ export default class OseliaReferrerExternalAPIVO implements IDistantVOBase, IVer
 
     public static API_METHOD_LABELS: string[] = [
         'OseliaReferrerExternalAPIVO.API_METHOD_GET',
-        'OseliaReferrerExternalAPIVO.API_METHOD_POST'
+        'OseliaReferrerExternalAPIVO.API_METHOD_POST',
+        'OseliaReferrerExternalAPIVO.API_METHOD_PUT',
+        'OseliaReferrerExternalAPIVO.API_METHOD_DELETE',
     ];
     public static API_METHOD_GET: number = 0;
     public static API_METHOD_POST: number = 1;
+    public static API_METHOD_PUT: number = 2;
+    public static API_METHOD_DELETE: number = 3;
 
     public id: number;
     public _type: string = OseliaReferrerExternalAPIVO.API_TYPE_ID;
@@ -26,7 +30,17 @@ export default class OseliaReferrerExternalAPIVO implements IDistantVOBase, IVer
 
     public external_api_authentication_id: number;
     public external_api_method: number;
+
+    /**
+     * L'url de l'API externe, paramétrable
+     * exemple : https://api.example.com/assistant/<assistant_id>/function/<function_id>
+     * Et il faut bien déclarer dans ce cas des objets OseliaReferrerExternalAPIParamVO pour expliquer les paramètres à Osélia
+     */
     public external_api_url: string;
+
+    public accept: string;
+    public content_type: string;
+
 
     public parent_id: number;
     public trashed: boolean;

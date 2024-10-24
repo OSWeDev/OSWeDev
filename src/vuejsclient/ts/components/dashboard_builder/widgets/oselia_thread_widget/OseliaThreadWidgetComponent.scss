@@ -1,69 +1,490 @@
-.oselia_thread_widget_component {
+@import 'skin-variables.scss';
 
-    padding-right: 0 !important;
+.page_oselia {
+    font-family: 'quicksand', sans-serif;
+    font-weight: 500;
+}
 
-    .update_button {
-        text-align: right;
+.grid_item_wrapper.widget_name__oseliathread .widget_component_wrapper {
+    overflow: auto;
+}
+
+/**
+ * SCSS par Fred Bernard
+ */
+$padding-popup: 20px;
+$padding-0: 0;
+$font-color-main: #000;
+$font-color-secondary: #4e4e4e;
+$button-background: $button_primary_bg_color;
+// $background-popup-user: lighten($button-background, 40%);
+$background-popup-user: hsl(hue($button-background), 100%, 80%);
+// $background-popup: lighten(desaturate($button-background, 80%), 46%);
+$background-popup: hsl(hue($button-background), 50%, 95%);
+$button-border: $button-background;
+$button-shadow: rgba($button-background, .38);
+$button-hover-shadow: none;
+
+.oselia_thread_widget_component_wrapper {
+    padding: 0em !important;
+
+    .oselia_thread_widget_header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        padding: 1em;
+        z-index: 1;
+
+        .oselia_thread_widget_header_icon_open i {
+            background: white;
+            border-radius: 10px;
+            padding: .6em;
+            cursor: pointer;
+            opacity: 0.9;
+        }
     }
 
-    .no_access,
-    .too_many_assistants {
+    .oselia_thread_widget_component {
+
+        background: $background-popup !important;
+
+        // padding-right: 0 !important;
+        width: -webkit-fill-available;
+
+        // FROM OSELIADB
+        box-sizing: border-box;
+        height: auto !important;
+
+        display: flex;
+        min-height: -webkit-fill-available;
+        flex-direction: column-reverse;
 
         padding: 1em;
-        border-radius: 1em;
-        color: white;
-        max-width: fit-content;
-        margin: 1em auto;
+        border-radius: 4px;
 
-        i {
-            font-size: xx-large;
-            vertical-align: middle;
-            margin-right: 0.4em;
+        .dragging_overlay {
+            opacity: 0.3;
+            background-color: grey;
+            height: -webkit-fill-available;
+            width: -webkit-fill-available;
+            text-align: center;
+
+            .dragging_overlay_text {
+                color: white;
+                font-size: 2em;
+                margin-top: 40%;
+            }
         }
-    }
 
-    .thread_container {
+        .update_button {
+            text-align: right;
+        }
 
-        padding: 1em 0em;
-        padding-right: 1em !important;
-        overflow-y: auto;
-        height: -webkit-fill-available;
+        .link_image_menu {
+            align-items: center;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            width: fit-content;
 
-        .thread_message_input {
+            .label_link_menu {
+                color: rgb(0, 0, 0);
+                border: rgb(0, 0, 0);
+                border-radius: 4px;
+                padding: 10px 20px;
+                margin: 10px 0;
+                cursor: pointer;
+                transition: background-color 0.3s;
+                font-size: 16px;
+                flex-direction: column;
+                display: flex;
+                margin-left: auto;
+                margin-right: auto;
+            }
 
-            margin: auto;
-            margin-top: 2em;
-            max-width: 768px;
+            input {
+                font-size: 1em;
+                font-weight: normal;
+                padding: 0.4em 0.8em 0.4em 0.8em;
+                border: none;
+                border-radius: 1em;
+                line-height: 1.5em;
+            }
 
-            .thread_message_input_textarea {
-                width: -webkit-fill-available;
+            button {
+                background-color: #e3e3eb;
+                font-size: 18px;
+                border-radius: 8px;
+                box-sizing: border-box;
+                border: none;
+                padding: 8px;
+            }
 
-                textarea {
-                    width: -webkit-fill-available;
-                    font-size: 1em;
-                    font-weight: normal;
-                    padding: 0.4em 0.8em 0.4em 0.8em;
-                    border: none;
-                    border-radius: 1em;
-                    margin-top: 1em;
-                    line-height: 1.5em;
+            button:hover {
+                background-color: #d3d3db;
+            }
+        }
+
+        .blur {
+            filter: blur(10px);
+        }
+
+        .no_messages {
+            display: flex;
+            align-items: center;
+
+            i {
+                width: 5em;
+                text-align: left;
+            }
+        }
+
+        .no_access,
+        .too_many_assistants {
+
+            padding: 1em;
+            border-radius: 1em;
+            color: white;
+            max-width: fit-content;
+            margin: 1em auto;
+
+            i {
+                font-size: xx-large;
+                vertical-align: middle;
+                margin-right: 0.4em;
+            }
+        }
+
+        .thread_container {
+
+            padding: 1em 0em;
+            padding-right: 1em !important;
+            overflow-y: auto;
+            height: -webkit-fill-available;
+
+            .thread_message_input {
+
+                margin: auto;
+                margin-top: 2em;
+                max-width: 768px;
+                margin-left: 3em;
+
+                .thread_files {
+                    position: relative;
+                    display: inline-flex;
+                    justify-content: space-between;
+
+                    .thread_file {
+                        width: 30%;
+                        height: 30%;
+                        place-self: center;
+
+                        button {
+                            position: absolute;
+                            margin-left: 10%;
+                            top: 30%;
+                            z-index: 15;
+                            display: none;
+                            /* Cacher le bouton par défaut */
+                            background-color: #e3e3eb;
+                            color: black;
+                            border: none;
+                            padding: 10px 20px;
+                            cursor: pointer;
+                            border-radius: 5px;
+                        }
+
+                        button:hover {
+                            background-color: #d3d3db;
+                        }
+
+                        img {
+                            display: block;
+                            border: solid 2px #DDD;
+                            width: 60px;
+                            height: 75px;
+                        }
+
+                        img:hover {
+                            opacity: 0.5;
+                        }
+                    }
+
+                    .thread_file:hover button {
+                        display: block;
+                    }
+                }
+
+                .thread_message_input_buttons {
+
+                    display: flex;
                     margin-bottom: .4em;
+
+                    .thread_message_input_file {
+                        margin-left: 7px;
+                    }
+
+                    .thread_message_input_image {
+                        margin-left: 7px;
+                    }
+
+                    button {
+                        background-color: #e3e3eb;
+                        font-size: 18px;
+                        border-radius: 8px;
+                        box-sizing: border-box;
+                        border: none;
+                        padding: 8px;
+                    }
+
+                    button:hover {
+                        background-color: #d3d3db;
+                    }
+
+                    .image_upload_menu {
+                        position: sticky;
+                        background-color: white;
+                        border-radius: 8px;
+                        padding: 20px;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        width: fit-content;
+                        bottom: 11%;
+
+                        .image_upload_menu_item {
+                            color: rgb(0, 0, 0);
+                            border: none;
+                            border-radius: 4px;
+                            padding: 10px 20px;
+                            margin: 10px 0;
+                            cursor: pointer;
+                            transition: background-color 0.3s;
+                            font-size: 16px;
+
+
+                            .fa-duotone {
+                                margin-right: 5px;
+                            }
+                        }
+
+                        .image_upload_menu_item:hover {
+                            background-color: #d3d3db;
+                        }
+                    }
+
+                }
+
+                .thread_message_input_textarea {
+                    width: -webkit-fill-available;
+
+                    textarea {
+                        width: -webkit-fill-available;
+                        font-size: 1em;
+                        font-weight: normal;
+                        padding: 0.4em 0.8em 0.4em 0.8em;
+                        border: none;
+                        border-radius: 1em;
+                        margin-top: 1em;
+                        line-height: 1.5em;
+                        margin-bottom: .4em;
+                        resize: none;
+                    }
+                }
+
+                .thread_message_input_send {
+                    text-align: right;
+
+                    i {
+                        margin-right: 0.4em;
+                    }
                 }
             }
 
-            .thread_message_input_send {
-                text-align: right;
+            .thread_messages {
 
-                i {
-                    margin-right: 0.4em;
-                }
+                max-width: 768px;
+                margin: auto;
             }
         }
 
-        .thread_messages {
 
-            max-width: 768px;
-            margin: auto;
+
+
+        .thread_container {
+            padding: $padding-0 !important;
+
+            .thread_messages {
+
+                // CSS pour le message de l'utilisateur
+                .thread_message.thread_message_self {
+                    position: relative;
+
+                    .thread_message_header {
+                        flex-direction: column;
+                        align-items: flex-end;
+                        padding-right: 5px;
+
+                        .thread_message_header_left_username {
+                            font-size: 1.2em;
+                            color: $button-background;
+                        }
+
+                        .thread_message_header_left_avatar {
+                            display: none;
+                        }
+                    }
+
+                    .thread_message_body {
+                        position: relative;
+
+                        .thread_message_body_content {
+                            display: flex;
+                            align-items: end;
+                            flex-direction: column;
+
+                            .thread_message_body_text {
+                                margin-bottom: 5px;
+                                padding-right: 30px;
+
+                                background-color: $background-popup-user;
+
+                                p {
+                                    margin-bottom: 0;
+                                }
+                            }
+
+                            .thread_message_footer_actions {
+                                .thread_message_footer_action {
+                                    position: absolute;
+                                    top: 0;
+                                    right: 5px;
+
+                                    .thread_message_copy_button {
+                                        i {
+                                            font-size: 14px;
+                                            color: $button-background;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    .thread_message_header_right_date {
+                        font-size: .9em;
+                        color: $font-color-secondary;
+                    }
+                }
+
+                // CSS pour le message d'Oselia et des autres users
+                .thread_message.thread_message_assistant,
+                .thread_message.thread_message_other_user {
+                    position: relative;
+
+                    .thread_message_header {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        padding-left: 35px;
+
+                        .thread_message_header_left {
+                            padding-left: .3em;
+
+                            .thread_message_header_left_username {
+                                font-size: 1.2em;
+                            }
+
+                            .thread_message_header_left_avatar {
+                                position: absolute;
+                                bottom: 0;
+                                left: 0;
+                            }
+                        }
+                    }
+
+                    .thread_message_body {
+                        position: relative;
+
+                        .thread_message_body_content {
+                            display: flex;
+                            align-items: start;
+                            flex-direction: column;
+
+                            .thread_message_body_text {
+                                margin-bottom: 5px;
+                                padding-right: 30px;
+
+                                p {
+                                    margin-bottom: 0;
+                                }
+                            }
+
+                            .thread_message_footer_actions {
+                                .thread_message_footer_action {
+                                    position: absolute;
+                                    top: 0;
+                                    right: 5px;
+
+                                    .thread_message_copy_button {
+                                        i {
+                                            font-size: 14px;
+                                            color: $button-background;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    .thread_message_header_right_date {
+                        font-size: .9em;
+                        color: $font-color-secondary;
+                    }
+                }
+            }
+
+            .thread_message_input {
+                margin-left: auto;
+
+                .thread_message_input_textarea {
+                    textarea {
+                        padding: 10px 15px;
+
+                        &:focus-visible {
+                            border-color: $button-border !important;
+                            outline: none !important;
+                        }
+                    }
+                }
+
+                .thread_message_input_send {
+                    text-align: center;
+
+                    button {
+                        background-color: $button-background !important;
+                        border-color: $button-border !important;
+                        border-radius: 50px;
+                        padding: 10px 25px;
+                        box-shadow: 0 4px 4px 0 $button-shadow;
+                        transition: box-shadow .3s ease-in-out;
+
+                        img {
+                            margin-left: .8em;
+                        }
+
+                        &:hover,
+                        &:focus,
+                        &:focus-visible {
+                            box-shadow: $button-hover-shadow !important;
+                            outline: none !important;
+                        }
+                    }
+                }
+            }
         }
     }
 }

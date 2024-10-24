@@ -1,4 +1,4 @@
-import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../../modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import DataSourcesController from './DataSourcesController';
 
@@ -17,6 +17,10 @@ export default abstract class DataSourceControllerBase {
 
         public ds_name_default_translations: { [code_lang: string]: string } = null
     ) { }
+
+    public registerDataSource() {
+        DataSourcesController.registerDataSource(this);
+    }
 
     /**
      * On utilise une clé unique (au sein d'un datasource) pour identifier la data liée à un var data
@@ -39,7 +43,9 @@ export default abstract class DataSourceControllerBase {
      */
     public abstract load_node_data(node: VarDAGNode);
 
-    public registerDataSource() {
-        DataSourcesController.registerDataSource(this);
-    }
+    /**
+     * Stratégie de chargement des données en fonction du var_data contenu dans le node
+     * @param node
+     */
+    public abstract get_data_from_cache(var_data: VarDataBaseVO, ds_res: any, index_value: number): any;
 }

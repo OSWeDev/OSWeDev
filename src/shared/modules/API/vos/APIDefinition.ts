@@ -8,7 +8,7 @@ export default abstract class APIDefinition<T, U> {
     public static API_TYPE_POST_FOR_GET: number = 2;
 
     public static API_RETURN_TYPE_JSON: number = 0;
-    public static API_RETURN_TYPE_RES: number = 1;
+    // @deprecated public static API_RETURN_TYPE_RES: number = 1;
     public static API_RETURN_TYPE_FILE: number = 2;
     /**
      * ATTENTION : à ce jour pas de timeOut defini
@@ -24,6 +24,12 @@ export default abstract class APIDefinition<T, U> {
      * ATTENTION permet de désactiver la protection CSRF sur une API, par exemple pour le webhook de sendinblue
      */
     public csrf_protection: boolean = true;
+
+    /**
+     * Permet d'indiquer que la requete peut modifier le response de l'API et donc a besoin de ce paramètre
+     * Sinon le paramètre n'est pas fourni, et l'on peut alors envisager de passer l'api en socket
+     */
+    public needs_response_param: boolean = true;
 
     /**
      * @param access_policy_name Par défaut utiliser null pour indiquer pas de vérification, cas typique des apis de récupération des vos dont les droits
@@ -46,6 +52,11 @@ export default abstract class APIDefinition<T, U> {
 
     public disable_csrf_protection(): APIDefinition<T, U> {
         this.csrf_protection = false;
+        return this;
+    }
+
+    public does_not_need_response_param(): APIDefinition<T, U> {
+        this.needs_response_param = false;
         return this;
     }
 }

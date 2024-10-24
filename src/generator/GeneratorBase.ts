@@ -56,6 +56,15 @@ import Patch20230927AddSupervisionToCrons from './patchs/postmodules/Patch202309
 import Patch20231123AddRightsSharedFilters from './patchs/postmodules/Patch20231123AddRightsSharedFilters';
 import Patch20240612DbbAdvancedDateFilterChangeIsFilter from './patchs/postmodules/Patch20240612DbbAdvancedDateFilterChangeIsFilter';
 import Patch20240305MigrationCodesTradsMinusculesENV from './patchs/postmodules/Patch20240305MigrationCodesTradsMinusculesENV';
+import Patch20240307DuplicateRightsSupervision from './patchs/postmodules/Patch20240307DuplicateRightsSupervision';
+import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
+import Patch20240507AddDefaultRightsAPIsOselia from './patchs/postmodules/Patch20240507AddDefaultRightsAPIsOselia';
+import Patch20240514AddAssistantFunctionGetVoTypeDescription from './patchs/postmodules/Patch20240514AddAssistantFunctionGetVoTypeDescription';
+import Patch20240524InitExistingGPTMessageThreadAndRunGPTIds from './patchs/postmodules/Patch20240524InitExistingGPTMessageThreadAndRunGPTIds';
+import Patch20240619AddRightsSeeGeneratedImages from './patchs/postmodules/Patch20240619AddRightsSeeGeneratedImages';
+import Patch20240701AddDbOseliaAssistantsetfonctions from './patchs/postmodules/Patch20240701AddDbOseliaAssistantsetfonctions';
+import Patch20240905AddOseliaAssistantThreadTitleWriter from './patchs/postmodules/Patch20240905AddOseliaAssistantThreadTitleWriter';
+import Patch20240905InitAllThreadsOseliaToHavingContents from './patchs/postmodules/Patch20240905InitAllThreadsOseliaToHavingContents';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
 import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang';
@@ -79,17 +88,24 @@ import Patch20231120AddUniqCronPlanificationUID from './patchs/premodules/Patch2
 import Patch20240123ForceUnicityOnGeneratorWorkersUID from './patchs/premodules/Patch20240123ForceUnicityOnGeneratorWorkersUID';
 import Patch20240206InitNullFieldsFromWidgets from './patchs/premodules/Patch20240206InitNullFieldsFromWidgets';
 import Patch20240222MoveModuleFieldsToParamVOs from './patchs/premodules/Patch20240222MoveModuleFieldsToParamVOs';
-import Patch20240305EmptyPixelFieldsFromVarConf from './patchs/premodules/Patch20240305EmptyPixelFieldsFromVarConf';
-import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20240222RenameFieldIdsToFieldNames from './patchs/premodules/Patch20240222RenameFieldIdsToFieldNames';
-import Patch20240307DuplicateRightsSupervision from './patchs/postmodules/Patch20240307DuplicateRightsSupervision';
+import Patch20240305EmptyPixelFieldsFromVarConf from './patchs/premodules/Patch20240305EmptyPixelFieldsFromVarConf';
 import Patch20240329Adduniqlangconstraint from './patchs/premodules/Patch20240329Adduniqlangconstraint';
+import Patch20240329Adduniqroleconstraint from './patchs/premodules/Patch20240329Adduniqroleconstraint';
 import Patch20240329Adduniqtranslatabletextconstraint from './patchs/premodules/Patch20240329Adduniqtranslatabletextconstraint';
 import Patch20240329Adduniquserconstraints from './patchs/premodules/Patch20240329Adduniquserconstraints';
-import Patch20240329Adduniqroleconstraint from './patchs/premodules/Patch20240329Adduniqroleconstraint';
 import Patch20240329CeliaToOseliaDBWidget from './patchs/premodules/Patch20240329CeliaToOseliaDBWidget';
 // import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
 import Patch20240415Adduniqmail_id from './patchs/premodules/Patch20240415Adduniqmail_id';
+import Patch20240515RunStatusToEnum from './patchs/premodules/Patch20240515RunStatusToEnum';
+import Patch20240521ChangeFormatDbAssistants from './patchs/premodules/Patch20240521ChangeFormatDbAssistants';
+import Patch20240530AddUniqNameMailCategory from './patchs/premodules/Patch20240530AddUniqNameMailCategory';
+import Patch20240619DeclareFunctionOseliaGenerateImages from './patchs/premodules/Patch20240619DeclareFunctionOseliaGenerateImages';
+import Patch20240827DeleteVersionedAssistantsWithoutInstructions from './patchs/premodules/Patch20240827DeleteVersionedAssistantsWithoutInstructions';
+import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
+import VersionUpdater from './version_updater/VersionUpdater';
+import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
+import Patch20241010CreateLogType from './patchs/postmodules/Patch20241010CreateLogType';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 import Patch20240917ParamShowCmsPages from './patchs/postmodules/Patch20240917ParamShowCmsPages';
 import Patch20240923AddViewportDatas from './patchs/postmodules/Patch20240923AddViewportDatas';
@@ -176,6 +192,11 @@ export default abstract class GeneratorBase {
             Patch20240222RenameFieldIdsToFieldNames.getInstance(),
             Patch20240305EmptyPixelFieldsFromVarConf.getInstance(),
             Patch20240415Adduniqmail_id.getInstance(),
+            Patch20240515RunStatusToEnum.getInstance(),
+            Patch20240521ChangeFormatDbAssistants.getInstance(),
+            Patch20240530AddUniqNameMailCategory.getInstance(),
+            Patch2024OSELIAAssistantDescriptionNotNULL.getInstance(),
+            Patch20240827DeleteVersionedAssistantsWithoutInstructions.getInstance(),
         ];
 
         this.post_modules_workers = [
@@ -200,7 +221,17 @@ export default abstract class GeneratorBase {
             Patch20240612DbbAdvancedDateFilterChangeIsFilter.getInstance(),
             Patch20240305MigrationCodesTradsMinusculesENV.getInstance(),
             Patch20240307DuplicateRightsSupervision.getInstance(),
-            // Patch20240409RetrieveOpenAIRunStats.getInstance(),
+            Patch20240409RetrieveOpenAIRunStats.getInstance(),
+            Patch20240507AddDefaultRightsAPIsOselia.getInstance(),
+            Patch20240514AddAssistantFunctionGetVoTypeDescription.getInstance(),
+            Patch20240524InitExistingGPTMessageThreadAndRunGPTIds.getInstance(),
+            Patch20240619DeclareFunctionOseliaGenerateImages.getInstance(),
+            Patch20240619AddRightsSeeGeneratedImages.getInstance(),
+            Patch20240701AddDbOseliaAssistantsetfonctions.getInstance(),
+            Patch20240905InitAllThreadsOseliaToHavingContents.getInstance(),
+            Patch20240905AddOseliaAssistantThreadTitleWriter.getInstance(),
+            Patch20240906DeleteOldAssistantObjDBLinks.getInstance(),
+            Patch20241010CreateLogType.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
             Patch20240917ParamShowCmsPages.getInstance(),
             Patch20240923AddViewportDatas.getInstance(),
@@ -257,6 +288,10 @@ export default abstract class GeneratorBase {
         console.log("pre modules initialization workers done.");
 
         await this.modulesService.register_all_modules(true);
+
+        // console.log("ParamsManager.reloadPreloadParams: ...");
+        // await ParamsManager.reloadPreloadParams();
+        // console.log("ParamsManager.reloadPreloadParams:OK");
 
         console.log("VersionUpdater: ...");
         await VersionUpdater.getInstance().update_version();
@@ -326,18 +361,20 @@ export default abstract class GeneratorBase {
 
             await promises_pipeline.push(async () => {
                 // On check que le patch a pas encore été lancé
-                try {
-                    await db.one('select * from generator.workers where uid = $1;', [worker.uid]);
+                const record = await db.oneOrNone('select * from generator.workers where uid = $1;', [worker.uid]);
+
+                if (record != null) {
                     return;
-                } catch (error) {
-                    if ((!error) || ((error['message'] != "No data returned from the query.") && (error['code'] != '42P01'))) {
-                        console.warn('Patch :' + worker.uid + ': Erreur... [' + error + '], on tente de lancer le patch.');
-                    } else {
-                        console.debug('Patch :' + worker.uid + ': aucune trace de lancement en base, lancement du patch...');
-                    }
-                    workers_to_execute[i] = worker;
-                    // Pas d'info en base, le patch a pas été lancé, on le lance
                 }
+
+                // if ((!error) || ((error['message'] != "No data returned from the query.") && (error['code'] != '42P01'))) {
+                //     console.warn('Patch :' + worker.uid + ': Erreur... [' + error + '], on tente de lancer le patch.');
+                // } else {
+                ConsoleHandler.log('Patch :' + worker.uid + ': aucune trace de lancement en base, lancement du patch...');
+                // }
+                workers_to_execute[i] = worker;
+                // Pas d'info en base, le patch a pas été lancé, on le lance
+                // }
             });
         }
         await promises_pipeline.end();

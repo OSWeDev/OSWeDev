@@ -326,6 +326,9 @@ export default class TimeSegmentHandler {
             case TimeSegment.TYPE_QUARTER:
                 // Impossible de gérer ce cas;
                 return null;
+            case TimeSegment.TYPE_MS:
+                type = TimeSegment.TYPE_SECOND;
+                break;
             case TimeSegment.TYPE_MONTH:
                 type = TimeSegment.TYPE_YEAR;
                 break;
@@ -391,6 +394,7 @@ export default class TimeSegmentHandler {
             case TimeSegment.TYPE_HOUR:
             case TimeSegment.TYPE_MINUTE:
             case TimeSegment.TYPE_SECOND:
+            case TimeSegment.TYPE_MS:
                 return Dates.startOf(timeSegment.index, timeSegment.type);
         }
     }
@@ -439,6 +443,7 @@ export default class TimeSegmentHandler {
             case TimeSegment.TYPE_HOUR:
             case TimeSegment.TYPE_MINUTE:
             case TimeSegment.TYPE_SECOND:
+            case TimeSegment.TYPE_MS:
                 return Dates.add(res, -1, type_inclusion);
         }
     }
@@ -642,6 +647,8 @@ export default class TimeSegmentHandler {
                 return 'second';
             case TimeSegment.TYPE_QUARTER:
                 return 'quarter';
+            case TimeSegment.TYPE_MS:
+                return 'ms';
         }
         return null;
     }

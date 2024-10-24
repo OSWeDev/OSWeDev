@@ -89,6 +89,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     private show_details: boolean = false;
 
     private selected_rapport: SuiviCompetencesRapportVO = null;
+    private selected_grille: SuiviCompetencesGrilleVO = null;
     private start_export_excel: boolean = false;
     private all_groupes: SuiviCompetencesGroupeResult[] = [];
     private filtered_groupes: SuiviCompetencesGroupeResult[] = [];
@@ -166,6 +167,12 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
             await this.duplicate_rapport_action();
             return;
         }
+
+        if (this.selected_rapport?.suivi_comp_grille_id) {
+            this.selected_grille = await query(SuiviCompetencesGrilleVO.API_TYPE_ID)
+                .filter_by_id(this.selected_rapport.suivi_comp_grille_id)
+                .select_vo();
+        }
     }
 
     private async mounted() {
@@ -241,6 +248,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
             (!this.has_active_filters)
         ) {
             this.selected_rapport = null;
+            this.selected_grille = null;
             this.rapports = [];
             return;
         }
@@ -259,6 +267,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     private async open_create() {
         this.action_rapport = null;
         this.selected_rapport = null;
+        this.selected_grille = null;
 
         await this.get_Crudcreatemodalcomponent.open_modal(
             SuiviCompetencesRapportVO.API_TYPE_ID,
@@ -277,6 +286,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     private duplicate_rapport() {
         this.action_rapport = this.duplicate_action_rapport;
         this.selected_rapport = null;
+        this.selected_grille = null;
     }
 
     private edit_rapport() {

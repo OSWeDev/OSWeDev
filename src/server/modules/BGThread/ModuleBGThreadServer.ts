@@ -1,4 +1,3 @@
-import IBGThread from './interfaces/IBGThread';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -10,16 +9,15 @@ import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import ForkMessageController from '../Fork/ForkMessageController';
 import ForkServerController from '../Fork/ForkServerController';
-import KillForkMessage from '../Fork/messages/KillForkMessage';
+import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import BGThreadServerController from './BGThreadServerController';
-import ForkedTasksController from '../Fork/ForkedTasksController';
-import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import IBGThread from './interfaces/IBGThread';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
 
@@ -157,16 +155,21 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         // On register ici la tache qui sera exécutée sur le BGthread - qui est par ailleurs throttled
         ForkedTasksController.register_task(bgthread_force_run_asap_throttled_task_name, BGThreadServerController.force_run_asap_by_bgthread_name[bgthread.name].bind(bgthread));
 
-
-        ManualTasksController.getInstance().registered_manual_tasks_by_name["KILL BGTHREAD : " + bgthread.name] =
-            async () => {
-                if (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
-                    ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name]) {
-                    await ForkMessageController.send(
-                        new KillForkMessage(await ModuleParams.getInstance().getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
-                        ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name].child_process);
+        ManualTasksController.getInstance().registered_manual_tasks_by_name["KILL BGTHREAD : " + bgthread.name] = async (force_empty_vars_datas_vo_update_cache: boolean = true) => {
+            return new Promise(async (resolve, reject) => {
+                if (!ForkServerController.is_main_process()) {
+                    await ForkedTasksController.exec_self_on_main_process_and_return_value(
+                        reject,
+                        BGThreadServerController.TASK_NAME_kill_bgthread,
+                        resolve,
+                        bgthread.name,
+                        force_empty_vars_datas_vo_update_cache
+                    );
                 }
-            };
+
+                await BGThreadServerController.kill_bgthread(bgthread.name, force_empty_vars_datas_vo_update_cache);
+            });
+        };
 
         // On vérifie qu'on peut lancer des bgthreads
         if (!BGThreadServerController.run_bgthreads) {
@@ -193,6 +196,9 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
         while (true) {
 
+            // Modif : pour être sûr de pas avoir de boucles infinies, on met l'attente en premier
+            await ThreadHandler.sleep(10, 'ModuleBGThreadServer.execute_bgthread.' + bgthread.name);
+
             /**
              * On change de méthode, on lance immédiatement si c'est utile/demandé, sinon on attend le timeout
              */
@@ -200,7 +206,6 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             // Si déjà lancé, on attend que ça se termine normalement
             if (bgthread.semaphore) {
                 bgthread.last_run_unix = Dates.now_ms();
-                await ThreadHandler.sleep(10, 'ModuleBGThreadServer.execute_bgthread.' + bgthread.name);
                 continue;
             }
 
@@ -215,7 +220,6 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             }
 
             if (!do_run) {
-                await ThreadHandler.sleep(10, 'ModuleBGThreadServer.execute_bgthread.' + bgthread.name);
                 continue;
             }
 

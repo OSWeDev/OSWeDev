@@ -247,6 +247,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options des dimensions'
         }, 'var_radar_chart_widget_options_component.separator.datas_dimension_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Multi dataset'
+        }, 'var_radar_chart_widget_options_component.separator.multiple_dataset.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
@@ -335,6 +338,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser la somme des deux variables comme valeur max ?'
         }, 'var_radar_chart_widget_options_component.max_is_sum_of_var_1_and_2.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Sélectionner le champ permettant de faire du multi dataset (plusieurs radars superposés)'
+        }, 'var_radar_chart_widget_options_component.multiple_dataset_vo_field_ref.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Maximum de radars superposés'
+        }, 'var_radar_chart_widget_options_component.max_dataset_values.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du graphique'
@@ -524,6 +535,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options des variables'
         }, 'var_charts_options_component.separator.var_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Utiliser une palette de couleur prédéfinie'
+        }, 'var_charts_options_component.separator.use_palette.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options de la variable'
@@ -585,6 +599,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Titre de l\'ordonnée'
         }, 'var_chart_scales_options_item_component.scale_title.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Superposer ?'
+        }, 'var_chart_scales_options_item.stacked.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Remplir ?'
+        }, 'var_chart_scales_options_item.fill.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Afficher le titre'
@@ -838,6 +860,31 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Appel de fonction'
         }, 'oselia_thread_widget_component.thread_message_header_left_username.function.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Joindre le fichier'
+        }, 'oselia_thread_widget_component.dragging_overlay_text.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Upload l\'image'
+        }, 'oselia_thread_widget_component.image_upload_menu_item.upload.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Lien vers l\'image'
+        }, 'oselia_thread_widget_component.image_upload_menu_item.link.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'URL de l\'image'
+        }, 'oselia_thread_widget_component.link_image_menu.url_placeholder.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Annuler'
+        }, 'oselia_thread_widget_component.image_upload_menu_item.cancel.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Insérer une image depuis un URL'
+        }, 'oselia_thread_widget_component.link_image_menu.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Fichier'
+        }, 'oselia_thread_widget_component.thread_message_attachment_file.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Fichier'
+        }, 'oselia_thread_widget_component.thread_message_attachment_image.___LABEL___'));
+
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Exportable'
@@ -1628,11 +1675,76 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Couleur du fond'
         }, 'var_widget_options_component.bg_color.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Couleur de la valeur'
-        }, 'var_widget_options_component.fg_color_value.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Couleur du texte'
         }, 'var_widget_options_component.fg_color_text.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Style du widget'
+        }, 'var_widget_options_component.widget_style.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Icône du titre'
+        }, 'var_widget_options_component.widget_icon.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Taille de l\'icône'
+        }, 'var_widget_options_component.icon.size.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Variable centrale'
+        }, 'var_widget_options_component.var_name_principale.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Variable centrale basse'
+        }, 'var_widget_options_component.var_name_a_date.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Variable à droite'
+        }, 'var_widget_options_component.var_name_complementaire.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Variable à droite basse'
+        }, 'var_widget_options_component.var_name_complementaire_supp.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Afficher la légende de la variable'
+        }, 'var_widget_options_component.display_label.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Est affecté par les conditions'
+        }, 'var_widget_options_component.is_condition_target.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Variable de condition'
+        }, 'var_widget_options_component.var_condition.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Conditions d\'affichage'
+        }, 'var_widget_options_component.conditional_icon.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Condition'
+        }, 'var_widget_options_component.conditional_icon.condition.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Valeur'
+        }, 'var_widget_options_component.conditional_icon.value.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Sous-titre'
+        }, 'var_widget_options_component.widget_subtitle.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vous pouvez utiliser "#date_max#" pour afficher la date maximale de la période.'
+        }, 'var_widget_options_component.widget_subtitle.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Légende de la variable'
+        }, 'var_widget_options_component.var_input_label.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options du widget'
+        }, 'var_widget_options_component.separator.widget_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de la variable centrale'
+        }, 'var_widget_options_component.separator.first_var_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de la variable centrale basse'
+        }, 'var_widget_options_component.separator.second_var_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de la variable à droite'
+        }, 'var_widget_options_component.separator.third_var_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de la variable à droite basse'
+        }, 'var_widget_options_component.separator.fourth_var_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options des conditions'
+        }, 'var_widget_options_component.separator.condition_options.___LABEL___'));
+
+
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Filter'
@@ -1956,6 +2068,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Segmentation'
         }, 'tstz_filter_options.segment_type.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Date localisée (non GMT)'
+        }, 'tstz_filter_options.localized.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Deux exemples:<ul><li>Si on veut un filtre A-1 (appelée Date_Am1 par exemple) relatif à un autre filtre A (appelé Date_A), on indique -1 en min et max sur le filtre Année et 0 sur les autres filtres relatifs (par exemple si la segmentation est sur le mois, on aura aussi un filtre Mois A-1 (nommé Date_Am1 aussi) relatif à un filtre Mois A (nommé Date_A) avec un champ relatif min et max à 0.</li>' +
@@ -2310,6 +2425,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'N\'est pas null' },
             'adv_str_fltr.nest_pas_null'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Expression régulière' },
+            'adv_str_fltr.regexp'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Ajouter un filtre' },
@@ -3456,6 +3574,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Préréglage de la palette" },
             'var_charts_options_component.use_palette.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Masquer le filtre" },
+            'var_mixed_charts_widget_options_component.hide_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Masquer le filtre" },
+            'var_radar_chart_widget_options_component.hide_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Masquer le filtre" },
+            'var_pie_chart_widget_options_component.hide_filter.___LABEL___'
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(

@@ -56,13 +56,6 @@ import ImportLogger from './logger/ImportLogger';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleDataImportServer.instance) {
-            ModuleDataImportServer.instance = new ModuleDataImportServer();
-        }
-        return ModuleDataImportServer.instance;
-    }
 
     private static instance: ModuleDataImportServer = null;
 
@@ -72,6 +65,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleDataImport.getInstance().name);
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleDataImportServer.instance) {
+            ModuleDataImportServer.instance = new ModuleDataImportServer();
+        }
+        return ModuleDataImportServer.instance;
     }
 
     /**
@@ -511,7 +512,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             );
         } catch (error) {
             ConsoleHandler.error('importJSON:' + error);
-            await PushDataServerController.getInstance().notifySimpleERROR(
+            await PushDataServerController.notifySimpleERROR(
                 StackContext.get('UID'),
                 StackContext.get('CLIENT_TAB_ID'),
                 'importJSON.failed.___LABEL___'
@@ -893,18 +894,6 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             return;
         }
 
-        //  3 - Mettre à jour le status et informer le client
-        // à la fin on indique le bon fonctionnement
-        // Pour l'instant on informe que l'auteur, mais en fait à terme ce qui serait top (mais à réfléchir par ce que très gourmand potentiellement)
-        //  ça serait d'informer tout le monde, directement en post creat et post update, et post delete, de toutes les modifs de DAO...
-        //  comme ça la data se mettrait à jour en temps réel dans l'appli, même si c'est un autre utilisateur qui fait un import
-
-        // Alors c'est tellement gourmand que même pour un user on le fait pour l'instant...
-        // let api_type_ids: string[] = postTraitementModule.get_merged_api_type_ids();
-        // for (let i in api_type_ids) {
-        //     await PushDataServerController.getInstance().notifyDAOGetVos(importHistoric.user_id, api_type_ids[i]);
-        // }
-
         await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_POSTTREATED, "Fin import : " + Dates.format(Dates.now(), "Y-MM-DD HH:mm"), "import.success.posttreated", DataImportLogVO.LOG_LEVEL_SUCCESS);
     }
 
@@ -1077,7 +1066,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
     public async updateImportHistoric(importHistoric: DataImportHistoricVO) {
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
-        await PushDataServerController.getInstance().notifyDAOGetVoById(importHistoric.user_id, null, DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
+        await PushDataServerController.notifyDAOGetVoById(importHistoric.user_id, null, DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
     }
 
     public async logAndUpdateHistoric(importHistoric: DataImportHistoricVO, format: DataImportFormatVO, import_state: number, logmsg: string, notif_code: string, log_lvl: number) {
@@ -1092,16 +1081,16 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         switch (log_lvl) {
             case DataImportLogVO.LOG_LEVEL_FATAL:
             case DataImportLogVO.LOG_LEVEL_ERROR:
-                await PushDataServerController.getInstance().notifySimpleERROR(importHistoric.user_id, null, notif_code);
+                await PushDataServerController.notifySimpleERROR(importHistoric.user_id, null, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_WARN:
-                await PushDataServerController.getInstance().notifySimpleWARN(importHistoric.user_id, null, notif_code);
+                await PushDataServerController.notifySimpleWARN(importHistoric.user_id, null, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_SUCCESS:
-                await PushDataServerController.getInstance().notifySimpleSUCCESS(importHistoric.user_id, null, notif_code);
+                await PushDataServerController.notifySimpleSUCCESS(importHistoric.user_id, null, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_INFO:
-                await PushDataServerController.getInstance().notifySimpleINFO(importHistoric.user_id, null, notif_code);
+                await PushDataServerController.notifySimpleINFO(importHistoric.user_id, null, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_DEBUG:
             default:

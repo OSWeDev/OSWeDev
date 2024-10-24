@@ -29,8 +29,11 @@
         thead                                
             tr
                 th.col-md-3.empty
-                th.col-md-3.empty
+                th.col-md-3.empty(
+                    v-if='grille && grille.show_column_rapport_indicateur && !grille.move_indicateur_to_end'
+                )
                 th.col-md-3(
+                    :colspan="!(grille && grille.show_column_rapport_indicateur && !grille.move_indicateur_to_end) ? 2 : 1"
                     v-if="show_details"
                 ) {{ label('suivi_competences_widget_component.kpi.grille_' + grille.id) }}
                 th.col-md-1(
@@ -40,6 +43,7 @@
                     v-if="show_details"
                 ) {{ label('suivi_competences_widget_component.indicateur_detail.grille_' + grille.id) }}
                 th.col-md-3(
+                    :colspan="(!(grille && grille.show_column_rapport_indicateur && !grille.move_indicateur_to_end) && (!show_details)) ? 2 : 1"
                     v-if="grille?.show_column_rapport_cible"
                 ) {{ label('suivi_competences_widget_component.cible.grille_' + grille.id) }}
                 th.col-md-3(

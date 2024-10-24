@@ -170,7 +170,18 @@ export default class ModuleTableFieldServerController {
                 break;
 
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+
                 let trans_ = ObjectHandler.try_get_json(field_value);
+
+                if (!trans_) {
+
+                    // Si on est déjà sur un objet, normal que le try_get_json ne fonctionne pas, on utilise l'objet directement
+                    if (typeof field_value == 'object') {
+                        trans_ = field_value;
+                    } else {
+                        return field_value;
+                    }
+                }
 
                 if (trans_) {
 
@@ -191,7 +202,12 @@ export default class ModuleTableFieldServerController {
                             const new_obj = new Object();
                             for (const i in trans_) {
                                 const transi_ = trans_[i];
-                                new_obj[i] = ModuleTableServerController.translate_vos_from_db(ObjectHandler.try_get_json(transi_));
+
+                                if (!ObjectHandler.try_is_json(transi_)) {
+                                    new_obj[i] = transi_;
+                                } else {
+                                    new_obj[i] = ModuleTableServerController.translate_vos_from_db(ObjectHandler.try_get_json(transi_));
+                                }
                             }
                             trans_ = new_obj;
                         } else {
