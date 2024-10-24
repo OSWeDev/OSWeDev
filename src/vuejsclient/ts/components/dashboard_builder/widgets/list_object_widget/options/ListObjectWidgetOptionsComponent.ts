@@ -61,7 +61,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
     private title: VOFieldRefVO = null;
     private subtitle: VOFieldRefVO = null;
     private number: VOFieldRefVO = null;
-    private filter_field_ref: VOFieldRefVO = null;
+    private sort_field_ref: VOFieldRefVO = null;
     private button_elements: boolean = false;
     private url: VOFieldRefVO = null;
     private blank?: boolean;
@@ -133,7 +133,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.title = null,
             this.subtitle = null,
             this.number = null,
-            this.filter_field_ref = null,
+            this.sort_field_ref = null,
             this.button_elements = null,
             this.url = null,
             this.blank = null,
@@ -173,7 +173,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         (this.widget_options.button_elements == options.button_elements) &&
                         (this.widget_options.display_orientation == options.display_orientation) &&
                         (this.widget_options.image_id == options.image_id) &&
-                        (this.widget_options.filter_field_ref == options.filter_field_ref) &&
+                        (this.widget_options.sort_field_ref == options.sort_field_ref) &&
                         (this.widget_options.number == options.number) &&
                         (this.widget_options.number_of_elements == options.number_of_elements) &&
                         (this.widget_options.sort_dimension_by == options.sort_dimension_by) &&
@@ -192,7 +192,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         options.title,
                         options.subtitle,
                         options.number,
-                        options.filter_field_ref,
+                        options.sort_field_ref,
                         options.button_elements,
                         options.url,
                         options.blank,
@@ -222,7 +222,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.title = default_options.title;
             this.subtitle = default_options.subtitle;
             this.number = default_options.number;
-            this.filter_field_ref = default_options.filter_field_ref;
+            this.sort_field_ref = default_options.sort_field_ref;
             this.button_elements = default_options.button_elements;
             this.url = default_options.url;
             this.blank = default_options.blank;
@@ -252,8 +252,8 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         if (this.number != this.widget_options.number) {
             this.number = this.widget_options.number;
         }
-        if (this.filter_field_ref != this.widget_options.filter_field_ref) {
-            this.filter_field_ref = this.widget_options.filter_field_ref;
+        if (this.sort_field_ref != this.widget_options.sort_field_ref) {
+            this.sort_field_ref = this.widget_options.sort_field_ref;
         }
         if (this.button_elements != this.widget_options.button_elements) {
             this.button_elements = this.widget_options.button_elements;
@@ -546,23 +546,23 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         return Object.assign(new VOFieldRefVO(), options.url);
     }
 
-    private async remove_filter_field_ref() {
+    private async remove_sort_field_ref() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
             return null;
         }
 
-        if (!this.next_update_options.filter_field_ref) {
+        if (!this.next_update_options.sort_field_ref) {
             return null;
         }
 
-        this.next_update_options.filter_field_ref = null;
+        this.next_update_options.sort_field_ref = null;
 
         await this.throttled_update_options();
     }
 
-    private async add_filter_field_ref(api_type_id: string, field_id: string) {
+    private async add_sort_field_ref(api_type_id: string, field_id: string) {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -574,20 +574,20 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         dimension_vo_field_ref.field_id = field_id;
         dimension_vo_field_ref.weight = 0;
 
-        this.next_update_options.filter_field_ref = dimension_vo_field_ref;
+        this.next_update_options.sort_field_ref = dimension_vo_field_ref;
 
         await this.throttled_update_options();
     }
 
 
-    get _filter_field_ref(): VOFieldRefVO {
+    get _sort_field_ref(): VOFieldRefVO {
         const options: ListObjectWidgetOptionsVO = this.widget_options;
 
-        if ((!options) || (!options.filter_field_ref)) {
+        if ((!options) || (!options.sort_field_ref)) {
             return null;
         }
 
-        return Object.assign(new VOFieldRefVO(), options.filter_field_ref);
+        return Object.assign(new VOFieldRefVO(), options.sort_field_ref);
     }
 
 }

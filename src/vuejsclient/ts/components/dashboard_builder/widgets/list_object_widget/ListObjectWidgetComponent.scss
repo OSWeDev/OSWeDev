@@ -1,100 +1,122 @@
-.list_object_widget_component {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    
-    .object {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 0;
-        border-bottom: 1px solid #ddd;
-        cursor: pointer;
-        .first_row {
-            .image {
-                img {
-                    object-fit: fill;
-                    border-radius: 50%;
-                    width: 40px;
-                    height: 40px;
+.list_object_card_widget {
+    overflow-x: scroll;
+
+    .list_object_widget_component {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+
+        .object {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+
+            .first_row {
+                display: flex;
+                align-items: center;
+
+                .image {
+                    margin-right: 20px;
+
+                    img {
+                        object-fit: fill;
+                        border-radius: 50%;
+                        width: 60px;
+                        height: 60px;
+                    }
                 }
             }
-        }
 
-        .second_row {
-            .title {
-                font-size: 14px;
-                margin: 0;
-                font-weight: bold;
-            }
-            .subtitle {
-                font-size: 12px;
-                margin: 5px 0 0;
-                color: #777;
-            }
-        }
-        .last_row {
-            .number {
-                font-size: 14px;
-                color: #888
-            }
-            .arrow {
-                font-size: 20px;
-                color: #888;
-                margin-right: 10px;
-            }
-        }
-    }
-}
+            .title_and_sub {
 
-.list_card_widget_component {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    padding: 20px;
-    flex-wrap: wrap;
-    .card:hover {
-        transform: translateY(-10px);
-    }
+                .title {
+                    font-size: 14px;
+                    margin: 0;
+                    font-weight: bold;
+                }
 
-    .card {
-        background-color: white;
-        border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        transition: transform 0.3s;
-        height: 270px;
-        width: 250px;
-        .image {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            img {
-                width: 100%;
-                height: 150px;
-                object-fit: cover;
+                .subtitle {
+                    font-size: 12px;
+                    margin: 5px 0 0;
+                    color: #777;
+                }
             }
-        }
 
-        .card_content {
-            padding: 15px;
-            .title {
-                font-size: 16px;
-                margin: 0 0 10px;
-                font-weight: bold;
-            }
-            .subtitle {
-                font-size: 14px;
-                color: #555;
-                margin: 0 0 15px;
-            }
-            .card_footer {
-                display: flex;
-                justify-content: flex-end;
+            .last_row {
                 .number {
                     font-size: 14px;
                     color: #888
+                }
+
+                .arrow {
+                    font-size: 20px;
+                    color: #888;
+                    margin-right: 10px;
+                }
+            }
+        }
+    }
+
+    .list_card_widget_component {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        padding: 20px;
+        flex-wrap: wrap;
+        width: max-content;
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s;
+            height: 270px;
+            width: 250px;
+
+            .image {
+                width: 100%;
+                height: 150px;
+                object-fit: cover;
+
+                img {
+                    width: 100%;
+                    height: 150px;
+                    object-fit: cover;
+                }
+            }
+
+            .card_content {
+                padding: 15px;
+
+                .title {
+                    font-size: 16px;
+                    margin: 0 0 10px;
+                    font-weight: bold;
+                }
+
+                .subtitle {
+                    font-size: 14px;
+                    color: #555;
+                    margin: 0 0 15px;
+                }
+
+                .card_footer {
+                    display: flex;
+                    justify-content: flex-end;
+
+                    .number {
+                        font-size: 14px;
+                        color: #888
+                    }
                 }
             }
         }

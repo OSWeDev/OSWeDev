@@ -17,7 +17,7 @@
                         :vo_field_ref="subtitle_field_ref" @remove_field_ref="remove_subtitle_field_ref" @add_field_ref="add_subtitle_field_ref"
                         :page_widget_id='page_widget ? page_widget.id : null'
                     )
-        
+
         .widget_image_label {{ label('list_object_widget_options_component.widget_image.image') }}
         .widget_image_wrapper
             .field_ref
@@ -35,32 +35,37 @@
                         :page_widget_id='page_widget ? page_widget.id : null'
                     )
 
-        .input_label {{ label('list_object_widget_options_component.filter_field_ref') }}
-        .widget_filter_wrapper
-            .field_ref
+        .sort_field_ref
+            .input_label {{ label('list_object_widget_options_component.sort_field_ref') }}
+            .widget_filter_wrapper
+                .field_ref
+                    .input_wrapper
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="_sort_field_ref" @remove_field_ref="remove_sort_field_ref" @add_field_ref="add_sort_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
+
+        template(v-if="sort_field_ref")
+            .sort_dimension_by
+                .input_label {{ label('list_object_widget_options_component.sort_dimension_by') }}
                 .input_wrapper
-                    Singlevofieldrefholdercomponent(
-                        :vo_field_ref="_filter_field_ref" @remove_field_ref="remove_filter_field_ref" @add_field_ref="add_filter_field_ref"
-                        :page_widget_id='page_widget ? page_widget.id : null'
+                    .switch_toggle
+                        .input(id="Ascending" @click="change_sort_dimension('Ascending')" name="state-d" type="radio" :class="{'selected': (sort_dimension_by=='Ascending') }" )
+                            label(for="Ascending") Ascending
+                        .input(id="Descending" @click="change_sort_dimension('Descending')" name="state-d" type="radio" :class="{'selected': (sort_dimension_by=='Descending') }" )
+                            label(for="Descending") Descending
+
+
+        .number_of_elements
+            .input_label {{ label('list_object_widget_options_component.number_of_elements') }}
+            .number_of_elements
+                .input_wrapper
+                    input(
+                        type="number"
+                        v-model="number_of_elements"
+                        v-tooltip="label('list_object_widget_options_component.number_of_elements.tooltip')"
                     )
 
-        .input_label {{ label('list_object_widget_options_component.number_of_elements') }}
-        .number_of_elements
-            .input_wrapper
-                input(
-                    type="number"
-                    v-model="number_of_elements"
-                    v-tooltip="label('list_object_widget_options_component.number_of_elements.tooltip')"
-                )
-
-        .sort_dimension_by
-            .input_label {{ label('list_object_widget_options_component.sort_dimension_by') }}
-            .input_wrapper
-                .switch_toggle
-                    .input(id="Ascending" @click="change_sort_dimension('Ascending')" name="state-d" type="radio" :class="{'selected': (sort_dimension_by=='Ascending') }" )
-                        label(for="Ascending") Ascending
-                    .input(id="Descending" @click="change_sort_dimension('Descending')" name="state-d" type="radio" :class="{'selected': (sort_dimension_by=='Descending') }" )
-                        label(for="Descending") Descending
         .display_orientation
             .input_label {{ label('list_object_widget_options_component.display_orientation') }}
             .input_wrapper
@@ -71,25 +76,28 @@
                         label(for="Vertical") Vertical
 
         .button_for_elements
-                .input_label {{ label('list_object_widget_options_component.button_for_elements') }}
-                .input_wrapper
-                    toggle-button(
-                        @change="switch_button_for_elements" 
-                        :value="button_elements" 
-                        :sync="false"
-                        :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                    )
-        .url
-            .field_ref
-                .input_label {{ label('list_object_widget_options_component.url') }}
-                .input_wrapper
-                    Singlevofieldrefholdercomponent(
-                        :vo_field_ref="url_field_ref" @remove_field_ref="remove_url_field_ref" @add_field_ref="add_url_field_ref"
-                        :page_widget_id='page_widget ? page_widget.id : null'
-                    )
-        template(v-if="(url)")
-            .use_blank
+            .input_label {{ label('list_object_widget_options_component.button_for_elements') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_button_for_elements" 
+                    :value="button_elements" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                )
+
+        template(v-if="button_elements")
+            .url
+                .field_ref
+                    .input_label {{ label('list_object_widget_options_component.url') }}
+                    .input_wrapper
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="url_field_ref" @remove_field_ref="remove_url_field_ref" @add_field_ref="add_url_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
+
+            template(v-if="url")
+                .use_blank
                     .input_label {{ label('list_object_widget_options_component.use_blank') }}
                     .input_wrapper
                         toggle-button(
@@ -97,6 +105,5 @@
                             :value="blank" 
                             :sync="false"
                             :width="60"
-                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                         )
-        
