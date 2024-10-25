@@ -12,6 +12,7 @@ export default class LogVO implements IDistantVOBase {
     public msg: string;
     public user_id: number;
     public client_tab_id: string;
+    public url: string;
 
     public static createNew(
         process_pid: number,
@@ -20,6 +21,7 @@ export default class LogVO implements IDistantVOBase {
         msg: string,
         user_id: number,
         client_tab_id: string,
+        url: string,
     ): LogVO {
         const res: LogVO = new LogVO();
 
@@ -29,6 +31,7 @@ export default class LogVO implements IDistantVOBase {
         res.msg = msg;
         res.user_id = user_id;
         res.client_tab_id = client_tab_id;
+        res.url = url;
 
         return res;
     }

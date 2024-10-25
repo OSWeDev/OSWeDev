@@ -13,6 +13,7 @@ import FileServerController from './modules/File/FileServerController';
 import LogVO from '../shared/modules/Logger/vos/LogVO';
 import ParamsManager from '../shared/modules/Params/ParamsManager';
 import ModuleLogger from '../shared/modules/Logger/ModuleLogger';
+import StackContext from './StackContext';
 
 export default class FileLoggerHandler implements ILoggerHandler {
 
@@ -59,6 +60,7 @@ export default class FileLoggerHandler implements ILoggerHandler {
             log_type ?? ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG),
             date,
             msg,
+            StackContext.get('UID'),
             null,
             null,
         ));
