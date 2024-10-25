@@ -36,3 +36,6 @@ include ../../../../../views/mixins/loading.pug
                             .card_footer
                                 template(v-if="numbers && (numbers.length > 0) && numbers[i]")
                                     .number {{ numbers[i] }}
+                                .arrow 
+                                    template(v-if="widget_options.button_elements && (urls.length>0) && urls[i]")
+                                        a.fa-solid.fa-arrow-right(:href="urls[i]" :target="widget_options.blank ?  '_blank' : '' ")

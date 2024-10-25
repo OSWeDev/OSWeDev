@@ -302,6 +302,16 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
             .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_viewport_id, this.selected_viewport.id)
             .select_vos();
 
+
+        if (position_layout?.length) {
+            position_layout.sort((a, b) => {
+                const a_weight: number = parseFloat(a.y.toString() + "." + a.x.toString());
+                const b_weight: number = parseFloat(b.y.toString() + "." + b.x.toString());
+
+                return a_weight - b_weight;
+            });
+        }
+
         this.is_filtres_deplie = this.dashboard_page?.collapse_filters;
 
         this.editable_dashboard_page = Object.assign({

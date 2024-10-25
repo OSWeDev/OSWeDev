@@ -50,6 +50,7 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
         new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_GAUCHE_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_GAUCHE),
         new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_DROITE_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_DROITE),
         new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_HAUT_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_HAUT),
+        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_BAS_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_BAS),
         new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_HAUT_GAUCHE_LABEL), CMSImageWidgetOptionsVO.POSITION_HAUT_GAUCHE),
         new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_HAUT_DROITE_LABEL), CMSImageWidgetOptionsVO.POSITION_HAUT_DROITE),
         new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_BAS_GAUCHE_LABEL), CMSImageWidgetOptionsVO.POSITION_BAS_GAUCHE),
