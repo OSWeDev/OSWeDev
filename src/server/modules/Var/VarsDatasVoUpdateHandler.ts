@@ -1040,7 +1040,7 @@ export default class VarsDatasVoUpdateHandler {
         const block_ordered_vos_cud: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(
             VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME,
             false,
-            180000, // 3 minutes
+            5000, // 5 sec
         );
 
         if (block_ordered_vos_cud) {

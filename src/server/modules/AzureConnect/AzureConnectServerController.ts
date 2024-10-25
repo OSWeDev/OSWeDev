@@ -8,6 +8,11 @@ export default class AzureConnectServerController {
 
     // public static registered_callbacks_by_name: { [name: string]: (azure_connected_user: AzureConnectedUserVO) => Promise<void> } = {};
 
+    /**
+     * Pour éviter les réinits à l'infini, on limite à une init par minute
+     */
+    public static registered_azure_last_init_date_by_registration_name: { [registration_name: string]: number } = {};
+
     public static registered_azure_tenant_id_param_name_by_registration_name: { [registration_name: string]: string } = {};
     public static registered_azure_client_id_param_name_by_registration_name: { [registration_name: string]: string } = {};
     public static registered_azure_client_secret_param_name_by_registration_name: { [registration_name: string]: string } = {};
@@ -30,10 +35,14 @@ export default class AzureConnectServerController {
         }
     }
 
-    public static async get_registered_azure_client(registration_name: string): Promise<Client> {
+    public static async get_registered_azure_client(registration_name: string, force_reinit: boolean = false): Promise<Client> {
 
+        if (AzureConnectServerController.registered_azure_last_init_date_by_registration_name[registration_name] && (Date.now() - AzureConnectServerController.registered_azure_last_init_date_by_registration_name[registration_name] < 60000)) {
+            throw new Error('get_registered_azure_client: already initialized less than 1 minute ago for registration_name: ' + registration_name);
+        }
 
-        if (!AzureConnectServerController.registered_azure_client_by_registration_name[registration_name]) {
+        const client: Client = AzureConnectServerController.registered_azure_client_by_registration_name[registration_name];
+        if ((!client) || force_reinit) {
 
             const tenant_id_param_name = AzureConnectServerController.registered_azure_tenant_id_param_name_by_registration_name[registration_name];
             const client_id_param_name = AzureConnectServerController.registered_azure_client_id_param_name_by_registration_name[registration_name];

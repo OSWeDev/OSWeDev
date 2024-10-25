@@ -64,7 +64,14 @@ export default class ModuleAzureConnectServer extends ModuleServerBase {
 
             return res.value;
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.error('get_emails: error: ' + error.message + ': On tente de reinit le client');
+
+            try {
+                await AzureConnectServerController.get_registered_azure_client(registration_name, true);
+                return await this.azure_get_last_unread_email(thread_vo, registration_name, email, mark_as_read);
+            } catch (error) {
+                ConsoleHandler.error('get_emails: error: ' + error.message + ': Failed even avfter reinit');
+            }
         }
     }
 
