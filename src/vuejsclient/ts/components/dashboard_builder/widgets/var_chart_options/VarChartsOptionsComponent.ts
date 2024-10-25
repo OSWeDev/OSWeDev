@@ -39,7 +39,7 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         "ColorBrewer",
         "Matplotlib",
         "Coolors",
-    ]
+    ];
     private color_palettes: string[][] = [
         [
             '#4E79A7', // Bleu
@@ -84,6 +84,56 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         ]
     ];
     private tmp_selected_color_palette: string = null;
+    private opened_prop_index: number[] = [];
+    get var_names(): string[] {
+
+        const res: string[] = [];
+
+        for (const i in VarsController.var_conf_by_name) {
+            const var_conf = VarsController.var_conf_by_name[i];
+            res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
+        }
+
+        res.sort((a, b) => {
+            const a_ = a.split(' | ')[1];
+            const b_ = b.split(' | ')[1];
+
+            if (a_ < b_) {
+                return -1;
+            }
+            if (a_ > b_) {
+                return 1;
+            }
+
+            return 0;
+        });
+        return res;
+    }
+    @Watch('tmp_selected_color_palette')
+    private onchange_tmp_selected_color_palette() {
+        if (!this.options_props) {
+            return;
+        }
+
+        this.options_props.forEach(option_prop => {
+            if (!this.tmp_selected_color_palette) {
+                if (option_prop.color_palette) {
+                    option_prop.color_palette = null;
+                }
+            } else {
+                const selected_palette_index = this.color_palettes_labels.indexOf(this.tmp_selected_color_palette);
+                const new_palette = this.color_palettes[selected_palette_index];
+                if (option_prop.color_palette != new_palette) {
+                    option_prop.color_palette = new_palette;
+                    option_prop.bg_color = null;
+                    option_prop.border_color = null;
+                }
+            }
+        });
+
+        this.emit_change();
+    }
+
     @Watch('options', { immediate: true, deep: true })
     private on_input_options_changed() {
         if (isEqual(this.options_props, this.options)) {
@@ -94,6 +144,27 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         this.use_palette = this.options_props.some(option_prop => option_prop.color_palette && option_prop.color_palette.length > 0);
         this.tmp_selected_color_palette = this.use_palette ? this.color_palettes_labels[this.searchIndexOfArray(this.options_props[0].color_palette, this.color_palettes)] : null;
 
+    }
+
+    @Watch('options_props', { immediate: true, deep: true })
+    private on_options_props_changed() {
+        this.opened_prop_index = Array.from({ length: this.options_props.length }, (x, i) => i);
+    }
+
+    private is_closed(index: number): boolean {
+        if (this.opened_prop_index.indexOf(index) == -1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private close_var_chart_options(index: number) {
+        if (!this.is_closed(index)) {
+            this.opened_prop_index.splice(index, 1);
+        } else {
+            this.opened_prop_index.push(index);
+        }
     }
 
     private searchIndexOfArray(target: any, source: any): number {
@@ -111,30 +182,6 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         this.emit_change();
     }
 
-    @Watch('tmp_selected_color_palette')
-    private onchange_tmp_selected_color_palette() {
-        if (!this.options_props) {
-            return;
-        }
-
-        this.options_props.forEach(option_prop => {
-            if (!this.tmp_selected_color_palette) {
-                if (option_prop.color_palette) {
-                    option_prop.color_palette = null;
-                }
-            } else {
-                let selected_palette_index = this.color_palettes_labels.indexOf(this.tmp_selected_color_palette);
-                let new_palette = this.color_palettes[selected_palette_index];
-                if (option_prop.color_palette != new_palette) {
-                    option_prop.color_palette = new_palette;
-                    option_prop.bg_color = null;
-                    option_prop.border_color = null;
-                }
-            }
-        });
-
-        this.emit_change();
-    }
 
     /**
      * add_var_chart_options
@@ -188,30 +235,5 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
 
     private emit_change() {
         this.$emit('on_change', this.options_props);
-    }
-
-    get var_names(): string[] {
-
-        let res: string[] = [];
-
-        for (let i in VarsController.var_conf_by_name) {
-            let var_conf = VarsController.var_conf_by_name[i];
-            res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
-        }
-
-        res.sort((a, b) => {
-            let a_ = a.split(' | ')[1];
-            let b_ = b.split(' | ')[1];
-
-            if (a_ < b_) {
-                return -1;
-            }
-            if (a_ > b_) {
-                return 1;
-            }
-
-            return 0;
-        });
-        return res;
     }
 }

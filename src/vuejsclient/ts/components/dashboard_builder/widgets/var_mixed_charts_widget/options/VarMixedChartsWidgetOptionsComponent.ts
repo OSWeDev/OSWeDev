@@ -97,6 +97,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         };
 
     private dimension_custom_filter_segment_types_values: string[] = Object.values(this.dimension_custom_filter_segment_types);
+
     // TODO: Add translations
     private legend_positions: string[] = [
         'top',
@@ -104,6 +105,95 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         'bottom',
         'right'
     ];
+    get title_name_code_text(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    get fields_that_could_get_scales_filter(): VarChartScalesOptionsVO[] {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.var_chart_scales_options;
+    }
+
+    get scale_x_code_text(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_scale_x_code_text(this.page_widget.id);
+    }
+
+    get scale_y_code_text(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_scale_y_code_text(this.page_widget.id);
+    }
+
+    get dimension_vo_field_ref(): VOFieldRefVO {
+        const options: VarMixedChartWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.dimension_vo_field_ref)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.dimension_vo_field_ref);
+    }
+
+    get sort_dimension_by_vo_field_ref(): VOFieldRefVO {
+        const options: VarMixedChartWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.sort_dimension_by_vo_field_ref)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.sort_dimension_by_vo_field_ref);
+    }
+
+    get sort_dimension_by_vo_field_ref_label(): VOFieldRefVO {
+        const options: VarMixedChartWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.sort_dimension_by_vo_field_ref_label)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.sort_dimension_by_vo_field_ref_label);
+    }
+
+    @Watch('scale_x_code_text')
+    private async onchange_scale_x_code_text() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.scale_x_code_text) {
+
+            if (this.widget_options.scale_x_title) {
+                this.widget_options.scale_x_title = null;
+                this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.scale_x_title != this.scale_x_code_text) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.scale_x_title = this.scale_x_code_text;
+
+                this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
 
     @Watch('page_widget', { immediate: true, deep: true })
     private async onchange_page_widget() {
@@ -435,7 +525,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             this.next_update_options = this.get_default_options();
         }
 
-        let dimension_vo_field_ref = new VOFieldRefVO();
+        const dimension_vo_field_ref = new VOFieldRefVO();
         dimension_vo_field_ref.api_type_id = api_type_id;
         dimension_vo_field_ref.field_id = field_id;
         dimension_vo_field_ref.weight = 0;
@@ -468,7 +558,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             this.next_update_options = this.get_default_options();
         }
 
-        let sort_dimension_by_vo_field_ref_label = new VOFieldRefVO();
+        const sort_dimension_by_vo_field_ref_label = new VOFieldRefVO();
         sort_dimension_by_vo_field_ref_label.api_type_id = api_type_id;
         sort_dimension_by_vo_field_ref_label.field_id = field_id;
         sort_dimension_by_vo_field_ref_label.weight = 0;
@@ -501,7 +591,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             this.next_update_options = this.get_default_options();
         }
 
-        let sort_dimension_by_vo_field_ref = new VOFieldRefVO();
+        const sort_dimension_by_vo_field_ref = new VOFieldRefVO();
         sort_dimension_by_vo_field_ref.api_type_id = api_type_id;
         sort_dimension_by_vo_field_ref.field_id = field_id;
         sort_dimension_by_vo_field_ref.weight = 0;
@@ -967,7 +1057,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
                     return res >= 0 ? res : null;
                 }
             }
-            return null
+            return null;
         }
     }
 
@@ -994,95 +1084,5 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         }
 
         return this.widget_options.get_var_name_code_text;
-    }
-
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get fields_that_could_get_scales_filter(): VarChartScalesOptionsVO[] {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.var_chart_scales_options;
-    }
-
-    get scale_x_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_scale_x_code_text(this.page_widget.id);
-    }
-
-    get scale_y_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_scale_y_code_text(this.page_widget.id);
-    }
-
-    @Watch('scale_x_code_text')
-    private async onchange_scale_x_code_text() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.scale_x_code_text) {
-
-            if (this.widget_options.scale_x_title) {
-                this.widget_options.scale_x_title = null;
-                this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            if (this.widget_options.scale_x_title != this.scale_x_code_text) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.scale_x_title = this.scale_x_code_text;
-
-                this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    get dimension_vo_field_ref(): VOFieldRefVO {
-        let options: VarMixedChartWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.dimension_vo_field_ref)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.dimension_vo_field_ref);
-    }
-
-    get sort_dimension_by_vo_field_ref(): VOFieldRefVO {
-        let options: VarMixedChartWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.sort_dimension_by_vo_field_ref)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.sort_dimension_by_vo_field_ref);
-    }
-
-    get sort_dimension_by_vo_field_ref_label(): VOFieldRefVO {
-        let options: VarMixedChartWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.sort_dimension_by_vo_field_ref_label)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.sort_dimension_by_vo_field_ref_label);
     }
 }

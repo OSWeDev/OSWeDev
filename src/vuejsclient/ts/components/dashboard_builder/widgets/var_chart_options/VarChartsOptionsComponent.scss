@@ -1,4 +1,18 @@
+
 .var_charts_options_component {
+    .var_charts_options_selector {
+        .input_wrapper{
+            .closer{
+                width: 100%;
+                height: 30px;
+                margin-top: 10px;
+                border-radius: 5px;
+                background-color: #87949f !important;
+                border-color: #00000000 !important;
+                box-shadow: inset 0px -2px 0px rgb(0 0 0 / 45%);
+            }
+        }
+    }        
     .options_separator_lvl1 {
         font-size: medium;
         margin-top: 1em;
