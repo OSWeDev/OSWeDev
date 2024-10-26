@@ -470,9 +470,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 // Si on est sur du segmented en insert on doit vérifier l'existence de la table, sinon il faut la créer avant d'insérer la première donnée
                 if ((!DAOServerController.segmented_known_databases[moduleTable.database]) || (!DAOServerController.segmented_known_databases[moduleTable.database][name])) {
 
+                    const queries_to_try_after_creation: string[] = [];
                     await ModuleTableDBService.getInstance(null).create_or_update_datatable(
                         moduleTable,
-                        [RangeHandler.create_single_elt_range(moduleTable.table_segmented_field_range_type, moduleTable.get_segmented_field_value_from_vo(vo), moduleTable.table_segmented_field_segment_type)]);
+                        [RangeHandler.create_single_elt_range(moduleTable.table_segmented_field_range_type, moduleTable.get_segmented_field_value_from_vo(vo), moduleTable.table_segmented_field_segment_type)],
+                        queries_to_try_after_creation,
+                    );
+
+                    if (queries_to_try_after_creation && queries_to_try_after_creation.length) {
+                        ConsoleHandler.error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
+                        throw new Error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
+                    }
                 }
             } else {
                 full_name = moduleTable.full_name;
@@ -545,7 +553,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 continue;
             }
 
-            await ModuleTableDBService.getInstance(null).create_or_update_datatable(moduletable, numranges);
+            const queries_to_try_after_creation: string[] = [];
+            await ModuleTableDBService.getInstance(null).create_or_update_datatable(moduletable, numranges, queries_to_try_after_creation);
+
+            if (queries_to_try_after_creation && queries_to_try_after_creation.length) {
+                ConsoleHandler.error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
+                throw new Error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
+            }
         }
     }
 
