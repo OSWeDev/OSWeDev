@@ -48,6 +48,8 @@ import SuiviCompetencesRapportSousGroupeDataRangesVO from '../../../../../../sha
 import SuiviCompetencesGroupeVO from '../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGroupeVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
+import { ModuleDAOAction } from '../../../dao/store/DaoStore';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 
 @Component({
     template: require('./SuiviCompetencesWidgetComponent.pug'),
@@ -57,6 +59,9 @@ import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefCompo
     }
 })
 export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
+
+    @ModuleDAOAction
+    private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
@@ -271,6 +276,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
 
         await this.get_Crudcreatemodalcomponent.open_modal(
             SuiviCompetencesRapportVO.API_TYPE_ID,
+            this.storeDatas,
             this.update_visible_options.bind(this),
             SuiviCompetencesWidgetController.default_vo_init_rapport,
             false,

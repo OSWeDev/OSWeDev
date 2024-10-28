@@ -1,4 +1,3 @@
-import { cloneDeep } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
@@ -10,10 +9,7 @@ import CRUDFieldRemoverConfVO from '../../../../../../shared/modules/DAO/vos/CRU
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import { all_promises } from '../../../../../../shared/tools/PromiseTools';
-import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import { ModuleAlertAction } from '../../../alert/AlertStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import DatatableComponent from '../../../datatable/component/DatatableComponent';
@@ -250,24 +246,6 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
         this.crud.updateDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);
     }
 
-    private async loaddatas() {
-
-        this.isLoading = true;
-
-        if (!this.crud) {
-            this.snotify.error(this.label('crud.errors.loading'));
-            this.isLoading = false;
-            return;
-        }
-
-        /**
-         * On ne veut pas charger par défaut (sauf ref reflective dans un champ de l'objet) tous les vos du type du vo modifié
-         */
-        await all_promises(CRUDFormServices.getInstance().loadDatasFromDatatable(this.crud.updateDatatable, this.api_types_involved, this.storeDatas, true));
-
-        this.isLoading = false;
-    }
-
     // Handle Loading of stored data
 
     @Watch("crud", { immediate: true })
@@ -302,7 +280,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                 setTimeout(waiter, 300);
             } else {
                 // On passe la traduction en IHM sur les champs
-                self.editableVO = CRUDFormServices.getInstance().dataToIHM(self.selected_vo, self.crud.updateDatatable, true);
+                self.editableVO = CRUDFormServices.dataToIHM(self.selected_vo, self.crud.updateDatatable, true);
                 self.onChangeVO(self.editableVO);
             }
         };
@@ -335,7 +313,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
                 try {
 
-                    if (!CRUDFormServices.getInstance().checkForm(self.editableVO, self.crud.updateDatatable, self.clear_alerts, self.register_alerts)) {
+                    if (!CRUDFormServices.checkForm(self.editableVO, self.crud.updateDatatable, self.clear_alerts, self.register_alerts)) {
                         self.updating_vo = false;
                         reject({
                             body: self.label('crud.check_form.field_required'),
@@ -350,7 +328,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                     }
 
                     // On passe la traduction depuis IHM sur les champs
-                    const apiokVo = CRUDFormServices.getInstance().IHMToData(self.editableVO, self.crud.updateDatatable, true);
+                    const apiokVo = CRUDFormServices.IHMToData(self.editableVO, self.crud.updateDatatable, true);
 
                     // On utilise le trigger si il est présent sur le crud
                     if (self.crud.preUpdate) {
@@ -403,8 +381,8 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                     }
 
                     // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
-                    await CRUDFormServices.getInstance().updateManyToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.removeData, self.storeData, self);
-                    await CRUDFormServices.getInstance().updateOneToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.getStoredDatas, self.updateData);
+                    await CRUDFormServices.updateManyToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.removeData, self.storeData, self);
+                    await CRUDFormServices.updateOneToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.getStoredDatas, self.updateData);
 
                     if (self.crud.postUpdate) {
                         await self.crud.postUpdate(self.editableVO);
@@ -470,15 +448,23 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
      * @param fileVo
      */
     private async uploadedFile_(vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO) {
-        await CRUDFormServices.getInstance().uploadedFile(vo, field, fileVo, this.api_type_id, this.editableVO, this.updateData, this);
+        await CRUDFormServices.uploadedFile(vo, field, fileVo, this.api_type_id, this.editableVO, this.updateData, this);
     }
 
     private async reload_datas() {
         this.dao_store_loaded = false;
-        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved(this.api_types_involved);
-        this.api_types_involved = [];
-        await this.loaddatas();
+        this.isLoading = true;
+
+        this.api_types_involved = await CRUDFormServices.load_datas(
+            this.crud,
+            this.storeDatas,
+            this.api_types_involved,
+            null,
+            true,
+        );
+
         this.dao_store_loaded = true;
+        this.isLoading = false;
     }
 
     private async callCallbackFunctionUpdate(): Promise<void> {

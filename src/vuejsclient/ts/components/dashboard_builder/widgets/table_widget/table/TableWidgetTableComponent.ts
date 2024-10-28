@@ -82,6 +82,8 @@ import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalCom
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import './TableWidgetTableComponent.scss';
+import { ModuleDAOAction } from '../../../../dao/store/DaoStore';
+import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -96,6 +98,9 @@ import './TableWidgetTableComponent.scss';
     }
 })
 export default class TableWidgetTableComponent extends VueComponentBase {
+
+    @ModuleDAOAction
+    private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
@@ -1420,7 +1425,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         const update_vo = await query(type).filter_by_id(id).select_vo();
 
         if (update_vo && update_vo.id) {
-            await this.get_Crudupdatemodalcomponent.open_modal(update_vo, this.onclose_modal.bind(this));
+            await this.get_Crudupdatemodalcomponent.open_modal(
+                update_vo,
+                this.storeDatas,
+                this.onclose_modal.bind(this),
+            );
         }
     }
 
@@ -1442,7 +1451,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
 
     private async open_create() {
-        await this.get_Crudcreatemodalcomponent.open_modal(this.crud_activated_api_type, this.update_visible_options.bind(this));
+        await this.get_Crudcreatemodalcomponent.open_modal(
+            this.crud_activated_api_type,
+            this.storeDatas,
+            this.update_visible_options.bind(this),
+        );
     }
 
     private async onchange_dashboard_vo_route_param() {

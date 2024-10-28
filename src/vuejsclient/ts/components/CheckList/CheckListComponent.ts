@@ -288,7 +288,7 @@ export default class CheckListComponent extends VueComponentBase {
          *  encore côté serveur, donc on perd les données. Si des modifications sont en attente on ne fait rien du coup et on rechargera par la suite
          */
 
-        if (CRUDFormServices.getInstance().has_auto_updates_waiting()) {
+        if (CRUDFormServices.has_auto_updates_waiting()) {
             return;
         }
 
