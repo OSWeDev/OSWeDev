@@ -74,7 +74,9 @@ export default class ConditionHandler {
         let b_object: any = null;
         try {
             b_object = JSON.parse(b);
-        } catch (e) { }
+        } catch (e) {
+            b_object = b;
+        }
 
         if (typeof a === 'number') {
             // Si mon type b est un number ou tableau de number
@@ -94,7 +96,7 @@ export default class ConditionHandler {
                 type = 'number';
             }
         } else if (typeof a === 'string') {
-            // Si mon type b est un number ou tableau de number
+            // Si mon type b est un string ou tableau de string
             if (
                 (typeof b === 'string') ||
                 (

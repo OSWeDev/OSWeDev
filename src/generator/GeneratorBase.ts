@@ -128,6 +128,7 @@ import Patch20241016AddOseliaFunction_OSELIA_get_cache_value from './patchs/post
 import Patch20241016AddOseliaFunction_OSELIA_set_cache_value from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_set_cache_value';
 import Patch20241016AddOseliaFunction_OSELIA_get_assistant from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_get_assistant';
 import Patch20241023AddOseliaFunction_azure_get_last_unread_email from './patchs/postmodules/Patch20241023AddOseliaFunction_azure_get_last_unread_email';
+import Patch20241010CreateLogType from './patchs/postmodules/Patch20241010CreateLogType';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -278,6 +279,7 @@ export default abstract class GeneratorBase {
             Patch20241016AddOseliaFunction_OSELIA_get_cache_value.getInstance(),
             Patch20241016AddOseliaFunction_OSELIA_set_cache_value.getInstance(),
             Patch20241016AddOseliaFunction_OSELIA_get_assistant.getInstance(),
+            Patch20241010CreateLogType.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
 
             Patch20241023AddOseliaFunction_azure_get_last_unread_email.getInstance(),
@@ -334,6 +336,10 @@ export default abstract class GeneratorBase {
         console.log("pre modules initialization workers done.");
 
         await this.modulesService.register_all_modules(true);
+
+        // console.log("ParamsManager.reloadPreloadParams: ...");
+        // await ParamsManager.reloadPreloadParams();
+        // console.log("ParamsManager.reloadPreloadParams:OK");
 
         console.log("VersionUpdater: ...");
         await VersionUpdater.getInstance().update_version();

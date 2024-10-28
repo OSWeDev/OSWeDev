@@ -28,6 +28,10 @@ export default class DataSourcesController {
                 CurrentBatchDSCacheHolder.current_batch_ds_cache[ds.name] = {};
             }
 
+            if (!CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[ds.name]) {
+                CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[ds.name] = {};
+            }
+
             // Si on est sur du perf monitoring on doit faire les appels séparément...
             promises.push(ds.load_node_data(node));
         }

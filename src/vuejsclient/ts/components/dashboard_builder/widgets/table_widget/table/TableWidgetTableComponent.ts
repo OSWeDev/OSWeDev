@@ -779,7 +779,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                                     } else if (column.column_dynamic_var) {
                                         new_column.type = TableColumnDescVO.TYPE_var_ref;
                                         new_column.var_id = VarsController.var_conf_by_name[column.column_dynamic_var].id;
-                                        new_column.var_unicity_id = Dates.now();
+                                        new_column.var_unicity_id = Math.round(Dates.now_ms() + (Math.random() * 1000));
                                     }
 
                                     new_weight++;

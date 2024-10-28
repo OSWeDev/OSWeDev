@@ -952,6 +952,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         CurrentVarDAGHolder.current_vardag = new VarDAG();
         CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
+        CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
     }
 
     private async onCVarConf(vcc: VarConfVO) {
@@ -1351,9 +1352,18 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             // On doit vider le cache des datasources, sinon on recharge pas les datas en vrai
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
+            CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
 
             for (const i in datasources_deps) {
                 const datasource_dep = datasources_deps[i];
+
+                if (!CurrentBatchDSCacheHolder.current_batch_ds_cache[datasource_dep.name]) {
+                    CurrentBatchDSCacheHolder.current_batch_ds_cache[datasource_dep.name] = {};
+                }
+
+                if (!CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[datasource_dep.name]) {
+                    CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[datasource_dep.name] = {};
+                }
 
                 await datasource_dep.load_node_data(varDAGNode);
                 const data = varDAGNode.datasources[datasource_dep.name];

@@ -326,8 +326,16 @@ export default class DatatableComponentField extends VueComponentBase {
                 }
 
             case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                if (!this.filter_additional_params) {
+                    return this.get_filtered_value_ungrouped(val);
+                }
+
                 return this.get_filtered_value_ungrouped(this.vo[this.field.datatable_field_uid + '__raw']);
             case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                if (!this.filter_additional_params) {
+                    return this.get_filtered_value_ungrouped(val);
+                }
+
                 const res_tsrange: string[] = [];
                 const tsrange_value: TSRange = this.vo[this.field.datatable_field_uid + '__raw'];
 
@@ -344,6 +352,10 @@ export default class DatatableComponentField extends VueComponentBase {
 
                 return res_tsrange.join(' - ');
             case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                if (!this.filter_additional_params) {
+                    return this.get_filtered_value_ungrouped(val);
+                }
+
                 const res_tstz_array: string[] = [];
                 const tstz_value: number[] = this.vo[this.field.datatable_field_uid + '__raw'];
 

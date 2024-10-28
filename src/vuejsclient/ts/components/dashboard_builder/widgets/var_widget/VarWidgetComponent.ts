@@ -102,6 +102,7 @@ export default class VarWidgetComponent extends VueComponentBase {
     }
 
     get title_name_code_text() {
+
         if (!this.widget_options) {
             return null;
         }
@@ -167,11 +168,6 @@ export default class VarWidgetComponent extends VueComponentBase {
     private async onchange_active_field_filters() {
         await this.throttled_update_visible_options();
     }
-
-
-
-
-
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {

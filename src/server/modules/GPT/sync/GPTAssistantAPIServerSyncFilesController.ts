@@ -308,6 +308,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
     }
 
     private static async retrieve_file_from_openai(gpt_file_id: string): Promise<void> {
+
         let gpt_file_vo: GPTAssistantAPIFileVO = await query(GPTAssistantAPIFileVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<GPTAssistantAPIFileVO>().gpt_file_id, gpt_file_id)
             .exec_as_server()

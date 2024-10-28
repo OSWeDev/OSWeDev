@@ -78,7 +78,7 @@ export default class PushDataServerController {
     private static PROMPT_UID: number = 0;
 
     private static registeredSessions_by_uid: { [userId: number]: { [sessId: string]: IServerUserSession } } = {};
-    private static registeredSessions_by_sid: { [sid: string]: IServerUserSession } = {};
+    private static registeredSessions_by_id: { [id: string]: IServerUserSession } = {};
     private static registeredSockets_by_id: { [socket_id: string]: SocketWrapper } = {};
     private static registeredSockets_by_sessionid: { [session_id: string]: { [socket_id: string]: SocketWrapper } } = {};
     private static registereduid_by_socketid: { [socket_id: string]: number } = {};
@@ -226,9 +226,8 @@ export default class PushDataServerController {
         if (!PushDataServerController.registeredSessions_by_uid[session_uid][session.id]) {
             PushDataServerController.registeredSessions_by_uid[session_uid][session.id] = session;
         }
-        if (!PushDataServerController.registeredSessions_by_sid[session.sid]) {
-            PushDataServerController.registeredSessions_by_sid[session.sid] = session;
-        }
+
+        PushDataServerController.registeredSessions_by_id[session.id] = session;
     }
 
     /**
@@ -305,9 +304,7 @@ export default class PushDataServerController {
         if (!PushDataServerController.registeredSessions_by_uid[uid][session.id]) {
             PushDataServerController.registeredSessions_by_uid[uid][session.id] = session;
         }
-        if (!PushDataServerController.registeredSessions_by_sid[session.sid]) {
-            PushDataServerController.registeredSessions_by_sid[session.sid] = session;
-        }
+        PushDataServerController.registeredSessions_by_id[session.id] = session;
     }
 
     /**
@@ -340,8 +337,8 @@ export default class PushDataServerController {
             delete PushDataServerController.registeredSessions_by_uid[uid][session.id];
         }
 
-        if (PushDataServerController.registeredSessions_by_sid[session.sid]) {
-            delete PushDataServerController.registeredSessions_by_sid[session.sid];
+        if (PushDataServerController.registeredSessions_by_id[session.id]) {
+            delete PushDataServerController.registeredSessions_by_id[session.id];
         }
     }
 
@@ -364,8 +361,8 @@ export default class PushDataServerController {
         if (PushDataServerController.registeredSessions_by_uid[uid] && PushDataServerController.registeredSessions_by_uid[uid][session.id]) {
             delete PushDataServerController.registeredSessions_by_uid[uid][session.id];
         }
-        if (PushDataServerController.registeredSessions_by_sid[session.sid]) {
-            delete PushDataServerController.registeredSessions_by_sid[session.sid];
+        if (PushDataServerController.registeredSessions_by_id[session.id]) {
+            delete PushDataServerController.registeredSessions_by_id[session.id];
         }
     }
 
@@ -402,13 +399,24 @@ export default class PushDataServerController {
 
     /**
      * WARN : Only on main thread (express).
-     * @param sid
+     * TODO RENAME getSessionBySid => getSessionById
+     * @param id
+     * @deprecated
      */
-    public static getSessionBySid(sid: string): IServerUserSession {
+    public static getSessionBySid(id: string): IServerUserSession {
+
+        return PushDataServerController.getSessionById(id);
+    }
+
+    /**
+     * WARN : Only on main thread (express).
+     * @param id
+     */
+    public static getSessionById(id: string): IServerUserSession {
 
         ForkedTasksController.assert_is_main_process();
 
-        return PushDataServerController.registeredSessions_by_sid[sid];
+        return PushDataServerController.registeredSessions_by_id[id];
     }
 
     /**
@@ -613,7 +621,7 @@ export default class PushDataServerController {
                     session['last_fragmented_url'] = null;
                     notification.redirect_uri = url.replace(/\/f\//, '/#/');
                 } else {
-                    notification.redirect_uri = redirect_uri + (sso ? ('?session_id=' + session.sid) : '');
+                    notification.redirect_uri = redirect_uri + (sso ? ('?session_id=' + session.id) : '');
                 }
             }
         } catch (error) {

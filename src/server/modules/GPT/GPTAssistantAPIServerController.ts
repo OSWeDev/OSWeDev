@@ -1136,7 +1136,6 @@ export default class GPTAssistantAPIServerController {
         referrer: OseliaReferrerVO,
         referrer_external_api_by_name: { [api_name: string]: OseliaReferrerExternalAPIVO },
     ) {
-
         if (!run_vo.gpt_run_id) {
             ConsoleHandler.error('GPTAssistantAPIServerController.handle_run: run not created');
             throw new Error('GPTAssistantAPIServerController.handle_run: run not created');

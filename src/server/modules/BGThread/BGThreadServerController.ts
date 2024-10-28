@@ -1,3 +1,4 @@
+import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -22,6 +23,7 @@ export default class BGThreadServerController {
 
     public static TASK_NAME_register_alive_on_main_thread: string = "BGThreadServerController.register_alive_on_main_thread";
     public static TASK_NAME_is_alive: string = "BGThreadServerController.is_alive";
+    public static TASK_NAME_kill_bgthread: string = "BGThreadServerController.kill_bgthread";
     public static PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s: string = "BGThreadServerController.BGTHREAD_LAST_ALIVE_TIMEOUT_s";
 
     /**
@@ -59,6 +61,8 @@ export default class BGThreadServerController {
 
         ForkedTasksController.register_task(BGThreadServerController.TASK_NAME_register_alive_on_main_thread, this.register_alive_on_main_thread.bind(this));
         ForkedTasksController.register_task(BGThreadServerController.TASK_NAME_is_alive, this.is_alive.bind(this));
+        ForkedTasksController.register_task(BGThreadServerController.TASK_NAME_kill_bgthread, this.kill_bgthread.bind(this));
+
         ThreadHandler.set_interval(this.check_bgthreads_last_alive_ticks.bind(this), 10 * 1000, 'BGThreadServerController.check_bgthreads_last_alive_ticks', true);
     }
 
@@ -100,6 +104,20 @@ export default class BGThreadServerController {
             }
             const forked = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name];
             await ForkMessageController.send(new RunBGThreadForkMessage(bgthread_name), forked.child_process, forked);
+        }
+    }
+
+    public static async kill_bgthread(bgthread_name: string, force_empty_vars_datas_vo_update_cache: boolean) {
+        if (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
+            ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name]
+        ) {
+            await ForkMessageController.send(
+                new KillForkMessage(
+                    await ModuleParams.getInstance().getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000),
+                    force_empty_vars_datas_vo_update_cache
+                ),
+                ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name].child_process
+            );
         }
     }
 

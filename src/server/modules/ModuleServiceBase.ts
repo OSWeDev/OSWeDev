@@ -139,6 +139,9 @@ import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
 import ModuleAzureConnect from '../../shared/modules/AzureConnect/ModuleAzureConnect';
 import ModuleAzureConnectServer from './AzureConnect/ModuleAzureConnectServer';
+import ParamsManager from '../../shared/modules/Params/ParamsManager';
+import ModuleLogger from '../../shared/modules/Logger/ModuleLogger';
+import ModuleLoggerServer from './Logger/ModuleLoggerServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -281,7 +284,7 @@ export default abstract class ModuleServiceBase {
         } else {
 
             if (ConfigurationService.node_configuration.debug_start_server) {
-                ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:START');
+                ConsoleHandler.debug('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:START');
             }
             for (const i in this.registered_modules) {
                 const registered_module = this.registered_modules[i];
@@ -289,26 +292,43 @@ export default abstract class ModuleServiceBase {
                 await PreloadedModuleServerController.load_or_create_module_is_actif(registered_module);
             }
             if (ConfigurationService.node_configuration.debug_start_server) {
-                ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
+                ConsoleHandler.debug('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
             }
         }
-
-        // On lance la configuration des modules, et avant on configure les apis des modules server
+        // On configure les apis des modules server
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:START');
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:configure_server_modules_apis:START');
         }
-        await this.configure_server_modules_apis();
+        this.configure_server_modules_apis();
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:END');
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:configure_server_modules_apis:END');
+        }
+
+        // On lance le preload des params des modules
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.debug('ParamsManager:reloadPreloadParams:START');
+        }
+        await ParamsManager.reloadPreloadParams();
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.debug('ParamsManager:reloadPreloadParams:END');
+        }
+
+        // On lance la configuration des modules
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:configure_server_modules_init:START');
+        }
+        await this.configure_server_modules_init();
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:configure_server_modules_init:END');
         }
 
         // On charge le cache des tables segmentées. On cherche à être exhaustifs pour le coup
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:START');
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:START');
         }
         await this.preload_segmented_known_databases();
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:END');
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:END');
         }
 
         // A mon avis c'est de la merde ça... on charge où la vérif des params, le hook install, ... ?
@@ -344,12 +364,21 @@ export default abstract class ModuleServiceBase {
         }
     }
 
-    public async configure_server_modules_apis() {
+    public configure_server_modules_apis() {
         for (const i in this.server_modules) {
             const server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
                 server_module.registerServerApiHandlers();
+            }
+        }
+    }
+
+    public async configure_server_modules_init() {
+        for (const i in this.server_modules) {
+            const server_module: ModuleServerBase = this.server_modules[i];
+
+            if (server_module.actif) {
                 await server_module.configure();
             }
         }
@@ -384,7 +413,7 @@ export default abstract class ModuleServiceBase {
             const server_module: ModuleServerBase = this.server_modules[i];
 
             if (ConfigurationService.node_configuration.debug_start_server) {
-                ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':START');
+                ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':START');
             }
 
             if (server_module.actif) {
@@ -396,26 +425,26 @@ export default abstract class ModuleServiceBase {
                 ]);
 
                 if (ConfigurationService.node_configuration.debug_start_server) {
-                    ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerCrons');
+                    ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':registerCrons');
                 }
 
                 server_module.registerCrons();
 
                 if (ConfigurationService.node_configuration.debug_start_server) {
-                    ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerAccessHooks');
+                    ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':registerAccessHooks');
                 }
                 server_module.registerAccessHooks();
 
                 if (app) {
                     if (ConfigurationService.node_configuration.debug_start_server) {
-                        ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerExpressApis');
+                        ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':registerExpressApis');
                     }
                     server_module.registerExpressApis(app);
                 }
             }
 
             if (ConfigurationService.node_configuration.debug_start_server) {
-                ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':END');
+                ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':END');
             }
         }
     }
@@ -596,6 +625,7 @@ export default abstract class ModuleServiceBase {
             ModuleBGThread.getInstance(),
             ModuleParams.getInstance(),
             ModuleAnonymization.getInstance(),
+            ModuleLogger.getInstance(),
         ];
     }
 
@@ -665,6 +695,7 @@ export default abstract class ModuleServiceBase {
             ModuleOselia.getInstance(),
             ModuleSuiviCompetences.getInstance(),
             ModuleAzureConnect.getInstance(),
+            ModuleLogger.getInstance(),
         ];
     }
 
@@ -732,6 +763,7 @@ export default abstract class ModuleServiceBase {
             ModuleOseliaServer.getInstance(),
             ModuleSuiviCompetencesServer.getInstance(),
             ModuleAzureConnectServer.getInstance(),
+            ModuleLoggerServer.getInstance(),
         ];
     }
 

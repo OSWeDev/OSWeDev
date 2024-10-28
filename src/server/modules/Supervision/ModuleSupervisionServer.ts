@@ -163,6 +163,27 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             'fr-fr': 'Warning prise en compte'
         }, 'supervision.legend.STATE_WARN_READ.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Rafraîchir l'affichage"
+        }, 'supervised_item_controls.desc_btn.reload.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Forcer le recalcul de la sonde"
+        }, 'supervised_item_controls.desc_btn.invalidate.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Sortir de la pause"
+        }, 'supervised_item_controls.desc_btn.switch_paused_turn_off.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Mettre en pause"
+        }, 'supervised_item_controls.desc_btn.switch_paused_turn_on.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Indiquer comme non lu"
+        }, 'supervised_item_controls.desc_btn.switch_read_turn_off.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Indiquer comme lu"
+        }, 'supervised_item_controls.desc_btn.switch_read_turn_on.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Etat lu non disponible"
+        }, 'supervised_item_controls.desc_btn.switch_read_disabled.___LABEL___'));
 
         /**
          * On gère l'historique des valeurs
