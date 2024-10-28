@@ -21,7 +21,7 @@ export default class ModuleLogger extends Module {
     public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleLogger.MODULE_NAME;
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleLogger.MODULE_NAME + '.BO_ACCESS';
 
-    public static PARAM_LOGGER_CLEANER_DATE: string = ModuleLogger.MODULE_NAME + ".LOGGER_CLEANER_DATE";
+    public static PARAM_LOGGER_CLEANER_MAX_NB_DAYS: string = ModuleLogger.MODULE_NAME + ".LOGGER_CLEANER_MAX_NB_DAYS";
     public static PARAM_LOGGER_LOG_TYPE_LOG: string = ModuleLogger.MODULE_NAME + ".LOGGER_LOG_TYPE_LOG";
     public static PARAM_LOGGER_LOG_TYPE_ERROR: string = ModuleLogger.MODULE_NAME + ".LOGGER_LOG_TYPE_ERROR";
     public static PARAM_LOGGER_LOG_TYPE_WARN: string = ModuleLogger.MODULE_NAME + ".LOGGER_LOG_TYPE_WARN";
@@ -86,6 +86,7 @@ export default class ModuleLogger extends Module {
         ModuleTableFieldController.create_new(LogVO.API_TYPE_ID, field_names<LogVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', true).set_segmentation_type(TimeSegment.TYPE_MS).set_format_localized_time(true);
         ModuleTableFieldController.create_new(LogVO.API_TYPE_ID, field_names<LogVO>().msg, ModuleTableFieldVO.FIELD_TYPE_string, 'Message', true);
         ModuleTableFieldController.create_new(LogVO.API_TYPE_ID, field_names<LogVO>().client_tab_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Tab client');
+        ModuleTableFieldController.create_new(LogVO.API_TYPE_ID, field_names<LogVO>().url, ModuleTableFieldVO.FIELD_TYPE_string, 'URL');
 
         ModuleTableController.create_new(this.name, LogVO, null, LogVO.API_TYPE_ID);
 

@@ -66,7 +66,7 @@ export default class ConsoleHandler {
     private static old_console_warn: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_error: (message?: any, ...optionalParams: any[]) => void = null;
 
-    private static log_to_console_cache: Array<{ msg: string, date: number, params: any[], log_type: number }> = [];
+    private static log_to_console_cache: Array<{ msg: string, date: number, params: any[], log_type: number, url: string }> = [];
     private static log_to_console_throttler = ThrottleHelper.declare_throttle_without_args(this.log_to_console.bind(this), 1000);
     private static add_logs_client_throttler = ThrottleHelper.declare_throttle_without_args(this.add_logs_client.bind(this), 1000, { leading: false, trailing: true });
 
@@ -119,6 +119,8 @@ export default class ConsoleHandler {
         const msg = ConsoleHandler.get_text_msg(error);
         const date: number = ConsoleHandler.get_timestamp(Dates.now_ms());
 
+        let url: string = null;
+
         if (ConsoleHandler.logger_handler) {
             ConsoleHandler.logger_handler.log(log_type, date, msg, ...params);
 
@@ -126,9 +128,16 @@ export default class ConsoleHandler {
                 // On ERROR we flush immediately
                 ConsoleHandler.logger_handler.force_flush();
             }
+        } else {
+            // On est côté client, on récupère l'url
+            if (!ModulesManager.isGenerator && !ModulesManager.isServerSide) {
+                if (!!document?.location?.href && !!document?.location?.origin) {
+                    url = document.location.href.replace(document.location.origin, '');
+                }
+            }
         }
 
-        ConsoleHandler.log_to_console_cache.push({ msg: msg, date: date, params: params, log_type: log_type });
+        ConsoleHandler.log_to_console_cache.push({ msg: msg, date: date, params: params, log_type: log_type, url: url });
 
         if (log_type == ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR)) {
             // On ERROR we flush immediately
@@ -181,6 +190,7 @@ export default class ConsoleHandler {
                     msg,
                     null,
                     null,
+                    log.url,
                 ));
             }
 
