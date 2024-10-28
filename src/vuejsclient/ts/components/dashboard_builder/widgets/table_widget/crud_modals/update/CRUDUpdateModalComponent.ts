@@ -1,4 +1,4 @@
-import { Component, Prop } from 'vue-property-decorator';
+import { Component } from 'vue-property-decorator';
 import IDistantVOBase from '../../../../../../../../shared/modules/IDistantVOBase';
 import CRUDUpdateFormComponent from '../../../../../crud/component/update/CRUDUpdateFormComponent';
 import CRUDComponentManager from '../../../../../crud/CRUDComponentManager';

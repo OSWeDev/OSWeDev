@@ -868,7 +868,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 case TableColumnDescVO.TYPE_component:
                     res[column.id] = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                     break;
-                case TableColumnDescVO.TYPE_var_ref:
+                case TableColumnDescVO.TYPE_var_ref: {
                     const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
                         column.id.toString(),
                         column.var_id,
@@ -878,7 +878,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
                     res[column.id] = var_data_field;
                     break;
-                case TableColumnDescVO.TYPE_vo_field_ref:
+                }
+                case TableColumnDescVO.TYPE_vo_field_ref: {
                     const field = moduleTable.get_field_by_id(column.field_id);
                     // let field_type = field ? field.field_type : moduletablfiel
                     // switch (field.field_type) {
@@ -906,6 +907,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     //         break;
                     // }
                     break;
+                }
                 case TableColumnDescVO.TYPE_crud_actions:
                     res[column.id] = CRUDActionsDatatableFieldVO.createNew().setModuleTable(moduleTable);
                     break;
@@ -2036,7 +2038,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             case TableColumnDescVO.TYPE_component:
                 res = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                 break;
-            case TableColumnDescVO.TYPE_var_ref:
+            case TableColumnDescVO.TYPE_var_ref: {
                 const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
                     column.id.toString(),
                     column.var_id,
@@ -2046,7 +2048,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
                 res = var_data_field;
                 break;
-            case TableColumnDescVO.TYPE_vo_field_ref:
+            }
+            case TableColumnDescVO.TYPE_vo_field_ref: {
                 const field = moduleTable.get_field_by_id(column.field_id);
                 // let field_type = field ? field.field_type : moduletablfiel
                 // switch (field.field_type) {
@@ -2074,6 +2077,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 //         break;
                 // }
                 break;
+            }
             case TableColumnDescVO.TYPE_crud_actions:
                 res = CRUDActionsDatatableFieldVO.createNew().setModuleTable(moduleTable);
                 break;
@@ -2382,7 +2386,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 // this.kanban_column_labels = Object.values(kanban_column_field.enum_values).map((enum_value: string) => this.t(enum_value));
                 this.kanban_column_is_enum = true;
                 break;
-            default:
+            default: {
                 this.kanban_column_is_enum = false;
                 let kanban_column_values_query = query(this.kanban_column.api_type_id).field(this.kanban_column.field_id).field(field_names<IDistantVOBase>().id);
                 if (this.widget_options.use_kanban_column_weight_if_exists) {
@@ -2414,6 +2418,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     this.kanban_column_values_to_index[row[this.kanban_column_field.field_id].toString()] = kanban_index;
                     this.kanban_column_index_to_ref_field_id[kanban_index] = row['id'];
                 }
+            }
             // this.kanban_column_labels = this.kanban_column_values;
         }
 

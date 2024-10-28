@@ -81,6 +81,90 @@ export default class CheckListComponent extends VueComponentBase {
 
     private debounced_loading = debounce(this.loading.bind(this), 100);
 
+    get ordered_checklistitems() {
+
+        if (!this.checklist_controller) {
+            return null;
+        }
+
+        let res: ICheckListItem[] = [];
+
+        this.show_anyway = false;
+
+        if (!this.checklistitems) {
+            return [];
+        }
+
+        res = Object.values(this.checklistitems);
+
+        if (this.filter_text) {
+
+            // let desc_checks: ICheckListItem[] = [];
+            res = res.filter((e: ICheckListItem) => {
+                for (const i in e) {
+                    const field = e[i];
+
+                    if (typeof field !== 'string') {
+                        continue;
+                    }
+
+                    if (field.indexOf(this.filter_text) >= 0) {
+                        return true;
+                    }
+                }
+
+                const infos_cols_content = this.checklist_controller.get_infos_cols_content(e);
+                for (const i in infos_cols_content) {
+                    const field = infos_cols_content[i];
+
+                    if (typeof field !== 'string') {
+                        continue;
+                    }
+
+                    if (field.indexOf(this.filter_text) >= 0) {
+                        return true;
+                    }
+                }
+
+                // desc_checks.push(e);
+
+                return false;
+            });
+        }
+
+        res.sort(this.checklist_controller.items_sorter);
+        return res;
+    }
+
+    get selected_checkpoint() {
+        if ((!this.checkpoints_by_id) || (!this.step_id)) {
+            return null;
+        }
+
+        return this.checkpoints_by_id[this.step_id];
+    }
+
+    get ordered_checkpoints(): ICheckPoint[] {
+
+        if ((!this.checkpoints_by_id) || (!ObjectHandler.hasAtLeastOneAttribute(this.checkpoints_by_id))) {
+            return null;
+        }
+
+        let res: ICheckPoint[] = [];
+
+        res = Object.values(this.checkpoints_by_id);
+        WeightHandler.getInstance().sortByWeight(res);
+        return res;
+    }
+
+    get has_checklist_items() {
+        if (!this.checklistitems) {
+            return false;
+        }
+
+        return ObjectHandler.hasAtLeastOneAttribute(this.checklistitems);
+    }
+
     @Watch('global_route_path')
     @Watch('modal_show')
     @Watch('checklist_controller')
@@ -308,89 +392,5 @@ export default class CheckListComponent extends VueComponentBase {
         this.$router.push(
             this.global_route_path + '/' + this.selected_checklist_item.checklist_id + '/' + this.selected_checklist_item.id + '/' + cp.id
         );
-    }
-
-    get ordered_checklistitems() {
-
-        if (!this.checklist_controller) {
-            return null;
-        }
-
-        let res: ICheckListItem[] = [];
-
-        this.show_anyway = false;
-
-        if (!this.checklistitems) {
-            return [];
-        }
-
-        res = Object.values(this.checklistitems);
-
-        if (this.filter_text) {
-
-            // let desc_checks: ICheckListItem[] = [];
-            res = res.filter((e: ICheckListItem) => {
-                for (const i in e) {
-                    const field = e[i];
-
-                    if (typeof field !== 'string') {
-                        continue;
-                    }
-
-                    if (field.indexOf(this.filter_text) >= 0) {
-                        return true;
-                    }
-                }
-
-                const infos_cols_content = this.checklist_controller.get_infos_cols_content(e);
-                for (const i in infos_cols_content) {
-                    const field = infos_cols_content[i];
-
-                    if (typeof field !== 'string') {
-                        continue;
-                    }
-
-                    if (field.indexOf(this.filter_text) >= 0) {
-                        return true;
-                    }
-                }
-
-                // desc_checks.push(e);
-
-                return false;
-            });
-        }
-
-        res.sort(this.checklist_controller.items_sorter);
-        return res;
-    }
-
-    get selected_checkpoint() {
-        if ((!this.checkpoints_by_id) || (!this.step_id)) {
-            return null;
-        }
-
-        return this.checkpoints_by_id[this.step_id];
-    }
-
-    get ordered_checkpoints(): ICheckPoint[] {
-
-        if ((!this.checkpoints_by_id) || (!ObjectHandler.hasAtLeastOneAttribute(this.checkpoints_by_id))) {
-            return null;
-        }
-
-        let res: ICheckPoint[] = [];
-
-        res = Object.values(this.checkpoints_by_id);
-        WeightHandler.getInstance().sortByWeight(res);
-        return res;
-    }
-
-    get has_checklist_items() {
-        if (!this.checklistitems) {
-            return false;
-        }
-
-        return ObjectHandler.hasAtLeastOneAttribute(this.checklistitems);
     }
 }
