@@ -214,7 +214,8 @@ export default class ScreenshotComponent extends VueComponentBase {
             const captureStream = (await navigator.mediaDevices as any).getDisplayMedia({ preferCurrentTab: true });
             const track = captureStream.getVideoTracks()[0];
             // const imageCapture = new (window as any).ImageCapture(track); <- old version / v MERGE MDE v
-            const image_capture: ImageCapture = new ImageCapture(track);
+            // const image_capture: ImageCapture = new ImageCapture(track);
+            const image_capture = new (window as any).ImageCapture(track);
 
             // Capture de l'image du flux vidéo
             const imageBitmap = await image_capture.grabFrame();
@@ -251,7 +252,8 @@ export default class ScreenshotComponent extends VueComponentBase {
                 await this.countdown(4);
                 document.getElementById("countdown").style.display = "none";
                 // const imageCapture = new (window as any).ImageCapture(track); <- old version / v MERGE MDE v
-                const image_capture: ImageCapture = new ImageCapture(track);
+                // const image_capture: ImageCapture = new ImageCapture(track);
+                const image_capture = new (window as any).ImageCapture(track);
                 // Capture de l'image du flux vidéo
                 const imageBitmap = await image_capture.grabFrame();
 
