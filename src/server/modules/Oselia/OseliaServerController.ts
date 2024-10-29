@@ -64,7 +64,7 @@ export default class OseliaServerController {
 
         try {
 
-            const assistant = await this.get_prompt_assistant(prompt,);
+            const assistant = await this.get_prompt_assistant(prompt);
             const prompt_string = await this.get_prompt_string(prompt, assistant, user_id, prompt_parameters, thread_title, thread);
             return await GPTAssistantAPIServerController.ask_assistant(
                 assistant.gpt_assistant_id,
@@ -75,7 +75,7 @@ export default class OseliaServerController {
                 user_id
             );
         } catch (error) {
-            ConsoleHandler.error('Error in prompt_oselia', error);
+            ConsoleHandler.error('Error in prompt_oselia' + JSON.stringify(error) + ':' + JSON.stringify(prompt) + ':' + JSON.stringify(prompt_parameters) + ':' + thread_title);
         }
 
         return null;
@@ -102,7 +102,7 @@ export default class OseliaServerController {
 
             return assistant;
         } catch (error) {
-            ConsoleHandler.error('Error in get_prompt_assistant', error);
+            ConsoleHandler.error('Error in get_prompt_assistant' + JSON.stringify(error));
         }
 
         return null;
@@ -181,7 +181,7 @@ export default class OseliaServerController {
 
             return prompt_string;
         } catch (error) {
-            ConsoleHandler.error('Error in get_prompt_string', error);
+            ConsoleHandler.error('Error in get_prompt_string' + JSON.stringify(error));
         }
 
         return null;

@@ -91,7 +91,7 @@ export default class ScreenshotComponent extends VueComponentBase {
         } catch (error) {
             this.is_taking = false;
             // Gestion des erreurs avec des détails supplémentaires
-            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :" + JSON.stringify(error));
         }
     }
 
@@ -141,7 +141,7 @@ export default class ScreenshotComponent extends VueComponentBase {
 
         } catch (error) {
             this.is_taking = false;
-            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :" + JSON.stringify(error));
         }
     }
 
@@ -236,7 +236,7 @@ export default class ScreenshotComponent extends VueComponentBase {
             // Retourner le canvas
             return canvas;
         } catch (error) {
-            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :" + JSON.stringify(error));
             return null;
         }
     }
@@ -273,7 +273,7 @@ export default class ScreenshotComponent extends VueComponentBase {
             // Retourner le tableau de canvas
             return capturedCanvas;
         } catch (error) {
-            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :" + JSON.stringify(error));
             return null;
         }
     }

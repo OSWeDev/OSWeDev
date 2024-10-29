@@ -68,12 +68,6 @@ export default class VarsDatasVoUpdateHandler {
 
     private static last_registration: number = null;
 
-    /**
-     * le JSON ne devrait être utilisé que au lancement de l'appli, mais systématiquement par contre au lancement, le reste du temps c'est l'appli qui fait référence pour les voscud
-     */
-    private static has_retrieved_vos_cud: boolean = false;
-
-
     private static throttled_update_param = ThrottleHelper.declare_throttle_without_args(VarsDatasVoUpdateHandler.update_param.bind(this), 1000, { leading: false, trailing: true });
     private static throttle_push_invalidators = ThrottleHelper.declare_throttle_with_stackable_args(VarsDatasVoUpdateHandler.throttled_push_invalidators.bind(this), 100, { leading: false, trailing: true });
 
@@ -197,22 +191,6 @@ export default class VarsDatasVoUpdateHandler {
     public static async handle_buffer(ordered_vos_cud: Array<IDistantVOBase | DAOUpdateVOHolder<IDistantVOBase>>): Promise<{ [invalidator_id: string]: VarDataInvalidatorVO }> {
 
         VarsDatasVoUpdateHandler.last_call_handled_something = false;
-
-        if (!VarsDatasVoUpdateHandler.has_retrieved_vos_cud) {
-
-            // Si le flag est actif, on invalide tout
-            const current_tag_value = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
-            if (current_tag_value) {
-                ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_buffer:VarsDatasVoUpdateHandler_has_ordered_vos_cud:FORCE_EMPTY_VARS_DATAS_VO_UPDATE_CACHE');
-                await ModuleVarServer.getInstance().force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole();
-            }
-            await ModuleParams.getInstance().setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, false);
-
-            //     VarsDatasVoUpdateHandler.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValueAsString(
-            //         VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
-
-            VarsDatasVoUpdateHandler.has_retrieved_vos_cud = true;
-        }
 
         if ((!ordered_vos_cud) || (!ordered_vos_cud.length)) {
             VarsDatasVoUpdateHandler.throttled_update_param();

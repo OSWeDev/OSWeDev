@@ -85,21 +85,53 @@ export default class TeamsAPIServerController {
         const send_message_webhook = ConfigurationService.node_configuration.teams_webhook_send_message;
         const { host, path } = this.getHostAndPathFromUrl(send_message_webhook);
 
-        const msg = TextHandler.getInstance().encode_object(message);
-        const webhook_response = await ModuleRequest.getInstance().sendRequestFromApp(
-            ModuleRequest.METHOD_POST,
-            host,
-            path,
-            msg,
-            null,
-            true,
-            null,
-            true,
-            true
-        );
-        ConsoleHandler.log('TeamsAPIServerController.send_to_teams_webhook:Message envoyé');
+        let webhook_response = null;
+        try {
+
+            const msg = TextHandler.getInstance().encode_object(message);
+            webhook_response = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_POST,
+                host,
+                path,
+                msg,
+                null,
+                true,
+                null,
+                true,
+                true
+            );
+            ConsoleHandler.log('TeamsAPIServerController.send_to_teams_webhook:Message envoyé');
+        } catch (error) {
+            ConsoleHandler.error('TeamsAPIServerController.send_to_teams_webhook:Impossible d\'envoyer le message Teams:' + group_id + ':' + channel_id + ':' + JSON.stringify(message) + ':' + error);
+
+            try {
+                // Retry
+                ConsoleHandler.log('TeamsAPIServerController.send_to_teams_webhook:RETRY:START');
+                const msg = TextHandler.getInstance().encode_object(message);
+                webhook_response = await ModuleRequest.getInstance().sendRequestFromApp(
+                    ModuleRequest.METHOD_POST,
+                    host,
+                    path,
+                    msg,
+                    null,
+                    true,
+                    null,
+                    true,
+                    true
+                );
+                ConsoleHandler.log('TeamsAPIServerController.send_to_teams_webhook:RETRY:Message envoyé');
+            } catch (error) {
+                ConsoleHandler.error('TeamsAPIServerController.send_to_teams_webhook:RETRY:Impossible de réenvoyer le message Teams:' + group_id + ':' + channel_id + ':' + JSON.stringify(message) + ':' + error);
+                return null;
+            }
+        }
 
         try {
+            if (!webhook_response) {
+                ConsoleHandler.error('TeamsAPIServerController.send_to_teams_webhook:Réponse de Teams vide');
+                return null;
+            }
+
             const message = webhook_response.toString('utf-8');
             console.log(message);
 
@@ -218,24 +250,29 @@ export default class TeamsAPIServerController {
             return;
         }
 
-        const { host, path } = this.getHostAndPathFromUrl(webhook);
+        try {
 
-        message.groupId = group_id;
-        message.channelId = channel_id;
-        message.messageId = message_id;
+            const { host, path } = this.getHostAndPathFromUrl(webhook);
 
-        const msg = TextHandler.getInstance().encode_object(message);
-        await ModuleRequest.getInstance().sendRequestFromApp(
-            ModuleRequest.METHOD_POST,
-            host,
-            path,
-            msg,
-            null,
-            true,
-            null,
-            true,
-            true
-        );
+            message.groupId = group_id;
+            message.channelId = channel_id;
+            message.messageId = message_id;
+
+            const msg = TextHandler.getInstance().encode_object(message);
+            await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_POST,
+                host,
+                path,
+                msg,
+                null,
+                true,
+                null,
+                true,
+                true
+            );
+        } catch (error) {
+            ConsoleHandler.error('TeamsAPIServerController.update_teams_message:Impossible de mettre à jour le message Teams:' + group_id + ':' + channel_id + ':' + message_id + ':' + JSON.stringify(message) + ':' + error);
+        }
     }
 
     /**

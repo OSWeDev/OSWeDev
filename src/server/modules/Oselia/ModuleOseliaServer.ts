@@ -1763,15 +1763,15 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                             resolve(file_vo);
                         })
                         .on('error', (err) => {
-                            ConsoleHandler.error('ModuleOseliaServer:generate_image:Error while saving the image:', err);
+                            ConsoleHandler.error('ModuleOseliaServer:generate_image:Error while saving the image:' + err);
                             reject(err);
                         });
                 }).catch(err => {
-                    ConsoleHandler.error('ModuleOseliaServer:generate_image:Erreur lors du téléchargement de l\'image :', err);
+                    ConsoleHandler.error('ModuleOseliaServer:generate_image:Erreur lors du téléchargement de l\'image :' + err);
                     reject(err);
                 });
             } catch (error) {
-                ConsoleHandler.error('ModuleOseliaServer:generate_image:Erreur lors du téléchargement de l\'image:', error);
+                ConsoleHandler.error('ModuleOseliaServer:generate_image:Erreur lors du téléchargement de l\'image:' + error);
                 reject(error);
             }
         });
