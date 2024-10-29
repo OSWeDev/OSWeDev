@@ -1,4 +1,4 @@
-import { debounce, isEqual } from 'lodash';
+import { clamp, debounce, isEqual } from 'lodash';
 import { Chart as VueChart } from 'vue-chartjs';
 import Chart from "chart.js/auto";
 import * as helpers from "chart.js/helpers";
@@ -498,6 +498,8 @@ export default class VarMixedChartComponent extends VueComponentBase {
                 datalabels: {
                     display: chart_var_dataset_descriptor.activate_datalabels,
                     align: 'end',
+                    anchor: 'end',
+                    clamp: true,
                     formatter: this.get_var_ticks_callback(chart_var_dataset_descriptor),
                 }
             };
