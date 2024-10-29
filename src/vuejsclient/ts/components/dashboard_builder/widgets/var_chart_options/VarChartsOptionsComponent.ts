@@ -141,14 +141,12 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         }
 
         this.options_props = this.options;
+        if (this.opened_prop_index.length == 0) {
+            this.opened_prop_index = Array.from({ length: this.options_props.length }, (x, i) => i);
+        }
         this.use_palette = this.options_props.some(option_prop => option_prop.color_palette && option_prop.color_palette.length > 0);
         this.tmp_selected_color_palette = this.use_palette ? this.color_palettes_labels[this.searchIndexOfArray(this.options_props[0].color_palette, this.color_palettes)] : null;
 
-    }
-
-    @Watch('options_props', { immediate: true, deep: true })
-    private on_options_props_changed() {
-        this.opened_prop_index = Array.from({ length: this.options_props.length }, (x, i) => i);
     }
 
     private is_closed(index: number): boolean {
@@ -161,7 +159,7 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
 
     private close_var_chart_options(index: number) {
         if (!this.is_closed(index)) {
-            this.opened_prop_index.splice(index, 1);
+            this.opened_prop_index.splice(this.opened_prop_index.indexOf(index),1);
         } else {
             this.opened_prop_index.push(index);
         }

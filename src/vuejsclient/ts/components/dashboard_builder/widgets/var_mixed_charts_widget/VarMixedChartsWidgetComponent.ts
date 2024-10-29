@@ -34,6 +34,8 @@ import { IChartOptions } from '../../../Var/components/mixed-chart/VarMixedChart
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VarChartScalesOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
+import VarChartOptionsItemComponent from '../var_chart_options/item/VarChartOptionsItemComponent';
+import VarChartOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
 
 @Component({
     template: require('./VarMixedChartsWidgetComponent.pug')
@@ -204,11 +206,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 },
 
                 tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            return this.getLabelsForTooltip(context);
-                        }
-                    }
+                    enabled: this.widget_options.var_charts_options.some((option) => option.show_values) ? false : true,
                 },
                 datalabels: {
                     display: false
@@ -292,7 +290,10 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     .set_gradients([var_chart_options.has_gradient])
                     .set_bordercolors([var_chart_options.border_color])
                     .set_borderwidths([var_chart_options.border_width])
-                    .set_type(var_chart_options.type);
+                    .set_filters_type(var_chart_options.filter_type)
+                    .set_filters_additional_params(var_chart_options.filter_additional_params)
+                    .set_type(var_chart_options.type)
+                    .set_activate_datalabels(var_chart_options.show_values);
             }
 
             return mixed_charts_dataset_descriptor;
@@ -372,7 +373,10 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 .set_backgrounds(colors)
                 .set_bordercolors(border_color)
                 .set_borderwidths([var_chart_options.border_width])
-                .set_type(var_chart_options.type);
+                .set_type(var_chart_options.type)
+                .set_filters_type(var_chart_options.filter_type)
+                .set_filters_additional_params(var_chart_options.filter_additional_params)
+                .set_activate_datalabels(var_chart_options.show_values);
         }
 
         return mixed_charts_dataset_descriptor;
@@ -985,7 +989,6 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         this.charts_var_params_by_dimension = charts_var_params_by_dimension;
     }
 
-
     private getLabelsForScale(value, current_scale: VarChartScalesOptionsVO) {
         if (this.temp_current_scale == null) {
             return value;
@@ -993,7 +996,6 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         if (current_scale.filter_type == 'none') {
             return value;
         }
-
 
         const filter = current_scale.filter_type ? this.const_filters[current_scale.filter_type].read : undefined;
         const filter_additional_params = current_scale.filter_additional_params ? ObjectHandler.try_get_json(current_scale.filter_additional_params) : undefined;
@@ -1005,8 +1007,6 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             }
         }
     }
-
-
 
     private get_scale_ticks_callback(current_scale: VarChartScalesOptionsVO) {
         return (value, index, values) => {

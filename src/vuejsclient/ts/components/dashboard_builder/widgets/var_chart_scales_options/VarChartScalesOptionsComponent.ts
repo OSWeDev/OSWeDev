@@ -2,7 +2,6 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import { cloneDeep, isEqual } from 'lodash';
 import VarChartScalesOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
-import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VueComponentBase from '../../../VueComponentBase';
 import VarChartScalesOptionsItemComponent from './item/VarChartScalesOptionsItemComponent';
 import './VarChartScalesOptionsComponent.scss';
@@ -29,6 +28,8 @@ export default class VarChartScalesOptionsComponent extends VueComponentBase {
 
     private options_props: VarChartScalesOptionsVO[] = [];
 
+    private opened_prop_index: number[] = [];
+
     @Watch('options', { immediate: true, deep: true })
     private on_input_options_changed() {
         if (isEqual(this.options_props, this.options)) {
@@ -36,6 +37,25 @@ export default class VarChartScalesOptionsComponent extends VueComponentBase {
         }
 
         this.options_props = this.options;
+        if (this.opened_prop_index.length == 0) {
+            this.opened_prop_index = Array.from({ length: this.options_props.length }, (x, i) => i);
+        }
+    }
+
+    private is_closed(index: number): boolean {
+        if (this.opened_prop_index.indexOf(index) == -1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private close_var_chart_options(index: number) {
+        if (!this.is_closed(index)) {
+            this.opened_prop_index.splice(this.opened_prop_index.indexOf(index), 1);
+        } else {
+            this.opened_prop_index.push(index);
+        }
     }
 
     /**
