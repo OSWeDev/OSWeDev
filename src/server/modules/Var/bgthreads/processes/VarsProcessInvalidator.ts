@@ -82,9 +82,6 @@ export default class VarsProcessInvalidator {
             const max_ordered_vos_cud = await ModuleParams.getInstance().getParamValueAsInt(VarsProcessInvalidator.max_ordered_vos_cud_param_name, 200, 30000);
 
             if (await this.check_if_needs_to_invalidate_all_vars(max_invalidators, max_ordered_vos_cud)) {
-                VarsDatasVoUpdateHandler.invalidators = [];
-                VarsDatasVoUpdateHandler.ordered_vos_cud = [];
-                ConsoleHandler.warn('VarsProcessInvalidator:handle_batch_worker:needs_to_invalidate_all_vars:FORCE_EMPTY_VARS_DATAS_VO_UPDATE_CACHE');
                 await ModuleVarServer.getInstance().force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole();
                 return;
             }

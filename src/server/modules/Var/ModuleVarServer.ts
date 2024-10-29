@@ -939,10 +939,15 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        await VarsComputationHole.exec_in_computation_hole(this.force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole);
+        await VarsComputationHole.exec_in_computation_hole(this.force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole.bind(this));
     }
 
     public async force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole(): Promise<void> {
+
+        ConsoleHandler.warn('ModuleVarServer:force_delete_all_cache_except_imported_data:IN');
+
+        VarsDatasVoUpdateHandler.invalidators = [];
+        VarsDatasVoUpdateHandler.ordered_vos_cud = [];
 
         const promises = [];
         for (const api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
@@ -955,8 +960,12 @@ export default class ModuleVarServer extends ModuleServerBase {
         CurrentVarDAGHolder.current_vardag = new VarDAG();
         CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
 
+        ConsoleHandler.warn('ModuleVarServer:force_delete_all_cache_except_imported_data:re_register_all_subs');
+
         // On veut pousser un register de toutes les vars clients à nouveau pour les recalculs asap
-        await this.re_register_all_subs(true); // on vient de vider le cache par définition de la base à l'instant, on ne fait pas de requetes inutiles
+        await ModuleVarServer.getInstance().re_register_all_subs(true); // on vient de vider le cache par définition de la base à l'instant, on ne fait pas de requetes inutiles
+
+        ConsoleHandler.warn('ModuleVarServer:force_delete_all_cache_except_imported_data:OUT');
     }
 
     private async onCVarConf(vcc: VarConfVO) {
