@@ -179,6 +179,10 @@ export default class ConsoleHandler {
                 msg = msg.replace(/$[Oo]/, log.params[j]);
             }
 
+            if (!msg) {
+                continue;
+            }
+
             const log_type_id: number = log.log_type ?? ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG);
 
             // On va vérifier quel niveau min on doit log

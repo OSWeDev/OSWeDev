@@ -55,6 +55,10 @@ export default class FileLoggerHandler implements ILoggerHandler {
             msg = msg.replace(/$[Oo]/, params[i]);
         }
 
+        if (!msg) {
+            return;
+        }
+
         this.log_to_file_cache.push(LogVO.createNew(
             (((typeof process !== "undefined") && process.pid) ? process.pid : null),
             log_type ?? ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG),
