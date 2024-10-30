@@ -1,29 +1,20 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import VueComponentBase from '../../../VueComponentBase';
-import './ListObjectWidgetComponent.scss';
-import BlocTextWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/ListObjectWidgetOptionsVO';
-import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import ListObjectWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/ListObjectWidgetOptionsVO';
-import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import { cloneDeep, filter } from 'lodash';
-import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
-import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
-import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
-import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
-import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
-import VarsController from '../../../../../../shared/modules/Var/VarsController';
-import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import { all_promises } from '../../../../../../shared/tools/PromiseTools';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import ListObjectWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/ListObjectWidgetOptionsVO';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import VueComponentBase from '../../../VueComponentBase';
+import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import './ListObjectWidgetComponent.scss';
 
 @Component({
     template: require('./ListObjectWidgetComponent.pug'),
@@ -61,25 +52,6 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     private urls: any[] = [];
     private max_range_nb: number[] = [];
 
-    @Watch('widget_options', { immediate: true, deep: true })
-    private async onchange_widget_options() {
-        if (!this.widget_options) {
-
-            return;
-        }
-        this.titles = await this.get_titles();
-        this.subtitles = await this.get_subtitles();
-        this.images = await this.get_images();
-        this.numbers = await this.get_numbers();
-        this.urls = await this.get_urls();
-        this.max_range_nb = Array.from({ length: Math.max(...[this.titles.length, this.subtitles.length, this.images.length, this.numbers.length, this.urls.length]) }, (x, i) => i);
-    }
-
-    private async mounted() {
-        this.onchange_widget_options();
-    }
-
-
     get widget_options(): ListObjectWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
@@ -104,6 +76,25 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         } else {
             return false;
         }
+    }
+
+    @Watch('widget_options', { immediate: true, deep: true })
+    @Watch('get_active_field_filters', { immediate: true, deep: true })
+    private async onchange_widget_options() {
+        if (!this.widget_options) {
+
+            return;
+        }
+        this.titles = await this.get_titles();
+        this.subtitles = await this.get_subtitles();
+        this.images = await this.get_images();
+        this.numbers = await this.get_numbers();
+        this.urls = await this.get_urls();
+        this.max_range_nb = Array.from({ length: Math.max(...[this.titles.length, this.subtitles.length, this.images.length, this.numbers.length, this.urls.length]) }, (x, i) => i);
+    }
+
+    private async mounted() {
+        this.onchange_widget_options();
     }
 
     private async get_titles() {
@@ -139,6 +130,7 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         if (!this.widget_options.subtitle || !this.widget_options.subtitle.api_type_id || !this.widget_options.subtitle.field_id) {
             return [];
         }
+
         const query_ = await query(this.widget_options.subtitle.api_type_id)
             .set_limit(this.widget_options.number_of_elements)
             .using(this.get_dashboard_api_type_ids)
