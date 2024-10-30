@@ -241,6 +241,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Multi dataset'
         }, 'var_radar_chart_widget_options_component.separator.multiple_dataset.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Multi dataset'
+        }, 'var_mixed_charts_widget_options_component.separator.multiple_dataset.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
@@ -337,6 +340,20 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Maximum de radars superposés'
         }, 'var_radar_chart_widget_options_component.max_dataset_values.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Nombre maximum de radars superposés'
+        }, 'var_radar_chart_widget_options_component.max_dataset_values.tooltip.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Sélectionner le champ permettant de faire du multi dataset (plusieurs graphiques superposés)'
+        }, 'var_mixed_charts_widget_options_component.multiple_dataset_vo_field_ref.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Maximum de graphiques superposés'
+        }, 'var_mixed_charts_widget_options_component.max_dataset_values.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Nombre maximum de graphiques superposés'
+        }, 'var_mixed_charts_widget_options_component.max_dataset_values.tooltip.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du graphique'

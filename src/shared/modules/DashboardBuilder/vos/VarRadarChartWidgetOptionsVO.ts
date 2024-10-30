@@ -178,6 +178,7 @@ export default class VarRadarChartWidgetOptionsVO extends AbstractVO {
             false,
             null,
             10,
+            false
         );
     }
 

@@ -74,6 +74,8 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
         public scale_options_y?: Partial<Scale>,
         public scale_options_r?: Partial<Scale>,
         public hide_filter?: boolean,
+        public multiple_dataset_vo_field_ref?: VOFieldRefVO,
+        public max_dataset_values?: number,  // Permet de limiter le nombre de datasets affichés (par défaut 10)
     ) {
         super();
     }
@@ -154,6 +156,8 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
             null,
             null,
             false,
+            null,
+            10,
         );
     }
 

@@ -719,6 +719,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
 
         const promises = [];
         const label_by_index: { [index: string]: string[] } = {};
+        let cpt_for_var: number = 0;
 
         for (const j in datasets) {
             const dataset = datasets[j];
@@ -789,11 +790,13 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
                         ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
                         return;
                     }
-                    var_params_by_dataset_and_dimension[dataset][dimension_value].id = parseInt(i);
-                    if (label_by_index[parseInt(i)] === undefined) {
-                        label_by_index[parseInt(i)] = [];
+                    var_params_by_dataset_and_dimension[dataset][dimension_value].id = cpt_for_var;
+                    if (label_by_index[cpt_for_var] === undefined) {
+                        label_by_index[cpt_for_var] = [];
                     }
-                    label_by_index[parseInt(i)].push(Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type));
+                    label_by_index[cpt_for_var].push(Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type));
+
+                    cpt_for_var++;
                 })());
             }
         }

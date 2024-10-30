@@ -462,7 +462,7 @@ export default class VarRadarChart extends VueComponentBase {
     }
 
     private getRandomColor() {
-        const trans = '0.7'; // 50% transparency
+        const trans = '0.5'; // 50% transparency
         let color = 'rgba(';
         for (let i = 0; i < 3; i++) {
             color += Math.floor(Math.random() * 255) + ',';
