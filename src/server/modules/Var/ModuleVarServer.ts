@@ -81,6 +81,8 @@ import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
 import AutoVarServerController from './auto/AutoVarServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
+import VarsClientsSubsCacheHolder from './bgthreads/processes/VarsClientsSubsCacheHolder';
+import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCacheManager';
 import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
@@ -937,10 +939,15 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        await VarsComputationHole.exec_in_computation_hole(this.force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole);
+        await VarsComputationHole.exec_in_computation_hole(this.force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole.bind(this));
     }
 
     public async force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole(): Promise<void> {
+
+        ConsoleHandler.warn('ModuleVarServer:force_delete_all_cache_except_imported_data:IN');
+
+        VarsDatasVoUpdateHandler.invalidators = [];
+        VarsDatasVoUpdateHandler.ordered_vos_cud = [];
 
         const promises = [];
         for (const api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
@@ -953,6 +960,13 @@ export default class ModuleVarServer extends ModuleServerBase {
         CurrentVarDAGHolder.current_vardag = new VarDAG();
         CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
         CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
+
+        ConsoleHandler.warn('ModuleVarServer:force_delete_all_cache_except_imported_data:re_register_all_subs');
+
+        // On veut pousser un register de toutes les vars clients à nouveau pour les recalculs asap
+        await ModuleVarServer.getInstance().re_register_all_subs(true); // on vient de vider le cache par définition de la base à l'instant, on ne fait pas de requetes inutiles
+
+        ConsoleHandler.warn('ModuleVarServer:force_delete_all_cache_except_imported_data:OUT');
     }
 
     private async onCVarConf(vcc: VarConfVO) {
@@ -1815,5 +1829,30 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         VarsServerController.registerVar(autovarconf, AutoVarServerController.getInstance(autovarconf));
+    }
+
+    private async re_register_all_subs(has_deleted_all_cache_right_before_and_in_same_hole: boolean = true) {
+
+        // On réinsère les registers (clients et serveurs)
+        await VarsClientsSubsCacheManager.update_clients_subs_indexes_cache(true);
+        // Server
+        const subs: string[] = Object.keys(VarsServerCallBackSubsController.cb_subs);
+        // Clients
+        subs.push(...Object.keys(VarsClientsSubsCacheHolder.clients_subs_indexes_cache));
+
+        const all_vardagnode_promises: Array<Promise<any>> = [];
+        for (const j in subs) {
+
+            const index = subs[j];
+
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                ConsoleHandler.log('ModuleVarServer.re_register_all_subs:REINSERT:' + index);
+            }
+
+            // on vient de supprimer => ok mais les imports ???
+            all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false/*, has_deleted_all_cache_right_before_and_in_same_hole*/));
+        }
+
+        await all_promises(all_vardagnode_promises);
     }
 }
