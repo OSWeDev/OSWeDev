@@ -109,13 +109,11 @@ export default class ModuleSuiviCompetences extends Module {
     private initializeSuiviCompetencesGroupe() {
         let label_field = ModuleTableFieldController.create_new(SuiviCompetencesGroupeVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du groupe', true);
 
-        let datatable_fields = [
-            label_field,
-            ModuleTableFieldController.create_new(SuiviCompetencesGroupeVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, "Poids"),
-            ModuleTableFieldController.create_new(SuiviCompetencesGroupeVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeVO>().ponderation, ModuleTableFieldVO.FIELD_TYPE_int, "Pondération", false, true, 1),
-            ModuleTableFieldController.create_new(SuiviCompetencesGroupeVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeVO>().active, ModuleTableFieldVO.FIELD_TYPE_boolean, "Actif", true, true, true),
-            ModuleTableFieldController.create_new(SuiviCompetencesGroupeVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeVO>().icon, ModuleTableFieldVO.FIELD_TYPE_string, "Icone (font awesome)"),
-        ];
+        ModuleTableFieldController.create_new(SuiviCompetencesGroupeVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeVO>().short_name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom court");
+        ModuleTableFieldController.create_new(SuiviCompetencesGroupeVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, "Poids");
+        ModuleTableFieldController.create_new(SuiviCompetencesGroupeVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeVO>().ponderation, ModuleTableFieldVO.FIELD_TYPE_int, "Pondération", false, true, 1);
+        ModuleTableFieldController.create_new(SuiviCompetencesGroupeVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeVO>().active, ModuleTableFieldVO.FIELD_TYPE_boolean, "Actif", true, true, true);
+        ModuleTableFieldController.create_new(SuiviCompetencesGroupeVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeVO>().icon, ModuleTableFieldVO.FIELD_TYPE_string, "Icone (font awesome)");
 
         ModuleTableController.create_new(this.name, SuiviCompetencesGroupeVO, label_field, "Suivi Competences Groupe");
     }
