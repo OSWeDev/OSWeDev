@@ -384,7 +384,7 @@ export default class OseliaRunBGThread implements IBGThread {
                 // On charge le tableau / la map depuis le cache
                 const map_or_array = await ModuleOseliaServer.getInstance().get_cache_value(thread, run.for_each_array_cache_key);
 
-                if (!map_or_array) {
+                if ((!map_or_array) || (map_or_array == '<aucune donnée pour cette clé de cache>')) {
                     run.error_msg = 'OseliaRunBGThread.handle_run: foreach map_or_array not found in cache: ' + run.for_each_array_cache_key;
                     await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
                     return;

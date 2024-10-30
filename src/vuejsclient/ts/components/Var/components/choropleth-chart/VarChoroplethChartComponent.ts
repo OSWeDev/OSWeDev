@@ -151,22 +151,6 @@ export default class VarChoroplethChartComponent extends VueComponentBase {
         return plugins;
     }
 
-    get all_data_loaded(): boolean {
-
-        if ((!this.var_params) || (!this.var_params.length) || (!this.var_dataset_descriptor)) {
-            return false;
-        }
-
-        for (const i in this.var_params) {
-            const var_param = this.var_params[i];
-
-            if ((!this.var_datas) || (!this.var_datas[var_param.id]) || (typeof this.var_datas[var_param.id].value === 'undefined')) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     get datasets(): any[] {
 
         const res: any[] = [];
