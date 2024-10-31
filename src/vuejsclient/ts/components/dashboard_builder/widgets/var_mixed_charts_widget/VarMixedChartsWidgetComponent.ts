@@ -83,6 +83,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
     private current_charts_var_params: { [chart_id: string]: VarDataBaseVO[] } = null;
     private current_options: IChartOptions = null;
     private current_charts_scales_options: { [chart_id: string]: VarChartScalesOptionsVO } = null;
+    private datasets: any[] = [];
 
     private temp_current_scale: VarChartScalesOptionsVO = null; // Here for tracking the scale we are currently editing
     private isValid: boolean = true;
@@ -231,22 +232,34 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
         return Object.assign({}, obj, interaction_option);
     }
-
+    
     get charts_scales_options(): { [chart_id: string]: VarChartScalesOptionsVO } {
         if (!this.widget_options) {
             return null;
         }
 
-        const res = {};
-        for (let i = 0; i < this.widget_options.var_charts_options.length; i++) {
-            if (this.widget_options.var_charts_options[i].selected_filter_id == undefined) {
-                return;
-            }
-            const current_scale = new VarChartScalesOptionsVO().from(this.widget_options.var_chart_scales_options.find((scale) => scale.chart_id == this.widget_options.var_charts_options[i].selected_filter_id));
-            if (res[this.widget_options.var_charts_options[i].chart_id] == undefined) {
-                res[this.widget_options.var_charts_options[i].chart_id] = current_scale;
+        let res = {};
+
+        for (const j in this.datasets) {
+            const dataset = this.datasets[j];
+
+            for (const i in this.widget_options.var_chart_scales_options) {
+                const var_chart_option: VarChartOptionsVO = this.widget_options.var_charts_options[i];
+
+                if (var_chart_option.selected_filter_id == undefined) {
+                    return;
+                }
+
+                const current_scale = new VarChartScalesOptionsVO().from(this.widget_options.var_chart_scales_options.find((scale) => scale.chart_id == var_chart_option.selected_filter_id));
+
+                const var_chart_id_dataset = var_chart_option.chart_id + '_' + dataset;
+
+                if (res[var_chart_id_dataset] == undefined) {
+                    res[var_chart_id_dataset] = current_scale;
+                }
             }
         }
+
         return res;
     }
 
@@ -271,6 +284,51 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
         if (!this.widget_options.has_dimension) {
 
+            for (const j in this.datasets) {
+                const dataset = this.datasets[j];
+
+                for (const key in this.widget_options.var_charts_options) {
+                    const var_chart_options = this.widget_options.var_charts_options[key];
+
+                    if (!var_chart_options) {
+                        continue;
+                    }
+
+                    if (!var_chart_options.var_id || !VarsController.var_conf_by_id[var_chart_options.var_id]) {
+                        return null;
+                    }
+
+                    const var_chart_id_dataset = var_chart_options.chart_id + '_' + dataset;
+
+                    let label_translatable_code: string = '';
+                    if (this.datasets.length > 1) {
+                        label_translatable_code = dataset;
+                    } else {
+                        label_translatable_code = this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id)) != this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id) ? this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id)) : '';
+                    }
+
+                    mixed_charts_dataset_descriptor[var_chart_id_dataset] = new VarMixedChartDataSetDescriptor(
+                        VarsController.var_conf_by_id[var_chart_options.var_id].name,
+                        label_translatable_code
+                    )
+                        .set_backgrounds([var_chart_options.bg_color])
+                        .set_gradients([var_chart_options.has_gradient])
+                        .set_bordercolors([var_chart_options.border_color])
+                        .set_borderwidths([var_chart_options.border_width])
+                        .set_type(var_chart_options.type)
+                        .set_filters_type(var_chart_options.filter_type)
+                        .set_filters_additional_params(var_chart_options.filter_additional_params)
+                        .set_activate_datalabels(var_chart_options.show_values);
+                }
+            }
+
+            return mixed_charts_dataset_descriptor;
+        }
+
+
+        for (const j in this.datasets) {
+            const dataset = this.datasets[j];
+
             for (const key in this.widget_options.var_charts_options) {
                 const var_chart_options = this.widget_options.var_charts_options[key];
 
@@ -281,102 +339,94 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 if (!var_chart_options.var_id || !VarsController.var_conf_by_id[var_chart_options.var_id]) {
                     return null;
                 }
+                let base_color = null;
+                let is_rbga = true;
+                let colors = [];
 
-                mixed_charts_dataset_descriptor[var_chart_options.chart_id] = new VarMixedChartDataSetDescriptor(
-                    VarsController.var_conf_by_id[var_chart_options.var_id].name,
-                    this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id)) != this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id) ? this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id)) : ''
-                )
-                    .set_backgrounds([var_chart_options.bg_color])
-                    .set_gradients([var_chart_options.has_gradient])
-                    .set_bordercolors([var_chart_options.border_color])
-                    .set_borderwidths([var_chart_options.border_width])
-                    .set_filters_type(var_chart_options.filter_type)
-                    .set_filters_additional_params(var_chart_options.filter_additional_params)
-                    .set_type(var_chart_options.type)
-                    .set_activate_datalabels(var_chart_options.show_values);
-            }
+                if (var_chart_options.has_gradient) {
+                    // tentative de faire un dégradé automatique de couleur pour les dimensions.
+                    // à voir comment on peut proposer de paramétrer cette partie
 
-            return mixed_charts_dataset_descriptor;
-        }
-
-
-        for (const key in this.widget_options.var_charts_options) {
-            const var_chart_options = this.widget_options.var_charts_options[key];
-
-            if (!var_chart_options) {
-                continue;
-            }
-
-            if (!var_chart_options.var_id || !VarsController.var_conf_by_id[var_chart_options.var_id]) {
-                return null;
-            }
-            let base_color = null;
-            let is_rbga = true;
-            const colors = [];
-
-            if (var_chart_options.has_gradient) {
-                // tentative de faire un dégradé automatique de couleur pour les dimensions.
-                // à voir comment on peut proposer de paramétrer cette partie
-
-                if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('#')) {
-                    base_color = this.hexToRgbA(var_chart_options.bg_color);
-                    is_rbga = true;
-                } else if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('rgb(')) {
-                    base_color = 'rgba(' + var_chart_options.bg_color.substring(4, var_chart_options.bg_color.length - 2);
-                    is_rbga = true;
-                } else if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('rgba(')) {
-                    base_color = var_chart_options.bg_color.slice(0, var_chart_options.bg_color.lastIndexOf(','));
-                    is_rbga = true;
-                }
-
-                if (!base_color) {
-                    base_color = 'rgba(0,0,0';
-                    is_rbga = true;
-                }
-
-                for (const i in this.ordered_dimension) {
-                    const nb = parseInt(i);
-                    let color = base_color;
-                    if (is_rbga) {
-                        color += ',' + (1 - (1 / this.ordered_dimension.length) * nb) + ')';
-                    } else {
-                        color += Math.floor(255 * (1 - (1 / this.ordered_dimension.length) * nb)).toString(16);
+                    if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('#')) {
+                        base_color = this.hexToRgbA(var_chart_options.bg_color);
+                        is_rbga = true;
+                    } else if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('rgb(')) {
+                        base_color = 'rgba(' + var_chart_options.bg_color.substring(4, var_chart_options.bg_color.length - 2);
+                        is_rbga = true;
+                    } else if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('rgba(')) {
+                        base_color = var_chart_options.bg_color.slice(0, var_chart_options.bg_color.lastIndexOf(','));
+                        is_rbga = true;
                     }
-                    colors.push(color);
-                }
-            } else {
-                if (!var_chart_options.color_palette) {
-                    const color = var_chart_options.bg_color;
 
-                    for (const i in this.ordered_dimension) {
+                    if (!base_color) {
+                        base_color = 'rgba(0,0,0';
+                        is_rbga = true;
+                    }
+
+                    for (let i in this.ordered_dimension) {
+                        let nb = parseInt(i);
+                        let color = base_color;
+                        if (is_rbga) {
+                            color += ',' + (1 - (1 / this.ordered_dimension.length) * nb) + ')';
+                        } else {
+                            color += Math.floor(255 * (1 - (1 / this.ordered_dimension.length) * nb)).toString(16);
+                        }
                         colors.push(color);
                     }
                 } else {
-                    const color = var_chart_options.color_palette[this.widget_options.var_charts_options.indexOf(var_chart_options)];
-                    if (color.startsWith('#')) {
-                        colors.push(this.hexToRgbA(color, true));
+                    if (!var_chart_options.color_palette) {
+                        let color = var_chart_options.bg_color;
+
+                        if ((this.datasets.length > 1) || !color) {
+                            color = this.getRandomColor();
+                        }
+
+                        for (const i in this.ordered_dimension) {
+                            colors.push(color);
+                        }
                     } else {
-                        colors.push(color);
+                        const index_for_color: number = parseInt(key) + parseInt(j);
+                        let color = var_chart_options.color_palette[index_for_color];
+
+                        if (!color) {
+                            color = this.getRandomColor();
+                        }
+
+                        if (color.startsWith('#')) {
+                            colors.push(this.hexToRgbA(color, true));
+                        } else {
+                            colors.push(color);
+                        }
                     }
                 }
+                let border_color = ['rgb(0,0,0)'];
+                if (var_chart_options.color_palette || !var_chart_options.border_color) {
+                    border_color = colors;
+                } else {
+                    border_color = [var_chart_options.border_color];
+                }
+
+                const var_chart_id_dataset = var_chart_options.chart_id + '_' + dataset;
+
+                let label_translatable_code: string = '';
+                if (!!this.widget_options.multiple_dataset_vo_field_ref?.field_id) {
+                    label_translatable_code = dataset;
+                } else {
+                    label_translatable_code = this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id)) != this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id) ? this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id)) : '';
+                }
+
+                mixed_charts_dataset_descriptor[var_chart_id_dataset] = new VarMixedChartDataSetDescriptor(
+                    VarsController.var_conf_by_id[var_chart_options.var_id].name,
+                    label_translatable_code
+                )
+                    .set_backgrounds(colors)
+                    .set_bordercolors(border_color)
+                    .set_borderwidths([var_chart_options.border_width])
+                    .set_type(var_chart_options.type)
+                    .set_filters_type(var_chart_options.filter_type)
+                    .set_filters_additional_params(var_chart_options.filter_additional_params)
+                    .set_activate_datalabels(var_chart_options.show_values);
             }
-            let border_color = ['rgb(0,0,0)'];
-            if (var_chart_options.color_palette) {
-                border_color = colors;
-            } else {
-                border_color = [var_chart_options.border_color];
-            }
-            mixed_charts_dataset_descriptor[var_chart_options.chart_id] = new VarMixedChartDataSetDescriptor(
-                VarsController.var_conf_by_id[var_chart_options.var_id].name,
-                this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id)) != this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id) ? this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id)) : ''
-            )
-                .set_backgrounds(colors)
-                .set_bordercolors(border_color)
-                .set_borderwidths([var_chart_options.border_width])
-                .set_type(var_chart_options.type)
-                .set_filters_type(var_chart_options.filter_type)
-                .set_filters_additional_params(var_chart_options.filter_additional_params)
-                .set_activate_datalabels(var_chart_options.show_values);
         }
 
         return mixed_charts_dataset_descriptor;
@@ -630,88 +680,118 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         const dimension_table = (this.widget_options.dimension_is_vo_field_ref && this.widget_options.dimension_vo_field_ref.api_type_id) ?
             ModuleTableController.module_tables_by_vo_type[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
 
-        for (const key in this.widget_options.var_charts_options) {
-            const var_chart_options = this.widget_options.var_charts_options[key];
-            const var_chart_id = var_chart_options.chart_id;
-            const custom_filter = custom_filters[var_chart_id];
+        let cpt_for_var: number = 0;
 
-            for (const i in dimensions) {
-                const dimension: any = dimensions[i];
-                let dimension_value: any = dimension[this.widget_options.dimension_vo_field_ref.field_id];
-                if (!dimension_value) {
-                    dimension_value = '[NULL]';
-                }
+        for (const j in this.datasets) {
+            const dataset = this.datasets[j];
 
-                if (!ordered_dimension.includes(dimension_value)) {
-                    ordered_dimension.push(dimension_value);
-                }
+            for (const key in this.widget_options.var_charts_options) {
+                const var_chart_options = this.widget_options.var_charts_options[key];
+                const var_chart_id = var_chart_options.chart_id;
+                const var_chart_id_dataset = var_chart_id + '_' + dataset;
+                const custom_filter = custom_filters[var_chart_id];
 
-                promises.push((async () => {
-
-                    /**
-                     * Si on a pas de filtre actuellement on le crée, sinon on le remplace avec un filtre sur valeur exacte
-                     */
-                    let active_field_filters = cloneDeep(this.get_active_field_filters);
-                    if (!active_field_filters) {
-                        active_field_filters = {};
+                for (const i in dimensions) {
+                    const dimension: any = dimensions[i];
+                    let dimension_value: any = dimension[this.widget_options.dimension_vo_field_ref.field_id];
+                    if (!dimension_value) {
+                        dimension_value = '[NULL]';
                     }
 
-                    if (!active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id]) {
-                        active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id] = {};
-                    }
-                    switch (typeof dimension_value) {
-                        case 'string':
-                            active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
-                                this.widget_options.dimension_vo_field_ref.api_type_id,
-                                this.widget_options.dimension_vo_field_ref.field_id
-                            ).by_text_has(dimension_value);
-                            break;
-                        case 'number':
-                            active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
-                                this.widget_options.dimension_vo_field_ref.api_type_id,
-                                this.widget_options.dimension_vo_field_ref.field_id
-                            ).by_num_has([dimension_value]);
-                            break;
+                    if (!ordered_dimension.includes(dimension_value)) {
+                        ordered_dimension.push(dimension_value);
                     }
 
-                    if (!charts_var_params_by_dimension[var_chart_id]) {
-                        charts_var_params_by_dimension[var_chart_id] = {};
-                    }
+                    promises.push((async () => {
 
-                    charts_var_params_by_dimension[var_chart_id][dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                        VarsController.var_conf_by_id[var_chart_options.var_id].name,
-                        active_field_filters,
-                        custom_filter,
-                        this.get_dashboard_api_type_ids,
-                        this.get_discarded_field_paths
-                    );
-
-                    if (!charts_var_params_by_dimension[var_chart_id][dimension_value]) {
-                        if (dimension_value !== '[NULL]') {
-                            this.isValid = false;
-                            return;
-                        } else {
-                            charts_var_params_by_dimension[var_chart_id][dimension_value] = new VarDataBaseVO();
+                        /**
+                         * Si on a pas de filtre actuellement on le crée, sinon on le remplace avec un filtre sur valeur exacte
+                         */
+                        let active_field_filters = cloneDeep(this.get_active_field_filters);
+                        if (!active_field_filters) {
+                            active_field_filters = {};
                         }
-                    }
 
-                    charts_var_params_by_dimension[var_chart_id][dimension_value].id = parseInt(i);
-                    let label = 'NULL';
-                    if (this.widget_options.dimension_vo_field_ref.field_id) {
-                        if (dimension[this.widget_options.dimension_vo_field_ref.field_id]) {
-                            label = dimension[this.widget_options.dimension_vo_field_ref.field_id];
+                        if (!active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id]) {
+                            active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id] = {};
                         }
-                    } else if (dimension_table && dimension_table.default_label_field) {
-                        label = dimension[dimension_table.default_label_field.field_id];
-                    } else if (dimension_table && dimension_table.table_label_function) {
-                        label = dimension_table.table_label_function(dimension);
-                    }
-                    if (label_by_index[parseInt(i)] === undefined) {
-                        label_by_index[parseInt(i)] = [];
-                    }
-                    label_by_index[parseInt(i)].push(label);
+                        switch (typeof dimension_value) {
+                            case 'string':
+                                active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
+                                    this.widget_options.dimension_vo_field_ref.api_type_id,
+                                    this.widget_options.dimension_vo_field_ref.field_id
+                                ).by_text_has(dimension_value);
+                                break;
+                            case 'number':
+                                active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
+                                    this.widget_options.dimension_vo_field_ref.api_type_id,
+                                    this.widget_options.dimension_vo_field_ref.field_id
+                                ).by_num_has([dimension_value]);
+                                break;
+                        }
 
-                })());
+                        if (!charts_var_params_by_dimension[var_chart_id_dataset]) {
+                            charts_var_params_by_dimension[var_chart_id_dataset] = {};
+                        }
+
+                        // Si on a un field de dataset, on doit le rajouter aux filtres
+                        if (this.widget_options.multiple_dataset_vo_field_ref?.field_id) {
+                            if (!active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id]) {
+                                active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id] = {};
+                            }
+
+                            switch (typeof dataset) {
+                                case 'string':
+                                    active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                                        this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
+                                        this.widget_options.multiple_dataset_vo_field_ref.field_id
+                                    ).by_text_has(dataset);
+                                    break;
+                                case 'number':
+                                    active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                                        this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
+                                        this.widget_options.multiple_dataset_vo_field_ref.field_id
+                                    ).by_num_has([dataset]);
+                                    break;
+                            }
+                        }
+
+                        charts_var_params_by_dimension[var_chart_id_dataset][dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
+                            VarsController.var_conf_by_id[var_chart_options.var_id].name,
+                            active_field_filters,
+                            custom_filter,
+                            this.get_dashboard_api_type_ids,
+                            this.get_discarded_field_paths
+                        );
+
+                        if (!charts_var_params_by_dimension[var_chart_id_dataset][dimension_value]) {
+                            if ((dimension_value !== '[NULL]') && (this.datasets.length == 1)) {
+                                this.isValid = false;
+                                return;
+                            } else {
+                                charts_var_params_by_dimension[var_chart_id_dataset][dimension_value] = new VarDataBaseVO();
+                            }
+                        }
+
+                        charts_var_params_by_dimension[var_chart_id_dataset][dimension_value].id = cpt_for_var;
+                        let label = 'NULL';
+                        if (this.widget_options.dimension_vo_field_ref.field_id) {
+                            if (dimension[this.widget_options.dimension_vo_field_ref.field_id]) {
+                                label = dimension[this.widget_options.dimension_vo_field_ref.field_id];
+                            }
+                        } else if (dimension_table && dimension_table.default_label_field) {
+                            label = dimension[dimension_table.default_label_field.field_id];
+                        } else if (dimension_table && dimension_table.table_label_function) {
+                            label = dimension_table.table_label_function(dimension);
+                        }
+                        if (label_by_index[cpt_for_var] === undefined) {
+                            label_by_index[cpt_for_var] = [];
+                        }
+                        label_by_index[cpt_for_var].push(label);
+
+                        cpt_for_var++;
+                    })());
+                }
             }
         }
 
@@ -812,75 +892,103 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
         this.ordered_dimension = dimension_values;
 
-        const label_by_index: { [index: string]: string[] } = {};
-        const promises = [];
+        let label_by_index: { [index: string]: string[] } = {};
+        let promises = [];
+        let cpt_for_var: number = 0;
 
+        for (const j in this.datasets) {
+            const dataset = this.datasets[j];
 
-        for (const key in this.widget_options.var_charts_options) {
-            const var_chart_options = this.widget_options.var_charts_options[key];
+            for (const key in this.widget_options.var_charts_options) {
+                const var_chart_options = this.widget_options.var_charts_options[key];
 
-            const var_chart_id = var_chart_options.chart_id;
-            const custom_filter = custom_filters[var_chart_id];
-            for (const i in dimension_values) {
-                const dimension_value: number = dimension_values[i];
+                const var_chart_id = var_chart_options.chart_id;
+                const var_chart_id_dataset = var_chart_id + '_' + dataset;
+                const custom_filter = custom_filters[var_chart_id];
+                for (const i in dimension_values) {
+                    const dimension_value: number = dimension_values[i];
 
-                promises.push((async () => {
+                    promises.push((async () => {
 
-                    /**
-                     * Si on a pas de filtre actuellement on le crée, sinon on le remplace avec un filtre sur valeur exacte
-                     */
-                    const active_field_filters = cloneDeep(this.get_active_field_filters);
+                        /**
+                         * Si on a pas de filtre actuellement on le crée, sinon on le remplace avec un filtre sur valeur exacte
+                         */
+                        const active_field_filters = cloneDeep(this.get_active_field_filters);
 
-                    active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name] = filter(
-                        ContextFilterVO.CUSTOM_FILTERS_TYPE,
-                        this.widget_options.dimension_custom_filter_name
-                    ).by_date_x_ranges([RangeHandler.create_single_elt_TSRange(dimension_value, this.widget_options.dimension_custom_filter_segment_type)]);
+                        active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name] = filter(
+                            ContextFilterVO.CUSTOM_FILTERS_TYPE,
+                            this.widget_options.dimension_custom_filter_name
+                        ).by_date_x_ranges([RangeHandler.create_single_elt_TSRange(dimension_value, this.widget_options.dimension_custom_filter_segment_type)]);
 
-                    let update_custom_filters = cloneDeep(custom_filter);
+                        let update_custom_filters = cloneDeep(custom_filter);
 
-                    if (this.get_active_field_filters && this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] &&
-                        this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name]) {
+                        if (this.get_active_field_filters && this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] &&
+                            this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name]) {
 
-                        for (const field_name in var_chart_options.custom_filter_names) {
+                            for (const field_name in var_chart_options.custom_filter_names) {
 
-                            const custom_filter_name = var_chart_options.custom_filter_names[field_name];
+                                const custom_filter_name = var_chart_options.custom_filter_names[field_name];
 
-                            if (!custom_filter_name) {
-                                return;
-                            }
-                            if (custom_filter_name == this.widget_options.dimension_custom_filter_name) {
-                                if (!update_custom_filters) {
-                                    update_custom_filters = {};
+                                if (!custom_filter_name) {
+                                    return;
                                 }
-                                update_custom_filters[field_name] = active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name];
+                                if (custom_filter_name == this.widget_options.dimension_custom_filter_name) {
+                                    if (!update_custom_filters) {
+                                        update_custom_filters = {};
+                                    }
+                                    update_custom_filters[field_name] = active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name];
+                                }
                             }
                         }
-                    }
 
-                    if (!charts_var_params_by_dimension[var_chart_id]) {
-                        charts_var_params_by_dimension[var_chart_id] = {};
-                    }
+                        if (!charts_var_params_by_dimension[var_chart_id_dataset]) {
+                            charts_var_params_by_dimension[var_chart_id_dataset] = {};
+                        }
 
-                    charts_var_params_by_dimension[var_chart_id][dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                        VarsController.var_conf_by_id[var_chart_options.var_id].name,
-                        active_field_filters,
-                        update_custom_filters,
-                        this.get_dashboard_api_type_ids,
-                        this.get_discarded_field_paths
-                    );
+                        // Si on a un field de dataset, on doit le rajouter aux filtres
+                        if (this.widget_options.multiple_dataset_vo_field_ref?.field_id) {
+                            if (!active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id]) {
+                                active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id] = {};
+                            }
 
-                    if (!charts_var_params_by_dimension[var_chart_id][dimension_value]) {
-                        this.isValid = false;
-                        return;
-                    }
+                            switch (typeof dataset) {
+                                case 'string':
+                                    active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                                        this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
+                                        this.widget_options.multiple_dataset_vo_field_ref.field_id
+                                    ).by_text_has(dataset);
+                                    break;
+                                case 'number':
+                                    active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                                        this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
+                                        this.widget_options.multiple_dataset_vo_field_ref.field_id
+                                    ).by_num_has([dataset]);
+                                    break;
+                            }
+                        }
 
-                    charts_var_params_by_dimension[var_chart_id][dimension_value].id = parseInt(i);
-                    if (label_by_index[parseInt(i)] === undefined) {
-                        label_by_index[parseInt(i)] = [];
-                    }
-                    label_by_index[parseInt(i)].push(Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type));
+                        charts_var_params_by_dimension[var_chart_id_dataset][dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
+                            VarsController.var_conf_by_id[var_chart_options.var_id].name,
+                            active_field_filters,
+                            update_custom_filters,
+                            this.get_dashboard_api_type_ids,
+                            this.get_discarded_field_paths
+                        );
 
-                })());
+                        if (!charts_var_params_by_dimension[var_chart_id_dataset][dimension_value]) {
+                            this.isValid = false;
+                            return;
+                        }
+
+                        charts_var_params_by_dimension[var_chart_id_dataset][dimension_value].id = cpt_for_var;
+                        if (label_by_index[cpt_for_var] === undefined) {
+                            label_by_index[cpt_for_var] = [];
+                        }
+                        label_by_index[cpt_for_var].push(Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type));
+
+                        cpt_for_var++;
+                    })());
+                }
             }
         }
 
@@ -960,9 +1068,42 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         });
 
 
+        await this.set_datasets();
+
         if (this.widget_options.has_dimension) {
             await this.set_charts_var_params_by_dimension(custom_filters, launch_cpt);
         }
+    }
+
+    private async set_datasets() {
+        const res = [];
+
+        // Si on cherche à avoir du multi dataset, il faut charger les données
+        if (this.widget_options.multiple_dataset_vo_field_ref?.field_id) {
+
+            const query_dataset: ContextQueryVO = query(this.widget_options.multiple_dataset_vo_field_ref.api_type_id)
+                .set_limit(this.widget_options.max_dataset_values)
+                .using(this.get_dashboard_api_type_ids)
+                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                    FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                ));
+            FieldValueFilterWidgetManager.add_discarded_field_paths(query_dataset, this.get_discarded_field_paths);
+
+            const datasets_vos = await query_dataset.select_vos();
+
+            for (const i in datasets_vos) {
+                const dataset = datasets_vos[i];
+                const dataset_label = dataset[this.widget_options.multiple_dataset_vo_field_ref.field_id];
+
+                if ((dataset_label != null)) {
+                    res.push(dataset_label);
+                }
+            }
+        } else {
+            res.push('NULL');
+        }
+
+        this.datasets = res;
     }
 
     private async set_charts_var_params_by_dimension(
@@ -988,7 +1129,6 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
         this.charts_var_params_by_dimension = charts_var_params_by_dimension;
     }
-
     private getLabelsForScale(value, current_scale: VarChartScalesOptionsVO) {
         if (this.temp_current_scale == null) {
             return value;
@@ -997,11 +1137,12 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             return value;
         }
 
-        const filter = current_scale.filter_type ? this.const_filters[current_scale.filter_type].read : undefined;
-        const filter_additional_params = current_scale.filter_additional_params ? ObjectHandler.try_get_json(current_scale.filter_additional_params) : undefined;
-        if (filter != undefined) {
-            if (filter) {
-                return filter.apply(this, [value].concat(filter_additional_params));
+
+        let filter_read = current_scale.filter_type ? this.const_filters[current_scale.filter_type].read : undefined;
+        let filter_additional_params = current_scale.filter_additional_params ? ObjectHandler.try_get_json(current_scale.filter_additional_params) : undefined;
+        if (filter_read != undefined) {
+            if (filter_read) {
+                return filter_read.apply(this, [value].concat(filter_additional_params));
             } else {
                 return value;
             }
@@ -1030,11 +1171,11 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             return value;
         }
 
-        const filter = current_scale.filter_type ? this.const_filters[current_scale.filter_type].read : undefined;
-        const filter_additional_params = current_scale.filter_additional_params ? ObjectHandler.try_get_json(current_scale.filter_additional_params) : undefined;
-        if (filter != undefined) {
-            if (filter) {
-                return filter.apply(this, [value].concat(filter_additional_params));
+        let filter_read = current_scale.filter_type ? this.const_filters[current_scale.filter_type].read : undefined;
+        let filter_additional_params = current_scale.filter_additional_params ? ObjectHandler.try_get_json(current_scale.filter_additional_params) : undefined;
+        if (filter_read != undefined) {
+            if (filter_read) {
+                return filter_read.apply(this, [value].concat(filter_additional_params));
             } else {
                 return value;
             }
@@ -1056,5 +1197,15 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             return str;
         }
         throw new Error('Bad Hex');
+    }
+
+    private getRandomColor() {
+        const trans = '1';
+        let color = 'rgba(';
+        for (let i = 0; i < 3; i++) {
+            color += Math.floor(Math.random() * 255) + ',';
+        }
+        color += trans + ')'; // add the transparency
+        return color;
     }
 }

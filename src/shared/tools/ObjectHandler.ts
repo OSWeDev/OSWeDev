@@ -1,5 +1,4 @@
 import ModuleTableController from '../modules/DAO/ModuleTableController';
-import ModuleTableVO from '../modules/DAO/vos/ModuleTableVO';
 import NumRange from '../modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../modules/IDistantVOBase';
 import ConsoleHandler from './ConsoleHandler';

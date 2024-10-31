@@ -1,6 +1,11 @@
 /* istanbul ignore file: not a usefull test to write */
 
+import TimeSegment from '../modules/DataRender/vos/TimeSegment';
 import Dates from '../modules/FormatDatesNombres/Dates/Dates';
+import ModuleLogger from '../modules/Logger/ModuleLogger';
+import LogVO from '../modules/Logger/vos/LogVO';
+import ModulesManager from '../modules/ModulesManager';
+import ParamsManager from '../modules/Params/ParamsManager';
 import ThrottleHelper from './ThrottleHelper';
 import ILoggerHandler from './interfaces/ILoggerHandler';
 
@@ -61,10 +66,12 @@ export default class ConsoleHandler {
     private static old_console_warn: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_error: (message?: any, ...optionalParams: any[]) => void = null;
 
-    private static log_to_console_cache: Array<{ msg: string, params: any[], log_type: string }> = [];
+    private static log_to_console_cache: Array<{ msg: string, date: number, params: any[], log_type: number, url: string }> = [];
     private static log_to_console_throttler = ThrottleHelper.declare_throttle_without_args(this.log_to_console.bind(this), 1000);
+    private static add_logs_client_throttler = ThrottleHelper.declare_throttle_without_args(this.add_logs_client.bind(this), 1000, { leading: false, trailing: true });
 
     private static throttled_logs_counter: { [log: string]: number } = {};
+    private static throttled_add_logs_client: LogVO[] = [];
 
     public static init() {
 
@@ -93,37 +100,51 @@ export default class ConsoleHandler {
     }
 
     public static error(error: string | Error, ...params): void {
-
-        const msg = ConsoleHandler.get_text_msg(error);
-
-        if (ConsoleHandler.logger_handler) {
-            ConsoleHandler.logger_handler.log("ERROR -- " + msg, ...params);
-            // On ERROR we flush immediately
-            ConsoleHandler.logger_handler.force_flush();
-        }
-        ConsoleHandler.log_to_console_cache.push({ msg: msg, params: params, log_type: 'error' });
-        // On ERROR we flush immediately
-        ConsoleHandler.log_to_console();
+        ConsoleHandler.log_action(ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR), error, ...params);
     }
 
     public static warn(error: string | Error, ...params): void {
-        const msg = ConsoleHandler.get_text_msg(error);
-
-        if (ConsoleHandler.logger_handler) {
-            ConsoleHandler.logger_handler.log("WARN  -- " + msg, ...params);
-        }
-        ConsoleHandler.log_to_console_cache.push({ msg: msg, params: params, log_type: 'warn' });
-        ConsoleHandler.log_to_console_throttler();
+        ConsoleHandler.log_action(ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_WARN), error, ...params);
     }
 
     public static log(error: string | Error, ...params): void {
+        ConsoleHandler.log_action(ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG), error, ...params);
+    }
+
+    public static debug(error: string | Error, ...params): void {
+        ConsoleHandler.log_action(ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_DEBUG), error, ...params);
+    }
+
+    public static log_action(log_type: number, error: string | Error, ...params): void {
         const msg = ConsoleHandler.get_text_msg(error);
+        const date: number = ConsoleHandler.get_timestamp(Dates.now_ms());
+
+        let url: string = null;
 
         if (ConsoleHandler.logger_handler) {
-            ConsoleHandler.logger_handler.log("DEBUG -- " + msg, ...params);
+            ConsoleHandler.logger_handler.log(log_type, date, msg, ...params);
+
+            if (log_type == ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR)) {
+                // On ERROR we flush immediately
+                ConsoleHandler.logger_handler.force_flush();
+            }
+        } else {
+            // On est côté client, on récupère l'url
+            if (!ModulesManager.isGenerator && !ModulesManager.isServerSide) {
+                if (!!document?.location?.href && !!document?.location?.origin) {
+                    url = document.location.href.replace(document.location.origin, '');
+                }
+            }
         }
-        ConsoleHandler.log_to_console_cache.push({ msg: msg, params: params, log_type: 'log' });
-        ConsoleHandler.log_to_console_throttler();
+
+        ConsoleHandler.log_to_console_cache.push({ msg: msg, date: date, params: params, log_type: log_type, url: url });
+
+        if (log_type == ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR)) {
+            // On ERROR we flush immediately
+            ConsoleHandler.log_to_console();
+        } else {
+            ConsoleHandler.log_to_console_throttler();
+        }
     }
 
     public static throttle_log(log: string): void {
@@ -134,15 +155,72 @@ export default class ConsoleHandler {
         ConsoleHandler.log_to_console_throttler();
     }
 
+    public static get_timestamp(date: number): number {
+        return Math.floor(date);
+    }
+
+    public static get_formatted_timestamp(date: number): string {
+        return Dates.format_segment(date, TimeSegment.TYPE_MS, true);
+    }
+
     // On throttle pour laisser du temps de calcul, et on indique l'heure d'exécution du throttle pour bien identifier le décalage de temps lié au throttle et la durée de loggage sur la console pour le pack.
     private static log_to_console() {
         const log_to_console = ConsoleHandler.log_to_console_cache;
         ConsoleHandler.log_to_console_cache = [];
 
+        const logs: LogVO[] = [];
+
         for (const i in log_to_console) {
             const log = log_to_console[i];
 
-            ConsoleHandler['old_console_' + log.log_type]('[LT ' + this.get_timestamp() + '] ' + log.msg, ...log.params);
+            let msg: string = log.msg;
+
+            for (const j in log.params) {
+                msg = msg.replace(/$[Oo]/, log.params[j]);
+            }
+
+            if (!msg) {
+                continue;
+            }
+
+            const log_type_id: number = log.log_type ?? ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG);
+
+            // On va vérifier quel niveau min on doit log
+            if (log_type_id <= ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_CLIENT_MAX)) {
+                logs.push(LogVO.createNew(
+                    (((typeof process !== "undefined") && process.pid) ? process.pid : null),
+                    log_type_id,
+                    log.date,
+                    msg,
+                    null,
+                    null,
+                    log.url,
+                ));
+            }
+
+            let log_type_str: string = 'log';
+
+            switch (log.log_type) {
+                case ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR):
+                    log_type_str = 'error';
+                    break;
+                case ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_WARN):
+                    log_type_str = 'warn';
+                    break;
+                case ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG):
+                case ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_DEBUG):
+                    log_type_str = 'log';
+                    break;
+            }
+
+            ConsoleHandler['old_console_' + log_type_str]('[' + log_type_str.toUpperCase() + ' ' + this.get_formatted_timestamp(log.date) + '] ' + log.msg, ...log.params);
+        }
+
+        // On ne log pas les logs du generator en BDD, sinon ça plante car tout n'est pas initialisé
+        if (!ModulesManager.isGenerator && !ModulesManager.isServerSide && !ConsoleHandler.logger_handler && logs?.length) {
+            // Je suis côté client, je vais enregistrer en BDD
+            this.throttled_add_logs_client.push(...logs);
+            this.add_logs_client_throttler();
         }
 
         // On ajoute aussi les logs throttled
@@ -150,22 +228,23 @@ export default class ConsoleHandler {
         this.throttled_logs_counter = {};
         for (const log in throttled_logs_counter) {
             const msg = ConsoleHandler.get_text_msg(log);
-            ConsoleHandler.old_console_log('[LT ' + this.get_timestamp() + '] ' + msg + ' (' + throttled_logs_counter[log] + 'x)');
+            const date: number = this.get_timestamp(Dates.now_ms());
+            ConsoleHandler.old_console_log('[LT ' + this.get_formatted_timestamp(date) + '] ' + msg + ' (' + throttled_logs_counter[log] + 'x)');
 
             if (ConsoleHandler.logger_handler) {
-                ConsoleHandler.logger_handler.log("DEBUG -- " + msg + ' (' + throttled_logs_counter[log] + 'x)');
+                ConsoleHandler.logger_handler.log(ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_DEBUG), date, msg + ' (' + throttled_logs_counter[log] + 'x)');
             }
         }
     }
 
-    private static get_text_msg(error: string | Error): string {
-        return (((typeof process !== "undefined") && process.pid) ? process.pid + ':' : '') + ConsoleHandler.get_timestamp() + ConsoleHandler.SEPARATOR + (error ? ((error as Error).message ? ((error as Error).message + ':' + (error as Error).stack) : error) : error);
+    private static async add_logs_client() {
+        const logs = this.throttled_add_logs_client;
+        this.throttled_add_logs_client = [];
+
+        await ModuleLogger.getInstance().addLogsClient(logs);
     }
 
-    private static get_timestamp(): string {
-        let ms = Math.floor(Dates.now_ms());
-        const seconds = Math.floor(ms / 1000);
-        ms = ms % 1000;
-        return Dates.format(seconds, 'YYYY-MM-DD HH:mm:ss.' + String(ms).padStart(3, '0'), true);
+    private static get_text_msg(error: string | Error): string {
+        return (error ? ((error as Error).message ? ((error as Error).message + ':' + (error as Error).stack) : error?.toString()) : error?.toString());
     }
 }

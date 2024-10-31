@@ -1,5 +1,4 @@
 
-import { watch } from 'fs';
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
@@ -26,7 +25,6 @@ import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
@@ -556,12 +554,12 @@ export default class CRUDComponentField extends VueComponentBase
             await ModuleAccessPolicy.getInstance().testAccess(
                 DAOController.getAccessPolicyName(
                     ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE,
-                    (this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type)).then((res: boolean) => {
-
-                        if (self.can_insert_or_update_target != res) {
-                            self.can_insert_or_update_target = res;
-                        }
-                    });
+                    (this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type)
+            ).then((res: boolean) => {
+                if (self.can_insert_or_update_target != res) {
+                    self.can_insert_or_update_target = res;
+                }
+            });
         }
 
         if (!this.isLoadingOptions) {
@@ -1491,7 +1489,7 @@ export default class CRUDComponentField extends VueComponentBase
     private async validate_inline_input(event) {
 
         if (this.auto_validate_start) {
-            CRUDFormServices.getInstance().auto_updates_waiting[this.this_CRUDComp_UID] = false;
+            CRUDFormServices.auto_updates_waiting[this.this_CRUDComp_UID] = false;
             this.auto_validate_start = null;
         }
 
@@ -1898,7 +1896,7 @@ export default class CRUDComponentField extends VueComponentBase
                     }, 50);
                 } else {
                     this.auto_validate_start = Dates.now();
-                    CRUDFormServices.getInstance().auto_updates_waiting[this.this_CRUDComp_UID] = true;
+                    CRUDFormServices.auto_updates_waiting[this.this_CRUDComp_UID] = true;
                 }
             } else {
                 await this.validate_inline_input(event);

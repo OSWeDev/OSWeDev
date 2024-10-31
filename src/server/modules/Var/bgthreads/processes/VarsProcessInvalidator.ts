@@ -1,3 +1,4 @@
+import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
@@ -10,9 +11,12 @@ import DAOUpdateVOHolder from '../../../DAO/vos/DAOUpdateVOHolder';
 import CurrentBatchDSCacheHolder from '../../CurrentBatchDSCacheHolder';
 import VarsDatasVoUpdateHandler from '../../VarsDatasVoUpdateHandler';
 import DataSourcesController from '../../datasource/DataSourcesController';
+import VarsdatasComputerBGThread from '../VarsdatasComputerBGThread';
 import VarsComputationHole from './VarsComputationHole';
 
 export default class VarsProcessInvalidator {
+    public static WARN_MAX_EXECUTION_TIME_SECOND: number = 60;
+    public static ALERT_MAX_EXECUTION_TIME_SECOND: number = 120;
 
     private static instance: VarsProcessInvalidator = null;
 
@@ -20,10 +24,12 @@ export default class VarsProcessInvalidator {
     private static max_invalidators_param_name: string = 'VarsProcessInvalidator.max_invalidators';
 
     private last_clear_datasources_cache: number = null;
+    private last_registration: number = null;
 
     protected constructor(
         protected name: string = 'VarsProcessInvalidator',
-        protected thread_sleep: number = 1000) { } // Le push invalidator est fait toutes les secondes de toutes manières
+        protected thread_sleep: number = 1000
+    ) { } // Le push invalidator est fait toutes les secondes de toutes manières
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -33,10 +39,14 @@ export default class VarsProcessInvalidator {
         return VarsProcessInvalidator.instance;
     }
 
+
     public async work(): Promise<void> {
+        VarsProcessInvalidator.WARN_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_WARN_MAX_EXECUTION_TIME_SECOND, 60);
+        VarsProcessInvalidator.ALERT_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_ALERT_MAX_EXECUTION_TIME_SECOND, 120);
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
+            this.last_registration = Dates.now();
 
             let did_something = false;
 
@@ -51,6 +61,13 @@ export default class VarsProcessInvalidator {
         }
     }
 
+    /**
+     * Permet de calculer le délai (en secondes) de la dernière exécution
+     * @returns le délai en secondes
+     */
+    public get_last_registration_delay(): number {
+        return Dates.diff(Dates.now(), this.last_registration, TimeSegment.TYPE_SECOND);
+    }
 
     private async handle_batch_worker(): Promise<boolean> {
 
@@ -160,6 +177,7 @@ export default class VarsProcessInvalidator {
         } else if ((Dates.now() - this.last_clear_datasources_cache) > 10 * 60) { // 10 minutes
             this.last_clear_datasources_cache = Dates.now();
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
+            CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
             return;
         }
 
@@ -188,6 +206,7 @@ export default class VarsProcessInvalidator {
                 const ds = datasources_dependencies[i];
 
                 delete CurrentBatchDSCacheHolder.current_batch_ds_cache[ds.name];
+                delete CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[ds.name];
             }
         }
     }

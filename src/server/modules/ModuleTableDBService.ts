@@ -10,11 +10,7 @@ import StatsController from '../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ObjectHandler, { field_names } from '../../shared/tools/ObjectHandler';
 import RangeHandler from '../../shared/tools/RangeHandler';
-import TextHandler from '../../shared/tools/TextHandler';
 import ConfigurationService from '../env/ConfigurationService';
-import AccessPolicyServerController from './AccessPolicy/AccessPolicyServerController';
-import PasswordInitialisation from './AccessPolicy/PasswordInitialisation/PasswordInitialisation';
-import PasswordInvalidationController from './AccessPolicy/workers/PasswordInvalidation/PasswordInvalidationController';
 import DAOServerController from './DAO/DAOServerController';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
 import ModuleTableServerController from './DAO/ModuleTableServerController';
@@ -24,17 +20,18 @@ import TableDescriptor from './TableDescriptor';
 
 export default class ModuleTableDBService {
 
+    private static instance: ModuleTableDBService = null;
+
+    private constructor(private db) {
+        ModuleTableDBService.instance = this;
+    }
+
     // istanbul ignore next: cannot test getInstance
     public static getInstance(db): ModuleTableDBService {
         if (!ModuleTableDBService.instance) {
             ModuleTableDBService.instance = new ModuleTableDBService(db);
         }
         return ModuleTableDBService.instance;
-    }
-    private static instance: ModuleTableDBService = null;
-
-    private constructor(private db) {
-        ModuleTableDBService.instance = this;
     }
 
     // istanbul ignore next: cannot test datatable_install
@@ -566,7 +563,7 @@ export default class ModuleTableDBService {
 
                 // On rajoute une contrôle de cohérence  :
                 //  Si le nom existe mais pas en minuscule, on considère que c'est une erreur, mais on ne supprime pas automatiquement
-                let obj_field_names = Object.keys(fields_by_field_id);
+                const obj_field_names = Object.keys(fields_by_field_id);
                 if (obj_field_names.find((e) => e.toLowerCase() == index)) {
                     console.error('Le champ existe en majuscule, mais pas en minuscule, c\'est une erreur de nommage, mais on ne supprime pas automatiquement il faut corriger manuellement.');
                     console.error('---');

@@ -180,7 +180,6 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         this.emit_change();
     }
 
-
     /**
      * add_var_chart_options
      * - Add a var_chart_options value to the collection object.

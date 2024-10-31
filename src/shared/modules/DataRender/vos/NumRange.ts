@@ -15,6 +15,11 @@ export default class NumRange implements IRange {
     public segment_type: number;
     public range_type: number = NumRange.RANGE_TYPE;
 
+    /**
+     * Ignore this property - only used for type checking
+     */
+    private is_num_range: boolean = true;
+
     private constructor() { }
 
     /**

@@ -10,6 +10,7 @@ import DefaultTranslationVO from './Translation/vos/DefaultTranslationVO';
 
 export default class ModulesManager {
 
+
     public static isGenerator: boolean = false;
     public static isServerSide: boolean = false;
 

@@ -96,7 +96,6 @@ import Patch20240329Adduniqtranslatabletextconstraint from './patchs/premodules/
 import Patch20240329Adduniquserconstraints from './patchs/premodules/Patch20240329Adduniquserconstraints';
 import Patch20240329CeliaToOseliaDBWidget from './patchs/premodules/Patch20240329CeliaToOseliaDBWidget';
 // import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
-import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
 import Patch20240912PreinitOseliaPrices from './patchs/postmodules/Patch20240912PreinitOseliaPrices';
 import Patch20240415Adduniqmail_id from './patchs/premodules/Patch20240415Adduniqmail_id';
 import Patch20240515RunStatusToEnum from './patchs/premodules/Patch20240515RunStatusToEnum';
@@ -128,6 +127,9 @@ import Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actions from './pat
 import Patch20241016AddOseliaFunction_OSELIA_get_cache_value from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_get_cache_value';
 import Patch20241016AddOseliaFunction_OSELIA_set_cache_value from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_set_cache_value';
 import Patch20241016AddOseliaFunction_OSELIA_get_assistant from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_get_assistant';
+import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
+import Patch20241010CreateLogType from './patchs/postmodules/Patch20241010CreateLogType';
+import Patch20241030SuiviCompetencesGroupeShortName from './patchs/postmodules/Patch20241030SuiviCompetencesGroupeShortName';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -278,6 +280,8 @@ export default abstract class GeneratorBase {
             Patch20241016AddOseliaFunction_OSELIA_get_cache_value.getInstance(),
             Patch20241016AddOseliaFunction_OSELIA_set_cache_value.getInstance(),
             Patch20241016AddOseliaFunction_OSELIA_get_assistant.getInstance(),
+            Patch20241010CreateLogType.getInstance(),
+            Patch20241030SuiviCompetencesGroupeShortName.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }
@@ -332,6 +336,10 @@ export default abstract class GeneratorBase {
         console.log("pre modules initialization workers done.");
 
         await this.modulesService.register_all_modules(true);
+
+        // console.log("ParamsManager.reloadPreloadParams: ...");
+        // await ParamsManager.reloadPreloadParams();
+        // console.log("ParamsManager.reloadPreloadParams:OK");
 
         console.log("VersionUpdater: ...");
         await VersionUpdater.getInstance().update_version();

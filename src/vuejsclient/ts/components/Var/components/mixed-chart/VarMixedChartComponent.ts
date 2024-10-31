@@ -2,7 +2,7 @@ import { clamp, debounce, isEqual } from 'lodash';
 import { Chart as VueChart } from 'vue-chartjs';
 import Chart from "chart.js/auto";
 import * as helpers from "chart.js/helpers";
-import { _adapters } from 'chart.js';
+import { _adapters, CategoryScale, LinearScale, LogarithmicScale, RadialLinearScale, TimeScale } from 'chart.js';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import DatesChartJsAdapters from '../../../../../../shared/modules/FormatDatesNombres/Dates/DatesChartJsAdapters';
 import VarMixedChartDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarMixedChartDataSetDescriptor';
@@ -252,7 +252,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
     }
 
     @Watch('charts_var_params', { immediate: true })
-    private onchange_charts_var_params(new_charts_var_params: { [chart_id: string]: VarDataBaseVO[] }, old_charts_var_params: { [chart_index: string]: VarDataBaseVO[] }) {
+    private async onchange_charts_var_params(new_charts_var_params: { [chart_id: string]: VarDataBaseVO[] }, old_charts_var_params: { [chart_index: string]: VarDataBaseVO[] }) {
 
         // On doit vérifier qu'ils sont bien différents
         if (isEqual(new_charts_var_params, old_charts_var_params)) {
@@ -263,7 +263,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
             for (const chart_key in old_charts_var_params) {
                 const old_chart_var_params = old_charts_var_params[chart_key];
 
-                VarsClientController.getInstance().unRegisterParams(old_chart_var_params, this.varUpdateCallbacks);
+                await VarsClientController.getInstance().unRegisterParams(old_chart_var_params, this.varUpdateCallbacks);
             }
         }
 
@@ -271,7 +271,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
             for (const chart_key in new_charts_var_params) {
                 const new_chart_var_params = new_charts_var_params[chart_key];
 
-                VarsClientController.getInstance().registerParams(new_chart_var_params, this.varUpdateCallbacks);
+                await VarsClientController.getInstance().registerParams(new_chart_var_params, this.varUpdateCallbacks);
             }
         }
 
@@ -317,16 +317,14 @@ export default class VarMixedChartComponent extends VueComponentBase {
     }
 
     public async created() {
-        const chart = Chart;
-        chart.register(ChartDataLabels);
+        let chart = Chart;
+        chart.register(ChartDataLabels, CategoryScale, LinearScale, LogarithmicScale, TimeScale, RadialLinearScale);
         window['Chart'] = chart;
         Chart['helpers'] = helpers;
 
-        // await import("chart.js-plugin-labels-dv");
         await import("chartjs-plugin-datalabels");
     }
-
-
+    
     /**
      * Si on a pas encore rendered le chart, on checke les datas. Dès que les datas sont là, on render.
      *  Pendant ce temps on bloque le sémaphore
@@ -543,12 +541,12 @@ export default class VarMixedChartComponent extends VueComponentBase {
         }
     }
 
-    private destroyed() {
+    private async destroyed() {
 
-        for (const chart_key in this.charts_var_params) {
-            const chart_var_params = this.charts_var_params[chart_key];
+        for (let chart_key in this.charts_var_params) {
+            let chart_var_params = this.charts_var_params[chart_key];
 
-            VarsClientController.getInstance().unRegisterParams(chart_var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().unRegisterParams(chart_var_params, this.varUpdateCallbacks);
         }
     }
 

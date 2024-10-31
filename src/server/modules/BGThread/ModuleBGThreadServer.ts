@@ -12,10 +12,8 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import ForkedTasksController from '../Fork/ForkedTasksController';
-import ForkMessageController from '../Fork/ForkMessageController';
 import ForkServerController from '../Fork/ForkServerController';
-import KillForkMessage from '../Fork/messages/KillForkMessage';
+import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import BGThreadServerController from './BGThreadServerController';
@@ -157,16 +155,21 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         // On register ici la tache qui sera exécutée sur le BGthread - qui est par ailleurs throttled
         ForkedTasksController.register_task(bgthread_force_run_asap_throttled_task_name, BGThreadServerController.force_run_asap_by_bgthread_name[bgthread.name].bind(bgthread));
 
-
-        ManualTasksController.getInstance().registered_manual_tasks_by_name["KILL BGTHREAD : " + bgthread.name] =
-            async () => {
-                if (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
-                    ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name]) {
-                    await ForkMessageController.send(
-                        new KillForkMessage(await ModuleParams.getInstance().getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
-                        ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name].child_process);
+        ManualTasksController.getInstance().registered_manual_tasks_by_name["KILL BGTHREAD : " + bgthread.name] = async (force_empty_vars_datas_vo_update_cache: boolean = true) => {
+            return new Promise(async (resolve, reject) => {
+                if (!ForkServerController.is_main_process()) {
+                    await ForkedTasksController.exec_self_on_main_process_and_return_value(
+                        reject,
+                        BGThreadServerController.TASK_NAME_kill_bgthread,
+                        resolve,
+                        bgthread.name,
+                        force_empty_vars_datas_vo_update_cache
+                    );
                 }
-            };
+
+                await BGThreadServerController.kill_bgthread(bgthread.name, force_empty_vars_datas_vo_update_cache);
+            });
+        };
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name["RUN ASAP BGTHREAD : " + bgthread.name] =
             async () => {

@@ -240,6 +240,13 @@ export default class TSRangeInputComponent extends VueComponentBase {
                 end = Dates.add(end, -1, TimeSegment.TYPE_MINUTE);
             }
 
+            if (this.date_option == 'hideend') {
+                const diff: number = Dates.diff(this.ts_start, end, TimeSegment.TYPE_DAY);
+                if (diff > 0 && Dates.isBefore(end, this.ts_start, TimeSegment.TYPE_DAY)) {
+                    end = Dates.add(end, diff, TimeSegment.TYPE_DAY);
+                }
+            }
+
             if (Dates.isBefore(end, this.ts_start, TimeSegment.TYPE_MINUTE)) {
                 end = Dates.add(end, 1, TimeSegment.TYPE_DAY);
             }
@@ -429,6 +436,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Watch('tsrange_start')
     @Watch('tsrange_end')
     private emitInput(): void {
+
         let new_value: TSRange = RangeHandler.createNew(
             TSRange.RANGE_TYPE,
             this.ts_start ? this.ts_start : RangeHandler.MIN_TS,

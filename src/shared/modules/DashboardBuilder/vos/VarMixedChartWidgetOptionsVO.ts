@@ -71,9 +71,13 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
         public scale_options_x?: Partial<Scale>,
         public scale_options_y?: Partial<Scale>,
         public scale_options_r?: Partial<Scale>,
+        public hide_filter?: boolean,
+        public multiple_dataset_vo_field_ref?: VOFieldRefVO,
+        public max_dataset_values?: number,  // Permet de limiter le nombre de datasets affichés (par défaut 10)
     ) {
         super();
     }
+
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         if (page_widget.json_options) {
             const options = JSON.parse(page_widget.json_options) as VarMixedChartWidgetOptionsVO;
@@ -149,10 +153,12 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
             false,
             null,
             null,
-            null
+            null,
+            false,
+            null,
+            10,
         );
     }
-
 
     public get_title_name_code_text(page_widget_id: number): string {
 

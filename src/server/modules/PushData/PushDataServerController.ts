@@ -613,7 +613,7 @@ export default class PushDataServerController {
                     session['last_fragmented_url'] = null;
                     notification.redirect_uri = url.replace(/\/f\//, '/#/');
                 } else {
-                    notification.redirect_uri = redirect_uri + (sso ? ('?session_id=' + session.sid) : '');
+                    notification.redirect_uri = redirect_uri + (sso ? ('?session_id=' + session.id) : '');
                 }
             }
         } catch (error) {

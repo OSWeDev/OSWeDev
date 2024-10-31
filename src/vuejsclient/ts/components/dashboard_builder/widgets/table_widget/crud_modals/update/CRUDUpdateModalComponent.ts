@@ -1,9 +1,10 @@
-import { Component, Prop } from 'vue-property-decorator';
+import { Component } from 'vue-property-decorator';
 import IDistantVOBase from '../../../../../../../../shared/modules/IDistantVOBase';
 import CRUDUpdateFormComponent from '../../../../../crud/component/update/CRUDUpdateFormComponent';
 import CRUDComponentManager from '../../../../../crud/CRUDComponentManager';
 import VueComponentBase from '../../../../../VueComponentBase';
 import "./CRUDUpdateModalComponent.scss";
+import CRUDFormServices from '../../../../../crud/component/CRUDFormServices';
 
 @Component({
     template: require('./CRUDUpdateModalComponent.pug'),
@@ -23,12 +24,15 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
     private onclose_callback: () => Promise<void> = null;
     private vo_update_callback: (vo: IDistantVOBase) => Promise<void> = null;
 
+    private callback_handle_modal_show_hide: (vo: IDistantVOBase, modal_type: string) => Promise<void> = null;
+
     public async open_modal(
         vo: IDistantVOBase,
+        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
         onclose_callback: () => Promise<void>,
         show_insert_or_update_target: boolean = true,
         show_delete_button: boolean = false,
-        vo_update_callback: (vo: IDistantVOBase) => Promise<void> = null,
+        vo_update_callback: (vo_cb: IDistantVOBase) => Promise<void> = null,
     ) {
         const crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[vo._type];
         this.api_type_id = vo._type;
@@ -42,6 +46,10 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
         }
 
         if (crud && crud.callback_handle_modal_show_hide) {
+            await CRUDFormServices.load_datas(
+                crud,
+                storeDatas,
+            );
             await crud.callback_handle_modal_show_hide(vo, 'update');
         }
 

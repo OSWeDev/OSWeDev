@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.33.3-pre.5",
+    "version": "0.33.3-pre.5_1",
     "description": "",
     "repository": {
         "type": "git",
@@ -47,7 +47,7 @@
         "adm-zip": "0.5.9",
         "axios": "1.7.2",
         "bootstrap": "4.4.1",
-        "chart.js": "4.2.1",
+        "chart.js": "4.3.0",
         "chart.js-plugin-labels-dv": "4.0.0",
         "chartjs-chart-geo": "4.3.0",
         "chartjs-plugin-datalabels": "2.2.0",

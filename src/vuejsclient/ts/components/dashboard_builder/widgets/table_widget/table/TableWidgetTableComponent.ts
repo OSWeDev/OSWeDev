@@ -83,6 +83,8 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import './TableWidgetTableComponent.scss';
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
+import { ModuleDAOAction } from '../../../../dao/store/DaoStore';
+import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -97,6 +99,9 @@ import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRang
     }
 })
 export default class TableWidgetTableComponent extends VueComponentBase {
+
+    @ModuleDAOAction
+    private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
@@ -266,7 +271,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             (pw) => pw.widget_id == var_widget_id
         );
 
-        for (let key in var_page_widgets) {
+        for (const key in var_page_widgets) {
             const var_page_widget = var_page_widgets[key];
 
             const options = JSON.parse(var_page_widget.json_options);
@@ -274,7 +279,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             const var_widget_options = new VarWidgetOptions().from(options);
             const name = var_widget_options.get_title_name_code_text(var_page_widget.id);
 
-            let conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+            const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
                 options.var_id,
                 var_widget_options.filter_custom_field_filters,
                 var_widget_options.filter_type,
@@ -727,10 +732,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     column.column_dynamic_page_widget_id &&
                     (column.column_dynamic_component || column.column_dynamic_var)
                 ) {
-                    let column_dynamic_page_widget = this.all_page_widgets_by_id[column.column_dynamic_page_widget_id];
+                    const column_dynamic_page_widget = this.all_page_widgets_by_id[column.column_dynamic_page_widget_id];
 
-                    let options_column_dynamic_page_widget = JSON.parse(column_dynamic_page_widget.json_options);
-                    let vo_field_ref: VOFieldRefVO = options_column_dynamic_page_widget?.vo_field_ref;
+                    const options_column_dynamic_page_widget = JSON.parse(column_dynamic_page_widget.json_options);
+                    const vo_field_ref: VOFieldRefVO = options_column_dynamic_page_widget?.vo_field_ref;
 
                     if (!!vo_field_ref?.api_type_id && !!vo_field_ref?.field_id) {
                         let vo_field_ref_filter: ContextFilterVO = null;
@@ -743,14 +748,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                         }
 
                         if (!!vo_field_ref_filter) {
-                            let is_type_date: boolean = VOFieldRefVOHandler.is_type_date(vo_field_ref);
+                            const is_type_date: boolean = VOFieldRefVOHandler.is_type_date(vo_field_ref);
 
                             if (is_type_date) {
                                 RangeHandler.foreach_ranges_sync(vo_field_ref_filter.param_tsranges, (date: number) => {
 
                                     max_id++;
 
-                                    let new_column = new TableColumnDescVO();
+                                    const new_column = new TableColumnDescVO();
                                     new_column.id = max_id;
                                     new_column.readonly = column.readonly;
                                     new_column.exportable = column.exportable;
@@ -779,7 +784,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                                     } else if (column.column_dynamic_var) {
                                         new_column.type = TableColumnDescVO.TYPE_var_ref;
                                         new_column.var_id = VarsController.var_conf_by_name[column.column_dynamic_var].id;
-                                        new_column.var_unicity_id = Dates.now();
+                                        new_column.var_unicity_id = Math.round(Dates.now_ms() + (Math.random() * 1000));
                                     }
 
                                     new_weight++;
@@ -796,7 +801,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 continue;
             }
 
-            let cloned_column: TableColumnDescVO = Object.assign(new TableColumnDescVO(), column);
+            const cloned_column: TableColumnDescVO = Object.assign(new TableColumnDescVO(), column);
 
             cloned_column.weight = new_weight;
             new_weight++;
@@ -1104,7 +1109,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 case TableColumnDescVO.TYPE_component:
                     res[column.id] = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                     break;
-                case TableColumnDescVO.TYPE_var_ref:
+                case TableColumnDescVO.TYPE_var_ref: {
 
                     const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
                         column.id.toString(),
@@ -1117,7 +1122,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     res[column.id] = var_data_field;
 
                     break;
-                case TableColumnDescVO.TYPE_vo_field_ref:
+                }
+                case TableColumnDescVO.TYPE_vo_field_ref: {
                     const field = moduleTable.get_field_by_id(column.field_id);
                     // let field_type = field ? field.field_type : moduletablfiel
                     // switch (field.field_type) {
@@ -1146,6 +1152,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     //         break;
                     // }
                     break;
+                }
                 case TableColumnDescVO.TYPE_crud_actions:
                     res[column.id] = CRUDActionsDatatableFieldVO.createNew().setModuleTable(moduleTable);
                     break;
@@ -1246,7 +1253,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 case TableColumnDescVO.TYPE_component:
                     res[column.id] = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                     break;
-                case TableColumnDescVO.TYPE_var_ref:
+                case TableColumnDescVO.TYPE_var_ref: {
                     const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
                         column.id.toString(),
                         column.var_id,
@@ -1256,7 +1263,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
                     res[column.id] = var_data_field;
                     break;
-                case TableColumnDescVO.TYPE_vo_field_ref:
+                }
+                case TableColumnDescVO.TYPE_vo_field_ref: {
                     const field = moduleTable.get_field_by_id(column.field_id);
 
                     if (!field) {
@@ -1276,6 +1284,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     //         break;
                     // }
                     break;
+                }
                 case TableColumnDescVO.TYPE_crud_actions:
                     res[column.id] = CRUDActionsDatatableFieldVO.createNew().setModuleTable(moduleTable);
                     break;
@@ -1429,7 +1438,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         const update_vo = await query(type).filter_by_id(id).select_vo();
 
         if (update_vo && update_vo.id) {
-            await this.get_Crudupdatemodalcomponent.open_modal(update_vo, this.onclose_modal.bind(this));
+            await this.get_Crudupdatemodalcomponent.open_modal(
+                update_vo,
+                this.storeDatas,
+                this.onclose_modal.bind(this),
+            );
         }
     }
 
@@ -1451,7 +1464,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
 
     private async open_create() {
-        await this.get_Crudcreatemodalcomponent.open_modal(this.crud_activated_api_type, this.update_visible_options.bind(this));
+        await this.get_Crudcreatemodalcomponent.open_modal(
+            this.crud_activated_api_type,
+            this.storeDatas,
+            this.update_visible_options.bind(this),
+        );
     }
 
     private async onchange_dashboard_vo_route_param() {
@@ -1516,7 +1533,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             case TableColumnDescVO.TYPE_component:
                 res = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                 break;
-            case TableColumnDescVO.TYPE_var_ref:
+            case TableColumnDescVO.TYPE_var_ref: {
                 const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
                     column.id.toString(),
                     column.var_id,
@@ -1526,7 +1543,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
                 res = var_data_field;
                 break;
-            case TableColumnDescVO.TYPE_vo_field_ref:
+            }
+            case TableColumnDescVO.TYPE_vo_field_ref: {
                 const field = moduleTable.get_field_by_id(column.field_id);
                 // let field_type = field ? field.field_type : moduletablfiel
                 // switch (field.field_type) {
@@ -1554,6 +1572,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 //         break;
                 // }
                 break;
+            }
             case TableColumnDescVO.TYPE_crud_actions:
                 res = CRUDActionsDatatableFieldVO.createNew().setModuleTable(moduleTable);
                 break;
@@ -1762,13 +1781,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     const vo = await query(field.vo_type_id).filter_by_id(vo_id).select_vo();
 
                     switch (field?.type) {
-                        case DatatableField.SIMPLE_FIELD_TYPE:
+                        case DatatableField.SIMPLE_FIELD_TYPE: {
                             const simpleField = (field as SimpleDatatableFieldVO<any, any>);
                             vo[simpleField.module_table_field_id] = value;
                             const data_row_index = this.data_rows.findIndex((e) => e.__crud_actions == row.__crud_actions);
                             this.data_rows[data_row_index][simpleField.module_table_field_id] = value;
                             await ModuleDAO.getInstance().insertOrUpdateVO(vo);
                             break;
+                        }
                         default:
                             throw new Error('Not Implemented');
                     }

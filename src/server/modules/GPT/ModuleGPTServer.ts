@@ -573,8 +573,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
             }
 
             return await GPTAssistantAPIServerController.wrap_api_call(
-                ModuleGPTServer.openai.chat.completions.create,
-                ModuleGPTServer.openai.chat.completions,
+                ModuleGPTServer?.openai?.chat?.completions?.create,
+                ModuleGPTServer?.openai?.chat?.completions,
                 {
                     model: modelId,
                     messages: currentMessages as ChatCompletionMessageParam[],
@@ -582,12 +582,14 @@ export default class ModuleGPTServer extends ModuleServerBase {
         } catch (err) {
             ConsoleHandler.error(err);
         }
+
+        return null;
     }
 
     private async api_response_handler(conversation: GPTCompletionAPIConversationVO, result: any): Promise<GPTCompletionAPIMessageVO> {
         try {
-            const responseText = result.choices.shift().message.content;
-            const responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
+            let responseText = result?.choices?.length ? result.choices.shift().message.content : null;
+            let responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
             responseMessage.date = Dates.now();
             responseMessage.content = responseText;
             responseMessage.role_type = GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
@@ -600,6 +602,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
         } catch (err) {
             ConsoleHandler.error(err);
         }
+
+        return null;
     }
 
     private pre_create_trigger_handler_for_ThreadMessageVO(vo: GPTAssistantAPIThreadMessageVO): boolean {
