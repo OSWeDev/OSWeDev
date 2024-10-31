@@ -32,7 +32,7 @@ export default class VarsInitController {
 
             for (const i in modules_list) {
                 const module_name = modules_list[i];
-                if (ModulesManager.getInstance().getModuleByNameAndRole(module_name, Module.SharedModuleRoleName).actif) {
+                if (ModulesManager.getModuleByNameAndRole(module_name, Module.SharedModuleRoleName).actif) {
                     this.registered_vars_datas_api_type_ids.push(api_type_id);
                     break;
                 }

@@ -122,8 +122,8 @@ export default class ModulesClientInitializationDatasGenerator {
                 break;
             case 'Test':
                 // modules =[];
-                // for (let i in ModulesManager.getInstance().modules_by_name){
-                //     module.push(ModulesManager.getInstance().modules_by_name[i].getModuleComponentByRole(Module.SharedModuleRoleName));
+                // for (let i in ModulesManager.modules_by_name){
+                //     module.push(ModulesManager.modules_by_name[i].getModuleComponentByRole(Module.SharedModuleRoleName));
                 // }
                 modules = ModuleServiceBase.getInstance().sharedModules;
                 break;

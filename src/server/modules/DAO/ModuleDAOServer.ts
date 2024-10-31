@@ -191,7 +191,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             const vo_type: string = moduleTable.vo_type;
 
             // Uniquement si le module est actif, mais là encore est-ce une erreur ? ...
-            if (moduleTable.module_name && !ModulesManager.getInstance().getModuleByNameAndRole(moduleTable.module_name, Module.SharedModuleRoleName).actif) {
+            if (moduleTable.module_name && !ModulesManager.getModuleByNameAndRole(moduleTable.module_name, Module.SharedModuleRoleName).actif) {
                 continue;
             }
 

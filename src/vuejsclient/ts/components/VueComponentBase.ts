@@ -410,7 +410,7 @@ export default class VueComponentBase extends Vue
 
     // Permet de savoir si un module est actif ou pas
     protected moduleIsActive(nom_module) {
-        const module: Module = ModulesManager.getInstance().getModuleByNameAndRole(
+        const module: Module = ModulesManager.getModuleByNameAndRole(
             nom_module,
             Module.SharedModuleRoleName,
         ) as Module;

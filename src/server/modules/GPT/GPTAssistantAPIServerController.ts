@@ -608,7 +608,7 @@ export default class GPTAssistantAPIServerController {
             }
         }
 
-        const module_of_function_to_call = ModulesManager.getInstance().getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
+        const module_of_function_to_call = ModulesManager.getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
         const function_to_call: () => Promise<any> = module_of_function_to_call[function_vo.module_function];
         const ordered_args = function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread_vo, function_args, availableFunctionsParameters[function_vo.id]);
 

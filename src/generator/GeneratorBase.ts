@@ -147,6 +147,8 @@ export default abstract class GeneratorBase {
         // BLOCK Stats Generator side
         StatsController.ACTIVATED = false;
 
+        ModulesManager.initialize();
+
         GeneratorBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;

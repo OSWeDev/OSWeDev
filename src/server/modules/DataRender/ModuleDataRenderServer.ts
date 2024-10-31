@@ -103,7 +103,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             return null;
         }
 
-        const rendererModule: DataRenderModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(dataRenderer.render_handler_module, ModuleServerBase.SERVER_MODULE_ROLE_NAME) as DataRenderModuleBase;
+        const rendererModule: DataRenderModuleBase = ModulesManager.getModuleByNameAndRole(dataRenderer.render_handler_module, ModuleServerBase.SERVER_MODULE_ROLE_NAME) as DataRenderModuleBase;
 
         const latest_data: IDistantVOBase & IRenderedData = await query(rendererModule.database.vo_type).set_sort(new SortByVO(rendererModule.database.vo_type, 'data_dateindex', false)).set_limit(1).select_vo<IDistantVOBase & IRenderedData>();
 

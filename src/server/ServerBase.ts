@@ -101,6 +101,8 @@ export default abstract class ServerBase {
     /* istanbul ignore next: nothing to test here */
     protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
+        ModulesManager.initialize();
+
         ForkedTasksController.init();
         ForkedTasksController.assert_is_main_process();
 

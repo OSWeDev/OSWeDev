@@ -1,5 +1,14 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import Module from '../Module';
+import VersionedVOController from '../Versioned/VersionedVOController';
+import EventifyEventConfVO from './vos/EventifyEventConfVO';
+import EventifyEventInstanceVO from './vos/EventifyEventInstanceVO';
+import EventifyEventListenerConfVO from './vos/EventifyEventListenerConfVO';
+import EventifyEventListenerInstanceVO from './vos/EventifyEventListenerInstanceVO';
 export default class ModuleEventify extends Module {
 
     public static MODULE_NAME: string = 'Eventify';
@@ -24,101 +33,68 @@ export default class ModuleEventify extends Module {
     }
 
     public initialize() {
-        // this.initializexxx();
+        this.initialize_EventifyEventConfVO();
+        this.initialize_EventifyEventListenerConfVO();
+
+        this.initialize_EventifyEventInstanceVO();
+        this.initialize_EventifyEventListenerInstanceVO();
     }
 
-    // public initializeOseliaRunTemplateVO() {
-    //     const label = ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().template_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du template', true);
-    //     ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'étape', true);
-    //     ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true)
-    //         .set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
-    //     ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().thread_title, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre du thread - si création', false);
-    //     ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().hide_prompt, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Masquer le prompt', true, true, false);
-    //     ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().hide_outputs, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Masquer les messages Osélia', true, true, false);
-    //     ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().initial_content_text, ModuleTableFieldVO.FIELD_TYPE_string, 'Contenu', false);
-    //     ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().initial_prompt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Prompt', false)
-    //         .set_many_to_one_target_moduletable_name(OseliaPromptVO.API_TYPE_ID);
+    public initialize_EventifyEventInstanceVO() {
+        ModuleTableFieldController.create_new(EventifyEventInstanceVO.API_TYPE_ID, field_names<EventifyEventInstanceVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de la conf d\'évènement', true).index();
+        const label = ModuleTableFieldController.create_new(EventifyEventInstanceVO.API_TYPE_ID, field_names<EventifyEventInstanceVO>().instance_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom unique de l\'évènement', true).unique();
 
-    //     ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().file_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Fichiers', false)
-    //         .set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
-    //     ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().use_splitter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Découper la tâche', true, true, false);
-    //     ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().use_validator, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Utiliser le validateur', true, true, false);
+        ModuleTableController.create_new(this.name, EventifyEventInstanceVO, label, 'Eventify - Event Instance');
+    }
 
-    //     ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', true, true, OseliaRunVO.STATE_TODO).setEnumValues(OseliaRunVO.STATE_LABELS);
+    public initialize_EventifyEventConfVO() {
+        const label = ModuleTableFieldController.create_new(EventifyEventConfVO.API_TYPE_ID, field_names<EventifyEventConfVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom unique de l\'évènement', true).unique();
 
-    //     ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().childrens_are_multithreaded, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Les enfants sont multithreadés', true, true, false);
+        ModuleTableController.create_new(this.name, EventifyEventConfVO, label, 'Eventify - Event Template');
+        VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[EventifyEventConfVO.API_TYPE_ID]);
+    }
 
-    //     ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().parent_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Run parent', false)
-    //         .set_many_to_one_target_moduletable_name(OseliaRunTemplateVO.API_TYPE_ID);
-    //     ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
+    public initialize_EventifyEventListenerInstanceVO() {
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de la conf du listener', true);
+        const label = ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().instance_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom unique du listener', true).unique();
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().event_conf_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template d\'évènement écouté', true)
+            .set_many_to_one_target_moduletable_name(EventifyEventConfVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().event_conf_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'évènement écouté', true);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().cooldown_ms, ModuleTableFieldVO.FIELD_TYPE_int, 'Cooldown en ms', true, true, 0);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().remaining_calls, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb max d\'appels restants', true, true, 0);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().unlimited_calls, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Appels illimités', true, true, true);
 
-    //     ModuleTableController.create_new(this.name, OseliaRunTemplateVO, label, 'Oselia - Run Template');
-    //     VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[OseliaRunTemplateVO.API_TYPE_ID]);
-    // }
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().throttled, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Throttled', true, true, false);
+        // ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().throttle_first_call, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Throttle first call', true, true, false);
+        // ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().throttle_last_call, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Throttle last call', true, true, true);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().throttle_triggered_event_during_cb, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Throttle triggered event during cb', true, true, false);
 
-    // public initializeOseliaRunVO() {
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().cb_module_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Module du callback', true);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().cb_function_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Fonction du callback', true);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().cb_is_running, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Callback en cours', true, true, false);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().cb_is_cooling_down, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Callback cooling down', true, true, false);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().last_cb_run_end_date_ms, ModuleTableFieldVO.FIELD_TYPE_int, 'Date de fin du dernier callback (ms)', true, true, 0);
 
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'étape', true);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true)
-    //         .set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().referrer_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Partenaire', false)
-    //         .set_many_to_one_target_moduletable_name(OseliaReferrerVO.API_TYPE_ID);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Thread', false)
-    //         .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().thread_title, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre du thread - si création', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().hide_prompt, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Masquer le prompt', true, true, false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().hide_outputs, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Masquer les messages Osélia', true, true, false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().initial_content_text, ModuleTableFieldVO.FIELD_TYPE_string, 'Contenu', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().initial_prompt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Prompt', false)
-    //         .set_many_to_one_target_moduletable_name(OseliaPromptVO.API_TYPE_ID);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().initial_prompt_parameters, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Paramètres du prompt', false);
+        ModuleTableController.create_new(this.name, EventifyEventListenerInstanceVO, label, 'Eventify - Event Listener Instance');
+    }
 
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().initialised_run_prompt, ModuleTableFieldVO.FIELD_TYPE_string, 'Prompt initialisé - run', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().initialised_splitter_prompt, ModuleTableFieldVO.FIELD_TYPE_string, 'Prompt initialisé - splitter', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().initialised_validator_prompt, ModuleTableFieldVO.FIELD_TYPE_string, 'Prompt initialisé - validateur', false);
 
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false)
-    //         .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().file_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Fichiers', false)
-    //         .set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().use_splitter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Découper la tâche', true, true, false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().use_validator, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Utiliser le validateur', true, true, false);
+    public initialize_EventifyEventListenerConfVO() {
+        const label = ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du listener', true).unique();
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().event_conf_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template d\'évènement écouté', true)
+            .set_many_to_one_target_moduletable_name(EventifyEventConfVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().event_conf_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'évènement écouté', true);
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().cooldown_ms, ModuleTableFieldVO.FIELD_TYPE_int, 'Cooldown en ms', true, true, 0);
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().max_calls, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb max d\'appels', true, true, 0);
 
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de début', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().split_start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de début du découpage', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().split_end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin du découpage', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().waiting_split_end_start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de début d\'attente des runs enfants', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().waiting_split_end_end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin d\'attente des runs enfants', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().run_start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de début du run', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().run_end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin du run', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().validation_start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de début de validation', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().validation_end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin de validation', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().rerun_ask_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de demande de rerun', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', true, true, OseliaRunVO.STATE_TODO).setEnumValues(OseliaRunVO.STATE_LABELS);
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().throttled, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Throttled', true, true, false);
+        // ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().throttle_first_call, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Throttle first call', true, true, false);
+        // ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().throttle_last_call, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Throttle last call', true, true, true);
 
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().childrens_are_multithreaded, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Les enfants sont multithreadés', true, true, false);
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().cb_module_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Module du callback', true);
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().cb_function_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Fonction du callback', true);
 
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().split_gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'GPT Run - SPLIT', false)
-    //         .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunVO.API_TYPE_ID);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().run_gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'GPT Run - RUN', false)
-    //         .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunVO.API_TYPE_ID);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().validation_gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'GPT Run - VALIDATION', false)
-    //         .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunVO.API_TYPE_ID);
-
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().parent_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Run parent', false)
-    //         .set_many_to_one_target_moduletable_name(OseliaRunVO.API_TYPE_ID);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
-
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().error_msg, ModuleTableFieldVO.FIELD_TYPE_string, 'Message d\'erreur', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().rerun_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du rerun', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().rerun_reason, ModuleTableFieldVO.FIELD_TYPE_string, 'Raison du rerun', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().rerun_new_initial_prompt, ModuleTableFieldVO.FIELD_TYPE_string, 'Nouveau prompt initial pour rerun', false);
-    //     ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().rerun_of_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Rerun de', false)
-    //         .set_many_to_one_target_moduletable_name(OseliaRunVO.API_TYPE_ID);
-
-    //     ModuleTableController.create_new(this.name, OseliaRunVO, null, 'Oselia - Run');
-    //     VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[OseliaRunVO.API_TYPE_ID]);
-    // }
-
+        ModuleTableController.create_new(this.name, EventifyEventListenerConfVO, label, 'Eventify - Event Listener Template');
+        VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[EventifyEventListenerConfVO.API_TYPE_ID]);
+    }
 }

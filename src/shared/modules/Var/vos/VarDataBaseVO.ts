@@ -513,7 +513,7 @@ export default class VarDataBaseVO implements IMatroid {
 
     private initial_getter_index(): string {
 
-        if (!this._index) {
+        if (this._index == null) {
             this.do_rebuild_index_and_is_pixel();
         }
 
@@ -548,7 +548,7 @@ export default class VarDataBaseVO implements IMatroid {
 
     private initial_getter_is_pixel(): boolean {
 
-        if (!this._is_pixel) {
+        if (this._is_pixel == null) {
             this.do_rebuild_index_and_is_pixel();
         }
 

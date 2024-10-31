@@ -92,6 +92,7 @@ export default class ThrottledQueryServerController {
 
             // On doit temporiser si on est sur un coef 0 lié à la charge mémoire de la BDD
             if (AzureMemoryCheckServerController.dao_server_coef == 0) {
+                ConsoleHandler.log('ModuleDAOServer:shift_select_queries:AzureMemoryCheckServerController.dao_server_coef-0');
                 ThrottledQueryServerController.throttled_shift_select_queries_log_dao_server_coef_0();
                 await ThreadHandler.sleep(100, "ModuleDAOServer:shift_select_queries:dao_server_coef == 0");
                 continue;
@@ -103,6 +104,7 @@ export default class ThrottledQueryServerController {
             // }
             const fields_labels: string = ObjectHandler.getFirstAttributeName(ThrottledQueryServerController.throttled_select_query_params_by_fields_labels);
             if (!fields_labels) {
+                ConsoleHandler.throttle_log('ModuleDAOServer:shift_select_queries:waiter-no-fields_labels');
                 await ThreadHandler.sleep(waiter, "ModuleDAOServer:shift_select_queries");
                 continue;
             }

@@ -16,7 +16,7 @@ export default abstract class DataRenderModuleBase extends ModuleServerBase impl
 
     protected constructor(public name: string) {
         super(name);
-        ModulesManager.getInstance().registerModule(DataRenderModuleBase.ROLE_NAME, this);
+        ModulesManager.registerModule(DataRenderModuleBase.ROLE_NAME, this);
     }
 
     public registerApis() { }

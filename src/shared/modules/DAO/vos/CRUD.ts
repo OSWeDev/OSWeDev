@@ -262,7 +262,7 @@ export default class CRUD<T extends IDistantVOBase> {
         for (const i in manyToManyModuleTables) {
             const otherModuleTable: ModuleTableVO = manyToManyModuleTables[i];
 
-            if ((!otherModuleTable.module_name) || (!ModulesManager.getInstance().getModuleByNameAndRole(otherModuleTable.module_name, Module.SharedModuleRoleName).actif)) {
+            if ((!otherModuleTable.module_name) || (!ModulesManager.getModuleByNameAndRole(otherModuleTable.module_name, Module.SharedModuleRoleName).actif)) {
                 continue;
             }
 
@@ -349,7 +349,7 @@ export default class CRUD<T extends IDistantVOBase> {
         for (const i in ModuleTableController.module_tables_by_vo_type) {
             const otherModuleTable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[i];
 
-            if ((!otherModuleTable.module_name) || (!ModulesManager.getInstance().getModuleByNameAndRole(otherModuleTable.module_name, Module.SharedModuleRoleName).actif)) {
+            if ((!otherModuleTable.module_name) || (!ModulesManager.getModuleByNameAndRole(otherModuleTable.module_name, Module.SharedModuleRoleName).actif)) {
                 continue;
             }
 

@@ -139,6 +139,8 @@ import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
 import ModuleAzureConnect from '../../shared/modules/AzureConnect/ModuleAzureConnect';
 import ModuleAzureConnectServer from './AzureConnect/ModuleAzureConnectServer';
+import ModuleEventifyServer from './Eventify/ModuleEventifyServer';
+import ModuleEventify from '../../shared/modules/Eventify/ModuleEventify';
 
 export default abstract class ModuleServiceBase {
 
@@ -665,6 +667,7 @@ export default abstract class ModuleServiceBase {
             ModuleOselia.getInstance(),
             ModuleSuiviCompetences.getInstance(),
             ModuleAzureConnect.getInstance(),
+            ModuleEventify.getInstance(),
         ];
     }
 
@@ -732,6 +735,7 @@ export default abstract class ModuleServiceBase {
             ModuleOseliaServer.getInstance(),
             ModuleSuiviCompetencesServer.getInstance(),
             ModuleAzureConnectServer.getInstance(),
+            ModuleEventifyServer.getInstance(),
         ];
     }
 
