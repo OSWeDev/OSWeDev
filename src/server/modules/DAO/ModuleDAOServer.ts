@@ -94,9 +94,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleDAO.getInstance().name);
-        setTimeout(() => {
-            ThrottledQueryServerController.shift_select_queries();
-        }, 1);
+        // setTimeout(() => {
+        //     ThrottledQueryServerController.shift_select_queries();
+        // }, 1);
     }
 
     // istanbul ignore next: nothing to test : getInstance
@@ -342,6 +342,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         await ModuleDAO.getInstance().late_configuration(is_generator);
     }
 
+    public async shift_select_queries(): Promise<void> {
+        return ThrottledQueryServerController.shift_select_queries();
+    }
 
     public async getqueryfor_insertOrUpdateVO(vo: IDistantVOBase, pre_update_vo: IDistantVOBase, exec_as_server: boolean = false): Promise<string> {
 

@@ -41,6 +41,16 @@ export default class EventifyEventListenerConfVO implements IDistantVOBase, IVer
      */
     public throttled: boolean;
 
+    /**
+     * On peut vouloir lancer le callback dès que possible, même si on est en cooldown => évènement qui a cet effet
+     */
+    public run_as_soon_as_possible_event_conf_id: number;
+
+    /**
+     * Si on est sur un type bgthread, qui run en permanence
+     */
+    public is_bgthread: boolean;
+
     // /**
     //  * Dans le cadre d'un throttling, est-ce qu'on appel le cb dès le premier event, ou on applique le cooldown d'abord
     //  *  A priori par défaut false

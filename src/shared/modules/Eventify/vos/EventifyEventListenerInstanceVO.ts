@@ -2,6 +2,8 @@ import ModuleServerBase from '../../../../server/modules/ModuleServerBase';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModulesManager from '../../ModulesManager';
+import EventifyEventInstanceVO from './EventifyEventInstanceVO';
+import EventifyEventListenerConfVO from './EventifyEventListenerConfVO';
 
 export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "eventify_event_listener_instance";
@@ -57,6 +59,26 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
      */
     public throttle_triggered_event_during_cb: boolean;
 
+    /**
+     * On peut vouloir lancer le callback dès que possible, même si on est en cooldown => marqueur de la demande
+     */
+    public run_as_soon_as_possible: boolean;
+
+    /**
+     * On peut vouloir lancer le callback dès que possible, même si on est en cooldown => évènement qui a cet effet
+     */
+    public run_as_soon_as_possible_event_conf_id: number;
+
+    /**
+     * Si on est sur un type bgthread, qui run en permanence
+     */
+    public is_bgthread: boolean;
+
+    /**
+     * Le dernier évènement qui a été trigger durant le callback
+     */
+    public last_triggered_event_during_cb: EventifyEventInstanceVO;
+
     // /**
     //  * Dans le cadre d'un throttling, est-ce qu'on appel le cb dès le premier event, ou on applique le cooldown d'abord
     //  *  A priori par défaut false
@@ -92,6 +114,11 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
     public cb_is_cooling_down: boolean;
 
     /**
+     * On a besoin du timeout pour pouvoir le clear si on a une demande de run ASAP entre temps
+     */
+    public cooling_down_timeout: NodeJS.Timeout;
+
+    /**
      * On a besoin de la date de fin du dernier appel pour gérer le throttling en ms
      */
     public last_cb_run_end_date_ms: number;
@@ -101,6 +128,29 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
     get cb(): () => Promise<any> {
 
         return this.initial_getter_cb();
+    }
+
+    public static instantiate(conf: EventifyEventListenerConfVO): EventifyEventListenerInstanceVO {
+        const res: EventifyEventListenerInstanceVO = new EventifyEventListenerInstanceVO();
+
+        res.name = conf.name;
+        res.instance_uid = EventifyEventListenerInstanceVO.get_uid(conf.name);
+        res.event_conf_id = conf.id;
+        res.event_conf_name = conf.name;
+        res.unlimited_calls = !conf.max_calls;
+        res.remaining_calls = conf.max_calls;
+        res.cooldown_ms = conf.cooldown_ms;
+        res.throttled = conf.throttled;
+        res.throttle_triggered_event_during_cb = false;
+        res.cb_module_name = conf.cb_module_name;
+        res.cb_function_name = conf.cb_function_name;
+        res.cb_is_running = false;
+        res.cb_is_cooling_down = false;
+        res.last_cb_run_end_date_ms = 0;
+        res.run_as_soon_as_possible = false;
+        res.run_as_soon_as_possible_event_conf_id = conf.run_as_soon_as_possible_event_conf_id;
+        res.is_bgthread = conf.is_bgthread;
+        return res;
     }
 
     public static get_uid(name: string): string {

@@ -18,9 +18,12 @@ export default class EventifyEventInstanceVO implements IDistantVOBase {
      */
     public instance_uid: string;
 
+    public event_conf_id: number;
+
     public static instantiate(event_conf: EventifyEventConfVO) {
         const res: EventifyEventInstanceVO = new EventifyEventInstanceVO();
 
+        res.event_conf_id = event_conf.id;
         res.name = event_conf.name;
         res.instance_uid = event_conf.name + '_' + (EventifyEventInstanceVO.UID++);
         return res;

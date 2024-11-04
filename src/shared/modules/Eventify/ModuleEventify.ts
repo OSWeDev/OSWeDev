@@ -41,6 +41,8 @@ export default class ModuleEventify extends Module {
     }
 
     public initialize_EventifyEventInstanceVO() {
+        ModuleTableFieldController.create_new(EventifyEventInstanceVO.API_TYPE_ID, field_names<EventifyEventInstanceVO>().event_conf_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template d\'évènement', true)
+            .set_many_to_one_target_moduletable_name(EventifyEventConfVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(EventifyEventInstanceVO.API_TYPE_ID, field_names<EventifyEventInstanceVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de la conf d\'évènement', true).index();
         const label = ModuleTableFieldController.create_new(EventifyEventInstanceVO.API_TYPE_ID, field_names<EventifyEventInstanceVO>().instance_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom unique de l\'évènement', true).unique();
 
@@ -75,6 +77,13 @@ export default class ModuleEventify extends Module {
         ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().cb_is_cooling_down, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Callback cooling down', true, true, false);
         ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().last_cb_run_end_date_ms, ModuleTableFieldVO.FIELD_TYPE_int, 'Date de fin du dernier callback (ms)', true, true, 0);
 
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().run_as_soon_as_possible_event_conf_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Event qui déclenche le run as soon as possible', false)
+            .set_many_to_one_target_moduletable_name(EventifyEventConfVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().run_as_soon_as_possible, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Run as soon as possible', true, true, false);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().is_bgthread, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Is bgthread', true, true, false);
+
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().cooling_down_timeout, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Timeout de cooldown', false);
+
         ModuleTableController.create_new(this.name, EventifyEventListenerInstanceVO, label, 'Eventify - Event Listener Instance');
     }
 
@@ -93,6 +102,10 @@ export default class ModuleEventify extends Module {
 
         ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().cb_module_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Module du callback', true);
         ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().cb_function_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Fonction du callback', true);
+
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().run_as_soon_as_possible_event_conf_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Event qui déclenche le run as soon as possible', false)
+            .set_many_to_one_target_moduletable_name(EventifyEventConfVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().is_bgthread, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Is bgthread', true, true, false);
 
         ModuleTableController.create_new(this.name, EventifyEventListenerConfVO, label, 'Eventify - Event Listener Template');
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[EventifyEventListenerConfVO.API_TYPE_ID]);
