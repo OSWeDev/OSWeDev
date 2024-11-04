@@ -48,6 +48,8 @@ export default class ModuleDashboardBuilder extends Module {
     public static POLICY_CMS_VERSION_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.CMS_VERSION + ".BO_ACCESS";
     public static POLICY_CMS_VERSION_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.CMS_VERSION + ".FO_ACCESS";
 
+    public static POLICY_DBB_FILTERS_VISIBLE_ON_CMS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.CMS_VERSION + ".DBB_FILTERS_VISIBLE_ON_CMS";
+
     public static APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE: string = "start_export_favorites_filters_datatable";
     public static PARAM_NAME_SHOW_CMS_DASHBOARD_PAGES: string = "param_name_show_cms_dashboard_pages";
 

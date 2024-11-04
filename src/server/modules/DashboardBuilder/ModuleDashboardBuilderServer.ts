@@ -3968,6 +3968,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         front_CMS_VERSION_access_dependency.src_pol_id = fo_CMS_VERSION_access.id;
         front_CMS_VERSION_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
         front_CMS_VERSION_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_CMS_VERSION_access_dependency);
+
+        let dbb_filters_visible_on_cms: AccessPolicyVO = new AccessPolicyVO();
+        dbb_filters_visible_on_cms.group_id = group.id;
+        dbb_filters_visible_on_cms.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        dbb_filters_visible_on_cms.translatable_name = ModuleDashboardBuilder.POLICY_DBB_FILTERS_VISIBLE_ON_CMS;
+        dbb_filters_visible_on_cms = await ModuleAccessPolicyServer.getInstance().registerPolicy(dbb_filters_visible_on_cms, DefaultTranslationVO.create_new({
+            'fr-fr': 'Filtres des DBB visibles sur le CMS Builder'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let dbb_filters_visible_on_cms_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        dbb_filters_visible_on_cms_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        dbb_filters_visible_on_cms_access_dependency.src_pol_id = dbb_filters_visible_on_cms.id;
+        dbb_filters_visible_on_cms_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+        dbb_filters_visible_on_cms_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dbb_filters_visible_on_cms_access_dependency);
     }
 
     private async onCDashboardVO(e: DashboardVO): Promise<boolean> {
