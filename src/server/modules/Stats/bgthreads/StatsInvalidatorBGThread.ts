@@ -18,23 +18,11 @@ export default class StatsInvalidatorBGThread implements IBGThread {
     public static PARAM_NAME_invalidate_x_previous_minutes: string = 'StatsInvalidatorBGThread.invalidate_x_previous_minutes';
     public static PARAM_NAME_invalidate_current_minute: string = 'StatsInvalidatorBGThread.invalidate_current_minute';
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!StatsInvalidatorBGThread.instance) {
-            StatsInvalidatorBGThread.instance = new StatsInvalidatorBGThread();
-        }
-        return StatsInvalidatorBGThread.instance;
-    }
-
     private static instance: StatsInvalidatorBGThread = null;
 
     public current_timeout: number = 20000;
     public MAX_timeout: number = 20000;
     public MIN_timeout: number = 20000;
-
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
 
     private last_update_date_sec: number = null;
 
@@ -42,6 +30,14 @@ export default class StatsInvalidatorBGThread implements IBGThread {
 
     get name(): string {
         return "StatsInvalidatorBGThread";
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!StatsInvalidatorBGThread.instance) {
+            StatsInvalidatorBGThread.instance = new StatsInvalidatorBGThread();
+        }
+        return StatsInvalidatorBGThread.instance;
     }
 
     /**

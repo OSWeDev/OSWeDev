@@ -73,10 +73,6 @@ export default class OseliaRunBGThread implements IBGThread {
     public MAX_timeout: number = 100;
     public MIN_timeout: number = 10;
 
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
-
     private currently_running_thread_ids: { [thread_id: number]: number } = {};
 
     private promise_pipeline: PromisePipeline = new PromisePipeline(10, 'OseliaRunBGThread');

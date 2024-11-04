@@ -77,6 +77,8 @@ import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -342,7 +344,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         await ModuleDAO.getInstance().late_configuration(is_generator);
     }
 
-    public async shift_select_queries(): Promise<void> {
+    public async shift_select_queries(event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO): Promise<void> {
         return ThrottledQueryServerController.shift_select_queries();
     }
 

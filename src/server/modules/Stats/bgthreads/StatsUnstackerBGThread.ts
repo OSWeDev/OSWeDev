@@ -25,23 +25,11 @@ export default class StatsUnstackerBGThread implements IBGThread {
 
     public static TASK_NAME_register_aggregated_stats: string = 'StatsUnstackerBGThread.register_aggregated_stats';
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!StatsUnstackerBGThread.instance) {
-            StatsUnstackerBGThread.instance = new StatsUnstackerBGThread();
-        }
-        return StatsUnstackerBGThread.instance;
-    }
-
     private static instance: StatsUnstackerBGThread = null;
 
     public current_timeout: number = 10000;
     public MAX_timeout: number = 10000;
     public MIN_timeout: number = 10000;
-
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
 
     public exec_in_dedicated_thread: boolean = true;
 
@@ -59,6 +47,14 @@ export default class StatsUnstackerBGThread implements IBGThread {
     private constructor() {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(StatsUnstackerBGThread.TASK_NAME_register_aggregated_stats, this.register_aggregated_stats.bind(this));
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!StatsUnstackerBGThread.instance) {
+            StatsUnstackerBGThread.instance = new StatsUnstackerBGThread();
+        }
+        return StatsUnstackerBGThread.instance;
     }
 
     /**

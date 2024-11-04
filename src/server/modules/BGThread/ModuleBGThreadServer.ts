@@ -3,15 +3,24 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleBGThread from '../../../shared/modules/BGThread/ModuleBGThread';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
+import EventifyEventConfVO from '../../../shared/modules/Eventify/vos/EventifyEventConfVO';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
+import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import EventsController from '../../../shared/modules/Eventify/EventsController';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ForkMessageController from '../Fork/ForkMessageController';
 import ForkServerController from '../Fork/ForkServerController';
@@ -49,6 +58,24 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     public block_param_by_name: { [bgthread_name: string]: boolean } = {};
 
     private block_param_reload_timeout_by_name: { [bgthread_name: string]: number } = {};
+
+    /**
+     * Les évènements pour chaque bgthread qui permettent de lancer une éxécution du bgthread
+     *  A priori on ne l'utilise qu'une fois celui-ci, puisque le reste du temps on est sur is_bgthread, et les autres évènements ça sera plutôt du ASAP
+     */
+    private EVENT_execute_bgthread_CONF_by_bgthread_name: { [bgthread_name: string]: EventifyEventConfVO } = null;
+    /**
+     * Les évènements pour chaque bgthread qui permettent de lancer une éxécution du bgthread ASAP
+     */
+    private ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name: { [bgthread_name: string]: EventifyEventConfVO } = null;
+    /**
+     * Les listeners pour chaque bgthread qui permettent de lancer une éxécution du bgthread - CONF
+     */
+    private LISTENER_execute_bgthread_CONF_by_bgthread_name: { [bgthread_name: string]: EventifyEventListenerConfVO } = null;
+    /**
+     * Les listeners pour chaque bgthread qui permettent de lancer une éxécution du bgthread - INSTANCE
+     */
+    private LISTENER_execute_bgthread_INSTANCE_by_bgthread_name: { [bgthread_name: string]: EventifyEventListenerInstanceVO } = null;
 
     // istanbul ignore next: cannot test module constructor
     private constructor() {
@@ -142,7 +169,9 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                 }
 
                 ConsoleHandler.log("ModuleBGThreadServer.run_ASAP : " + bgthread.name + " :");
-                bgthread.run_asap = true;
+
+                // On force l'execution du bgthread ASAP
+                EventsController.emit_event(EventifyEventInstanceVO.instantiate(await this.get_EVENT_execute_bgthread(bgthread, true)));
 
                 resolve(true);
             });
@@ -183,114 +212,165 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             return;
         }
 
-        this.execute_bgthread(bgthread).then().catch((error) => ConsoleHandler.error(error));
+        ThreadHandler.sleep(bgthread.current_timeout, 'ModuleBGThreadServer.registerBGThread.' + bgthread.name).then(async () => {
+            EventsController.emit_event(EventifyEventInstanceVO.instantiate(await this.get_EVENT_execute_bgthread(bgthread, false)));
+        }).catch((error) => ConsoleHandler.error(error));
+        // this.execute_bgthread(bgthread).then().catch((error) => ConsoleHandler.error(error));
     }
 
     /**
      * lance l'execution du bgthread
      * @param bgthread bgthread à executer
      */
-    private async execute_bgthread(bgthread: IBGThread): Promise<void> {
+    public async execute_bgthread(event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO): Promise<void> {
+
+        const bgthread: IBGThread = BGThreadServerController.registered_BGThreads[event.name.split('_').pop()];
 
         if (!bgthread) {
+            ConsoleHandler.error('BGThread not found for event : ' + event.name);
             return;
         }
 
-        while (true) {
+        /**
+         * On check le bloquage par param toutes les 2 minutes
+         */
+        try {
 
-            // Modif : pour être sûr de pas avoir de boucles infinies, on met l'attente en premier
-            await ThreadHandler.sleep(10, 'ModuleBGThreadServer.execute_bgthread.' + bgthread.name);
+            if ((!this.block_param_reload_timeout_by_name[bgthread.name]) ||
+                (this.block_param_reload_timeout_by_name[bgthread.name] < Dates.now())) {
 
-            /**
-             * On change de méthode, on lance immédiatement si c'est utile/demandé, sinon on attend le timeout
-             */
+                const new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
 
-            // Si déjà lancé, on attend que ça se termine normalement
-            if (bgthread.semaphore) {
-                bgthread.last_run_unix = Dates.now_ms();
-                continue;
+                if (new_param != this.block_param_by_name[bgthread.name]) {
+                    ConsoleHandler.log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
+                }
+
+                this.block_param_by_name[bgthread.name] = new_param;
+                this.block_param_reload_timeout_by_name[bgthread.name] = Dates.now() + 60;
             }
-
-            // Si run_asap, on lance immédiatement
-            let do_run: boolean = bgthread.run_asap;
-
-            // Sinon on check le current_timeout
-            if (!do_run) {
-                if (Dates.now_ms() > (bgthread.last_run_unix + bgthread.current_timeout)) {
-                    do_run = true;
-                }
-            }
-
-            if (!do_run) {
-                continue;
-            }
-
-            bgthread.last_run_unix = Dates.now_ms();
-
-            /**
-             * On check le bloquage par param toutes les minutes
-             */
-            try {
-
-                if ((!this.block_param_reload_timeout_by_name[bgthread.name]) ||
-                    (this.block_param_reload_timeout_by_name[bgthread.name] < Dates.now())) {
-
-                    const new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
-
-                    if (new_param != this.block_param_by_name[bgthread.name]) {
-                        ConsoleHandler.log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
-                    }
-
-                    this.block_param_by_name[bgthread.name] = new_param;
-                    this.block_param_reload_timeout_by_name[bgthread.name] = Dates.now() + 60;
-                }
-
-            } catch (error) {
-                ConsoleHandler.error('OK at start, NOK if all nodes already started :execute_bgthread:block_param_by_name:' + error);
-            }
-
-            if (this.block_param_by_name[bgthread.name]) {
-                continue;
-            }
-
-            try {
-
-                if (!BGThreadServerController.SERVER_READY) {
-                    continue;
-                }
-
-                let timeout_coef: number = 1;
-
-                if (bgthread.semaphore) {
-                    continue;
-                }
-                bgthread.semaphore = true;
-                bgthread.run_asap = false;
-
-                try {
-                    timeout_coef = await bgthread.work();
-                } catch (error) {
-                    ConsoleHandler.error('ModuleBGThreadServer.work error : ' + error);
-                }
-
-                bgthread.semaphore = false;
-                bgthread.last_run_unix = Dates.now_ms();
-
-                if (!timeout_coef) {
-                    timeout_coef = 1;
-                }
-
-                bgthread.current_timeout = bgthread.current_timeout * timeout_coef;
-                if (bgthread.current_timeout > bgthread.MAX_timeout) {
-                    bgthread.current_timeout = bgthread.MAX_timeout;
-                }
-
-                if (bgthread.current_timeout < bgthread.MIN_timeout) {
-                    bgthread.current_timeout = bgthread.MIN_timeout;
-                }
-            } catch (error) {
-                ConsoleHandler.error(error);
-            }
+        } catch (error) {
+            ConsoleHandler.error('OK at start, NOK if all nodes already started :execute_bgthread:block_param_by_name:' + error);
         }
+
+        if (this.block_param_by_name[bgthread.name]) {
+            // Si on est bloqués, on ne fait rien, et on attend au moins les 2 minutes nécessaires pour recharger le param
+            listener.cooldown_ms = Math.max(120000, listener.cooldown_ms);
+            return;
+        }
+
+        try {
+
+            // Si le serveur est pas prêt, on ne fait rien, et on attend au moins 3 secondes
+            if (!BGThreadServerController.SERVER_READY) {
+                listener.cooldown_ms = Math.max(3000, listener.cooldown_ms);
+                return;
+            }
+
+            let timeout_coef: number = 1;
+
+            try {
+                timeout_coef = await bgthread.work();
+            } catch (error) {
+                ConsoleHandler.error('ModuleBGThreadServer.work error : ' + error);
+            }
+
+            if (!timeout_coef) {
+                timeout_coef = 1;
+            }
+
+            listener.cooldown_ms = listener.cooldown_ms * timeout_coef;
+            if (listener.cooldown_ms > bgthread.MAX_timeout) {
+                listener.cooldown_ms = bgthread.MAX_timeout;
+            }
+
+            if (listener.cooldown_ms < bgthread.MIN_timeout) {
+                listener.cooldown_ms = bgthread.MIN_timeout;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    private async get_EVENT_execute_bgthread(
+        bgthread: IBGThread,
+        ASAP: boolean = false,
+    ): Promise<EventifyEventConfVO> {
+        const bgthread_name: string = bgthread.name;
+
+        if (this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name] &&
+            this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name]) {
+            return ASAP ? this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name] :
+                this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name];
+        }
+
+        const event_name = this.get_EVENT_execute_bgthread_NAME(bgthread_name);
+        const ASAP_event_name = event_name + '_ASAP';
+
+        await all_promises([
+            (async () => {
+                this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name] = await query(EventifyEventConfVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<EventifyEventConfVO>().name, event_name)
+                    .exec_as_server()
+                    .unthrottle_query_select()
+                    .select_vo<EventifyEventConfVO>();
+            })(),
+            (async () => {
+                this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name] = await query(EventifyEventConfVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<EventifyEventConfVO>().name, ASAP_event_name)
+                    .exec_as_server()
+                    .unthrottle_query_select()
+                    .select_vo<EventifyEventConfVO>();
+            })(),
+            (async () => {
+                this.LISTENER_execute_bgthread_CONF_by_bgthread_name[bgthread_name] = await query(EventifyEventListenerConfVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<EventifyEventListenerConfVO>().event_conf_name, event_name)
+                    .exec_as_server()
+                    .unthrottle_query_select()
+                    .select_vo<EventifyEventListenerConfVO>();
+            })()
+        ]);
+
+        if (!this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name]) {
+            this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name] = new EventifyEventConfVO();
+            this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name].name = event_name;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name]);
+        }
+
+        if (!this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name]) {
+            this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name] = new EventifyEventConfVO();
+            this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name].name = ASAP_event_name;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name]);
+        }
+
+        if (!this.LISTENER_execute_bgthread_CONF_by_bgthread_name[bgthread_name]) {
+            const LISTENER_execute_bgthread_CONF = new EventifyEventListenerConfVO();
+            LISTENER_execute_bgthread_CONF.event_conf_name = event_name;
+            LISTENER_execute_bgthread_CONF.cb_module_name = ModuleBGThreadServer.getInstance().name;
+            LISTENER_execute_bgthread_CONF.cb_function_name = reflect<ModuleBGThreadServer>().execute_bgthread;
+            LISTENER_execute_bgthread_CONF.cooldown_ms = bgthread.current_timeout;
+            LISTENER_execute_bgthread_CONF.throttled = true;
+            LISTENER_execute_bgthread_CONF.event_conf_id = this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name].id;
+            LISTENER_execute_bgthread_CONF.event_conf_name = event_name;
+            LISTENER_execute_bgthread_CONF.max_calls = 0;
+            LISTENER_execute_bgthread_CONF.name = event_name;
+            LISTENER_execute_bgthread_CONF.is_bgthread = true;
+
+            LISTENER_execute_bgthread_CONF.run_as_soon_as_possible_event_conf_id = this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name].id;
+
+            this.LISTENER_execute_bgthread_CONF_by_bgthread_name[bgthread_name] = LISTENER_execute_bgthread_CONF;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(LISTENER_execute_bgthread_CONF);
+        }
+
+        this.LISTENER_execute_bgthread_INSTANCE_by_bgthread_name[bgthread_name] = EventifyEventListenerInstanceVO.instantiate(this.LISTENER_execute_bgthread_CONF_by_bgthread_name[bgthread_name]);
+        EventsController.register_event_conf(this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name]);
+        EventsController.register_event_conf(this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name]);
+        EventsController.register_event_listener(this.LISTENER_execute_bgthread_INSTANCE_by_bgthread_name[bgthread_name]);
+
+        return ASAP ? this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name] :
+            this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name];
+    }
+
+    private get_EVENT_execute_bgthread_NAME(bgthread_name: string): string {
+        return 'ModuleBGThreadServer.execute_bgthread_' + bgthread_name;
     }
 }

@@ -65,6 +65,34 @@ export default class AccessPolicyServerController {
 
     public static hook_user_login: (email: string, password: string) => Promise<UserVO> = null;
 
+    /**
+ * Global application cache - Brocasted CUD - Local R -----
+ */
+
+    /**
+     * Opti pour le démarrage du serveur
+     */
+    private static registered_dependencies_for_loading_process: { [src_pol_id: number]: { [dst_pol_id: number]: PolicyDependencyVO } } = {};
+
+    private static registered_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {};
+
+    private static registered_users_roles: { [uid: number]: RoleVO[] } = {};
+    private static registered_roles_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {};
+    private static registered_policies_by_ids: { [policy_id: number]: AccessPolicyVO } = {};
+
+    private static registered_roles: { [role_name: string]: RoleVO } = {};
+    private static registered_policy_groups: { [group_name: string]: AccessPolicyGroupVO } = {};
+    private static registered_policies: { [policy_name: string]: AccessPolicyVO } = {};
+    /**
+     * ----- Global application cache - Brocasted CUD - Local R
+     */
+
+    private static instance: AccessPolicyServerController = null;
+
+    private static throttled_reload_access_matrix_computation = ThrottleHelper.declare_throttle_without_args(AccessPolicyServerController.reload_access_matrix_computation.bind(this), 1000);
+
+    private constructor() { }
+
     public static init_tasks() {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_registered_role, AccessPolicyServerController.set_registered_role);
@@ -1236,32 +1264,6 @@ export default class AccessPolicyServerController {
         return false;
     }
 
-    /**
-     * Global application cache - Brocasted CUD - Local R -----
-     */
-
-    /**
-     * Opti pour le démarrage du serveur
-     */
-    private static registered_dependencies_for_loading_process: { [src_pol_id: number]: { [dst_pol_id: number]: PolicyDependencyVO } } = {};
-
-    private static registered_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {};
-
-    private static registered_users_roles: { [uid: number]: RoleVO[] } = {};
-    private static registered_roles_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {};
-    private static registered_policies_by_ids: { [policy_id: number]: AccessPolicyVO } = {};
-
-    private static registered_roles: { [role_name: string]: RoleVO } = {};
-    private static registered_policy_groups: { [group_name: string]: AccessPolicyGroupVO } = {};
-    private static registered_policies: { [policy_name: string]: AccessPolicyVO } = {};
-    /**
-     * ----- Global application cache - Brocasted CUD - Local R
-     */
-
-    private static instance: AccessPolicyServerController = null;
-
-    private static throttled_reload_access_matrix_computation = ThrottleHelper.declare_throttle_without_args(AccessPolicyServerController.reload_access_matrix_computation.bind(this), 1000);
-
     private static hasCleanDependencies(
         target_policy: AccessPolicyVO,
         user_roles: { [role_id: number]: RoleVO },
@@ -1285,6 +1287,4 @@ export default class AccessPolicyServerController {
 
         return true;
     }
-
-    private constructor() { }
 }

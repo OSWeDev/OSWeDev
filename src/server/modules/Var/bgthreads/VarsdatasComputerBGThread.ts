@@ -1,12 +1,15 @@
-import VarDAG from '../../../modules/Var/vos/VarDAG';
+import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import VarDAG from '../../../modules/Var/vos/VarDAG';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import CurrentBatchDSCacheHolder from '../CurrentBatchDSCacheHolder';
 import CurrentVarDAGHolder from '../CurrentVarDAGHolder';
+import ModuleVarServer from '../ModuleVarServer';
 import VarsBGThreadNameHolder from '../VarsBGThreadNameHolder';
 import VarsDatasProxy from '../VarsDatasProxy';
 import VarsDatasVoUpdateHandler from '../VarsDatasVoUpdateHandler';
+import VarsClientsSubsCacheManager from './processes/VarsClientsSubsCacheManager';
 import VarsComputationHole from './processes/VarsComputationHole';
 import VarsProcessCompute from './processes/VarsProcessCompute';
 import VarsProcessDagCleaner from './processes/VarsProcessDagCleaner';
@@ -16,9 +19,6 @@ import VarsProcessLoadDatas from './processes/VarsProcessLoadDatas';
 import VarsProcessNotifyEnd from './processes/VarsProcessNotifyEnd';
 import VarsProcessNotifyStart from './processes/VarsProcessNotifyStart';
 import VarsProcessUpdateDB from './processes/VarsProcessUpdateDB';
-import VarsClientsSubsCacheManager from './processes/VarsClientsSubsCacheManager';
-import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
-import ModuleVarServer from '../ModuleVarServer';
 
 export default class VarsdatasComputerBGThread implements IBGThread {
 
@@ -39,10 +39,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     public MIN_timeout: number = 1;
 
     public exec_in_dedicated_thread: boolean = true;
-
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
 
     public internal_semaphore: boolean = false;
 

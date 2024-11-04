@@ -15,28 +15,25 @@ import ModuleMaintenanceServer from '../ModuleMaintenanceServer';
 
 export default class MaintenanceBGThread implements IBGThread {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!MaintenanceBGThread.instance) {
-            MaintenanceBGThread.instance = new MaintenanceBGThread();
-        }
-        return MaintenanceBGThread.instance;
-    }
-
     private static instance: MaintenanceBGThread = null;
 
     public current_timeout: number = 1000;
     public MAX_timeout: number = 60000;
     public MIN_timeout: number = 1000;
 
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
     private constructor() {
     }
 
     get name(): string {
         return "MaintenanceBGThread";
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!MaintenanceBGThread.instance) {
+            MaintenanceBGThread.instance = new MaintenanceBGThread();
+        }
+        return MaintenanceBGThread.instance;
     }
 
     public async work(): Promise<number> {

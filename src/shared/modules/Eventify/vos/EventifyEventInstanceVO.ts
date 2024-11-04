@@ -20,12 +20,21 @@ export default class EventifyEventInstanceVO implements IDistantVOBase {
 
     public event_conf_id: number;
 
-    public static instantiate(event_conf: EventifyEventConfVO) {
+    public static instantiate(event_conf: EventifyEventConfVO): EventifyEventInstanceVO {
         const res: EventifyEventInstanceVO = new EventifyEventInstanceVO();
 
         res.event_conf_id = event_conf.id;
         res.name = event_conf.name;
         res.instance_uid = event_conf.name + '_' + (EventifyEventInstanceVO.UID++);
+        return res;
+    }
+
+    public static new_event(event_name: string): EventifyEventInstanceVO {
+        const res: EventifyEventInstanceVO = new EventifyEventInstanceVO();
+
+        res.event_conf_id = null;
+        res.name = event_name;
+        res.instance_uid = event_name + '_' + (EventifyEventInstanceVO.UID++);
         return res;
     }
 }

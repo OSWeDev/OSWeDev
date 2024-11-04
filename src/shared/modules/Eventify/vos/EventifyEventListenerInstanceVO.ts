@@ -2,6 +2,7 @@ import ModuleServerBase from '../../../../server/modules/ModuleServerBase';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModulesManager from '../../ModulesManager';
+import EventsController from '../EventsController';
 import EventifyEventInstanceVO from './EventifyEventInstanceVO';
 import EventifyEventListenerConfVO from './EventifyEventListenerConfVO';
 
@@ -11,6 +12,11 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
 
     public id: number;
     public _type: string = EventifyEventListenerInstanceVO.API_TYPE_ID;
+
+    /**
+     * La conf dont est issue l'instance (si elle est issue d'une conf)
+     */
+    public listener_conf_id: number;
 
     /**
      * Nom, pour le retrouver facilement
@@ -123,9 +129,9 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
      */
     public last_cb_run_end_date_ms: number;
 
-    private _cb: () => Promise<any>;
+    private _cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<any>;
 
-    get cb(): () => Promise<any> {
+    get cb(): (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<any> {
 
         return this.initial_getter_cb();
     }
@@ -150,6 +156,24 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
         res.run_as_soon_as_possible = false;
         res.run_as_soon_as_possible_event_conf_id = conf.run_as_soon_as_possible_event_conf_id;
         res.is_bgthread = conf.is_bgthread;
+        res.listener_conf_id = conf.id;
+        return res;
+    }
+
+    public static new_listener(event_name: string, cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<any>): EventifyEventListenerInstanceVO {
+        const res: EventifyEventListenerInstanceVO = new EventifyEventListenerInstanceVO();
+        const event_conf = EventsController.registered_events_conf_by_name[event_name];
+
+        res.name = event_name;
+        res.instance_uid = EventifyEventListenerInstanceVO.get_uid(event_name);
+        res.event_conf_id = event_conf ? event_conf.id : null;
+        res.event_conf_name = event_name;
+        res.throttle_triggered_event_during_cb = false;
+        res.cb_is_running = false;
+        res.cb_is_cooling_down = false;
+        res.last_cb_run_end_date_ms = 0;
+        res.run_as_soon_as_possible = false;
+        res._cb = cb;
         return res;
     }
 
@@ -157,7 +181,7 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
         return name + '_' + EventifyEventListenerInstanceVO.UID++;
     }
 
-    private initial_getter_cb(): () => Promise<any> {
+    private initial_getter_cb(): (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<any> {
 
         if (this._cb == null) {
             try {

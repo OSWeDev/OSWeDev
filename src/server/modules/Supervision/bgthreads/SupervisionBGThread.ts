@@ -19,16 +19,11 @@ export default class SupervisionBGThread implements IBGThread {
     public static MAX_timeout_PARAM_NAME: string = 'SupervisionBGThread.MAX_timeout';
     public static MIN_timeout_PARAM_NAME: string = 'SupervisionBGThread.MIN_timeout';
 
-
     private static instance: SupervisionBGThread = null;
 
     public current_timeout: number = 1000;
     public MAX_timeout: number = 5000;
     public MIN_timeout: number = 100;
-
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
 
     private loaded_param: boolean = false;
 

@@ -19,14 +19,6 @@ export default class CronServerController {
 
     public static ForkedProcessType: string = "CRON";
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!CronServerController.instance) {
-            CronServerController.instance = new CronServerController();
-        }
-        return CronServerController.instance;
-    }
-
     private static instance: CronServerController = null;
 
     /**
@@ -50,6 +42,15 @@ export default class CronServerController {
         ForkMessageController.register_message_handler(RunCronForkMessage.FORK_MESSAGE_TYPE, this.handle_runcron_message.bind(this));
         ForkMessageController.register_message_handler(RunCronsForkMessage.FORK_MESSAGE_TYPE, this.handle_runcrons_message.bind(this));
     }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!CronServerController.instance) {
+            CronServerController.instance = new CronServerController();
+        }
+        return CronServerController.instance;
+    }
+
 
     /**
      * On sait sur quel process il est. si c'est nous, on lance le cron directement,
