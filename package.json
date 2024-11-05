@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.33.3",
+    "version": "0.33.4-pre.1",
     "description": "",
     "repository": {
         "type": "git",
@@ -164,7 +164,7 @@
         "zlib": "1.0.5"
     },
     "devDependencies": {
-        "@playwright/test": "1.35.1",
+        "@playwright/test": "1.48.2",
         "@stylistic/eslint-plugin": "1.6.3",
         "@types/adm-zip": "0.5.0",
         "@types/sharp": "0.29.1",

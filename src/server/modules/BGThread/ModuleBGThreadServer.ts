@@ -63,19 +63,19 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
      * Les évènements pour chaque bgthread qui permettent de lancer une éxécution du bgthread
      *  A priori on ne l'utilise qu'une fois celui-ci, puisque le reste du temps on est sur is_bgthread, et les autres évènements ça sera plutôt du ASAP
      */
-    private EVENT_execute_bgthread_CONF_by_bgthread_name: { [bgthread_name: string]: EventifyEventConfVO } = null;
+    private EVENT_execute_bgthread_CONF_by_bgthread_name: { [bgthread_name: string]: EventifyEventConfVO } = {};
     /**
      * Les évènements pour chaque bgthread qui permettent de lancer une éxécution du bgthread ASAP
      */
-    private ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name: { [bgthread_name: string]: EventifyEventConfVO } = null;
+    private ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name: { [bgthread_name: string]: EventifyEventConfVO } = {};
     /**
      * Les listeners pour chaque bgthread qui permettent de lancer une éxécution du bgthread - CONF
      */
-    private LISTENER_execute_bgthread_CONF_by_bgthread_name: { [bgthread_name: string]: EventifyEventListenerConfVO } = null;
+    private LISTENER_execute_bgthread_CONF_by_bgthread_name: { [bgthread_name: string]: EventifyEventListenerConfVO } = {};
     /**
      * Les listeners pour chaque bgthread qui permettent de lancer une éxécution du bgthread - INSTANCE
      */
-    private LISTENER_execute_bgthread_INSTANCE_by_bgthread_name: { [bgthread_name: string]: EventifyEventListenerInstanceVO } = null;
+    private LISTENER_execute_bgthread_INSTANCE_by_bgthread_name: { [bgthread_name: string]: EventifyEventListenerInstanceVO } = {};
 
     // istanbul ignore next: cannot test module constructor
     private constructor() {
