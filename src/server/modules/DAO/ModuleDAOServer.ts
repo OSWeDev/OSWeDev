@@ -79,6 +79,7 @@ import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -1398,7 +1399,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
         const table_name: string = moduleTable.is_segmented ? moduleTable.get_segmented_full_name(segmented_value) : moduleTable.full_name;
 
-        const debug_insert_without_triggers_using_COPY = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDAOServer.PARAM_NAME_insert_without_triggers_using_COPY, false, 180000);
+        const debug_insert_without_triggers_using_COPY = await ParamsServerController.getParamValueAsBoolean(ModuleDAOServer.PARAM_NAME_insert_without_triggers_using_COPY, false, 180000);
 
         if (debug_insert_without_triggers_using_COPY) {
             ConsoleHandler.log('insert_without_triggers_using_COPY:start');
@@ -2074,7 +2075,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let has_sms_activation: boolean = false;
 
             if (ModuleSendInBlue.getInstance().actif) {
-                has_sms_activation = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION);
+                has_sms_activation = await ParamsServerController.getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION);
             }
 
             let filters = [

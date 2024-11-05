@@ -80,12 +80,12 @@ export default class ModuleAzureConnectServer extends ModuleServerBase {
 
     //     await all_promises([
     //         (async () => {
-    //             ModuleParams.getInstance().getParamValueAsString(ModuleAzureConnect.AZURE_CONNECT_CLIENT_ID_PARAM_NAME, null, 180000).then((res) => {
+    //             ParamsServerController.getParamValueAsString(ModuleAzureConnect.AZURE_CONNECT_CLIENT_ID_PARAM_NAME, null, 180000).then((res) => {
     //                 this.client_id = res;
     //             });
     //         })(),
     //         (async () => {
-    //             ModuleParams.getInstance().getParamValueAsString(ModuleAzureConnect.AZURE_CONNECT_CLIENT_SECRET_PARAM_NAME, null, 180000).then((res) => {
+    //             ParamsServerController.getParamValueAsString(ModuleAzureConnect.AZURE_CONNECT_CLIENT_SECRET_PARAM_NAME, null, 180000).then((res) => {
     //                 this.client_secret = res;
     //             });
     //         })(),

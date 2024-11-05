@@ -57,6 +57,7 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -453,7 +454,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
      */
     public async generate_response(conversation: GPTCompletionAPIConversationVO, newPrompt: GPTCompletionAPIMessageVO): Promise<GPTCompletionAPIMessageVO> {
         try {
-            const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4-turbo-preview", 60000);
+            const modelId = await ParamsServerController.getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4-turbo-preview", 60000);
 
             if (!conversation || !newPrompt) {
                 throw new Error("Invalid conversation or prompt");

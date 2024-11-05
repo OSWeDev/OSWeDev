@@ -3,6 +3,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import VarDAG from '../../../modules/Var/vos/VarDAG';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
+import ParamsServerController from '../../Params/ParamsServerController';
 import CurrentBatchDSCacheHolder from '../CurrentBatchDSCacheHolder';
 import CurrentVarDAGHolder from '../CurrentVarDAGHolder';
 import ModuleVarServer from '../ModuleVarServer';
@@ -72,14 +73,14 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             if (!VarsdatasComputerBGThread.has_retrieved_vos_cud) {
 
                 // Si le flag est actif, on invalide tout
-                const current_tag_value = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
+                const current_tag_value = await ParamsServerController.getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
                 if (current_tag_value) {
                     ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_buffer:VarsDatasVoUpdateHandler_has_ordered_vos_cud:FORCE_EMPTY_VARS_DATAS_VO_UPDATE_CACHE');
                     await ModuleVarServer.getInstance().force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole();
                 }
-                await ModuleParams.getInstance().setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, false);
+                await ParamsServerController.setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, false);
 
-                //     VarsDatasVoUpdateHandler.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValueAsString(
+                //     VarsDatasVoUpdateHandler.set_ordered_vos_cud_from_JSON(await ParamsServerController.getParamValueAsString(
                 //         VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
 
                 VarsdatasComputerBGThread.has_retrieved_vos_cud = true;

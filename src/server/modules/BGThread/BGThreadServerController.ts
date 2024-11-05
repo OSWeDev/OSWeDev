@@ -10,6 +10,7 @@ import ForkMessageController from '../Fork/ForkMessageController';
 import ForkServerController from '../Fork/ForkServerController';
 import BroadcastWrapperForkMessage from '../Fork/messages/BroadcastWrapperForkMessage';
 import KillForkMessage from '../Fork/messages/KillForkMessage';
+import ParamsServerController from '../Params/ParamsServerController';
 import IBGThread from './interfaces/IBGThread';
 import RunBGThreadForkMessage from './messages/RunBGThreadForkMessage';
 import ModuleBGThreadServer from './ModuleBGThreadServer';
@@ -116,7 +117,7 @@ export default class BGThreadServerController {
 
             promises.push((async () => {
                 const last_tick_s = this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name[bgthread_name];
-                const timeout_s = await ModuleParams.getInstance().getParamValueAsInt(BGThreadServerController.PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s + '.' + bgthread_name, null, 60 * 60 * 1000);
+                const timeout_s = await ParamsServerController.getParamValueAsInt(BGThreadServerController.PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s + '.' + bgthread_name, null, 60 * 60 * 1000);
 
                 // Timeout == null || timeout == 0 => pas de timeout
                 if ((!timeout_s) || (!last_tick_s)) {
@@ -129,7 +130,7 @@ export default class BGThreadServerController {
                     if (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
                         ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name]) {
                         await ForkMessageController.send(
-                            new KillForkMessage(await ModuleParams.getInstance().getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
+                            new KillForkMessage(await ParamsServerController.getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
                             ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name].child_process);
                     }
                 }

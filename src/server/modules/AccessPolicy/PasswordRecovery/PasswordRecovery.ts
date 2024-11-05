@@ -16,6 +16,7 @@ import StackContext from '../../../StackContext';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
 import TemplateHandlerServer from '../../Mailer/TemplateHandlerServer';
+import ParamsServerController from '../../Params/ParamsServerController';
 import SendInBlueMailServerController from '../../SendInBlue/SendInBlueMailServerController';
 import SendInBlueSmsServerController from '../../SendInBlue/sms/SendInBlueSmsServerController';
 import ModuleAccessPolicyServer from '../ModuleAccessPolicyServer';
@@ -69,7 +70,7 @@ export default class PasswordRecovery {
 
         await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-        const SEND_IN_BLUE_TEMPLATE_ID: number = await ModuleParams.getInstance().getParamValueAsInt(PasswordRecovery.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
+        const SEND_IN_BLUE_TEMPLATE_ID: number = await ParamsServerController.getParamValueAsInt(PasswordRecovery.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
 
         // Send mail
         if (SEND_IN_BLUE_TEMPLATE_ID) {
@@ -106,7 +107,7 @@ export default class PasswordRecovery {
 
     public async beginRecoverySMS(email: string): Promise<boolean> {
 
-        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+        if (!await ParamsServerController.getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
             return;
         }
 
@@ -117,7 +118,7 @@ export default class PasswordRecovery {
 
     public async beginRecoverySMS_uid(uid: number): Promise<boolean> {
 
-        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+        if (!await ParamsServerController.getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
             return;
         }
 

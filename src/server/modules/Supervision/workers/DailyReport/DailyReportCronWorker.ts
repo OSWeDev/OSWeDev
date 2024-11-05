@@ -16,6 +16,7 @@ import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import ICronWorker from '../../../Cron/interfaces/ICronWorker';
+import ParamsServerController from '../../../Params/ParamsServerController';
 import SendInBlueMailServerController from '../../../SendInBlue/SendInBlueMailServerController';
 import TeamsAPIServerController from '../../../TeamsAPI/TeamsAPIServerController';
 
@@ -71,8 +72,8 @@ export default class DailyReportCronWorker implements ICronWorker {
 
     // istanbul ignore next: nothing to test : send_teams
     private async send_teams(ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] }) {
-        const group_id: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.TEAMS_GROUPID_PARAM_NAME);
-        const channel_id: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.TEAMS_CHANNELID_PARAM_NAME);
+        const group_id: string = await ParamsServerController.getParamValueAsString(DailyReportCronWorker.TEAMS_GROUPID_PARAM_NAME);
+        const channel_id: string = await ParamsServerController.getParamValueAsString(DailyReportCronWorker.TEAMS_CHANNELID_PARAM_NAME);
 
         if (!group_id || !channel_id) {
             ConsoleHandler.log('Envoi du Daily Report de Supervision ignoré pour Teams, les 2 paramètres requis ne sont pas initialisés :' + DailyReportCronWorker.TEAMS_GROUPID_PARAM_NAME + ':' + DailyReportCronWorker.TEAMS_CHANNELID_PARAM_NAME + ':');
@@ -162,11 +163,11 @@ export default class DailyReportCronWorker implements ICronWorker {
             return;
         }
 
-        const SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TEMPLATEID_PARAM_NAME);
+        const SEND_IN_BLUE_TEMPLATE_ID_s: string = await ParamsServerController.getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TEMPLATEID_PARAM_NAME);
         const SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
-        const SEND_IN_BLUE_TONAME: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TONAME_PARAM_NAME);
-        const SEND_IN_BLUE_TOMAIL: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TOMAIL_PARAM_NAME);
+        const SEND_IN_BLUE_TONAME: string = await ParamsServerController.getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TONAME_PARAM_NAME);
+        const SEND_IN_BLUE_TOMAIL: string = await ParamsServerController.getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TOMAIL_PARAM_NAME);
 
         if ((!!SEND_IN_BLUE_TEMPLATE_ID) && (!!SEND_IN_BLUE_TOMAIL) && (!!SEND_IN_BLUE_TONAME)) {
 

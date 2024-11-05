@@ -14,6 +14,7 @@ import { field_names } from "../../../shared/tools/ObjectHandler";
 import ConfigurationService from "../../env/ConfigurationService";
 import ModuleAccessPolicyServer from "../AccessPolicy/ModuleAccessPolicyServer";
 import ModuleDAOServer from "../DAO/ModuleDAOServer";
+import ParamsServerController from "../Params/ParamsServerController";
 
 
 /**
@@ -84,12 +85,12 @@ export default abstract class PlayWrightServerController {
             throw new Error('PlayWrightServerController: login should not be called in prod');
         }
 
-        let test_user_name: string = await ModuleParams.getInstance().getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_NAME);
-        let test_user_email: string = await ModuleParams.getInstance().getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_EMAIL);
-        let test_user_firstname: string = await ModuleParams.getInstance().getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_FIRSTNAME);
-        let test_user_lastname: string = await ModuleParams.getInstance().getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_LASTNAME);
+        let test_user_name: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_NAME);
+        let test_user_email: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_EMAIL);
+        let test_user_firstname: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_FIRSTNAME);
+        let test_user_lastname: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_LASTNAME);
         const test_user_password: string = MatroidIndexHandler.base_10_num_to_base_76_txt(10000 + Math.round(Math.random() * 100000000000)) + MatroidIndexHandler.base_10_num_to_base_76_txt(10000 + Math.round(Math.random() * 100000000000)) + MatroidIndexHandler.base_10_num_to_base_76_txt(10000 + Math.round(Math.random() * 100000000000));
-        let test_user_phone: string = await ModuleParams.getInstance().getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_PHONE);
+        let test_user_phone: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_PHONE);
 
         if (!test_user_email) {
             if (ConfigurationService.node_configuration.debug_playwright_controller) {

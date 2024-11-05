@@ -9,6 +9,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import ParamsServerController from '../../Params/ParamsServerController';
 import PushDataServerController from '../../PushData/PushDataServerController';
 import MaintenanceServerController from '../MaintenanceServerController';
 import ModuleMaintenanceServer from '../ModuleMaintenanceServer';
@@ -64,9 +65,9 @@ export default class MaintenanceBGThread implements IBGThread {
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
-            const timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120, 180000);
-            const timeout_minutes_msg2: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES, 15, 180000);
-            const timeout_minutes_msg3: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES, 5, 180000);
+            const timeout_minutes_msg1: number = await ParamsServerController.getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120, 180000);
+            const timeout_minutes_msg2: number = await ParamsServerController.getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES, 15, 180000);
+            const timeout_minutes_msg3: number = await ParamsServerController.getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES, 5, 180000);
 
             let changed: boolean = false;
 

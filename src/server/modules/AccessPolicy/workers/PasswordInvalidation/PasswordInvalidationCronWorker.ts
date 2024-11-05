@@ -16,6 +16,7 @@ import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import ModuleAccessPolicyServer from '../../ModuleAccessPolicyServer';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import TemplateHandlerServer from '../../../Mailer/TemplateHandlerServer';
+import ParamsServerController from '../../../Params/ParamsServerController';
 
 
 export default class PasswordInvalidationCronWorker implements ICronWorker {
@@ -63,9 +64,9 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
 
         PasswordInvalidationController.getInstance().get_users_to_remind_and_invalidate(
             users,
-            await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD1_DAYS),
-            await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD2_DAYS),
-            await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_PWD_INVALIDATION_DAYS),
+            await ParamsServerController.getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD1_DAYS),
+            await ParamsServerController.getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD2_DAYS),
+            await ParamsServerController.getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_PWD_INVALIDATION_DAYS),
             users_to_remind_1,
             users_to_remind_2,
             users_to_invalidate);
@@ -76,7 +77,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
             user.reminded_pwd_1 = true;
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-            const REMIND1_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_REMIND1_SEND_IN_BLUE_TEMPLATE_ID);
+            const REMIND1_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ParamsServerController.getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_REMIND1_SEND_IN_BLUE_TEMPLATE_ID);
             const REMIND1_SEND_IN_BLUE_TEMPLATE_ID: number = REMIND1_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(REMIND1_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
             // Send mail
@@ -119,7 +120,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
             user.reminded_pwd_2 = true;
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-            const REMIND2_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_REMIND2_SEND_IN_BLUE_TEMPLATE_ID);
+            const REMIND2_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ParamsServerController.getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_REMIND2_SEND_IN_BLUE_TEMPLATE_ID);
             const REMIND2_SEND_IN_BLUE_TEMPLATE_ID: number = REMIND2_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(REMIND2_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
             // Send mail
@@ -164,7 +165,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
             user.reminded_pwd_2 = true;
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-            const INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID);
+            const INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ParamsServerController.getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID);
             const INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID: number = INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
             // Send mail

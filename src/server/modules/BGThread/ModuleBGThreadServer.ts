@@ -29,6 +29,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import BGThreadServerController from './BGThreadServerController';
 import IBGThread from './interfaces/IBGThread';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
 
@@ -192,7 +193,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                 if (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
                     ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name]) {
                     await ForkMessageController.send(
-                        new KillForkMessage(await ModuleParams.getInstance().getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
+                        new KillForkMessage(await ParamsServerController.getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
                         ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name].child_process);
                 }
             };
@@ -239,7 +240,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             if ((!this.block_param_reload_timeout_by_name[bgthread.name]) ||
                 (this.block_param_reload_timeout_by_name[bgthread.name] < Dates.now())) {
 
-                const new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
+                const new_param = await ParamsServerController.getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
 
                 if (new_param != this.block_param_by_name[bgthread.name]) {
                     ConsoleHandler.log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));

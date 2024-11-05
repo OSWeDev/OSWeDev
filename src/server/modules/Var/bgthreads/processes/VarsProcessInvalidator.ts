@@ -8,6 +8,7 @@ import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../../../DAO/vos/DAOUpdateVOHolder';
 import ModuleParamsServer from '../../../Params/ModuleParamsServer';
+import ParamsServerController from '../../../Params/ParamsServerController';
 import CurrentBatchDSCacheHolder from '../../CurrentBatchDSCacheHolder';
 import ModuleVarServer from '../../ModuleVarServer';
 import VarsDatasVoUpdateHandler from '../../VarsDatasVoUpdateHandler';
@@ -78,8 +79,8 @@ export default class VarsProcessInvalidator {
                 ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:IN');
             }
 
-            const max_invalidators = await ModuleParams.getInstance().getParamValueAsInt(VarsProcessInvalidator.max_invalidators_param_name, 500, 30000);
-            const max_ordered_vos_cud = await ModuleParams.getInstance().getParamValueAsInt(VarsProcessInvalidator.max_ordered_vos_cud_param_name, 200, 30000);
+            const max_invalidators = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_invalidators_param_name, 500, 30000);
+            const max_ordered_vos_cud = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_ordered_vos_cud_param_name, 200, 30000);
 
             if (await this.check_if_needs_to_invalidate_all_vars(max_invalidators, max_ordered_vos_cud)) {
                 await ModuleVarServer.getInstance().force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole();
@@ -264,8 +265,8 @@ export default class VarsProcessInvalidator {
             Math.floor(VarsDatasVoUpdateHandler.invalidators.length / max_invalidators) * ten_last_intersectors_invalidations_duration_mean +
             Math.floor(VarsDatasVoUpdateHandler.ordered_vos_cud.length / max_ordered_vos_cud) * ten_last_vocuds_invalidations_duration_mean;
         if (!!intersectors_invalidations_duration_remaining_estimation) {
-            const timeout_ms_invalidation = await ModuleParams.getInstance().getParamValueAsInt(VarsProcessInvalidator.timeout_ms_invalidation_param_name, 60000, 30000);
-            const timeout_ms_log = await ModuleParams.getInstance().getParamValueAsInt(VarsProcessInvalidator.timeout_ms_log_param_name, 3000, 30000);
+            const timeout_ms_invalidation = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_invalidation_param_name, 60000, 30000);
+            const timeout_ms_log = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_log_param_name, 3000, 30000);
 
             if (intersectors_invalidations_duration_remaining_estimation >= timeout_ms_log) {
                 ConsoleHandler.log('VarsProcessInvalidator:check_if_needs_to_invalidate_all_vars:intersectors_invalidations_duration_remaining_estimation:LOG:' + intersectors_invalidations_duration_remaining_estimation + 'ms (log >= ' + timeout_ms_log + 'ms, invalidation >= ' + timeout_ms_invalidation + 'ms)');

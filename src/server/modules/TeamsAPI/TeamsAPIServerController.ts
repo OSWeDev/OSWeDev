@@ -19,6 +19,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 import ActionURLServerTools from '../ActionURL/ActionURLServerTools';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleOseliaServer from '../Oselia/ModuleOseliaServer';
+import ParamsServerController from '../Params/ParamsServerController';
 import SendTeamsLevelParam from './SendTeamsLevelParam';
 
 export default class TeamsAPIServerController {
@@ -354,13 +355,13 @@ export default class TeamsAPIServerController {
         channelid_default_value: string = null,
     ) {
         try {
-            let group_id: string = groupid_param_name ? await ModuleParams.getInstance().getParamValueAsString(groupid_param_name, groupid_default_value, 180000) : null;
+            let group_id: string = groupid_param_name ? await ParamsServerController.getParamValueAsString(groupid_param_name, groupid_default_value, 180000) : null;
             if ((!group_id) && groupid_param_name) {
                 ConsoleHandler.warn('TeamsAPIServerController.send_teams_level:Le paramètre "' + groupid_param_name + '" n\'a pas été trouvé, on utilise la valeur par défaut de configuration "' + ConfigurationService.node_configuration.teams_groupid__tech) + '"';
             }
             group_id = group_id ? group_id : ConfigurationService.node_configuration.teams_groupid__tech;
 
-            let channel_id: string = channelid_param_name ? await ModuleParams.getInstance().getParamValueAsString(channelid_param_name, channelid_default_value, 180000) : null;
+            let channel_id: string = channelid_param_name ? await ParamsServerController.getParamValueAsString(channelid_param_name, channelid_default_value, 180000) : null;
             if ((!channel_id) && channelid_param_name) {
                 ConsoleHandler.warn('TeamsAPIServerController.send_teams_level:Le paramètre "' + channelid_param_name + '" n\'a pas été trouvé, on utilise la valeur par défaut de configuration "' + ConfigurationService.node_configuration['teams_channelid__tech_' + level.toLowerCase()] + '"');
             }

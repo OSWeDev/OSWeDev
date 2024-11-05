@@ -14,6 +14,7 @@ import PixelVarDataController from '../../PixelVarDataController';
 import VarsCacheController from '../../VarsCacheController';
 import VarsDatasProxy from '../../VarsDatasProxy';
 import VarsProcessBase from './VarsProcessBase';
+import ParamsServerController from '../../../Params/ParamsServerController';
 
 export default class VarsProcessUpdateDB extends VarsProcessBase {
 
@@ -131,7 +132,7 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
         const res_by_type: { [type: string]: { [index: string]: VarDAGNode } } = {};
 
         // A priori la limite à pas à être de 2700, le champ est compressé par la suite, mais ça permet d'être sûr
-        const limit = await ModuleParams.getInstance().getParamValueAsInt(VarsDatasProxy.PARAM_NAME_filter_var_datas_by_index_size_limit, 2700, 180000);
+        const limit = await ParamsServerController.getParamValueAsInt(VarsDatasProxy.PARAM_NAME_filter_var_datas_by_index_size_limit, 2700, 180000);
 
         for (const _type in nodes_by_type_and_index) {
             const nodes: { [index: string]: VarDAGNode } = nodes_by_type_and_index[_type];

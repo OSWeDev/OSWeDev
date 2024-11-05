@@ -73,6 +73,7 @@ import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuild
 import OseliaRunFunctionCallVO from '../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
 import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -847,7 +848,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 return 'ERREUR: Impossible de trouver le run oselia associé au run gpt. Il peut être pertinent de retenter un appel à la fonction';
             }
 
-            const prefix_prompt_step_oselia = await ModuleParams.getInstance().getParamValueAsString(OseliaRunServerController.PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX);
+            const prefix_prompt_step_oselia = await ParamsServerController.getParamValueAsString(OseliaRunServerController.PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX);
 
             if (!prefix_prompt_step_oselia) {
                 ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le paramètre de configuration:' + OseliaRunServerController.PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX);
@@ -2072,7 +2073,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     throw new Error('validate_run:forgot to validate: No validate_run_function or refuse_run_function found');
                 }
 
-                const prompt_prefix_validator = await ModuleParams.getInstance().getParamValueAsString(
+                const prompt_prefix_validator = await ParamsServerController.getParamValueAsString(
                     OseliaRunServerController.PARAM_NAME_REMEMBER_TO_VALIDATE_PROMPT_PREFIX,
                     'Il est obligatoire de valider ou refuser explicitement le run en appelant la fonction validate_run_function ou refuse_run_function.'
                 );

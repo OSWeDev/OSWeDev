@@ -3,6 +3,7 @@ import axios from "axios";
 import qs from "qs";
 import ModuleParams from "../../../shared/modules/Params/ModuleParams";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
+import ParamsServerController from "../Params/ParamsServerController";
 
 export default class AzureConnectServerController {
 
@@ -53,9 +54,9 @@ export default class AzureConnectServerController {
                 return null;
             }
 
-            const tenant_id = await ModuleParams.getInstance().getParamValueAsString(tenant_id_param_name);
-            const client_id = await ModuleParams.getInstance().getParamValueAsString(client_id_param_name);
-            const client_secret = await ModuleParams.getInstance().getParamValueAsString(client_secret_param_name);
+            const tenant_id = await ParamsServerController.getParamValueAsString(tenant_id_param_name);
+            const client_id = await ParamsServerController.getParamValueAsString(client_id_param_name);
+            const client_secret = await ParamsServerController.getParamValueAsString(client_secret_param_name);
 
             if (!tenant_id || !client_id || !client_secret) {
                 ConsoleHandler.error('get_registered_azure_client: no tenant_id or client_id or client_secret found for registration_name: ' + registration_name);

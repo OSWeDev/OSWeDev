@@ -68,6 +68,7 @@ import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXL
 import default_export_mail_html_template from './default_export_mail_html_template.html';
 import TableWidgetManager from '../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
 import TemplateHandlerServer from '../Mailer/TemplateHandlerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -605,11 +606,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             let SEND_IN_BLUE_TEMPLATE_ID: number = null;
 
             if (send_email_with_export_notification) {
-                SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(
+                SEND_IN_BLUE_TEMPLATE_ID = await ParamsServerController.getParamValueAsInt(
                     ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_EXPORT_NOTIFICATION_TEMPLATE_ID
                 );
             } else {
-                SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(
+                SEND_IN_BLUE_TEMPLATE_ID = await ParamsServerController.getParamValueAsInt(
                     ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID
                 );
             }

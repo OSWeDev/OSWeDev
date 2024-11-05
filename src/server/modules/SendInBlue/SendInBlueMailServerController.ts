@@ -16,6 +16,7 @@ import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleMailerServer from '../Mailer/ModuleMailerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 import SendInBlueServerController from './SendInBlueServerController';
 
 export default class SendInBlueMailServerController {
@@ -173,8 +174,8 @@ export default class SendInBlueMailServerController {
              *  PARAM_NAME_TEMPLATE_CC_PREFIX + template_id
              *  PARAM_NAME_TEMPLATE_BCC_PREFIX + template_id
              */
-            const param_cc = await ModuleParams.getInstance().getParamValueAsString(ModuleSendInBlue.PARAM_NAME_TEMPLATE_CC_PREFIX + templateId);
-            const param_bcc = await ModuleParams.getInstance().getParamValueAsString(ModuleSendInBlue.PARAM_NAME_TEMPLATE_BCC_PREFIX + templateId);
+            const param_cc = await ParamsServerController.getParamValueAsString(ModuleSendInBlue.PARAM_NAME_TEMPLATE_CC_PREFIX + templateId);
+            const param_bcc = await ParamsServerController.getParamValueAsString(ModuleSendInBlue.PARAM_NAME_TEMPLATE_BCC_PREFIX + templateId);
             if (param_cc && param_cc.length) {
                 if (!postParams.cc) {
                     postParams.cc = [];

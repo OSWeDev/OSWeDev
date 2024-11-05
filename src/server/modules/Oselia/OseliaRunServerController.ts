@@ -16,6 +16,7 @@ import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
 import ModuleOseliaServer from './ModuleOseliaServer';
 import ConfigurationService from '../../env/ConfigurationService';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class OseliaRunServerController {
 
@@ -357,10 +358,10 @@ export default class OseliaRunServerController {
                 }
 
                 // Une fois qu'on a initialisé le prompt du run, on peut init les prompts potentiels du split et de la validation
-                const prompt_prefix_split = await ModuleParams.getInstance().getParamValueAsString(OseliaRunServerController.PARAM_NAME_SPLITTER_PROMPT_PREFIX);
+                const prompt_prefix_split = await ParamsServerController.getParamValueAsString(OseliaRunServerController.PARAM_NAME_SPLITTER_PROMPT_PREFIX);
                 run.initialised_splitter_prompt = (prompt_prefix_split ? prompt_prefix_split + ' ' : '') + run.initialised_run_prompt;
 
-                const prompt_prefix_validator = await ModuleParams.getInstance().getParamValueAsString(OseliaRunServerController.PARAM_NAME_VALIDATOR_PROMPT_PREFIX);
+                const prompt_prefix_validator = await ParamsServerController.getParamValueAsString(OseliaRunServerController.PARAM_NAME_VALIDATOR_PROMPT_PREFIX);
                 run.initialised_validator_prompt = (prompt_prefix_validator ? prompt_prefix_validator + ' ' : '') + run.initialised_run_prompt;
 
                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run);

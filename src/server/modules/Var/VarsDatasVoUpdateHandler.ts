@@ -31,6 +31,7 @@ import VarsServerCallBackSubsController from './VarsServerCallBackSubsController
 import VarsServerController from './VarsServerController';
 import VarsClientsSubsCacheHolder from './bgthreads/processes/VarsClientsSubsCacheHolder';
 import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCacheManager';
+import ParamsServerController from '../Params/ParamsServerController';
 
 /**
  * On gère le buffer des mises à jour de vos en lien avec des vars pour invalider au plus vite les vars en cache en cas de modification d'un VO
@@ -348,15 +349,15 @@ export default class VarsDatasVoUpdateHandler {
 
         // On flag, si c'est pas déjà le cas, le fait que des cuds sont en attente, ou pas
         let new_tag_value = VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0);
-        let old_tag_value = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
+        let old_tag_value = await ParamsServerController.getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
 
         if (new_tag_value == old_tag_value) {
             return;
         }
 
-        await ModuleParams.getInstance().setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, new_tag_value);
+        await ParamsServerController.setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, new_tag_value);
 
-        // await ModuleParams.getInstance().setParamValue(
+        // await ParamsServerController.setParamValue(
         //     VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME,
         //     VarsDatasVoUpdateHandler.getJSONFrom_ordered_vos_cud());
     }
@@ -1015,7 +1016,7 @@ export default class VarsDatasVoUpdateHandler {
             return;
         }
 
-        const block_ordered_vos_cud: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(
+        const block_ordered_vos_cud: boolean = await ParamsServerController.getParamValueAsBoolean(
             VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME,
             false,
             5000, // 5 sec

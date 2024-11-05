@@ -70,6 +70,8 @@ import PingForkMessage from './modules/Fork/messages/PingForkMessage';
 import OseliaServerController from './modules/Oselia/OseliaServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
+import ModuleParamsServer from './modules/Params/ModuleParamsServer';
+import ParamsServerController from './modules/Params/ParamsServerController';
 
 export default abstract class ServerBase {
 
@@ -314,7 +316,7 @@ export default abstract class ServerBase {
                  *  - par status
                  *  - par temps de réponse - en 2 catégories : toutes les requêtes et les requêtes qui ont pris plus de 1s (paramétrable)
                  */
-                const slow_queries_limit = await ModuleParams.getInstance().getParamValueAsInt(
+                const slow_queries_limit = await ParamsServerController.getParamValueAsInt(
                     ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME, 1000, 300000
                 );
                 if (time > slow_queries_limit) {
@@ -806,11 +808,11 @@ export default abstract class ServerBase {
                 api_req.push("DATE:" + date + " || UID:" + uid + " || SID:" + sid + " || URL:" + req.url);
             }
 
-            await ForkedTasksController.exec_self_on_bgthread(
-                AccessPolicyDeleteSessionBGThread.getInstance().name,
-                AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs,
-                api_req
-            );
+            // await ForkedTasksController.exec_self_on_bgthread(
+            //     AccessPolicyDeleteSessionBGThread.getInstance().name,
+            //     AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs,
+            //     api_req
+            // );
 
             // Génération à la volée des images en fonction du format demandé
             if (req.url.indexOf(ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/')) == 0) {
@@ -1146,7 +1148,7 @@ export default abstract class ServerBase {
             // await ThreadHandler.sleep(1000);
             // res.redirect('/');
 
-            const PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
+            const PARAM_TECH_DISCONNECT_URL: string = await ParamsServerController.getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
 
             if (ConfigurationService.node_configuration.log_login_redirects) {
                 ConsoleHandler.log('ServerBase:redirect_login_or_home:redirecting:logout to ' + PARAM_TECH_DISCONNECT_URL);
