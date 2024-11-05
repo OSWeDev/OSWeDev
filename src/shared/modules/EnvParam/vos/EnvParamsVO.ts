@@ -86,6 +86,8 @@ export default class EnvParamsVO implements IDistantVOBase {
     // MUTE__NO_SORT_BY_BUT_QUERY_LIMIT?: boolean;
     public mute__no_sort_by_but_query_limit: boolean;
 
+    public debug_playwright_controller: boolean;
+
     // DEBUG_SLOW_QUERIES_MS_LIMIT?: number;
     public debug_slow_queries_ms_limit: number;
 

@@ -138,6 +138,8 @@ export default class ModuleEnvParam extends Module {
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_reruns_of_oselia, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug reruns of Oselia', true, true, false);
 
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_playwright_controller, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug Playwright controller', true, true, false);
+
         // DEBUG_SLOW_QUERIES_MS_LIMIT ?: number;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_slow_queries_ms_limit, ModuleTableFieldVO.FIELD_TYPE_int, 'Debug slow queries ms limit', false);
         // DEBUG_SLOW_QUERIES ?: boolean;

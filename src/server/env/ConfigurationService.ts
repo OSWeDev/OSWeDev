@@ -24,7 +24,7 @@ export default class ConfigurationService {
     /**
      * Local thread cache -----
      */
-    private static nodeEnv: string;
+    public static nodeEnv: string;
     private static STATIC_ENV_PARAMS: { [env: string]: IEnvParam };
     /**
      * ----- Local thread cache

@@ -39,6 +39,10 @@ export default abstract class PlayWrightServerController {
     public static PARAM_NAME_TEST_USER_LASTNAME: string = "PlayWrightServerController.TEST_USER_LASTNAME";
     public static PARAM_NAME_TEST_USER_PHONE: string = "PlayWrightServerController.TEST_USER_PHONE";
 
+    protected static instance: PlayWrightServerController = null;
+
+    protected constructor() { }
+
     public static test_title_to_method_name(test_title: string): string {
         return test_title.replace(/[^a-bA-B0-9]/g, '_');
     }
@@ -48,20 +52,10 @@ export default abstract class PlayWrightServerController {
         return PlayWrightServerController.instance;
     }
 
-    protected static instance: PlayWrightServerController = null;
-
-    protected constructor() { }
-
     public async setup_and_login(): Promise<string> {
         await this.login();
         return await this.setup();
     }
-
-    public abstract setup(): Promise<string>;
-    // public abstract global_setup(): Promise<void>;
-    // public abstract global_teardown(): Promise<void>;
-    public abstract after_all(): Promise<void>;
-    public abstract before_all(): Promise<void>;
 
     public async after_each(test_title: string): Promise<void> {
         test_title = PlayWrightServerController.test_title_to_method_name(test_title);
@@ -98,7 +92,9 @@ export default abstract class PlayWrightServerController {
         let test_user_phone: string = await ModuleParams.getInstance().getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_PHONE);
 
         if (!test_user_email) {
-            ConsoleHandler.log('PlayWrightServerController: test_user_email not found, generating random user');
+            if (ConfigurationService.node_configuration.debug_playwright_controller) {
+                ConsoleHandler.log('PlayWrightServerController: test_user_email not found, generating random user');
+            }
             test_user_email = 'playwright_test_user_email' + Math.round(Math.random() * 1000000) + '@wedev.fr';
 
             test_user_name = 'playwright_test_user_name' + Math.round(Math.random() * 1000000);
@@ -133,16 +129,20 @@ export default abstract class PlayWrightServerController {
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(test_user_phone_param);
         }
 
-        ConsoleHandler.log('PlayWrightServerController: test_user_name: ' + test_user_name);
-        ConsoleHandler.log('PlayWrightServerController: test_user_email: ' + test_user_email);
-        ConsoleHandler.log('PlayWrightServerController: test_user_firstname: ' + test_user_firstname);
-        ConsoleHandler.log('PlayWrightServerController: test_user_lastname: ' + test_user_lastname);
-        ConsoleHandler.log('PlayWrightServerController: test_user_phone: ' + test_user_phone);
+        if (ConfigurationService.node_configuration.debug_playwright_controller) {
+            ConsoleHandler.log('PlayWrightServerController: test_user_name: ' + test_user_name);
+            ConsoleHandler.log('PlayWrightServerController: test_user_email: ' + test_user_email);
+            ConsoleHandler.log('PlayWrightServerController: test_user_firstname: ' + test_user_firstname);
+            ConsoleHandler.log('PlayWrightServerController: test_user_lastname: ' + test_user_lastname);
+            ConsoleHandler.log('PlayWrightServerController: test_user_phone: ' + test_user_phone);
+        }
 
         let test_user = await query(UserVO.API_TYPE_ID).filter_by_text_eq(field_names<UserVO>().email, test_user_email).exec_as_server().select_vo<UserVO>();
 
         if (!test_user || !test_user.id) {
-            ConsoleHandler.log('PlayWrightServerController: test_user not found, creating it');
+            if (ConfigurationService.node_configuration.debug_playwright_controller) {
+                ConsoleHandler.log('PlayWrightServerController: test_user not found, creating it');
+            }
             test_user = new UserVO();
             test_user.name = test_user_name;
             test_user.email = test_user_email;
@@ -164,10 +164,15 @@ export default abstract class PlayWrightServerController {
             if (!rôle_admin || !rôle_admin.id) {
                 throw new Error('PlayWrightServerController: rôle admin should exist');
             }
-            ConsoleHandler.log('PlayWrightServerController: adding rôle admin to test_user');
+
+            if (ConfigurationService.node_configuration.debug_playwright_controller) {
+                ConsoleHandler.log('PlayWrightServerController: adding rôle admin to test_user');
+            }
             await ModuleAccessPolicyServer.getInstance().addRoleToUser(test_user.id, rôle_admin.id, true);
         } else {
-            ConsoleHandler.log('PlayWrightServerController: test_user found, updating its password');
+            if (ConfigurationService.node_configuration.debug_playwright_controller) {
+                ConsoleHandler.log('PlayWrightServerController: test_user found, updating its password');
+            }
 
             // dans tous les cas on reset le mot de passe à chaque session
             await query(UserVO.API_TYPE_ID).filter_by_id(test_user.id).exec_as_server().update_vos<UserVO>({
@@ -179,7 +184,15 @@ export default abstract class PlayWrightServerController {
             throw new Error('PlayWrightServerController: test_user.id should not be null');
         }
 
-        ConsoleHandler.log('PlayWrightServerController: logging in test_user.id: ' + test_user.id);
+        if (ConfigurationService.node_configuration.debug_playwright_controller) {
+            ConsoleHandler.log('PlayWrightServerController: logging in test_user.id: ' + test_user.id);
+        }
         await ModuleAccessPolicyServer.getInstance().login(test_user.id);
     }
+
+    public abstract setup(): Promise<string>;
+    // public abstract global_setup(): Promise<void>;
+    // public abstract global_teardown(): Promise<void>;
+    public abstract after_all(): Promise<void>;
+    public abstract before_all(): Promise<void>;
 }
