@@ -28,7 +28,6 @@ import FormattedImageVO from '../shared/modules/ImageFormat/vos/FormattedImageVO
 import ImageFormatVO from '../shared/modules/ImageFormat/vos/ImageFormatVO';
 import ModuleMaintenance from '../shared/modules/Maintenance/ModuleMaintenance';
 import ModulesManager from '../shared/modules/ModulesManager';
-import ModuleParams from '../shared/modules/Params/ModuleParams';
 import ModulePushData from '../shared/modules/PushData/ModulePushData';
 import StatsController from '../shared/modules/Stats/StatsController';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
@@ -43,7 +42,6 @@ import ConfigurationService from './env/ConfigurationService';
 import EnvParam from './env/EnvParam';
 import AccessPolicyServerController from './modules/AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
-import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/AccessPolicyDeleteSessionBGThread';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
 import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
@@ -68,10 +66,9 @@ import ForkMessageController from './modules/Fork/ForkMessageController';
 import IFork from './modules/Fork/interfaces/IFork';
 import PingForkMessage from './modules/Fork/messages/PingForkMessage';
 import OseliaServerController from './modules/Oselia/OseliaServerController';
+import ParamsServerController from './modules/Params/ParamsServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
-import ModuleParamsServer from './modules/Params/ModuleParamsServer';
-import ParamsServerController from './modules/Params/ParamsServerController';
 
 export default abstract class ServerBase {
 
@@ -288,10 +285,12 @@ export default abstract class ServerBase {
         }
         this.app = express();
 
-        this.app.use('/client/public/', express.static('dist/public/client/'));
-        this.app.use('/admin/public/', express.static('dist/public/admin/'));
-        this.app.use('/login/public/', express.static('dist/public/login/'));
-        this.app.use('/vuejsclient/public/', express.static('dist/public/vuejsclient/'));
+        // this.app.use('/client/public/', express.static('dist/public/client/'));
+        // this.app.use('/admin/public/', express.static('dist/public/admin/'));
+        // this.app.use('/login/public/', express.static('dist/public/login/'));
+        // this.app.use('/vuejsclient/public/', express.static('dist/public/vuejsclient/'));
+
+        this.app.use('/public', express.static('dist/public'));
 
         this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), express.static(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '')));
 
@@ -591,38 +590,37 @@ export default abstract class ServerBase {
         }
 
         // Use this instead
-        // this.app.use('/public', express.static('dist/public'));
-        this.app.get('/public/*', async (req, res, next) => {
+        // this.app.get('/public/*', async (req, res, next) => {
 
-            const url = path.normalize(decodeURIComponent(req.path));
-            const normalized = path.resolve('./dist' + url);
+        //     const url = path.normalize(decodeURIComponent(req.path));
+        //     const normalized = path.resolve('./dist' + url);
 
-            if (!this.ROOT_FOLDER) {
-                this.ROOT_FOLDER = path.resolve('./');
-            }
+        //     if (!this.ROOT_FOLDER) {
+        //         this.ROOT_FOLDER = path.resolve('./');
+        //     }
 
-            // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
-            // On fait la chasse aux sync
-            if (!normalized.startsWith(this.ROOT_FOLDER)) {
-                StatsController.register_stat_COMPTEUR('express', 'public', 'strange_normalized_url');
+        //     // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
+        //     // On fait la chasse aux sync
+        //     if (!normalized.startsWith(this.ROOT_FOLDER)) {
+        //         StatsController.register_stat_COMPTEUR('express', 'public', 'strange_normalized_url');
 
-                const uid = req.session ? req.session.uid : null;
-                const client_tab_id = req.headers ? req.headers.client_tab_id : null;
+        //         const uid = req.session ? req.session.uid : null;
+        //         const client_tab_id = req.headers ? req.headers.client_tab_id : null;
 
-                if (uid && /^\/public\/[^/]+\.js$/i.test(url)) {
-                    StatsController.register_stat_COMPTEUR('express', 'public', 'reload');
-                    ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload after failing loading component");
-                    await PushDataServerController.notifyTabReload(uid, client_tab_id);
-                } else {
-                    ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + url + ": no uid or not a component - doing nothing...:uid:" + uid + ":client_tab_id:" + client_tab_id);
-                }
+        //         if (uid && /^\/public\/[^/]+\.js$/i.test(url)) {
+        //             StatsController.register_stat_COMPTEUR('express', 'public', 'reload');
+        //             ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload after failing loading component");
+        //             await PushDataServerController.notifyTabReload(uid, client_tab_id);
+        //         } else {
+        //             ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + url + ": no uid or not a component - doing nothing...:uid:" + uid + ":client_tab_id:" + client_tab_id);
+        //         }
 
-                res.status(404).send("Not found");
-                return;
-            }
+        //         res.status(404).send("Not found");
+        //         return;
+        //     }
 
-            res.sendFile(normalized);
-        });
+        //     res.sendFile(normalized);
+        // });
 
         // Le service de push
         this.app.get('/sw_push.js', (req, res, next) => {
@@ -736,16 +734,11 @@ export default abstract class ServerBase {
 
                         if (!this.check_session_validity(session)) {
                             await ConsoleHandler.warn('unregisterSession:!check_session_validity:UID:' + session.uid);
-                            await StackContext.runPromise(
-                                await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                                async () => {
 
-                                    await PushDataServerController.unregisterSession(session);
-                                    session.destroy(async () => {
-                                        await ServerBase.getInstance().redirect_login_or_home(req, res);
-                                    });
-                                });
-                            return;
+                            await PushDataServerController.unregisterSession(session);
+                            session.destroy(async () => {
+                                await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
+                            });
                         }
                     }
                 }
@@ -763,27 +756,18 @@ export default abstract class ServerBase {
                     if ((!user) || user.blocked || user.invalidated) {
 
                         await ConsoleHandler.warn('unregisterSession:last_check_blocked_or_expired:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
-                        await StackContext.runPromise(
-                            await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                            async () => {
 
-                                await PushDataServerController.unregisterSession(session);
-                                session.destroy(async () => {
-                                    await ServerBase.getInstance().redirect_login_or_home(req, res);
-                                });
-                            });
-
-                        return;
+                        await PushDataServerController.unregisterSession(session);
+                        session.destroy(async () => {
+                            await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
+                        });
                     }
                 }
 
                 PushDataServerController.registerSession(session);
 
                 if (MaintenanceServerController.getInstance().has_planned_maintenance) {
-
-                    await StackContext.runPromise(
-                        await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                        async () => await MaintenanceServerController.getInstance().inform_user_on_request(session.uid));
+                    await MaintenanceServerController.getInstance().inform_user_on_request(session.uid);
                 }
 
                 if (EnvHandler.node_verbose) {
@@ -927,18 +911,16 @@ export default abstract class ServerBase {
             let file: FileVO = null;
             let has_access: boolean = false;
 
-            await StackContext.runPromise(
-                await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => {
-                    file = await query(FileVO.API_TYPE_ID)
-                        .filter_is_true(field_names<FileVO>().is_secured)
-                        .filter_by_text_eq(field_names<FileVO>().path, ModuleFile.SECURED_FILES_ROOT + folders + file_name).select_vo<FileVO>();
-                    has_access = (file && file.file_access_policy_name) ? AccessPolicyServerController.checkAccessSync(file.file_access_policy_name) : false;
-                });
+            file = await query(FileVO.API_TYPE_ID)
+                .filter_is_true(field_names<FileVO>().is_secured)
+                .filter_by_text_eq(field_names<FileVO>().path, ModuleFile.SECURED_FILES_ROOT + folders + file_name)
+                .exec_as_server()
+                .select_vo<FileVO>();
+            has_access = (file && file.file_access_policy_name) ? AccessPolicyServerController.check_access_sync(file.file_access_policy_name, true, session.uid) : false;
 
             if (!has_access) {
 
-                await ServerBase.getInstance().redirect_login_or_home(req, res);
+                await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
                 return;
             }
             res.sendFile(path.resolve(file.path));
@@ -1014,12 +996,10 @@ export default abstract class ServerBase {
                 can_fail = false;
             }
 
-            const has_access: boolean = await StackContext.runPromise(
-                await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS, can_fail));
+            const has_access: boolean = AccessPolicyServerController.check_access_sync(ModuleAccessPolicy.POLICY_FO_ACCESS, true, session.uid, can_fail);
 
             if (!has_access) {
-                await ServerBase.getInstance().redirect_login_or_home(req, res);
+                await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
                 return;
             }
 
@@ -1038,41 +1018,39 @@ export default abstract class ServerBase {
                 can_fail = false;
             }
 
-            const has_access: boolean = await StackContext.runPromise(
-                await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_ACCESS, can_fail));
+            const has_access: boolean = AccessPolicyServerController.check_access_sync(ModuleAccessPolicy.POLICY_BO_ACCESS, true, session.uid, can_fail);
 
             if (!has_access) {
 
-                await ServerBase.getInstance().redirect_login_or_home(req, res, '/');
+                await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid, '/');
                 return;
             }
             res.sendFile(path.resolve('./dist/public/admin.html'));
         });
 
-        // Accès aux logs iisnode
-        this.app.get('/iisnode/:file_name', async (req: Request, res) => {
+        // // Accès aux logs iisnode
+        // this.app.get('/iisnode/:file_name', async (req: Request, res) => {
 
-            const file_name = req.params.file_name;
+        //     const file_name = req.params.file_name;
 
-            const session: IServerUserSession = req.session as IServerUserSession;
-            let has_access: boolean = false;
+        //     const session: IServerUserSession = req.session as IServerUserSession;
+        //     let has_access: boolean = false;
 
-            if (file_name) {
-                await StackContext.runPromise(
-                    await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                    async () => {
-                        has_access = AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS) && AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS);
-                    });
-            }
+        //     if (file_name) {
+        //         await StackContext.runPromise(
+        //             await ServerExpressController.getInstance().getStackContextFromReq(req, session),
+        //             async () => {
+        //                 has_access = AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS) && AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS);
+        //             });
+        //     }
 
-            if (!has_access) {
+        //     if (!has_access) {
 
-                await ServerBase.getInstance().redirect_login_or_home(req, res, '/');
-                return;
-            }
-            res.sendFile(path.resolve('./iisnode/' + file_name));
-        });
+        //         await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid, '/');
+        //         return;
+        //     }
+        //     res.sendFile(path.resolve('./iisnode/' + file_name));
+        // });
 
         // this.app.set('views', 'src/client/views');
 
@@ -1097,15 +1075,11 @@ export default abstract class ServerBase {
                 if ((!user) || user.blocked || user.invalidated) {
 
                     await ConsoleHandler.warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
-                    await StackContext.runPromise(
-                        await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                        async () => {
 
-                            await PushDataServerController.unregisterSession(session);
-                            session.destroy(async () => {
-                                await ServerBase.getInstance().redirect_login_or_home(req, res);
-                            });
-                        });
+                    await PushDataServerController.unregisterSession(session);
+                    session.destroy(async () => {
+                        await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
+                    });
                     return;
                 }
                 session.last_check_blocked_or_expired = Dates.now();
@@ -1137,10 +1111,7 @@ export default abstract class ServerBase {
 
         this.app.get('/logout', async (req, res) => {
 
-            const err = await StackContext.runPromise(
-                await ServerExpressController.getInstance().getStackContextFromReq(req, req.session),
-                async () => await ModuleAccessPolicyServer.getInstance().logout()
-            );
+            const err = await ModuleAccessPolicyServer.getInstance().logout_session(req.session);
 
             // await ThreadHandler.sleep(1000);
             // res.redirect('/');
@@ -1169,9 +1140,7 @@ export default abstract class ServerBase {
         this.app.get('/api/clientappcontrollerinit', async (req, res) => {
             const session = req.session;
 
-            const user: UserVO = await StackContext.runPromise(
-                await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => await ModuleAccessPolicyServer.getSelfUser());
+            const user: UserVO = (session && session.uid) ? await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>() : null;
 
             res.json(JSON.stringify(
                 {
@@ -1187,9 +1156,7 @@ export default abstract class ServerBase {
         this.app.get('/api/adminappcontrollerinit', async (req, res) => {
             const session = req.session;
 
-            const user: UserVO = await StackContext.runPromise(
-                await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => await ModuleAccessPolicyServer.getSelfUser());
+            const user: UserVO = (session && session.uid) ? await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>() : null;
 
             res.json(JSON.stringify(
                 {
@@ -1502,8 +1469,16 @@ export default abstract class ServerBase {
         await ModuleFileServer.getInstance().makeSureThisFolderExists('./logs');
     }
 
-    protected async redirect_login_or_home(req: Request, res: Response, url: string = null) {
-        if (!await ModuleAccessPolicy.getInstance().getLoggedUserId()) {
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     * @param req
+     * @param res
+     * @param uid
+     * @param url
+     * @returns
+     */
+    protected redirect_login_or_home(req: Request, res: Response, uid: number, url: string = null) {
+        if (!uid) {
             const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 
             if (ConfigurationService.node_configuration.log_login_redirects) {

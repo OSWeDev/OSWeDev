@@ -50,6 +50,9 @@ export default class MaintenanceServerController {
         ForkedTasksController.register_task(MaintenanceServerController.TASK_NAME_set_planned_maintenance_vo, this.set_planned_maintenance_vo.bind(this));
     }
 
+    /**
+     * DELETE ME Post suppression StackContext : Does not need StackContext
+     */
     public async get_planned_maintenance_vo(): Promise<MaintenanceVO> {
         if ((!this.planned_maintenance_cache_timeout) ||
             ((Dates.now() - this.planned_maintenance_cache_timeout) > 30)) {
@@ -80,6 +83,7 @@ export default class MaintenanceServerController {
 
     /**
      * WARN : only on main thread (express) since called only when on request
+     * DELETE ME Post suppression StackContext: Does not need StackContext
      * @param user_id
      */
     public async inform_user_on_request(user_id: number): Promise<void> {

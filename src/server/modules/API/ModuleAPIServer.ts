@@ -101,10 +101,8 @@ export default class ModuleAPIServer extends ModuleServerBase {
         //  */
 
         if (api.access_policy_name) {
-            if (!await StackContext.runPromise(
-                await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
-                async () => AccessPolicyServerController.checkAccessSync(api.access_policy_name))) {
-                const session: IServerUserSession = (req as any).session;
+            const session: IServerUserSession = (req as any).session;
+            if (!AccessPolicyServerController.check_access_sync(api.access_policy_name, true, session.uid)) {
                 ConsoleHandler.error('Access denied to API:' + api.api_name + ':sessionID:' + req.sessionID + ":uid:" + (session ? session.uid : "null") + ":user_vo:" + ((session && session.user_vo) ? JSON.stringify(session.user_vo) : null));
                 StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'access_denied_api', api.api_name);
                 this.respond_on_error(api, res);

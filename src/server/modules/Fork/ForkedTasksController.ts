@@ -155,6 +155,7 @@ export default class ForkedTasksController {
 
     /**
      * Objectif : Exécuter la fonction sur le thread principal. On envoie la demande au thread maitre si besoin, sinon on exécute directement
+     * DELETE ME Post suppression StackContext: Does not need StackContext
      * @param task_uid
      * @param task_params
      */

@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -24,7 +24,6 @@ import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
 import ModuleVO from '../../../shared/modules/ModuleVO';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
@@ -50,6 +49,7 @@ import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SendInBlueMailServerController from '../SendInBlue/SendInBlueMailServerController';
 import SendInBlueSmsServerController from '../SendInBlue/sms/SendInBlueSmsServerController';
@@ -61,7 +61,6 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
 import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
-import ParamsServerController from '../Params/ParamsServerController';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -90,6 +89,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return ModuleAccessPolicyServer.instance;
     }
 
+    /**
+     *
+     * @deprecated se base sur le StackContext et on veut supprimer ce module
+     */
     public static getLoggedUserId(): number {
 
         try {
@@ -109,6 +112,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     /**
      * On ajoute un cache au sein de la session pour éviter de faire des requêtes inutiles
+     * @deprecated se base sur le StackContext et on veut supprimer ce module
      */
     public static async getSelfUser(): Promise<UserVO> {
 
@@ -1005,12 +1009,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         // return user.avatar_url;
     }
 
-    public async logout() {
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
+    public async logout_session(session: IServerUserSession) {
 
         return new Promise(async (accept, reject) => {
 
             let user_log = null;
-            let session = StackContext.get('SESSION');
 
             if (session && session.uid) {
                 const uid: number = session.uid;
@@ -1062,6 +1068,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 });
             }
         });
+    }
+
+    /**
+     *
+     * @returns
+     * @deprecated utilise StackContext que l'on souhaite supprimer. Utiliser plutôt logout_session
+     */
+    public async logout() {
+
+        return this.logout_session(StackContext.get('SESSION'));
     }
 
     public async sendrecapture(text: string): Promise<void> {
@@ -1484,12 +1500,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         for (const sid in session_to_delete_by_sids) {
-            await StackContext.runPromise(
-                { SESSION: session_to_delete_by_sids[sid] },
-                async () => {
-                    await this.delete_session();
-                }
-            );
+            await this.do_delete_session(session_to_delete_by_sids[sid]);
         }
     }
 
@@ -2298,13 +2309,27 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return res.req.cookies['sid'];
     }
 
-    private async delete_session() {
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
+    private async delete_session(req: Request) {
+
+        return this.do_delete_session(req.session as IServerUserSession);
+    }
+
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
+    private async do_delete_session(session: IServerUserSession) {
 
         /**
          * On veut supprimer la session et déconnecter tout le monde
          */
         let user_log = null;
-        let session = StackContext.get('SESSION');
+
+        if (!session) {
+            return;
+        }
 
         if (session && session.uid) {
             const uid: number = session.uid;

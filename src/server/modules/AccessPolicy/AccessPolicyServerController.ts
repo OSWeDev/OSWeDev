@@ -171,14 +171,14 @@ export default class AccessPolicyServerController {
      * Privilégier cette fonction synchrone pour vérifier les droits côté serveur
      * @param policy_name
      */
-    public static checkAccessSync(policy_name: string, can_fail: boolean = false): boolean {
+    public static check_access_sync(policy_name: string, is_client: boolean = true, uid: number = null, can_fail: boolean = false): boolean {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!policy_name)) {
             ConsoleHandler.error('checkAccessSync:!policy_name');
             return false;
         }
 
-        if (!StackContext.get('IS_CLIENT')) {
+        if (!is_client) {
             return true;
         }
 
@@ -188,7 +188,6 @@ export default class AccessPolicyServerController {
             return false;
         }
 
-        const uid: number = StackContext.get('UID');
         if (!uid) {
             // profil anonyme
             return AccessPolicyServerController.checkAccessTo(
@@ -206,6 +205,25 @@ export default class AccessPolicyServerController {
             target_policy,
             AccessPolicyServerController.getUsersRoles(true, uid),
             undefined, undefined, undefined, undefined, undefined, can_fail);
+    }
+
+    /**
+     * Privilégier cette fonction synchrone pour vérifier les droits côté serveur
+     * @param policy_name
+     * @deprecated utiliser check_access_sync qui n'utilise plus StackContext
+     */
+    public static checkAccessSync(policy_name: string, can_fail: boolean = false): boolean {
+
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!policy_name)) {
+            ConsoleHandler.error('checkAccessSync:!policy_name');
+            return false;
+        }
+
+        if (!StackContext.get('IS_CLIENT')) {
+            return true;
+        }
+
+        return this.check_access_sync(policy_name, true, StackContext.get('UID'), can_fail);
     }
 
     public static async preload_registered_roles_policies() {
@@ -1249,9 +1267,12 @@ export default class AccessPolicyServerController {
                 'ignore_role_policy:' + JSON.stringify(ignore_role_policy) + ':'
             );
 
-            // On ajoute la session au bgthread d'invalidation si on a un sid
-            // TODO FIXME : Attention avec les modifs d'api dans le bgthread des apis, on a pas d'objet session nécessairement ici, alors qu'on pourrait avoir un SID
-            //  Donc c'est un peu dommage de pas adapter l'invalidation à l'usage du SID. On traine moins d'infos et on couvre plus de cas...
+
+            // TODO FIXME On change pour une invalidation qui utilise le uid, qu'on a donc forcément, et on invalide toutes les sessions de cet uid.
+
+            // // On ajoute la session au bgthread d'invalidation si on a un sid
+            // // TODO FIXME : Attention avec les modifs d'api dans le bgthread des apis, on a pas d'objet session nécessairement ici, alors qu'on pourrait avoir un SID
+            // //  Donc c'est un peu dommage de pas adapter l'invalidation à l'usage du SID. On traine moins d'infos et on couvre plus de cas...
             const session: IServerUserSession = StackContext.get('SESSION');
             if (session && session.sid) {
                 ForkedTasksController.exec_self_on_bgthread(

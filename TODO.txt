@@ -1,5 +1,12 @@
 TODO
 
+PushDataServerController.registeredSessions_by_uid => checkaccess => uid on envoie au thread principal directement une requete de delete de sessions by uid et osef tout le bgthread et le reste.
+throw exception spécifique aux droits, catch dans l'api, et delete session directement là. tous les autres cas n'ont a priori pas de session à supprimer. attention aux changements de threads qui maintiennent la session ?=> faut transférer aussi l'exception
+WTF AccessPolicyDeleteSessionBGThread
+Si on peut supprimer ça simplifie la gestion des droits, on évite d'avoir besoin de la session de l'utilisateur..., mais cela dit si on veut invalider des sessions utilisateurs, on doit pouvoir les lier au user en base en fait, je comprends pas l'usage de ce bgthread...
+Déprécier StackContext.get( StackContext.set( StackContext.runPromise( partout et si possible proposer une alternative avec paramètre uid et/ou is_client/is_server, ...
+
+
 Register default translations dans le générateur pour les modules tables fields - inutile partout ailleurs - à la fin de la déclaration des types de contenus
 ou a l'inverse il faudra vider du cache mémoire ModuleTableFieldController.GENERATOR_default_field_translations dès que c'est inutile (donc tout de suite ou après intégration des trads / jamais côté générateur)
 

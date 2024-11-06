@@ -5,7 +5,6 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import BGThreadServerController from '../../../server/modules/BGThread/BGThreadServerController';
 import VarsBGThreadNameHolder from '../../../server/modules/Var/VarsBGThreadNameHolder';
-import AccessPolicyDeleteSessionBGThread from '../../../server/modules/AccessPolicy/bgthreads/AccessPolicyDeleteSessionBGThread';
 import DataImportBGThread from '../../../server/modules/DataImport/bgthreads/DataImportBGThread';
 import MaintenanceBGThread from '../../../server/modules/Maintenance/bgthreads/MaintenanceBGThread';
 import StatsInvalidatorBGThread from '../../../server/modules/Stats/bgthreads/StatsInvalidatorBGThread';
@@ -15,6 +14,15 @@ import ParamsServerController from '../../../server/modules/Params/ParamsServerC
 
 export default class Patch20230927AddAliveTimeoutToSomeBGThreads implements IGeneratorWorker {
 
+
+    private static instance: Patch20230927AddAliveTimeoutToSomeBGThreads = null;
+
+    private constructor() { }
+
+    get uid(): string {
+        return 'Patch20230927AddAliveTimeoutToSomeBGThreads';
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): Patch20230927AddAliveTimeoutToSomeBGThreads {
         if (!Patch20230927AddAliveTimeoutToSomeBGThreads.instance) {
@@ -22,14 +30,6 @@ export default class Patch20230927AddAliveTimeoutToSomeBGThreads implements IGen
         }
         return Patch20230927AddAliveTimeoutToSomeBGThreads.instance;
     }
-
-    private static instance: Patch20230927AddAliveTimeoutToSomeBGThreads = null;
-
-    get uid(): string {
-        return 'Patch20230927AddAliveTimeoutToSomeBGThreads';
-    }
-
-    private constructor() { }
 
     public async work(db: IDatabase<any>) {
 
@@ -39,11 +39,11 @@ export default class Patch20230927AddAliveTimeoutToSomeBGThreads implements IGen
             10 * 60
         );
 
-        // les threads dont les actions sont beaucoup plus courtes que l'attente, on met un simple garde-fou très lointain
-        await ParamsServerController.setParamValueAsNumber(
-            BGThreadServerController.PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s + '.' + AccessPolicyDeleteSessionBGThread.getInstance().name,
-            AccessPolicyDeleteSessionBGThread.getInstance().MAX_timeout * 100
-        );
+        // // les threads dont les actions sont beaucoup plus courtes que l'attente, on met un simple garde-fou très lointain
+        // await ParamsServerController.setParamValueAsNumber(
+        //     BGThreadServerController.PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s + '.' + AccessPolicyDeleteSessionBGThread.getInstance().name,
+        //     AccessPolicyDeleteSessionBGThread.getInstance().MAX_timeout * 100
+        // );
         await ParamsServerController.setParamValueAsNumber(
             BGThreadServerController.PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s + '.' + MaintenanceBGThread.getInstance().name,
             MaintenanceBGThread.getInstance().MAX_timeout * 100

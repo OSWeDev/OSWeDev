@@ -12,6 +12,9 @@ import ForkedTasksController from '../../Fork/ForkedTasksController';
 import TeamsAPIServerController from '../../TeamsAPI/TeamsAPIServerController';
 import ModuleAccessPolicyServer from '../ModuleAccessPolicyServer';
 
+/**
+ * TODO FIXME réfléchir à ce truc et voir si on peut pas s'endébarrasser
+ */
 export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
     public static TEAMS_WEBHOOK_PARAM_NAME: string = 'AccessPolicyDeleteSessionBGThread.TEAMS_WEBHOOK';

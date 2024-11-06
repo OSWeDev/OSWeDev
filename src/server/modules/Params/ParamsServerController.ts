@@ -13,16 +13,25 @@ export default class ParamsServerController {
     private static throttled_param_cache_lastupdate_ms: { [param_name: string]: number } = {};
     private static semaphore_param: { [param_name: string]: Promise<any> } = {};
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async setParamValue_as_server(param_name: string, param_value: string | number | boolean, exec_as_server: boolean = true) {
         return ParamsServerController._setParamValue(param_name, param_value, true);
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async setParamValue(param_name: string, param_value: string | number | boolean) {
         return ParamsServerController._setParamValue(param_name, param_value, false);
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async setParamValue_if_not_exists(param_name: string, param_value: string | number | boolean) {
-        let param: ParamVO = await query(ParamVO.API_TYPE_ID).filter_by_text_eq(field_names<ParamVO>().name, param_name, ParamVO.API_TYPE_ID, true).select_vo<ParamVO>();
+        let param: ParamVO = await query(ParamVO.API_TYPE_ID).filter_by_text_eq(field_names<ParamVO>().name, param_name, ParamVO.API_TYPE_ID, true).exec_as_server().select_vo<ParamVO>();
 
         if (param) {
             return;
@@ -32,7 +41,7 @@ export default class ParamsServerController {
         param.name = param_name;
         param.value = param_value as string;
         param.last_up_date = Dates.now();
-        return ModuleDAO.getInstance().insertOrUpdateVO(param);
+        return ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(param);
     }
 
     public static delete_params_cache(vo: ParamVO) {
@@ -41,14 +50,23 @@ export default class ParamsServerController {
         delete ParamsServerController.semaphore_param[vo.name];
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async setParamValueAsBoolean(param_name: string, param_value: boolean): Promise<InsertOrDeleteQueryResult> {
         return ParamsServerController.setParamValue(param_name, param_value ? '1' : '0');
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async setParamValueAsNumber(param_name: string, param_value: number): Promise<InsertOrDeleteQueryResult> {
         return ParamsServerController.setParamValue(param_name, param_value.toString());
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async getParamValueAsString_as_server(param_name: string, default_if_undefined: string = null, max_cache_age_ms: number = null, exec_as_server: boolean = true): Promise<string> {
         return ParamsServerController.getParamValue(
             param_name,
@@ -58,6 +76,9 @@ export default class ParamsServerController {
             exec_as_server);
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async getParamValueAsInt_as_server(param_name: string, default_if_undefined: number = null, max_cache_age_ms: number = null, exec_as_server: boolean = true): Promise<number> {
         return ParamsServerController.getParamValue(
             param_name,
@@ -67,6 +88,9 @@ export default class ParamsServerController {
             exec_as_server);
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async getParamValueAsBoolean_as_server(param_name: string, default_if_undefined: boolean = false, max_cache_age_ms: number = null, exec_as_server: boolean = true): Promise<boolean> {
         return ParamsServerController.getParamValue(
             param_name,
@@ -76,6 +100,9 @@ export default class ParamsServerController {
             exec_as_server);
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async getParamValueAsFloat_as_server(param_name: string, default_if_undefined: number = null, max_cache_age_ms: number = null, exec_as_server: boolean = true): Promise<number> {
         return ParamsServerController.getParamValue(
             param_name,
@@ -85,6 +112,9 @@ export default class ParamsServerController {
             exec_as_server);
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async getParamValueAsString(param_name: string, default_if_undefined: string = null, max_cache_age_ms: number = null): Promise<string> {
         return ParamsServerController.getParamValue(
             param_name,
@@ -94,6 +124,9 @@ export default class ParamsServerController {
             false);
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async getParamValueAsInt(param_name: string, default_if_undefined: number = null, max_cache_age_ms: number = null): Promise<number> {
         return ParamsServerController.getParamValue(
             param_name,
@@ -103,6 +136,9 @@ export default class ParamsServerController {
             false);
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async getParamValueAsBoolean(param_name: string, default_if_undefined: boolean = false, max_cache_age_ms: number = null): Promise<boolean> {
         return ParamsServerController.getParamValue(
             param_name,
@@ -112,6 +148,9 @@ export default class ParamsServerController {
             false);
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async getParamValueAsFloat(param_name: string, default_if_undefined: number = null, max_cache_age_ms: number = null): Promise<number> {
         return ParamsServerController.getParamValue(
             param_name,
@@ -121,6 +160,9 @@ export default class ParamsServerController {
             false);
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     private static async getParamValue(
         text: string,
         transformer: (param_value: string) => any,
@@ -163,6 +205,9 @@ export default class ParamsServerController {
         return ParamsServerController.semaphore_param[text];
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     private static async _setParamValue(param_name: string, param_value: string | number | boolean, exec_as_server: boolean = false) {
         let param: ParamVO = await query(ParamVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<ParamVO>().name, param_name, ParamVO.API_TYPE_ID, true)

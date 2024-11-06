@@ -311,6 +311,7 @@ export default class PushDataServerController {
     }
 
     /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
      * WARN : Only on main thread (express).
      * @param session
      */
@@ -359,7 +360,7 @@ export default class PushDataServerController {
         const uid = ((session.uid == null) ? 0 : session.uid);
 
         // PushDataServerController.notifySimpleERROR(session.uid, null, PushDataServerController.NOTIFY_SESSION_INVALIDATED, true);
-        await PushDataServerController.notifyRedirectHomeAndDisconnect();
+        await PushDataServerController.notifyRedirectHomeAndDisconnect(session);
 
         if (PushDataServerController.registeredSessions_by_uid[uid] && PushDataServerController.registeredSessions_by_uid[uid][session.id]) {
             delete PushDataServerController.registeredSessions_by_uid[uid][session.id];
@@ -557,8 +558,13 @@ export default class PushDataServerController {
 
     /**
      * On notifie un utilisateur pour forcer la déco et rechargement de la page d'accueil
+     * DELETE ME Post suppression StackContext: Does not need StackContext
      */
-    public static async notifyRedirectHomeAndDisconnect(session: IServerUserSession = null) {
+    public static async notifyRedirectHomeAndDisconnect(session: IServerUserSession) {
+
+        if (!session) {
+            return;
+        }
 
         // Permet d'assurer un lancement uniquement sur le main process
         if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyRedirectHomeAndDisconnect, session)) {
@@ -567,7 +573,7 @@ export default class PushDataServerController {
 
         let notification: NotificationVO = null;
         try {
-            const sid = (session && session.sid) ? session.sid : StackContext.get('SID');
+            const sid = session.sid;
             if (!sid) {
                 return;
             }
@@ -929,7 +935,13 @@ export default class PushDataServerController {
         await all_promises(promises);
     }
 
-
+    /**
+     *
+     * @param code_text
+     * @param notif_type
+     * @param simple_notif_json_params
+     * @deprecated On veut supprimer StackContext
+     */
     public static async notifySession(code_text: string, notif_type: number = NotificationVO.SIMPLE_SUCCESS, simple_notif_json_params: string = null) {
 
         if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySession, code_text, notif_type)) {
@@ -947,6 +959,9 @@ export default class PushDataServerController {
         }
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async notifySimpleSUCCESS(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null) {
 
         if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleSUCCESS, user_id, client_tab_id, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link)) {
@@ -956,6 +971,9 @@ export default class PushDataServerController {
         await PushDataServerController.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_SUCCESS, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async notifySimpleINFO(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null) {
 
         if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleINFO, user_id, client_tab_id, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link)) {
@@ -965,6 +983,9 @@ export default class PushDataServerController {
         await PushDataServerController.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_INFO, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async notifySimpleWARN(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null) {
 
         if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleWARN, user_id, client_tab_id, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link)) {
@@ -974,6 +995,9 @@ export default class PushDataServerController {
         await PushDataServerController.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_WARN, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
     }
 
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
     public static async notifySimpleERROR(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null) {
 
         if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleERROR, user_id, client_tab_id, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link)) {
@@ -1102,6 +1126,9 @@ export default class PushDataServerController {
         await PushDataServerController.notify(notification);
     }
 
+    /**
+     * DELETE ME Post suppression StackContext : Does not need StackContext
+     */
     private static async notifySimple(
         socket_ids: string[], user_id: number, client_tab_id: string,
         msg_type: number, code_text: string, auto_read_if_connected: boolean,
@@ -1130,6 +1157,7 @@ export default class PushDataServerController {
 
 
     /**
+     * DELETE ME Post suppression StackContext : Does not need StackContext
      * TODO REFONTE DES VARS et DES SOCKETS il faut envoyer autant que possible les notifications à un seul socket, en tout cas pour les mises à jour de vars
      *  qui sont très bien ciblables par socket en théorie
      * TODO Ajouter un wrapper sur les notifs et un debounced comme pour les request wrapper de manière à regrouper au maximum les notifs sans avoir à mettre des await sur chaque notif...
