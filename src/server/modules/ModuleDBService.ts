@@ -1,5 +1,6 @@
 import ModuleTableController from '../../shared/modules/DAO/ModuleTableController';
 import Module from '../../shared/modules/Module';
+import ConfigurationService from '../env/ConfigurationService';
 import ModuleTableDBService from './ModuleTableDBService';
 import PreloadedModuleServerController from './PreloadedModuleServerController';
 
@@ -48,7 +49,7 @@ export default class ModuleDBService {
         // TODO : FIXME : MODIF : JNE : On ne crée les tables que si on est actif. await this.create_datas_tables(module);
         // il faut pouvoir activer les modules à la volée et changer des params sans avoir à recharger toute l'appli.
         // à creuser
-        if (module.actif) {
+        if (module.actif && !ConfigurationService.ignore_table_db_formats_updates) {
             await this.create_datas_tables(module, queries_to_try_after_creation);
         }
 

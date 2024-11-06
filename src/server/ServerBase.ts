@@ -288,6 +288,13 @@ export default abstract class ServerBase {
         }
         this.app = express();
 
+        this.app.use('/client/public/', express.static('dist/public/client/'));
+        this.app.use('/admin/public/', express.static('dist/public/admin/'));
+        this.app.use('/login/public/', express.static('dist/public/login/'));
+        this.app.use('/vuejsclient/public/', express.static('dist/public/vuejsclient/'));
+
+        this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), express.static(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '')));
+
         const responseTime = require('response-time');
 
         this.app.use(responseTime(async (req, res, time) => {
@@ -544,8 +551,6 @@ export default abstract class ServerBase {
         // Pour activation auto let's encrypt
         this.app.use('/.well-known', express.static('.well-known'));
 
-        this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), express.static(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '')));
-
         // Middleware pour définir dynamiquement les en-têtes X-Frame-Options
         this.app.use((req, res, next) => {
             let origin = req.get('Origin');
@@ -577,14 +582,6 @@ export default abstract class ServerBase {
 
             next();
         });
-
-        /**
-         * @depracated : DELETE When ok
-         */
-        this.app.use('/client/public', express.static('dist/public/client'));
-        this.app.use('/admin/public', express.static('dist/public/admin'));
-        this.app.use('/login/public', express.static('dist/public/login'));
-        this.app.use('/vuejsclient/public', express.static('dist/public/vuejsclient'));
 
         /**
          * Pour le DEBUG en local
