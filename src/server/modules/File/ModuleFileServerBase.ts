@@ -60,7 +60,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
 
     public async copyFileVo(fileVo: T, toFolder: string): Promise<string> {
         fileVo.path = await this.copyFile(fileVo.path, toFolder);
-        await ModuleDAO.getInstance().insertOrUpdateVO(fileVo);
+        await ModuleDAO.instance.insertOrUpdateVO(fileVo);
         return fileVo.path;
     }
 
@@ -72,7 +72,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
      */
     public async moveFileVo(fileVo: T, toFolder: string): Promise<string> {
         fileVo.path = await this.moveFile(fileVo.path, toFolder);
-        await ModuleDAO.getInstance().insertOrUpdateVO(fileVo);
+        await ModuleDAO.instance.insertOrUpdateVO(fileVo);
         return fileVo.path;
     }
 
@@ -151,7 +151,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
                 filevo = this.getNewVo();
                 filevo.path = filepath;
 
-                const insertres: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(filevo);
+                const insertres: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(filevo);
                 if ((!insertres) || (!insertres.id)) {
                     await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'file.upload.error');
                     res.json(JSON.stringify(null));

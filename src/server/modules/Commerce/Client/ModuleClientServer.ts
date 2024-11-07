@@ -32,7 +32,7 @@ export default class ModuleClientServer extends ModuleServerBase {
     }
 
     public async getInformationsClientUser(num: number): Promise<InformationsVO> {
-        return ModuleDAOServer.getInstance().selectOne<InformationsVO>(
+        return ModuleDAOServer.instance.selectOne<InformationsVO>(
             InformationsVO.API_TYPE_ID,
             ' JOIN ' + ModuleTableController.module_tables_by_vo_type[ClientVO.API_TYPE_ID].full_name + ' c on c.informations_id = t.id ' +
             ' WHERE c.user_id = $1', [num]

@@ -338,7 +338,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         }
 
         if (tosave.length) {
-            await ModuleDAO.getInstance().insertOrUpdateVOs(tosave);
+            await ModuleDAO.instance.insertOrUpdateVOs(tosave);
             await this.refresh();
         }
     }
@@ -370,7 +370,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         }
 
         if (tosave.length) {
-            await ModuleDAO.getInstance().insertOrUpdateVOs(tosave);
+            await ModuleDAO.instance.insertOrUpdateVOs(tosave);
             await this.refresh();
         }
     }

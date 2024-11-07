@@ -43,7 +43,7 @@ export default class TeamsAPIServerController {
         action.button_translatable_name_params_json = null;
         action.button_fc_icon_classnames = ['fa-duotone', 'fa-comment-heart'];
 
-        const res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action);
+        const res = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(action);
         if ((!res) || (!res.id)) {
             ConsoleHandler.error('Impossible de créer l\'action URL pour le bouton de discussion avec Osélia : ' + action.action_name);
             return null;
@@ -144,7 +144,7 @@ export default class TeamsAPIServerController {
                 action_url.teams_group_id = group_id;
                 action_url.teams_channel_id = channel_id;
             }
-            await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(action_urls);
+            await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(action_urls);
 
             return message_id;
         } catch (error) {

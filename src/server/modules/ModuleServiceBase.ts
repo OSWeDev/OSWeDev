@@ -372,7 +372,7 @@ export default abstract class ModuleServiceBase {
                     continue;
                 }
 
-                await ModuleDAOServer.getInstance().preload_segmented_known_database(t);
+                await ModuleDAOServer.instance.preload_segmented_known_database(t);
             }
         }
     }

@@ -52,7 +52,7 @@ export default class Patch20220809ChangeDbbTrad implements IGeneratorWorker {
                     }, code));
                 } else {
                     trad_fr.translated = text;
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(trad_fr);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(trad_fr);
                 }
             }
         }

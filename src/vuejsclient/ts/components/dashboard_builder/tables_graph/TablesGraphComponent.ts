@@ -175,7 +175,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             graphvoref.height = MaxGraphMapper.default_height;
             graphvoref.vo_type = api_type_id;
             graphvoref.dashboard_id = this.dashboard.id;
-            await ModuleDAO.getInstance().insertOrUpdateVO(graphvoref);
+            await ModuleDAO.instance.insertOrUpdateVO(graphvoref);
 
             await this.throttle_init_or_update_graph();
             this.$emit("add_api_type_id", api_type_id);

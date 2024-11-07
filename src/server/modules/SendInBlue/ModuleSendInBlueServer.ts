@@ -235,7 +235,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
         if (!found) {
             ConsoleHandler.log('sendinblue:new event:' + JSON.stringify(event));
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_event);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(new_event);
         }
     }
 }

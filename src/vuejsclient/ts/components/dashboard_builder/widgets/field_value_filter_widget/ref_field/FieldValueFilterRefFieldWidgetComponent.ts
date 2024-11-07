@@ -981,7 +981,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
                 this.other_ref_api_type_id :
                 this.vo_field_ref.api_type_id;
 
-            const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+            const access_policy_name = ModuleDAO.instance.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
             const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
 
             if (!has_access) {
@@ -1063,7 +1063,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
 
                     const field_ref_api_type_id = field_ref.api_type_id;
 
-                    const field_ref_access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+                    const field_ref_access_policy_name = ModuleDAO.instance.getAccessPolicyName(
                         ModuleDAO.DAO_ACCESS_TYPE_READ,
                         field_ref_api_type_id
                     );
@@ -1158,7 +1158,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
 
                         const field_ref_api_type_id = this.vo_field_ref_lvl2.api_type_id;
 
-                        const field_ref_access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+                        const field_ref_access_policy_name = ModuleDAO.instance.getAccessPolicyName(
                             ModuleDAO.DAO_ACCESS_TYPE_READ,
                             field_ref_api_type_id
                         );

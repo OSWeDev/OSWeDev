@@ -186,13 +186,13 @@ export default class ModuleTableServerController {
 
                 db_table = Object.assign(db_table, table);
 
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(db_table);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(db_table);
             });
         }
 
         await promise_pipeline.push(async () => {
             const db_tables = await query(ModuleTableVO.API_TYPE_ID).filter_by_text_has_none(field_names<ModuleTableVO>().vo_type, Object.keys(ModuleTableController.module_tables_by_vo_type)).select_vos<ModuleTableVO>();
-            await ModuleDAOServer.getInstance().deleteVOs_as_server(db_tables);
+            await ModuleDAOServer.instance.deleteVOs_as_server(db_tables);
         });
 
         await promise_pipeline.end();

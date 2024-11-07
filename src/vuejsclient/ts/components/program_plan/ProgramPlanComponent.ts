@@ -1158,7 +1158,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         throw new Error('Interdit');
                     }
 
-                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(rdv);
 
                     if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                         throw new Error('Erreur côté serveur');
@@ -1539,7 +1539,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         throw new Error('Interdit');
                     }
 
-                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(rdv);
 
                     if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                         throw new Error('Erreur côté serveur');
@@ -1736,12 +1736,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     try {
 
                         if (toDeleteVos && toDeleteVos.length > 0) {
-                            const insertOrDeleteQueryResult_: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs(toDeleteVos);
+                            const insertOrDeleteQueryResult_: InsertOrDeleteQueryResult[] = await ModuleDAO.instance.deleteVOs(toDeleteVos);
                             if ((!insertOrDeleteQueryResult_) || (insertOrDeleteQueryResult_.length != toDeleteVos.length)) {
                                 throw new Error('Erreur serveur');
                             }
                         }
-                        const insertOrDeleteQueryResult = await ModuleDAO.getInstance().deleteVOs([self.selected_rdv]);
+                        const insertOrDeleteQueryResult = await ModuleDAO.instance.deleteVOs([self.selected_rdv]);
                         if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1)) {
                             throw new Error('Erreur serveur');
                         }

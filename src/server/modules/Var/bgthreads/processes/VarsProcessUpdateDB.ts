@@ -102,7 +102,7 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
 
             if (!ConfigurationService.IS_UNIT_TEST_MODE) {
                 promises.push((async () => {
-                    if (!await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(vars_datas, null, true)) {
+                    if (!await ModuleDAOServer.instance.insert_without_triggers_using_COPY(vars_datas, null, true)) {
                         result = false;
                     }
                 })());

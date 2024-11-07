@@ -39,7 +39,7 @@ export default class UserRecapture {
 
     public async beginrecapture(email: string): Promise<boolean> {
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -54,7 +54,7 @@ export default class UserRecapture {
 
     public async beginrecapture_uid(uid: number): Promise<boolean> {
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecoveryUID(uid);
 
         if (!user) {
             return false;
@@ -98,7 +98,7 @@ export default class UserRecapture {
             return;
         }
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecovery(email);
 
         if (!user) {
             return false;

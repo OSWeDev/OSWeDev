@@ -1099,7 +1099,7 @@ export default abstract class ServerBase {
                  */
                 user_log.handle_impersonation(session);
 
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
             }
 
             return res.json({ csrfToken: req.csrfToken() });

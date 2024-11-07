@@ -96,7 +96,7 @@ export default class GPTAssistantAPIServerController {
     //         assistant_file_vo.purpose = purpose;
     //         assistant_file_vo.archived = false;
     //         assistant_file_vo.file_id = file_vo.id;
-    //         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(assistant_file_vo);
+    //         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(assistant_file_vo);
 
     //         return assistant_file_vo;
     //     } catch (error) {
@@ -265,7 +265,7 @@ export default class GPTAssistantAPIServerController {
     //     }
 
     //     if (has_modifs) {
-    //         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+    //         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run_vo);
     //     }
 
     //     if (run_gpt.usage) {
@@ -282,7 +282,7 @@ export default class GPTAssistantAPIServerController {
     //             usage.completion_tokens = run_gpt.usage.completion_tokens;
     //             usage.prompt_tokens = run_gpt.usage.prompt_tokens;
     //             usage.total_tokens = run_gpt.usage.total_tokens;
-    //             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(usage);
+    //             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(usage);
     //         } else {
 
     //             if (usage.completion_tokens != run_gpt.usage.completion_tokens) {
@@ -301,7 +301,7 @@ export default class GPTAssistantAPIServerController {
     //             }
 
     //             if (has_modifs) {
-    //                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(usage);
+    //                 await ModuleDAOServer.instance.insertOrUpdateVO_as_server(usage);
     //             }
     //         }
     //     }
@@ -379,7 +379,7 @@ export default class GPTAssistantAPIServerController {
     //         message_vo.thread_id = thread_vo.id;
     //         message_vo.user_id = user_id ? user_id : thread_vo.user_id;
 
-    //         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(message_vo);
+    //         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message_vo);
 
     //         if (message_gpt.content && Array.isArray(message_gpt.content)) {
     //             let weight = 0;
@@ -395,7 +395,7 @@ export default class GPTAssistantAPIServerController {
     //                         image_message_content.thread_message_id = message_vo.id;
     //                         image_message_content.content_type = GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE;
     //                         image_message_content.weight = weight++;
-    //                         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(image_message_content);
+    //                         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(image_message_content);
     //                         break;
 
     //                     case 'text':
@@ -406,7 +406,7 @@ export default class GPTAssistantAPIServerController {
     //                         text_message_content.thread_message_id = message_vo.id;
     //                         text_message_content.content_type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
     //                         text_message_content.weight = weight++;
-    //                         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(text_message_content);
+    //                         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(text_message_content);
     //                         break;
     //                 }
     //             }
@@ -433,7 +433,7 @@ export default class GPTAssistantAPIServerController {
 
     //     assistant_vo = new GPTAssistantAPIAssistantVO();
     //     assistant_vo.gpt_assistant_id = assistant.id;
-    //     await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(assistant_vo);
+    //     await ModuleDAOServer.instance.insertOrUpdateVO_as_server(assistant_vo);
 
     //     return assistant_vo;
     // }
@@ -449,7 +449,7 @@ export default class GPTAssistantAPIServerController {
 
             if (thread_vo.current_default_assistant_id != current_default_assistant_id) {
                 thread_vo.current_default_assistant_id = current_default_assistant_id;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
             }
 
             return thread_vo;
@@ -459,7 +459,7 @@ export default class GPTAssistantAPIServerController {
         thread_vo.gpt_thread_id = thread_gpt.id;
         thread_vo.user_id = user_id ? user_id : await ModuleVersionedServer.getInstance().get_robot_user_id();
         thread_vo.current_default_assistant_id = current_default_assistant_id;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
 
         return thread_vo;
     }
@@ -569,7 +569,7 @@ export default class GPTAssistantAPIServerController {
                         oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;
                         oselia_run_function_call_vo.thread_id = thread_vo.id;
                         oselia_run_function_call_vo.user_id = thread_vo.user_id;
-                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+                        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
                     })(),
                     (async () => {
                         function_response = await ExternalAPIServerController.call_external_api(
@@ -586,7 +586,7 @@ export default class GPTAssistantAPIServerController {
                 oselia_run_function_call_vo.end_date = Dates.now();
                 oselia_run_function_call_vo.result = function_vo.json_stringify_output ? JSON.stringify(function_response) : function_response;
                 oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_DONE;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
                 if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
                     ConsoleHandler.log('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - REFERRER ExternalAPI Call - answer - ' + JSON.stringify(function_response));
@@ -601,7 +601,7 @@ export default class GPTAssistantAPIServerController {
                 oselia_run_function_call_vo.end_date = Dates.now();
                 oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_ERROR;
                 oselia_run_function_call_vo.error_msg = error;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
                 throw new Error('Failed REFERRER ExternalAPI Call - referrer - ' +
                     referrer.name + ' - external api name - ' + referrer_external_api.name + ' - error: ' + error);
@@ -623,7 +623,7 @@ export default class GPTAssistantAPIServerController {
 
         // Si la fonction est définie comme utilisant un PromisePipeline, on l'utilise, et on l'initialise si il est pas encore créé
         if (function_vo.use_promise_pipeline) {
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
             if (!GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id]) {
                 GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id] = new PromisePipeline(function_vo.promise_pipeline_max_concurrency, 'Oselia-PromisePipeline-' + function_vo.gpt_function_name);
@@ -634,7 +634,7 @@ export default class GPTAssistantAPIServerController {
                 try {
                     oselia_run_function_call_vo.start_date = Dates.now();
                     oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
                     function_response = await function_to_call.call(module_of_function_to_call, ...ordered_args);
                 } catch (error) {
@@ -645,7 +645,7 @@ export default class GPTAssistantAPIServerController {
         } else {
             oselia_run_function_call_vo.start_date = Dates.now();
             oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
             function_response = await function_to_call.call(module_of_function_to_call, ...ordered_args);
         }
@@ -653,7 +653,7 @@ export default class GPTAssistantAPIServerController {
         oselia_run_function_call_vo.end_date = Dates.now();
         oselia_run_function_call_vo.result = function_vo.json_stringify_output ? JSON.stringify(function_response) : function_response;
         oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_DONE;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
         return function_response;
     }
@@ -725,7 +725,7 @@ export default class GPTAssistantAPIServerController {
         // On indique que Osélia est en train de travailler sur cette discussion
         thread_vo.oselia_is_running = true;
         thread_vo.current_oselia_assistant_id = assistant_vo.id;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
 
         if (!thread_vo) {
             ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: thread not created');
@@ -735,7 +735,7 @@ export default class GPTAssistantAPIServerController {
         if (!thread_vo.gpt_thread_id) {
             ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: thread not created in OpenAI');
             thread_vo.oselia_is_running = false;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
             return null;
         }
 
@@ -798,11 +798,11 @@ export default class GPTAssistantAPIServerController {
             if (additional_run_tools && additional_run_tools.length) {
                 run_vo.tools = await GPTAssistantAPIServerSyncAssistantsController.get_tools_definition_from_functions(Object.values(availableFunctions));
             }
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run_vo);
 
             // On lie le run à la discussion
             thread_vo.last_gpt_run_id = run_vo.id;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
 
             // Si on a un oselia_run, on le lie
             if (oselia_run) {
@@ -820,7 +820,7 @@ export default class GPTAssistantAPIServerController {
                     default:
                         throw new Error('ask_assistant:oselia_run_purpose_state:Not implemented');
                 }
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run);
             }
 
             // à cette étape, le RUN est lancé côté OpenAI, on peut faire les chargements potentiellement nécessaires pour les fonctions
@@ -843,7 +843,7 @@ export default class GPTAssistantAPIServerController {
                 const thread_referrer = new OseliaThreadReferrerVO();
                 thread_referrer.thread_id = thread_vo.id;
                 thread_referrer.referrer_id = referrer.id;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_referrer);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_referrer);
             }
 
             const referrer_external_apis: OseliaReferrerExternalAPIVO[] = referrer ?
@@ -898,7 +898,7 @@ export default class GPTAssistantAPIServerController {
 
             const run = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.retrieve, ModuleGPTServer.openai.beta.threads.runs, thread_vo.gpt_thread_id, run_vo.gpt_run_id);
             await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(run_vo, run);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run_vo);
 
 
             const new_messages = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
@@ -991,7 +991,7 @@ export default class GPTAssistantAPIServerController {
                         assistant_file_vo.file_id = file.id;
                         assistant_file_vo.purpose = GPTAssistantAPIFileVO.PURPOSE_ASSISTANTS;
                         assistant_file_vo.filename = file.path;
-                        assistant_file_vo.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(assistant_file_vo)).id;
+                        assistant_file_vo.id = (await ModuleDAOServer.instance.insertOrUpdateVO_as_server(assistant_file_vo)).id;
                     }
 
                     assistant_files.push(assistant_file_vo);
@@ -1023,7 +1023,7 @@ export default class GPTAssistantAPIServerController {
             asking_message_vo.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
             asking_message_vo.user_id = user_id ? user_id : thread_vo.user_id;
             asking_message_vo.is_ready = false;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(asking_message_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(asking_message_vo);
 
 
             const current_user = await query(UserVO.API_TYPE_ID).filter_by_id(user_id).set_limit(1).select_vo<UserVO>();
@@ -1035,7 +1035,7 @@ export default class GPTAssistantAPIServerController {
             content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
             content.weight = 0;
             content.hidden = hide_content;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content);
 
             const content_name = new GPTAssistantAPIThreadMessageContentVO();
             content_name.thread_message_id = asking_message_vo.id;
@@ -1045,7 +1045,7 @@ export default class GPTAssistantAPIServerController {
             content_name.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
             content_name.weight = 0;
             content_name.hidden = true;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content_name);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content_name);
 
             const content_email = new GPTAssistantAPIThreadMessageContentVO();
             content_email.thread_message_id = asking_message_vo.id;
@@ -1055,7 +1055,7 @@ export default class GPTAssistantAPIServerController {
             content_email.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
             content_email.weight = 0;
             content_email.hidden = true;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content_email);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content_email);
 
             const content_phone = new GPTAssistantAPIThreadMessageContentVO();
             content_phone.thread_message_id = asking_message_vo.id;
@@ -1065,7 +1065,7 @@ export default class GPTAssistantAPIServerController {
             content_phone.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
             content_phone.weight = 0;
             content_phone.hidden = true;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content_phone);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content_phone);
 
             const content_user_id = new GPTAssistantAPIThreadMessageContentVO();
             content_user_id.thread_message_id = asking_message_vo.id;
@@ -1075,7 +1075,7 @@ export default class GPTAssistantAPIServerController {
             content_user_id.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
             content_user_id.weight = 0;
             content_user_id.hidden = true;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content_user_id);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content_user_id);
 
             if (has_image_file) {
                 for (const images of files_images) {
@@ -1087,11 +1087,11 @@ export default class GPTAssistantAPIServerController {
                     content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
                     content.weight = 0;
                     content.hidden = true;
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content);
                 }
             }
             asking_message_vo.is_ready = true;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(asking_message_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(asking_message_vo);
         }
 
         return asking_message_vo ? asking_message_vo : last_thread_msg;
@@ -1205,7 +1205,7 @@ export default class GPTAssistantAPIServerController {
                                     oselia_run_function_call_vo.end_date = Dates.now();
                                     oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_ERROR;
                                     oselia_run_function_call_vo.error_msg = error;
-                                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+                                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
                                     tool_outputs.push({
                                         tool_call_id: tool_call.id,
@@ -1295,7 +1295,7 @@ export default class GPTAssistantAPIServerController {
             );
 
             await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(run_vo, run);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run_vo);
 
             if (!run) {
                 ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run not found');

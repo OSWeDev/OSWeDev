@@ -63,7 +63,7 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
             graphVoRef.height = MaxGraphMapper.default_height;
             graphVoRef.vo_type = edge.source_cell.api_type_id;
             graphVoRef.dashboard_id = this.dashboard.id;
-            await ModuleDAO.getInstance().insertOrUpdateVO(graphVoRef);
+            await ModuleDAO.instance.insertOrUpdateVO(graphVoRef);
         }
 
         if (!edge.source_cell.graphvoref.values_to_exclude) {
@@ -74,7 +74,7 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
         } else {
             edge.source_cell.graphvoref.values_to_exclude = edge.source_cell.graphvoref.values_to_exclude.filter((e) => e != edge.field.field_id);
         }
-        const update_res = await ModuleDAO.getInstance().insertOrUpdateVO(edge.source_cell.graphvoref);
+        const update_res = await ModuleDAO.instance.insertOrUpdateVO(edge.source_cell.graphvoref);
         if (!update_res || !update_res.id) {
             ConsoleHandler.error('Impossible de mettre à jour le graphvoref');
             Vue.prototype.$snotify.error(this.label('TablesGraphEditFormComponent.switch_edge_acceptance.error'));
@@ -145,7 +145,7 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('TablesGraphEditFormComponent.confirm_delete_cell.start'));
 
-                        await ModuleDAO.getInstance().deleteVOs([cell_to_delete.graphvoref]);
+                        await ModuleDAO.instance.deleteVOs([cell_to_delete.graphvoref]);
                         this.$emit('delete_cell', cell_to_delete.api_type_id);
                         this.$emit('remap');
 

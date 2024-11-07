@@ -55,7 +55,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
             }
 
             next_export.state = ExportContextQueryToXLSXQueryVO.STATE_EXPORTING;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(next_export);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(next_export);
 
             try {
                 await ModuleDataExportServer.getInstance().do_exportContextQueryToXLSX(
@@ -82,13 +82,13 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
                 );
                 this.stats_out('ok', time_in);
                 next_export.state = ExportContextQueryToXLSXQueryVO.STATE_DONE;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(next_export);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(next_export);
 
             } catch (error) {
                 ConsoleHandler.error(error);
                 this.stats_out('ko', time_in);
                 next_export.state = ExportContextQueryToXLSXQueryVO.STATE_ERROR;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(next_export);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(next_export);
 
             }
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;

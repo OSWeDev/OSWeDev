@@ -251,7 +251,7 @@ export default class CheckListComponent extends VueComponentBase {
     }
 
     private async createNew() {
-        const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(
+        const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(
             await this.checklist_controller.getCheckListItemNewInstance()
         );
         if ((!res) || !res.id) {
@@ -265,7 +265,7 @@ export default class CheckListComponent extends VueComponentBase {
     }
 
     private async deleteSelectedItem(item: ICheckListItem) {
-        const res: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([item]);
+        const res: InsertOrDeleteQueryResult[] = await ModuleDAO.instance.deleteVOs([item]);
         if ((!res) || (!res.length) || (!res[0]) || (!res[0].id)) {
             this.snotify.error(this.label('CheckListComponent.deleteSelectedItem.failed'));
             return;

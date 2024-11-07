@@ -96,7 +96,7 @@ export default class OseliaFeedbackEditorComponent extends VueComponentBase {
             return;
         }
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.current_user_feedback);
+        await ModuleDAO.instance.insertOrUpdateVO(this.current_user_feedback);
     }
 
     private async delete_feedback() {
@@ -104,6 +104,6 @@ export default class OseliaFeedbackEditorComponent extends VueComponentBase {
             return;
         }
 
-        await ModuleDAO.getInstance().deleteVOs([this.current_user_feedback]);
+        await ModuleDAO.instance.deleteVOs([this.current_user_feedback]);
     }
 }

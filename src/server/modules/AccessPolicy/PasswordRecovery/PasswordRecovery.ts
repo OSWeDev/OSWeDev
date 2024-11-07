@@ -46,14 +46,14 @@ export default class PasswordRecovery {
 
     public async beginRecovery(email: string): Promise<boolean> {
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecovery(email);
 
         return await this.beginRecovery_user(user);
     }
 
     public async beginRecovery_uid(uid: number): Promise<boolean> {
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecoveryUID(uid);
 
         return await this.beginRecovery_user(user);
     }
@@ -111,7 +111,7 @@ export default class PasswordRecovery {
             return;
         }
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecovery(email);
 
         return await this.beginRecoverySMS_user(user);
     }
@@ -122,7 +122,7 @@ export default class PasswordRecovery {
             return;
         }
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecoveryUID(uid);
 
         return await this.beginRecoverySMS_user(user);
     }

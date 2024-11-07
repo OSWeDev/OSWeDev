@@ -233,7 +233,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
                 // Techniquement, en faisant cette modif avec le DAO ça fait lancer le trigger preupdate du doc et donc recalc le field... mais bon
                 //  on est en post update du file donc ça marche ...
                 doc.document_url = url;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(doc);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(doc);
             }
         }
     }

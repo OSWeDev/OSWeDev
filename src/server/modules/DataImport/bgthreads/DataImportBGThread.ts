@@ -245,7 +245,7 @@ export default class DataImportBGThread implements IBGThread {
             importHistoric.use_fast_track = false;
             importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
         }
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(importHistoric);
     }
 
     /**
@@ -312,7 +312,7 @@ export default class DataImportBGThread implements IBGThread {
             return false;
         }
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(importHistoric);
 
         return true;
     }
@@ -377,7 +377,7 @@ export default class DataImportBGThread implements IBGThread {
             case ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT:
 
                 importHistoric.state = (((importHistoric.status_before_reimport != null) && (typeof importHistoric.status_before_reimport != 'undefined')) ? importHistoric.status_before_reimport : ModuleDataImport.IMPORTATION_STATE_POSTTREATED);
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(importHistoric);
 
                 const new_importHistoric = new DataImportHistoricVO();
                 new_importHistoric.api_type_id = importHistoric.api_type_id;
@@ -392,7 +392,7 @@ export default class DataImportBGThread implements IBGThread {
                 new_importHistoric.reimport_of_dih_id = importHistoric.id;
                 new_importHistoric.use_fast_track = importHistoric.use_fast_track;
 
-                const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_importHistoric);
+                const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(new_importHistoric);
 
                 if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                     ConsoleHandler.error('!insertOrDeleteQueryResult dans handleImportHistoricProgression');

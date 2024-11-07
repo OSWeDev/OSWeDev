@@ -209,7 +209,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
                 let toDelete: IDistantVOBase[] = [this.um];
                 toDelete = toDelete.concat(user_qrs);
 
-                await ModuleDAO.getInstance().deleteVOs(toDelete);
+                await ModuleDAO.instance.deleteVOs(toDelete);
                 await this.reloadAsyncDatas();
 
                 $(this.$refs.restartmodulemodal).modal('hide');

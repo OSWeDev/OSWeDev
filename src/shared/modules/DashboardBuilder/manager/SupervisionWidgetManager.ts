@@ -200,7 +200,7 @@ export default class SupervisionWidgetManager {
             // Récupération des sondes
             await promise_pipeline.push(async () => {
 
-                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+                const access_policy_name = ModuleDAO.instance.getAccessPolicyName(
                     ModuleDAO.DAO_ACCESS_TYPE_READ,
                     api_type_id
                 );

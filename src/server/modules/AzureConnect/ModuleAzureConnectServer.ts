@@ -129,7 +129,7 @@ export default class ModuleAzureConnectServer extends ModuleServerBase {
     //         holder.access_token = accessToken;
     //         holder.refresh_token = refreshToken;
 
-    //         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(holder);
+    //         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(holder);
 
     //         if (holder.registered_callback_name && AzureConnectServerController.registered_callbacks_by_name[holder.registered_callback_name]) {
     //             await AzureConnectServerController.registered_callbacks_by_name[holder.registered_callback_name](holder);
@@ -179,7 +179,7 @@ export default class ModuleAzureConnectServer extends ModuleServerBase {
     //         azure_connected_user.access_token = newAccessToken;
     //         azure_connected_user.refresh_token = newRefreshToken;
 
-    //         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(azure_connected_user);
+    //         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(azure_connected_user);
     //     } catch (error) {
     //         res.status(500).send(error.message);
     //     }

@@ -224,7 +224,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             file.path = filepath;
             file.file_access_policy_name = file_access_policy_name;
             file.is_secured = is_secured;
-            const res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
+            const res: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(file);
             if ((!res) || (!res.id)) {
                 ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
                 return null;
@@ -299,7 +299,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             vars_indicator,
         );
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(export_query);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(export_query);
 
         return null;
     }
@@ -830,7 +830,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             file.path = filepath;
             file.file_access_policy_name = file_access_policy_name;
             file.is_secured = true;
-            const res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
+            const res: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(file);
             if ((!res) || (!res.id)) {
                 ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
                 return null;
@@ -901,7 +901,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // On log l'export
         if (user_log_id) {
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(ExportLogVO.createNew(
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(ExportLogVO.createNew(
                 api_type_id ? api_type_id : 'N/A',
                 Dates.now(),
                 user_log_id
@@ -1167,7 +1167,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             file.path = filepath;
             file.file_access_policy_name = file_access_policy_name;
             file.is_secured = is_secured;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(file);
             if (!file.id) {
                 ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
                 return null;
@@ -1279,7 +1279,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // On log l'export
         if (user_log_id) {
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(ExportLogVO.createNew(
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(ExportLogVO.createNew(
                 api_type_id,
                 Dates.now(),
                 user_log_id

@@ -44,7 +44,7 @@ export default class Patch20241016AddOseliaFunction_OSELIA_set_cache_value imple
             set_cache_value_function.gpt_function_name = 'set_cache_value';
             set_cache_value_function.json_stringify_output = false;
             set_cache_value_function.gpt_function_description = "Mettre un résultat en cache dans un contexte (thread) donné. Le thread est par défaut - 0 ou null - le thread courant. Sinon on peut indiquer l'id d'un thread parent pour agir sur son cache directement.";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(set_cache_value_function);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(set_cache_value_function);
         }
 
         let argument_key = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -62,7 +62,7 @@ export default class Patch20241016AddOseliaFunction_OSELIA_set_cache_value imple
             argument_key.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_key.not_in_function_params = false;
             argument_key.weight = 0;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_key);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_key);
         }
 
         let argument_value = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -80,7 +80,7 @@ export default class Patch20241016AddOseliaFunction_OSELIA_set_cache_value imple
             argument_value.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_value.not_in_function_params = false;
             argument_value.weight = 1;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_value);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_value);
         }
 
         let argument_thread_id = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -99,7 +99,7 @@ export default class Patch20241016AddOseliaFunction_OSELIA_set_cache_value imple
             argument_thread_id.not_in_function_params = false;
             argument_thread_id.weight = 2;
             argument_thread_id.default_json_value = JSON.stringify(0);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_thread_id);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_thread_id);
         }
     }
 }

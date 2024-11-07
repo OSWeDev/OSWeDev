@@ -49,7 +49,7 @@ export default class Patch20230927AddSupervisionToCrons implements IGeneratorWor
                     '' : (' - ' + supervised_cron.planification_uid));
                 supervised_cron.state = SupervisionController.STATE_UNKOWN;
                 supervised_cron.invalid = true;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(supervised_cron);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(supervised_cron);
             }
         }
     }

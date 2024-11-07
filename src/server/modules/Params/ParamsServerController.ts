@@ -41,7 +41,7 @@ export default class ParamsServerController {
         param.name = param_name;
         param.value = param_value as string;
         param.last_up_date = Dates.now();
-        return ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(param);
+        return ModuleDAOServer.instance.insertOrUpdateVO_as_server(param);
     }
 
     public static delete_params_cache(vo: ParamVO) {
@@ -220,6 +220,6 @@ export default class ParamsServerController {
         }
         param.value = param_value as string;
         param.last_up_date = Dates.now();
-        return ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(param, exec_as_server);
+        return ModuleDAOServer.instance.insertOrUpdateVO_as_server(param, exec_as_server);
     }
 }

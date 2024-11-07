@@ -32,14 +32,14 @@ export default class Patch20230428FavoriteWidgetsAreNotFilters implements IGener
         if (WIDGET_NAME_showfavoritesfilters) {
             WIDGET_NAME_showfavoritesfilters.is_filter = false;
             WIDGET_NAME_showfavoritesfilters.is_validation_filters = false;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(WIDGET_NAME_showfavoritesfilters);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(WIDGET_NAME_showfavoritesfilters);
         }
 
         const WIDGET_NAME_savefavoritesfilters = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_text_eq(field_names<DashboardWidgetVO>().name, DashboardWidgetVO.WIDGET_NAME_savefavoritesfilters).select_vo<DashboardWidgetVO>();
         if (WIDGET_NAME_savefavoritesfilters) {
             WIDGET_NAME_savefavoritesfilters.is_filter = false;
             WIDGET_NAME_savefavoritesfilters.is_validation_filters = false;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(WIDGET_NAME_savefavoritesfilters);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(WIDGET_NAME_savefavoritesfilters);
         }
     }
 }

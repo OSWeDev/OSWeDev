@@ -156,8 +156,8 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test registerAccessHooks
     public registerAccessHooks(): void {
-        ModuleDAOServer.getInstance().registerAccessHook(AnimationModuleVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterAnimationModule);
-        ModuleDAOServer.getInstance().registerContextAccessHook(AnimationModuleVO.API_TYPE_ID, this, this.filterAnimationModuleContextAccessHook);
+        ModuleDAOServer.instance.registerAccessHook(AnimationModuleVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterAnimationModule);
+        ModuleDAOServer.instance.registerContextAccessHook(AnimationModuleVO.API_TYPE_ID, this, this.filterAnimationModuleContextAccessHook);
     }
 
     // istanbul ignore next: cannot test configure
@@ -338,7 +338,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         aum.user_id = user_id;
         aum.module_id = module_id;
         aum.support = support;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(aum);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(aum);
 
         return ModuleAnimation.getInstance().getUserModule(user_id, module_id);
     }
@@ -370,7 +370,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             res.end_date = Dates.now();
 
             // insertion en base pour pouvouvoir faire le calcul de la reussite apres qui demande une end_date sur les usermodules
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(res);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(res);
 
             let data = null;
             try {
@@ -387,7 +387,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             res.prct_reussite = (data && data.value) ? data.value : 0;
         }
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(res);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(res);
 
         return ModuleAnimation.getInstance().getUserModule(user_id, module_id);
     }

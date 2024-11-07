@@ -291,6 +291,6 @@ export default class FavoritesFiltersVOService {
         export_params.last_export_at_ts = new Date().getTime();
 
         // update this favorites_filters
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(favorites_filters);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(favorites_filters);
     }
 }

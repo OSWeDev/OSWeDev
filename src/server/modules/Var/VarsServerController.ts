@@ -284,7 +284,7 @@ export default class VarsServerController {
                         ':varConf.segment_types:' + JSON.stringify(varConf.segment_types));
 
                     daoVarConf.segment_types = varConf.segment_types;
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(daoVarConf);
                 }
 
                 /**
@@ -298,7 +298,7 @@ export default class VarsServerController {
                         ':varConf.var_data_vo_type:' + varConf.var_data_vo_type);
 
                     daoVarConf.var_data_vo_type = varConf.var_data_vo_type;
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(daoVarConf);
                 }
 
                 /**
@@ -312,7 +312,7 @@ export default class VarsServerController {
                         ':varConf.pixel_activated:' + varConf.pixel_activated);
 
                     daoVarConf.pixel_activated = !!varConf.pixel_activated;
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(daoVarConf);
                 }
 
                 /**
@@ -326,7 +326,7 @@ export default class VarsServerController {
                         ':varConf.pixel_never_delete:' + varConf.pixel_never_delete);
 
                     daoVarConf.pixel_never_delete = !!varConf.pixel_never_delete;
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(daoVarConf);
                 }
 
 
@@ -341,7 +341,7 @@ export default class VarsServerController {
                         ':varConf.optimization__has_no_imports:' + varConf.optimization__has_no_imports);
 
                     daoVarConf.optimization__has_no_imports = !!varConf.optimization__has_no_imports;
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(daoVarConf);
                 }
                 if ((!!daoVarConf.optimization__has_only_atomic_imports) != (!!varConf.optimization__has_only_atomic_imports)) {
                     ConsoleHandler.warn('On écrase le optimization__has_only_atomic_imports de la bdd par celui de l\'appli pour la varconf:' +
@@ -350,7 +350,7 @@ export default class VarsServerController {
                         ':varConf.optimization__has_only_atomic_imports:' + varConf.optimization__has_only_atomic_imports);
 
                     daoVarConf.optimization__has_only_atomic_imports = !!varConf.optimization__has_only_atomic_imports;
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(daoVarConf);
                 }
 
                 /**
@@ -364,7 +364,7 @@ export default class VarsServerController {
                         ':varConf.aggregator:' + varConf.aggregator);
 
                     daoVarConf.aggregator = varConf.aggregator;
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(daoVarConf);
                 }
 
 
@@ -380,7 +380,7 @@ export default class VarsServerController {
                         ':varConf.pixel_fields:' + JSON.stringify(varConf.pixel_fields));
 
                     daoVarConf.pixel_fields = varConf.pixel_fields;
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(daoVarConf);
                 }
 
                 /**
@@ -417,7 +417,7 @@ export default class VarsServerController {
                             ':varConf.pixel_fields:' + JSON.stringify(varConf.pixel_fields));
 
                         daoVarConf.pixel_fields = varConf.pixel_fields;
-                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(daoVarConf);
                     }
                 }
 
@@ -432,7 +432,7 @@ export default class VarsServerController {
                         ':varConf.pixel_fields:' + JSON.stringify(varConf.pixel_fields));
 
                     daoVarConf.pixel_fields = null;
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(daoVarConf);
                 }
 
                 // On checke aussi le contenu des pixel_fields, par ce que des fois c'est invalide, et si la conf est corrigée niveau appli il faut corriger automatiquement la base
@@ -463,7 +463,7 @@ export default class VarsServerController {
                                 ':varConf.pixel_fields:' + JSON.stringify(varConf.pixel_fields));
 
                             daoVarConf.pixel_fields = varConf.pixel_fields;
-                            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(daoVarConf);
                         }
                     }
                 }
@@ -473,7 +473,7 @@ export default class VarsServerController {
             return daoVarConf;
         }
 
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(varConf);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(varConf);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             return null;
         }

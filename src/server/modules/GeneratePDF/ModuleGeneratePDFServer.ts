@@ -58,7 +58,7 @@ export default class ModuleGeneratePDFServer extends ModuleServerBase {
             file.file_access_policy_name = null;
             file.is_secured = false;
             file.path = filepath_return;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(file);
         }
 
         return await new Promise((resolve, reject) => {

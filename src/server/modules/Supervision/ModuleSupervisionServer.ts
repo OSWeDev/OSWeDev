@@ -305,7 +305,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             }
             historique._type = SupervisionController.getInstance().getSupHistVoType(vo_update_handler.post_update_vo._type);
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(historique);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(historique);
         }
 
         return true;
@@ -442,6 +442,6 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             return null;
         }
 
-        await SupervisionServerController.getInstance().registered_controllers[api_type_id].work_one(await ModuleDAO.getInstance().getNamedVoByName(api_type_id, name));
+        await SupervisionServerController.getInstance().registered_controllers[api_type_id].work_one(await ModuleDAO.instance.getNamedVoByName(api_type_id, name));
     }
 }

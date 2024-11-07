@@ -257,7 +257,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                 await GPTAssistantAPIServerSyncThreadMessagesController.assign_vo_from_gpt(vo, gpt_obj, weight);
 
                 if (!is_trigger_pre_x) {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(vo);
                 }
             }
             // // Si on a une diff sur les contenus, et qu'on est en pleine synchro, on peut pas pousser une nouvelle modif du VO
@@ -368,7 +368,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             thread_message_vo.user_id = (thread_message.metadata && thread_message.metadata['user_id']) ? parseInt(thread_message.metadata['user_id']) : thread_vo.user_id;
 
             await GPTAssistantAPIServerSyncThreadMessagesController.assign_vo_from_gpt(thread_message_vo, thread_message, weight);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_message_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_message_vo);
         }
 
         const attachments = GPTAssistantAPIServerSyncThreadMessagesController.attachments_to_openai_api(thread_message_vo);
@@ -400,7 +400,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             ConsoleHandler.log('sync_thread_message: Updating thread message in Osélia : ' + thread_message_vo.id);
         }
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_message_vo);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_message_vo);
         GPTAssistantAPIServerSyncThreadMessagesController.already_syncing_thread_message[thread_message_vo.id] = false;
     }
 
@@ -528,7 +528,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             found_vo.thread_message_id = thread_message_vo.id;
             found_vo.weight = (found_vo.weight != null) ? found_vo.weight : weight;
             found_vo.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
     }
 
@@ -592,7 +592,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             found_vo.thread_message_id = thread_message_vo.id;
             found_vo.weight = (found_vo.weight != null) ? found_vo.weight : weight;
             found_vo.type = GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
     }
 
@@ -648,7 +648,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             found_vo.thread_message_id = thread_message_vo.id;
             found_vo.weight = (found_vo.weight != null) ? found_vo.weight : weight;
             found_vo.type = GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE_URL;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
     }
 

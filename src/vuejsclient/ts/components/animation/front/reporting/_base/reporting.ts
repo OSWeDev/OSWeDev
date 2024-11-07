@@ -132,7 +132,7 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         exhi.export_to_uid = VueAppController.getInstance().data_user.id;
         exhi.export_type_id = ModuleAnimation.EXPORT_API_TYPE_ID;
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
+        await ModuleDAO.instance.insertOrUpdateVO(exhi);
 
         return null;
     }

@@ -219,7 +219,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         } catch (error) {
             ConsoleHandler.error(error);
         }
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
+        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
 
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
@@ -301,7 +301,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
             this.opts.find((c) => c.id == opt.id).weight = parseInt(i.toString());
         }
 
-        await ModuleDAO.getInstance().insertOrUpdateVOs(this.opts);
+        await ModuleDAO.instance.insertOrUpdateVOs(this.opts);
         this.next_update_options = this.widget_options;
         this.next_update_options.opts = this.opts;
         await this.throttled_update_options();

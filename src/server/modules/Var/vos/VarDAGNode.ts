@@ -239,7 +239,7 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         // FIXME : WARN select * does not garanty the order of the fields, we should use a select with the fields in the right order
-        // let res = await ModuleDAOServer.getInstance().query('select * from ' + table.full_name + ' where _bdd_only_index = $1', [index]);
+        // let res = await ModuleDAOServer.instance.query('select * from ' + table.full_name + ' where _bdd_only_index = $1', [index]);
 
         // // Attention aux injections...
         // if (!/^[0-9a-zA-Z.,;!%*_@?:/#=+|]+$/.test(index)) {

@@ -28,7 +28,7 @@ export default class PasswordReset {
 
     public async resetPwd(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -43,7 +43,7 @@ export default class PasswordReset {
 
     public async resetPwdUID(uid: number, challenge: string, new_pwd1: string): Promise<boolean> {
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecoveryUID(uid);
 
         if (!user) {
             return false;
@@ -59,7 +59,7 @@ export default class PasswordReset {
 
     public async checkCode(email: string, challenge: string): Promise<boolean> {
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -74,7 +74,7 @@ export default class PasswordReset {
 
     public async checkCodeUID(uid: number, challenge: string): Promise<boolean> {
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecoveryUID(uid);
 
         if (!user) {
             return false;

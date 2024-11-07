@@ -356,7 +356,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
                     oselia_is_running: false,
                 });
         }
-        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(runs);
+        await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(runs);
 
         const promises = [];
         for (const i in runs) {
@@ -529,7 +529,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
             responseMessage.conversation_id = conversation.id;
 
             // Add the assistant's response to the conversation
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(responseMessage);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(responseMessage);
 
             return responseMessage;
         } catch (err) {

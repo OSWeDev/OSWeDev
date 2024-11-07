@@ -107,7 +107,7 @@ export default class DefaultTranslationsServerManager {
         }
 
         if (codes_to_deletes.length > 0) {
-            await ModuleDAO.getInstance().deleteVOs(codes_to_deletes);
+            await ModuleDAO.instance.deleteVOs(codes_to_deletes);
         }
         ConsoleHandler.log('cleanTranslationCodes:OUT:');
     }
@@ -128,7 +128,7 @@ export default class DefaultTranslationsServerManager {
         if (!translatable) {
             translatable = new TranslatableTextVO();
             translatable.code_text = default_translation.code_text;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translatable);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(translatable);
             ConsoleHandler.log("Ajout de translatable : " + JSON.stringify(translatable));
             translatable = await query(TranslatableTextVO.API_TYPE_ID).filter_by_id(translatable.id).exec_as_server().select_vo<TranslatableTextVO>();
         }
@@ -164,7 +164,7 @@ export default class DefaultTranslationsServerManager {
                 translation.lang_id = lang.id;
                 translation.text_id = translatable.id;
                 translation.translated = translation_str;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(translation);
                 translation = await query(TranslationVO.API_TYPE_ID).filter_by_id(translation.id).exec_as_server().select_vo<TranslationVO>();
             }
 

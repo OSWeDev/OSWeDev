@@ -31,7 +31,7 @@ export default class TranslatableTextController {
         if (!text) {
             text = new TranslatableTextVO();
             text.code_text = code_text;
-            insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(text);
+            insertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(text);
             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                 return false;
             }
@@ -45,7 +45,7 @@ export default class TranslatableTextController {
             bdd_translation.text_id = text.id;
         }
         bdd_translation.translated = translation;
-        insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(bdd_translation);
+        insertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(bdd_translation);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             return false;
         }

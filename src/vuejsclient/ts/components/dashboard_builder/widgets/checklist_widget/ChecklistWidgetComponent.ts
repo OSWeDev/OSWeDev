@@ -298,7 +298,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
     private async createNew() {
         const e = await this.checklist_controller.getCheckListItemNewInstance();
-        const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(e);
+        const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(e);
 
         if ((!res) || !res.id) {
             ConsoleHandler.error('CheckListComponent:createNew:failed');
@@ -312,7 +312,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     }
 
     private async deleteSelectedItem(item: ICheckListItem) {
-        const res: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([item]);
+        const res: InsertOrDeleteQueryResult[] = await ModuleDAO.instance.deleteVOs([item]);
 
         if ((!res) || (!res.length) || (!res[0]) || (!res[0].id)) {
             this.snotify.error(this.label('CheckListComponent.deleteSelectedItem.failed'));
@@ -602,7 +602,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('crud.actions.delete_all.start'));
 
-                        await ModuleDAO.getInstance().truncate(self.checklist_shared_module.checklistitem_type_id);
+                        await ModuleDAO.instance.truncate(self.checklist_shared_module.checklistitem_type_id);
                         await self.throttled_update_visible_options();
                     },
                     bold: false

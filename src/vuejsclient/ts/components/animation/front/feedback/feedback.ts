@@ -68,7 +68,7 @@ export default class VueAnimationModuleFeedbackComponent extends VueComponentBas
     private async valider() {
         this.saving = true;
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.user_module);
+        await ModuleDAO.instance.insertOrUpdateVO(this.user_module);
 
         this.$router.push({
             name: AnimationController.ROUTE_NAME_ANIMATION,

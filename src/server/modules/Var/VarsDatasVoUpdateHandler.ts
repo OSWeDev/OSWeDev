@@ -323,7 +323,7 @@ export default class VarsDatasVoUpdateHandler {
             await promise_pipeline.push(async () => {
                 const moduleTable = ModuleTableController.module_tables_by_vo_type[api_type_id];
                 const request = "DELETE FROM " + moduleTable.full_name + " WHERE _bdd_only_index in ('" + indexes.join("','") + "');";
-                await ModuleDAOServer.getInstance().query(request);
+                await ModuleDAOServer.instance.query(request);
             });
         }
 
@@ -804,7 +804,7 @@ export default class VarsDatasVoUpdateHandler {
     private static async delete_var_by_intersected_without_triggers(api_type_id: string, invalidator: VarDataInvalidatorVO) {
 
         const moduleTable = ModuleTableController.module_tables_by_vo_type[api_type_id];
-        let request = "DELETE FROM " + moduleTable.full_name + " WHERE " + ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(api_type_id, invalidator.var_data, null);
+        let request = "DELETE FROM " + moduleTable.full_name + " WHERE " + ModuleDAOServer.instance.getWhereClauseForFilterByMatroidIntersection(api_type_id, invalidator.var_data, null);
 
         const list_valid_value_types = [VarDataBaseVO.VALUE_TYPE_COMPUTED];
         if (invalidator.invalidate_denied) {
@@ -815,7 +815,7 @@ export default class VarsDatasVoUpdateHandler {
         }
         request += " AND " + field_names<VarDataBaseVO>().value_type + " IN (" + list_valid_value_types.join(',') + ");";
 
-        await ModuleDAOServer.getInstance().query(request);
+        await ModuleDAOServer.instance.query(request);
     }
 
     private static async delete_var_by_exact_without_triggers(api_type_id: string, invalidator: VarDataInvalidatorVO) {
@@ -832,7 +832,7 @@ export default class VarsDatasVoUpdateHandler {
         }
         request += " AND " + field_names<VarDataBaseVO>().value_type + " IN (" + list_valid_value_types.join(',') + ");";
 
-        await ModuleDAOServer.getInstance().query(request);
+        await ModuleDAOServer.instance.query(request);
     }
 
     /**

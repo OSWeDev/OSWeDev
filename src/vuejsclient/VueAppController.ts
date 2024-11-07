@@ -77,7 +77,7 @@ export default abstract class VueAppController {
         this.is_mobile = this.check_is_mobile();
 
         promises.push((async () => {
-            self.base_url = await ModuleDAO.getInstance().getBaseUrl();
+            self.base_url = await ModuleDAO.instance.getBaseUrl();
         })());
 
         promises.push((async () => {

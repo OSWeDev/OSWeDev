@@ -124,7 +124,7 @@ export default class ContextQueryServerController {
                 context_query
             );
         } else {
-            query_res = await ModuleDAOServer.getInstance().query(
+            query_res = await ModuleDAOServer.instance.query(
                 query_wrapper.query,
                 query_wrapper.params
             );
@@ -190,7 +190,7 @@ export default class ContextQueryServerController {
         if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
             query_res = await ThrottledQueryServerController.throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
-            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+            query_res = await ModuleDAOServer.instance.query(query_wrapper.query, query_wrapper.params);
         }
 
         let c = (query_res && (query_res.length == 1) && (typeof query_res[0]['c'] != 'undefined') && (query_res[0]['c'] !== null)) ? query_res[0]['c'] : null;
@@ -224,7 +224,7 @@ export default class ContextQueryServerController {
         if (context_query.throttle_query_select) {
             query_res = await ThrottledQueryServerController.throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
-            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+            query_res = await ModuleDAOServer.instance.query(query_wrapper.query, query_wrapper.params);
         }
 
         if ((!query_res) || (!query_res.length)) {
@@ -307,7 +307,7 @@ export default class ContextQueryServerController {
         if (context_query.throttle_query_select) {
             query_res = await ThrottledQueryServerController.throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
-            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+            query_res = await ModuleDAOServer.instance.query(query_wrapper.query, query_wrapper.params);
         }
 
 
@@ -698,7 +698,7 @@ export default class ContextQueryServerController {
                  * Si les vos sont segmentés, on check en amont l'existence des tables segmentées
                  *  car on ne peut pas les créer en parallèle. Du coup on les crée en amont si besoin
                  */
-                await ModuleDAOServer.getInstance().confirm_segmented_tables_existence(preupdate_vos);
+                await ModuleDAOServer.instance.confirm_segmented_tables_existence(preupdate_vos);
 
                 let vos_to_update: IDistantVOBase[] = ObjectHandler.clone_vos(preupdate_vos);
 
@@ -724,8 +724,8 @@ export default class ContextQueryServerController {
                 });
 
                 // On check les foreign keys avant d'essayer d'enregistrer les vos
-                if (ModuleDAOServer.getInstance().check_foreign_keys) {
-                    vos_to_update = await ModuleDAOServer.getInstance().filterByForeignKeys(vos_to_update);
+                if (ModuleDAOServer.instance.check_foreign_keys) {
+                    vos_to_update = await ModuleDAOServer.instance.filterByForeignKeys(vos_to_update);
 
                     if (!vos_to_update?.length) {
                         StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'filteredByForeignKeys');
@@ -741,7 +741,7 @@ export default class ContextQueryServerController {
 
                     await promise_pipeline.push(async () => {
 
-                        const sql: string = await ModuleDAOServer.getInstance().getqueryfor_insertOrUpdateVO(vo_to_update, preupdate_vo, context_query.is_server);
+                        const sql: string = await ModuleDAOServer.instance.getqueryfor_insertOrUpdateVO(vo_to_update, preupdate_vo, context_query.is_server);
 
                         if (!sql) {
                             ConsoleHandler.warn('Est-ce bien normal ? update_vos :(!sql):' + JSON.stringify(vo_to_update));

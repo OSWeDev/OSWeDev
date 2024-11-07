@@ -104,12 +104,12 @@ export default abstract class PlayWrightServerController {
             const test_user_name_param = new ParamVO();
             test_user_name_param.name = PlayWrightServerController.PARAM_NAME_TEST_USER_NAME;
             test_user_name_param.value = test_user_name;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(test_user_name_param);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(test_user_name_param);
 
             const test_user_email_param = new ParamVO();
             test_user_email_param.name = PlayWrightServerController.PARAM_NAME_TEST_USER_EMAIL;
             test_user_email_param.value = test_user_email;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(test_user_email_param);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(test_user_email_param);
             // si on a pas l'email, on a probablement pas le reste non plus
 
             test_user_firstname = 'playwright_test_user_firstname' + Math.round(Math.random() * 1000000);
@@ -119,17 +119,17 @@ export default abstract class PlayWrightServerController {
             const test_user_firstname_param = new ParamVO();
             test_user_firstname_param.name = PlayWrightServerController.PARAM_NAME_TEST_USER_FIRSTNAME;
             test_user_firstname_param.value = test_user_firstname;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(test_user_firstname_param);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(test_user_firstname_param);
 
             const test_user_lastname_param = new ParamVO();
             test_user_lastname_param.name = PlayWrightServerController.PARAM_NAME_TEST_USER_LASTNAME;
             test_user_lastname_param.value = test_user_lastname;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(test_user_lastname_param);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(test_user_lastname_param);
 
             const test_user_phone_param = new ParamVO();
             test_user_phone_param.name = PlayWrightServerController.PARAM_NAME_TEST_USER_PHONE;
             test_user_phone_param.value = test_user_phone;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(test_user_phone_param);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(test_user_phone_param);
         }
 
         if (ConfigurationService.node_configuration.debug_playwright_controller) {
@@ -160,7 +160,7 @@ export default abstract class PlayWrightServerController {
             test_user.invalidated = false;
             test_user.lang_id = lang.id;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(test_user);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(test_user);
 
             // On ajoute le rôle admin
             const rôle_admin = await query(RoleVO.API_TYPE_ID).filter_by_text_eq(field_names<RoleVO>().translatable_name, ModuleAccessPolicy.ROLE_ADMIN).exec_as_server().select_vo<RoleVO>();

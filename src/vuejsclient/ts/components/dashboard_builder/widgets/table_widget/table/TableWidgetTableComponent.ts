@@ -1767,7 +1767,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                             vo[simpleField.module_table_field_id] = value;
                             const data_row_index = this.data_rows.findIndex((e) => e.__crud_actions == row.__crud_actions);
                             this.data_rows[data_row_index][simpleField.module_table_field_id] = value;
-                            await ModuleDAO.getInstance().insertOrUpdateVO(vo);
+                            await ModuleDAO.instance.insertOrUpdateVO(vo);
                             break;
                         default:
                             throw new Error('Not Implemented');
@@ -2585,7 +2585,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('TableWidgetComponent.confirm_delete.start'));
 
-                        const res: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOsByIds(api_type_id, [id]);
+                        const res: InsertOrDeleteQueryResult[] = await ModuleDAO.instance.deleteVOsByIds(api_type_id, [id]);
                         if ((!res) || (res.length != 1) || (!res[0].id)) {
                             self.snotify.error(self.label('TableWidgetComponent.confirm_delete.ko'));
                         } else {
@@ -2627,7 +2627,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
                                 if (vo) {
                                     vo.archived = true;
-                                    res = await ModuleDAO.getInstance().insertOrUpdateVO(vo);
+                                    res = await ModuleDAO.instance.insertOrUpdateVO(vo);
                                 }
 
                                 if (!res?.id) {
@@ -2684,7 +2684,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('crud.actions.delete_all.start'));
 
-                        await ModuleDAO.getInstance().delete_all_vos_triggers_ok(self.crud_activated_api_type);
+                        await ModuleDAO.instance.delete_all_vos_triggers_ok(self.crud_activated_api_type);
                         await self.throttle_do_update_visible_options();
                     },
                     bold: false

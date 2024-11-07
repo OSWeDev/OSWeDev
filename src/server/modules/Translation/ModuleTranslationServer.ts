@@ -767,7 +767,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         if (!LANG_SELECTOR_PER_LANG_ACCESS) {
             return false;
         }
-        await ModuleDAO.getInstance().deleteVOs([LANG_SELECTOR_PER_LANG_ACCESS]);
+        await ModuleDAO.instance.deleteVOs([LANG_SELECTOR_PER_LANG_ACCESS]);
         return true;
     }
 

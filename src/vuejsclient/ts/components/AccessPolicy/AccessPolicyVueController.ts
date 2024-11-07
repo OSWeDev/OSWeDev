@@ -34,7 +34,7 @@ export default class AccessPolicyVueController {
         const email = dataVO.email.trim();
         const phone = dataVO.phone ? dataVO.phone.trim() : null;
 
-        if (!await ModuleDAO.getInstance().selectUsersForCheckUnicity(name, email, phone, dataVO.id)) {
+        if (!await ModuleDAO.instance.selectUsersForCheckUnicity(name, email, phone, dataVO.id)) {
             return 'AccessPolicyVueController.precreate_uservo_unicity.error';
         }
 

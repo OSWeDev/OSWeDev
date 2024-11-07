@@ -109,7 +109,7 @@ export default class NotificationStore implements IStoreModule<INotificationStat
         if ((!this.state.mark_as_read) || (!this.state.mark_as_read.length)) {
             return;
         }
-        await ModuleDAO.getInstance().insertOrUpdateVOs(this.state.mark_as_read);
+        await ModuleDAO.instance.insertOrUpdateVOs(this.state.mark_as_read);
         this.state.mark_as_read = [];
     }
 }

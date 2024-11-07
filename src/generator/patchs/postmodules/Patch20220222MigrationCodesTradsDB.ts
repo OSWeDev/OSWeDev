@@ -43,7 +43,7 @@ export default class Patch20220222MigrationCodesTradsDB implements IGeneratorWor
 
         const page_widget_trads: TranslatableTextVO[] = await ModuleContextFilter.getInstance().select_vos(_query);
 
-        await ModuleDAO.getInstance().deleteVOs(page_widget_trads);
+        await ModuleDAO.instance.deleteVOs(page_widget_trads);
 
         // let lang = await ModuleTranslation.getInstance().getLang('fr-fr');
 

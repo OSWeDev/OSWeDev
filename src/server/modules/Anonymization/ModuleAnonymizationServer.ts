@@ -132,13 +132,13 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
         for (const i in ModuleTableController.module_tables_by_vo_type) {
             const moduletable = ModuleTableController.module_tables_by_vo_type[i];
 
-            // ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_READ, ServerAnonymizationController.anonymise.bind(ServerAnonymizationController));
+            // ModuleDAOServer.instance.registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_READ, ServerAnonymizationController.anonymise.bind(ServerAnonymizationController));
             //TODO FIXME à faire en fait aujourd'hui ce n'est pas fait
-            // ModuleDAOServer.getInstance().registerContextAccessHook(moduletable.vo_type, ServerAnonymizationController.anonymiseContextAccessHook.bind(ServerAnonymizationController));
+            // ModuleDAOServer.instance.registerContextAccessHook(moduletable.vo_type, ServerAnonymizationController.anonymiseContextAccessHook.bind(ServerAnonymizationController));
 
             // On doit refuser d'insérer/modifier des vos anonymisés
-            ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ServerAnonymizationController, ServerAnonymizationController.check_is_anonymise);
-            ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_DELETE, ServerAnonymizationController, ServerAnonymizationController.check_is_anonymise);
+            ModuleDAOServer.instance.registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ServerAnonymizationController, ServerAnonymizationController.check_is_anonymise);
+            ModuleDAOServer.instance.registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_DELETE, ServerAnonymizationController, ServerAnonymizationController.check_is_anonymise);
         }
     }
 }

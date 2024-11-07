@@ -803,7 +803,7 @@ export default class AccessPolicyServerController {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate role ' + role.translatable_name + ' detected, deleting it');
                 const vos = await query(RoleVO.API_TYPE_ID).filter_by_text_eq(field_names<RoleVO>().translatable_name, role.translatable_name).select_vos<RoleVO>();
-                await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
+                await ModuleDAOServer.instance.deleteVOs_as_server(vos);
                 roleFromBDD = null;
             } else {
                 throw error;
@@ -816,7 +816,7 @@ export default class AccessPolicyServerController {
             return roleFromBDD;
         }
 
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(role);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(role);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de role échoué:' + role.translatable_name + ':');
             return null;
@@ -861,7 +861,7 @@ export default class AccessPolicyServerController {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate group ' + group.translatable_name + ' detected, deleting it');
                 const vos = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq(field_names<AccessPolicyGroupVO>().translatable_name, group.translatable_name).select_vos<AccessPolicyGroupVO>();
-                await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
+                await ModuleDAOServer.instance.deleteVOs_as_server(vos);
                 groupFromBDD = null;
             } else {
                 throw error;
@@ -872,7 +872,7 @@ export default class AccessPolicyServerController {
             return groupFromBDD;
         }
 
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(group);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(group);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de groupe échoué :' + group.translatable_name + ':');
             return null;
@@ -922,7 +922,7 @@ export default class AccessPolicyServerController {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate policy ' + policy.translatable_name + ' detected, deleting it');
                 const vos = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq(field_names<AccessPolicyVO>().translatable_name, policy.translatable_name).select_vos<AccessPolicyVO>();
-                await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
+                await ModuleDAOServer.instance.deleteVOs_as_server(vos);
                 ConsoleHandler.error('Duplicate policy ' + policy.translatable_name + ' detected, deleted');
                 policyFromBDD = null;
             } else {
@@ -942,7 +942,7 @@ export default class AccessPolicyServerController {
                 policyFromBDD.module_id = moduleVoID;
                 policyFromBDD.default_behaviour = policy.default_behaviour;
                 policyFromBDD.group_id = policy.group_id;
-                const insertOrDeleteQueryResult_modif: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(policyFromBDD);
+                const insertOrDeleteQueryResult_modif: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(policyFromBDD);
                 if ((!insertOrDeleteQueryResult_modif) || (!insertOrDeleteQueryResult_modif.id)) {
                     ConsoleHandler.error('Modification de droit échoué :' + policyFromBDD.translatable_name + ':');
                     return null;
@@ -955,7 +955,7 @@ export default class AccessPolicyServerController {
             return policyFromBDD;
         }
 
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(policy);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(policy);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de droit échoué :' + policy.translatable_name + ':');
             return null;
@@ -998,7 +998,7 @@ export default class AccessPolicyServerController {
                 // Gestion cas duplication de dépendance qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate policy dependency ' + dependency.src_pol_id + ' -> ' + dependency.depends_on_pol_id + ' detected, deleting it');
                 const vos = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq(field_names<PolicyDependencyVO>().src_pol_id, dependency.src_pol_id).filter_by_num_eq(field_names<PolicyDependencyVO>().depends_on_pol_id, dependency.depends_on_pol_id).select_vos<PolicyDependencyVO>();
-                await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
+                await ModuleDAOServer.instance.deleteVOs_as_server(vos);
                 dependencyFromBDD = null;
             } else {
                 throw error;
@@ -1010,7 +1010,7 @@ export default class AccessPolicyServerController {
             return dependencyFromBDD;
         }
 
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dependency);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(dependency);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de dépendance échouée :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
             return null;

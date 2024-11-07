@@ -51,7 +51,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
-        ModuleDAOServer.getInstance().registerContextAccessHook(ActionURLVO.API_TYPE_ID, this, this.filterActionURLVOContextAccessHook);
+        ModuleDAOServer.instance.registerContextAccessHook(ActionURLVO.API_TYPE_ID, this, this.filterActionURLVOContextAccessHook);
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Cette action n'existe pas ou vous n'y avez pas accès."
@@ -160,13 +160,13 @@ export default class ModuleActionURLServer extends ModuleServerBase {
         if (action_url.action_remaining_counter > 0) {
             action_url.action_remaining_counter--;
         }
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_url);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(action_url);
 
         const action_cr: ActionURLCRVO = await module_instance[action_url.action_callback_function_name](action_url, uid, req, res);
 
         if (action_cr) {
             action_cr.action_url_id = action_url.id;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_cr);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(action_cr);
         }
 
         /**

@@ -147,7 +147,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                         .set_sort(new SortByVO(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().id, true))
                         .select_vos<CRUDFieldRemoverConfVO>();
                     doublons.shift();
-                    await ModuleDAO.getInstance().deleteVOs(doublons);
+                    await ModuleDAO.instance.deleteVOs(doublons);
                 }
             }
             if (this.crud_field_remover_conf && this.crud_field_remover_conf.module_table_field_ids && this.crud_field_remover_conf.module_table_field_ids.length) {
@@ -198,7 +198,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
             new Promise(async (resolve, reject) => {
 
                 try {
-                    const res = await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+                    const res = await ModuleDAO.instance.insertOrUpdateVO(self.crud_field_remover_conf);
                     if (!res.id) {
                         throw new Error('Failed delete_removed_crud_field_id');
                     }
@@ -253,7 +253,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
             new Promise(async (resolve, reject) => {
 
                 try {
-                    const res = await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+                    const res = await ModuleDAO.instance.insertOrUpdateVO(self.crud_field_remover_conf);
                     if (!res.id) {
                         throw new Error('Failed add_removed_crud_field_id');
                     }
@@ -392,7 +392,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                         }
                     }
 
-                    const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
+                    const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(apiokVo);
                     if ((!res) || (!res.id)) {
                         self.creating_vo = false;
                         reject({

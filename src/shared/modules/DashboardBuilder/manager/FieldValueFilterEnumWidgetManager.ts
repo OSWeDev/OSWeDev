@@ -54,7 +54,7 @@ export default class FieldValueFilterEnumWidgetManager {
         access_type = access_type ?? ModuleDAO.DAO_ACCESS_TYPE_READ;
 
         // Check access
-        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+        const access_policy_name = ModuleDAO.instance.getAccessPolicyName(
             ModuleDAO.DAO_ACCESS_TYPE_READ,
             api_type_id
         );

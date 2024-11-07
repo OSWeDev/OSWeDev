@@ -111,7 +111,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
             default:
                 return;
         }
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.supervised_item);
+        await ModuleDAO.instance.insertOrUpdateVO(this.supervised_item);
         await this.debounced_load_supervised_item();
     }
 
@@ -147,7 +147,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
         } else {
             this.supervised_item.state = SupervisionController.STATE_PAUSED;
         }
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.supervised_item);
+        await ModuleDAO.instance.insertOrUpdateVO(this.supervised_item);
         await this.debounced_load_supervised_item();
     }
 

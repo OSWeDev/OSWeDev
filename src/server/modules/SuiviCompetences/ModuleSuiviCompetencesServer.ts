@@ -383,7 +383,7 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         }
 
         if (tosave.length > 0) {
-            await ModuleDAO.getInstance().insertOrUpdateVOs(tosave);
+            await ModuleDAO.instance.insertOrUpdateVOs(tosave);
         }
 
         return true;

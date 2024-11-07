@@ -456,13 +456,13 @@ export default class ThrottledQueryServerController {
         if (!this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF) {
             this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF = new EventifyEventConfVO();
             this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF.name = this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF);
         }
 
         if (!this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF) {
             this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF = new EventifyEventListenerConfVO();
             this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.event_conf_name = this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME;
-            this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.cb_module_name = ModuleDAOServer.getInstance().name;
+            this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.cb_module_name = ModuleDAOServer.instance.name;
             this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.cb_function_name = reflect<ModuleDAOServer>().shift_select_queries;
             this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.cooldown_ms = 1;
             this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.throttled = true;
@@ -471,7 +471,7 @@ export default class ThrottledQueryServerController {
             this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.max_calls = 0;
             this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.name = this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME;
             this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.is_bgthread = false;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF);
         }
 
         this.LISTENER_push_throttled_select_query_params_by_fields_labels_INSTANCE = EventifyEventListenerInstanceVO.instantiate(this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF);

@@ -52,7 +52,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_card imple
             function_TRELLO_trello_get_card.gpt_function_name = 'trello_get_card';
             function_TRELLO_trello_get_card.json_stringify_output = true;
             function_TRELLO_trello_get_card.gpt_function_description = "Get a card by its ID";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(function_TRELLO_trello_get_card);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(function_TRELLO_trello_get_card);
         }
 
 
@@ -71,7 +71,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_card imple
             argument_id.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_id.not_in_function_params = true;
             argument_id.weight = 0;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_id);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_id);
         }
     }
 }

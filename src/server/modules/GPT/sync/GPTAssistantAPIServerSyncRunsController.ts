@@ -161,7 +161,7 @@ export default class GPTAssistantAPIServerSyncRunsController {
                 await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(vo, gpt_obj);
 
                 if (!is_trigger_pre_x) {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(vo);
                 }
             }
 
@@ -255,7 +255,7 @@ export default class GPTAssistantAPIServerSyncRunsController {
 
                 await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(found_vo, run);
 
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
             }
 
             // Les runs qu'on trouve dans Osélia mais pas dans OpenAI, on les archive
@@ -277,7 +277,7 @@ export default class GPTAssistantAPIServerSyncRunsController {
 
                 found_vo.archived = true;
 
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
             }
 
             GPTAssistantAPIServerSyncRunsController.syncing_semaphores_promises[gpt_thread_id] = null;
@@ -308,7 +308,7 @@ export default class GPTAssistantAPIServerSyncRunsController {
 
         await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(run_vo, run);
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run_vo);
     }
 
 

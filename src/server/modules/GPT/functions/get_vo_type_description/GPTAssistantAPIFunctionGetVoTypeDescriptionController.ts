@@ -106,7 +106,7 @@ export default class GPTAssistantAPIFunctionGetVoTypeDescriptionController {
         func.gpt_function_name = gpt_function_name;
         func.module_name = ModuleGPTServer.getInstance().name;
         func.module_function = reflect<ModuleGPTServer>().assistant_function_get_vo_type_description_controller as string;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(func);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(func);
 
         await GPTAssistantAPIFunctionGetVoTypeDescriptionController.create_params_description_if_not_exists(func);
     }
@@ -121,6 +121,6 @@ export default class GPTAssistantAPIFunctionGetVoTypeDescriptionController {
         api_type_id_param.required = true;
         api_type_id_param.weight = 0;
         api_type_id_param.default_json_value = null;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(api_type_id_param);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(api_type_id_param);
     }
 }

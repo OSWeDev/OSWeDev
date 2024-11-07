@@ -96,7 +96,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test module constructor
     private constructor() {
-        super(ModuleDAO.getInstance().name);
+        super(ModuleDAO.instance.name);
         // setTimeout(() => {
         //     ThrottledQueryServerController.shift_select_queries();
         // }, 1);
@@ -342,7 +342,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     public async late_configuration(is_generator: boolean) {
-        await ModuleDAO.getInstance().late_configuration(is_generator);
+        await ModuleDAO.instance.late_configuration(is_generator);
     }
 
     public async shift_select_queries(event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO): Promise<void> {
@@ -2526,7 +2526,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 if (deps_to_delete && deps_to_delete.length) {
-                    const dep_ires: InsertOrDeleteQueryResult[] = await ModuleDAOServer.getInstance().deleteVOs_as_server(deps_to_delete, exec_as_server);
+                    const dep_ires: InsertOrDeleteQueryResult[] = await ModuleDAOServer.instance.deleteVOs_as_server(deps_to_delete, exec_as_server);
 
                     if ((!dep_ires) || (dep_ires.length != deps_to_delete.length)) {
                         ConsoleHandler.error('FAILED DELETE DEPS :' + vo._type + ':' + vo.id + ':ABORT DELETION: DEPS_TYPES:' + DEBUG_deps_types_to_delete);
@@ -2978,11 +2978,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         try {
                             const table_name = reason.message.replace('duplicate key value violates unique constraint "', '').replace('_pkey"', '');
 
-                            await ModuleDAOServer.getInstance().query('SELECT setval(\'ref.' + table_name + '_id_seq\'::regclass, COALESCE((SELECT MAX(id)+1 FROM ref.' + table_name + '), 1), false);');
+                            await ModuleDAOServer.instance.query('SELECT setval(\'ref.' + table_name + '_id_seq\'::regclass, COALESCE((SELECT MAX(id)+1 FROM ref.' + table_name + '), 1), false);');
 
                             if (can_retry > 0) {
                                 ConsoleHandler.error('insert_vos : duplicate key value violates unique constraint : ' + reason.message + ' : ' + reason.stack + ' : On tente de réajuster la contrainte pkey : OK : On relance l\'insertion');
-                                results = await ModuleDAOServer.getInstance()._insert_vos(vos, exec_as_server, can_retry - 1);
+                                results = await ModuleDAOServer.instance._insert_vos(vos, exec_as_server, can_retry - 1);
                                 resolve(results);
                                 resolved = true;
                                 ConsoleHandler.error('insert_vos : duplicate key value violates unique constraint : ' + reason.message + ' : ' + reason.stack + ' : On tente de réajuster la contrainte pkey : OK : On relance l\'insertion : OK');

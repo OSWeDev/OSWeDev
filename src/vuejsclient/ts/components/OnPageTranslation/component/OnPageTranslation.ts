@@ -172,7 +172,7 @@ export default class OnPageTranslation extends VueComponentBase {
             if (!translatable) {
                 translatable = new TranslatableTextVO();
                 translatable.code_text = editable_translation.translation_code;
-                insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(translatable);
+                insertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(translatable);
                 if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                     this.snotify.error(this.label('on_page_translation.save_translation.ko'));
                     return;
@@ -185,7 +185,7 @@ export default class OnPageTranslation extends VueComponentBase {
             translation.lang_id = this.lang_id;
             translation.text_id = translatable.id;
             translation.translated = editable_translation.editable_translation;
-            insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(translation);
+            insertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(translation);
             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                 this.snotify.error(this.label('on_page_translation.save_translation.ko'));
                 return;
@@ -200,7 +200,7 @@ export default class OnPageTranslation extends VueComponentBase {
 
         // c'est un update
         editable_translation.translation.translated = editable_translation.editable_translation;
-        insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(editable_translation.translation);
+        insertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(editable_translation.translation);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             this.snotify.error(this.label('on_page_translation.save_translation.ko'));
             return;

@@ -349,7 +349,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             }
 
             // Puis créer le feedback en base
-            const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
+            const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(feedback);
             if ((!res) || (!res.id)) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_CREATED");
                 throw new Error('Failed feedback creation');
@@ -441,7 +441,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                     'Impossible de créer la carte Trello pour le feedback ' + feedback.id + ' : ' + feedback.title);
             }
 
-            const ires: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
+            const ires: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(feedback);
             if ((!ires) || (!ires.id)) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_INSERTING_FEEDBACK");
                 throw new Error('Failed feedback creation');

@@ -155,7 +155,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
         new_menu.target_is_routename = true;
         new_menu.target_route_params = null;
         new_menu.weight = 0;
-        let res = await ModuleDAO.getInstance().insertOrUpdateVO(new_menu);
+        let res = await ModuleDAO.instance.insertOrUpdateVO(new_menu);
         if ((!res) || (!res.id)) {
             ConsoleHandler.error('add_menu:Failed insert new menu:' + JSON.stringify(new_menu));
             return;
@@ -164,7 +164,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
 
         const code = new TranslatableTextVO();
         code.code_text = new_menu.translatable_title;
-        res = await ModuleDAO.getInstance().insertOrUpdateVO(code);
+        res = await ModuleDAO.instance.insertOrUpdateVO(code);
         if ((!res) || (!res.id)) {
             ConsoleHandler.error('add_menu:Failed insert new code:' + JSON.stringify(code));
             return;
@@ -194,7 +194,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
             return;
         }
         translation.translated = default_translation ? default_translation.translated : null;
-        await ModuleDAO.getInstance().insertOrUpdateVO(translation);
+        await ModuleDAO.instance.insertOrUpdateVO(translation);
     }
 
     private async get_menu(app_name: string): Promise<MenuElementVO[]> {

@@ -34,7 +34,7 @@ export default class WidgetOptionsVOManager {
         access_type = access_type ?? ModuleDAO.DAO_ACCESS_TYPE_READ;
 
         // Check access
-        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+        const access_policy_name = ModuleDAO.instance.getAccessPolicyName(
             access_type,
             DashboardWidgetVO.API_TYPE_ID
         );
@@ -150,7 +150,7 @@ export default class WidgetOptionsVOManager {
             return;
         }
 
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(widget_type);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(widget_type);
 
         if ((!insertOrDeleteQueryResult) || !insertOrDeleteQueryResult.id) {
             ConsoleHandler.error("Impossible de créer le widget");

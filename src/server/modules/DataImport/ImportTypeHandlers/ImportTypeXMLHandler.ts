@@ -97,11 +97,11 @@ export default class ImportTypeXMLHandler {
             const datas: IImportedData[] = ImportTypeXMLHandler.getInstance().importRawsData(dataImportFormat, dataImportColumns, historic, res);
 
             if (dataImportFormat.use_multiple_connections) {
-                await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
+                await ModuleDAOServer.instance.insertOrUpdateVOsMulticonnections(
                     datas
                 );
             } else {
-                await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(datas);
+                await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(datas);
             }
 
             resolve(true);

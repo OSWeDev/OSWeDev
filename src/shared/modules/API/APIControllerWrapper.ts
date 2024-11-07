@@ -34,25 +34,25 @@ export default class APIControllerWrapper {
         return APIControllerWrapper.instance;
     }
 
-    /**
-     * Return Shared API Handler => la fonction qui gère la demande en fonction de si l'on est client ou server
-     * @param api_name
-     * @param sanitize_params used to sanitize params if provided
-     * @param precondition returns false if we refuse, and the api returns precondition_default_value
-     * @param precondition_default_value default value if !precondition
-     */
-    public static sah<T, U>(
-        api_name: string,
-        sanitize_params: (...params) => any[] = null,
-        precondition: (...params) => boolean = null,
-        precondition_default_value: any = null,
-        sanitize_result: (res: any, ...params) => any = null,
-        use_notif_for_result: boolean = false
-    ): (...params) => Promise<U> {
-        return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(
-            api_name, sanitize_params, precondition,
-            precondition_default_value, APIControllerWrapper.registered_apis, sanitize_result, use_notif_for_result);
-    }
+    // /**
+    //  * Return Shared API Handler => la fonction qui gère la demande en fonction de si l'on est client ou server
+    //  * @param api_name
+    //  * @param sanitize_params used to sanitize params if provided
+    //  * @param precondition returns false if we refuse, and the api returns precondition_default_value
+    //  * @param precondition_default_value default value if !precondition
+    //  */
+    // public static sah<T, U>(
+    //     api_name: string,
+    //     sanitize_params: (...params) => any[] = null,
+    //     precondition: (...params) => boolean = null,
+    //     precondition_default_value: any = null,
+    //     sanitize_result: (res: any, ...params) => any = null,
+    //     use_notif_for_result: boolean = false
+    // ): (...params) => Promise<U> {
+    //     return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(
+    //         api_name, sanitize_params, precondition,
+    //         precondition_default_value, APIControllerWrapper.registered_apis, sanitize_result, use_notif_for_result);
+    // }
 
     public static registerApi<T, U>(apiDefinition: APIDefinition<T, U>) {
         APIControllerWrapper.registered_apis[apiDefinition.api_name] = apiDefinition;

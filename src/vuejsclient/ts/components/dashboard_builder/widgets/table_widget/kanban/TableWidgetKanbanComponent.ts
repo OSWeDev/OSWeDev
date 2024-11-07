@@ -1230,7 +1230,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 if (this.widget_options.use_kanban_column_weight_if_exists && kanban_table.getFieldFromId(field_names<IWeightedItem & IDistantVOBase>().weight)) {
                     new_kanban_column_value['weight'] = this.kanban_column_values.length;
                 }
-                const res = await ModuleDAO.getInstance().insertOrUpdateVO(new_kanban_column_value);
+                const res = await ModuleDAO.instance.insertOrUpdateVO(new_kanban_column_value);
                 if ((!res) || (!res.id)) {
                     throw new Error('Erreur lors de la création de la colonne');
                 }
@@ -1339,7 +1339,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
                 const updated_data_rows = updated_data_rows_by_id ? Object.values(updated_data_rows_by_id) : [];
                 if (updated_data_rows.length >= 0) {
-                    const insert_res = await ModuleDAO.getInstance().insertOrUpdateVOs(updated_data_rows);
+                    const insert_res = await ModuleDAO.instance.insertOrUpdateVOs(updated_data_rows);
                     if (!insert_res) {
                         throw new Error('Erreur lors de l\'insertion du kanban_element');
                     }
@@ -1492,7 +1492,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
                 const updated_data_rows = updated_data_rows_by_id ? Object.values(updated_data_rows_by_id) : null;
                 if (updated_data_rows.length >= 0) {
-                    const insert_res = await ModuleDAO.getInstance().insertOrUpdateVOs(updated_data_rows);
+                    const insert_res = await ModuleDAO.instance.insertOrUpdateVOs(updated_data_rows);
                     if (!insert_res) {
                         throw new Error('Erreur lors de l\'insertion du kanban_element');
                     }
@@ -2539,7 +2539,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('TableWidgetComponent.confirm_delete.start'));
 
-                        const res: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOsByIds(api_type_id, [id]);
+                        const res: InsertOrDeleteQueryResult[] = await ModuleDAO.instance.deleteVOsByIds(api_type_id, [id]);
                         if ((!res) || (res.length != 1) || (!res[0].id)) {
                             self.snotify.error(self.label('TableWidgetComponent.confirm_delete.ko'));
                         } else {
@@ -2576,7 +2576,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('crud.actions.delete_all.start'));
 
-                        await ModuleDAO.getInstance().delete_all_vos_triggers_ok(self.crud_activated_api_type);
+                        await ModuleDAO.instance.delete_all_vos_triggers_ok(self.crud_activated_api_type);
                         await self.throttle_do_update_visible_options();
                     },
                     bold: false

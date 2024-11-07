@@ -334,13 +334,13 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         if (!this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name]) {
             this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name] = new EventifyEventConfVO();
             this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name].name = event_name;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name]);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name]);
         }
 
         if (!this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name]) {
             this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name] = new EventifyEventConfVO();
             this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name].name = ASAP_event_name;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name]);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name]);
         }
 
         if (!this.LISTENER_execute_bgthread_CONF_by_bgthread_name[bgthread_name]) {
@@ -359,7 +359,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             LISTENER_execute_bgthread_CONF.run_as_soon_as_possible_event_conf_id = this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name].id;
 
             this.LISTENER_execute_bgthread_CONF_by_bgthread_name[bgthread_name] = LISTENER_execute_bgthread_CONF;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(LISTENER_execute_bgthread_CONF);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(LISTENER_execute_bgthread_CONF);
         }
 
         this.LISTENER_execute_bgthread_INSTANCE_by_bgthread_name[bgthread_name] = EventifyEventListenerInstanceVO.instantiate(this.LISTENER_execute_bgthread_CONF_by_bgthread_name[bgthread_name]);

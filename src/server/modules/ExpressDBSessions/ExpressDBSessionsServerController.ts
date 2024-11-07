@@ -111,7 +111,7 @@ export default class ExpressDBSessionsServerController extends Store {
                 res.sid = sid;
                 res.sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
                 res.expire = expireTime;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(res);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(res);
                 ExpressDBSessionsServerController.session_cache[sid] = res;
                 StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'set', 'insert_out', Dates.now_ms() - db_session_time_in);
             } else {
@@ -229,7 +229,7 @@ export default class ExpressDBSessionsServerController extends Store {
                 res.sid = sid;
                 res.sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
                 res.expire = expireTime;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(res);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(res);
                 ExpressDBSessionsServerController.session_cache[sid] = res;
                 StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'touch', 'insert_out', Dates.now_ms() - db_session_time_in);
             } else {

@@ -289,7 +289,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
          * Pour le moment, on propose de modifier les messages, et avec un bouton dédié à chaque contenu issu d'un assistant,
          *  de run à nouveau l'assistant pour la section de la discussion concernée, sans impacter le reste - on perd l'ancien résultat du coup si on fait ça...
          */
-        await ModuleDAO.getInstance().insertOrUpdateVO(message_content);
+        await ModuleDAO.instance.insertOrUpdateVO(message_content);
     }
 
     private async force_reload() {

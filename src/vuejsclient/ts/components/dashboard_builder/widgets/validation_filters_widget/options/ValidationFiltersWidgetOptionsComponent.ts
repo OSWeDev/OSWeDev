@@ -85,7 +85,7 @@ export default class ValidationFiltersWidgetOptionsComponent extends VueComponen
             ConsoleHandler.error(error);
         }
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
+        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
 
         if (!this.widget_options) {
             return;

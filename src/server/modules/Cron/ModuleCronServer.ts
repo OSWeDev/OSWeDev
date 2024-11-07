@@ -194,7 +194,7 @@ export default class ModuleCronServer extends ModuleServerBase {
             .select_vo<CronWorkerPlanification>();
 
         if (!vo) {
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cronWorkerPlan);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(cronWorkerPlan);
         }
     }
 

@@ -744,7 +744,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         // for (let api_type_id in VarsServerController.varcacheconf_by_api_type_ids) {
         //     let moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
 
-        //     await ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');
+        //     await ModuleDAOServer.instance.query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');
         // }
     }
 
@@ -954,7 +954,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         for (const api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
 
             const moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
-            promises.push(ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';'));
+            promises.push(ModuleDAOServer.instance.query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';'));
         }
         await all_promises(promises);
 

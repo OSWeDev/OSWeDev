@@ -398,7 +398,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 // Upload via insert or update
                 const new_file = new FileVO();
                 new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
-                const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
+                const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
                 new_file.id = resnew_file.id;
                 this.thread_files.push({ ['.' + file.name.split('.').pop()]: new_file });
             });

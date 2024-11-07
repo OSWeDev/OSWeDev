@@ -880,7 +880,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             ConsoleHandler.error(error);
         }
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
+        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
 
         if (!this.widget_options) {
             this.tmp_default_export_option = null;

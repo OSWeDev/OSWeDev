@@ -365,8 +365,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     // istanbul ignore next: cannot test registerAccessHooks
     public registerAccessHooks(): void {
 
-        ModuleDAOServer.getInstance().registerContextAccessHook(AccessPolicyVO.API_TYPE_ID, this, this.filterPolicyByActivModulesContextAccessHook);
-        ModuleDAOServer.getInstance().registerAccessHook(AccessPolicyVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterPolicyByActivModules);
+        ModuleDAOServer.instance.registerContextAccessHook(AccessPolicyVO.API_TYPE_ID, this, this.filterPolicyByActivModulesContextAccessHook);
+        ModuleDAOServer.instance.registerAccessHook(AccessPolicyVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterPolicyByActivModules);
     }
 
     // istanbul ignore next: cannot test configure
@@ -1032,7 +1032,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                  * Gestion du impersonate
                  */
                 user_log.handle_impersonation(session);
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
             }
 
             /**
@@ -1171,7 +1171,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             userRole = new UserRoleVO();
             userRole.role_id = role_id;
             userRole.user_id = user_id;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(userRole, exec_as_server);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(userRole, exec_as_server);
         }
     }
 
@@ -1230,7 +1230,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await ModuleDAOServer.getInstance().query('update ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' set ' +
+        await ModuleDAOServer.instance.query('update ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' set ' +
             "lang_id=$1 where id=$2",
             [num, user_id]);
     }
@@ -1279,7 +1279,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return true;
             }
 
-            const res = await ModuleDAOServer.getInstance().query('select invalidated or blocked as invalidated from ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
+            const res = await ModuleDAOServer.instance.query('select invalidated or blocked as invalidated from ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
             const invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : false;
             return !invalidated;
         } catch (error) {
@@ -1381,7 +1381,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
 
             await PushDataServerController.notify_user_and_redirect(session);
 
@@ -1544,7 +1544,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if (role_policy) {
 
             // Si oui on la supprime
-            const insertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = await ModuleDAOServer.getInstance().deleteVOs_as_server([role_policy]);
+            const insertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = await ModuleDAOServer.instance.deleteVOs_as_server([role_policy]);
             if ((!insertOrDeleteQueryResults) || (!insertOrDeleteQueryResults.length)) {
                 return false;
             }
@@ -1556,7 +1556,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         role_policy.granted = true;
         role_policy.role_id = role.id;
 
-        insertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(role_policy);
+        insertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(role_policy);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             return false;
         }
@@ -1902,7 +1902,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
-            let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
+            let user: UserVO = await ModuleDAOServer.instance.selectOneUser(email, password);
 
             if (user) {
 
@@ -1935,7 +1935,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             const lang: LangVO = await query(LangVO.API_TYPE_ID).set_sort(new SortByVO(LangVO.API_TYPE_ID, field_names<LangVO>().id, true)).set_limit(1).select_vo<LangVO>();
             user.lang_id = lang.id;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
 
             if (!user.id) {
                 throw new Error('Impossible de créer le compte');
@@ -1952,7 +1952,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
             await PushDataServerController.notify_user_and_redirect(session, redirect_to);
 
             return user.id;
@@ -1994,7 +1994,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             if (AccessPolicyServerController.hook_user_login) {
                 user = await AccessPolicyServerController.hook_user_login(email, password);
             } else {
-                user = await ModuleDAOServer.getInstance().selectOneUser(email, password);
+                user = await ModuleDAOServer.instance.selectOneUser(email, password);
             }
 
             if (!user) {
@@ -2016,7 +2016,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             if (!user.logged_once) {
                 user.logged_once = true;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
             }
 
             session.uid = user.id;
@@ -2032,7 +2032,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
 
             await PushDataServerController.notify_user_and_redirect(session, redirect_to, sso);
 
@@ -2112,7 +2112,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
         user_log.handle_impersonation(session);
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
 
         await PushDataServerController.notify_user_and_redirect(session);
 
@@ -2258,7 +2258,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user.email = user.email.trim();
             user.phone = user.phone ? user.phone.trim() : null;
 
-            return await ModuleDAOServer.getInstance().selectUsersForCheckUnicity(user.name, user.email, user.phone, user.id);
+            return await ModuleDAOServer.instance.selectUsersForCheckUnicity(user.name, user.email, user.phone, user.id);
         } catch (error) {
             ConsoleHandler.error(error);
         }
@@ -2355,7 +2355,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             user_log.handle_impersonation(session);
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
         }
 
         /**
@@ -2379,7 +2379,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             user_log.handle_impersonation(session);
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
         }
 
         await ConsoleHandler.log('unregisterSession:delete_session:uid:' + session.uid);

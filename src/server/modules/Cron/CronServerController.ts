@@ -181,7 +181,7 @@ export default class CronServerController {
     private async nextRecurrence(plannedWorker: CronWorkerPlanification) {
         if ((!plannedWorker) || (plannedWorker.type_recurrence == CronWorkerPlanification.TYPE_RECURRENCE_AUCUNE)) {
             plannedWorker.date_heure_planifiee = null;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(plannedWorker);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(plannedWorker);
 
             return;
         }
@@ -211,6 +211,6 @@ export default class CronServerController {
         }
         plannedWorker.date_heure_planifiee = Dates.add(plannedWorker.date_heure_planifiee, plannedWorker.intervale_recurrence, type_interval);
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(plannedWorker);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(plannedWorker);
     }
 }
