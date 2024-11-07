@@ -19,3 +19,7 @@ vuejsclient/public => public/vuejsclient
 client/public => public/client
 admin/public => public/admin
 login/public => public/login
+
+REPLACE ALL (à la main individuellement :) pour le moment utile que pour les apis qui n'ont ((!sanitize_params) && (!precondition) && (!sanitize_result)) )
+APIControllerWrapper.sah
+APIControllerWrapper.sah_optimizer

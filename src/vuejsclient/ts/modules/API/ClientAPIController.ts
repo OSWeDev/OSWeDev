@@ -32,13 +32,13 @@ export default class ClientAPIController implements IAPIController {
         return ClientAPIController.instance;
     }
 
-    public async sah<T extends IAPIParamTranslator<T>, U>(
+    public sah<T extends IAPIParamTranslator<T>, U>(
         api_name: string,
         sanitize_params: (...params) => any[] = null,
         precondition: (...params) => boolean = null,
         precondition_default_value: any = null,
         sanitize_result: (res: any, ...params) => any = null
-    ): Promise<(...params) => Promise<U>> {
+    ): (...params) => Promise<U> {
 
         return async (...params) => {
 

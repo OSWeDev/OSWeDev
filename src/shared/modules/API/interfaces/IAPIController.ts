@@ -6,13 +6,5 @@ export default interface IAPIController {
         precondition: (...params) => boolean,
         precondition_default_value: any,
         sanitize_result: (res: any, ...params) => any,
-        use_notif_for_result: boolean): Promise<(...params) => Promise<U>>;
-    // get_shared_api_handler<T, U>(
-    //     api_name: string,
-    //     sanitize_params: (...params) => any[],
-    //     precondition: (...params) => boolean,
-    //     precondition_default_value: any,
-    //     registered_apis: { [api_name: string]: APIDefinition<any, any> },
-    //     sanitize_result: (res: any, ...params) => any,
-    //     use_notif_for_result: boolean): (...params) => Promise<U>;
+        use_notif_for_result: boolean): (...params) => Promise<U>;
 }

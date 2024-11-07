@@ -27,6 +27,8 @@ import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
 import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
@@ -35,8 +37,8 @@ import MatroidController from '../../../shared/modules/Matroid/MatroidController
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import Module from '../../../shared/modules/Module';
 import ModulesManager from '../../../shared/modules/ModulesManager';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
+import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
@@ -48,7 +50,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -61,6 +63,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModuleTableDBService from '../ModuleTableDBService';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
@@ -76,10 +79,6 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
-import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
-import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
-import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
-import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -769,25 +768,25 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_selectUsersForCheckUnicity, this.selectUsersForCheckUnicity.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().selectUsersForCheckUnicity, this.selectUsersForCheckUnicity.bind(this));
 
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS, this.deleteVOs.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS_BY_IDS, this.deleteVOsByIds.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS_MULTICONNECTIONS, this.deleteVOsMulticonnections.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().deleteVOs, this.deleteVOs.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().deleteVOsByIds, this.deleteVOsByIds.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().deleteVOsMulticonnections, this.deleteVOsMulticonnections.bind(this));
 
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_INSERT_VOS, this.insert_vos.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS, this.insertOrUpdateVOs.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, this.insertOrUpdateVO.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().insert_vos, this.insert_vos.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().insertOrUpdateVOs, this.insertOrUpdateVOs.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().insertOrUpdateVO, this.insertOrUpdateVO.bind(this));
 
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_getVarImportsByMatroidParams, this.getVarImportsByMatroidParams.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS, this.filterVosByMatroids.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().getVarImportsByMatroidParams, this.getVarImportsByMatroidParams.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().filterVosByMatroids, this.filterVosByMatroids.bind(this));
 
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME, this.getNamedVoByName.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().getNamedVoByName, this.getNamedVoByName.bind(this));
 
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_GET_BASE_URL, this.getBaseUrl.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().getBaseUrl, this.getBaseUrl.bind(this));
 
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_truncate, this.truncate_api.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_delete_all_vos_triggers_ok, this.delete_all_vos_triggers_ok.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().truncate, this.truncate_api.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().delete_all_vos_triggers_ok, this.delete_all_vos_triggers_ok.bind(this));
     }
 
     public async preload_segmented_known_database(t: ModuleTableVO) {
