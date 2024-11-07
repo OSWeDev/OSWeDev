@@ -228,7 +228,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
             return false;
         }
 
-        return await ModuleAccessPolicyServer.getInstance().login(tag_user.user_id);
+        return ModuleAccessPolicyServer.getInstance().login(tag_user.user_id);
     }
 
     /**

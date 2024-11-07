@@ -1,5 +1,10 @@
 TODO
 
+1 - moduleparam.instance.xxx => avec un getter iso params de vars, qui s'auto supprime post init de l'instance. du coup c'est static en fait et on appel la fonction qu'une fois et ça marche pour tous les modules....
+Autre option, peut-être encore plus simple, on init tous les modules en début d'appli (ce qui est surement déjà le cas) et donc après on n'a plus qu'à utiliser .instance tout le temps.
+
+2 - au lieu de passer par un module api qui fourni un api handler côté serveur, si on peut, on remplace directement la méthode dans le module shared comme ça quand on l'appel coté serveur, on appel tout simplement la méthode du module serveur de façon transparente sans repasser par le module api
+
 PushDataServerController.registeredSessions_by_uid => checkaccess => uid on envoie au thread principal directement une requete de delete de sessions by uid et osef tout le bgthread et le reste.
 throw exception spécifique aux droits, catch dans l'api, et delete session directement là. tous les autres cas n'ont a priori pas de session à supprimer. attention aux changements de threads qui maintiennent la session ?=> faut transférer aussi l'exception
 WTF AccessPolicyDeleteSessionBGThread

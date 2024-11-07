@@ -115,14 +115,14 @@ export default class ModuleGPTServer extends ModuleServerBase {
         user_id: number,
         hide_content: boolean,
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
-        return await GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, thread_title, content, files, user_id, hide_content);
+        return GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, thread_title, content, files, user_id, hide_content);
     }
 
     public async assistant_function_get_vo_type_description_controller(
         thread_vo: GPTAssistantAPIThreadVO,
         api_type_id: string,
     ): Promise<AssistantVoTypeDescription> {
-        return await GPTAssistantAPIFunctionGetVoTypeDescriptionController.run_action(thread_vo, api_type_id);
+        return GPTAssistantAPIFunctionGetVoTypeDescriptionController.run_action(thread_vo, api_type_id);
     }
 
     // istanbul ignore next: cannot test configure

@@ -438,7 +438,7 @@ export default abstract class VueAppBase {
         Vue.use(Snotify);
         Vue.use(VueRouter);
         Vue.use(VueFlags, {
-            iconPath: '/client/public/img/flags/',
+            iconPath: '/public/client/img/flags/',
         });
 
         // Use v-calendar, v-date-picker & v-popover components

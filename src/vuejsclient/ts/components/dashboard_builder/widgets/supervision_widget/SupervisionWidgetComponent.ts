@@ -170,7 +170,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     private async handle_throttled_update_visible_options(args: any[]): Promise<void> {
         const options = Array.isArray(args) && args.length > 0 ? args.shift() : null;
 
-        return await this.update_visible_options();
+        return this.update_visible_options();
     }
 
     /**

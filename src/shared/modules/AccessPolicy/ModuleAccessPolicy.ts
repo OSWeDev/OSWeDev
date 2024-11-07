@@ -98,7 +98,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_GET_AVATAR_URL = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_url";
     public static APINAME_GET_AVATAR_NAME = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_name";
 
-    public static AVATAR_DEFAULT_URL = '/vuejsclient/public/img/avatars/unknown.png';
+    public static AVATAR_DEFAULT_URL = '/public/vuejsclient/img/avatars/unknown.png';
 
     public static APINAME_send_session_share_email = "send_session_share_email";
     public static APINAME_send_session_share_sms = "send_session_share_sms";

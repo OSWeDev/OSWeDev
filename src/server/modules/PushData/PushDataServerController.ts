@@ -41,7 +41,7 @@ export default class PushDataServerController {
     public static NOTIFY_RELOAD: string = 'PushDataServerController.reload' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
 
     public static TASK_NAME_notifyRedirectHomeAndDisconnect: string = 'PushDataServerController' + '.notifyRedirectHomeAndDisconnect';
-    public static TASK_NAME_notifyUserLoggedAndRedirect: string = 'PushDataServerController' + '.notifyUserLoggedAndRedirect';
+    public static TASK_NAME_notify_user_and_redirect: string = 'PushDataServerController' + '.notify_user_and_redirect';
     public static TASK_NAME_notifyAPIResult: string = 'PushDataServerController' + '.notifyAPIResult';
     public static TASK_NAME_notifyVarData: string = 'PushDataServerController' + '.notifyVarData';
     public static TASK_NAME_notifyVarsDatas: string = 'PushDataServerController' + '.notifyVarsDatas';
@@ -59,7 +59,7 @@ export default class PushDataServerController {
     public static TASK_NAME_notifySimpleERROR: string = 'PushDataServerController' + '.notifySimpleERROR';
     public static TASK_NAME_notifyRedirectINFO: string = 'PushDataServerController' + '.notifyRedirectINFO';
     public static TASK_NAME_notifyPrompt: string = 'PushDataServerController' + '.notifyPrompt';
-    public static TASK_NAME_notifySession: string = 'PushDataServerController' + '.notifySession';
+    public static TASK_NAME_notify_session: string = 'PushDataServerController' + '.notify_session';
     public static TASK_NAME_notifyReload: string = 'PushDataServerController' + '.notifyReload';
     public static TASK_NAME_notifyTabReload: string = 'PushDataServerController' + '.notifyTabReload';
     public static TASK_NAME_notifyDownloadFile: string = 'PushDataServerController' + '.notifyDownloadFile';
@@ -151,10 +151,10 @@ export default class PushDataServerController {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyPrompt, PushDataServerController.notifyPrompt.bind(this));
         // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifySession, PushDataServerController.notifySession.bind(this));
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_session, PushDataServerController.notify_session.bind(this));
         // ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyReload, PushDataServerController.notifyReload.bind(this));
         // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirect, PushDataServerController.notifyUserLoggedAndRedirect.bind(this));
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_user_and_redirect, PushDataServerController.notify_user_and_redirect.bind(this));
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyTabReload, PushDataServerController.notifyTabReload.bind(this));
         // ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyVarsTabsReload, PushDataServerController.notifyVarsTabsReload.bind(this));
@@ -557,8 +557,8 @@ export default class PushDataServerController {
     }
 
     /**
-     * On notifie un utilisateur pour forcer la déco et rechargement de la page d'accueil
      * DELETE ME Post suppression StackContext: Does not need StackContext
+     * On notifie un utilisateur pour forcer la déco et rechargement de la page d'accueil
      */
     public static async notifyRedirectHomeAndDisconnect(session: IServerUserSession) {
 
@@ -596,18 +596,22 @@ export default class PushDataServerController {
     }
 
     /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
      * On notifie une session pour forcer le rechargement de la page d'accueil suite connexion / changement de compte
      */
-    public static async notifyUserLoggedAndRedirect(redirect_uri: string = '/', sso: boolean = false) {
+    public static async notify_user_and_redirect(
+        session: IServerUserSession,
+        redirect_uri: string = '/',
+        sso: boolean = false
+    ) {
 
         // Permet d'assurer un lancement uniquement sur le main process
-        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirect, redirect_uri, sso)) {
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notify_user_and_redirect, session, redirect_uri, sso)) {
             return;
         }
 
         let notification: NotificationVO = null;
         try {
-            const session: IServerUserSession = StackContext.get('SESSION');
 
             if (PushDataServerController.registeredSockets_by_sessionid && PushDataServerController.registeredSockets_by_sessionid[session.id]) {
                 notification = PushDataServerController.getTechNotif(
@@ -631,7 +635,15 @@ export default class PushDataServerController {
         }
 
         await PushDataServerController.notify(notification);
-        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyUserLoggedAndRedirectHome');
+    }
+
+    /**
+     * On notifie une session pour forcer le rechargement de la page d'accueil suite connexion / changement de compte
+     * @deprecated Utilise StackContext que l'on ne veut plus utiliser. Préférer notify_user_and_redirect
+     */
+    public static async notifyUserLoggedAndRedirect(redirect_uri: string = '/', sso: boolean = false) {
+
+        return this.notify_user_and_redirect(StackContext.get('SESSION'), redirect_uri, sso);
     }
 
 
@@ -940,16 +952,34 @@ export default class PushDataServerController {
      * @param code_text
      * @param notif_type
      * @param simple_notif_json_params
-     * @deprecated On veut supprimer StackContext
+     * @deprecated On veut supprimer StackContext. Préférer notify_session
      */
     public static async notifySession(code_text: string, notif_type: number = NotificationVO.SIMPLE_SUCCESS, simple_notif_json_params: string = null) {
 
-        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySession, code_text, notif_type)) {
+        return this.notify_session(StackContext.get('SID'), code_text, notif_type, simple_notif_json_params);
+    }
+
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     * @param code_text
+     * @param notif_type
+     * @param simple_notif_json_params
+     */
+    public static async notify_session(
+        sid: string,
+        code_text: string,
+        notif_type: number = NotificationVO.SIMPLE_SUCCESS,
+        simple_notif_json_params: string = null) {
+
+        if (!sid) {
+            return;
+        }
+
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notify_session, sid, code_text, notif_type)) {
             return;
         }
 
         try {
-            const sid: string = StackContext.get('SID');
             if (PushDataServerController.registeredSockets_by_sessionid && PushDataServerController.registeredSockets_by_sessionid[sid]) {
                 await PushDataServerController.notifySimple(Object.values(PushDataServerController.registeredSockets_by_sessionid[sid]).map((w) => w.socketId),
                     null, null, notif_type, code_text, true, simple_notif_json_params);

@@ -976,7 +976,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return 'ERREUR Technique: Thread parent non trouvé: réeesayer';
         }
 
-        return await this.get_cache_value(parent_thread, key);
+        return this.get_cache_value(parent_thread, key);
     }
 
     /**
@@ -1779,7 +1779,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     }
 
     private async init_api_key_from_mdp_preu(vos: DAOUpdateVOHolder<ExternalAPIAuthentificationVO>): Promise<boolean> {
-        return await this.init_api_key_from_mdp(vos.post_update_vo);
+        return this.init_api_key_from_mdp(vos.post_update_vo);
     }
     private async init_api_key_from_mdp(vo: ExternalAPIAuthentificationVO): Promise<boolean> {
         if (vo.basic_login && vo.basic_password && !vo.api_key) {
@@ -1817,7 +1817,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return null;
         }
 
-        return await this.link_user_to_oselia_referrer_obj(
+        return this.link_user_to_oselia_referrer_obj(
             referrer,
             user.email,
             user.id.toString()

@@ -110,7 +110,7 @@ export default class SupervisionWidgetManager {
         }
 
         // Select the supervision probs by api_type_id
-        return await SupervisionWidgetManager.select_supervision_probs_by_api_type_id(
+        return SupervisionWidgetManager.select_supervision_probs_by_api_type_id(
             dashboard,
             widget_options,
             context_filters_by_api_type_id,

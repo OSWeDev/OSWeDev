@@ -1,4 +1,5 @@
 
+import { Request, Response } from 'express';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModulePlayWright from '../../../shared/modules/PlayWright/ModulePlayWright';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -8,19 +9,19 @@ import PlayWrightServerController from './PlayWrightServerController';
 
 export default class ModulePlayWrightServer extends ModuleServerBase {
 
+    private static instance: ModulePlayWrightServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModulePlayWright.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ModulePlayWrightServer {
         if (!ModulePlayWrightServer.instance) {
             ModulePlayWrightServer.instance = new ModulePlayWrightServer();
         }
         return ModulePlayWrightServer.instance;
-    }
-
-    private static instance: ModulePlayWrightServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModulePlayWright.getInstance().name);
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -38,14 +39,14 @@ export default class ModulePlayWrightServer extends ModuleServerBase {
     public async configure() {
     }
 
-    protected async setup_and_login(access_code: string): Promise<string> {
+    protected async setup_and_login(access_code: string, req: Request, res: Response): Promise<string> {
 
         if (!access_code || (access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code)) {
             ConsoleHandler.error('ModulePlayWrightServer setup_and_login: access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code');
             return;
         }
 
-        return await PlayWrightServerController.getInstance().setup_and_login();
+        return PlayWrightServerController.getInstance().setup_and_login(req);
     }
 
     // private async global_setup(access_code: string) {

@@ -4,6 +4,24 @@ import ConsoleHandler from "../../../tools/ConsoleHandler";
 export default class ContextQueryJoinOnFieldVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "context_query_join_on_field";
 
+
+    public id: number;
+    public _type: string = ContextQueryJoinOnFieldVO.API_TYPE_ID;
+
+    public joined_table_alias: string;
+    /**
+     * Peut être un id de field ou un alias mais sera directement le nom du champ dans le select
+     */
+    public joined_table_field_alias: string;
+
+    public initial_context_query_api_type_id: string;
+    /**
+     * Peut être un id de field ou un alias mais sera directement le nom du champ dans le select
+     */
+    public initial_context_query_field_name_or_alias: string;
+
+    public constructor() { }
+
     /**
      *
      * @param joined_table_alias
@@ -28,23 +46,6 @@ export default class ContextQueryJoinOnFieldVO implements IDistantVOBase {
 
         return res;
     }
-
-    public id: number;
-    public _type: string = ContextQueryJoinOnFieldVO.API_TYPE_ID;
-
-    public joined_table_alias: string;
-    /**
-     * Peut être un id de field ou un alias mais sera directement le nom du champ dans le select
-     */
-    public joined_table_field_alias: string;
-
-    public initial_context_query_api_type_id: string;
-    /**
-     * Peut être un id de field ou un alias mais sera directement le nom du champ dans le select
-     */
-    public initial_context_query_field_name_or_alias: string;
-
-    public constructor() { }
 
     public log(is_error: boolean = false) {
         let log_func = ConsoleHandler.log;

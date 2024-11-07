@@ -99,28 +99,28 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
         return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
     }
     get role_assistant_avatar_url() {
-        return '/vuejsclient/public/img/avatars/oselia.png';
+        return '/public/vuejsclient/img/avatars/oselia.png';
     }
 
     get role_system() {
         return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_SYSTEM;
     }
     get role_system_avatar_url() {
-        return '/vuejsclient/public/img/avatars/system.png';
+        return '/public/vuejsclient/img/avatars/system.png';
     }
 
     get role_tool() {
         return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TOOL;
     }
     get role_tool_avatar_url() {
-        return '/vuejsclient/public/img/avatars/tool.png';
+        return '/public/vuejsclient/img/avatars/tool.png';
     }
 
     get role_function() {
         return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_FUNCTION;
     }
     get role_function_avatar_url() {
-        return '/vuejsclient/public/img/avatars/function.png';
+        return '/public/vuejsclient/img/avatars/function.png';
     }
 
     get role_user() {

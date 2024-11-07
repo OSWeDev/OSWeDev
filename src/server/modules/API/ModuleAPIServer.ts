@@ -526,9 +526,9 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     scope_overloads,
                     async () => {
                         if (has_params && params && params.length) {
-                            return await api.SERVER_HANDLER(...params);
+                            return api.SERVER_HANDLER(...params);
                         } else {
-                            return await api.SERVER_HANDLER();
+                            return api.SERVER_HANDLER();
                         }
                     }));
 

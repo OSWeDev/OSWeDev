@@ -31,7 +31,7 @@ export default class OseliaRunServerController {
             throw new Error('get_oselia_run_from_grp_run_id: No gpt_run_id provided');
         }
 
-        return await query(OseliaRunVO.API_TYPE_ID)
+        return query(OseliaRunVO.API_TYPE_ID)
             .add_filters([
                 ContextFilterVO.or([
                     filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().split_gpt_run_id).by_num_eq(gpt_run_id),
@@ -307,7 +307,7 @@ export default class OseliaRunServerController {
         }
 
         if (run.file_id_ranges) {
-            return await query(FileVO.API_TYPE_ID)
+            return query(FileVO.API_TYPE_ID)
                 .filter_by_ids(run.file_id_ranges)
                 .exec_as_server()
                 .select_vos<FileVO>();

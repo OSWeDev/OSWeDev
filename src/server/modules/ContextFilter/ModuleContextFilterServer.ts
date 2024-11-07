@@ -15,6 +15,14 @@ import ContextQueryServerController from './ContextQueryServerController';
 
 export default class ModuleContextFilterServer extends ModuleServerBase {
 
+
+    private static instance: ModuleContextFilterServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleContextFilter.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleContextFilterServer.instance) {
@@ -22,13 +30,6 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         }
 
         return ModuleContextFilterServer.instance;
-    }
-
-    private static instance: ModuleContextFilterServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleContextFilter.getInstance().name);
     }
 
     // istanbul ignore next: cannot test configure
@@ -51,7 +52,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     }
 
     public async count_valid_segmentations(api_type_id: string, context_query: ContextQueryVO, ignore_self_filter: boolean = true): Promise<number> {
-        return await ContextQueryServerController.count_valid_segmentations(api_type_id, context_query, ignore_self_filter);
+        return ContextQueryServerController.count_valid_segmentations(api_type_id, context_query, ignore_self_filter);
     }
 
 
@@ -63,7 +64,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         context_query: ContextQueryVO
     ): Promise<number> {
 
-        return await ContextQueryServerController.select_count(context_query);
+        return ContextQueryServerController.select_count(context_query);
     }
 
     /**
@@ -78,7 +79,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     public async update_vos<T extends IDistantVOBase>(
         context_query: ContextQueryVO, new_api_translated_values: { [update_field_id in keyof T]?: any }
     ): Promise<InsertOrDeleteQueryResult[]> {
-        return await ContextQueryServerController.update_vos(context_query, new_api_translated_values);
+        return ContextQueryServerController.update_vos(context_query, new_api_translated_values);
     }
 
     /**
@@ -90,7 +91,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     public async delete_vos(
         context_query: ContextQueryVO
     ): Promise<InsertOrDeleteQueryResult[]> {
-        return await ContextQueryServerController.delete_vos(context_query);
+        return ContextQueryServerController.delete_vos(context_query);
     }
 
     /**
@@ -141,7 +142,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     public async build_select_query(
         context_query: ContextQueryVO
     ): Promise<ParameterizedQueryWrapper> {
-        return await ContextQueryServerController.build_select_query(context_query);
+        return ContextQueryServerController.build_select_query(context_query);
     }
 
     /**
@@ -151,7 +152,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     public async select_vos<T extends IDistantVOBase>(
         context_query: ContextQueryVO
     ): Promise<T[]> {
-        return await ContextQueryServerController.select_vos(context_query);
+        return ContextQueryServerController.select_vos(context_query);
     }
 
     /**
@@ -160,7 +161,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
      */
     private async select(context_query: ContextQueryVO): Promise<any[]> {
 
-        return await ContextQueryServerController.select(context_query);
+        return ContextQueryServerController.select(context_query);
     }
 
     /**
@@ -172,7 +173,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
         fields: { [datatable_field_uid: string]: DatatableField<any, any> }): Promise<any[]> {
 
-        return await ContextQueryServerController.select_datatable_rows(context_query, columns_by_field_id, fields);
+        return ContextQueryServerController.select_datatable_rows(context_query, columns_by_field_id, fields);
     }
 
     /**
@@ -184,7 +185,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         actual_query: string
     ): Promise<DataFilterOption[]> {
 
-        return await ContextQueryServerController.select_filter_visible_options(
+        return ContextQueryServerController.select_filter_visible_options(
             context_query,
             actual_query
         );

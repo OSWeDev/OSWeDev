@@ -1247,7 +1247,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        return await SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
+        return SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
 
             const var_controller = VarsServerController.registered_vars_controller[VarsController.var_conf_by_id[param.var_id].name];
 
@@ -1283,7 +1283,7 @@ export default class ModuleVarServer extends ModuleServerBase {
      */
     private async getAggregatedVarDatas(param: VarDataBaseVO): Promise<{ [var_data_index: string]: VarDataBaseVO }> {
 
-        return await SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
+        return SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
 
             const var_dag: VarDAG = new VarDAG();
             const node = await VarDAGNode.getInstance(var_dag, param, false);
@@ -1312,7 +1312,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             throw new Error('getParamDependencies must be called on main process for var explanation');
         }
 
-        return await SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
+        return SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
 
 
             /**
@@ -1632,7 +1632,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     private async get_var_data(var_data_index: string): Promise<VarDataBaseVO> {
-        return await VarsServerCallBackSubsController.get_var_data(var_data_index);
+        return VarsServerCallBackSubsController.get_var_data(var_data_index);
     }
 
     /**

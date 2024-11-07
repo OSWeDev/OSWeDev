@@ -1087,10 +1087,10 @@ export default class ContextQueryServerController {
     public static async build_select_query(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
 
         if (context_query.do_count_results) {
-            return await ContextQueryServerController.build_query_count(context_query);
+            return ContextQueryServerController.build_query_count(context_query);
         }
 
-        return await ContextQueryServerController.build_select_query_not_count(context_query);
+        return ContextQueryServerController.build_select_query_not_count(context_query);
     }
 
     public static async get_valid_segmentations(moduletable: ModuleTableVO, context_query: ContextQueryVO): Promise<number[]> {
@@ -2466,7 +2466,7 @@ export default class ContextQueryServerController {
             const context_query_join = context_query.joined_context_queries.find((joined_context_query) => joined_context_query.joined_table_alias == api_type_id);
 
             if (context_query_join) {
-                return await ContextQueryServerController.handle_join_context_query(context_query_join, jointures, tables_aliases_by_type);
+                return ContextQueryServerController.handle_join_context_query(context_query_join, jointures, tables_aliases_by_type);
             }
         }
 
@@ -2492,7 +2492,7 @@ export default class ContextQueryServerController {
                     return aliases_n;
                 }
 
-                return await ContextFilterServerController.updates_cross_jointures(
+                return ContextFilterServerController.updates_cross_jointures(
                     context_query,
                     context_query.query_tables_prefix,
                     selected_field.api_type_id,
@@ -2515,7 +2515,7 @@ export default class ContextQueryServerController {
             return aliases_n;
         }
 
-        return await ContextFilterServerController.updates_jointures(
+        return ContextFilterServerController.updates_jointures(
             context_query, context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
     }
 

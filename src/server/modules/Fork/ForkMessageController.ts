@@ -16,6 +16,7 @@ import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage'
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 
 export default class ForkMessageController {
 
@@ -61,10 +62,10 @@ export default class ForkMessageController {
     public static async broadcast(msg: IForkMessage, ignore_uid: number = null): Promise<boolean> {
 
         if (!ForkServerController.is_main_process()) {
-            await ForkMessageController.send(new BroadcastWrapperForkMessage(msg));
-            return true;
+            return ForkMessageController.send(new BroadcastWrapperForkMessage(msg));
         } else {
 
+            const promises = [];
             for (const i in ForkServerController.forks) {
                 const forked = ForkServerController.forks[i];
 
@@ -77,9 +78,10 @@ export default class ForkMessageController {
                     continue;
                 }
 
-                await ForkMessageController.send(msg, forked.child_process, forked);
+                promises.push(ForkMessageController.send(msg, forked.child_process, forked));
             }
-            return await ForkMessageController.message_handler(msg);
+            await all_promises(promises);
+            return ForkMessageController.message_handler(msg);
         }
     }
 

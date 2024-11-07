@@ -242,7 +242,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     private async get_ds_by_user_lang(): Promise<DocumentVO[]> {
         const main_query = query(DocumentVO.API_TYPE_ID);
         const user = await ModuleAccessPolicyServer.getSelfUser();
-        return await main_query
+        return main_query
             .filter_by_num_eq(field_names<DocumentTagLangVO>().lang_id, user.lang_id, DocumentLangVO.API_TYPE_ID)
             .add_filters([
                 ContextFilterVO.or([

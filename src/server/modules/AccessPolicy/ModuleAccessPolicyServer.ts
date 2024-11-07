@@ -128,7 +128,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_server().select_vo<UserVO>();
+        return query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_server().select_vo<UserVO>();
     }
 
     public static async getMyLang(): Promise<LangVO> {
@@ -137,7 +137,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if (!user) {
             return null;
         }
-        return await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
+        return query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
     }
 
     /**
@@ -345,7 +345,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         access.group_id = group_id;
         access.default_behaviour = default_behaviour;
         access.translatable_name = translatable_name;
-        return await this.registerPolicy(access, DefaultTranslationVO.create_new(default_translations), moduleVO);
+        return this.registerPolicy(access, DefaultTranslationVO.create_new(default_translations), moduleVO);
     }
 
     public async addDependency(src_pol: AccessPolicyVO, default_behaviour: number, depends_on_pol_id: AccessPolicyVO): Promise<PolicyDependencyVO> {
@@ -353,7 +353,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         dep.default_behaviour = default_behaviour;
         dep.src_pol_id = src_pol.id;
         dep.depends_on_pol_id = depends_on_pol_id.id;
-        return await this.registerPolicyDependency(dep);
+        return this.registerPolicyDependency(dep);
     }
 
     // istanbul ignore next: cannot test registerCrons
@@ -1240,7 +1240,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerRole(role: RoleVO, default_translation: DefaultTranslationVO): Promise<RoleVO> {
-        return await AccessPolicyServerController.registerRole(role, default_translation);
+        return AccessPolicyServerController.registerRole(role, default_translation);
     }
 
     /**
@@ -1248,7 +1248,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerPolicyGroup(group: AccessPolicyGroupVO, default_translation: DefaultTranslationVO): Promise<AccessPolicyGroupVO> {
-        return await AccessPolicyServerController.registerPolicyGroup(group, default_translation);
+        return AccessPolicyServerController.registerPolicyGroup(group, default_translation);
     }
 
     /**
@@ -1256,7 +1256,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerPolicy(policy: AccessPolicyVO, default_translation: DefaultTranslationVO, moduleVO: ModuleVO): Promise<AccessPolicyVO> {
-        return await AccessPolicyServerController.registerPolicy(policy, default_translation, moduleVO);
+        return AccessPolicyServerController.registerPolicy(policy, default_translation, moduleVO);
     }
 
 
@@ -1265,7 +1265,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        return await AccessPolicyServerController.registerPolicyDependency(dependency);
+        return AccessPolicyServerController.registerPolicyDependency(dependency);
     }
 
     /**
@@ -1328,18 +1328,18 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
      * A n'utiliser que dans des contextes attentifs à la sécu. pas de vérif de mdp ici.
      * @param uid
      * @returns
      */
-    public async login(uid: number): Promise<boolean> {
+    public async login_session(uid: number, session: IServerUserSession): Promise<boolean> {
 
         try {
-            const session = StackContext.get('SESSION');
-
             if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
-                await PushDataServerController.notifySession(
+                await PushDataServerController.notify_session(
+                    session.sid,
                     'error.global_update_blocker.activated.___LABEL___',
                     NotificationVO.SIMPLE_ERROR
                 );
@@ -1383,7 +1383,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
-            await PushDataServerController.notifyUserLoggedAndRedirect();
+            await PushDataServerController.notify_user_and_redirect(session);
 
             return true;
         } catch (error) {
@@ -1391,6 +1391,19 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return false;
+    }
+
+    /**
+     * A n'utiliser que dans des contextes attentifs à la sécu. pas de vérif de mdp ici.
+     * @param uid
+     * @returns
+     * @deprecated utilise StackContext que l'on souhaite supprimer. Utiliser plutôt login_session
+     */
+    public async login(uid: number): Promise<boolean> {
+
+        const session = StackContext.get('SESSION');
+
+        return this.login_session(uid, session);
     }
 
     public isLogedAs(): boolean {
@@ -1656,7 +1669,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        return await PasswordRecovery.getInstance().beginRecovery(text);
+        return PasswordRecovery.getInstance().beginRecovery(text);
     }
 
     private async beginRecoverSMS(text: string): Promise<boolean> {
@@ -1669,7 +1682,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        return await PasswordRecovery.getInstance().beginRecoverySMS(text);
+        return PasswordRecovery.getInstance().beginRecoverySMS(text);
     }
 
     private async checkCode(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
@@ -1678,7 +1691,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        return await PasswordReset.getInstance().checkCode(email, challenge);
+        return PasswordReset.getInstance().checkCode(email, challenge);
     }
 
     private async checkCodeUID(uid: number, challenge: string, new_pwd1: string): Promise<boolean> {
@@ -1687,7 +1700,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        return await PasswordReset.getInstance().checkCodeUID(uid, challenge);
+        return PasswordReset.getInstance().checkCodeUID(uid, challenge);
     }
 
     private async resetPwd(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
@@ -1696,7 +1709,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        return await PasswordReset.getInstance().resetPwd(email, challenge, new_pwd1);
+        return PasswordReset.getInstance().resetPwd(email, challenge, new_pwd1);
     }
 
     private async resetPwdUID(uid: number, challenge: string, new_pwd1: string): Promise<boolean> {
@@ -1705,7 +1718,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        return await PasswordReset.getInstance().resetPwdUID(uid, challenge, new_pwd1);
+        return PasswordReset.getInstance().resetPwdUID(uid, challenge, new_pwd1);
     }
 
     private async handleTriggerUserVOUpdate(vo_update_holder: DAOUpdateVOHolder<UserVO>): Promise<boolean> {
@@ -1878,7 +1891,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             if (session && session.uid) {
-                await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to);
+                await PushDataServerController.notify_user_and_redirect(session, redirect_to);
                 return session.uid;
             }
 
@@ -1940,7 +1953,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
-            await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to);
+            await PushDataServerController.notify_user_and_redirect(session, redirect_to);
 
             return user.id;
         } catch (error) {
@@ -1965,7 +1978,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             if (session && session.uid) {
-                await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to, sso);
+                await PushDataServerController.notify_user_and_redirect(session, redirect_to, sso);
                 return session.uid;
             }
 
@@ -2021,7 +2034,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
-            await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to, sso);
+            await PushDataServerController.notify_user_and_redirect(session, redirect_to, sso);
 
             return user.id;
         } catch (error) {
@@ -2101,7 +2114,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
-        await PushDataServerController.notifyUserLoggedAndRedirect();
+        await PushDataServerController.notify_user_and_redirect(session);
 
         return user.id;
     }
@@ -2287,7 +2300,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private async send_session_share_email(mail_category: string, url: string, email: string): Promise<MailVO> {
         const SEND_IN_BLUE_TEMPLATE_ID = await ParamsServerController.getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
-        return await SendInBlueMailServerController.getInstance().sendWithTemplate(
+        return SendInBlueMailServerController.getInstance().sendWithTemplate(
             mail_category,
             SendInBlueMailVO.createNew(email, email),
             SEND_IN_BLUE_TEMPLATE_ID,
@@ -2299,7 +2312,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async send_session_share_sms(text: string, phone: string) {
-        await SendInBlueSmsServerController.getInstance().send(
+        return SendInBlueSmsServerController.getInstance().send(
             SendInBlueSmsFormatVO.createNew(phone),
             text,
             'session_share');

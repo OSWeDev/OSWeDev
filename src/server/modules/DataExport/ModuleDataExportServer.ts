@@ -1148,7 +1148,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             return null;
         }
 
-        return await this.getFileVo(filepath, is_secured, file_access_policy_name);
+        return this.getFileVo(filepath, is_secured, file_access_policy_name);
     }
 
     private async getFileVo(filepath: string, is_secured: boolean, file_access_policy_name: string): Promise<FileVO> {

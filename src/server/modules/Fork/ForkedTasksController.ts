@@ -55,7 +55,7 @@ export default class ForkedTasksController {
         } else {
 
             // Si on est sur le thread parent, le broadcast s'occupe de lancer la tache en local aussi
-            return await ForkMessageController.broadcast(new MainProcessTaskForkMessage(task_uid, task_params));
+            return ForkMessageController.broadcast(new MainProcessTaskForkMessage(task_uid, task_params));
         }
     }
 

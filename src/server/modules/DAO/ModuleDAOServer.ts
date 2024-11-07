@@ -88,7 +88,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.MODULE_NAME + ".add_segmented_known_databases";
 
-    private static instance: ModuleDAOServer = null;
+    public static instance: ModuleDAOServer = null;
 
     public check_foreign_keys: boolean = true;
 
@@ -938,7 +938,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
          *  car on ne peut pas les créer en parallèle. Du coup on les crée en amont si besoin
          */
         await this.confirm_segmented_tables_existence(vos);
-        return await this.insertOrUpdateVOs_as_server(vos, exec_as_server);
+        return this.insertOrUpdateVOs_as_server(vos, exec_as_server);
     }
 
     /**
@@ -2177,7 +2177,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async insertOrUpdateVO_as_server(vo: IDistantVOBase, exec_as_server: boolean = true): Promise<InsertOrDeleteQueryResult> {
 
-        return await this._insertOrUpdateVO(vo, exec_as_server);
+        return this._insertOrUpdateVO(vo, exec_as_server);
     }
 
     /**
@@ -2231,11 +2231,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async insertOrUpdateVOs_as_server<T extends IDistantVOBase>(vos: T[], exec_as_server: boolean = true): Promise<InsertOrDeleteQueryResult[]> {
 
-        return await this._insertOrUpdateVOs(vos, exec_as_server);
+        return this._insertOrUpdateVOs(vos, exec_as_server);
     }
 
     public async deleteVOs_as_server(vos: IDistantVOBase[], exec_as_server: boolean = true): Promise<InsertOrDeleteQueryResult[]> {
-        return await this._deleteVOs(vos, exec_as_server);
+        return this._deleteVOs(vos, exec_as_server);
     }
 
 
@@ -2307,7 +2307,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     private async insertOrUpdateVOs<T extends IDistantVOBase>(vos: T[]): Promise<InsertOrDeleteQueryResult[]> {
 
-        return await this._insertOrUpdateVOs(vos, false);
+        return this._insertOrUpdateVOs(vos, false);
     }
 
     // /**
@@ -2417,11 +2417,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
 
-        return await this._insertOrUpdateVO(vo, false);
+        return this._insertOrUpdateVO(vo, false);
     }
 
     private async deleteVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
-        return await this._deleteVOs(vos, false);
+        return this._deleteVOs(vos, false);
     }
 
     private async _deleteVOs(vos: IDistantVOBase[], exec_as_server: boolean = false): Promise<InsertOrDeleteQueryResult[]> {
@@ -2619,7 +2619,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
         vos = tmp_vos;
 
-        return await this.deleteVOs(vos);
+        return this.deleteVOs(vos);
     }
 
     /**
@@ -2693,12 +2693,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
             // throw new Error('Not Implemented');
         }
 
-        return await query(API_TYPE_ID).filter_by_ids(ranges).exec_as_server().select_count();
+        return query(API_TYPE_ID).filter_by_ids(ranges).exec_as_server().select_count();
     }
 
     private async getNamedVoByName<U extends INamedVO>(API_TYPE_ID: string, name: string): Promise<U> {
 
-        return await query(API_TYPE_ID).filter_by_text_eq(field_names<INamedVO>().name, name, API_TYPE_ID, true).select_vo<U>();
+        return query(API_TYPE_ID).filter_by_text_eq(field_names<INamedVO>().name, name, API_TYPE_ID, true).select_vo<U>();
     }
 
     private async getVarImportsByMatroidParams<T extends IDistantVOBase>(
@@ -2806,14 +2806,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private async getVarImportsByMatroidParam<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
-        return await query(api_type_id)
+        return query(api_type_id)
             .filter_by_matroids_inclusion([matroid], true, api_type_id, fields_ids_mapper)
             .filter_by_num_eq(field_names<VarDataBaseVO>().value_type, VarDataBaseVO.VALUE_TYPE_IMPORT)
             .select_vos<T>();
     }
 
     private async filterVosByMatroid<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
-        return await query(api_type_id)
+        return query(api_type_id)
             .filter_by_matroids_inclusion([matroid], true, api_type_id, fields_ids_mapper)
             .select_vos<T>();
     }
@@ -2823,7 +2823,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      *  Version dédiée à l'api pour ne pas avoir le param exec_as_admin
      */
     private async insert_vos<T extends IDistantVOBase>(vos: T[]): Promise<InsertOrDeleteQueryResult[]> {
-        return await this._insert_vos(vos, false);
+        return this._insert_vos(vos, false);
     }
 
     /**

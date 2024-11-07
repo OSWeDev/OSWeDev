@@ -21,7 +21,7 @@ export default class StatDatasourceController extends DataSourceControllerMatroi
 
     public async get_data(param: StatsGroupSecDataRangesVO): Promise<StatVO[]> {
 
-        return await query(StatVO.API_TYPE_ID)
+        return query(StatVO.API_TYPE_ID)
             .filter_by_date_x_ranges(field_names<StatVO>().timestamp_s, param.ts_ranges)
             .filter_by_num_x_ranges(field_names<StatVO>().stat_group_id, param.stats_groupe_id_ranges)
             .select_vos<StatVO>();

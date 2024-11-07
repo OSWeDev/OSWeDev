@@ -21,7 +21,7 @@ export default class CountUserLogLogoutDatasourceController extends DataSourceCo
 
     public async get_data(param: UserMinDataRangesVO): Promise<number> {
 
-        return await query(UserLogVO.API_TYPE_ID)
+        return query(UserLogVO.API_TYPE_ID)
             .filter_by_date_x_ranges(field_names<UserLogVO>().log_time, param.ts_ranges)
             .filter_by_num_x_ranges(field_names<UserLogVO>().user_id, param.user_id_ranges)
             .filter_is_false(field_names<UserLogVO>().impersonated)

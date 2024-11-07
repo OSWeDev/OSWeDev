@@ -51,7 +51,7 @@ export default class OseliaServerController {
             .filter_by_text_eq(field_names<OseliaPromptVO>().name, prompt_name)
             .exec_as_server()
             .select_vo<OseliaPromptVO>();
-        return await OseliaServerController.prompt_oselia(prompt, prompt_parameters, thread_title, thread, user_id, files);
+        return OseliaServerController.prompt_oselia(prompt, prompt_parameters, thread_title, thread, user_id, files);
     }
 
     public static async prompt_oselia(

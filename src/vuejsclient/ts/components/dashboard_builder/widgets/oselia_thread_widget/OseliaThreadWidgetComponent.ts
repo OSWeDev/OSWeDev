@@ -151,7 +151,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
 
     get role_assistant_avatar_url() {
-        return '/vuejsclient/public/img/avatars/oselia.png';
+        return '/public/vuejsclient/img/avatars/oselia.png';
     }
 
     get file_system_url() {

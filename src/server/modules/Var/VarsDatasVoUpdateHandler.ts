@@ -777,7 +777,7 @@ export default class VarsDatasVoUpdateHandler {
 
         query_.filter_by_num_x_ranges(field_names<VarDataBaseVO>().value_type, valid_types);
 
-        return await query_.select_vos<VarDataBaseVO>();
+        return query_.select_vos<VarDataBaseVO>();
     }
 
 

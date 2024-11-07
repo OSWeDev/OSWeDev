@@ -1,10 +1,11 @@
+import { Request, Response } from "express";
 import ModuleAccessPolicy from "../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
+import IServerUserSession from "../../../shared/modules/AccessPolicy/vos/IServerUserSession";
 import RoleVO from "../../../shared/modules/AccessPolicy/vos/RoleVO";
 import UserVO from "../../../shared/modules/AccessPolicy/vos/UserVO";
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import TimeSegment from "../../../shared/modules/DataRender/vos/TimeSegment";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
-import ModuleParams from "../../../shared/modules/Params/ModuleParams";
 import ParamVO from "../../../shared/modules/Params/vos/ParamVO";
 import StatsController from "../../../shared/modules/Stats/StatsController";
 import LangVO from "../../../shared/modules/Translation/vos/LangVO";
@@ -53,29 +54,30 @@ export default abstract class PlayWrightServerController {
         return PlayWrightServerController.instance;
     }
 
-    public async setup_and_login(): Promise<string> {
-        await this.login();
-        return await this.setup();
+    public async setup_and_login(req: Request): Promise<string> {
+        await this.login(req);
+        return this.setup();
     }
 
     public async after_each(test_title: string): Promise<void> {
         test_title = PlayWrightServerController.test_title_to_method_name(test_title);
         if (this['after_each_' + test_title]) {
-            return await this['after_each_' + test_title]();
+            return this['after_each_' + test_title]();
         }
     }
     public async before_each(test_title: string): Promise<void> {
         test_title = PlayWrightServerController.test_title_to_method_name(test_title);
         if (this['before_each_' + test_title]) {
-            return await this['before_each_' + test_title]();
+            return this['before_each_' + test_title]();
         }
     }
 
     /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
      * On login le user de test, et si il existe pas on le crée
      *  idem pour les infos du compte, on les génère aléatoirement si elles n'existent pas et on stocke
      */
-    protected async login() {
+    protected async login(req: Request) {
 
         /**
          * On bloque en prod dans tous les cas pour le moment pour raison de sécurité
@@ -188,7 +190,7 @@ export default abstract class PlayWrightServerController {
         if (ConfigurationService.node_configuration.debug_playwright_controller) {
             ConsoleHandler.log('PlayWrightServerController: logging in test_user.id: ' + test_user.id);
         }
-        await ModuleAccessPolicyServer.getInstance().login(test_user.id);
+        await ModuleAccessPolicyServer.getInstance().login_session(test_user.id, req.session as IServerUserSession);
     }
 
     public abstract setup(): Promise<string>;

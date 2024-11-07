@@ -522,19 +522,19 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     public async getDataImportHistorics(num: number): Promise<DataImportHistoricVO[]> {
-        return await query(DataImportHistoricVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportHistoricVO>().data_import_format_id, num).set_limit(50).select_vos<DataImportHistoricVO>();
+        return query(DataImportHistoricVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportHistoricVO>().data_import_format_id, num).set_limit(50).select_vos<DataImportHistoricVO>();
     }
 
     public async getDataImportHistoric(num: number): Promise<DataImportHistoricVO> {
-        return await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(num).select_vo<DataImportHistoricVO>();
+        return query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(num).select_vo<DataImportHistoricVO>();
     }
 
     public async getDataImportLogs(num: number): Promise<DataImportLogVO[]> {
-        return await query(DataImportLogVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportLogVO>().data_import_format_id, num).set_limit(50).select_vos<DataImportLogVO>();
+        return query(DataImportLogVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportLogVO>().data_import_format_id, num).set_limit(50).select_vos<DataImportLogVO>();
     }
 
     public async getDataImportFiles(): Promise<DataImportFormatVO[]> {
-        return await query(DataImportFormatVO.API_TYPE_ID).select_vos<DataImportFormatVO>();
+        return query(DataImportFormatVO.API_TYPE_ID).select_vos<DataImportFormatVO>();
     }
 
     /**
@@ -550,11 +550,11 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     public async getImportFormatsForApiTypeId(API_TYPE_ID: string): Promise<DataImportFormatVO[]> {
-        return await query(DataImportFormatVO.API_TYPE_ID).filter_by_text_eq(field_names<DataImportFormatVO>().api_type_id, API_TYPE_ID).select_vos<DataImportFormatVO>();
+        return query(DataImportFormatVO.API_TYPE_ID).filter_by_text_eq(field_names<DataImportFormatVO>().api_type_id, API_TYPE_ID).select_vos<DataImportFormatVO>();
     }
 
     public async getDataImportColumnsFromFormatId(num: number): Promise<DataImportColumnVO[]> {
-        return await query(DataImportColumnVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportColumnVO>().data_import_format_id, num).select_vos<DataImportColumnVO>();
+        return query(DataImportColumnVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportColumnVO>().data_import_format_id, num).select_vos<DataImportColumnVO>();
     }
 
     /**
@@ -1033,7 +1033,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             return false;
         }
 
-        return await this.posttreat_batch(importHistoric, format, validated_imported_datas);
+        return this.posttreat_batch(importHistoric, format, validated_imported_datas);
     }
 
     public async posttreat_batch(importHistoric: DataImportHistoricVO, format: DataImportFormatVO, validated_imported_datas: IImportedData[]): Promise<boolean> {
@@ -1131,7 +1131,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             .set_sort(new SortByVO(raw_api_type_id, field_names<IImportedData>().imported_line_number, true))
             .set_limit(batch_size, 0);
 
-        return await ModuleContextFilterServer.getInstance().select_vos(query_);
+        return ModuleContextFilterServer.getInstance().select_vos(query_);
     }
 
     private async setImportHistoricUID(importHistoric: DataImportHistoricVO): Promise<void> {

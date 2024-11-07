@@ -57,7 +57,7 @@ export default class FeedbackConfirmationMail {
         if (FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID) {
 
             // Using SendInBlue
-            return await SendInBlueMailServerController.getInstance().sendWithTemplate(
+            return SendInBlueMailServerController.getInstance().sendWithTemplate(
                 FeedbackConfirmationMail.MAILCATEGORY_FeedbackConfirmationMail,
                 SendInBlueMailVO.createNew(user.name, user.email),
                 FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID,

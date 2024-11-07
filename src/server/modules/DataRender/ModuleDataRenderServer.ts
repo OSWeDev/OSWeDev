@@ -115,11 +115,11 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     }
 
     public async getDataRenderers(): Promise<DataRendererVO[]> {
-        return await query(DataRendererVO.API_TYPE_ID).select_vos<DataRendererVO>();
+        return query(DataRendererVO.API_TYPE_ID).select_vos<DataRendererVO>();
     }
 
     public async getDataRenderer(text: string): Promise<DataRendererVO> {
-        return await query(DataRendererVO.API_TYPE_ID).filter_by_text_eq(field_names<DataRendererVO>().renderer_name, text).select_vo<DataRendererVO>();
+        return query(DataRendererVO.API_TYPE_ID).filter_by_text_eq(field_names<DataRendererVO>().renderer_name, text).select_vo<DataRendererVO>();
     }
 
     /**
@@ -137,7 +137,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             TimeSegmentHandler.getEndTimeSegment(timeSegment),
             rendered_data_time_segment_type
         );
-        return await query(datatable.vo_type)
+        return query(datatable.vo_type)
             .filter_by_num_has(field_names<IRenderedData & IDistantVOBase>().data_dateindex, timeSegments.map((ts: TimeSegment) => ts.index))
             .select_vos<T>();
     }

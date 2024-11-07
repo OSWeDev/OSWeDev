@@ -96,38 +96,39 @@ import Patch20240329Adduniqtranslatabletextconstraint from './patchs/premodules/
 import Patch20240329Adduniquserconstraints from './patchs/premodules/Patch20240329Adduniquserconstraints';
 import Patch20240329CeliaToOseliaDBWidget from './patchs/premodules/Patch20240329CeliaToOseliaDBWidget';
 // import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
+import Patch20240619DeclareFunctionOseliaGenerateImages from './patchs/postmodules/Patch20240619DeclareFunctionOseliaGenerateImages';
 import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
 import Patch20240912PreinitOseliaPrices from './patchs/postmodules/Patch20240912PreinitOseliaPrices';
-import Patch20240415Adduniqmail_id from './patchs/premodules/Patch20240415Adduniqmail_id';
-import Patch20240515RunStatusToEnum from './patchs/premodules/Patch20240515RunStatusToEnum';
-import Patch20240521ChangeFormatDbAssistants from './patchs/premodules/Patch20240521ChangeFormatDbAssistants';
-import Patch20240530AddUniqNameMailCategory from './patchs/premodules/Patch20240530AddUniqNameMailCategory';
-import Patch20240619DeclareFunctionOseliaGenerateImages from './patchs/postmodules/Patch20240619DeclareFunctionOseliaGenerateImages';
-import Patch20240827DeleteVersionedAssistantsWithoutInstructions from './patchs/premodules/Patch20240827DeleteVersionedAssistantsWithoutInstructions';
-import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
-import VersionUpdater from './version_updater/VersionUpdater';
-import Patch20240926AddOseliaFunction_TRELLO_trello_search_trello from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_search_trello';
 import Patch20240926AddOseliaFunction_TRELLO_trello_create_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_create_card';
-import Patch20240926AddOseliaFunction_TRELLO_trello_get_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_card';
-import Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board';
-import Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board';
-import Patch20240926AddOseliaFunction_TRELLO_trello_update_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_update_card';
 import Patch20240926AddOseliaFunction_TRELLO_trello_delete_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_delete_card';
 import Patch20240926AddOseliaFunction_TRELLO_trello_get_action from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_action';
-import Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_board from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board';
 import Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_card';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actions from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actions';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board';
+import Patch20240926AddOseliaFunction_TRELLO_trello_search_trello from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_search_trello';
+import Patch20240926AddOseliaFunction_TRELLO_trello_update_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_update_card';
 import Patch20240930AddOseliaFunction_get_thread_text_content from './patchs/postmodules/Patch20240930AddOseliaFunction_get_thread_text_content';
 import Patch20240930AddOseliaFunction_send_teams_messages from './patchs/postmodules/Patch20240930AddOseliaFunction_send_teams_messages';
 import Patch20241003AddParamForSplitterAndValidator from './patchs/postmodules/Patch20241003AddParamForSplitterAndValidator';
 import Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_step from './patchs/postmodules/Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_step';
 import Patch20241004AddOseliaFunction_OSELIA_refuse_run from './patchs/postmodules/Patch20241004AddOseliaFunction_OSELIA_refuse_run';
 import Patch20241004AddOseliaFunction_OSELIA_validate_run from './patchs/postmodules/Patch20241004AddOseliaFunction_OSELIA_validate_run';
-import Patch20240926AddOseliaFunction_TRELLO_trello_get_board from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board';
-import Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actions from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actions';
+import Patch20241016AddOseliaFunction_OSELIA_get_assistant from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_get_assistant';
 import Patch20241016AddOseliaFunction_OSELIA_get_cache_value from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_get_cache_value';
 import Patch20241016AddOseliaFunction_OSELIA_set_cache_value from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_set_cache_value';
-import Patch20241016AddOseliaFunction_OSELIA_get_assistant from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_get_assistant';
 import Patch20241023AddOseliaFunction_azure_get_last_unread_email from './patchs/postmodules/Patch20241023AddOseliaFunction_azure_get_last_unread_email';
+import Patch20241107SwitchParamsUrlsPublics from './patchs/premodules/Patch20241107SwitchParamsUrlsPublics';
+import Patch20240415Adduniqmail_id from './patchs/premodules/Patch20240415Adduniqmail_id';
+import Patch20240515RunStatusToEnum from './patchs/premodules/Patch20240515RunStatusToEnum';
+import Patch20240521ChangeFormatDbAssistants from './patchs/premodules/Patch20240521ChangeFormatDbAssistants';
+import Patch20240530AddUniqNameMailCategory from './patchs/premodules/Patch20240530AddUniqNameMailCategory';
+import Patch20240827DeleteVersionedAssistantsWithoutInstructions from './patchs/premodules/Patch20240827DeleteVersionedAssistantsWithoutInstructions';
+import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
+import VersionUpdater from './version_updater/VersionUpdater';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -219,6 +220,7 @@ export default abstract class GeneratorBase {
             Patch20240530AddUniqNameMailCategory.getInstance(),
             Patch2024OSELIAAssistantDescriptionNotNULL.getInstance(),
             Patch20240827DeleteVersionedAssistantsWithoutInstructions.getInstance(),
+            Patch20241107SwitchParamsUrlsPublics.getInstance(),
         ];
 
         this.post_modules_workers = [

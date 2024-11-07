@@ -1,24 +1,31 @@
 /* istanbul ignore file: only one method, and not willing to test it right now*/
 
-import cls from './CLSHooked';
+// import cls from './CLSHooked';
 
 export default class StackContext {
 
     // public static nsid: string = 'oswedev-stack-context';
-    public static ns = cls.createNamespace('oswedev-stack-context');
+
+
+    // TODO : public static ns = cls.createNamespace('oswedev-stack-context');
+    public static ns = {};
+
+
+    // **
+    //  * Express.js middleware that is responsible for initializing the context for each request.
+    //  */
+    // public static middleware(req, res, next) {
+    //     StackContext.ns.run(() => next());
+    // }
 
     /**
-     * Express.js middleware that is responsible for initializing the context for each request.
-     */
-    public static middleware(req, res, next) {
-        StackContext.ns.run(() => next());
-    }
-
-    /**
+     * FAKE FOR TEST ONLY
+     * TODO FIXME : à supprimer
      * Limiter l'usage, pas compatible avec les throttles, promisepipeline, ...
      * @param scope_overloads
      * @param callback
      * @returns
+     * @deprecated On veut supprimer l'usage de StackContext. Utiliser plutot les paramètres des méthodes.
      */
     public static async runPromise(scope_overloads: { [scope_key: string]: any }, callback: (...params: any) => Promise<any>): Promise<any> {
 
@@ -26,52 +33,117 @@ export default class StackContext {
 
         const old_context_values = {};
 
-        await StackContext.ns.runPromise(async () => {
+        for (const field_name in scope_overloads) {
+            const field_value = scope_overloads[field_name];
 
-            for (const field_name in scope_overloads) {
-                const field_value = scope_overloads[field_name];
+            old_context_values[field_name] = this.ns[field_name];
+            this.ns[field_name] = field_value;
+        }
 
-                old_context_values[field_name] = StackContext.get(field_name);
-                StackContext.set(field_name, field_value);
-            }
+        return callback();
+        // try {
+        //     result = await callback();
+        // } catch (error) {
+        //     //
+        // }
 
-            try {
-                result = await callback();
-            } catch (error) {
-                //
-            }
+        // // for (const field_name in scope_overloads) {
+        // //     this.ns[field_name] = old_context_values[field_name];
+        // // }
 
-            for (const field_name in scope_overloads) {
-                StackContext.set(field_name, old_context_values[field_name]);
-            }
-        });
-
-        return result;
+        // return result;
     }
+    // // /**
+    // //  * Express.js middleware that is responsible for initializing the context for each request.
+    // //  */
+    // // public static middleware(req, res, next) {
+    // //     StackContext.ns.run(() => next());
+    // // }
 
-    /**
-     * Gets a value from the context by key.  Will return undefined if the context has not yet been initialized for this request or if a value is not found for the specified key.
-     * @param {string} key
-     */
+    // /**
+    //  * Limiter l'usage, pas compatible avec les throttles, promisepipeline, ...
+    //  * @param scope_overloads
+    //  * @param callback
+    //  * @returns
+    //  * @deprecated On veut supprimer l'usage de StackContext. Utiliser plutot les paramètres des méthodes.
+    //  */
+    // public static async runPromise(scope_overloads: { [scope_key: string]: any }, callback: (...params: any) => Promise<any>): Promise<any> {
+
+    //     let result = null;
+
+    //     const old_context_values = {};
+
+    //     await StackContext.ns.runPromise(async () => {
+
+    //         for (const field_name in scope_overloads) {
+    //             const field_value = scope_overloads[field_name];
+
+    //             old_context_values[field_name] = StackContext.get(field_name);
+    //             StackContext.set(field_name, field_value);
+    //         }
+
+    //         try {
+    //             result = await callback();
+    //         } catch (error) {
+    //             //
+    //         }
+
+    //         for (const field_name in scope_overloads) {
+    //             StackContext.set(field_name, old_context_values[field_name]);
+    //         }
+    //     });
+
+    //     return result;
+    // }
+
+    /** DUMMY FOR TEST ONLY
+     * Gets a value from the context by key.Will return undefined if the context has not yet been initialized for this request or if a value is not found for the specified key.
+     * @param { string } key
+    * @deprecated On veut supprimer l'usage de StackContext. Utiliser plutot les paramètres des méthodes.
+        */
     public static get(key: string) {
-        if (StackContext.ns && StackContext.ns.active) {
-            const res = StackContext.ns.get(key);
-            if (typeof res !== 'undefined') {
-                return res;
-            }
+        const res = this.ns[key] || null;
+        if (typeof res !== 'undefined') {
+            return res;
         }
         return null;
     }
 
-    /**
+    /** DUMMY FOR TEST ONLY
      * Adds a value to the context by key.  If the key already exists, its value will be overwritten.  No value will persist if the context has not yet been initialized.
      * @param {string} key
      * @param {*} value
+     * @deprecated On veut supprimer l'usage de StackContext. Utiliser plutot les paramètres des méthodes.
      */
     private static set(key: string, value) {
-        if (StackContext.ns && StackContext.ns.active) {
-            return StackContext.ns.set(key, value);
-        }
-        return null;
+        this.ns[key] = value;
     }
+
+    // /**
+    //  * Gets a value from the context by key.  Will return undefined if the context has not yet been initialized for this request or if a value is not found for the specified key.
+    //  * @param {string} key
+    //  * @deprecated On veut supprimer l'usage de StackContext. Utiliser plutot les paramètres des méthodes.
+    //  */
+    // public static get(key: string) {
+    //     if (StackContext.ns && StackContext.ns.active) {
+    //         const res = StackContext.ns.get(key);
+    //         if (typeof res !== 'undefined') {
+    //             return res;
+    //         }
+    //     }
+    //     return null;
+    // }
+
+    // /**
+    //  * Adds a value to the context by key.  If the key already exists, its value will be overwritten.  No value will persist if the context has not yet been initialized.
+    //  * @param {string} key
+    //  * @param {*} value
+    //  * @deprecated On veut supprimer l'usage de StackContext. Utiliser plutot les paramètres des méthodes.
+    //  */
+    // private static set(key: string, value) {
+    //     if (StackContext.ns && StackContext.ns.active) {
+    //         return StackContext.ns.set(key, value);
+    //     }
+    //     return null;
+    // }
 }

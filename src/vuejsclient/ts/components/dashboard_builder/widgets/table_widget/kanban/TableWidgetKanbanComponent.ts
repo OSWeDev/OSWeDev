@@ -1220,7 +1220,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return;
         }
 
-        return await this.$snotify.async(this.label('create_new_kanban_column.start'), () => new Promise(async (resolve, reject) => {
+        return this.$snotify.async(this.label('create_new_kanban_column.start'), () => new Promise(async (resolve, reject) => {
 
             try {
 
@@ -1333,7 +1333,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return false;
         }
 
-        return await this.$snotify.async(this.label('on_move_columns_kanban_element.start'), () => new Promise(async (resolve, reject) => {
+        return this.$snotify.async(this.label('on_move_columns_kanban_element.start'), () => new Promise(async (resolve, reject) => {
 
             try {
 
@@ -1486,7 +1486,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return false;
         }
 
-        return await this.$snotify.async(this.label('update_kanban_data_rows.start'), () => new Promise(async (resolve, reject) => {
+        return this.$snotify.async(this.label('update_kanban_data_rows.start'), () => new Promise(async (resolve, reject) => {
 
             try {
 

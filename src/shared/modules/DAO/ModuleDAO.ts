@@ -76,7 +76,7 @@ export default class ModuleDAO extends Module {
 
     public static DAO_ACCESS_QUERY: string = ModuleDAO.POLICY_GROUP_OVERALL + '.' + "QUERY";
 
-    private static instance: ModuleDAO = null;
+    public static instance: ModuleDAO = null;
 
     public selectUsersForCheckUnicity: (name: string, email: string, phone: string, user_id: number) => Promise<boolean> =
         APIControllerWrapper.sah(ModuleDAO.APINAME_selectUsersForCheckUnicity);

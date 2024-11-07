@@ -435,6 +435,6 @@ export default class DataImportBGThread implements IBGThread {
 
         const dih = dihs[0];
         await ModuleDataImport.getInstance().reimportdih(dih);
-        return await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(dih.id).select_vo<DataImportHistoricVO>();
+        return query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(dih.id).select_vo<DataImportHistoricVO>();
     }
 }

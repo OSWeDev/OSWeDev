@@ -1,0 +1,21 @@
+MIGRATION -> 0.33.5
+Montées de versions
+        "express": "4.21.1",
+        "express-fileupload": "1.5.1",
+        "express-http-context": "1.2.4",
+        "express-locale": "2.0.2",
+        "express-session": "1.18.1",
+
+        "node": "22.11.0",
+
+        "@playwright/test": "1.48.2",
+
+        "npm-watch": "0.13.0",
+
+
+
+Modifier toutes les références d'urls de type :
+vuejsclient/public => public/vuejsclient
+client/public => public/client
+admin/public => public/admin
+login/public => public/login

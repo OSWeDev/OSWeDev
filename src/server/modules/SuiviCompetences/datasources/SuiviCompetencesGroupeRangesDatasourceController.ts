@@ -20,6 +20,6 @@ export default class SuiviCompetencesGroupeRangesDatasourceController extends Da
     protected static instance: SuiviCompetencesGroupeRangesDatasourceController = null;
 
     public async get_data(param: SuiviCompetencesUserDataRangesVO): Promise<SuiviCompetencesGroupeVO[]> {
-        return await query(SuiviCompetencesGroupeVO.API_TYPE_ID).select_vos<SuiviCompetencesGroupeVO>();
+        return query(SuiviCompetencesGroupeVO.API_TYPE_ID).select_vos<SuiviCompetencesGroupeVO>();
     }
 }

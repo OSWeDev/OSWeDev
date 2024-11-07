@@ -747,7 +747,7 @@ export default abstract class ModuleServiceBase {
             await this.db_.none(query, values);
         } catch (error) {
 
-            return await this.handle_errors(error, 'db_none', this.db_none, [query, values]);
+            return this.handle_errors(error, 'db_none', this.db_none, [query, values]);
         }
 
         const time_out = Dates.now_ms();
@@ -803,7 +803,7 @@ export default abstract class ModuleServiceBase {
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
         } catch (error) {
 
-            return await this.handle_errors(error, 'db_query', this.db_query, [query, values]);
+            return this.handle_errors(error, 'db_query', this.db_query, [query, values]);
         }
 
         const time_out = Dates.now_ms();
@@ -828,7 +828,7 @@ export default abstract class ModuleServiceBase {
         try {
             res = await this.db_.one(query, values);
         } catch (error) {
-            return await this.handle_errors(error, 'db_one', this.db_one, [query, values]);
+            return this.handle_errors(error, 'db_one', this.db_one, [query, values]);
         }
 
         const time_out = Dates.now_ms();
@@ -852,7 +852,7 @@ export default abstract class ModuleServiceBase {
         try {
             res = await this.db_.oneOrNone(query, values);
         } catch (error) {
-            return await this.handle_errors(error, 'db_oneOrNone', this.db_oneOrNone, [query, values]);
+            return this.handle_errors(error, 'db_oneOrNone', this.db_oneOrNone, [query, values]);
         }
 
         const time_out = Dates.now_ms();

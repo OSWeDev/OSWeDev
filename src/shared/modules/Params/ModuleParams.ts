@@ -136,10 +136,10 @@ export default class ModuleParams extends Module {
     }
 
     public async setParamValueAsBoolean(param_name: string, param_value: boolean): Promise<void> {
-        return await this.setParamValue(param_name, param_value ? '1' : '0');
+        return this.setParamValue(param_name, param_value ? '1' : '0');
     }
 
     public async setParamValueAsNumber(param_name: string, param_value: number): Promise<void> {
-        return await this.setParamValue(param_name, param_value.toString());
+        return this.setParamValue(param_name, param_value.toString());
     }
 }
