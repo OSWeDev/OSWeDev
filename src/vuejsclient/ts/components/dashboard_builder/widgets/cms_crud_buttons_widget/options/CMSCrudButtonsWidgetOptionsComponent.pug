@@ -1,0 +1,29 @@
+.cms_crud_buttons_widget_options_component
+    .cms_crud_buttons_widget_options_component_wrapper
+        
+        .show_add_label {{ label('cms_crud_buttons.widget_option.show_add') }}
+        toggle-button(
+            @change="switch_show_add"
+            :value="show_add" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('cms_crud_buttons.widget_option.show_add.true'), unchecked: label('cms_crud_buttons.widget_option.show_add.false')}"
+        )
+
+        .show_update_label {{ label('cms_crud_buttons.widget_option.show_update') }}
+        toggle-button(
+            @change="switch_show_update"
+            :value="show_update" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('cms_crud_buttons.widget_option.show_update.true'), unchecked: label('cms_crud_buttons.widget_option.show_update.false')}"
+        )
+
+        .show_delete_label {{ label('cms_crud_buttons.widget_option.show_delete') }}
+        toggle-button(
+            @change="switch_show_delete"
+            :value="show_delete" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('cms_crud_buttons.widget_option.show_delete.true'), unchecked: label('cms_crud_buttons.widget_option.show_delete.false')}"
+        )

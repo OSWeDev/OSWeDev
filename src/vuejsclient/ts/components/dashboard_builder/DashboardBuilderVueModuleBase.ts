@@ -192,6 +192,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_CMSImage();
         await this.initializeWidget_CMSLinkButton();
         await this.initializeWidget_CMSLikeButton();
+        await this.initializeWidget_CrudButtons();
     }
 
     private async initializeWidget_BulkOps() {
@@ -653,6 +654,27 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('BlocTextwidgeticoncomponent', () => import('./widgets/bloc_text_widget/icon/BlocTextWidgetIconComponent'));
     }
 
+    private async initializeWidget_CrudButtons() {
+        const CrudButtons = new DashboardWidgetVO();
+
+        CrudButtons.default_height = 5;
+        CrudButtons.default_width = 2;
+        CrudButtons.name = DashboardWidgetVO.WIDGET_NAME_crudbuttons;
+        CrudButtons.widget_component = 'Cmscrudbuttonswidgetcomponent';
+        CrudButtons.options_component = 'Cmscrudbuttonswidgetoptionscomponent';
+        CrudButtons.weight = 3;
+        CrudButtons.default_background = '#f5f5f5';
+        CrudButtons.icon_component = 'Cmscrudbuttonswidgeticoncomponent';
+        CrudButtons.is_filter = false;
+        CrudButtons.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CrudButtons, null, null);
+
+        Vue.component('Cmscrudbuttonswidgetcomponent', () => import('./widgets/cms_crud_buttons_widget/CMSCrudButtonsWidgetComponent'));
+        Vue.component('Cmscrudbuttonswidgetoptionscomponent', () => import('./widgets/cms_crud_buttons_widget/options/CMSCrudButtonsWidgetOptionsComponent'));
+        Vue.component('Cmscrudbuttonswidgeticoncomponent', () => import('./widgets/cms_crud_buttons_widget/icon/CMSCrudButtonsWidgetIconComponent'));
+    }
+
     private async initializeWidget_ListObject() {
         const ListObject = new DashboardWidgetVO();
 
@@ -664,7 +686,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ListObject.weight = 3;
         ListObject.default_background = '#f5f5f5';
         ListObject.icon_component = 'ListObjectwidgeticoncomponent';
-        ListObject.is_filter = true;
+        ListObject.is_filter = false;
         ListObject.is_cms_compatible = true;
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(ListObject, null, null);
