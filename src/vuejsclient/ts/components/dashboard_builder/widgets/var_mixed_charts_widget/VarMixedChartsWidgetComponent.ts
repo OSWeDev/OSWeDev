@@ -34,7 +34,7 @@ import { IChartOptions } from '../../../Var/components/mixed-chart/VarMixedChart
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VarChartScalesOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
-import { position } from 'html2canvas/dist/types/css/property-descriptors/position';
+import Filters from '../../../../../../shared/tools/Filters';
 import VarChartOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
 
 @Component({
@@ -412,7 +412,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        if (this.widget_options.filter_type == 'none') {
+        if (this.widget_options.filter_type == Filters.FILTER_TYPE_none) {
             return null;
         }
         return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;
@@ -1111,7 +1111,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         if (this.temp_current_scale == null) {
             return value;
         }
-        if (current_scale.filter_type == 'none') {
+        if (current_scale.filter_type == Filters.FILTER_TYPE_none) {
             return value;
         }
 
@@ -1146,7 +1146,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         if (current_scale == null) {
             return value;
         }
-        if (current_scale.filter_type == 'none') {
+        if (current_scale.filter_type == Filters.FILTER_TYPE_none) {
             return value;
         }
 
