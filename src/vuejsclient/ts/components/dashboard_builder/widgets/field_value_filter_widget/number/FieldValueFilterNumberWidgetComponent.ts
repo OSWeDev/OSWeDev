@@ -684,7 +684,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     true);
             }
 
-            tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
+            tmp = await ModuleContextFilter.instance.select_filter_visible_options(
                 query_,
                 this.actual_query
             );

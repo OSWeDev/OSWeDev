@@ -54,7 +54,7 @@ import VarsController from '../../../../../../../shared/modules/Var/VarsControll
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import ModuleVocus from '../../../../../../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import SemaphoreHandler from '../../../../../../../shared/tools/SemaphoreHandler';
@@ -83,6 +83,7 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import './TableWidgetTableComponent.scss';
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
+import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -2324,14 +2325,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             (async () => {
                 ConsoleHandler.log('select_datatable_rows');
                 await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query, this.columns);
-                rows = await ModuleContextFilter.getInstance().select_datatable_rows(context_query, this.columns_by_field_id, fields);
+                rows = await ModuleContextFilter.instance.select_datatable_rows(context_query, this.columns_by_field_id, fields);
             })(),
 
             (async () => {
                 query_count.set_limit(0, 0);
                 query_count.set_sort(null);
                 query_count.query_distinct = true;
-                this.pagination_count = await ModuleContextFilter.getInstance().select_count(query_count);
+                this.pagination_count = await ModuleContextFilter.instance.select_count(query_count);
             })()
         ]);
 
@@ -2384,10 +2385,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     private async refresh() {
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(
-            new RegExp('.*' + ModuleContextFilter.APINAME_select_datatable_rows)
+            new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_datatable_rows))
         );
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(
-            new RegExp('.*' + ModuleContextFilter.APINAME_select_count)
+            new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_count))
         );
 
         await this.throttle_do_update_visible_options();
@@ -3018,7 +3019,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             // .set_sort(new SortByVO(column.api_type_id, column.field_id, (this.order_asc_on_id != null)));
 
             promises.push((async () => {
-                const res = await ModuleContextFilter.getInstance().select(context_query);
+                const res = await ModuleContextFilter.instance.select(context_query);
 
                 if (res && res[0]) {
                     let column_total: number = res[0][alias_field];

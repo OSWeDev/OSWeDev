@@ -1320,7 +1320,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 }
 
                 // Même si on a un filtre on veut vérifier que c'est pertinent et suffisant :
-                const count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(api_type_id, context_query, false);
+                const count_segmentations = await ModuleContextFilter.instance.count_valid_segmentations(api_type_id, context_query, false);
 
                 if (count_segmentations > ModuleContextFilter.MAX_SEGMENTATION_OPTIONS) {
                     ConsoleHandler.warn('On a trop d\'options (' + count_segmentations + '/' + ModuleContextFilter.MAX_SEGMENTATION_OPTIONS + ') pour la table segmentée ' + api_type_id + ', on ne cherche pas le options pour le moment.');
@@ -1334,7 +1334,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     true);
             }
 
-            tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
+            tmp = await ModuleContextFilter.instance.select_filter_visible_options(
                 context_query,
                 this.actual_query,
             );
@@ -1379,7 +1379,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
                         FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_field_ref, this.get_discarded_field_paths);
 
-                        const tmp_field_ref: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                        const tmp_field_ref: DataFilterOption[] = await ModuleContextFilter.instance.select_filter_visible_options(
                             query_field_ref,
                             this.actual_query,
                         );
@@ -1481,7 +1481,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                         );
 
                         ConsoleHandler.log('select_filter_visible_options:3:' + context_query_lvl2.base_api_type_id);
-                        const tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                        const tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.instance.select_filter_visible_options(
                             context_query_lvl2,
                             this.actual_query
                         );

@@ -1563,7 +1563,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 }
             }
 
-            data_filters = await ModuleContextFilter.getInstance().select_filter_visible_options(
+            data_filters = await ModuleContextFilter.instance.select_filter_visible_options(
                 context_query,
                 this.actual_query,
             );

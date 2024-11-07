@@ -1177,7 +1177,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * Faire la requête en mode select
      */
     public async get_select_query_str<T extends IDistantVOBase>(): Promise<string> {
-        return ModuleContextFilter.getInstance().build_select_query_str(this);
+        return ModuleContextFilter.instance.build_select_query_str(this);
     }
 
     /**
@@ -1186,7 +1186,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * @returns les vos issus de la requête
      */
     public async select_vos<T extends IDistantVOBase>(): Promise<T[]> {
-        return ModuleContextFilter.getInstance().select_vos(this);
+        return ModuleContextFilter.instance.select_vos(this);
     }
 
     /**
@@ -1196,7 +1196,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * @returns les vos issus de la requête
      */
     public async delete_vos(): Promise<InsertOrDeleteQueryResult[]> {
-        return ModuleContextFilter.getInstance().delete_vos(this);
+        return ModuleContextFilter.instance.delete_vos(this);
     }
 
     /**
@@ -1207,7 +1207,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * @returns les vos issus de la requête
      */
     public async update_vos<T extends IDistantVOBase>(new_api_translated_values: { [update_field_id in keyof T]?: any }): Promise<InsertOrDeleteQueryResult[]> {
-        return ModuleContextFilter.getInstance().update_vos<T>(this, new_api_translated_values);
+        return ModuleContextFilter.instance.update_vos<T>(this, new_api_translated_values);
     }
 
     /**
@@ -1216,7 +1216,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * @returns le vo issu de la requête => Throws si on a + de 1 résultat
      */
     public async select_vo<T extends IDistantVOBase>(): Promise<T> {
-        const res: T[] = await ModuleContextFilter.getInstance().select_vos(this);
+        const res: T[] = await ModuleContextFilter.instance.select_vos(this);
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_vo is not allowed  : ' + this.base_api_type_id);
         }
@@ -1227,7 +1227,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * Faire la requête simplement et récupérer le résultat brut
      */
     public async select_all(): Promise<any[]> {
-        return ModuleContextFilter.getInstance().select(this);
+        return ModuleContextFilter.instance.select(this);
     }
 
     public count_results(): ContextQueryVO {
@@ -1275,7 +1275,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * Faire la requête simplement et récupérer le résultat brut
      */
     public async select_one(): Promise<any> {
-        const res = await ModuleContextFilter.getInstance().select(this);
+        const res = await ModuleContextFilter.instance.select(this);
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_one is not allowed : ' + this.base_api_type_id);
         }
@@ -1289,7 +1289,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     public async select_datatable_row(
         columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
         fields: { [datatable_field_uid: string]: DatatableField<any, any> }): Promise<any> {
-        const res = await ModuleContextFilter.getInstance().select_datatable_rows(this, columns_by_field_id, fields);
+        const res = await ModuleContextFilter.instance.select_datatable_rows(this, columns_by_field_id, fields);
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_datatable_row is not allowed : ' + this.base_api_type_id);
         }
@@ -1304,7 +1304,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
         fields: { [datatable_field_uid: string]: DatatableField<any, any> }
     ): Promise<any[]> {
-        return ModuleContextFilter.getInstance().select_datatable_rows(this, columns_by_field_id, fields);
+        return ModuleContextFilter.instance.select_datatable_rows(this, columns_by_field_id, fields);
     }
 
     /**
@@ -1312,7 +1312,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * @returns le count issus de la requête
      */
     public async select_count(): Promise<number> {
-        return ModuleContextFilter.getInstance().select_count(this);
+        return ModuleContextFilter.instance.select_count(this);
     }
 
     /**

@@ -945,7 +945,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     public async delete_all_vos_triggers_ok(api_type_id: string) {
 
-        await ModuleContextFilter.getInstance().delete_vos(query(api_type_id));
+        await ModuleContextFilter.instance.delete_vos(query(api_type_id));
     }
 
     /**

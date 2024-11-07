@@ -254,7 +254,7 @@ export default class FieldValueFilterEnumWidgetManager {
                 }
 
                 // Même si on a un filtre on veut vérifier que c'est pertinent et suffisant :
-                const count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(api_type_id, context_query, false);
+                const count_segmentations = await ModuleContextFilter.instance.count_valid_segmentations(api_type_id, context_query, false);
 
                 if (count_segmentations > ModuleContextFilter.MAX_SEGMENTATION_OPTIONS) {
                     ConsoleHandler.warn('On a trop d\'options (' + count_segmentations + '/' + ModuleContextFilter.MAX_SEGMENTATION_OPTIONS + ') pour la table segmentée ' + api_type_id + ', on ne cherche pas le options pour le moment.');
@@ -292,7 +292,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
         promise_pipeline.push(async () => {
 
-            const data_filters: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+            const data_filters: DataFilterOption[] = await ModuleContextFilter.instance.select_filter_visible_options(
                 context_query,
                 actual_query
             );

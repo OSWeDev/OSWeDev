@@ -483,8 +483,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             await ordered_promise_pipeline.push(async () => {
 
                 const datas = (this_context_query.fields?.length > 0) ?
-                    await ModuleContextFilter.getInstance().select_datatable_rows(this_context_query, columns_by_field_id, fields) :
-                    await ModuleContextFilter.getInstance().select_vos(this_context_query);
+                    await ModuleContextFilter.instance.select_datatable_rows(this_context_query, columns_by_field_id, fields) :
+                    await ModuleContextFilter.instance.select_vos(this_context_query);
 
                 if (ConfigurationService.node_configuration.debug_export_context_query_to_xlsx_datas) {
                     for (const i in datas) {

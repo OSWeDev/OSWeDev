@@ -1045,7 +1045,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
                 );
             }
 
-            tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
+            tmp = await ModuleContextFilter.instance.select_filter_visible_options(
                 context_query,
                 this.actual_query,
             );
@@ -1085,7 +1085,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
 
                     FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_field_ref, this.get_discarded_field_paths);
 
-                    const tmp_field_ref: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                    const tmp_field_ref: DataFilterOption[] = await ModuleContextFilter.instance.select_filter_visible_options(
                         query_field_ref,
                         this.actual_query,
                     );
@@ -1183,7 +1183,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
                             this.get_discarded_field_paths
                         );
 
-                        const tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                        const tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.instance.select_filter_visible_options(
                             context_query_lvl2,
                             this.actual_query
                         );

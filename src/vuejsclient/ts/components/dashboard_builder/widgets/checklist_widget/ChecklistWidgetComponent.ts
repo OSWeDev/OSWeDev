@@ -24,7 +24,7 @@ import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vo
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler, { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
@@ -40,6 +40,7 @@ import TablePaginationComponent from '../table_widget/pagination/TablePagination
 import './ChecklistWidgetComponent.scss';
 import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
+import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
 
 /**
  * Datatable of checklist items
@@ -528,7 +529,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(field_filters));
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_count, this.get_discarded_field_paths);
 
-        this.pagination_count = await ModuleContextFilter.getInstance().select_count(query_count);
+        this.pagination_count = await ModuleContextFilter.instance.select_count(query_count);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
@@ -540,8 +541,8 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     }
 
     private async refresh() {
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_vos));
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_count));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_vos)));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_count)));
         await this.throttled_update_visible_options();
     }
 

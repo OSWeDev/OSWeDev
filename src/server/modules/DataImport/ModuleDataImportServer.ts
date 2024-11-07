@@ -1131,7 +1131,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             .set_sort(new SortByVO(raw_api_type_id, field_names<IImportedData>().imported_line_number, true))
             .set_limit(batch_size, 0);
 
-        return ModuleContextFilterServer.getInstance().select_vos(query_);
+        return ModuleContextFilterServer.instance.select_vos(query_);
     }
 
     private async setImportHistoricUID(importHistoric: DataImportHistoricVO): Promise<void> {

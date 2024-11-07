@@ -262,7 +262,7 @@ export default class VarWidgetComponent extends VueComponentBase {
         // query.limit = this.widget_options.max_visible_options;
         // query.offset = 0;
         // query.active_api_type_ids = this.get_dashboard_api_type_ids;
-        // let tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
+        // let tmp = await ModuleContextFilter.instance.select_filter_visible_options(
         //     this.vo_field_ref.api_type_id,
         //     this.vo_field_ref.field_id,
         //     FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters),

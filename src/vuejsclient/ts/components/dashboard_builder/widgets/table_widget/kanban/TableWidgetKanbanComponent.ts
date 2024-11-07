@@ -46,7 +46,7 @@ import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsT
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import ModuleVocus from '../../../../../../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler, { field_names } from '../../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import SemaphoreHandler from '../../../../../../../shared/tools/SemaphoreHandler';
 import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
@@ -71,6 +71,7 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import './TableWidgetKanbanComponent.scss';
 import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
+import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -2429,7 +2430,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                         this.kanban_column_values_to_index[kanban_column_value.toString()] = kanban_index;
                         this.kanban_column_index_to_ref_field_id[kanban_index] = kanban_column_value;
 
-                        rows_by_kanban_index[kanban_index] = await ModuleContextFilter.getInstance().select_datatable_rows(
+                        rows_by_kanban_index[kanban_index] = await ModuleContextFilter.instance.select_datatable_rows(
                             cloned_query.filter_by_num_eq(this.kanban_column_field.field_id, parseInt(kanban_column_value)),
                             this.columns_by_field_id,
                             fields);
@@ -2445,7 +2446,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                             case ModuleTableFieldVO.FIELD_TYPE_string:
                             case ModuleTableFieldVO.FIELD_TYPE_color:
 
-                                rows_by_kanban_index[kanban_index] = await ModuleContextFilter.getInstance().select_datatable_rows(
+                                rows_by_kanban_index[kanban_index] = await ModuleContextFilter.instance.select_datatable_rows(
                                     cloned_query.filter_by_text_eq(this.kanban_column.field_id, kanban_column_value, this.kanban_column.api_type_id),
                                     this.columns_by_field_id,
                                     fields);
@@ -2476,7 +2477,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         context_query.set_limit(0, 0);
         context_query.set_sort(null);
         context_query.query_distinct = true;
-        this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
+        this.pagination_count = await ModuleContextFilter.instance.select_count(context_query);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
@@ -2495,8 +2496,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     private async refresh() {
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_datatable_rows));
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_count));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_count)));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_datatable_rows)));
         await this.throttle_do_update_visible_options();
     }
 
@@ -2897,7 +2898,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             // .set_sort(new SortByVO(column.api_type_id, column.field_id, (this.order_asc_on_id != null)));
 
             promises.push((async () => {
-                const res = await ModuleContextFilter.getInstance().select(query_);
+                const res = await ModuleContextFilter.instance.select(query_);
 
                 if (res && res[0]) {
                     let column_total: number = res[0][alias_field];

@@ -29,8 +29,9 @@ import VueComponentBase from '../../../VueComponentBase';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import SupervisionItemModalComponent from './supervision_item_modal/SupervisionItemModalComponent';
 import './SupervisionWidgetComponent.scss';
-import { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
+import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -273,8 +274,8 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     }
 
     private async refresh() {
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_vos));
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_count));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_vos)));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_count)));
         this.throttled_update_visible_options();
     }
 

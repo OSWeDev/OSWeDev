@@ -1516,7 +1516,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                  */
                                 await StackContext.runPromise({ IS_CLIENT: true, UID: param.uid }, async () => {
 
-                                    const query_wrapper: ParameterizedQueryWrapper = await ModuleContextFilterServer.getInstance().build_select_query(context_query);
+                                    const query_wrapper: ParameterizedQueryWrapper = await ModuleContextFilterServer.instance.build_select_query(context_query);
                                     if (!cache_local[query_wrapper.query]) {
                                         cache_local[query_wrapper.query] = ContextQueryServerController.select_vos(context_query, query_wrapper);
                                     }
