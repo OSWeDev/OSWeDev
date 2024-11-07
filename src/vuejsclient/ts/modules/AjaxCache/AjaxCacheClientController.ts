@@ -15,6 +15,7 @@ import EnvHandler from '../../../../shared/tools/EnvHandler';
 import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../../shared/tools/ThreadHandler';
+import PushDataVueModule from '../PushData/PushDataVueModule';
 
 /**
  * Refonte du AjaxCacheClientController :
@@ -296,6 +297,14 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 options.headers['version'] = EnvHandler.version;
             }
             self.addCallback(cache, resolve_stats_wrapper, reject_stats_wrapper);
+
+            if (!navigator.onLine) {
+                const same_version_app: boolean = await PushDataVueModule.getInstance().wait_navigator_online();
+
+                if (!same_version_app) {
+                    return;
+                }
+            }
 
             // const $ = await import('jquery');
             if ($.ajax) {
@@ -764,6 +773,14 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             case RequestResponseCacheVO.API_TYPE_GET:
 
                 // const $ = await import('jquery');
+
+                if (!navigator.onLine) {
+                    const same_version_app: boolean = await PushDataVueModule.getInstance().wait_navigator_online();
+
+                    if (!same_version_app) {
+                        return;
+                    }
+                }
 
                 if ($.ajaxSetup) {
                     $.ajaxSetup({

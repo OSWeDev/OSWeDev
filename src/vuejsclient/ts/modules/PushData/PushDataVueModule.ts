@@ -21,6 +21,8 @@ import ClientAPIController from "../API/ClientAPIController";
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
 import VOEventRegistrationsHandler from "./VOEventRegistrationsHandler";
+import ThreadHandler from "../../../../shared/tools/ThreadHandler";
+import TimeSegment from "../../../../shared/modules/DataRender/vos/TimeSegment";
 
 export default class PushDataVueModule extends VueModuleBase {
 
@@ -30,6 +32,9 @@ export default class PushDataVueModule extends VueModuleBase {
         this.notifications_handler.bind(this), 100, { leading: true, trailing: true });
 
     protected socket;
+
+    protected snotify_connect_disconnect = null;
+    protected snotify_observer_error_no_internet = null;
 
     private constructor() {
 
@@ -97,13 +102,31 @@ export default class PushDataVueModule extends VueModuleBase {
                 },
             },
         });
-        this.socket.on('disconnect', () => {
+
+        window.addEventListener('online', this.handleOnline);
+        window.addEventListener('offline', this.handleOffline);
+
+        // Créer un observateur de performance
+        const observer = new PerformanceObserver((list) => {
+            const entries = list.getEntries();
+            this.catch_performance_observers(entries);
+        });
+
+        // Commencer à observer les entrées de type 'resource'
+        observer.observe({ type: 'resource', buffered: true });
+
+
+        this.socket.on('disconnect', (reason) => {
+            ConsoleHandler.error('Socket : Déconnexion ' + reason);
+
             setTimeout(() => {
                 first = false;
                 self.socket.open();
             }, 5000);
         });
         this.socket.on('error', async () => {
+            ConsoleHandler.error('Socket : Erreur');
+
             // On tente une reconnexion toutes les 10 secondes
             setTimeout(() => {
                 first = false;
@@ -111,6 +134,8 @@ export default class PushDataVueModule extends VueModuleBase {
             }, 5000);
         });
         this.socket.on('connect_error', async () => {
+            ConsoleHandler.error('Socket : Connect erreur');
+
             // On tente une reconnexion toutes les 10 secondes
             setTimeout(() => {
                 first = false;
@@ -118,6 +143,8 @@ export default class PushDataVueModule extends VueModuleBase {
             }, 5000);
         });
         this.socket.on('connect_timeout', async () => {
+            ConsoleHandler.error('Socket : Connect timeout');
+
             // On tente une reconnexion toutes les 10 secondes
             setTimeout(() => {
                 first = false;
@@ -125,6 +152,8 @@ export default class PushDataVueModule extends VueModuleBase {
             }, 5000);
         });
         this.socket.on('reconnect_error', async () => {
+            ConsoleHandler.error('Socket : Reconnecte erreur');
+
             // On tente une reconnexion toutes les 10 secondes
             setTimeout(() => {
                 first = false;
@@ -132,6 +161,8 @@ export default class PushDataVueModule extends VueModuleBase {
             }, 5000);
         });
         this.socket.on('reconnect_failed', async () => {
+            ConsoleHandler.error('Socket : Reccontect failed');
+
             // On tente une reconnexion toutes les 10 secondes
             setTimeout(() => {
                 first = false;
@@ -142,13 +173,14 @@ export default class PushDataVueModule extends VueModuleBase {
         /**
          * Sur une reco on veut rejouer tous les registerParams
          */
-        this.socket.on('connect', () => {
+        this.socket.on('connect', (socket) => {
+            let same_version_app: boolean = true;
+
             setTimeout(async () => {
-                await self.check_version_app();
+                same_version_app = await self.check_version_app();
             }, 1);
 
-            if (!first) {
-
+            if (!first && same_version_app) {
                 setTimeout(async () => {
                     await VarsClientController.getInstance().registerAllParamsAgain();
                     await PushDataVueModule.joinAllRoomsAgain();
@@ -157,14 +189,18 @@ export default class PushDataVueModule extends VueModuleBase {
         });
 
         this.socket.on('reconnect', () => {
-            setTimeout(async () => {
-                await self.check_version_app();
-            }, 1);
+            let same_version_app: boolean = true;
 
             setTimeout(async () => {
-                await VarsClientController.getInstance().registerAllParamsAgain();
-                await PushDataVueModule.joinAllRoomsAgain();
-            }, 10000);
+                same_version_app = await self.check_version_app();
+            }, 1);
+
+            if (same_version_app) {
+                setTimeout(async () => {
+                    await VarsClientController.getInstance().registerAllParamsAgain();
+                    await PushDataVueModule.joinAllRoomsAgain();
+                }, 10000);
+            }
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_SIMPLE], async function (notification: NotificationVO) {
@@ -214,11 +250,41 @@ export default class PushDataVueModule extends VueModuleBase {
         // TODO: Handle other notif types
     }
 
+    // Fonction pour vérifier toutes les ressources qu'on appelle et faire une gestion d'erreur
+    public catch_performance_observers(entries) {
+        // Si mon navigateur est online, on ne fait rien
+        if (navigator.onLine) {
+            return;
+        }
+
+        // On va parcourir toutes les requêtes pour voir celles qui ont échouées
+        entries.forEach((entry) => {
+            if (entry.initiatorType !== 'xmlhttprequest' && entry.initiatorType !== 'fetch') {
+                // Filtrer les requêtes XHR et Fetch
+                return;
+            }
+
+            // On a une erreur 0 => panne de réseau
+            if (entry.responseStatus === 0) {
+                ConsoleHandler.error("Erreur chargement de la ressource : " + entry.name + " => " + entry.responseStatus);
+
+                // On affiche un message d'erreur à l'internaute pour lui dire de recharger sa page
+                if (!this.snotify_observer_error_no_internet) {
+                    this.snotify_observer_error_no_internet = VueAppBase.instance_.vueInstance.snotify.warning(
+                        VueAppBase.instance_.vueInstance.label("observer_error_no_internet"),
+                        { timeout: 0 },
+                    );
+                }
+                return;
+            }
+        });
+    }
+
     /**
      *
      * @returns Si on a pas la même version entre le front et le back, on recharge la page
      */
-    private async check_version_app() {
+    public async check_version_app(): Promise<boolean> {
         const server_app_version: string = await ModulePushData.getInstance().get_app_version();
 
         if (server_app_version && (EnvHandler.version != server_app_version)) {
@@ -246,7 +312,56 @@ export default class PushDataVueModule extends VueModuleBase {
             setTimeout(() => {
                 window.location.reload();
             }, 3000);
+
+            return false;
         }
+
+        return true;
+    }
+
+    public async wait_navigator_online(): Promise<boolean> {
+
+        const timer: number = Dates.now();
+
+        // Tant que le navigateur on offline, on attend (maximum 60 secondes) et on recharge la page automatiquement ensuite
+        while (!navigator.onLine) {
+            await ThreadHandler.sleep(500, 'vueRouter.beforeEach - navigateur not online');
+
+            if ((Dates.diff(Dates.now(), timer, TimeSegment.TYPE_SECOND) >= 60)) {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+                return false;
+            }
+        }
+
+        return PushDataVueModule.getInstance().check_version_app();
+    }
+
+    /**
+     * Permet de faire un traitement particulier lorsqu'on passe online
+     */
+    private async handleOnline() {
+        ConsoleHandler.error('Connexion internet rétablie');
+
+        if (this.snotify_connect_disconnect) {
+            VueAppBase.instance_.vueInstance.snotify.remove(this.snotify_connect_disconnect.id);
+            this.snotify_connect_disconnect = null;
+        }
+
+        await PushDataVueModule.getInstance().check_version_app();
+    }
+
+    /**
+     * Permet de faire un traitement particulier lorsqu'on passe offline
+     */
+    private handleOffline() {
+        ConsoleHandler.error('Perte de la connexion internet');
+
+        this.snotify_connect_disconnect = VueAppBase.instance_.vueInstance.snotify.warning(
+            VueAppBase.instance_.vueInstance.label("no_internet"),
+            { timeout: 0 },
+        );
     }
 
     private async notifications_handler(notifications: NotificationVO[]) {

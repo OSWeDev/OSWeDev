@@ -3,6 +3,7 @@ import 'bootstrap';
 import $ from 'jquery';
 import moment from 'moment';
 
+import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import { ColorPanel, ColorPicker } from 'one-colorpicker';
 import 'select2';
 import VCalendar from 'v-calendar';
@@ -25,7 +26,6 @@ import Snotify from 'vue-snotify';
 import { ClientTable } from "vue-tables-2";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
-import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import ModuleAccessPolicy from "../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import ModuleTableController from "../shared/modules/DAO/ModuleTableController";
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
@@ -34,6 +34,7 @@ import Module from '../shared/modules/Module';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
 import ModulesManager from '../shared/modules/ModulesManager';
 import StatsController from "../shared/modules/Stats/StatsController";
+import ModuleSuiviCompetences from "../shared/modules/SuiviCompetences/ModuleSuiviCompetences";
 import VarDataBaseVO from "../shared/modules/Var/vos/VarDataBaseVO";
 import ConsoleHandler from "../shared/tools/ConsoleHandler";
 import EnvHandler from '../shared/tools/EnvHandler';
@@ -41,6 +42,7 @@ import LocaleManager from '../shared/tools/LocaleManager';
 import { all_promises } from "../shared/tools/PromiseTools";
 import VueAppController from './VueAppController';
 import PWAController from "./public/pwa/PWAController";
+import SuiviCompetencesVueController from "./ts/components/SuiviCompetences/SuiviCompetencesVueController";
 import VarsClientController from "./ts/components/Var/VarsClientController";
 import VarDirective from './ts/components/Var/directives/var-directive/VarDirective';
 import VarsDirective from "./ts/components/Var/directives/vars-directive/VarsDirective";
@@ -57,8 +59,6 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
-import ModuleSuiviCompetences from "../shared/modules/SuiviCompetences/ModuleSuiviCompetences";
-import SuiviCompetencesVueController from "./ts/components/SuiviCompetences/SuiviCompetencesVueController";
 
 // const loadComponent = async (component) => {
 //     try {
@@ -363,7 +363,14 @@ export default abstract class VueAppBase {
 
         VueAppController.getInstance().initGoogleAnalytics(code_google_analytics);
 
-        this.vueRouter.beforeEach((route, redirect, next) => {
+        this.vueRouter.beforeEach(async (route, redirect, next) => {
+            if (!navigator.onLine) {
+                const same_version_app: boolean = await PushDataVueModule.getInstance().wait_navigator_online();
+
+                if (!same_version_app) {
+                    return;
+                }
+            }
 
             time_in_router = Dates.now_ms();
             if (route.name) {
