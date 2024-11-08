@@ -1,8 +1,46 @@
 /* istanbul ignore file: nothing to test here */
 
+import ForkedTasksController from "../../server/modules/Fork/ForkedTasksController";
+import ForkServerController from "../../server/modules/Fork/ForkServerController";
 import Dates from "../modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../modules/Stats/StatsController";
 import DBDisconnectionManager from "./DBDisconnectionManager";
+
+/**
+ * Decorator indicating and handling that the method should be executed on the main thread
+ * Optimized : if the method is called from the main thread, it will be executed directly and the annotation will be removed so that the method is executed directly next time
+ */
+export function RunsOnMainThread(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+    const originalMethod = descriptor.value;
+
+    //TODO register the method as a task on the main thread, with a UID based on the method name and the class name
+    const task_UID = target.constructor.name + '.' + propertyKey;
+
+    if (ForkServerController.is_main_process()) {
+        ForkedTasksController.register_task(task_UID, originalMethod.bind(target));
+    }
+
+    descriptor.value = async function (...args: any[]) {
+        if (!ForkServerController.is_main_process()) {
+            // Not on main process: execute the method on the main process
+            return await ForkedTasksController.exec_self_on_main_process_and_return_value(
+                (error: any) => { throw error; },
+                task_UID, // Using the method name as the task UID
+                (value: any) => value,
+                args
+            );
+        } else {
+            // On main process: replace the method on this instance with the original method
+            Object.defineProperty(this, propertyKey, {
+                value: originalMethod,
+                configurable: true,
+                writable: true
+            });
+            // Call the original method
+            return originalMethod.apply(this, args);
+        }
+    };
+}
 
 export default class ThreadHandler {
 

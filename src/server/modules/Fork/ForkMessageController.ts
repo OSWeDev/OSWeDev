@@ -17,6 +17,7 @@ import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import { all_promises } from '../../../shared/tools/PromiseTools';
+import TaskResultForkMessage from './messages/TaskResultForkMessage';
 
 export default class ForkMessageController {
 
@@ -27,6 +28,10 @@ export default class ForkMessageController {
     /**
      * ----- Local thread cache
      */
+
+    private static registered_messages_handlers: { [message_type: string]: (msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess) => Promise<boolean> } = {};
+    private static last_log_msg_error: number = 0;
+    private static throttled_retry = throttle(ForkMessageController.retry.bind(ForkMessageController), 500);
 
     public static register_message_handler(message_type: string, handler: (msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess) => Promise<boolean>) {
         ForkMessageController.registered_messages_handlers[message_type] = handler;
@@ -66,6 +71,8 @@ export default class ForkMessageController {
         } else {
 
             const promises = [];
+            // On doit clone le message si on utilise le même pour plusieurs envoies / ou pour du local
+            let nb_uses = 0;
             for (const i in ForkServerController.forks) {
                 const forked = ForkServerController.forks[i];
 
@@ -73,14 +80,43 @@ export default class ForkMessageController {
                     continue;
                 }
 
+                // Les messages de type BGThreadProcessTaskForkMessage sont envoyés uniquement au thread concerné
                 if ((msg.message_type == BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE) &&
                     (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][(msg as BGThreadProcessTaskForkMessage).bgthread].uid != forked.uid)) {
                     continue;
                 }
 
-                promises.push(ForkMessageController.send(msg, forked.child_process, forked));
+                // Les messages de type TaskResultForkMessage sont envoyés uniquement au thread concerné
+                if ((msg.message_type == TaskResultForkMessage.FORK_MESSAGE_TYPE) &&
+                    ((msg as TaskResultForkMessage).callback_forked_uid != forked.uid)) {
+                    continue;
+                }
+
+                nb_uses++;
+                if (nb_uses > 1) {
+                    promises.push(ForkMessageController.send(JSON.parse(JSON.stringify(msg)), forked.child_process, forked));
+                } else {
+                    promises.push(ForkMessageController.send(msg, forked.child_process, forked));
+                }
             }
             await all_promises(promises);
+
+            // Les messages de type BGThreadProcessTaskForkMessage sont envoyés uniquement au thread concerné, donc pas sur le main
+            if (msg.message_type == BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE) {
+                return true;
+            }
+
+            // Les messages de type TaskResultForkMessage sont envoyés uniquement au thread concerné, donc si c'est pas le main (0) on a fini
+            if ((msg.message_type == TaskResultForkMessage.FORK_MESSAGE_TYPE) &&
+                (!!(msg as TaskResultForkMessage).callback_forked_uid)) {
+                return;
+            }
+
+            nb_uses++;
+            if (nb_uses > 1) {
+                return ForkMessageController.message_handler(JSON.parse(JSON.stringify(msg)));
+            }
+
             return ForkMessageController.message_handler(msg);
         }
     }
@@ -153,10 +189,6 @@ export default class ForkMessageController {
             ForkMessageController.throttled_retry();
         }
     }
-
-    private static registered_messages_handlers: { [message_type: string]: (msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess) => Promise<boolean> } = {};
-    private static last_log_msg_error: number = 0;
-    private static throttled_retry = throttle(ForkMessageController.retry.bind(ForkMessageController), 500);
 
     private static async handle_send_error(msg_wrapper: IForkMessageWrapper, error: Error) {
         if (error) {

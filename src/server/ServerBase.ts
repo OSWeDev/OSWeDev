@@ -764,7 +764,7 @@ export default abstract class ServerBase {
                     }
                 }
 
-                PushDataServerController.registerSession(session);
+                await PushDataServerController.registerSession(session);
 
                 if (MaintenanceServerController.getInstance().has_planned_maintenance) {
                     await MaintenanceServerController.getInstance().inform_user_on_request(session.uid);
@@ -1084,7 +1084,7 @@ export default abstract class ServerBase {
                 }
                 session.last_check_blocked_or_expired = Dates.now();
 
-                PushDataServerController.registerSession(session);
+                await PushDataServerController.registerSession(session);
 
                 // On stocke le log de connexion en base
                 const user_log: UserLogVO = new UserLogVO();

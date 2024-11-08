@@ -1,4 +1,3 @@
-import ModuleServerBase from '../../../../server/modules/ModuleServerBase';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModulesManager from '../../ModulesManager';
@@ -185,7 +184,7 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
 
         if (this._cb == null) {
             try {
-                const m = ModulesManager.getModuleByNameAndRole(this.cb_module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
+                const m = ModulesManager.getModuleByNameAndRole(this.cb_module_name, "SERVER_MODULE_ROLE_NAME");
                 this._cb = m[this.cb_function_name].bind(m);
             } catch (error) {
                 ConsoleHandler.error('Error while getting cb for EventifyEventListenerInstanceVO ' + this.id + ' : ' + error);

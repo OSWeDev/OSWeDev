@@ -27,15 +27,15 @@ import PushDataServerController from '../PushData/PushDataServerController';
 
 export default abstract class ForkedProcessWrapperBase {
 
-    protected static instance: ForkedProcessWrapperBase;
+    public static instance: ForkedProcessWrapperBase;
 
     /**
      * Local thread cache -----
      */
+    public UID: number;
     private modulesService: ModuleServiceBase;
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 
-    private UID: number;
     /**
      * ----- Local thread cache
      */

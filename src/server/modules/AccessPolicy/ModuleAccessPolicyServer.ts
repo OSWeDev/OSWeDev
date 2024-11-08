@@ -1371,7 +1371,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             session.uid = user.id;
             session.user_vo = user;
 
-            PushDataServerController.registerSession(session);
+            await PushDataServerController.registerSession(session);
 
             // On stocke le log de connexion en base
             const user_log = new UserLogVO();
@@ -1942,7 +1942,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
             session.uid = user.id;
             session.user_vo = user;
-            PushDataServerController.registerSession(session);
+            await PushDataServerController.registerSession(session);
 
             // On stocke le log de connexion en base
             const user_log = new UserLogVO();
@@ -2022,7 +2022,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             session.uid = user.id;
             session.user_vo = user;
 
-            PushDataServerController.registerSession(session);
+            await PushDataServerController.registerSession(session);
 
             // On stocke le log de connexion en base
             const user_log = new UserLogVO();
@@ -2102,7 +2102,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         session.uid = user.id;
         session.user_vo = user;
 
-        PushDataServerController.registerSession(session);
+        await PushDataServerController.registerSession(session);
 
         // On stocke le log de connexion en base
         const user_log = new UserLogVO();
@@ -2319,7 +2319,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private get_my_sid(req: Request, res: Response) {
-        return res.req.cookies['sid'];
+        return (res && res.req && res.req.cookies) ? res.req.cookies['sid'] : req.session.sid;
     }
 
     /**

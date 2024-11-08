@@ -285,6 +285,7 @@ export default class APIControllerWrapper {
         }
 
         const elt = (e as IDistantVOBase);
+
         if (!elt._type) {
 
             if (APIControllerWrapper.is_range(e as IRange)) {

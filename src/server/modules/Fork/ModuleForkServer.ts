@@ -1,8 +1,5 @@
 
 import { ChildProcess } from 'child_process';
-import { Server, Socket } from 'net';
-import JSONTransport from 'nodemailer/lib/json-transport';
-import CRUD from '../../../shared/modules/DAO/vos/CRUD';
 import ModuleFork from '../../../shared/modules/Fork/ModuleFork';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -10,6 +7,7 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import VarsDatasVoUpdateHandler from '../Var/VarsDatasVoUpdateHandler';
+import ForkedProcessWrapperBase from './ForkedProcessWrapperBase';
 import ForkedTasksController from './ForkedTasksController';
 import ForkMessageController from './ForkMessageController';
 import ForkServerController from './ForkServerController';
@@ -24,17 +22,9 @@ import PingForkACKMessage from './messages/PingForkACKMessage';
 import PingForkMessage from './messages/PingForkMessage';
 import ReloadAsapForkMessage from './messages/ReloadAsapForkMessage';
 import TaskResultForkMessage from './messages/TaskResultForkMessage';
-import ForkedProcessWrapperBase from './ForkedProcessWrapperBase';
 
 export default class ModuleForkServer extends ModuleServerBase {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleForkServer.instance) {
-            ModuleForkServer.instance = new ModuleForkServer();
-        }
-        return ModuleForkServer.instance;
-    }
 
     private static instance: ModuleForkServer = null;
 
@@ -43,6 +33,14 @@ export default class ModuleForkServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleFork.getInstance().name);
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleForkServer.instance) {
+            ModuleForkServer.instance = new ModuleForkServer();
+        }
+        return ModuleForkServer.instance;
     }
 
     public async configure(): Promise<void> {
@@ -135,7 +133,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         }
 
         if (msg.callback_id) {
-            await ForkMessageController.send(new TaskResultForkMessage(res, msg.callback_id), sendHandle as ChildProcess);
+            await ForkMessageController.send(new TaskResultForkMessage(res, msg.callback_forked_uid, msg.callback_id), sendHandle as ChildProcess);
         }
 
         return true;
@@ -153,7 +151,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         if (this.is_killing) {
             ConsoleHandler.error('handle_bgthreadprocesstask_message:KILLING TASK HANDLER:' + JSON.stringify(msg));
             if (msg.callback_id) {
-                await ForkMessageController.send(new TaskResultForkMessage(null, msg.callback_id, 'KILLING TASK HANDLER'), sendHandle as ChildProcess);
+                await ForkMessageController.send(new TaskResultForkMessage(null, msg.callback_forked_uid, msg.callback_id, 'KILLING TASK HANDLER'), sendHandle as ChildProcess);
             } else {
                 throw new Error('KILLING TASK HANDLER');
             }
@@ -164,7 +162,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
             const thrower = async (error) => {
                 if (msg.callback_id) {
-                    await ForkMessageController.send(new TaskResultForkMessage(null, msg.callback_id, error), sendHandle as ChildProcess);
+                    await ForkMessageController.send(new TaskResultForkMessage(null, msg.callback_forked_uid, msg.callback_id, error), sendHandle as ChildProcess);
                 } else {
                     ConsoleHandler.error('Failed message:' + error + ':' + JSON.stringify(msg));
                 }
@@ -173,7 +171,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
             const resolver = async (res) => {
                 if (msg.callback_id) {
-                    await ForkMessageController.send(new TaskResultForkMessage(res, msg.callback_id), sendHandle as ChildProcess);
+                    await ForkMessageController.send(new TaskResultForkMessage(res, msg.callback_forked_uid, msg.callback_id), sendHandle as ChildProcess);
                 }
                 resolve(res);
             };
@@ -197,7 +195,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         if (this.is_killing) {
             ConsoleHandler.error('handle_bgthreadprocesstask_message:KILLING TASK HANDLER:' + JSON.stringify(msg));
             if (msg.callback_id) {
-                await ForkMessageController.broadcast(new TaskResultForkMessage(null, msg.callback_id, 'KILLING TASK HANDLER'));
+                await ForkMessageController.broadcast(new TaskResultForkMessage(null, msg.callback_forked_uid, msg.callback_id, 'KILLING TASK HANDLER'));
             } else {
                 throw new Error('KILLING TASK HANDLER');
             }
@@ -212,7 +210,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         }
 
         if (msg.callback_id) {
-            await ForkMessageController.broadcast(new TaskResultForkMessage(res, msg.callback_id));
+            await ForkMessageController.broadcast(new TaskResultForkMessage(res, msg.callback_forked_uid, msg.callback_id));
         }
 
         return true;
