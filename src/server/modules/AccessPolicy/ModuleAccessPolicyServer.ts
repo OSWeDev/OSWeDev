@@ -100,6 +100,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             if (session && session.uid) {
                 return session.uid;
             }
+
+            const uid = StackContext.get('UID');
+
+            if (uid) {
+                return uid;
+            }
         } catch (error) {
             ConsoleHandler.error(error);
         }
