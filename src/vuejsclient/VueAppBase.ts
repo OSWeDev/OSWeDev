@@ -92,6 +92,7 @@ export default abstract class VueAppBase {
     public async runApp() {
 
         ConsoleHandler.init();
+        ModulesManager.initialize();
 
         // Chargement des données des modules.
         await this.initializeModulesDatas();
@@ -127,12 +128,12 @@ export default abstract class VueAppBase {
             DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[type] = null,
         );
 
-        const modules_by_name = ModulesManager.getInstance().modules_by_name;
+        const modules_by_name = ModulesManager.modules_by_name;
 
         // On commence par demander tous les droits d'accès des modules
         promises = [];
         for (const module_name in modules_by_name) {
-            const module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
+            const module_: VueModuleBase = ModulesManager.getModuleByNameAndRole(
                 module_name,
                 VueModuleBase.IVueModuleRoleName,
             ) as VueModuleBase;
@@ -161,7 +162,7 @@ export default abstract class VueAppBase {
 
         // On lance les initializeAsync des modules Vue
         for (const module_name in modules_by_name) {
-            const module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
+            const module_: VueModuleBase = ModulesManager.getModuleByNameAndRole(
                 module_name,
                 VueModuleBase.IVueModuleRoleName,
             ) as VueModuleBase;
@@ -276,7 +277,7 @@ export default abstract class VueAppBase {
         //}
 
         let routerRoutes: RouteConfig[] = [];
-        const moduleWrappersByName: { [key: string]: ModuleWrapper } = ModulesManager.getInstance().getModuleWrappersByName();
+        const moduleWrappersByName: { [key: string]: ModuleWrapper } = ModulesManager.getModuleWrappersByName();
 
         for (const i in moduleWrappersByName) {
             const moduleWrapper: ModuleWrapper = moduleWrappersByName[i];

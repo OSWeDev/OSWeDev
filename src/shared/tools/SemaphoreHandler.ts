@@ -2,6 +2,8 @@ import ThreadHandler from "./ThreadHandler";
 
 export default class SemaphoreHandler {
 
+    private static SEMAPHORES: { [key: string]: boolean } = {};
+
     /**
      * @param key
      * @param cb
@@ -61,6 +63,4 @@ export default class SemaphoreHandler {
 
         return res;
     }
-
-    private static SEMAPHORES: { [key: string]: boolean } = {};
 }

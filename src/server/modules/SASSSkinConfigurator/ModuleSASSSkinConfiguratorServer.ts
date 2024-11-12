@@ -58,9 +58,9 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
                 //     let default_value: string = ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES[param_name];
 
                 //     await promise_pipeline.push(async () => {
-                //         let param_value: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSASSSkinConfigurator.MODULE_NAME + '.' + param_name);
+                //         let param_value: string = await ParamsServerController.getParamValueAsString(ModuleSASSSkinConfigurator.MODULE_NAME + '.' + param_name);
                 //         if ((!param_value) && (!!default_value)) {
-                //             await ModuleParams.getInstance().setParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.' + param_name, default_value);
+                //             await ParamsServerController.setParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.' + param_name, default_value);
                 //         } else {
                 //             ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES[param_name] = param_value;
                 //         }

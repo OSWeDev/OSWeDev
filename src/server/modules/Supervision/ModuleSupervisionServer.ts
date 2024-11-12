@@ -35,6 +35,7 @@ import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import SupervisionBGThread from './bgthreads/SupervisionBGThread';
@@ -350,8 +351,8 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     private async on_new_unread_error(supervised_item: ISupervisedItem) {
-        const group_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_GROUPID_PARAM_NAME);
-        const channel_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_CHANNELID_PARAM_NAME);
+        const group_id: string = await ParamsServerController.getParamValueAsString(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_GROUPID_PARAM_NAME);
+        const channel_id: string = await ParamsServerController.getParamValueAsString(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_CHANNELID_PARAM_NAME);
 
         if ((!group_id) || (!channel_id)) {
             ConsoleHandler.error('ModuleSuperVisionServer.on_new_unread_error: missing group_id or channel_id:' + ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_GROUPID_PARAM_NAME + ' / ' + ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_CHANNELID_PARAM_NAME);
@@ -397,8 +398,8 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     private async on_back_to_normal(supervised_item: ISupervisedItem) {
-        const group_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_GROUPID_PARAM_NAME);
-        const channel_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_CHANNELID_PARAM_NAME);
+        const group_id: string = await ParamsServerController.getParamValueAsString(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_GROUPID_PARAM_NAME);
+        const channel_id: string = await ParamsServerController.getParamValueAsString(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_CHANNELID_PARAM_NAME);
 
         if ((!group_id) || (!channel_id)) {
             ConsoleHandler.error('ModuleSuperVisionServer.on_back_to_normal: missing group_id or channel_id:' + ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_GROUPID_PARAM_NAME + ' / ' + ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_CHANNELID_PARAM_NAME);

@@ -140,6 +140,10 @@ import ModuleVocusServer from './Vocus/ModuleVocusServer';
 import ParamsManager from '../../shared/modules/Params/ParamsManager';
 import ModuleLogger from '../../shared/modules/Logger/ModuleLogger';
 import ModuleLoggerServer from './Logger/ModuleLoggerServer';
+import ModuleAzureConnect from '../../shared/modules/AzureConnect/ModuleAzureConnect';
+import ModuleAzureConnectServer from './AzureConnect/ModuleAzureConnectServer';
+import ModuleEventifyServer from './Eventify/ModuleEventifyServer';
+import ModuleEventify from '../../shared/modules/Eventify/ModuleEventify';
 
 export default abstract class ModuleServiceBase {
 
@@ -539,18 +543,35 @@ export default abstract class ModuleServiceBase {
     }
 
     private async install_modules() {
+
+        const queries_to_try_after_creation: string[] = [];
         for (const i in this.registered_modules) {
             const registered_module = this.registered_modules[i];
 
             try {
                 await ModuleDBService.getInstance().module_install(
-                    registered_module
+                    registered_module,
+                    queries_to_try_after_creation,
                 );
             } catch (e) {
                 console.error(
                     "Erreur lors de l'installation du module \"" +
                     registered_module.name +
                     '".'
+                );
+                console.log(e);
+                process.exit(0);
+            }
+        }
+
+        for (const i in queries_to_try_after_creation) {
+            const query = queries_to_try_after_creation[i];
+            try {
+                ConsoleHandler.log('Executing query after modules installation : ' + query);
+                await this.db_.none(query);
+            } catch (e) {
+                console.error(
+                    "Erreur lors de l'exécution de la requête après l'installation des modules."
                 );
                 console.log(e);
                 process.exit(0);
@@ -676,6 +697,8 @@ export default abstract class ModuleServiceBase {
             ModuleOselia.getInstance(),
             ModuleSuiviCompetences.getInstance(),
             ModuleLogger.getInstance(),
+            ModuleAzureConnect.getInstance(),
+            ModuleEventify.getInstance(),
         ];
     }
 
@@ -743,6 +766,8 @@ export default abstract class ModuleServiceBase {
             ModuleOseliaServer.getInstance(),
             ModuleSuiviCompetencesServer.getInstance(),
             ModuleLoggerServer.getInstance(),
+            ModuleAzureConnectServer.getInstance(),
+            ModuleEventifyServer.getInstance(),
         ];
     }
 

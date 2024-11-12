@@ -16,6 +16,7 @@ import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
 import ModuleOseliaServer from './ModuleOseliaServer';
 import ConfigurationService from '../../env/ConfigurationService';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class OseliaRunServerController {
 
@@ -166,15 +167,15 @@ export default class OseliaRunServerController {
             throw new Error('get_run_thread: No run provided');
         }
 
-        if (!assistant) {
-            throw new Error('get_run_thread: No assistant in param: ' + run.assistant_id + ' - ' + run.id);
-        }
+        // if (!assistant) {
+        //     throw new Error('get_run_thread: No assistant in param: ' + run.assistant_id + ' - ' + run.id);
+        // }
 
         if (!run.thread_id) {
             const thread: {
                 thread_gpt: Thread;
                 thread_vo: GPTAssistantAPIThreadVO;
-            } = await GPTAssistantAPIServerController.get_thread(run.user_id, null, assistant.id);
+            } = await GPTAssistantAPIServerController.get_thread(run.user_id, null, run.oselia_thread_default_assistant_id ? run.oselia_thread_default_assistant_id : (assistant ? assistant.id : null));
 
             run.thread_id = thread.thread_vo.id;
             thread.thread_vo.thread_title = run.thread_title;
@@ -204,7 +205,8 @@ export default class OseliaRunServerController {
         }
 
         if (!run.assistant_id) {
-            throw new Error('get_run_assistant: No assistant_id in run: ' + run.assistant_id + ' - ' + run.id);
+            // throw new Error('get_run_assistant: No assistant_id in run: ' + run.assistant_id + ' - ' + run.id);
+            return null;
         }
 
         const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
@@ -228,6 +230,10 @@ export default class OseliaRunServerController {
         run: OseliaRunVO,
         state: number
     ) {
+        if (run.state == state) {
+            return;
+        }
+
         run.state = state;
         switch (state) {
             case OseliaRunVO.STATE_TODO:
@@ -352,10 +358,10 @@ export default class OseliaRunServerController {
                 }
 
                 // Une fois qu'on a initialisé le prompt du run, on peut init les prompts potentiels du split et de la validation
-                const prompt_prefix_split = await ModuleParams.getInstance().getParamValueAsString(OseliaRunServerController.PARAM_NAME_SPLITTER_PROMPT_PREFIX);
+                const prompt_prefix_split = await ParamsServerController.getParamValueAsString(OseliaRunServerController.PARAM_NAME_SPLITTER_PROMPT_PREFIX);
                 run.initialised_splitter_prompt = (prompt_prefix_split ? prompt_prefix_split + ' ' : '') + run.initialised_run_prompt;
 
-                const prompt_prefix_validator = await ModuleParams.getInstance().getParamValueAsString(OseliaRunServerController.PARAM_NAME_VALIDATOR_PROMPT_PREFIX);
+                const prompt_prefix_validator = await ParamsServerController.getParamValueAsString(OseliaRunServerController.PARAM_NAME_VALIDATOR_PROMPT_PREFIX);
                 run.initialised_validator_prompt = (prompt_prefix_validator ? prompt_prefix_validator + ' ' : '') + run.initialised_run_prompt;
 
                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run);

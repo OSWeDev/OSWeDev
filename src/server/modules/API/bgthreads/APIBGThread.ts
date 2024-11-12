@@ -12,10 +12,6 @@ export default class APIBGThread implements IBGThread {
     public MAX_timeout: number = 300000;
     public MIN_timeout: number = 60000;
 
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
-
     public exec_in_dedicated_thread: boolean = true;
 
     private constructor() {

@@ -2,6 +2,7 @@ import { IDatabase } from 'pg-promise';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import ParamsServerController from '../../../server/modules/Params/ParamsServerController';
 
 
 export default class Patch20220401SetParamPushData implements IGeneratorWorker {
@@ -23,6 +24,6 @@ export default class Patch20220401SetParamPushData implements IGeneratorWorker {
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        await ModuleParams.getInstance().setParamValue(ModulePushData.PARAM_TECH_DISCONNECT_URL, '/login');
+        await ParamsServerController.setParamValue(ModulePushData.PARAM_TECH_DISCONNECT_URL, '/login');
     }
 }

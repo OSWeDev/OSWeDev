@@ -24,7 +24,6 @@ import GPTAssistantAPIVectorStoreFileVO from '../../../shared/modules/GPT/vos/GP
 import GPTAssistantAPIVectorStoreVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIVectorStoreVO';
 import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -56,18 +55,14 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
-import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
-import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import GPTRealtimeAPIConversationItemVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIConversationItemVO';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -519,7 +514,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
      */
     public async generate_response(conversation: GPTCompletionAPIConversationVO, newPrompt: GPTCompletionAPIMessageVO): Promise<GPTCompletionAPIMessageVO> {
         try {
-            const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4-turbo-preview", 60000);
+            const modelId = await ParamsServerController.getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4-turbo-preview", 60000);
 
             if (!conversation || !newPrompt) {
                 throw new Error("Invalid conversation or prompt");

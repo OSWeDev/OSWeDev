@@ -144,7 +144,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             return false;
         }
 
-        const module_instance = ModulesManager.getInstance().getModuleByNameAndRole(action_url.action_callback_module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
+        const module_instance = ModulesManager.getModuleByNameAndRole(action_url.action_callback_module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
 
         if (!module_instance) {
             ConsoleHandler.error('No module found for action_url:' + code + ': module_name:' + action_url.action_callback_module_name);

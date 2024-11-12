@@ -54,6 +54,8 @@ export default class EnvParam implements IEnvParam {
     public debug_io_rooms?: boolean = false;
     public debug_vo_events?: boolean = false;
 
+    public debug_playwright_controller?: boolean = false;
+
     public debug_reruns_of_oselia?: boolean = false;
 
     public debug_select_datatable_rows_query_res?: boolean = false;

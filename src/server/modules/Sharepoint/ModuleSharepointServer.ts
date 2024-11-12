@@ -19,6 +19,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ModuleSharepointServer extends ModuleServerBase {
 
@@ -85,10 +86,10 @@ export default class ModuleSharepointServer extends ModuleServerBase {
     public async save_to_sharepoint(coreOptions: ICoreOptions, fileOptions: FileOptions) {
         return new Promise(async (resolve, reject) => {
 
-            const clientId = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_clientId);
-            const clientSecret = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_clientSecret);
+            const clientId = await ParamsServerController.getParamValueAsString(ModuleSharepoint.PARAM_NAME_clientId);
+            const clientSecret = await ParamsServerController.getParamValueAsString(ModuleSharepoint.PARAM_NAME_clientSecret);
             // realm == tenant
-            const realm = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_realm);
+            const realm = await ParamsServerController.getParamValueAsString(ModuleSharepoint.PARAM_NAME_realm);
 
             if ((!clientId) || (!clientSecret)) {
                 /**

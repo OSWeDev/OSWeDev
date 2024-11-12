@@ -85,6 +85,11 @@ export default class OseliaRunFunctionCallVO implements IDistantVOBase, IVersion
 
     public error_msg: string;
 
+    /**
+     * En cas de replay manuel
+     */
+    public replay_from_id: number;
+
     public parent_id: number;
     public trashed: boolean;
     public version_num: number;

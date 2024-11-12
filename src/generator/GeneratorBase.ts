@@ -130,6 +130,7 @@ import Patch20241016AddOseliaFunction_OSELIA_get_assistant from './patchs/postmo
 import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
 import Patch20241010CreateLogType from './patchs/postmodules/Patch20241010CreateLogType';
 import Patch20241030SuiviCompetencesGroupeShortName from './patchs/postmodules/Patch20241030SuiviCompetencesGroupeShortName';
+import Patch20241023AddOseliaFunction_azure_get_last_unread_email from './patchs/postmodules/Patch20241023AddOseliaFunction_azure_get_last_unread_email';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -148,6 +149,8 @@ export default abstract class GeneratorBase {
 
         // BLOCK Stats Generator side
         StatsController.ACTIVATED = false;
+
+        ModulesManager.initialize();
 
         GeneratorBase.instance = this;
         this.modulesService = modulesService;
@@ -283,6 +286,8 @@ export default abstract class GeneratorBase {
             Patch20241010CreateLogType.getInstance(),
             Patch20241030SuiviCompetencesGroupeShortName.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
+
+            Patch20241023AddOseliaFunction_azure_get_last_unread_email.getInstance(),
         ];
     }
 

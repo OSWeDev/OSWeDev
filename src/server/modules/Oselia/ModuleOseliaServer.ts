@@ -81,6 +81,10 @@ import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
 import OseliaThreadRoleVO from '../../../shared/modules/Oselia/vos/OseliaThreadRoleVO';
 import ActionURLUserVO from '../../../shared/modules/ActionURL/vos/ActionURLUserVO';
+import OseliaRunFunctionCallVO from '../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
+import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
+import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -115,6 +119,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_set_screen_track, this.set_screen_track.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_get_screen_track, this.get_screen_track.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_create_thread, this.create_thread.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_replay_function_call, this.replay_function_call.bind(this));
     }
 
     // istanbul ignore next: cannot test configure
@@ -191,6 +196,22 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Refuser' },
             'oselia.join_request.deny.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Cache' },
+            'oselia_thread_widget_component.thread_cached_datas_header.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Sous-threads' },
+            'oselia_thread_widget_component.sub_threads_header.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Thread parent' },
+            'oselia_thread_widget_component.parent_thread.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Appels de fonctions' },
+            'oselia_thread_widget_component.function_calls_header.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Tâches Osélia' },
+            'oselia_thread_widget_component.oselia_runs_header.___LABEL___'));
 
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaThreadTitleBuilderBGThread.getInstance());
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaOldRunsResyncBGThread.getInstance());
@@ -857,7 +878,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 return 'ERREUR: Impossible de trouver le run oselia associé au run gpt. Il peut être pertinent de retenter un appel à la fonction';
             }
 
-            const prefix_prompt_step_oselia = await ModuleParams.getInstance().getParamValueAsString(OseliaRunServerController.PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX);
+            const prefix_prompt_step_oselia = await ParamsServerController.getParamValueAsString(OseliaRunServerController.PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX);
 
             if (!prefix_prompt_step_oselia) {
                 ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le paramètre de configuration:' + OseliaRunServerController.PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX);
@@ -907,15 +928,15 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 const thread: {
                     thread_gpt: Thread;
                     thread_vo: GPTAssistantAPIThreadVO;
-                } = await GPTAssistantAPIServerController.get_thread(new_run_step.user_id, null, new_run_step.assistant_id);
+                } = await GPTAssistantAPIServerController.get_thread(new_run_step.user_id, null, new_run_step.oselia_thread_default_assistant_id ? new_run_step.oselia_thread_default_assistant_id : new_run_step.assistant_id);
 
                 const referrers = await query(OseliaReferrerVO.API_TYPE_ID)
                     .filter_by_id(thread_vo.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
                     .exec_as_server()
                     .select_vos<OseliaReferrerVO>();
-                if (!!referrers) {
+                if (referrers && (referrers.length > 0)) {
                     for (const referrer of referrers) {
-                        await OseliaServerController.link_thread_to_referrer(thread_vo, referrer);
+                        await OseliaServerController.link_thread_to_referrer(thread.thread_vo, referrer);
                     }
                 }
 
@@ -968,11 +989,11 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             .select_vo<OseliaThreadCacheVO>();
 
         if (cache) {
-            return cache.value;
+            return (cache.value == null) ? '<aucune donnée pour cette clé de cache>' : cache.value;
         }
 
         if (!thread_vo.parent_thread_id) {
-            return null;
+            return '<aucune donnée pour cette clé de cache>';
         }
 
         const parent_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
@@ -1011,6 +1032,11 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         if (!key) {
             ConsoleHandler.error('set_cache_value:Key is mandatory');
             return 'ERREUR: La clé est obligatoire: corriger et réessayer';
+        }
+
+        if (key.indexOf('{') >= 0) {
+            ConsoleHandler.error('set_cache_value:Key cannot contain {');
+            return 'ERREUR: La clé ne peut pas contenir { : corriger et réeesayer';
         }
 
         // Si on fourni un thread_id, on doit check qu'il existe et qu'il s'agit d'un thread parent du thread actuel
@@ -2097,15 +2123,15 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                             resolve(file_vo);
                         })
                         .on('error', (err) => {
-                            ConsoleHandler.error('ModuleOseliaServer:generate_image:Error while saving the image:', err);
+                            ConsoleHandler.error('ModuleOseliaServer:generate_image:Error while saving the image:' + err);
                             reject(err);
                         });
                 }).catch(err => {
-                    ConsoleHandler.error('ModuleOseliaServer:generate_image:Erreur lors du téléchargement de l\'image :', err);
+                    ConsoleHandler.error('ModuleOseliaServer:generate_image:Erreur lors du téléchargement de l\'image :' + err);
                     reject(err);
                 });
             } catch (error) {
-                ConsoleHandler.error('ModuleOseliaServer:generate_image:Erreur lors du téléchargement de l\'image:', error);
+                ConsoleHandler.error('ModuleOseliaServer:generate_image:Erreur lors du téléchargement de l\'image:' + error);
                 reject(error);
             }
         });
@@ -2307,6 +2333,14 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
                 const rerun = new OseliaRunVO();
                 rerun.assistant_id = run.assistant_id;
+                rerun.oselia_thread_default_assistant_id = run.oselia_thread_default_assistant_id;
+
+                rerun.for_each_array_cache_key = run.for_each_array_cache_key;
+                rerun.for_each_element_cache_key = run.for_each_element_cache_key;
+                rerun.for_each_element_run_template_id = run.for_each_element_run_template_id;
+                rerun.for_each_index_cache_key = run.for_each_index_cache_key;
+                rerun.run_type = run.run_type;
+
                 rerun.childrens_are_multithreaded = run.childrens_are_multithreaded;
                 rerun.file_id_ranges = run.file_id_ranges;
                 rerun.hide_outputs = run.hide_outputs;
@@ -2398,7 +2432,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     throw new Error('validate_run:forgot to validate: No validate_run_function or refuse_run_function found');
                 }
 
-                const prompt_prefix_validator = await ModuleParams.getInstance().getParamValueAsString(
+                const prompt_prefix_validator = await ParamsServerController.getParamValueAsString(
                     OseliaRunServerController.PARAM_NAME_REMEMBER_TO_VALIDATE_PROMPT_PREFIX,
                     'Il est obligatoire de valider ou refuser explicitement le run en appelant la fonction validate_run_function ou refuse_run_function.'
                 );
@@ -2496,6 +2530,119 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(parent_run);
                 OseliaRunServerController.update_oselia_run_state(parent_run, OseliaRunVO.STATE_WAIT_SPLITS_END_ENDED);
             }
+        }
+    }
+
+    private async replay_function_call(function_call_id: number) {
+
+        if (!function_call_id) {
+            return;
+        }
+
+        const function_call = await query(OseliaRunFunctionCallVO.API_TYPE_ID)
+            .filter_by_id(function_call_id)
+            .select_vo<OseliaRunFunctionCallVO>();
+
+        if (!function_call) {
+            ConsoleHandler.error('replay_function_call:No function_call found for function_call_id:' + function_call_id);
+            return;
+        }
+
+        const oselia_run = function_call.oselia_run_id ? await query(OseliaRunVO.API_TYPE_ID)
+            .filter_by_id(function_call.oselia_run_id)
+            .select_vo<OseliaRunVO>() : null;
+
+        const thread_vo = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(function_call.thread_id)
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!thread_vo) {
+            ConsoleHandler.error('replay_function_call:No thread_vo found for function_call_id:' + function_call_id);
+            return;
+        }
+
+        const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
+            .filter_by_id(function_call.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .using(OseliaThreadReferrerVO.API_TYPE_ID)
+            .set_limit(1)
+            .select_vo<OseliaReferrerVO>();
+
+        // if (!referrer) {
+        //     ConsoleHandler.error('replay_function_call:No referrer found for function_call_id:' + function_call_id);
+        //     return;
+        // }
+
+        const function_vo = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .filter_by_id(function_call.gpt_function_id)
+            .select_vo<GPTAssistantAPIFunctionVO>();
+
+        if (!function_vo) {
+            ConsoleHandler.error('replay_function_call:No function_vo found for function_call_id:' + function_call_id);
+            return;
+        }
+
+        const function_params: GPTAssistantAPIFunctionParamVO[] = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_id(function_call.gpt_function_id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .select_vos<GPTAssistantAPIFunctionParamVO>();
+
+        const availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] } = {};
+        const availableFunctionsParametersByParamName: { [function_id: number]: { [param_name: string]: GPTAssistantAPIFunctionParamVO } } = {};
+        const referrer_external_api_by_name: { [external_api_name: string]: OseliaReferrerExternalAPIVO } = {};
+
+        for (const i in function_params) {
+            const function_param = function_params[i];
+
+            if (!availableFunctionsParameters[function_param.function_id]) {
+                availableFunctionsParameters[function_param.function_id] = [];
+            }
+
+            availableFunctionsParameters[function_param.function_id].push(function_param);
+
+            if (!availableFunctionsParametersByParamName[function_param.function_id]) {
+                availableFunctionsParametersByParamName[function_param.function_id] = {};
+            }
+
+            availableFunctionsParametersByParamName[function_param.function_id][function_param.gpt_funcparam_name] = function_param;
+        }
+
+        const referrer_external_apis: OseliaReferrerExternalAPIVO[] = referrer ?
+            await query(OseliaReferrerExternalAPIVO.API_TYPE_ID)
+                .filter_by_id(referrer.id, OseliaReferrerVO.API_TYPE_ID)
+                .exec_as_server()
+                .select_vos<OseliaReferrerExternalAPIVO>()
+            : [];
+
+        for (const i in referrer_external_apis) {
+            const referrer_external_api = referrer_external_apis[i];
+            referrer_external_api_by_name[referrer_external_api.name] = referrer_external_api;
+        }
+
+        const oselia_run_function_call_vo = new OseliaRunFunctionCallVO();
+        oselia_run_function_call_vo.replay_from_id = function_call.id;
+
+        try {
+
+            await GPTAssistantAPIServerController.do_function_call(
+                oselia_run,
+                null,
+                thread_vo,
+                referrer,
+                function_vo,
+                oselia_run_function_call_vo,
+                function_vo.gpt_function_name,
+                JSON.stringify(function_call.function_call_parameters_initial),
+                availableFunctionsParameters,
+                availableFunctionsParametersByParamName,
+                referrer_external_api_by_name,
+            );
+
+        } catch (error) {
+            ConsoleHandler.error('REPLAY function CALL: error: ' + error);
+
+            oselia_run_function_call_vo.end_date = Dates.now();
+            oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_ERROR;
+            oselia_run_function_call_vo.error_msg = error;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
         }
     }
 }

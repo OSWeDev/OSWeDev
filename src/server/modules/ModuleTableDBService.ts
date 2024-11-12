@@ -35,9 +35,9 @@ export default class ModuleTableDBService {
     }
 
     // istanbul ignore next: cannot test datatable_install
-    public async datatable_install(moduleTable: ModuleTableVO) {
+    public async datatable_install(moduleTable: ModuleTableVO, queries_to_try_after_creation: string[]): Promise<boolean> {
 
-        await this.create_or_update_datatable(moduleTable);
+        await this.create_or_update_datatable(moduleTable, null, queries_to_try_after_creation);
 
         return true;
     }
@@ -74,7 +74,11 @@ export default class ModuleTableDBService {
         return segments_by_segmented_value;
     }
 
-    public async create_or_update_datatable(moduleTable: ModuleTableVO, segments: IRange[] = null) {
+    public async create_or_update_datatable(
+        moduleTable: ModuleTableVO,
+        segments: IRange[] = null,
+        queries_to_try_after_creation: string[],
+    ) {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'create_or_update_datatable', '-');
 
@@ -121,6 +125,7 @@ export default class ModuleTableDBService {
                         }
                         segmentation_bdd_values = ModuleTableServerController.translate_vos_from_db(datas);
                     } catch (error) {
+                        //
                     }
 
                     if ((!segmentation_bdd_values) || (!segmentation_bdd_values.length)) {
@@ -178,7 +183,7 @@ export default class ModuleTableDBService {
             if (!ConfigurationService.nodeInstallFullSegments) {
                 segment_test = segments[0].min;
 
-                has_changes = await this.handle_check_segment(moduleTable, segment_test, common_id_seq_name, migration_todo);
+                has_changes = await this.handle_check_segment(moduleTable, segment_test, common_id_seq_name, migration_todo, queries_to_try_after_creation);
             }
 
             // Création / update des structures
@@ -190,7 +195,7 @@ export default class ModuleTableDBService {
                         return;
                     }
 
-                    await this.handle_check_segment(moduleTable, segmented_value, common_id_seq_name, migration_todo);
+                    await this.handle_check_segment(moduleTable, segmented_value, common_id_seq_name, migration_todo, queries_to_try_after_creation);
                 }, moduleTable.table_segmented_field_segment_type, null, null, 20);
             }
 
@@ -248,20 +253,32 @@ export default class ModuleTableDBService {
             if ((!fields) || (!ObjectHandler.hasAtLeastOneAttribute(fields))) {
                 ConsoleHandler.error('ModuleTableDBService: no fields for table - DB declaration is impossible without fields:' + moduleTable.full_name);
             } else {
-                await self.do_check_or_update_moduletable(moduleTable, moduleTable.database, moduleTable.name, null);
+                await self.do_check_or_update_moduletable(
+                    moduleTable,
+                    moduleTable.database,
+                    moduleTable.name,
+                    null,
+                    queries_to_try_after_creation,
+                );
             }
         }
     }
 
     // istanbul ignore next: cannot test handle_check_segment
-    private async handle_check_segment(moduleTable: ModuleTableVO, segmented_value: number, common_id_seq_name: string, migration_todo: boolean): Promise<boolean> {
+    private async handle_check_segment(
+        moduleTable: ModuleTableVO,
+        segmented_value: number,
+        common_id_seq_name: string,
+        migration_todo: boolean,
+        queries_to_try_after_creation: string[],
+    ): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'handle_check_segment', '-');
 
         let res: boolean = false;
 
         const table_name = moduleTable.get_segmented_name(segmented_value);
-        res = await this.do_check_or_update_moduletable(moduleTable, moduleTable.database, table_name, segmented_value);
+        res = await this.do_check_or_update_moduletable(moduleTable, moduleTable.database, table_name, segmented_value, queries_to_try_after_creation);
 
         if (!migration_todo) {
             // Attention si une sequence manque on ne la créera sur toutes les tables que si on a demandé explicitement d'install full segments
@@ -286,7 +303,13 @@ export default class ModuleTableDBService {
      * @returns true if causes a change in the db structure
      */
     // istanbul ignore next: cannot test do_check_or_update_moduletable
-    private async do_check_or_update_moduletable(moduleTable: ModuleTableVO, database_name: string, table_name: string, segmented_value: number): Promise<boolean> {
+    private async do_check_or_update_moduletable(
+        moduleTable: ModuleTableVO,
+        database_name: string,
+        table_name: string,
+        segmented_value: number,
+        queries_to_try_after_creation: string[],
+    ): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'do_check_or_update_moduletable', '-');
 
@@ -300,7 +323,7 @@ export default class ModuleTableDBService {
 
         if ((!table_cols) || (!table_cols.length)) {
             res = true;
-            await this.create_new_datatable(moduleTable, database_name, table_name);
+            await this.create_new_datatable(moduleTable, database_name, table_name, queries_to_try_after_creation);
             await this.chec_indexes(moduleTable, database_name, table_name);
             await this.check_triggers(moduleTable, database_name, table_name);
 
@@ -308,7 +331,7 @@ export default class ModuleTableDBService {
                 await ForkedTasksController.broadexec(ModuleDAOServer.TASK_NAME_add_segmented_known_databases, database_name, table_name, segmented_value);
             }
         } else {
-            res = await this.check_datatable_structure(moduleTable, database_name, table_name, table_cols);
+            res = await this.check_datatable_structure(moduleTable, database_name, table_name, table_cols, queries_to_try_after_creation);
 
             if (await this.chec_indexes(moduleTable, database_name, table_name)) {
                 res = true;
@@ -398,7 +421,13 @@ export default class ModuleTableDBService {
     /**
      * @returns true if causes a change in the db structure
      */
-    private async check_datatable_structure(moduleTable: ModuleTableVO, database_name: string, table_name: string, table_cols: TableColumnDescriptor[]): Promise<boolean> {
+    private async check_datatable_structure(
+        moduleTable: ModuleTableVO,
+        database_name: string,
+        table_name: string,
+        table_cols: TableColumnDescriptor[],
+        queries_to_try_after_creation: string[],
+    ): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'check_datatable_structure', '-');
 
@@ -416,13 +445,13 @@ export default class ModuleTableDBService {
         this.check_source_vo_vs_described_vo_consistency(moduleTable, fields_by_field_name);
 
         res = await this.checkMissingInTS(moduleTable, fields_by_field_name, table_cols_by_name, database_name, table_name);
-        if (await this.checkMissingInDB(moduleTable, fields_by_field_name, table_cols_by_name, database_name, table_name)) {
+        if (await this.checkMissingInDB(moduleTable, fields_by_field_name, table_cols_by_name, database_name, table_name, queries_to_try_after_creation)) {
             res = true;
         }
         if (await this.checkColumnsStrutInDB(moduleTable, fields_by_field_name, table_cols_by_name, database_name, table_name)) {
             res = true;
         }
-        if (await this.checkConstraintsOnForeignKey(moduleTable, fields_by_field_name, table_cols_by_name, database_name, table_name)) {
+        if (await this.checkConstraintsOnForeignKey(moduleTable, fields_by_field_name, table_cols_by_name, database_name, table_name, queries_to_try_after_creation)) {
             res = true;
         }
         return res;
@@ -442,7 +471,9 @@ export default class ModuleTableDBService {
         fields_by_field_id: { [field_name: string]: ModuleTableFieldVO },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
-        table_name: string): Promise<boolean> {
+        table_name: string,
+        queries_to_try_after_creation: string[],
+    ): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'checkConstraintsOnForeignKey', '-');
 
@@ -514,6 +545,8 @@ export default class ModuleTableDBService {
             try {
                 await this.db.none('ALTER TABLE ' + full_name + ' ADD ' + constraint + ';');
             } catch (error) {
+                ConsoleHandler.error('Erreur lors de l\'ajout de la contrainte en base :' + full_name + ':' + constraint + ':on va essayer après la création des tables');
+                queries_to_try_after_creation.push('ALTER TABLE ' + full_name + ' ADD ' + constraint + ';');
             }
         }
 
@@ -599,7 +632,9 @@ export default class ModuleTableDBService {
         fields_by_field_id: { [field_name: string]: ModuleTableFieldVO },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
-        table_name: string): Promise<boolean> {
+        table_name: string,
+        queries_to_try_after_creation: string[],
+    ): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'checkMissingInDB', '-');
 
@@ -610,19 +645,25 @@ export default class ModuleTableDBService {
             const field = fields[i];
 
             if (!table_cols_by_name[field.field_name.toLowerCase()]) {
-                console.error('-');
-                console.error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + field.field_name + ':table:' + full_name + ':');
-                console.error('ACTION: Création automatique...');
+                ConsoleHandler.error('-');
+                ConsoleHandler.error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + field.field_name + ':table:' + full_name + ':');
+                ConsoleHandler.error('ACTION: Création automatique...');
+
+                let pgSQL: string = 'ALTER TABLE ' + full_name + ' ADD COLUMN ';
 
                 try {
-                    const pgSQL: string = 'ALTER TABLE ' + full_name + ' ADD COLUMN ' + field.getPGSqlFieldDescription() + ';';
+                    pgSQL = pgSQL + field.getPGSqlFieldDescription() + ';';
                     await this.db.none(pgSQL);
                     res = true;
-                    console.error('ACTION: OK');
+                    ConsoleHandler.error('ACTION: OK');
                 } catch (error) {
-                    console.error(error);
+                    ConsoleHandler.error(error);
+
+                    if (pgSQL.endsWith(';')) {
+                        queries_to_try_after_creation.push(pgSQL);
+                    }
                 }
-                console.error('---');
+                ConsoleHandler.error('---');
             }
 
             /**
@@ -643,13 +684,16 @@ export default class ModuleTableDBService {
                     console.error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + index + ':table:' + full_name + ':');
                     console.error('ACTION: Création automatique...');
 
+                    const pgSQL: string = 'ALTER TABLE ' + full_name + ' ADD COLUMN ' + index + ' text;';
                     try {
-                        const pgSQL: string = 'ALTER TABLE ' + full_name + ' ADD COLUMN ' + index + ' text;';
                         await this.db.none(pgSQL);
                         res = true;
                         console.error('ACTION: OK');
                     } catch (error) {
                         console.error(error);
+                        if (pgSQL.endsWith(';')) {
+                            queries_to_try_after_creation.push(pgSQL);
+                        }
                     }
                     console.error('---');
                 }
@@ -781,7 +825,12 @@ export default class ModuleTableDBService {
     }
 
     // istanbul ignore next: cannot test create_new_datatable
-    private async create_new_datatable(moduleTable: ModuleTableVO, database_name: string, table_name: string) {
+    private async create_new_datatable(
+        moduleTable: ModuleTableVO,
+        database_name: string,
+        table_name: string,
+        queries_to_try_after_creation: string[],
+    ) {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'create_new_datatable', '-');
 
@@ -818,8 +867,21 @@ export default class ModuleTableDBService {
             }
             if (field.has_single_relation) {
                 const pgSqlFieldConstraint: string = field.getPGSqlFieldConstraint();
-                if (pgSqlFieldConstraint) {
-                    pgSQL += ', ' + pgSqlFieldConstraint;
+
+                // Pour les contraintes on check si la table existe déjà, et sinon on stocke la requête pour la faire après les créations de tables
+                const target_table = ModuleTableController.module_tables_by_vo_type[field.foreign_ref_vo_type];
+                try {
+
+                    if (target_table.full_name != full_name) {
+                        await this.db.query('SELECT * FROM ' + target_table.full_name + ' LIMIT 1;');
+                    }
+
+                    if (pgSqlFieldConstraint) {
+                        pgSQL += ', ' + pgSqlFieldConstraint;
+                    }
+                } catch (error) {
+                    ConsoleHandler.warn('create_new_datatable: foreign key target table not found:' + database_name + '.' + target_table.name + ':' + error + ':on stocke la requête pour plus tard:' + pgSqlFieldConstraint);
+                    queries_to_try_after_creation.push('ALTER TABLE ' + full_name + ' ADD ' + pgSqlFieldConstraint + ';');
                 }
             }
         }

@@ -77,6 +77,9 @@ import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -94,9 +97,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleDAO.getInstance().name);
-        setTimeout(() => {
-            ThrottledQueryServerController.shift_select_queries();
-        }, 1);
+        // setTimeout(() => {
+        //     ThrottledQueryServerController.shift_select_queries();
+        // }, 1);
     }
 
     // istanbul ignore next: nothing to test : getInstance
@@ -191,7 +194,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             const vo_type: string = moduleTable.vo_type;
 
             // Uniquement si le module est actif, mais là encore est-ce une erreur ? ...
-            if (moduleTable.module_name && !ModulesManager.getInstance().getModuleByNameAndRole(moduleTable.module_name, Module.SharedModuleRoleName).actif) {
+            if (moduleTable.module_name && !ModulesManager.getModuleByNameAndRole(moduleTable.module_name, Module.SharedModuleRoleName).actif) {
                 continue;
             }
 
@@ -342,6 +345,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         await ModuleDAO.getInstance().late_configuration(is_generator);
     }
 
+    public async shift_select_queries(event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO): Promise<void> {
+        return ThrottledQueryServerController.shift_select_queries();
+    }
 
     public async getqueryfor_insertOrUpdateVO(vo: IDistantVOBase, pre_update_vo: IDistantVOBase, exec_as_server: boolean = false): Promise<string> {
 
@@ -470,9 +476,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 // Si on est sur du segmented en insert on doit vérifier l'existence de la table, sinon il faut la créer avant d'insérer la première donnée
                 if ((!DAOServerController.segmented_known_databases[moduleTable.database]) || (!DAOServerController.segmented_known_databases[moduleTable.database][name])) {
 
+                    const queries_to_try_after_creation: string[] = [];
                     await ModuleTableDBService.getInstance(null).create_or_update_datatable(
                         moduleTable,
-                        [RangeHandler.create_single_elt_range(moduleTable.table_segmented_field_range_type, moduleTable.get_segmented_field_value_from_vo(vo), moduleTable.table_segmented_field_segment_type)]);
+                        [RangeHandler.create_single_elt_range(moduleTable.table_segmented_field_range_type, moduleTable.get_segmented_field_value_from_vo(vo), moduleTable.table_segmented_field_segment_type)],
+                        queries_to_try_after_creation,
+                    );
+
+                    if (queries_to_try_after_creation && queries_to_try_after_creation.length) {
+                        ConsoleHandler.error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
+                        throw new Error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
+                    }
                 }
             } else {
                 full_name = moduleTable.full_name;
@@ -545,7 +559,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 continue;
             }
 
-            await ModuleTableDBService.getInstance(null).create_or_update_datatable(moduletable, numranges);
+            const queries_to_try_after_creation: string[] = [];
+            await ModuleTableDBService.getInstance(null).create_or_update_datatable(moduletable, numranges, queries_to_try_after_creation);
+
+            if (queries_to_try_after_creation && queries_to_try_after_creation.length) {
+                ConsoleHandler.error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
+                throw new Error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
+            }
         }
     }
 
@@ -1379,7 +1399,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
         const table_name: string = moduleTable.is_segmented ? moduleTable.get_segmented_full_name(segmented_value) : moduleTable.full_name;
 
-        const debug_insert_without_triggers_using_COPY = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDAOServer.PARAM_NAME_insert_without_triggers_using_COPY, false, 180000);
+        const debug_insert_without_triggers_using_COPY = await ParamsServerController.getParamValueAsBoolean(ModuleDAOServer.PARAM_NAME_insert_without_triggers_using_COPY, false, 180000);
 
         if (debug_insert_without_triggers_using_COPY) {
             ConsoleHandler.log('insert_without_triggers_using_COPY:start');
@@ -1662,6 +1682,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                                 ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a pas trouvé de doublons ce qui ne devrait jamais arriver');
                                 ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: \n' + lines.join('\n'));
                                 ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: ' + get_select_query_str);
+                                throw new Error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a pas trouvé de doublons ce qui ne devrait jamais arriver');
                             }
 
                         } catch (error) {
@@ -2054,7 +2075,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let has_sms_activation: boolean = false;
 
             if (ModuleSendInBlue.getInstance().actif) {
-                has_sms_activation = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION);
+                has_sms_activation = await ParamsServerController.getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION);
             }
 
             let filters = [

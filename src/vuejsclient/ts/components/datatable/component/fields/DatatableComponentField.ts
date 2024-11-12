@@ -23,7 +23,7 @@ import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import TypesHandler from '../../../../../../shared/tools/TypesHandler';
 import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
-import VueComponentBase from '../../../VueComponentBase';
+import VueComponentBase, { FiltersHandler } from '../../../VueComponentBase';
 import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
 import './DatatableComponentField.scss';
 import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
@@ -384,6 +384,20 @@ export default class DatatableComponentField extends VueComponentBase {
         }
 
         if (!this.filter) {
+
+            /**
+             * On rajoute des filtres par défaut pour les types de champs spécifiques
+             */
+            switch (this.field_type) {
+                case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    return this.const_filters.tstz.read(val, this.field.segmentation_type);
+                default:
+                    break;
+            }
+
             return val;
         }
 

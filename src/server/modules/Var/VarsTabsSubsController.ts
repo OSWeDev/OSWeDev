@@ -6,6 +6,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
 import ForkedTasksController from '../Fork/ForkedTasksController';
+import ParamsServerController from '../Params/ParamsServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SocketWrapper from '../PushData/vos/SocketWrapper';
 import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCacheManager';
@@ -335,8 +336,8 @@ export default class VarsTabsSubsController {
     private static async clean_old_subs(force_update: boolean = false) {
 
         const now = Dates.now();
-        const SUBS_CLEAN_DELAY = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_DELAY, 600, 180000);
-        const SUBS_CLEAN_THROTTLE = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_THROTTLE, 1800, 180000);
+        const SUBS_CLEAN_DELAY = await ParamsServerController.getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_DELAY, 600, 180000);
+        const SUBS_CLEAN_THROTTLE = await ParamsServerController.getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_THROTTLE, 1800, 180000);
 
         if ((!force_update) && (now - this.last_subs_clean) < SUBS_CLEAN_THROTTLE) {
             return;

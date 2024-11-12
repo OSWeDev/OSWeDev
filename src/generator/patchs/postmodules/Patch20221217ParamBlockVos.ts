@@ -4,6 +4,7 @@ import { IDatabase } from 'pg-promise';
 import VarsDatasVoUpdateHandler from '../../../server/modules/Var/VarsDatasVoUpdateHandler';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import ParamsServerController from '../../../server/modules/Params/ParamsServerController';
 
 export default class Patch20221217ParamBlockVos implements IGeneratorWorker {
 
@@ -24,6 +25,6 @@ export default class Patch20221217ParamBlockVos implements IGeneratorWorker {
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        await ModuleParams.getInstance().setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME, false);
+        await ParamsServerController.setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME, false);
     }
 }

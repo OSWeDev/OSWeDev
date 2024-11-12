@@ -16,12 +16,15 @@ import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleMailerServer from '../Mailer/ModuleMailerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 import SendInBlueServerController from './SendInBlueServerController';
 
 export default class SendInBlueMailServerController {
 
     public static PATH_EMAIL: string = 'smtp/email';
     public static PATH_STATS_EVENTS: string = 'smtp/statistics/events';
+
+    private static instance: SendInBlueMailServerController = null;
 
     // istanbul ignore next: nothing to test
     public static getInstance(): SendInBlueMailServerController {
@@ -30,8 +33,6 @@ export default class SendInBlueMailServerController {
         }
         return SendInBlueMailServerController.instance;
     }
-
-    private static instance: SendInBlueMailServerController = null;
 
     public async send(
         mail_category: string,
@@ -56,56 +57,68 @@ export default class SendInBlueMailServerController {
 
             } else {
                 ConsoleHandler.warn('Envoi de mails interdit sur cet env: ' + subject);
-                return;
+                return false;
             }
         }
 
-        const postParams: any = {
-            sender: sender ? sender : await SendInBlueServerController.getInstance().getSender(),
-            to: [to],
-            replyTo: reply_to ? reply_to : await SendInBlueServerController.getInstance().getReplyTo(),
-            subject: subject,
-            htmlContent: htmlContent,
-            textContent: textContent,
-        };
+        try {
 
-        if (bcc && bcc.length > 0) {
-            postParams.bcc = bcc;
+            if (!to || !to.email || !to.email.trim().length) {
+                ConsoleHandler.error('SendInBlueMailServerController.send:Failed:to vide ou sans email:' + JSON.stringify(to) + ':' + subject + ':' + textContent + ':' + htmlContent + ':' + tags + ':' + templateId + ':' + bcc + ':' + cc + ':' + attachments + ':' + sender + ':' + reply_to);
+                return false;
+            }
+
+            const postParams: any = {
+                sender: sender ? sender : await SendInBlueServerController.getInstance().getSender(),
+                to: [to],
+                replyTo: reply_to ? reply_to : await SendInBlueServerController.getInstance().getReplyTo(),
+                subject: subject,
+                htmlContent: htmlContent,
+                textContent: textContent,
+            };
+
+            if (bcc && bcc.length > 0) {
+                postParams.bcc = bcc;
+            }
+
+            if (cc && cc.length > 0) {
+                postParams.cc = cc;
+            }
+
+            if (attachments && attachments.length > 0) {
+                postParams.attachments = attachments;
+            }
+
+            if (templateId) {
+                postParams.templateId = templateId;
+            }
+
+            if (tags && tags.length > 0) {
+                postParams.tags = tags;
+            }
+
+            const res: { messageId: string } = await SendInBlueServerController.getInstance().sendRequestFromApp<{ messageId: string }>(
+                ModuleRequest.METHOD_POST,
+                SendInBlueMailServerController.PATH_EMAIL,
+                postParams
+            );
+
+            if (!res || !res.messageId) {
+                ConsoleHandler.error('SendInBlueMailServerController.send:Failed:res vide ou pas de messageId:' + JSON.stringify(postParams) + ':');
+                return false;
+            }
+
+            /**
+             * On stocke le mail en base
+             */
+            await this.insert_new_mail(to.email, res.messageId, mail_category);
+
+            return true;
+        } catch (error) {
+            ConsoleHandler.error('SendInBlueMailServerController.send:Failed:' + error + ':' + JSON.stringify(to) + ':' + subject + ':' + textContent + ':' + htmlContent + ':' + tags + ':' + templateId + ':' + bcc + ':' + cc + ':' + attachments + ':' + sender + ':' + reply_to);
         }
 
-        if (cc && cc.length > 0) {
-            postParams.cc = cc;
-        }
-
-        if (attachments && attachments.length > 0) {
-            postParams.attachments = attachments;
-        }
-
-        if (templateId) {
-            postParams.templateId = templateId;
-        }
-
-        if (tags && tags.length > 0) {
-            postParams.tags = tags;
-        }
-
-        const res: { messageId: string } = await SendInBlueServerController.getInstance().sendRequestFromApp<{ messageId: string }>(
-            ModuleRequest.METHOD_POST,
-            SendInBlueMailServerController.PATH_EMAIL,
-            postParams
-        );
-
-        if (!res || !res.messageId) {
-            ConsoleHandler.error('SendInBlueMailServerController.send:Failed:res vide ou pas de messageId:' + JSON.stringify(postParams) + ':');
-            return false;
-        }
-
-        /**
-         * On stocke le mail en base
-         */
-        await this.insert_new_mail(to.email, res.messageId, mail_category);
-
-        return true;
+        return false;
     }
 
     public async sendWithTemplate(
@@ -133,80 +146,92 @@ export default class SendInBlueMailServerController {
             }
         }
 
-        const postParams: any = {
-            sender: sender ? sender : await SendInBlueServerController.getInstance().getSender(),
-            to: [to],
-            templateId: templateId,
-            replyTo: reply_to ? reply_to : await SendInBlueServerController.getInstance().getReplyTo(),
-        };
+        try {
 
-        if (bcc && bcc.length > 0) {
-            postParams.bcc = bcc;
-        }
-
-        if (cc && cc.length > 0) {
-            postParams.cc = cc;
-        }
-
-        /**
-         * On tente de charger des params supplémentaires sur ce template pour les cc et bcc :
-         *  ( plusieurs adresses possibles séparées par des ',' )
-         *  PARAM_NAME_TEMPLATE_CC_PREFIX + template_id
-         *  PARAM_NAME_TEMPLATE_BCC_PREFIX + template_id
-         */
-        const param_cc = await ModuleParams.getInstance().getParamValueAsString(ModuleSendInBlue.PARAM_NAME_TEMPLATE_CC_PREFIX + templateId);
-        const param_bcc = await ModuleParams.getInstance().getParamValueAsString(ModuleSendInBlue.PARAM_NAME_TEMPLATE_BCC_PREFIX + templateId);
-        if (param_cc && param_cc.length) {
-            if (!postParams.cc) {
-                postParams.cc = [];
+            if (!to || !to.email || !to.email.trim().length) {
+                ConsoleHandler.error('SendInBlueMailServerController.send:Failed:to vide ou sans email:' + JSON.stringify(to) + ':' + templateId + ':' + tags + ':' + params + ':' + bcc + ':' + cc + ':' + attachments + ':' + sender + ':' + reply_to);
+                return null;
             }
-            const ccs = param_cc.split(',');
-            for (const i in ccs) {
-                const cc_ = ccs[i];
-                postParams.cc.push(SendInBlueMailVO.createNew(cc_, cc_));
+
+            const postParams: any = {
+                sender: sender ? sender : await SendInBlueServerController.getInstance().getSender(),
+                to: [to],
+                templateId: templateId,
+                replyTo: reply_to ? reply_to : await SendInBlueServerController.getInstance().getReplyTo(),
+            };
+
+            if (bcc && bcc.length > 0) {
+                postParams.bcc = bcc;
             }
-        }
 
-        if (param_bcc && param_bcc.length) {
-            if (!postParams.bcc) {
-                postParams.bcc = [];
+            if (cc && cc.length > 0) {
+                postParams.cc = cc;
             }
-            const bccs = param_bcc.split(',');
-            for (const i in bccs) {
-                const bcc_ = bccs[i];
-                postParams.bcc.push(SendInBlueMailVO.createNew(bcc_, bcc_));
+
+            /**
+             * On tente de charger des params supplémentaires sur ce template pour les cc et bcc :
+             *  ( plusieurs adresses possibles séparées par des ',' )
+             *  PARAM_NAME_TEMPLATE_CC_PREFIX + template_id
+             *  PARAM_NAME_TEMPLATE_BCC_PREFIX + template_id
+             */
+            const param_cc = await ParamsServerController.getParamValueAsString(ModuleSendInBlue.PARAM_NAME_TEMPLATE_CC_PREFIX + templateId);
+            const param_bcc = await ParamsServerController.getParamValueAsString(ModuleSendInBlue.PARAM_NAME_TEMPLATE_BCC_PREFIX + templateId);
+            if (param_cc && param_cc.length) {
+                if (!postParams.cc) {
+                    postParams.cc = [];
+                }
+                const ccs = param_cc.split(',');
+                for (const i in ccs) {
+                    const cc_ = ccs[i];
+                    postParams.cc.push(SendInBlueMailVO.createNew(cc_, cc_));
+                }
             }
+
+            if (param_bcc && param_bcc.length) {
+                if (!postParams.bcc) {
+                    postParams.bcc = [];
+                }
+                const bccs = param_bcc.split(',');
+                for (const i in bccs) {
+                    const bcc_ = bccs[i];
+                    postParams.bcc.push(SendInBlueMailVO.createNew(bcc_, bcc_));
+                }
+            }
+
+            if (attachments && attachments.length > 0) {
+                postParams.attachments = attachments;
+            }
+
+            if (tags && tags.length > 0) {
+                postParams.tags = tags;
+            }
+
+            if (params) {
+                postParams.params = params;
+            }
+
+            this.add_default_params(params);
+
+            const res: { messageId: string } = await SendInBlueServerController.getInstance().sendRequestFromApp<{ messageId: string }>(
+                ModuleRequest.METHOD_POST,
+                SendInBlueMailServerController.PATH_EMAIL,
+                postParams
+            );
+
+            if (!res || !res.messageId) {
+                ConsoleHandler.error('SendInBlueMailServerController.send:Failed:res vide ou pas de messageId:' + JSON.stringify(postParams) + ':');
+                return null;
+            }
+
+            /**
+             * On stocke le mail en base et on retourne le MailVO
+             */
+            return await this.insert_new_mail(to.email, res.messageId, mail_category);
+        } catch (error) {
+            ConsoleHandler.error('SendInBlueMailServerController.sendWithTemplate:Failed:' + error + ':' + JSON.stringify(to) + ':' + templateId + ':' + tags + ':' + params + ':' + bcc + ':' + cc + ':' + attachments + ':' + sender + ':' + reply_to);
         }
 
-        if (attachments && attachments.length > 0) {
-            postParams.attachments = attachments;
-        }
-
-        if (tags && tags.length > 0) {
-            postParams.tags = tags;
-        }
-
-        if (params) {
-            postParams.params = params;
-        }
-
-        this.add_default_params(params);
-
-        const res: { messageId: string } = await SendInBlueServerController.getInstance().sendRequestFromApp<{ messageId: string }>(
-            ModuleRequest.METHOD_POST,
-            SendInBlueMailServerController.PATH_EMAIL,
-            postParams
-        );
-
-        if (!res || !res.messageId) {
-            ConsoleHandler.error('SendInBlueMailServerController.send:Failed:res vide ou pas de messageId:' + JSON.stringify(postParams) + ':');
-            return null;
-        }
-
-        /**
-         * On stocke le mail en base et on retourne le MailVO
-         */
-        return await this.insert_new_mail(to.email, res.messageId, mail_category);
+        return null;
     }
 
     private async insert_new_mail(to_mail: string, message_id: string, mail_category: string): Promise<MailVO> {

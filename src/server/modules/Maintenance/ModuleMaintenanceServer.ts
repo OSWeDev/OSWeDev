@@ -19,6 +19,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
+import ParamsServerController from '../Params/ParamsServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import VarsDatasVoUpdateHandler from '../Var/VarsDatasVoUpdateHandler';
@@ -223,7 +224,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         ConsoleHandler.error('Maintenance programmée dans 10 minutes');
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(maintenance);
 
-        const readonly_maintenance_deadline = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000, 180000);
+        const readonly_maintenance_deadline = await ParamsServerController.getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000, 180000);
         await ThreadHandler.sleep(readonly_maintenance_deadline, 'ModuleMaintenanceServer.start_maintenance');
         await VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache();
     }

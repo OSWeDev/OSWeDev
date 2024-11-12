@@ -11,13 +11,13 @@ export default class ThreadHandler {
      * @param reason_ID La raison de l'attente, pour les stats
      * @param pause_on_db_disconnection Si true, on attend que la DB soit reconnectée avant de faire le sleep
      */
-    public static async sleep(timeout: number, reason_ID: string, pause_on_db_disconnection: boolean = false): Promise<void> {
+    public static async sleep(timeout: number, reason_ID: string, pause_on_db_disconnection: boolean = false): Promise<NodeJS.Timeout> {
 
         StatsController.register_stat_COMPTEUR('ThreadHandler', 'sleep', reason_ID);
 
         const date_in_ms = Dates.now_ms();
-        return new Promise<any>((resolve) => {
-            setTimeout(async () => {
+        return new Promise<NodeJS.Timeout>((resolve) => {
+            const timeout_obj = setTimeout(async () => {
 
                 if (pause_on_db_disconnection && DBDisconnectionManager.instance && DBDisconnectionManager.instance.db_is_disconnected) {
                     await DBDisconnectionManager.instance.wait_for_reconnection();
@@ -27,7 +27,7 @@ export default class ThreadHandler {
                 const date_out_ms = Dates.now_ms();
                 StatsController.register_stat_DUREE('ThreadHandler', 'sleep', reason_ID, date_out_ms - date_in_ms);
 
-                resolve("sleep");
+                resolve(timeout_obj);
             }, timeout);
         });
     }

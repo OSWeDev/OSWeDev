@@ -11,7 +11,7 @@ import { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import ThrottlePipelineHelper from '../../../shared/tools/ThrottlePipelineHelper';
+import ThrottlePipelineHelper from '../../../shared/tools/ThrottlePipeline/ThrottlePipelineHelper';
 import ConfigurationService from '../../env/ConfigurationService';
 import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import ForkedTasksController from '../Fork/ForkedTasksController';

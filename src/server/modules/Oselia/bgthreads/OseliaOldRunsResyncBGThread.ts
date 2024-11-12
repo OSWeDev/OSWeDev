@@ -17,9 +17,6 @@ export default class OseliaOldRunsResyncBGThread implements IBGThread {
     public MAX_timeout: number = 300000;
     public MIN_timeout: number = 100000;
 
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
     private constructor() {
     }
 

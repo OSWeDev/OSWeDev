@@ -16,27 +16,23 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
     public static TEAMS_WEBHOOK_PARAM_NAME: string = 'AccessPolicyDeleteSessionBGThread.TEAMS_WEBHOOK';
     public static TASK_NAME_set_session_to_delete_by_sids: string = 'AccessPolicyDeleteSessionBGThread.set_session_to_delete_by_sids';
-    public static TASK_NAME_add_api_reqs: string = 'AccessPolicyDeleteSessionBGThread.add_api_reqs';
+    // public static TASK_NAME_add_api_reqs: string = 'AccessPolicyDeleteSessionBGThread.add_api_reqs';
 
     private static instance: AccessPolicyDeleteSessionBGThread = null;
 
     public session_last_send_date: { [sid: string]: number } = {};
     public session_to_delete_by_sids: { [sid: string]: IServerUserSession } = {};
-    public api_reqs: string[] = [];
+    // public api_reqs: string[] = [];
 
     public current_timeout: number = 2000;
     public MAX_timeout: number = 2000;
     public MIN_timeout: number = 100;
 
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
-
     private constructor() {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids, this.set_session_to_delete_by_sids.bind(this));
         // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs, this.add_api_reqs.bind(this));
+        // ForkedTasksController.register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs, this.add_api_reqs.bind(this));
     }
 
     get name(): string {
@@ -67,8 +63,8 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
             const session_to_delete_by_sids_cp: { [sid: string]: IServerUserSession } = cloneDeep(this.session_to_delete_by_sids);
             this.session_to_delete_by_sids = {};
 
-            const api_reqs: string[] = cloneDeep(this.api_reqs);
-            this.api_reqs = [];
+            // const api_reqs: string[] = cloneDeep(this.api_reqs);
+            // this.api_reqs = [];
 
             const to_invalidate: IServerUserSession[] = [];
 
@@ -107,8 +103,8 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
                     await TeamsAPIServerController.send_teams_info(
                         'Suppression de sessions suite invalidation - ' + ConfigurationService.node_configuration.app_title + " - " + ConfigurationService.node_configuration.base_url,
-                        'SID : <ul><li>' + to_invalidate.map((m) => m.id).join('</li><li>') + '</li></ul>' +
-                        'Requêtes : <ul><li>' + api_reqs.join('</li><li>') + '</li></ul>'
+                        'SID : <ul><li>' + to_invalidate.map((m) => m.id).join('</li><li>') + '</li></ul>' //+
+                        // 'Requêtes : <ul><li>' + api_reqs.join('</li><li>') + '</li></ul>'
                     );
                 }
 
@@ -136,16 +132,16 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
         return true;
     }
 
-    public add_api_reqs(api_reqs: string[]): boolean {
-        if (!api_reqs) {
-            return false;
-        }
+    // public add_api_reqs(api_reqs: string[]): boolean {
+    //     if (!api_reqs) {
+    //         return false;
+    //     }
 
-        this.api_reqs.unshift(...api_reqs);
-        this.api_reqs = this.api_reqs.splice(0, 20);
+    //     this.api_reqs.unshift(...api_reqs);
+    //     this.api_reqs = this.api_reqs.splice(0, 20);
 
-        return true;
-    }
+    //     return true;
+    // }
 
     private stats_out(activity: string, time_in: number) {
 

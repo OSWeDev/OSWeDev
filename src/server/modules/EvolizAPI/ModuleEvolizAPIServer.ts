@@ -32,6 +32,7 @@ import EvolizInvoiceEmailVO from '../../../shared/modules/EvolizAPI/vos/invoices
 import EvolizCreditVO from '../../../shared/modules/EvolizAPI/vos/credit/EvolizCreditVO';
 import EvolizAdvanceVO from '../../../shared/modules/EvolizAPI/vos/advance/EvolizAdvanceVO';
 import EvolizDocumentLinksVO from '../../../shared/modules/EvolizAPI/vos/document_links/EvolizDocumentLinksVO';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -140,8 +141,8 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
             ModuleEvolizAPI.EvolizAPI_BaseURL,
             '/api/login',
             {
-                public_key: await ModuleParams.getInstance().getParamValueAsString(ModuleEvolizAPI.EvolizAPI_PublicKey_API_PARAM_NAME),
-                secret_key: await ModuleParams.getInstance().getParamValueAsString(ModuleEvolizAPI.EvolizAPI_SecretKey_API_PARAM_NAME)
+                public_key: await ParamsServerController.getParamValueAsString(ModuleEvolizAPI.EvolizAPI_PublicKey_API_PARAM_NAME),
+                secret_key: await ParamsServerController.getParamValueAsString(ModuleEvolizAPI.EvolizAPI_SecretKey_API_PARAM_NAME)
             },
             {
                 'Accept': 'application/json',
@@ -192,7 +193,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         try {
             const token: EvolizAPIToken = await this.getToken();
 
-            const company_id: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleEvolizAPI.EvolizAPI_CompanyId_API_PARAM_NAME);
+            const company_id: number = await ParamsServerController.getParamValueAsInt(ModuleEvolizAPI.EvolizAPI_CompanyId_API_PARAM_NAME);
 
             const companies: EvolizCompanyVO = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_GET,

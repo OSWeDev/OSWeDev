@@ -38,7 +38,7 @@ export default class Dates {
             return Math.floor(((Dates.p.timeOrigin ? Dates.p.timeOrigin : Dates.p.timing.navigationStart) + Dates.p.now()) / 1000);
         }
 
-        return moment().utc(true).unix();
+        return Math.floor(Date.now() / 1000);
     }
 
     /**
@@ -55,7 +55,7 @@ export default class Dates {
             return (Dates.p.timeOrigin ? Dates.p.timeOrigin : Dates.p.timing.navigationStart) + Dates.p.now();
         }
 
-        return moment().utc(true).valueOf();
+        return Date.now();
     }
 
     /**

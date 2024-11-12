@@ -15,14 +15,6 @@ import DataExportServerController from '../DataExportServerController';
 
 export default class DataExportBGThread implements IBGThread {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!DataExportBGThread.instance) {
-            DataExportBGThread.instance = new DataExportBGThread();
-        }
-        return DataExportBGThread.instance;
-    }
-
     private static instance: DataExportBGThread = null;
 
     private static request: string = ' where state in ($1, $2) order by creation_date asc limit 1;';
@@ -31,15 +23,19 @@ export default class DataExportBGThread implements IBGThread {
     public MAX_timeout: number = 60000;
     public MIN_timeout: number = 100;
 
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
-
     private constructor() {
     }
 
     get name(): string {
         return "DataExportBGThread";
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!DataExportBGThread.instance) {
+            DataExportBGThread.instance = new DataExportBGThread();
+        }
+        return DataExportBGThread.instance;
     }
 
     public async work(): Promise<number> {

@@ -36,7 +36,7 @@ export default class ModuleDBService {
         return true;
     }
 
-    public async module_install(module: Module) {
+    public async module_install(module: Module, queries_to_try_after_creation: string[]) {
 
         // console.log('Installation du module "' + module.name + '"');
 
@@ -49,7 +49,7 @@ export default class ModuleDBService {
         // il faut pouvoir activer les modules à la volée et changer des params sans avoir à recharger toute l'appli.
         // à creuser
         if (module.actif) {
-            await this.create_datas_tables(module);
+            await this.create_datas_tables(module, queries_to_try_after_creation);
         }
 
         await this.module_install_end(module);
@@ -67,7 +67,7 @@ export default class ModuleDBService {
     }
 
     // ETAPE 4 de l'installation
-    private async create_datas_tables(module: Module) {
+    private async create_datas_tables(module: Module, queries_to_try_after_creation: string[]) {
         // console.log(module.name + " - install - ETAPE 4");
 
         /**
@@ -83,7 +83,7 @@ export default class ModuleDBService {
             //     promises = [];
             // }
 
-            await ModuleTableDBService.getInstance(PreloadedModuleServerController.db).datatable_install(datatable);
+            await ModuleTableDBService.getInstance(PreloadedModuleServerController.db).datatable_install(datatable, queries_to_try_after_creation);
             // promises.push(ModuleTableDBService.getInstance(PreloadedModuleServerController.db).datatable_install(datatable));
         }
     }

@@ -48,7 +48,7 @@ export default class OseliaController {
             // Retourner le canvas
             return canvas;
         } catch (error) {
-            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :" + JSON.stringify(error));
             return null;
         }
     }
@@ -80,7 +80,7 @@ export default class OseliaController {
 
             return { imgData, new_file, fileName };
         } catch (error) {
-            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :" + JSON.stringify(error));
         }
     }
 }

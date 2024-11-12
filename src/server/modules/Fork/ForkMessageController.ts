@@ -15,6 +15,7 @@ import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMe
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import BGThreadServerController from '../BGThread/BGThreadServerController';
 
 export default class ForkMessageController {
 
@@ -70,6 +71,12 @@ export default class ForkMessageController {
                 if ((ignore_uid != null) && (ignore_uid == forked.uid)) {
                     continue;
                 }
+
+                if ((msg.message_type == BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE) &&
+                    (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][(msg as BGThreadProcessTaskForkMessage).bgthread].uid != forked.uid)) {
+                    continue;
+                }
+
                 await ForkMessageController.send(msg, forked.child_process, forked);
             }
             return await ForkMessageController.message_handler(msg);

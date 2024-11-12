@@ -2,7 +2,7 @@
 
 import { IDatabase } from 'pg-promise';
 import ModuleTeamsAPIServer from '../../../server/modules/TeamsAPI/ModuleTeamsAPIServer';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import ParamsServerController from '../../../server/modules/Params/ParamsServerController';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class InitTeamsWebhookForDailyReports implements IGeneratorWorker {
@@ -24,6 +24,6 @@ export default class InitTeamsWebhookForDailyReports implements IGeneratorWorker
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        await ModuleParams.getInstance().setParamValue(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME, 'outlook.office.com');
+        await ParamsServerController.setParamValue(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME, 'outlook.office.com');
     }
 }

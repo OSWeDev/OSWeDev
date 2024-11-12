@@ -61,6 +61,7 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
 import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
+import ParamsServerController from '../Params/ParamsServerController';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -1097,7 +1098,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+        if (!await ParamsServerController.getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
             return;
         }
 
@@ -1117,7 +1118,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+        if (!await ParamsServerController.getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
             return;
         }
 
@@ -1185,7 +1186,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         // Si un code existe déjà et n'a pas encore expiré, on le prolonge et on le renvoie pour pas invalider un mail qui serait très récent
         if (user.recovery_challenge && user.recovery_expiration && (user.recovery_expiration >= Dates.now())) {
             console.debug("challenge - pushing expiration:" + user.email + ':' + user.recovery_challenge + ':');
-            user.recovery_expiration = Dates.add(Dates.now(), await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
+            user.recovery_expiration = Dates.add(Dates.now(), await ParamsServerController.getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
 
             await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
                 [field_names<UserVO>().recovery_expiration]: user.recovery_expiration
@@ -1195,7 +1196,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         const challenge: string = TextHandler.getInstance().generateChallenge();
         user.recovery_challenge = challenge;
-        user.recovery_expiration = Dates.add(Dates.now(), await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
+        user.recovery_expiration = Dates.add(Dates.now(), await ParamsServerController.getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
         console.debug("challenge:" + user.email + ':' + challenge + ':');
 
         await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
@@ -1654,7 +1655,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+        if (!await ParamsServerController.getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
             return;
         }
 
@@ -2275,7 +2276,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async send_session_share_email(mail_category: string, url: string, email: string): Promise<MailVO> {
-        const SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
+        const SEND_IN_BLUE_TEMPLATE_ID = await ParamsServerController.getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
         return await SendInBlueMailServerController.getInstance().sendWithTemplate(
             mail_category,
             SendInBlueMailVO.createNew(email, email),

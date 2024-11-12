@@ -57,6 +57,7 @@ import ContextAccessServerController from './ContextAccessServerController';
 import ContextFieldPathServerController from './ContextFieldPathServerController';
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ContextQueryServerController {
 
@@ -609,7 +610,7 @@ export default class ContextQueryServerController {
          * au pire si on a des nouvelles lignes, elles nous forcerons à remodifier des lignes déjà updatées. probablement pas très grave
          */
         context_query.query_offset = 0;
-        context_query.query_limit = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAO.PARAM_NAME_MAX_UPDATE_PER_QUERY, 1000, 600000);
+        context_query.query_limit = await ParamsServerController.getParamValueAsInt(ModuleDAO.PARAM_NAME_MAX_UPDATE_PER_QUERY, 1000, 600000);
 
         let might_have_more: boolean = true;
         context_query.set_sort(new SortByVO(context_query.base_api_type_id, 'id', false));
@@ -833,7 +834,7 @@ export default class ContextQueryServerController {
         //  partie là
 
         context_query.query_offset = 0;
-        context_query.query_limit = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAO.PARAM_NAME_MAX_DELETE_PER_QUERY, 1000, 600000);
+        context_query.query_limit = await ParamsServerController.getParamValueAsInt(ModuleDAO.PARAM_NAME_MAX_DELETE_PER_QUERY, 1000, 600000);
         const InsertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = [];
 
         while (has_more_to_delete) {

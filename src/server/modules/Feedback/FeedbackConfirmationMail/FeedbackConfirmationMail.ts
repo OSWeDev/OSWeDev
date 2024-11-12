@@ -12,6 +12,7 @@ import StackContext from '../../../StackContext';
 import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
 import TemplateHandlerServer from '../../Mailer/TemplateHandlerServer';
+import ParamsServerController from '../../Params/ParamsServerController';
 import SendInBlueMailServerController from '../../SendInBlue/SendInBlueMailServerController';
 import FeedbackConfirmationMail_html_template from './FeedbackConfirmationMail_html_template.html';
 
@@ -49,7 +50,7 @@ export default class FeedbackConfirmationMail {
             user = await query(UserVO.API_TYPE_ID).filter_by_id(target_user_id).exec_as_server().select_vo<UserVO>();
         }
 
-        const FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(FeedbackConfirmationMail.PARAM_NAME_FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID);
+        const FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ParamsServerController.getParamValueAsString(FeedbackConfirmationMail.PARAM_NAME_FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID);
         const FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID: number = FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
         // Send mail

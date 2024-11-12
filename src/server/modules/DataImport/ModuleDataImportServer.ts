@@ -638,7 +638,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 continue;
             }
 
-            const postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
+            const postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
             if (!postTraitementModule) {
                 if (!importHistoric.use_fast_track) {
                     await ImportLogger.getInstance().log(importHistoric, format, "Impossible de retrouver le module pour tester le format", DataImportLogVO.LOG_LEVEL_ERROR);
@@ -912,7 +912,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
              * Si le module de posttraitement propose un hook pour remplacer le chargement par batch par défaut, on l'utilise
              */
             const postTreatementModuleVO: ModuleVO = await query(ModuleVO.API_TYPE_ID).filter_by_id(format.post_exec_module_id).select_vo<ModuleVO>();
-            const postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
+            const postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
 
             let validated_imported_datas: IImportedData[] = null;
             if (postTraitementModule.hook_get_batch_mode_batch_datas) {
@@ -1050,7 +1050,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         //  2 - Post-traiter les données
         // PostTraitement des données avec les hooks pour générer les questions et intégrer ce qui peut l'être
-        const postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
+        const postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
         try {
             if (!await postTraitementModule.hook_merge_imported_datas_in_database(validated_imported_datas, importHistoric, format)) {
                 return false;

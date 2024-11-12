@@ -11,6 +11,7 @@ import ForkMessageController from '../Fork/ForkMessageController';
 import ForkServerController from '../Fork/ForkServerController';
 import BroadcastWrapperForkMessage from '../Fork/messages/BroadcastWrapperForkMessage';
 import KillForkMessage from '../Fork/messages/KillForkMessage';
+import ParamsServerController from '../Params/ParamsServerController';
 import IBGThread from './interfaces/IBGThread';
 import RunBGThreadForkMessage from './messages/RunBGThreadForkMessage';
 import ModuleBGThreadServer from './ModuleBGThreadServer';
@@ -49,7 +50,7 @@ export default class BGThreadServerController {
      * ----- Local thread cache
      */
 
-    public static register_alive_on_main_thread = ThrottleHelper.declare_throttle_with_stackable_args(this.throttled_register_alive_on_main_thread.bind(this), 10000);
+    public static register_alive_on_main_thread = ThrottleHelper.declare_throttle_with_mappable_args(this.throttled_register_alive_on_main_thread.bind(this), 10000);
 
     public static init() {
         ForkMessageController.register_message_handler(RunBGThreadForkMessage.FORK_MESSAGE_TYPE, async (msg: RunBGThreadForkMessage) => {
@@ -66,15 +67,14 @@ export default class BGThreadServerController {
         ThreadHandler.set_interval(this.check_bgthreads_last_alive_ticks.bind(this), 10 * 1000, 'BGThreadServerController.check_bgthreads_last_alive_ticks', true);
     }
 
-    public static async throttled_register_alive_on_main_thread(bgthread_names: string[]) {
+    public static async throttled_register_alive_on_main_thread(alive_bgthread_names: { [bgname: string]: boolean }) {
 
 
-        if (!await ForkedTasksController.exec_self_on_main_process(BGThreadServerController.TASK_NAME_register_alive_on_main_thread, bgthread_names)) {
+        if (!await ForkedTasksController.exec_self_on_main_process(BGThreadServerController.TASK_NAME_register_alive_on_main_thread, alive_bgthread_names)) {
             return;
         }
 
-        for (const i in bgthread_names) {
-            const bgthread_name = bgthread_names[i];
+        for (const bgthread_name in alive_bgthread_names) {
             this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name[bgthread_name] = Dates.now();
         }
     }
@@ -91,7 +91,7 @@ export default class BGThreadServerController {
             if (BGThreadServerController.valid_bgthreads_names[bgthread_name]) {
 
                 // On ajoute avant chaque exécution le fait de signaler qu'on est en vie au thread parent, mais au plus vite une fois toutes les 10 secondes
-                await this.register_alive_on_main_thread(bgthread_name);
+                await this.register_alive_on_main_thread({ [bgthread_name]: true });
 
                 await BGThreadServerController.registered_BGThreads[bgthread_name].work();
             } else {
@@ -135,7 +135,7 @@ export default class BGThreadServerController {
 
             promises.push((async () => {
                 const last_tick_s = this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name[bgthread_name];
-                const timeout_s = await ModuleParams.getInstance().getParamValueAsInt(BGThreadServerController.PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s + '.' + bgthread_name, null, 60 * 60 * 1000);
+                const timeout_s = await ParamsServerController.getParamValueAsInt(BGThreadServerController.PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s + '.' + bgthread_name, null, 60 * 60 * 1000);
 
                 // Timeout == null || timeout == 0 => pas de timeout
                 if ((!timeout_s) || (!last_tick_s)) {
@@ -148,7 +148,7 @@ export default class BGThreadServerController {
                     if (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
                         ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name]) {
                         await ForkMessageController.send(
-                            new KillForkMessage(await ModuleParams.getInstance().getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
+                            new KillForkMessage(await ParamsServerController.getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
                             ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name].child_process);
                     }
                 }

@@ -45,6 +45,8 @@ export default abstract class ForkedProcessWrapperBase {
         // On initialise le Controller pour les APIs
         APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
+        ModulesManager.initialize();
+
         ForkedProcessWrapperBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;

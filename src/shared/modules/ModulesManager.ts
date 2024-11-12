@@ -17,19 +17,17 @@ export default class ModulesManager {
     public static MODULE_PARAM_TABLE_PREFIX: string = "module_";
     public static preloaded_modules_is_actif: { [module_name: string]: boolean } = {};
 
-    private static instance: ModulesManager = null;
-
     /**
      * Local thread cache -----
      */
 
-    public modules_by_name: { [key: string]: ModuleWrapper } = {};
+    public static modules_by_name: { [key: string]: ModuleWrapper } = {};
 
     /**
      * ----- Local thread cache
      */
 
-    private constructor() {
+    public static initialize() {
 
         // Il faut quand même qu'on register une moduleTable pour le admin.modules
         const label_field = ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Nom' }), true)
@@ -41,15 +39,7 @@ export default class ModulesManager {
             .set_bdd_ref('admin', 'modules');
     }
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModulesManager {
-        if (!ModulesManager.instance) {
-            ModulesManager.instance = new ModulesManager();
-        }
-        return ModulesManager.instance;
-    }
-
-    public registerModule(role: string, moduleObj: IModuleBase) {
+    public static registerModule(role: string, moduleObj: IModuleBase) {
         if (!moduleObj) {
             return;
         }
@@ -67,15 +57,15 @@ export default class ModulesManager {
         moduleObj.initialize();
         moduleObj.registerApis();
     }
-    public getModuleByNameAndRole(name: string, role: string) {
+    public static getModuleByNameAndRole(name: string, role: string) {
         const module = this.modules_by_name[name];
 
         return module?.getModuleComponentByRole(role) ?? null;
     }
-    public getModuleWrapperByName(name: string) {
+    public static getModuleWrapperByName(name: string) {
         return this.modules_by_name[name];
     }
-    public getModuleWrappersByName() {
+    public static getModuleWrappersByName() {
         return this.modules_by_name;
     }
 }

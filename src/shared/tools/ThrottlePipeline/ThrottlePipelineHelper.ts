@@ -1,8 +1,26 @@
-import ConsoleHandler from './ConsoleHandler';
-import PromisePipeline from './PromisePipeline/PromisePipeline';
-import { all_promises } from './PromiseTools';
+import EventsController from '../../modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerInstanceVO from '../../modules/Eventify/vos/EventifyEventListenerInstanceVO';
+import ConsoleHandler from '../ConsoleHandler';
+import PromisePipeline from '../PromisePipeline/PromisePipeline';
+import { all_promises } from '../PromiseTools';
+import ThrottlePipelineConf from './ThrottlePipelineConf';
 
 export default class ThrottlePipelineHelper {
+
+    private static confs_by_UID: { [uid: number]: ThrottlePipelineConf<any, any> } = {};
+    private static promise_pipeline_by_UID: { [uid: number]: PromisePipeline } = {};
+    private static UID: number = 0;
+
+    private static throttled_pipeline_names_by_UID: { [UID: number]: string } = {};
+
+    private static throttled_pipeline_stack_args: { [throttle_id: number]: { [call_id: number]: any } } = {};
+    private static throttled_pipeline_call_ids: { [throttle_id: number]: number } = {};
+
+    // L'index n'est pas unique c'est pourquoi on utilise le call_id pour retrouver le resolver
+    private static throttled_pipeline_index_by_call_id: { [throttle_id: number]: { [call_id: number]: number | string } } = {};
+    private static throttled_pipeline_call_resolvers_by_call_id: { [throttle_id: number]: { [call_id: number]: (a: any) => void } } = {};
+    private static throttled_pipeline_call_rejecters_by_call_id: { [throttle_id: number]: { [call_id: number]: (a: any) => void } } = {};
 
     /**
      * En empile les appels à cette fonctions, et les paramètres associés, puis tous les
@@ -34,9 +52,15 @@ export default class ThrottlePipelineHelper {
 
         const UID = ThrottlePipelineHelper.UID++;
         ThrottlePipelineHelper.throttled_pipeline_names_by_UID[UID] = pipeline_name;
-        setTimeout(() => {
-            ThrottlePipelineHelper.unstack_throttled_pipeline_process(UID, func, wait_ms, pipeline_size, max_stack_size);
-        }, 1);
+        ThrottlePipelineHelper.confs_by_UID[UID] = new ThrottlePipelineConf<ParamType, ResultType>(
+            UID,
+            pipeline_name,
+            func,
+            wait_ms,
+            pipeline_size,
+            max_stack_size);
+        ThrottlePipelineHelper.promise_pipeline_by_UID[UID] = new PromisePipeline(pipeline_size, 'ThrottledPipeline.' + ThrottlePipelineHelper.throttled_pipeline_names_by_UID[UID]);
+        EventsController.on_every_event_throttle_cb(ThrottlePipelineHelper.get_stacked_arg_event_name(UID), ThrottlePipelineHelper.unstack_throttled_pipeline_process, wait_ms);
 
         return async (index: number | string, param: ParamType): Promise<ResultType> => {
 
@@ -69,83 +93,51 @@ export default class ThrottlePipelineHelper {
                 } else {
                     ThrottlePipelineHelper.throttled_pipeline_stack_args[UID][call_id] = param;
                 }
+
+                EventsController.emit_event(EventifyEventInstanceVO.new_event(ThrottlePipelineHelper.get_stacked_arg_event_name(UID)));
             });
         };
     }
 
-    protected static UID: number = 0;
-
-    protected static throttled_pipeline_names_by_UID: { [UID: number]: string } = {};
-
-    protected static throttled_pipeline_stack_args: { [throttle_id: number]: { [call_id: number]: any } } = {};
-    protected static throttled_pipeline_call_ids: { [throttle_id: number]: number } = {};
-
-    // L'index n'est pas unique c'est pourquoi on utilise le call_id pour retrouver le resolver
-    protected static throttled_pipeline_index_by_call_id: { [throttle_id: number]: { [call_id: number]: number | string } } = {};
-    protected static throttled_pipeline_call_resolvers_by_call_id: { [throttle_id: number]: { [call_id: number]: (a: any) => void } } = {};
-    protected static throttled_pipeline_call_rejecters_by_call_id: { [throttle_id: number]: { [call_id: number]: (a: any) => void } } = {};
-
-    /**
-     * Copie interne du ThreadHandler.sleep, pour ne pas avoir de dépendance circulaire et sans stats
-     */
-    private static async sleep(timeout: number): Promise<void> {
-
-        return new Promise<any>((resolve) => {
-            setTimeout(() => {
-                resolve("sleep");
-            }, timeout);
-        });
-    }
-
     /**
      * Le process permanent qui va dépiler ces types de demandes
-     * @param UID
-     * @param func
-     * @param wait_ms
-     * @param pipeline_size
      */
     private static async unstack_throttled_pipeline_process<ParamType, ResultType>(
-        UID: number,
-        func: (params: { [index: number | string]: ParamType }) => { [index: number | string]: ResultType } | Promise<{ [index: number | string]: ResultType }>,
-        wait_ms: number,
-        pipeline_size: number,
-        max_stack_size: number
+        event: EventifyEventInstanceVO,
+        listener: EventifyEventListenerInstanceVO,
     ) {
+        const UID = parseInt(event.name.split('_').pop());
+        const throttle_conf = ThrottlePipelineHelper.confs_by_UID[UID];
+        const promise_pipeline = ThrottlePipelineHelper.promise_pipeline_by_UID[UID];
 
-        const promise_pipeline = new PromisePipeline(pipeline_size, 'ThrottledPipeline.' + ThrottlePipelineHelper.throttled_pipeline_names_by_UID[UID]);
+        if (!ThrottlePipelineHelper.throttled_pipeline_stack_args[UID]) {
+            return;
+        }
 
-        while (true) {
+        const params_by_call_id: { [call_id: number]: ParamType } = ThrottlePipelineHelper.throttled_pipeline_stack_args[UID];
+        delete ThrottlePipelineHelper.throttled_pipeline_stack_args[UID];
 
-            if (!ThrottlePipelineHelper.throttled_pipeline_stack_args[UID]) {
-                await ThrottlePipelineHelper.sleep(wait_ms);
-                continue;
+        // On fait des paquets de params en fonction du max_stack_size
+        let current_stack_size = 0;
+        let params_by_index: { [index: string | number]: ParamType } = {};
+        let current_stack_param_by_call_id: { [call_id: number]: ParamType } = {};
+
+        for (const call_id in params_by_call_id) {
+            const index = ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
+            params_by_index[index] = params_by_call_id[call_id];
+            current_stack_param_by_call_id[call_id] = params_by_call_id[call_id];
+
+            current_stack_size++;
+            if (current_stack_size >= throttle_conf.max_stack_size) {
+                await ThrottlePipelineHelper.handle_throttled_pipeline_call(UID, throttle_conf.func, current_stack_param_by_call_id, promise_pipeline, params_by_index);
+                params_by_index = {};
+                current_stack_param_by_call_id = {};
+                current_stack_size = 0;
             }
+        }
 
-            const params_by_call_id: { [call_id: number]: ParamType } = ThrottlePipelineHelper.throttled_pipeline_stack_args[UID];
-            delete ThrottlePipelineHelper.throttled_pipeline_stack_args[UID];
-
-            // On fait des paquets de params en fonction du max_stack_size
-            let current_stack_size = 0;
-            let params_by_index: { [index: string | number]: ParamType } = {};
-            let current_stack_param_by_call_id: { [call_id: number]: ParamType } = {};
-
-            for (const call_id in params_by_call_id) {
-                const index = ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
-                params_by_index[index] = params_by_call_id[call_id];
-                current_stack_param_by_call_id[call_id] = params_by_call_id[call_id];
-
-                current_stack_size++;
-                if (current_stack_size >= max_stack_size) {
-                    await ThrottlePipelineHelper.handle_throttled_pipeline_call(UID, func, current_stack_param_by_call_id, promise_pipeline, params_by_index);
-                    params_by_index = {};
-                    current_stack_param_by_call_id = {};
-                    current_stack_size = 0;
-                }
-            }
-
-            if (current_stack_size) {
-                await ThrottlePipelineHelper.handle_throttled_pipeline_call(UID, func, current_stack_param_by_call_id, promise_pipeline, params_by_index);
-            }
+        if (current_stack_size) {
+            await ThrottlePipelineHelper.handle_throttled_pipeline_call(UID, throttle_conf.func, current_stack_param_by_call_id, promise_pipeline, params_by_index);
         }
     }
 
@@ -192,5 +184,9 @@ export default class ThrottlePipelineHelper {
                 await all_promises(promises);
             }
         });
+    }
+
+    private static get_stacked_arg_event_name(UID: number): string {
+        return 'ThrottledPipeline.stacked_arg_' + UID;
     }
 }

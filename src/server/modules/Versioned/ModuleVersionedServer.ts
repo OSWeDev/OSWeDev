@@ -18,6 +18,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleParamsServer from '../Params/ModuleParamsServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import { field_names } from '../../../shared/tools/ObjectHandler';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ModuleVersionedServer extends ModuleServerBase {
 
@@ -59,14 +60,14 @@ export default class ModuleVersionedServer extends ModuleServerBase {
     }
 
     public async get_robot_user_id(): Promise<number> {
-        let robot_user_id: number = await ModuleParamsServer.getInstance().getParamValueAsInt(ModuleVersioned.PARAM_NAME_ROBOT_USER_ID, null, 3600000);
+        let robot_user_id: number = await ParamsServerController.getParamValueAsInt(ModuleVersioned.PARAM_NAME_ROBOT_USER_ID, null, 3600000);
 
         if (!robot_user_id) {
             const robot_user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq(field_names<UserVO>().name, 'robot').exec_as_server().select_vo<UserVO>();
             robot_user_id = robot_user ? robot_user.id : null;
 
             if (robot_user_id) {
-                await ModuleParamsServer.getInstance().setParamValue_as_server(ModuleVersioned.PARAM_NAME_ROBOT_USER_ID, robot_user_id.toString());
+                await ParamsServerController.setParamValue_as_server(ModuleVersioned.PARAM_NAME_ROBOT_USER_ID, robot_user_id.toString());
             }
         }
 

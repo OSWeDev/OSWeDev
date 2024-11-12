@@ -10,7 +10,7 @@ export default abstract class ModuleServerBase implements IModuleBase {
     public static SERVER_MODULE_ROLE_NAME: string = "SERVER_MODULE_ROLE_NAME";
 
     constructor(public name: string) {
-        ModulesManager.getInstance().registerModule(ModuleServerBase.SERVER_MODULE_ROLE_NAME, this);
+        ModulesManager.registerModule(ModuleServerBase.SERVER_MODULE_ROLE_NAME, this);
     }
 
     get actif(): boolean {
@@ -19,7 +19,7 @@ export default abstract class ModuleServerBase implements IModuleBase {
     }
 
     get shared_module(): Module {
-        return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
+        return ModulesManager.getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
     }
 
     public registerApis() { }
