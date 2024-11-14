@@ -1266,7 +1266,7 @@ export default abstract class ServerBase {
 
             let msg = new PingForkMessage(fork.uid);
 
-            let is_alive: boolean = await ForkMessageController.send(msg, fork.child_process, fork);
+            let is_alive: boolean = await ForkMessageController.send(msg, fork.worker, fork);
 
             return res.status(200).send(is_alive);
         });

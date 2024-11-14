@@ -1,3 +1,4 @@
+import { parentPort } from 'worker_threads';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
@@ -57,7 +58,7 @@ export default class ForkedTasksController {
                     task_params,
                     StackContext.get_active_context(),
                     ForkedProcessWrapperBase.instance?.UID,
-                )).except_self());
+                )).except_self(), parentPort);
 
             return true;
         } else {
@@ -109,7 +110,7 @@ export default class ForkedTasksController {
                         }
                         done_bgt_uid[fork.uid] = true;
 
-                        if (!fork.child_process) {
+                        if (!fork.worker) {
                             continue;
                         }
 
@@ -163,7 +164,7 @@ export default class ForkedTasksController {
                     StackContext.get_active_context(),
                     ForkedProcessWrapperBase.instance?.UID,
                     result_task_uid,
-                ))) {
+                ), parentPort)) {
 
                 delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
                 ConsoleHandler.error('exec_self_on_bgthread_and_return_value:Un message n\'a pas pu être envoyé:' + task_uid + ':');
@@ -187,7 +188,7 @@ export default class ForkedTasksController {
                 task_params,
                 StackContext.get_active_context(),
                 ForkedProcessWrapperBase.instance?.UID,
-            ));
+            ), parentPort);
             return false;
         }
         return true;
@@ -303,7 +304,7 @@ export default class ForkedTasksController {
                         ForkedProcessWrapperBase.instance?.UID,
                         result_task_uid,
                     ),
-                    fork.child_process,
+                    fork.worker,
                     fork)) {
                     ConsoleHandler.error('exec_self_on_bgthread_and_return_value:Un message n\'a pas pu être envoyé :' + task_uid + ':');
 
@@ -329,7 +330,7 @@ export default class ForkedTasksController {
                                 ForkedProcessWrapperBase.instance?.UID,
                                 result_task_uid,
                             ),
-                            fork.child_process,
+                            fork.worker,
                             fork)) {
                             ConsoleHandler.error('POST RETRY: exec_self_on_bgthread_and_return_value:Un message n\'a pas pu être envoyé :' + task_uid + ':');
                             delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
@@ -353,7 +354,8 @@ export default class ForkedTasksController {
                     task_params,
                     StackContext.get_active_context(),
                     result_task_uid,
-                ))) {
+                ),
+                parentPort)) {
                 delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
                 ConsoleHandler.error('exec_self_on_bgthread_and_return_value:2:Un message n\'a pas pu être envoyé :' + task_uid + ':');
                 thrower("Failed to send message to main thread :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));

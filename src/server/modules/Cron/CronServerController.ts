@@ -1,4 +1,5 @@
 
+import { parentPort } from 'worker_threads';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -64,7 +65,7 @@ export default class CronServerController {
             if (CronServerController.getInstance().valid_crons_names[worker_uid]) {
                 await this.handle_runcron_message(new RunCronForkMessage(worker_uid));
             } else {
-                await ForkMessageController.send(new BroadcastWrapperForkMessage(new RunCronForkMessage(worker_uid)));
+                await ForkMessageController.send(new BroadcastWrapperForkMessage(new RunCronForkMessage(worker_uid)), parentPort);
             }
         } else {
 
@@ -73,7 +74,7 @@ export default class CronServerController {
                 return false;
             }
             const forked = ForkServerController.fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid];
-            await ForkMessageController.send(new RunCronForkMessage(worker_uid), forked.child_process, forked);
+            await ForkMessageController.send(new RunCronForkMessage(worker_uid), forked.worker, forked);
         }
     }
 

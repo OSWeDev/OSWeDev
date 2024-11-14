@@ -1,4 +1,5 @@
 import pg_promise, { IDatabase } from 'pg-promise';
+import { parentPort, workerData } from 'worker_threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import EventsController from '../../../shared/modules/Eventify/EventsController';
 import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
@@ -77,10 +78,11 @@ export default abstract class ForkedProcessWrapperBase {
 
         try {
 
-            this.UID = parseInt(process.argv[2]);
+            const argv = workerData;
+            this.UID = parseInt(argv[0]);
 
-            for (let i = 3; i < process.argv.length; i++) {
-                const arg = process.argv[i];
+            for (let i = 1; i < argv.length; i++) {
+                const arg = argv[i];
 
                 const splitted = arg.split(':');
                 const type: string = splitted[0];
@@ -181,13 +183,13 @@ export default abstract class ForkedProcessWrapperBase {
         BGThreadServerController.SERVER_READY = true;
         CronServerController.getInstance().server_ready = true;
 
-        process.on('message', async (msg: IForkMessage) => {
+        parentPort.on('message', async (msg: IForkMessage) => {
             msg = APIControllerWrapper.try_translate_vo_from_api(msg);
-            await ForkMessageController.message_handler(msg, process);
+            await ForkMessageController.message_handler(msg, parentPort);
         });
 
         // On prévient le process parent qu'on est ready
-        await ForkMessageController.send(new AliveForkMessage());
+        await ForkMessageController.send(new AliveForkMessage(), parentPort);
 
         ThreadHandler.set_interval(MemoryUsageStat.updateMemoryUsageStat, 45000, 'MemoryUsageStat.updateMemoryUsageStat', true);
     }

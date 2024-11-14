@@ -18,6 +18,7 @@ import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
 import IForkProcess from './interfaces/IForkProcess';
 import PingForkMessage from './messages/PingForkMessage';
+import { Worker } from 'worker_threads';
 
 export default class ForkServerController {
 
@@ -33,7 +34,7 @@ export default class ForkServerController {
     public static forks_availability: { [uid: number]: number } = {};
     public static forks_reload_asap: { [uid: number]: boolean } = {};
     public static forks_alive: { [uid: number]: boolean } = {};
-    public static forks_alive_historic_pids: { [uid: number]: number[] } = {};
+    // public static forks_alive_historic_pids: { [uid: number]: number[] } = {};
 
     // On informe chaque thread de son identité auprès du parent pour permettre de faire des communications identifiées et plus tard inter-threads
     public static forks_uid_sent: { [uid: number]: boolean } = {};
@@ -63,7 +64,7 @@ export default class ForkServerController {
         const default_fork: IFork = {
             processes: {},
             uid: this.UID++,
-            child_process: null
+            worker: null
         };
         this.forks[default_fork.uid] = default_fork;
 
@@ -93,15 +94,21 @@ export default class ForkServerController {
             ForkServerController.forks_availability[i] = Dates.now();
 
             if (ConfigurationService.node_configuration.debug_forks && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
-                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.get_argv(forked), {
-                    execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), '--max-old-space-size=4096', '--expose-gc'],
-                    serialization: "advanced"
-                });
+                forked.worker = new Worker(
+                    './dist/server/ForkedProcessWrapper.js',
+                    {
+                        workerData: ForkServerController.get_argv(forked),
+                        execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), /*'--max-old-space-size=4096', '--expose-gc'*/],
+                    }
+                );
             } else {
-                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.get_argv(forked), {
-                    execArgv: ['--max-old-space-size=4096', '--expose-gc'],
-                    serialization: "advanced"
-                });
+                forked.worker = new Worker(
+                    './dist/server/ForkedProcessWrapper.js',
+                    {
+                        workerData: ForkServerController.get_argv(forked),
+                        execArgv: [/*'--max-old-space-size=4096', '--expose-gc'*/],
+                    }
+                );
             }
 
             if (ForkMessageController.stacked_msg_waiting && ForkMessageController.stacked_msg_waiting.length) {
@@ -109,14 +116,14 @@ export default class ForkServerController {
                     const stacked_msg_waiting = ForkMessageController.stacked_msg_waiting[j];
 
                     if (stacked_msg_waiting.forked_target && (stacked_msg_waiting.forked_target.uid == forked.uid)) {
-                        stacked_msg_waiting.sendHandle = forked.child_process;
+                        stacked_msg_waiting.send_handle = forked.worker;
                     }
                 }
             }
 
-            forked.child_process.on('message', async (msg: IForkMessage) => {
+            forked.worker.on('message', async (msg: IForkMessage) => {
                 msg = APIControllerWrapper.try_translate_vo_from_api(msg);
-                await ForkMessageController.message_handler(msg, forked.child_process);
+                await ForkMessageController.message_handler(msg, forked.worker);
             });
 
             // /**
@@ -206,7 +213,7 @@ export default class ForkServerController {
                         [bgthread.name]: forked_bgthread
                     },
                     uid: this.UID,
-                    child_process: null
+                    worker: null
                 };
                 this.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name] = this.forks[this.UID];
                 this.UID++;
@@ -236,7 +243,7 @@ export default class ForkServerController {
                         [cron.worker_uid]: forked_cron
                     },
                     uid: this.UID,
-                    child_process: null
+                    worker: null
                 };
                 this.fork_by_type_and_name[CronServerController.ForkedProcessType][cron.worker_uid] = this.forks[this.UID];
 
@@ -259,7 +266,7 @@ export default class ForkServerController {
                     continue;
                 }
 
-                await ForkMessageController.send(new PingForkMessage(forked.uid), forked.child_process, forked);
+                await ForkMessageController.send(new PingForkMessage(forked.uid), forked.worker, forked);
             }
         }, 10000, 'ForkServerController.checkForksAvailability', false);
     }

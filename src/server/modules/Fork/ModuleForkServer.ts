@@ -23,6 +23,7 @@ import PingForkMessage from './messages/PingForkMessage';
 import ReloadAsapForkMessage from './messages/ReloadAsapForkMessage';
 import TaskResultForkMessage from './messages/TaskResultForkMessage';
 import StackContext from '../../StackContext';
+import { MessagePort, parentPort, Worker } from 'worker_threads';
 
 export default class ModuleForkServer extends ModuleServerBase {
 
@@ -68,7 +69,8 @@ export default class ModuleForkServer extends ModuleServerBase {
         }
         ConsoleHandler.error("Received KILL SIGN from parent - Before KILL inform parent thread to reload thread asap");
         await ForkMessageController.send(
-            new ReloadAsapForkMessage().set_message_content(ForkedProcessWrapperBase.instance?.process_UID)
+            new ReloadAsapForkMessage().set_message_content(ForkedProcessWrapperBase.instance?.process_UID),
+            parentPort
         );
         ConsoleHandler.error("Received KILL SIGN from parent - KILL");
         process.exit();
@@ -77,7 +79,7 @@ export default class ModuleForkServer extends ModuleServerBase {
     /**
      * Doit être appelé sur le main thread
      */
-    private async prepare_reload_asap(msg: ReloadAsapForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
+    private async prepare_reload_asap(msg: ReloadAsapForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
         if (!msg.message_content) {
 
             return false;
@@ -90,7 +92,7 @@ export default class ModuleForkServer extends ModuleServerBase {
     /**
      * On cherche le callback à appeler dans le controller et on envoi le résultat
      */
-    private async handle_taskresult_message(msg: TaskResultForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
+    private async handle_taskresult_message(msg: TaskResultForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
         if ((!msg.callback_id) || (!ForkedTasksController.registered_task_result_wrappers) ||
             (!ForkedTasksController.registered_task_result_wrappers[msg.callback_id])) {
 
@@ -119,7 +121,7 @@ export default class ModuleForkServer extends ModuleServerBase {
     /**
      * On doit donc être sur le main process, on cherche juste la fonction qui a été demandée
      */
-    private async handle_mainprocesstask_message(msg: MainProcessTaskForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
+    private async handle_mainprocesstask_message(msg: MainProcessTaskForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
         if ((!msg.message_content) || (!ForkedTasksController.registered_tasks) ||
             (!ForkedTasksController.registered_tasks[msg.message_content])) {
 
@@ -138,13 +140,13 @@ export default class ModuleForkServer extends ModuleServerBase {
         }
 
         if (msg.callback_id) {
-            await ForkMessageController.send(new TaskResultForkMessage(res, msg.callback_forked_uid, msg.callback_id), sendHandle as ChildProcess);
+            await ForkMessageController.send(new TaskResultForkMessage(res, msg.callback_forked_uid, msg.callback_id), send_handle);
         }
 
         return true;
     }
 
-    private async handle_mainprocessforwardtobgtask_message(msg: BGThreadProcessTaskForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
+    private async handle_mainprocessforwardtobgtask_message(msg: BGThreadProcessTaskForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
         /**
          * Là on est sur le main thread, on a reçu une demande d'un bg thread à forwarder vers un autre
          *  On check si on est en plein kill
@@ -156,7 +158,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         if (this.is_killing) {
             ConsoleHandler.error('handle_bgthreadprocesstask_message:KILLING TASK HANDLER:' + JSON.stringify(msg));
             if (msg.callback_id) {
-                await ForkMessageController.send(new TaskResultForkMessage(null, msg.callback_forked_uid, msg.callback_id, 'KILLING TASK HANDLER'), sendHandle as ChildProcess);
+                await ForkMessageController.send(new TaskResultForkMessage(null, msg.callback_forked_uid, msg.callback_id, 'KILLING TASK HANDLER'), send_handle);
             } else {
                 throw new Error('KILLING TASK HANDLER');
             }
@@ -167,7 +169,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
             const thrower = async (error) => {
                 if (msg.callback_id) {
-                    await ForkMessageController.send(new TaskResultForkMessage(null, msg.callback_forked_uid, msg.callback_id, error), sendHandle as ChildProcess);
+                    await ForkMessageController.send(new TaskResultForkMessage(null, msg.callback_forked_uid, msg.callback_id, error), send_handle);
                 } else {
                     ConsoleHandler.error('Failed message:' + error + ':' + JSON.stringify(msg));
                 }
@@ -176,7 +178,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
             const resolver = async (res) => {
                 if (msg.callback_id) {
-                    await ForkMessageController.send(new TaskResultForkMessage(res, msg.callback_forked_uid, msg.callback_id), sendHandle as ChildProcess);
+                    await ForkMessageController.send(new TaskResultForkMessage(res, msg.callback_forked_uid, msg.callback_id), send_handle);
                 }
                 resolve(res);
             };
@@ -192,7 +194,7 @@ export default class ModuleForkServer extends ModuleServerBase {
     /**
      * Si on est sur le bon thread on lance l'action
      */
-    private async handle_bgthreadprocesstask_message(msg: BGThreadProcessTaskForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
+    private async handle_bgthreadprocesstask_message(msg: BGThreadProcessTaskForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
         if ((!msg.message_content) || (!ForkedTasksController.registered_tasks) ||
             (!ForkedTasksController.registered_tasks[msg.message_content]) ||
             (!BGThreadServerController.valid_bgthreads_names[msg.bgthread])) {
@@ -232,12 +234,12 @@ export default class ModuleForkServer extends ModuleServerBase {
         return true;
     }
 
-    private async handle_pingack_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
+    private async handle_pingack_message(msg: IForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
         ForkServerController.forks_availability[msg.message_content] = Dates.now();
         return true;
     }
 
-    private async handle_kill_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
+    private async handle_kill_message(msg: IForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
 
         const throttle = msg ? msg.message_content : 10;
 
@@ -245,18 +247,18 @@ export default class ModuleForkServer extends ModuleServerBase {
         return false;
     }
 
-    private async handle_ping_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
-        await ForkMessageController.send(new PingForkACKMessage(msg.message_content));
+    private async handle_ping_message(msg: IForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
+        await ForkMessageController.send(new PingForkACKMessage(msg.message_content), parentPort);
         return true;
     }
 
-    private async handle_alive_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
+    private async handle_alive_message(msg: IForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
         ForkServerController.forks_alive[msg.message_content] = true;
 
-        if (!ForkServerController.forks_alive_historic_pids[msg.message_content]) {
-            ForkServerController.forks_alive_historic_pids[msg.message_content] = [];
-        }
-        ForkServerController.forks_alive_historic_pids[msg.message_content].push(sendHandle.pid);
+        // if (!ForkServerController.forks_alive_historic_pids[msg.message_content]) {
+        //     ForkServerController.forks_alive_historic_pids[msg.message_content] = [];
+        // }
+        // ForkServerController.forks_alive_historic_pids[msg.message_content].push(send_handle.pid);
 
         ForkServerController.forks_waiting_to_be_alive--;
         if (ForkServerController.forks_waiting_to_be_alive <= 0) {

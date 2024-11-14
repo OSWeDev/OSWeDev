@@ -1,3 +1,4 @@
+import { parentPort } from 'worker_threads';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
@@ -90,7 +91,7 @@ export default class BGThreadServerController {
 
                 await BGThreadServerController.registered_BGThreads[bgthread_name].work();
             } else {
-                await ForkMessageController.send(new BroadcastWrapperForkMessage(new RunBGThreadForkMessage(bgthread_name)));
+                await ForkMessageController.send(new BroadcastWrapperForkMessage(new RunBGThreadForkMessage(bgthread_name)), parentPort);
             }
         } else {
 
@@ -99,7 +100,7 @@ export default class BGThreadServerController {
                 return false;
             }
             const forked = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name];
-            await ForkMessageController.send(new RunBGThreadForkMessage(bgthread_name), forked.child_process, forked);
+            await ForkMessageController.send(new RunBGThreadForkMessage(bgthread_name), forked.worker, forked);
         }
     }
 
@@ -130,7 +131,7 @@ export default class BGThreadServerController {
                         ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name]) {
                         await ForkMessageController.send(
                             new KillForkMessage(await ParamsServerController.getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
-                            ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name].child_process);
+                            ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name].worker);
                     }
                 }
             })());
