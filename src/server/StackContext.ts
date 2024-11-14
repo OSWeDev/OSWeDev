@@ -15,12 +15,20 @@ export default class StackContext {
     }
 
     /**
+     * Le contexte actif pour transmission à un bgthread par exemple
+     * @returns the active context
+     */
+    public static get_active_context(): { [key: string]: string | number | boolean } {
+        return StackContext.ns.active;
+    }
+
+    /**
      * Limiter l'usage, pas compatible avec les throttles, promisepipeline, ...
      * @param scope_overloads
      * @param callback
      * @returns
      */
-    public static async runPromise(scope_overloads: { [scope_key: string]: any }, callback: (...params: any) => Promise<any>): Promise<any> {
+    public static async runPromise(scope_overloads: { [key: string]: string | number | boolean }, callback: (...params: any) => Promise<any>): Promise<any> {
 
         let result = null;
 

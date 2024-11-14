@@ -98,7 +98,7 @@ export default class EventsController {
      * @param event_name
      * @param cb
      */
-    public static on_next_event(event_name: string, cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<any>): void {
+    public static on_next_event(event_name: string, cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown): void {
         const listener: EventifyEventListenerInstanceVO = EventifyEventListenerInstanceVO.new_listener(event_name, cb);
         listener.remaining_calls = 1;
         listener.unlimited_calls = false;
@@ -113,7 +113,7 @@ export default class EventsController {
      */
     public static on_every_event_throttle_cb(
         event_name: string,
-        cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<any>,
+        cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown,
         cooldown_ms: number = 0,
     ): void {
         const listener: EventifyEventListenerInstanceVO = EventifyEventListenerInstanceVO.new_listener(event_name, cb);

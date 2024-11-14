@@ -128,9 +128,9 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
      */
     public last_cb_run_end_date_ms: number;
 
-    private _cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<any>;
+    private _cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown;
 
-    get cb(): (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<any> {
+    get cb(): (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown {
 
         return this.initial_getter_cb();
     }
@@ -159,14 +159,22 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
         return res;
     }
 
-    public static new_listener(event_name: string, cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<any>): EventifyEventListenerInstanceVO {
+    /**
+     * On ne peut avoir qu'un seul listener par nom de listener. Dans ce contexte, on veut pas perdre d'autres listeners déjà définis, donc on les renomme avec l'UID, pas uniquement le nom de l'event
+     * @param event_name
+     * @param cb
+     * @returns
+     */
+    public static new_listener(event_name: string, cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown): EventifyEventListenerInstanceVO {
         const res: EventifyEventListenerInstanceVO = new EventifyEventListenerInstanceVO();
-        const event_conf = EventsController.registered_events_conf_by_name[event_name];
 
-        res.name = event_name;
         res.instance_uid = EventifyEventListenerInstanceVO.get_uid(event_name);
+        res.name = res.instance_uid;
+
+        const event_conf = EventsController.registered_events_conf_by_name[event_name];
         res.event_conf_id = event_conf ? event_conf.id : null;
         res.event_conf_name = event_name;
+
         res.throttle_triggered_event_during_cb = false;
         res.cb_is_running = false;
         res.cb_is_cooling_down = false;
@@ -180,7 +188,7 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
         return name + '_' + EventifyEventListenerInstanceVO.UID++;
     }
 
-    private initial_getter_cb(): (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<any> {
+    private initial_getter_cb(): (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown {
 
         if (this._cb == null) {
             try {

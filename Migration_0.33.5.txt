@@ -23,3 +23,7 @@ login/public => public/login
 REPLACE ALL (à la main individuellement :) pour le moment utile que pour les apis qui n'ont ((!sanitize_params) && (!precondition) && (!sanitize_result)) )
 APIControllerWrapper.sah
 APIControllerWrapper.sah_optimizer
+
+
+on supprime toutes les stackcontext.get('SESSION') => @runsonmainthread + get('SID') + pushdataservercontroller.registeredsessions_by_sid(sid)
+idem pour 'SELF_USER', on peut utiliser 'UID'

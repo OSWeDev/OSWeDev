@@ -38,6 +38,7 @@ import { all_promises } from '../../../shared/tools/PromiseTools';
 import TextHandler from '../../../shared/tools/TextHandler';
 import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
@@ -65,8 +66,6 @@ import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSes
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
-    public static TASK_NAME_onBlockOrInvalidateUserDeleteSessions = 'ModuleAccessPolicyServer.onBlockOrInvalidateUserDeleteSessions';
-    public static TASK_NAME_delete_sessions_from_other_thread = 'ModuleAccessPolicyServer.delete_sessions_from_other_thread';
     private static instance: ModuleAccessPolicyServer = null;
 
     private debug_check_access: boolean = false;
@@ -77,7 +76,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         super(ModuleAccessPolicy.getInstance().name);
 
         // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, this.delete_sessions_from_other_thread.bind(this));
         AccessPolicyServerController.init_tasks();
     }
 
@@ -116,10 +114,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      */
     public static async getSelfUser(): Promise<UserVO> {
 
-        if (StackContext.get('SELF_USER')) {
-            return StackContext.get('SELF_USER');
-        }
-
         /**
          * on doit pouvoir charger son propre user
          */
@@ -138,6 +132,620 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
         return query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
+    }
+
+    /**
+     *
+     * @param sids Les sids à invalider
+     * @returns
+     */
+    @RunsOnMainThread
+    public async delete_sessions_from_sids(sids: string[]) {
+        if (!sids || !sids.length) {
+            return;
+        }
+
+        const promises = [];
+        for (const i in sids) {
+            promises.push(this.do_delete_session(sids[i]));
+        }
+        await all_promises(promises);
+    }
+
+    /**
+     * Fonction qui détruit les sessions de l'utilisateur que l'on est en train de bloquer - exécutée sur le main process
+     * @param uid
+     */
+    @RunsOnMainThread
+    public async onBlockOrInvalidateUserDeleteSessions(uid: number) {
+
+        try {
+
+            const sessions: { [sessId: string]: IServerUserSession } = await PushDataServerController.getUserSessions(uid);
+            for (const i in sessions) {
+                const session: IServerUserSession = sessions[i];
+
+                if (!session) {
+                    continue;
+                }
+
+                try {
+                    await ConsoleHandler.log('unregisterSession:onBlockOrInvalidateUserDeleteSessions:uid:' + session.uid);
+                    await PushDataServerController.unregisterSession(session.sid);
+                    session.destroy(() => {
+                    });
+                } catch (error) {
+                    ConsoleHandler.error(error);
+                }
+                break;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+        return;
+    }
+
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
+    @RunsOnMainThread
+    public async logout_sid(sid: string) {
+
+        let session = PushDataServerController.registered_sessions_by_sid[sid];
+        return new Promise(async (accept, reject) => {
+
+            let user_log = null;
+
+            if (session && session.uid) {
+                const uid: number = session.uid;
+
+                // On stocke le log de connexion en base
+                user_log = new UserLogVO();
+                user_log.user_id = uid;
+                user_log.log_time = Dates.now();
+                user_log.referer = null;
+                user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
+
+                /**
+                 * Gestion du impersonate
+                 */
+                user_log.handle_impersonation(session);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+            }
+
+            /**
+             * Gestion du impersonate => on restaure la session précédente
+             */
+            if (session && !!session.impersonated_from) {
+
+                await ConsoleHandler.log('unregisterSession:logout:impersonated_from');
+                await PushDataServerController.unregisterSession(session.sid);
+
+                session = Object.assign(session, session.impersonated_from);
+                delete session.impersonated_from;
+                // session = session.impersonated_from; ???
+
+                session.save((err) => {
+                    if (err) {
+                        ConsoleHandler.log(err);
+                    }
+                    accept(err);
+                });
+            } else {
+
+                await ConsoleHandler.log('unregisterSession:logout:uid:' + session.uid);
+                await PushDataServerController.unregisterSession(session.sid);
+
+                session.uid = null;
+                session.user_vo = null;
+                session.save((err) => {
+                    if (err) {
+                        ConsoleHandler.log(err);
+                    }
+                    accept(err);
+                });
+            }
+        });
+    }
+
+    /**
+     *
+     * @returns
+     * @deprecated utilise StackContext que l'on souhaite supprimer. Utiliser plutôt logout_session
+     */
+    @RunsOnMainThread
+    public async logout(req: Request, res: Response) {
+
+        return this.logout_sid(req.session.sid);
+    }
+
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     * A n'utiliser que dans des contextes attentifs à la sécu. pas de vérif de mdp ici.
+     * @param uid
+     * @returns
+     */
+    @RunsOnMainThread
+    public async login_sid(uid: number, sid: string): Promise<boolean> {
+
+        try {
+            const session: IServerUserSession = await PushDataServerController.registered_sessions_by_sid[sid];
+
+            if (!session) {
+                ConsoleHandler.warn('ModuleAccessPolicyServer.login_session:session not found:SID:' + sid + ':UID:' + uid);
+                return false;
+            }
+
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
+                // On est en readonly partout, donc on informe sur impossibilité de se connecter
+                await PushDataServerController.notify_session(
+                    session.sid,
+                    'error.global_update_blocker.activated.___LABEL___',
+                    NotificationVO.SIMPLE_ERROR
+                );
+                return false;
+            }
+
+            if (!uid) {
+                return false;
+            }
+
+            const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
+
+            if (!user) {
+                return false;
+            }
+
+            if (user.blocked) {
+                return false;
+            }
+
+            if (!user.logged_once) {
+                user.logged_once = true;
+
+                await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
+                    [field_names<UserVO>().logged_once]: user.logged_once
+                });
+            }
+
+            session.uid = user.id;
+            session.user_vo = user;
+            session.save((error) => {
+                ConsoleHandler.error('ModuleAccessPolicyServer.login_session:session.save:' + error);
+            });
+
+            await PushDataServerController.registerSession(session);
+
+            // On stocke le log de connexion en base
+            const user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = Dates.now();
+            user_log.impersonated = false;
+            user_log.referer = StackContext.get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+
+            await PushDataServerController.notify_user_and_redirect(session.sid);
+
+            return true;
+        } catch (error) {
+            ConsoleHandler.error("login uid:" + uid + ":" + error);
+        }
+
+        return false;
+    }
+
+    /**
+     * A n'utiliser que dans des contextes attentifs à la sécu. pas de vérif de mdp ici.
+     * @param uid
+     * @returns
+     * @deprecated utilise StackContext que l'on souhaite supprimer. Utiliser plutôt login_session
+     */
+    @RunsOnMainThread
+    public async login(uid: number): Promise<boolean> {
+
+        const sid = StackContext.get('SID');
+
+        return this.login_sid(uid, sid);
+    }
+
+    @RunsOnMainThread
+    public isLogedAs(): boolean {
+
+        try {
+
+            const sid = StackContext.get('SID');
+            const session = PushDataServerController.registered_sessions_by_sid[sid];
+
+            if (session && !!session.impersonated_from) {
+                return true;
+            }
+            return false;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return false;
+        }
+    }
+
+    /**
+     * Renvoie le UID de l'admin qui utilise la fonction logAs
+     *  On remonte à la racine des logas
+     */
+    @RunsOnMainThread
+    public getAdminLogedUserId(): number {
+
+        try {
+
+            const sid = StackContext.get('SID');
+            const session = PushDataServerController.registered_sessions_by_sid[sid];
+
+            let impersonated_from_session = (session && session.impersonated_from) ? session.impersonated_from : null;
+
+            while (impersonated_from_session && !!impersonated_from_session.impersonated_from) {
+                impersonated_from_session = impersonated_from_session.impersonated_from;
+            }
+
+            if (impersonated_from_session && !!impersonated_from_session.uid) {
+                return impersonated_from_session.uid;
+            }
+            return null;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return null;
+        }
+    }
+
+    /**
+     * Renvoie la session de l'admin qui utilise la fonction logAs
+     */
+    @RunsOnMainThread
+    public getAdminLogedUserSession(): IServerUserSession {
+
+        try {
+
+            const sid = StackContext.get('SID');
+            let session = PushDataServerController.registered_sessions_by_sid[sid];
+
+            if (!session.impersonated_from) {
+                return null;
+            }
+
+            while (session && !!session.impersonated_from) {
+                session = session.impersonated_from;
+            }
+            return session;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return null;
+        }
+    }
+
+    @RunsOnMainThread
+    public getUserSession(): IServerUserSession {
+
+        try {
+
+            const sid = StackContext.get('SID');
+            const session = PushDataServerController.registered_sessions_by_sid[sid];
+
+            return session;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return null;
+        }
+    }
+
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
+    @RunsOnMainThread
+    private async do_delete_session(sid: string) {
+
+        let session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
+
+        /**
+         * On veut supprimer la session et déconnecter tout le monde
+         */
+        let user_log = null;
+
+        if (!session) {
+            return;
+        }
+
+        if (session && session.uid) {
+            const uid: number = session.uid;
+
+            // On stocke le log de connexion en base
+            user_log = new UserLogVO();
+            user_log.user_id = uid;
+            user_log.log_time = Dates.now();
+            user_log.referer = null;
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
+            user_log.handle_impersonation(session);
+
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+        }
+
+        /**
+         * Gestion du impersonate => dans le cas présent on logout aussi le compte principal
+         */
+        while (session && !!session.impersonated_from) {
+
+            await ConsoleHandler.log('unregisterSession:delete_session:impersonated_from:uid:' + session.uid);
+            await PushDataServerController.unregisterSession(session.sid, false);
+
+            session = Object.assign(session, session.impersonated_from);
+            // delete session.impersonated_from;
+
+            const uid: number = session.uid;
+
+            // On stocke le log de connexion en base
+            user_log = new UserLogVO();
+            user_log.user_id = uid;
+            user_log.log_time = Dates.now();
+            user_log.referer = null;
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
+            user_log.handle_impersonation(session);
+
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+        }
+
+        await ConsoleHandler.log('unregisterSession:delete_session:uid:' + session.uid);
+        await PushDataServerController.unregisterSession(session.sid, true);
+
+        session.uid = null;
+        session.user_vo = null;
+        session.destroy((err) => {
+            if (err) {
+                ConsoleHandler.log(err);
+            }
+        });
+    }
+
+    @RunsOnMainThread
+    private async signinAndRedirect(nom: string, email: string, password: string, redirect_to: string): Promise<number> {
+
+        try {
+            const sid = StackContext.get('SID');
+            const session = PushDataServerController.registered_sessions_by_sid[sid];
+
+            if (!session) {
+                ConsoleHandler.warn('ModuleAccessPolicyServer.signinAndRedirect:session not found:SID:' + sid + ':UID:' + email);
+                return null;
+            }
+
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
+                // On est en readonly partout, donc on informe sur impossibilité de se connecter
+                await PushDataServerController.notifySession(
+                    'error.global_update_blocker.activated.___LABEL___',
+                    NotificationVO.SIMPLE_ERROR
+                );
+                return null;
+            }
+
+            if (session && session.uid) {
+                await PushDataServerController.notify_user_and_redirect(session.sid, redirect_to);
+                return session.uid;
+            }
+
+            session.uid = null;
+            session.user_vo = null;
+
+            if ((!email) || (!password) || (!nom)) {
+                return null;
+            }
+
+            let user: UserVO = await ModuleDAOServer.instance.selectOneUser(email, password);
+
+            if (user) {
+
+                if (user.invalidated) {
+
+                    await PasswordRecovery.getInstance().beginRecovery(user.email);
+
+                }
+                return null;
+            } else {
+                user = new UserVO();
+            }
+
+            user.logged_once = true;
+            user.name = nom;
+            user.password = password;
+            user.email = email;
+            user.blocked = false;
+            user.reminded_pwd_1 = false;
+            user.reminded_pwd_2 = false;
+            user.invalidated = false;
+            user.recovery_challenge = "";
+            user.phone = "";
+            user.recovery_expiration = 0;
+            user.password_change_date = Dates.now();
+            user.creation_date = Dates.now();
+
+
+            // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
+            const lang: LangVO = await query(LangVO.API_TYPE_ID).set_sort(new SortByVO(LangVO.API_TYPE_ID, field_names<LangVO>().id, true)).set_limit(1).select_vo<LangVO>();
+            user.lang_id = lang.id;
+
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
+
+            if (!user.id) {
+                throw new Error('Impossible de créer le compte');
+            }
+            session.uid = user.id;
+            session.user_vo = user;
+            await PushDataServerController.registerSession(session);
+
+            // On stocke le log de connexion en base
+            const user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = Dates.now();
+            user_log.impersonated = false;
+            user_log.referer = StackContext.get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+            await PushDataServerController.notify_user_and_redirect(session.sid, redirect_to);
+
+            return user.id;
+        } catch (error) {
+            ConsoleHandler.error("login:" + email + ":" + error);
+        }
+
+        return null;
+    }
+
+    @RunsOnMainThread
+    private async loginAndRedirect(email: string, password: string, redirect_to: string, sso: boolean): Promise<number> {
+
+        try {
+            const sid = StackContext.get('SID');
+            const session = PushDataServerController.registered_sessions_by_sid[sid];
+
+            if (!session) {
+                ConsoleHandler.warn('ModuleAccessPolicyServer.signinAndRedirect:session not found:SID:' + sid + ':UID:' + email);
+                return null;
+            }
+
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
+                // On est en readonly partout, donc on informe sur impossibilité de se connecter
+                await PushDataServerController.notifySession(
+                    'error.global_update_blocker.activated.___LABEL___',
+                    NotificationVO.SIMPLE_ERROR
+                );
+                return null;
+            }
+
+            if (session && session.uid) {
+                await PushDataServerController.notify_user_and_redirect(session.sid, redirect_to, sso);
+                return session.uid;
+            }
+
+            session.uid = null;
+            session.user_vo = null;
+
+            if ((!email) || (!password)) {
+                return null;
+            }
+
+            let user: UserVO = null;
+
+            if (AccessPolicyServerController.hook_user_login) {
+                user = await AccessPolicyServerController.hook_user_login(email, password);
+            } else {
+                user = await ModuleDAOServer.instance.selectOneUser(email, password);
+            }
+
+            if (!user) {
+                return null;
+            }
+
+            if (user.blocked) {
+                return null;
+            }
+
+            if (user.invalidated) {
+
+                // Si le mot de passe est invalidé on refuse la connexion mais on envoie aussi un mail pour récupérer le mot de passe si on l'a pas déjà envoyé
+                // if ((!user.recovery_expiration) || (user.recovery_expiration<=Dates.now())) {
+                await PasswordRecovery.getInstance().beginRecovery(user.email);
+                // }
+                return null;
+            }
+
+            if (!user.logged_once) {
+                user.logged_once = true;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
+            }
+
+            session.uid = user.id;
+            session.user_vo = user;
+
+            await PushDataServerController.registerSession(session);
+
+            // On stocke le log de connexion en base
+            const user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = Dates.now();
+            user_log.impersonated = false;
+            user_log.referer = StackContext.get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+
+            await PushDataServerController.notify_user_and_redirect(session.sid, redirect_to, sso);
+
+            return user.id;
+        } catch (error) {
+            ConsoleHandler.error("login:" + email + ":" + error);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param context_query la requete qui permet de récupérer le user à impersonate
+     * @returns l'id de l'utilisateur qui a été impersoné
+     */
+    @RunsOnMainThread
+    private async do_impersonate(context_query: ContextQueryVO): Promise<number> {
+        const sid = StackContext.get('SID');
+        const session = PushDataServerController.registered_sessions_by_sid[sid];
+
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
+            // On est en readonly partout, donc on informe sur impossibilité de se connecter
+            await PushDataServerController.notifySimpleERROR(
+                StackContext.get('UID'),
+                StackContext.get('CLIENT_TAB_ID'),
+                'error.global_update_blocker.activated.___LABEL___'
+            );
+            return null;
+        }
+
+        if ((!session) || (!session.uid)) {
+            return null;
+        }
+
+        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
+            return null;
+        }
+
+        const user: UserVO = await context_query.select_vo<UserVO>();
+
+        if (!user) {
+            return null;
+        }
+
+        if (user.blocked || user.invalidated || user.archived) {
+            ConsoleHandler.error("impersonate:blocked or invalidated or archived");
+            context_query.log(true);
+            await PushDataServerController.notifySimpleERROR(session.uid, CLIENT_TAB_ID, 'Impossible de se connecter avec un compte bloqué, invalidé ou archivé', true);
+            return null;
+        }
+
+        session.impersonated_from = Object.assign({}, session);
+        session.uid = user.id;
+        session.user_vo = user;
+
+        await PushDataServerController.registerSession(session);
+
+        // On stocke le log de connexion en base
+        const user_log = new UserLogVO();
+        user_log.user_id = user.id;
+        user_log.log_time = Dates.now();
+        user_log.referer = StackContext.get('REFERER');
+        user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+        user_log.handle_impersonation(session);
+
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+
+        await PushDataServerController.notify_user_and_redirect(session.sid);
+
+        return user.id;
     }
 
     /**
@@ -1009,77 +1617,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         // return user.avatar_url;
     }
 
-    /**
-     * DELETE ME Post suppression StackContext: Does not need StackContext
-     */
-    public async logout_session(session: IServerUserSession) {
-
-        return new Promise(async (accept, reject) => {
-
-            let user_log = null;
-
-            if (session && session.uid) {
-                const uid: number = session.uid;
-
-                // On stocke le log de connexion en base
-                user_log = new UserLogVO();
-                user_log.user_id = uid;
-                user_log.log_time = Dates.now();
-                user_log.referer = null;
-                user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
-
-                /**
-                 * Gestion du impersonate
-                 */
-                user_log.handle_impersonation(session);
-                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
-            }
-
-            /**
-             * Gestion du impersonate => on restaure la session précédente
-             */
-            if (session && !!session.impersonated_from) {
-
-                await ConsoleHandler.log('unregisterSession:logout:impersonated_from');
-                await PushDataServerController.unregisterSession(session);
-
-                session = Object.assign(session, session.impersonated_from);
-                delete session.impersonated_from;
-                // session = session.impersonated_from; ???
-
-                session.save((err) => {
-                    if (err) {
-                        ConsoleHandler.log(err);
-                    }
-                    accept(err);
-                });
-            } else {
-
-                await ConsoleHandler.log('unregisterSession:logout:uid:' + session.uid);
-                await PushDataServerController.unregisterSession(session);
-
-                session.uid = null;
-                session.user_vo = null;
-                session.save((err) => {
-                    if (err) {
-                        ConsoleHandler.log(err);
-                    }
-                    accept(err);
-                });
-            }
-        });
-    }
-
-    /**
-     *
-     * @returns
-     * @deprecated utilise StackContext que l'on souhaite supprimer. Utiliser plutôt logout_session
-     */
-    public async logout() {
-
-        return this.logout_session(StackContext.get('SESSION'));
-    }
-
     public async sendrecapture(text: string): Promise<void> {
         if (!text) {
             return;
@@ -1288,200 +1825,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return false;
     }
 
-    /**
-     * Fonction qui détruit les sessions de l'utilisateur que l'on est en train de bloquer - exécutée sur le main process
-     * @param uid
-     */
-    public async onBlockOrInvalidateUserDeleteSessions(uid: number) {
-
-        // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, this.onBlockOrInvalidateUserDeleteSessions.bind(this));
-
-        if (!await ForkedTasksController.exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, uid)) {
-            return;
-        }
-
-        try {
-
-            const sessions: { [sessId: string]: IServerUserSession } = PushDataServerController.getUserSessions(uid);
-            for (const i in sessions) {
-                const session: IServerUserSession = sessions[i];
-
-                if (!session) {
-                    continue;
-                }
-
-                try {
-                    await ConsoleHandler.log('unregisterSession:onBlockOrInvalidateUserDeleteSessions:uid:' + session.uid);
-                    await PushDataServerController.unregisterSession(session);
-                    session.destroy(() => {
-                    });
-                } catch (error) {
-                    ConsoleHandler.error(error);
-                }
-                break;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-        return;
-    }
-
-    /**
-     * DELETE ME Post suppression StackContext: Does not need StackContext
-     * A n'utiliser que dans des contextes attentifs à la sécu. pas de vérif de mdp ici.
-     * @param uid
-     * @returns
-     */
-    public async login_session(uid: number, session: IServerUserSession): Promise<boolean> {
-
-        try {
-            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-                // On est en readonly partout, donc on informe sur impossibilité de se connecter
-                await PushDataServerController.notify_session(
-                    session.sid,
-                    'error.global_update_blocker.activated.___LABEL___',
-                    NotificationVO.SIMPLE_ERROR
-                );
-                return false;
-            }
-
-            if (!uid) {
-                return false;
-            }
-
-            const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
-
-            if (!user) {
-                return false;
-            }
-
-            if (user.blocked) {
-                return false;
-            }
-
-            if (!user.logged_once) {
-                user.logged_once = true;
-
-                await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
-                    [field_names<UserVO>().logged_once]: user.logged_once
-                });
-            }
-
-            session.uid = user.id;
-            session.user_vo = user;
-
-            await PushDataServerController.registerSession(session);
-
-            // On stocke le log de connexion en base
-            const user_log = new UserLogVO();
-            user_log.user_id = user.id;
-            user_log.log_time = Dates.now();
-            user_log.impersonated = false;
-            user_log.referer = StackContext.get('REFERER');
-            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
-
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
-
-            await PushDataServerController.notify_user_and_redirect(session);
-
-            return true;
-        } catch (error) {
-            ConsoleHandler.error("login uid:" + uid + ":" + error);
-        }
-
-        return false;
-    }
-
-    /**
-     * A n'utiliser que dans des contextes attentifs à la sécu. pas de vérif de mdp ici.
-     * @param uid
-     * @returns
-     * @deprecated utilise StackContext que l'on souhaite supprimer. Utiliser plutôt login_session
-     */
-    public async login(uid: number): Promise<boolean> {
-
-        const session = StackContext.get('SESSION');
-
-        return this.login_session(uid, session);
-    }
-
-    public isLogedAs(): boolean {
-
-        try {
-
-            const session = StackContext.get('SESSION');
-
-            if (session && !!session.impersonated_from) {
-                return true;
-            }
-            return false;
-        } catch (error) {
-            ConsoleHandler.error(error);
-            return false;
-        }
-    }
-
-    /**
-     * Renvoie le UID de l'admin qui utilise la fonction logAs
-     *  On remonte à la racine des logas
-     */
-    public getAdminLogedUserId(): number {
-
-        try {
-
-            const session = StackContext.get('SESSION');
-
-            let impersonated_from_session = (session && session.impersonated_from) ? session.impersonated_from : null;
-
-            while (impersonated_from_session && !!impersonated_from_session.impersonated_from) {
-                impersonated_from_session = impersonated_from_session.impersonated_from;
-            }
-
-            if (impersonated_from_session && !!impersonated_from_session.uid) {
-                return impersonated_from_session.uid;
-            }
-            return null;
-        } catch (error) {
-            ConsoleHandler.error(error);
-            return null;
-        }
-    }
-
-    /**
-     * Renvoie la session de l'admin qui utilise la fonction logAs
-     */
-    public getAdminLogedUserSession(): IServerUserSession {
-
-        try {
-
-            let res = StackContext.get('SESSION');
-
-            if (!res.impersonated_from) {
-                return null;
-            }
-
-            while (res && !!res.impersonated_from) {
-                res = res.impersonated_from;
-            }
-            return res;
-        } catch (error) {
-            ConsoleHandler.error(error);
-            return null;
-        }
-    }
-
-    public getUserSession(): IServerUserSession {
-
-        try {
-
-            return StackContext.get('SESSION') as IServerUserSession;
-        } catch (error) {
-            ConsoleHandler.error(error);
-            return null;
-        }
-    }
-
     public checkAccessByRoleIds(role_ids: number[]): boolean {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!role_ids) || (!role_ids.length)) {
@@ -1505,16 +1848,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
         }
         return false;
-    }
-
-    public async delete_sessions_from_other_thread(session_to_delete_by_sids: { [sid: string]: IServerUserSession }) {
-        if (!session_to_delete_by_sids) {
-            return;
-        }
-
-        for (const sid in session_to_delete_by_sids) {
-            await this.do_delete_session(session_to_delete_by_sids[sid]);
-        }
     }
 
     private async togglePolicy(policy_id: number, role_id: number): Promise<boolean> {
@@ -1876,174 +2209,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
-    private async signinAndRedirect(nom: string, email: string, password: string, redirect_to: string): Promise<number> {
-
-        try {
-            const session = StackContext.get('SESSION');
-
-            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-                // On est en readonly partout, donc on informe sur impossibilité de se connecter
-                await PushDataServerController.notifySession(
-                    'error.global_update_blocker.activated.___LABEL___',
-                    NotificationVO.SIMPLE_ERROR
-                );
-                return null;
-            }
-
-            if (session && session.uid) {
-                await PushDataServerController.notify_user_and_redirect(session, redirect_to);
-                return session.uid;
-            }
-
-            session.uid = null;
-            session.user_vo = null;
-
-            if ((!email) || (!password) || (!nom)) {
-                return null;
-            }
-
-            let user: UserVO = await ModuleDAOServer.instance.selectOneUser(email, password);
-
-            if (user) {
-
-                if (user.invalidated) {
-
-                    await PasswordRecovery.getInstance().beginRecovery(user.email);
-
-                }
-                return null;
-            } else {
-                user = new UserVO();
-            }
-
-            user.logged_once = true;
-            user.name = nom;
-            user.password = password;
-            user.email = email;
-            user.blocked = false;
-            user.reminded_pwd_1 = false;
-            user.reminded_pwd_2 = false;
-            user.invalidated = false;
-            user.recovery_challenge = "";
-            user.phone = "";
-            user.recovery_expiration = 0;
-            user.password_change_date = Dates.now();
-            user.creation_date = Dates.now();
-
-
-            // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
-            const lang: LangVO = await query(LangVO.API_TYPE_ID).set_sort(new SortByVO(LangVO.API_TYPE_ID, field_names<LangVO>().id, true)).set_limit(1).select_vo<LangVO>();
-            user.lang_id = lang.id;
-
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
-
-            if (!user.id) {
-                throw new Error('Impossible de créer le compte');
-            }
-            session.uid = user.id;
-            session.user_vo = user;
-            await PushDataServerController.registerSession(session);
-
-            // On stocke le log de connexion en base
-            const user_log = new UserLogVO();
-            user_log.user_id = user.id;
-            user_log.log_time = Dates.now();
-            user_log.impersonated = false;
-            user_log.referer = StackContext.get('REFERER');
-            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
-
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
-            await PushDataServerController.notify_user_and_redirect(session, redirect_to);
-
-            return user.id;
-        } catch (error) {
-            ConsoleHandler.error("login:" + email + ":" + error);
-        }
-
-        return null;
-    }
-
-    private async loginAndRedirect(email: string, password: string, redirect_to: string, sso: boolean): Promise<number> {
-
-        try {
-            const session = StackContext.get('SESSION');
-
-            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-                // On est en readonly partout, donc on informe sur impossibilité de se connecter
-                await PushDataServerController.notifySession(
-                    'error.global_update_blocker.activated.___LABEL___',
-                    NotificationVO.SIMPLE_ERROR
-                );
-                return null;
-            }
-
-            if (session && session.uid) {
-                await PushDataServerController.notify_user_and_redirect(session, redirect_to, sso);
-                return session.uid;
-            }
-
-            session.uid = null;
-            session.user_vo = null;
-
-            if ((!email) || (!password)) {
-                return null;
-            }
-
-            let user: UserVO = null;
-
-            if (AccessPolicyServerController.hook_user_login) {
-                user = await AccessPolicyServerController.hook_user_login(email, password);
-            } else {
-                user = await ModuleDAOServer.instance.selectOneUser(email, password);
-            }
-
-            if (!user) {
-                return null;
-            }
-
-            if (user.blocked) {
-                return null;
-            }
-
-            if (user.invalidated) {
-
-                // Si le mot de passe est invalidé on refuse la connexion mais on envoie aussi un mail pour récupérer le mot de passe si on l'a pas déjà envoyé
-                // if ((!user.recovery_expiration) || (user.recovery_expiration<=Dates.now())) {
-                await PasswordRecovery.getInstance().beginRecovery(user.email);
-                // }
-                return null;
-            }
-
-            if (!user.logged_once) {
-                user.logged_once = true;
-                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
-            }
-
-            session.uid = user.id;
-            session.user_vo = user;
-
-            await PushDataServerController.registerSession(session);
-
-            // On stocke le log de connexion en base
-            const user_log = new UserLogVO();
-            user_log.user_id = user.id;
-            user_log.log_time = Dates.now();
-            user_log.impersonated = false;
-            user_log.referer = StackContext.get('REFERER');
-            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
-
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
-
-            await PushDataServerController.notify_user_and_redirect(session, redirect_to, sso);
-
-            return user.id;
-        } catch (error) {
-            ConsoleHandler.error("login:" + email + ":" + error);
-        }
-
-        return null;
-    }
-
     private async impersonate(uid: number): Promise<number> {
 
         if (!uid) {
@@ -2057,66 +2222,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return null;
-    }
-
-    /**
-     * @param context_query la requete qui permet de récupérer le user à impersonate
-     * @returns l'id de l'utilisateur qui a été impersoné
-     */
-    private async do_impersonate(context_query: ContextQueryVO): Promise<number> {
-        const session = StackContext.get('SESSION');
-        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-
-        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-            // On est en readonly partout, donc on informe sur impossibilité de se connecter
-            await PushDataServerController.notifySimpleERROR(
-                StackContext.get('UID'),
-                StackContext.get('CLIENT_TAB_ID'),
-                'error.global_update_blocker.activated.___LABEL___'
-            );
-            return null;
-        }
-
-        if ((!session) || (!session.uid)) {
-            return null;
-        }
-
-        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
-            return null;
-        }
-
-        const user: UserVO = await context_query.select_vo<UserVO>();
-
-        if (!user) {
-            return null;
-        }
-
-        if (user.blocked || user.invalidated || user.archived) {
-            ConsoleHandler.error("impersonate:blocked or invalidated or archived");
-            context_query.log(true);
-            await PushDataServerController.notifySimpleERROR(session.uid, CLIENT_TAB_ID, 'Impossible de se connecter avec un compte bloqué, invalidé ou archivé', true);
-            return null;
-        }
-
-        session.impersonated_from = Object.assign({}, session);
-        session.uid = user.id;
-        session.user_vo = user;
-
-        await PushDataServerController.registerSession(session);
-
-        // On stocke le log de connexion en base
-        const user_log = new UserLogVO();
-        user_log.user_id = user.id;
-        user_log.log_time = Dates.now();
-        user_log.referer = StackContext.get('REFERER');
-        user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
-        user_log.handle_impersonation(session);
-
-        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
-
-        await PushDataServerController.notify_user_and_redirect(session);
-
-        return user.id;
     }
 
     private async impersonateLogin(email: string, password: string, redirect_to: string): Promise<number> {
@@ -2327,70 +2432,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      */
     private async delete_session(req: Request) {
 
-        return this.do_delete_session(req.session as IServerUserSession);
-    }
-
-    /**
-     * DELETE ME Post suppression StackContext: Does not need StackContext
-     */
-    private async do_delete_session(session: IServerUserSession) {
-
-        /**
-         * On veut supprimer la session et déconnecter tout le monde
-         */
-        let user_log = null;
-
-        if (!session) {
-            return;
-        }
-
-        if (session && session.uid) {
-            const uid: number = session.uid;
-
-            // On stocke le log de connexion en base
-            user_log = new UserLogVO();
-            user_log.user_id = uid;
-            user_log.log_time = Dates.now();
-            user_log.referer = null;
-            user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
-            user_log.handle_impersonation(session);
-
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
-        }
-
-        /**
-         * Gestion du impersonate => dans le cas présent on logout aussi le compte principal
-         */
-        while (session && !!session.impersonated_from) {
-
-            await ConsoleHandler.log('unregisterSession:delete_session:impersonated_from:uid:' + session.uid);
-            await PushDataServerController.unregisterSession(session, false);
-
-            session = Object.assign(session, session.impersonated_from);
-            // delete session.impersonated_from;
-
-            const uid: number = session.uid;
-
-            // On stocke le log de connexion en base
-            user_log = new UserLogVO();
-            user_log.user_id = uid;
-            user_log.log_time = Dates.now();
-            user_log.referer = null;
-            user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
-            user_log.handle_impersonation(session);
-
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
-        }
-
-        await ConsoleHandler.log('unregisterSession:delete_session:uid:' + session.uid);
-        await PushDataServerController.unregisterSession(session, true);
-
-        session.uid = null;
-        session.user_vo = null;
-        session.destroy((err) => {
-            if (err) {
-                ConsoleHandler.log(err);
-            }
-        });
+        return this.do_delete_session((req.session as IServerUserSession)?.sid);
     }
 }

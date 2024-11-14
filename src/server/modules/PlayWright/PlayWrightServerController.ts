@@ -190,7 +190,7 @@ export default abstract class PlayWrightServerController {
         if (ConfigurationService.node_configuration.debug_playwright_controller) {
             ConsoleHandler.log('PlayWrightServerController: logging in test_user.id: ' + test_user.id);
         }
-        await ModuleAccessPolicyServer.getInstance().login_session(test_user.id, req.session as IServerUserSession);
+        await ModuleAccessPolicyServer.getInstance().login_sid(test_user.id, (req.session as IServerUserSession)?.sid);
     }
 
     public abstract setup(): Promise<string>;

@@ -1,5 +1,7 @@
 import pg_promise, { IDatabase } from 'pg-promise';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import EventsController from '../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
@@ -16,14 +18,15 @@ import EnvParam from '../../env/EnvParam';
 import ServerAPIController from '../API/ServerAPIController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
+import { EVENT_NAME_ForkServerController_ready } from '../BGThread/annotations/RunsOnMainThread';
 import CronServerController from '../Cron/CronServerController';
 import DBDisconnectionServerHandler from '../DAO/disconnection/DBDisconnectionServerHandler';
 import ModuleServiceBase from '../ModuleServiceBase';
+import PushDataServerController from '../PushData/PushDataServerController';
 import StatsServerController from '../Stats/StatsServerController';
 import ForkMessageController from './ForkMessageController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
-import PushDataServerController from '../PushData/PushDataServerController';
 
 export default abstract class ForkedProcessWrapperBase {
 
@@ -48,6 +51,8 @@ export default abstract class ForkedProcessWrapperBase {
         ModulesManager.initialize();
 
         ForkedProcessWrapperBase.instance = this;
+        EventsController.emit_event(EventifyEventInstanceVO.new_event(EVENT_NAME_ForkServerController_ready));
+
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);

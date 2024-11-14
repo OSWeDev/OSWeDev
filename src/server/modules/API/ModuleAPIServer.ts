@@ -135,14 +135,12 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
             // if (api.needs_response_param) {
             //     api_res = await this.exec_api(
-            // api.api_name,
-            //     req.session as IServerUserSession,
-            //     req.method,
-            //     req.body,
-            //     req.headers,
-            //     req.params,
+            //         api.api_name,
             //         req.session as IServerUserSession,
-            //         req,
+            //         req.method,
+            //         req.body,
+            //         req.headers,
+            //         req.params,
             //         do_notif_result,
             //         notif_result_uid,
             //         notif_result_tab_id,
@@ -291,7 +289,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 session: session,
             } as unknown as Request;
             returnvalue = await StackContext.runPromise(
-                await ServerExpressController.getInstance().getStackContextFromReq(req, session, true),
+                await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => {
                     if (has_params && params && params.length) {
                         return api.SERVER_HANDLER(...params, req, res);

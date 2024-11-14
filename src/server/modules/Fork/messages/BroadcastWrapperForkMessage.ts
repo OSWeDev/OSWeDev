@@ -14,7 +14,7 @@ export default class BroadcastWrapperForkMessage implements IForkMessage {
 
     public except_self(): BroadcastWrapperForkMessage {
         this.ignore_sender = true;
-        this.sender_uid = ForkedProcessWrapperBase.getInstance().process_UID;
+        this.sender_uid = ForkedProcessWrapperBase.instance?.process_UID;
         return this;
     }
 }

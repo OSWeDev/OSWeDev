@@ -1267,19 +1267,11 @@ export default class AccessPolicyServerController {
                 'ignore_role_policy:' + JSON.stringify(ignore_role_policy) + ':'
             );
 
-
-            // TODO FIXME On change pour une invalidation qui utilise le uid, qu'on a donc forcément, et on invalide toutes les sessions de cet uid.
-
-            // // On ajoute la session au bgthread d'invalidation si on a un sid
-            // // TODO FIXME : Attention avec les modifs d'api dans le bgthread des apis, on a pas d'objet session nécessairement ici, alors qu'on pourrait avoir un SID
-            // //  Donc c'est un peu dommage de pas adapter l'invalidation à l'usage du SID. On traine moins d'infos et on couvre plus de cas...
-            const session: IServerUserSession = StackContext.get('SESSION');
-            if (session && session.sid) {
-                ForkedTasksController.exec_self_on_bgthread(
-                    AccessPolicyDeleteSessionBGThread.getInstance().name,
-                    AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids,
-                    session
-                ).then().catch((error) => ConsoleHandler.error(error));
+            // On ajoute la session au bgthread d'invalidation si on a un sid
+            // La dépendance au stackcontext est complexe à résoudre à ce niveau... va falloir y réfléchir
+            const sid: string = StackContext.get('SID');
+            if (sid) {
+                AccessPolicyDeleteSessionBGThread.getInstance().push_sid_to_delete(sid).then().catch((error) => ConsoleHandler.error(error));
             }
         }
         return false;

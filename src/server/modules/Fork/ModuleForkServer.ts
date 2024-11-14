@@ -22,6 +22,7 @@ import PingForkACKMessage from './messages/PingForkACKMessage';
 import PingForkMessage from './messages/PingForkMessage';
 import ReloadAsapForkMessage from './messages/ReloadAsapForkMessage';
 import TaskResultForkMessage from './messages/TaskResultForkMessage';
+import StackContext from '../../StackContext';
 
 export default class ModuleForkServer extends ModuleServerBase {
 
@@ -67,7 +68,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         }
         ConsoleHandler.error("Received KILL SIGN from parent - Before KILL inform parent thread to reload thread asap");
         await ForkMessageController.send(
-            new ReloadAsapForkMessage().set_message_content(ForkedProcessWrapperBase.getInstance().process_UID)
+            new ReloadAsapForkMessage().set_message_content(ForkedProcessWrapperBase.instance?.process_UID)
         );
         ConsoleHandler.error("Received KILL SIGN from parent - KILL");
         process.exit();
@@ -127,7 +128,11 @@ export default class ModuleForkServer extends ModuleServerBase {
 
         let res;
         try {
-            res = await ForkedTasksController.registered_tasks[msg.message_content](...msg.message_content_params);
+            // On propage le StackContext
+            res = await StackContext.runPromise(
+                msg.stack_context,
+                async () => ForkedTasksController.registered_tasks[msg.message_content](...msg.message_content_params)
+            );
         } catch (error) {
             ConsoleHandler.error('handle_mainprocesstask_message:' + error);
         }
@@ -175,7 +180,12 @@ export default class ModuleForkServer extends ModuleServerBase {
                 }
                 resolve(res);
             };
-            await ForkedTasksController.exec_self_on_bgthread_and_return_value(thrower, msg.bgthread, msg.message_content, resolver, ...msg.message_content_params);
+
+            // On propage le StackContext
+            await StackContext.runPromise(
+                msg.stack_context,
+                async () => ForkedTasksController.exec_self_on_bgthread_and_return_value(thrower, msg.bgthread, msg.message_content, resolver, ...msg.message_content_params)
+            );
         });
     }
 
@@ -204,7 +214,13 @@ export default class ModuleForkServer extends ModuleServerBase {
 
         let res;
         try {
-            res = await ForkedTasksController.registered_tasks[msg.message_content](...msg.message_content_params);
+
+            // On propage le StackContext
+            res = await StackContext.runPromise(
+                msg.stack_context,
+                async () => ForkedTasksController.registered_tasks[msg.message_content](...msg.message_content_params)
+            );
+
         } catch (error) {
             ConsoleHandler.error('handle_bgthreadprocesstask_message:' + error);
         }

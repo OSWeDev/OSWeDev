@@ -56,11 +56,12 @@ import StatsServerController from './modules/Stats/StatsServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 // import { createTerminus } from '@godaddy/terminus';
 import { IClient } from 'pg-promise/typescript/pg-subset';
+import EventsController from '../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
 import { field_names } from '../shared/tools/ObjectHandler';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
-import ServerExpressController from './ServerExpressController';
-import StackContext from './StackContext';
+import { EVENT_NAME_ForkServerController_ready } from './modules/BGThread/annotations/RunsOnMainThread';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
 import ForkMessageController from './modules/Fork/ForkMessageController';
 import IFork from './modules/Fork/interfaces/IFork';
@@ -101,6 +102,7 @@ export default abstract class ServerBase {
     protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
         ModulesManager.initialize();
+        EventsController.emit_event(EventifyEventInstanceVO.new_event(EVENT_NAME_ForkServerController_ready));
 
         ForkedTasksController.init();
         ForkedTasksController.assert_is_main_process();
@@ -655,7 +657,9 @@ export default abstract class ServerBase {
                 if (sid) {
                     req.session.sid = sid;
                 }
-            } catch (error) { }
+            } catch (error) {
+                //
+            }
             next();
         });
         // /**
@@ -735,7 +739,7 @@ export default abstract class ServerBase {
                         if (!this.check_session_validity(session)) {
                             await ConsoleHandler.warn('unregisterSession:!check_session_validity:UID:' + session.uid);
 
-                            await PushDataServerController.unregisterSession(session);
+                            await PushDataServerController.unregisterSession(session.sid);
                             session.destroy(async () => {
                                 await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
                             });
@@ -757,7 +761,7 @@ export default abstract class ServerBase {
 
                         await ConsoleHandler.warn('unregisterSession:last_check_blocked_or_expired:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
 
-                        await PushDataServerController.unregisterSession(session);
+                        await PushDataServerController.unregisterSession(session.sid);
                         session.destroy(async () => {
                             await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
                         });
@@ -1076,7 +1080,7 @@ export default abstract class ServerBase {
 
                     await ConsoleHandler.warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
 
-                    await PushDataServerController.unregisterSession(session);
+                    await PushDataServerController.unregisterSession(session.sid);
                     session.destroy(async () => {
                         await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
                     });
@@ -1111,7 +1115,7 @@ export default abstract class ServerBase {
 
         this.app.get('/logout', async (req, res) => {
 
-            const err = await ModuleAccessPolicyServer.getInstance().logout_session(req.session);
+            const err = await ModuleAccessPolicyServer.getInstance().logout_sid(req.session);
 
             // await ThreadHandler.sleep(1000);
             // res.redirect('/');
