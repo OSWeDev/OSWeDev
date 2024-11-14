@@ -339,7 +339,7 @@ export default class ContextQueryServerController {
         for (const i in query_res) {
             const row = query_res[i];
 
-            if (row && row[label_replacement]) {
+            if (row && (row[label_replacement] != null)) {
                 row['label'] = row[label_replacement];
                 row['label' + '__raw'] = row[label_replacement];
                 delete row[label_replacement];
