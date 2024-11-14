@@ -19,6 +19,10 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import TaskResultForkMessage from './messages/TaskResultForkMessage';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import ArrayHandler from '../../../shared/tools/ArrayHandler';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 
 export default class ForkMessageController {
 
@@ -133,7 +137,7 @@ export default class ForkMessageController {
             StatsController.register_stat_COMPTEUR('ForkMessageController', 'send', msg.message_content);
         }
 
-        msg = APIControllerWrapper.try_translate_vo_to_api(msg);
+        // msg = APIControllerWrapper.try_translate_vo_to_api(msg);
 
         if ((!send_handle) || (!send_handle.postMessage)) {
             ConsoleHandler.error('ForkMessageController.send: send_handle is not connected - aborting send');
@@ -184,6 +188,21 @@ export default class ForkMessageController {
         if (ForkMessageController.stacked_msg_waiting && ForkMessageController.stacked_msg_waiting.length) {
             ForkMessageController.throttled_retry();
         }
+    }
+
+    /**
+     * On prend le contenu du message, et on applique les prototypes des objets qui ont été perdus lors du passage par le message
+     * @param msg
+     */
+    public static reapply_prototypes_on_msg(msg: IForkMessage): IForkMessage {
+
+        if ((!msg) || (!msg.message_content)) {
+            return msg;
+        }
+
+        msg.message_content = ObjectHandler.reapply_prototypes(msg.message_content);
+
+        return msg;
     }
 
     private static async handle_send_error(msg_wrapper: IForkMessageWrapper, error: Error) {

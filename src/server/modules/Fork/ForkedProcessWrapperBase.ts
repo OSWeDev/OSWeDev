@@ -184,7 +184,7 @@ export default abstract class ForkedProcessWrapperBase {
         CronServerController.getInstance().server_ready = true;
 
         parentPort.on('message', async (msg: IForkMessage) => {
-            msg = APIControllerWrapper.try_translate_vo_from_api(msg);
+            msg = ForkMessageController.reapply_prototypes_on_msg(msg);
             await ForkMessageController.message_handler(msg, parentPort);
         });
 

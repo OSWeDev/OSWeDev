@@ -36,6 +36,35 @@ export const reflect: <T>(obj?: T) => { [P in keyof T]?: P } = <T>(obj?: T): { [
 
 export default class ObjectHandler {
 
+    /**
+     * On prend le contenu du message, et on applique les prototypes des objets qui ont été perdus lors du passage par le message
+     * @param msg
+     */
+    public static reapply_prototypes<T extends unknown | unknown[]>(e: T): T {
+
+        if (Array.isArray(e)) {
+            return e.map((e) => this.reapply_prototypes(e)) as T;
+        }
+
+        if (!e) {
+            return e;
+        }
+
+        if (typeof e != 'object') {
+            return e;
+        }
+
+        // Pas un vo
+        if (!e['_type']) {
+            for (const i in e) {
+                e[i] = this.reapply_prototypes(e[i]);
+            }
+            return e;
+        }
+
+        return Object.assign(new ModuleTableController.vo_constructor_by_vo_type[e['_type']](), e);
+    }
+
     public static try_get_json(e: any): any {
         try {
             return (e && (typeof e === 'string') && (

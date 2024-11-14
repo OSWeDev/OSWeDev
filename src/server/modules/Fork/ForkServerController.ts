@@ -122,7 +122,7 @@ export default class ForkServerController {
             }
 
             forked.worker.on('message', async (msg: IForkMessage) => {
-                msg = APIControllerWrapper.try_translate_vo_from_api(msg);
+                msg = ForkMessageController.reapply_prototypes_on_msg(msg);
                 await ForkMessageController.message_handler(msg, forked.worker);
             });
 
