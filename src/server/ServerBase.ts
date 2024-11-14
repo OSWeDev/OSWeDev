@@ -410,6 +410,7 @@ export default abstract class ServerBase {
 
         // !JNE : Ajout du header no cache sur les requetes gérées par express
 
+
         /**
          * On tente de récupérer un ID unique de session en request, et si on en trouve, on essaie de charger la session correspondante
          * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
@@ -470,6 +471,19 @@ export default abstract class ServerBase {
         });
         this.app.use(this.session);
 
+        this.app.use(function (req, res, next) {
+            // TODO JNE - A DISCUTER
+            try {
+                const sid = res.req.cookies['sid'];
+
+                if (sid) {
+                    req.session.sid = sid;
+                }
+            } catch (error) {
+                //
+            }
+            next();
+        });
 
         /**
          * On ajoute un contrôle de la version du client et si il se co avec une version trop ancienne on lui demande de reload
@@ -649,19 +663,6 @@ export default abstract class ServerBase {
         });
 
 
-        this.app.use(function (req, res, next) {
-            // TODO JNE - A DISCUTER
-            try {
-                const sid = res.req.cookies['sid'];
-
-                if (sid) {
-                    req.session.sid = sid;
-                }
-            } catch (error) {
-                //
-            }
-            next();
-        });
         // /**
         //  * Seconde option pour tenter de récupérer le session share
         //  *  cf: https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
@@ -724,6 +725,10 @@ export default abstract class ServerBase {
             if (req && !!req.session) {
                 session = req.session;
 
+                if (!!session) {
+                    await PushDataServerController.registerSession(session);
+                }
+
                 if (!session.returning) {
                     // session was just created
                     session.returning = true;
@@ -767,8 +772,6 @@ export default abstract class ServerBase {
                         });
                     }
                 }
-
-                await PushDataServerController.registerSession(session);
 
                 if (MaintenanceServerController.getInstance().has_planned_maintenance) {
                     await MaintenanceServerController.getInstance().inform_user_on_request(session.uid);

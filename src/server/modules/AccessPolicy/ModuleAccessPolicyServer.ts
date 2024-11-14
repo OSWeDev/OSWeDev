@@ -311,7 +311,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             session.uid = user.id;
             session.user_vo = user;
             session.save((error) => {
-                ConsoleHandler.error('ModuleAccessPolicyServer.login_session:session.save:' + error);
+                if (error) {
+                    ConsoleHandler.error('ModuleAccessPolicyServer.login_session:session.save:' + error);
+                }
             });
 
             await PushDataServerController.registerSession(session);
