@@ -295,24 +295,34 @@ export default abstract class ServerBase {
         /**
          * STATICS
          */
-        this.app.use('/public', express.static('dist/public'));
+        const cache_duration = 90 * 24 * 60 * 60 * 1000; // 90 jours
 
-        this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), express.static(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '')));
+        // Cache sur le public
+        this.app.use('/public', express.static('dist/public', {
+            maxAge: cache_duration
+        }));
 
-        // Pour activation auto let's encrypt
+        // Cache sur les files
+        this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), express.static(ModuleFile.FILES_ROOT.replace(/^[.][/]/, ''), {
+            maxAge: cache_duration
+        }));
+
+        // Pour activation auto let's encrypt - pas de cache
         this.app.use('/.well-known', express.static('.well-known'));
 
         /**
-         * Pour le DEBUG en local
+         * Pour le DEBUG en local - pas de cache
          */
         if (ConfigurationService.node_configuration.isdev) {
             this.app.use('/node_modules/oswedev/src/', express.static('../oswedev/src/'));
         }
 
+        // A priori à supprimer....
         this.app.use('/js', express.static('client/js'));
         this.app.use('/css', express.static('client/css'));
         this.app.use('/temp', express.static('temp'));
         this.app.use('/admin/temp', express.static('temp'));
+        /// .........
 
         /**
          * !STATICS
