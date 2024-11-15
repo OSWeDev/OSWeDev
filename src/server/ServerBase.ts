@@ -292,9 +292,31 @@ export default abstract class ServerBase {
         // this.app.use('/login/public/', express.static('dist/public/login/'));
         // this.app.use('/vuejsclient/public/', express.static('dist/public/vuejsclient/'));
 
+        /**
+         * STATICS
+         */
         this.app.use('/public', express.static('dist/public'));
 
         this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), express.static(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '')));
+
+        // Pour activation auto let's encrypt
+        this.app.use('/.well-known', express.static('.well-known'));
+
+        /**
+         * Pour le DEBUG en local
+         */
+        if (ConfigurationService.node_configuration.isdev) {
+            this.app.use('/node_modules/oswedev/src/', express.static('../oswedev/src/'));
+        }
+
+        this.app.use('/js', express.static('client/js'));
+        this.app.use('/css', express.static('client/css'));
+        this.app.use('/temp', express.static('temp'));
+        this.app.use('/admin/temp', express.static('temp'));
+
+        /**
+         * !STATICS
+         */
 
         const responseTime = require('response-time');
 
@@ -401,21 +423,17 @@ export default abstract class ServerBase {
             default: this.envParam.default_locale
         }));
 
-        // JNE : Ajout du header no cache sur les requetes gérées par express
-        this.app.use(
-            (req, res, next) => {
-                res.setHeader("cache-control", "no-cache");
-                return next();
-            });
 
-        // !JNE : Ajout du header no cache sur les requetes gérées par express
+        this.app.use((req, res: Response, next) => {
 
+            // JNE : Ajout du header no cache sur les requetes gérées par express
+            res.setHeader("cache-control", "no-cache");
+            // !JNE : Ajout du header no cache sur les requetes gérées par express
 
-        /**
-         * On tente de récupérer un ID unique de session en request, et si on en trouve, on essaie de charger la session correspondante
-         * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
-         */
-        this.app.use(function getSessionViaQuerystring(req, res: Response, next) {
+            /**
+             * On tente de récupérer un ID unique de session en request, et si on en trouve, on essaie de charger la session correspondante
+             * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
+             */
             const sessionid = req.query.sessionid;
             if (!sessionid) {
                 next();
@@ -471,8 +489,7 @@ export default abstract class ServerBase {
         });
         this.app.use(this.session);
 
-        this.app.use(function (req, res, next) {
-            // TODO JNE - A DISCUTER
+        this.app.use(async (req, res, next) => {
             try {
                 const sid = res.req.cookies['sid'];
 
@@ -482,31 +499,27 @@ export default abstract class ServerBase {
             } catch (error) {
                 //
             }
-            next();
-        });
 
-        /**
-         * On ajoute un contrôle de la version du client et si il se co avec une version trop ancienne on lui demande de reload
-         */
-        this.app.use(
-            async (req, res, next) => {
 
-                if (req.headers.version) {
-                    const client_version = req.headers.version;
-                    const server_version = this.getVersion();
+            /**
+             * On ajoute un contrôle de la version du client et si il se co avec une version trop ancienne on lui demande de reload
+             */
+            if (req.headers.version) {
+                const client_version = req.headers.version;
+                const server_version = this.getVersion();
 
-                    if (client_version != server_version) {
+                if (client_version != server_version) {
 
-                        const server_app_version_timestamp_str: string = server_version.split('-')[1];
-                        const server_app_version_timestamp: number = server_app_version_timestamp_str?.length ? parseInt(server_app_version_timestamp_str) : null;
+                    const server_app_version_timestamp_str: string = server_version.split('-')[1];
+                    const server_app_version_timestamp: number = server_app_version_timestamp_str?.length ? parseInt(server_app_version_timestamp_str) : null;
 
-                        const local_app_version_timestamp_str: string = client_version.split('-')[1];
-                        const local_app_version_timestamp: number = local_app_version_timestamp_str?.length ? parseInt(local_app_version_timestamp_str) : null;
+                    const local_app_version_timestamp_str: string = client_version.split('-')[1];
+                    const local_app_version_timestamp: number = local_app_version_timestamp_str?.length ? parseInt(local_app_version_timestamp_str) : null;
 
-                        if (server_app_version_timestamp && local_app_version_timestamp && (local_app_version_timestamp > server_app_version_timestamp)) {
-                            return next();
-                        }
+                    // if (server_app_version_timestamp && local_app_version_timestamp && (local_app_version_timestamp > server_app_version_timestamp)) {
+                    // } else {
 
+                    if ((!server_app_version_timestamp) || (!local_app_version_timestamp) || (local_app_version_timestamp <= server_app_version_timestamp)) {
                         ConsoleHandler.log("[CLIENT]:" + client_version + " != " + server_version);
 
                         const uid = req.session ? req.session.uid : null;
@@ -523,51 +536,18 @@ export default abstract class ServerBase {
                         return;
                     }
                 }
+            }
 
-                return next();
-            });
+            // On rajoute un middleware pour stocker l'info de la last use tab_id par user
+            const uid = req.session ? req.session.uid : null;
+            const client_tab_id = req.headers ? req.headers.client_tab_id : null;
 
-        // On rajoute un middleware pour stocker l'info de la last use tab_id par user
-        this.app.use(
-            async (req, res, next) => {
-                const uid = req.session ? req.session.uid : null;
-                const client_tab_id = req.headers ? req.headers.client_tab_id : null;
-
-                if (!uid || !client_tab_id) {
-                    return next();
-                }
-
+            if (uid && client_tab_id) {
                 PushDataServerController.last_known_tab_id_by_user_id[uid] = client_tab_id;
-                return next();
-            });
+            }
 
-        if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ServerExpressController:express:END');
-        }
 
-        this.hook_configure_express();
-
-        if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ServerExpressController:hook_pwa_init:START');
-        }
-        await this.hook_pwa_init();
-        if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ServerExpressController:hook_pwa_init:END');
-        }
-
-        if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ServerExpressController:registerApis:START');
-        }
-        this.registerApis(this.app);
-        if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ServerExpressController:registerApis:END');
-        }
-
-        // Pour activation auto let's encrypt
-        this.app.use('/.well-known', express.static('.well-known'));
-
-        // Middleware pour définir dynamiquement les en-têtes X-Frame-Options
-        this.app.use((req, res, next) => {
+            // Middleware pour définir dynamiquement les en-têtes X-Frame-Options
             let origin = req.get('Origin');
             if ((!origin) || !(origin.length)) {
                 origin = req.get('Referer');
@@ -595,15 +575,88 @@ export default abstract class ServerBase {
                 }
             }
 
+            // allow cors
+            res.header('Access-Control-Allow-Credentials', 'true');
+            res.header('Access-Control-Allow-Origin', (req.headers.origin ? req.headers.origin.toString() : ""));
+            res.header('Access-Control-Allow-Methods', 'OPTIONS,GET,PUT,POST,DELETE');
+            res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
+
             next();
         });
 
-        /**
-         * Pour le DEBUG en local
-         */
-        if (ConfigurationService.node_configuration.isdev) {
-            this.app.use('/node_modules/oswedev/src/', express.static('../oswedev/src/'));
+
+
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ServerExpressController:express:END');
         }
+
+        this.hook_configure_express();
+
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ServerExpressController:hook_pwa_init:START');
+        }
+        await this.hook_pwa_init();
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ServerExpressController:hook_pwa_init:END');
+        }
+
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ServerExpressController:registerApis:START');
+        }
+        this.registerApis(this.app);
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ServerExpressController:registerApis:END');
+        }
+
+        /**
+         * Pas trouvé à faire une route récursive propre, on limite à 5 sous-reps
+         */
+        this.app.use(ModuleFile.SECURED_FILES_ROOT.replace(/^[.][/]/, '/') + '(:folder1/)?(:folder2/)?(:folder3/)?(:folder4/)?(:folder5/)?:file_name', async (req: Request, res: Response, next: NextFunction) => {
+
+            const folders = (req.params.folder1 ? req.params.folder1 + '/' + (
+                req.params.folder2 ? req.params.folder2 + '/' + (
+                    req.params.folder3 ? req.params.folder3 + '/' + (
+                        req.params.folder4 ? req.params.folder4 + '/' + (
+                            req.params.folder5 ? req.params.folder5 + '/' : ''
+                        ) : ''
+                    ) : ''
+                ) : ''
+            ) : '');
+            const file_name = req.params.file_name;
+
+            if (file_name.indexOf(';') >= 0) {
+                next();
+                return;
+            }
+
+            if (file_name.indexOf(')') >= 0) {
+                next();
+                return;
+            }
+
+            if (file_name.indexOf("'") >= 0) {
+                next();
+                return;
+            }
+
+            const session: IServerUserSession = req.session as IServerUserSession;
+            let file: FileVO = null;
+            let has_access: boolean = false;
+
+            file = await query(FileVO.API_TYPE_ID)
+                .filter_is_true(field_names<FileVO>().is_secured)
+                .filter_by_text_eq(field_names<FileVO>().path, ModuleFile.SECURED_FILES_ROOT + folders + file_name)
+                .exec_as_server()
+                .select_vo<FileVO>();
+            has_access = (file && file.file_access_policy_name) ? AccessPolicyServerController.check_access_sync(file.file_access_policy_name, true, session.uid) : false;
+
+            if (!has_access) {
+
+                await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
+                return;
+            }
+            res.sendFile(path.resolve(file.path));
+        });
 
         // Use this instead
         // this.app.get('/public/*', async (req, res, next) => {
@@ -653,14 +706,6 @@ export default abstract class ServerBase {
         //         store: new FileStore()
         //     })
         // );
-        // allow cors
-        this.app.use((req, res, next) => {
-            res.header('Access-Control-Allow-Credentials', 'true');
-            res.header('Access-Control-Allow-Origin', (req.headers.origin ? req.headers.origin.toString() : ""));
-            res.header('Access-Control-Allow-Methods', 'OPTIONS,GET,PUT,POST,DELETE');
-            res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
-            next();
-        });
 
 
         // /**
@@ -849,89 +894,36 @@ export default abstract class ServerBase {
                 return res.sendFile(path.resolve(formatted_image.formatted_src));
             }
 
+            /**
+             * On ajoute un comportement pour pouvoir rediriger correctement après un login par exemple
+             * et de manière plus générale on fourni une URL sans fragment à toutes les urls fragmentées
+             * en faisant une redirection temporaire de /f/[...] vers /#/[...]
+             */
+            if (req.url.indexOf('/f/') >= 0) {
+                // req.session.last_fragmented_url = req.url;
+                // à creuser mais si on stocke ici en session, ça pose des pbs ensuite quand on logas, ... et je suppode que le /f/ résoud le pb en fait directement donc j'aurai tendance à voir si on peut pas le supprimer tout simplement...
+
+                if (ConfigurationService.node_configuration.log_login_redirects) {
+                    ConsoleHandler.log('ServerBase:redirect_login_or_home:redirecting:' + req.url + ' to ' + req.url.replace(/\/f\//, '/#/'));
+                }
+
+                res.redirect(307, req
+                    .url
+                    .replace(/\/f\//, '/#/'));
+
+                if (!req.session) {
+                    ConsoleHandler.error('ServerBase:redirect_login_or_home:No session');
+                    return;
+                }
+
+                return;
+            }
+
             next();
         });
 
 
-        /**
-         * On ajoute un comportement pour pouvoir rediriger correctement après un login par exemple
-         * et de manière plus générale on fourni une URL sans fragment à toutes les urls fragmentées
-         * en faisant une redirection temporaire de /f/[...] vers /#/[...]
-         */
-        this.app.use(
-            async (req, res, next) => {
-                if (req.url.indexOf('/f/') >= 0) {
-                    // req.session.last_fragmented_url = req.url;
-                    // à creuser mais si on stocke ici en session, ça pose des pbs ensuite quand on logas, ... et je suppode que le /f/ résoud le pb en fait directement donc j'aurai tendance à voir si on peut pas le supprimer tout simplement...
 
-                    if (ConfigurationService.node_configuration.log_login_redirects) {
-                        ConsoleHandler.log('ServerBase:redirect_login_or_home:redirecting:' + req.url + ' to ' + req.url.replace(/\/f\//, '/#/'));
-                    }
-
-                    res.redirect(307, req
-                        .url
-                        .replace(/\/f\//, '/#/'));
-
-                    if (!req.session) {
-                        ConsoleHandler.error('ServerBase:redirect_login_or_home:No session');
-                        return;
-                    }
-
-                    return;
-                }
-                next();
-            }
-        );
-
-        /**
-         * Pas trouvé à faire une route récursive propre, on limite à 5 sous-reps
-         */
-        this.app.use(ModuleFile.SECURED_FILES_ROOT.replace(/^[.][/]/, '/') + '(:folder1/)?(:folder2/)?(:folder3/)?(:folder4/)?(:folder5/)?:file_name', async (req: Request, res: Response, next: NextFunction) => {
-
-            const folders = (req.params.folder1 ? req.params.folder1 + '/' + (
-                req.params.folder2 ? req.params.folder2 + '/' + (
-                    req.params.folder3 ? req.params.folder3 + '/' + (
-                        req.params.folder4 ? req.params.folder4 + '/' + (
-                            req.params.folder5 ? req.params.folder5 + '/' : ''
-                        ) : ''
-                    ) : ''
-                ) : ''
-            ) : '');
-            const file_name = req.params.file_name;
-
-            if (file_name.indexOf(';') >= 0) {
-                next();
-                return;
-            }
-
-            if (file_name.indexOf(')') >= 0) {
-                next();
-                return;
-            }
-
-            if (file_name.indexOf("'") >= 0) {
-                next();
-                return;
-            }
-
-            const session: IServerUserSession = req.session as IServerUserSession;
-            let file: FileVO = null;
-            let has_access: boolean = false;
-
-            file = await query(FileVO.API_TYPE_ID)
-                .filter_is_true(field_names<FileVO>().is_secured)
-                .filter_by_text_eq(field_names<FileVO>().path, ModuleFile.SECURED_FILES_ROOT + folders + file_name)
-                .exec_as_server()
-                .select_vo<FileVO>();
-            has_access = (file && file.file_access_policy_name) ? AccessPolicyServerController.check_access_sync(file.file_access_policy_name, true, session.uid) : false;
-
-            if (!has_access) {
-
-                await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
-                return;
-            }
-            res.sendFile(path.resolve(file.path));
-        });
 
         // On préload les droits / users / groupes / deps pour accélérer le démarrage
         if (ConfigurationService.node_configuration.debug_start_server) {
@@ -982,14 +974,16 @@ export default abstract class ServerBase {
                 }
             }
         }
-        const i18nextInit = I18nextInit.getInstance(locales_corrected);
-        LocaleManager.getInstance().i18n = i18nextInit.i18next;
-        this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
-            ignoreRoutes: ["/public"]
-        }));
-        if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:END');
-        }
+
+        // TODO FIXME à vérifier !!! JNE : On ne charge plus i18next coté serveur
+        // const i18nextInit = I18nextInit.getInstance(locales_corrected);
+        // LocaleManager.getInstance().i18n = i18nextInit.i18next;
+        // this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
+        //     ignoreRoutes: ["/public"]
+        // }));
+        // if (ConfigurationService.node_configuration.debug_start_server) {
+        //     ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:END');
+        // }
 
         this.app.get('/', async (req: Request, res: Response) => {
 
@@ -1034,32 +1028,6 @@ export default abstract class ServerBase {
             }
             res.sendFile(path.resolve('./dist/public/admin.html'));
         });
-
-        // // Accès aux logs iisnode
-        // this.app.get('/iisnode/:file_name', async (req: Request, res) => {
-
-        //     const file_name = req.params.file_name;
-
-        //     const session: IServerUserSession = req.session as IServerUserSession;
-        //     let has_access: boolean = false;
-
-        //     if (file_name) {
-        //         await StackContext.runPromise(
-        //             await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-        //             async () => {
-        //                 has_access = AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS) && AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS);
-        //             });
-        //     }
-
-        //     if (!has_access) {
-
-        //         await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid, '/');
-        //         return;
-        //     }
-        //     res.sendFile(path.resolve('./iisnode/' + file_name));
-        // });
-
-        // this.app.set('views', 'src/client/views');
 
         // Send CSRF token for session
         this.app.get('/api/getcsrftoken', ServerBase.getInstance().csrfProtection, async (req, res) => {
@@ -1131,11 +1099,6 @@ export default abstract class ServerBase {
 
             res.redirect(PARAM_TECH_DISCONNECT_URL);
         });
-
-        this.app.use('/js', express.static('client/js'));
-        this.app.use('/css', express.static('client/css'));
-        this.app.use('/temp', express.static('temp'));
-        this.app.use('/admin/temp', express.static('temp'));
 
         // reflect_headers
         this.app.get('/api/reflect_headers', (req, res) => {

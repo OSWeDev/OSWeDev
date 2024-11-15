@@ -4,6 +4,7 @@ import IAPIController from '../../../../shared/modules/API/interfaces/IAPIContro
 import IAPIParamTranslator from '../../../../shared/modules/API/interfaces/IAPIParamTranslator';
 import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
 import APINotifTypeResultVO from '../../../../shared/modules/PushData/vos/APINotifTypeResultVO';
+import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 
 export default class ClientAPIController implements IAPIController {
@@ -146,7 +147,8 @@ export default class ClientAPIController implements IAPIController {
                     apiDefinition,
                     (APIControllerWrapper.BASE_API_URL + api_name).toLowerCase(),
                     API_TYPES_IDS_involved,
-                    ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
+                    // ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
+                    ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(translated_param)) : null,
                     null,
                     'application/json; charset=utf-8',
                     null,
@@ -161,7 +163,8 @@ export default class ClientAPIController implements IAPIController {
                         apiDefinition,
                         (APIControllerWrapper.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
+                        // ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
+                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(translated_param)) : null,
                         null,
                         'application/json; charset=utf-8') as string;
 
@@ -177,14 +180,16 @@ export default class ClientAPIController implements IAPIController {
                         apiDefinition,
                         (APIControllerWrapper.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
+                        // ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
+                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(translated_param)) : null,
                         null,
                         'application/json; charset=utf-8') as U;
                 }
         }
 
         // On tente de traduire si on reconnait un type de vo
-        api_res = APIControllerWrapper.try_translate_vo_from_api(api_res);
+        // api_res = APIControllerWrapper.try_translate_vo_from_api(api_res);
+        api_res = ObjectHandler.reapply_prototypes(api_res);
 
         // Si on a une api de type result notif, on vient de récupérer un ID normalement, qu'on stocke en attendant la notif
         if (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF) {

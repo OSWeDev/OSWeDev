@@ -390,7 +390,8 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
         let export_params: ExportSuiviCompetencesRapportHandlerParam = new ExportSuiviCompetencesRapportHandlerParam();
         export_params.rapport_id_ranges = [RangeHandler.create_single_elt_NumRange(this.selected_rapport.id, NumSegment.TYPE_INT)];
 
-        exhi.export_params_stringified = JSON.stringify(APIControllerWrapper.try_translate_vo_to_api(export_params));
+        // exhi.export_params_stringified = JSON.stringify(APIControllerWrapper.try_translate_vo_to_api(export_params));
+        exhi.export_params_stringified = JSON.stringify(export_params);
         exhi.export_to_uid = this.data_user.id;
         exhi.export_type_id = ModuleSuiviCompetences.EXPORT_SUIVI_COMPETENCES_RAPPORT;
 

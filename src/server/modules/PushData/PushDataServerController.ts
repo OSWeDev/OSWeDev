@@ -561,7 +561,8 @@ export default class PushDataServerController {
         }
 
         const notification_type = NotificationVO.TYPE_NAMES[create_vo_notif.notification_type];
-        const notification = APIControllerWrapper.try_translate_vo_to_api(create_vo_notif);
+        // const notification = APIControllerWrapper.try_translate_vo_to_api(create_vo_notif);
+        const notification = create_vo_notif;
 
         await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
     }
@@ -585,7 +586,8 @@ export default class PushDataServerController {
         }
 
         const notification_type = NotificationVO.TYPE_NAMES[update_vo_notif.notification_type];
-        const notification = APIControllerWrapper.try_translate_vo_to_api(update_vo_notif);
+        // const notification = APIControllerWrapper.try_translate_vo_to_api(update_vo_notif);
+        const notification = update_vo_notif;
 
         await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
     }
@@ -609,7 +611,8 @@ export default class PushDataServerController {
         }
 
         const notification_type = NotificationVO.TYPE_NAMES[delete_vo_notif.notification_type];
-        const notification = APIControllerWrapper.try_translate_vo_to_api(delete_vo_notif);
+        // const notification = APIControllerWrapper.try_translate_vo_to_api(delete_vo_notif);
+        const notification = delete_vo_notif;
 
         await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
     }
@@ -1272,7 +1275,7 @@ export default class PushDataServerController {
             if (socketWrappers && socketWrappers.length) {
 
                 const notification_type = NotificationVO.TYPE_NAMES[notification.notification_type];
-                notification = APIControllerWrapper.try_translate_vo_to_api(notification);
+                // notification = APIControllerWrapper.try_translate_vo_to_api(notification);
 
                 for (const i in socketWrappers) {
                     const socketWrapper: SocketWrapper = socketWrappers[i];

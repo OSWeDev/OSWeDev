@@ -273,7 +273,8 @@ export default class PushDataVueModule extends VueModuleBase {
             ConsoleHandler.error("notifications_handler:!VueAppBase.instance_: Might loose some notifications:" + JSON.stringify(notifications));
             return;
         }
-        notifications = APIControllerWrapper.try_translate_vos_from_api(notifications);
+        // notifications = APIControllerWrapper.try_translate_vos_from_api(notifications);
+        notifications = ObjectHandler.reapply_prototypes(notifications);
 
         /**
          * On regroupe par type pour gérer en bloc ensuite

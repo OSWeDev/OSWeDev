@@ -122,7 +122,8 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     null
                 );
 
-                res.json(APIControllerWrapper.try_translate_vo_to_api(notif_result));
+                // res.json(APIControllerWrapper.try_translate_vo_to_api(notif_result));
+                res.json(notif_result);
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -257,7 +258,9 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 }
             }
 
-            param = APIControllerWrapper.try_translate_vo_from_api(req_body);
+            // param = APIControllerWrapper.try_translate_vo_from_api(req_body);
+            param = ObjectHandler.reapply_prototypes(req_body);
+
             has_params = ObjectHandler.hasAtLeastOneAttribute(req_body);
         } else if (api.param_translator && api.param_translator.fromREQ) {
             try {
@@ -330,14 +333,19 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     return;
                 }
 
-                return APIControllerWrapper.try_translate_vo_to_api(APINotifTypeResultVO.createNew(
+                // return APIControllerWrapper.try_translate_vo_to_api(APINotifTypeResultVO.createNew(
+                //     null,
+                //     returnvalue
+                // ));
+                return APINotifTypeResultVO.createNew(
                     null,
                     returnvalue
-                ));
+                ) as unknown as U;
 
             case APIDefinition.API_RETURN_TYPE_JSON:
             case APIDefinition.API_RETURN_TYPE_FILE:
-                return APIControllerWrapper.try_translate_vo_to_api(returnvalue);
+                // return APIControllerWrapper.try_translate_vo_to_api(returnvalue);
+                return returnvalue as unknown as U;
         }
 
         return returnvalue;
