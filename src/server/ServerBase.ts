@@ -283,6 +283,7 @@ export default abstract class ServerBase {
             ConsoleHandler.log('ServerExpressController:express:START');
         }
         this.app = express();
+        const cache_duration = 90 * 24 * 60 * 60 * 1000; // 90 jours
 
         const responseTime = require('response-time');
 
@@ -388,6 +389,42 @@ export default abstract class ServerBase {
             priority: ["accept-language", "default"],
             default: this.envParam.default_locale
         }));
+
+        // Use this instead
+        // this.app.use('/public', express.static('dist/public'), cache_duration);
+        this.app.get('/public/*', async (req, res, next) => {
+
+            res.set('Cache-Control', 'public, max-age=' + cache_duration / 1000);
+
+            const url = path.normalize(decodeURIComponent(req.path));
+            const normalized = path.resolve('./dist' + url);
+
+            if (!this.ROOT_FOLDER) {
+                this.ROOT_FOLDER = path.resolve('./');
+            }
+
+            // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
+            // On fait la chasse aux sync
+            if (!normalized.startsWith(this.ROOT_FOLDER)) {
+                StatsController.register_stat_COMPTEUR('express', 'public', 'strange_normalized_url');
+
+                const uid = req.session ? req.session.uid : null;
+                const client_tab_id = req.headers ? req.headers.client_tab_id : null;
+
+                if (uid && /^\/public\/[^/]+\.js$/i.test(url)) {
+                    StatsController.register_stat_COMPTEUR('express', 'public', 'reload');
+                    ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload after failing loading component");
+                    await PushDataServerController.notifyTabReload(uid, client_tab_id);
+                } else {
+                    ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + url + ": no uid or not a component - doing nothing...:uid:" + uid + ":client_tab_id:" + client_tab_id);
+                }
+
+                res.status(404).send("Not found");
+                return;
+            }
+
+            res.sendFile(normalized);
+        });
 
         // JNE : Ajout du header no cache sur les requetes gérées par express
         this.app.use(
@@ -589,39 +626,6 @@ export default abstract class ServerBase {
             this.app.use('/node_modules/oswedev/src/', express.static('../oswedev/src/'));
         }
 
-        // Use this instead
-        // this.app.use('/public', express.static('dist/public'));
-        this.app.get('/public/*', async (req, res, next) => {
-
-            const url = path.normalize(decodeURIComponent(req.path));
-            const normalized = path.resolve('./dist' + url);
-
-            if (!this.ROOT_FOLDER) {
-                this.ROOT_FOLDER = path.resolve('./');
-            }
-
-            // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
-            // On fait la chasse aux sync
-            if (!normalized.startsWith(this.ROOT_FOLDER)) {
-                StatsController.register_stat_COMPTEUR('express', 'public', 'strange_normalized_url');
-
-                const uid = req.session ? req.session.uid : null;
-                const client_tab_id = req.headers ? req.headers.client_tab_id : null;
-
-                if (uid && /^\/public\/[^/]+\.js$/i.test(url)) {
-                    StatsController.register_stat_COMPTEUR('express', 'public', 'reload');
-                    ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload after failing loading component");
-                    await PushDataServerController.notifyTabReload(uid, client_tab_id);
-                } else {
-                    ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + url + ": no uid or not a component - doing nothing...:uid:" + uid + ":client_tab_id:" + client_tab_id);
-                }
-
-                res.status(404).send("Not found");
-                return;
-            }
-
-            res.sendFile(normalized);
-        });
 
         // Le service de push
         this.app.get('/sw_push.js', (req, res, next) => {
