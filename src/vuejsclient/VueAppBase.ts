@@ -6,7 +6,7 @@ import moment from 'moment';
 import { ColorPanel, ColorPicker } from 'one-colorpicker';
 import 'select2';
 import VCalendar from 'v-calendar';
-import 'v-calendar/lib/v-calendar.min.css';
+// import 'v-calendar/lib/v-calendar.min.css';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
 import VueCookies from 'vue-cookies-ts';

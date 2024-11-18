@@ -1,3 +1,4 @@
+TODO => Checker les horaires des réunions dans le programplan, on a changé la résolution des dates de début et de fin, gros flou artistique sur l'impact de la modif
 MIGRATION -> 0.33.5
 Montées de versions
         "express": "4.21.1",

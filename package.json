@@ -196,7 +196,7 @@
     "peerDependencies": {},
     "engines": {
         "node": ">= 22.11.0",
-        "npm": ">= 6.13.4"
+        "npm": ">= 10.9.0"
     },
     "browserslist": [
         "> 1%",

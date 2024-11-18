@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { EventObjectInput, View } from 'fullcalendar';
+import { EventInput, ViewApi } from '@fullcalendar/core';
 import debounce from 'lodash/debounce';
 import moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
@@ -238,10 +238,23 @@ export default class ProgramPlanComponent extends VueComponentBase {
     public program_plan_controller: ProgramPlanControllerBase;
 
     private user = VueAppController.getInstance().data_user;
-    private fcEvents: EventObjectInput[] = [];
+    private fcEvents: EventInput[] = [];
 
     private calendar_date: string = DateHandler.getInstance().formatDayForIndex(Dates.now());
     private viewname: string = 'timelineWeek';
+    private show_targets: boolean = true;
+
+    private valid_targets: IPlanTarget[] = [];
+    private valid_target_by_ids: { [id: number]: IPlanTarget } = {};
+
+    private valid_facilitators: IPlanFacilitator[] = [];
+    private valid_rdvs: IPlanRDV[] = [];
+
+    private calendar_key: number = 1;
+
+    private debounced_onchange_calendar_date = debounce(this.onchange_calendar_date, 1000);
+
+    private debounced_async_load = debounce(this.async_load, 100);
 
     private reset_targets = ThrottleHelper.declare_throttle_without_args(
         this.reset_targets_throttled.bind(this),
@@ -265,27 +278,431 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return this.program_plan_controller.customOverviewProgramPlanComponent;
     }
 
-    private show_targets: boolean = true;
+    get planningResources() {
+        // On veut un tableau avec des éléments de ce type:
+        // {
+        //   id: 1,
+        //   title: 'animateur',
+        //   manager_title: 'manager'
+        // }
 
-    private valid_targets: IPlanTarget[] = [];
-    private valid_target_by_ids: { [id: number]: IPlanTarget } = {};
-    private valid_facilitators: IPlanFacilitator[] = [];
-    private valid_rdvs: IPlanRDV[] = [];
+        const res = [];
 
-    private calendar_key: number = 1;
+        if (this.program_plan_shared_module.target_facilitator_type_id) {
 
-    private debounced_onchange_calendar_date = debounce(this.onchange_calendar_date, 1000);
+            for (const i in this.valid_targets) {
+                const target: IPlanTarget = this.valid_targets[i];
 
-    private debounced_async_load = debounce(this.async_load, 100);
+                const tfs: IPlanTargetFacilitator[] = this.get_targets_facilitators_by_target_ids[target.id];
+
+                for (const j in tfs) {
+
+                    const target_facilitator: IPlanTargetFacilitator = tfs[j];
+
+                    if (target_facilitator.target_id != target.id) {
+                        continue;
+                    }
+
+                    let facilitator: IPlanFacilitator = null;
+                    for (const k in this.valid_facilitators) {
+                        if (this.valid_facilitators[k].id == target_facilitator.facilitator_id) {
+                            facilitator = this.valid_facilitators[k];
+                        }
+                    }
+                    if (!facilitator) {
+                        continue;
+                    }
+
+                    const manager: IPlanManager = this.getManagersByIds[facilitator.manager_id];
+                    const partner: IPlanPartner = this.getPartnersByIds[facilitator.partner_id];
+
+                    let target_name: string = (target) ? target.name : "";
+                    const target_table: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[this.program_plan_shared_module.target_type_id];
+                    const table_label_function = ModuleTableController.table_label_function_by_vo_type[this.program_plan_shared_module.target_type_id];
+                    if (target_table && target_table.default_label_field) {
+                        target_name = (target) ? target[target_table.default_label_field.field_id] : "";
+                    } else if (table_label_function) {
+                        target_name = (target) ? table_label_function(target) : "";
+                    }
+
+                    res.push({
+                        id: target_facilitator.id,
+                        title: this.getResourceName(facilitator.firstname, facilitator.lastname),
+                        manager_title: (manager) ? this.getResourceName(manager.firstname, manager.lastname) : "",
+                        partner_name: (partner) ? partner.name : "",
+                        target_name
+                    });
+                }
+            }
+        } else {
+            for (const i in this.valid_facilitators) {
+                const facilitator: IPlanFacilitator = this.valid_facilitators[i];
+
+                const manager: IPlanManager = this.getManagersByIds[facilitator.manager_id];
+                const partner: IPlanPartner = this.getPartnersByIds[facilitator.partner_id];
+
+                res.push({
+                    id: facilitator.id,
+                    title: this.getResourceName(facilitator.firstname, facilitator.lastname),
+                    manager_title: (manager) ? this.getResourceName(manager.firstname, manager.lastname) : "",
+                    partner_name: (partner) ? partner.name : ""
+                });
+            }
+        }
+        return res;
+    }
 
     get route_path(): string {
         return this.global_route_path + ((this.program_id) ? this.program_id : 'g');
     }
 
+    get debounced_reset_rdvs() {
+        const self = this;
+
+        return debounce(async () => {
+            self.reset_rdvs();
+        }, this.program_plan_controller.reset_rdvs_debouncer);
+    }
+
+    get show_calendar(): boolean {
+        return this.program_plan_controller.show_calendar;
+    }
+
+    get show_targets_pp(): boolean {
+        return this.program_plan_controller.show_targets_pp;
+    }
+
+    get use_print_component(): boolean {
+        return this.program_plan_controller.use_print_component;
+    }
+
+    get user_s_facilitators(): IPlanFacilitator[] {
+        if (!this.user) {
+            return null;
+        }
+
+        if (!this.getFacilitatorsByIds) {
+            return null;
+        }
+
+        const res: IPlanFacilitator[] = [];
+        for (const i in this.getFacilitatorsByIds) {
+            const facilitator = this.getFacilitatorsByIds[i];
+
+            if (facilitator.user_id == this.user.id) {
+                res.push(facilitator);
+            }
+        }
+
+        return (res && res.length) ? res : null;
+    }
+
+    get user_s_managers(): IPlanManager[] {
+        if (!this.user) {
+            return null;
+        }
+
+        if (!this.getManagersByIds) {
+            return null;
+        }
+
+        const res: IPlanManager[] = [];
+        for (const i in this.getManagersByIds) {
+            const manager = this.getManagersByIds[i];
+
+            if (manager.user_id == this.user.id) {
+                res.push(manager);
+            }
+        }
+
+        return (res && res.length) ? res : null;
+    }
+
+    get fcConfig() {
+
+        const resourceColumns = [];
+        const facilitator_column = {
+            labelText: this.label('programplan.' + this.program_plan_shared_module.name + '.fc.facilitator.name'),
+            field: 'title',
+            group: undefined,
+            width: undefined
+        };
+
+        if (this.program_plan_shared_module.target_facilitator_type_id) {
+            resourceColumns.push({
+                labelText: this.label('programplan.' + this.program_plan_shared_module.name + '.fc.target.name'),
+                field: 'target_name',
+                group: true,
+                width: this.program_plan_controller.resourceColumns_target_name_width
+            });
+            //facilitator_column.group = true;
+            facilitator_column.width = this.program_plan_controller.resourceColumns_facilitator_name_width;
+        }
+
+        resourceColumns.push(facilitator_column);
+
+        if (this.program_plan_shared_module.manager_type_id) {
+            resourceColumns.push({
+                labelText: this.label('programplan.' + this.program_plan_shared_module.name + '.fc.manager.name'),
+                field: 'manager_title',
+                group: true
+            });
+        }
+
+        if (this.program_plan_shared_module.partner_type_id) {
+            resourceColumns.push({
+                labelText: this.label('programplan.' + this.program_plan_shared_module.name + '.fc.partner.name'),
+                field: 'partner_name'
+            });
+        }
+
+        const slotLabelFormat = [
+            'ddd D/M'
+        ];
+
+        if (this.program_plan_controller.slot_interval < 24) {
+            slotLabelFormat.push('a');
+        }
+
+        return {
+            locale: 'fr-fr',
+            timeZone: 'UTC',
+            dayNamesShort: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
+            now: Dates.format(Dates.now(), 'Y-MM-DD'),
+            defaultDate: this.calendar_date,
+            schedulerLicenseKey: '0801712196-fcs-1461229306',
+            editable: this.can_edit_any,
+            droppable: this.can_edit_any,
+            aspectRatio: 3,
+            forceEventDuration: true, // Pour forcer la création du end.
+            scrollTime: '00:00',
+            header: {
+                left: 'today prev,next',
+                center: 'title',
+                right: this.program_plan_controller.month_view ? 'timelineWeek,timelineMonth' : 'timelineWeek'
+            },
+            defaultView: this.viewname,
+            views: {
+                timelineMonth: {
+                    slotWidth: 150 / this.nb_day_slices,
+                    slotLabelInterval: {
+                        hours: this.program_plan_controller.slot_interval
+                    },
+                    slotDuration: {
+                        hours: this.program_plan_controller.slot_interval
+                    },
+                },
+                timelineWeek: {
+                    slotWidth: 150 / this.nb_day_slices,
+                    slotLabelInterval: {
+                        hours: this.program_plan_controller.slot_interval
+                    },
+                    slotDuration: {
+                        hours: this.program_plan_controller.slot_interval
+                    },
+                }
+            },
+            defaultTimedEventDuration: {
+                hours: this.program_plan_controller.slot_interval
+            },
+            navLinks: false,
+            eventOverlap: this.program_plan_controller.event_overlap_hook ? this.program_plan_controller.event_overlap_hook : false,
+            resourceAreaWidth: this.program_plan_controller.resourceAreaWidth,
+            resourceLabelText: this.label('programplan.' + this.program_plan_shared_module.name + '.fc.resourcelabeltext.name'),
+            slotLabelFormat,
+            resourceColumns,
+            resources: this.planningResources
+        };
+    }
+
+    get is_facilitator_specific(): boolean {
+
+        if (!this.selected_rdv) {
+            return false;
+        }
+
+        if (!this.get_tasks_by_ids[this.selected_rdv.task_id]) {
+            return false;
+        }
+
+        return this.get_tasks_by_ids[this.selected_rdv.task_id].is_facilitator_specific;
+    }
+
+    get nb_day_slices() {
+        return Math.floor(24 / this.program_plan_controller.slot_interval);
+    }
+
+    @Watch("$route")
+    public async onrouteChange() {
+
+        this.init_print();
+
+        await this.handle_modal_show_hide();
+    }
     @Watch('program_plan_shared_module')
     public async onchange_program_plan_shared_module() {
         this.startLoading();
         await this.debounced_async_load();
+    }
+
+    @Watch('getTargetsByIds', { deep: true, immediate: true })
+    private onchange_getTargetsByIds() {
+        this.reset_targets();
+    }
+
+    @Watch('fcSegment', { deep: true, immediate: true })
+    private async onChangeFCSegment() {
+
+        const promises: Array<Promise<any>> = [];
+        const self = this;
+
+        // RDVs
+        // Sont chargés lors du changement de segment consulté
+        if (this.program_plan_controller.load_rdv_on_segment_change) {
+
+            promises.push(this.reload_rdvs());
+        }
+
+        if (this.program_plan_shared_module.rdv_prep_type_id) {
+            // Preps
+            promises.push((async () => {
+                self.setPrepsByIds(
+                    VOsTypesManager.vosArray_to_vosByIds(
+                        await this.program_plan_shared_module.getPrepsOfProgramSegment(self.program_id, self.fcSegment)
+                    )
+                );
+            })());
+        }
+
+        // CRs
+        promises.push((async () => {
+            self.setCrsByIds(
+                VOsTypesManager.vosArray_to_vosByIds(
+                    await this.program_plan_shared_module.getCRsOfProgramSegment(self.program_id, self.fcSegment)
+                )
+            );
+        })());
+
+        await all_promises(promises);
+
+        this.set_filter_date_debut(this.fcSegment ? TimeSegmentHandler.getStartTimeSegment(this.fcSegment) : null);
+        this.set_filter_date_fin(this.fcSegment ? Dates.add(TimeSegmentHandler.getEndTimeSegment(this.fcSegment), -1, TimeSegment.TYPE_DAY) : null);
+
+        // this.filter_changed();
+    }
+
+    @Watch('selected_rdv', { immediate: true })
+    private async onChangeSelectedRDV() {
+
+        if (!this.selected_rdv) {
+            return;
+        }
+
+        const self = this;
+
+        const rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id)
+            .filter_is_false(field_names<IPlanRDV>().archived)
+            .filter_by_num_eq(field_names<IPlanRDV>().target_id, this.selected_rdv.target_id)
+            .select_vos<IPlanRDV>();
+
+        const rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.vosArray_to_vosByIds(rdvs);
+        self.addRdvsByIds(rdvs_by_ids);
+
+        const rdvs_ids: number[] = ObjectHandler.getNumberMapIndexes(rdvs_by_ids);
+
+        const promises: Array<Promise<any>> = [];
+
+        if (this.program_plan_shared_module.rdv_prep_type_id) {
+            if ((!rdvs_ids) || !rdvs_ids.length) {
+                self.addPrepsByIds([]);
+                return;
+            }
+
+            promises.push((async () => {
+                const vos: IPlanRDVPrep[] = await query(this.program_plan_shared_module.rdv_prep_type_id)
+                    .filter_by_num_has(field_names<IPlanRDVPrep>().rdv_id, rdvs_ids)
+                    .select_vos<IPlanRDVPrep>();
+
+                self.addPrepsByIds(
+                    vos
+                );
+            })());
+        }
+
+        promises.push((async () => {
+
+            if ((!rdvs_ids) || !rdvs_ids.length) {
+                self.addCrsByIds([]);
+                return;
+            }
+
+            const vos: IPlanRDVCR[] = await query(this.program_plan_shared_module.rdv_cr_type_id)
+                .filter_by_num_has(field_names<IPlanRDVCR>().rdv_id, rdvs_ids)
+                .select_vos<IPlanRDVCR>();
+
+            self.addCrsByIds(vos);
+        })());
+
+        await all_promises(promises);
+    }
+
+    @Watch('getFacilitatorsByIds', { deep: true, immediate: true })
+    private reset_facilitators() {
+        this.valid_facilitators = [];
+        for (const i in this.getFacilitatorsByIds) {
+            const facilitator: IPlanFacilitator = this.getFacilitatorsByIds[i];
+
+            if ((!!this.program_plan_controller.is_valid_facilitator) && (!this.program_plan_controller.is_valid_facilitator(facilitator))) {
+                continue;
+            }
+            this.valid_facilitators.push(facilitator);
+        }
+    }
+
+    @Watch('valid_targets', { deep: true, immediate: true })
+    @Watch('getRdvsByIds', { deep: true, immediate: true })
+    private debounce_reset_rdvs() {
+        this.debounced_reset_rdvs();
+    }
+
+    @Watch('valid_rdvs', { immediate: true, deep: true })
+    private onchange_rdvsByIds() {
+        this.fcEvents = [];
+
+        for (const i in this.valid_rdvs) {
+
+            const rdv = this.valid_rdvs[i];
+
+            const es: EventInput[] = this.getPlanningEventFromRDV(rdv);
+
+            if ((!!es) && (es.length > 0)) {
+                this.fcEvents = this.fcEvents.concat(es);
+            }
+        }
+    }
+
+
+    @Watch('calendar_date')
+    private onchange_calendar_date_direct() {
+
+        this.debounced_onchange_calendar_date();
+    }
+
+    @Watch('viewname')
+    private onchange_calendar_date() {
+
+        if (!moment(this.calendar_date).utc(true).isValid()) {
+            return;
+        }
+
+        const segment = TimeSegmentHandler.getCorrespondingTimeSegment(
+            moment(this.calendar_date).utc(true).unix(),
+            (this.viewname == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH);
+
+        if (!TimeSegmentHandler.segmentsAreEquivalent(segment, this.fcSegment)) {
+            this.fcSegment = segment;
+            this.$refs.calendar['fireMethod']('gotoDate', this.calendar_date);
+        }
     }
 
     public async mounted() {
@@ -362,14 +779,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
         });
     }
 
-    @Watch("$route")
-    public async onrouteChange() {
-
-        this.init_print();
-
-        await this.handle_modal_show_hide();
-    }
-
     protected async handle_modal_show_hide() {
         if (!this.modal_show) {
             $('#rdv_modal').modal('hide');
@@ -387,10 +796,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
             $('#rdv_modal').modal('show');
             return;
         }
-    }
-
-    get use_print_component(): boolean {
-        return this.program_plan_controller.use_print_component;
     }
 
     private init_print() {
@@ -753,7 +1158,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         self.stopLoading();
     }
 
-    private onFCEventSelected(calEvent: EventObjectInput, jsEvent, view: View) {
+    private onFCEventSelected(calEvent: EventInput, jsEvent, view: ViewApi) {
 
         if ((!calEvent) || (!calEvent.rdv_id) || (!this.getRdvsByIds) || (!this.getRdvsByIds[calEvent.rdv_id])) {
             this.$router.push(this.route_path);
@@ -776,81 +1181,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return resource_name;
     }
 
-    get planningResources() {
-        // On veut un tableau avec des éléments de ce type:
-        // {
-        //   id: 1,
-        //   title: 'animateur',
-        //   manager_title: 'manager'
-        // }
-
-        const res = [];
-
-        if (this.program_plan_shared_module.target_facilitator_type_id) {
-
-            for (const i in this.valid_targets) {
-                const target: IPlanTarget = this.valid_targets[i];
-
-                const tfs: IPlanTargetFacilitator[] = this.get_targets_facilitators_by_target_ids[target.id];
-
-                for (const j in tfs) {
-
-                    const target_facilitator: IPlanTargetFacilitator = tfs[j];
-
-                    if (target_facilitator.target_id != target.id) {
-                        continue;
-                    }
-
-                    let facilitator: IPlanFacilitator = null;
-                    for (const k in this.valid_facilitators) {
-                        if (this.valid_facilitators[k].id == target_facilitator.facilitator_id) {
-                            facilitator = this.valid_facilitators[k];
-                        }
-                    }
-                    if (!facilitator) {
-                        continue;
-                    }
-
-                    const manager: IPlanManager = this.getManagersByIds[facilitator.manager_id];
-                    const partner: IPlanPartner = this.getPartnersByIds[facilitator.partner_id];
-
-                    let target_name: string = (target) ? target.name : "";
-                    const target_table: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[this.program_plan_shared_module.target_type_id];
-                    const table_label_function = ModuleTableController.table_label_function_by_vo_type[this.program_plan_shared_module.target_type_id];
-                    if (target_table && target_table.default_label_field) {
-                        target_name = (target) ? target[target_table.default_label_field.field_id] : "";
-                    } else if (table_label_function) {
-                        target_name = (target) ? table_label_function(target) : "";
-                    }
-
-                    res.push({
-                        id: target_facilitator.id,
-                        title: this.getResourceName(facilitator.firstname, facilitator.lastname),
-                        manager_title: (manager) ? this.getResourceName(manager.firstname, manager.lastname) : "",
-                        partner_name: (partner) ? partner.name : "",
-                        target_name
-                    });
-                }
-            }
-        } else {
-            for (const i in this.valid_facilitators) {
-                const facilitator: IPlanFacilitator = this.valid_facilitators[i];
-
-                const manager: IPlanManager = this.getManagersByIds[facilitator.manager_id];
-                const partner: IPlanPartner = this.getPartnersByIds[facilitator.partner_id];
-
-                res.push({
-                    id: facilitator.id,
-                    title: this.getResourceName(facilitator.firstname, facilitator.lastname),
-                    manager_title: (manager) ? this.getResourceName(manager.firstname, manager.lastname) : "",
-                    partner_name: (partner) ? partner.name : ""
-                });
-            }
-        }
-        return res;
-    }
-
-    private getPlanningEventFromRDV(rdv: IPlanRDV): EventObjectInput[] {
+    private getPlanningEventFromRDV(rdv: IPlanRDV): EventInput[] {
         // exemple :
         // {
         //   id: '1',
@@ -886,16 +1217,16 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
         }
 
-        const res: EventObjectInput[] = [];
+        const res: EventInput[] = [];
 
-        const event_item: EventObjectInput = {
+        const event_item: EventInput = {
             rdv_id: rdv.id,
             task_id: undefined,
             target_id: rdv.target_id,
             facilitator_id: rdv.facilitator_id,
             resourceId: undefined,
-            start: moment.unix(rdv.start_time).utc(),
-            end: moment.unix(rdv.end_time).utc(),
+            start: rdv.start_time,
+            end: rdv.end_time,
             title: null,
             state: rdv.state
         };
@@ -960,60 +1291,24 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return res;
     }
 
-    @Watch('valid_rdvs', { immediate: true, deep: true })
-    private onchange_rdvsByIds() {
-        this.fcEvents = [];
-
-        for (const i in this.valid_rdvs) {
-
-            const rdv = this.valid_rdvs[i];
-
-            const es: EventObjectInput[] = this.getPlanningEventFromRDV(rdv);
-
-            if ((!!es) && (es.length > 0)) {
-                this.fcEvents = this.fcEvents.concat(es);
-            }
-        }
-    }
-
     /**
      * Triggered when a new date-range is rendered, or when the view type switches.
      * @param view https://fullcalendar.io/docs/view-object
      * @param element is a jQuery element for the container of the new view.
      */
-    private onFCViewRender(view: View, element) {
-        if ((!view) || (!view.start) || (!view.end)) {
+    private onFCViewRender(view: ViewApi, element) {
+        // if ((!view) || (!view.start) || (!view.end)) {
+        //     return;
+        // }
+        if (!view) {
             return;
         }
 
-        if (view.name != this.viewname) {
-            this.viewname = view.name;
+        if (view.title != this.viewname) {
+            this.viewname = view.title;
         }
-        if (this.calendar_date != DateHandler.getInstance().formatDayForIndex(view.intervalStart.unix())) {
-            this.calendar_date = DateHandler.getInstance().formatDayForIndex(view.intervalStart.unix());
-        }
-    }
-
-    @Watch('calendar_date')
-    private onchange_calendar_date_direct() {
-
-        this.debounced_onchange_calendar_date();
-    }
-
-    @Watch('viewname')
-    private onchange_calendar_date() {
-
-        if (!moment(this.calendar_date).utc(true).isValid()) {
-            return;
-        }
-
-        const segment = TimeSegmentHandler.getCorrespondingTimeSegment(
-            moment(this.calendar_date).utc(true).unix(),
-            (this.viewname == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH);
-
-        if (!TimeSegmentHandler.segmentsAreEquivalent(segment, this.fcSegment)) {
-            this.fcSegment = segment;
-            this.$refs.calendar['fireMethod']('gotoDate', this.calendar_date);
+        if (this.calendar_date != DateHandler.getInstance().formatDayForIndex(Math.floor(view.currentStart.getTime() / 1000))) {
+            this.calendar_date = DateHandler.getInstance().formatDayForIndex(Math.floor(view.currentStart.getTime() / 1000));
         }
     }
 
@@ -1021,7 +1316,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
      * Triggered when dragging stops and the event has moved to a different day/time.
      * @param event https://fullcalendar.io/docs/event-object
      */
-    private async onFCEventDrop(event: EventObjectInput, delta, revertFunc, jsEvent, ui, view: View) {
+    private async onFCEventDrop(event: EventInput, delta, revertFunc, jsEvent, ui, view: ViewApi) {
         await this.updateEvent(event, revertFunc, view);
     }
 
@@ -1029,11 +1324,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
      * Triggered when resizing stops and the event has changed in duration.
      * @param event https://fullcalendar.io/docs/event-object
      */
-    private async onFCEventResize(event: EventObjectInput, delta, revertFunc, jsEvent, ui, view: View) {
+    private async onFCEventResize(event: EventInput, delta, revertFunc, jsEvent, ui, view: ViewApi) {
         await this.updateEvent(event, revertFunc, view);
     }
 
-    private async updateEvent(event: EventObjectInput, revertFunc, view: View) {
+    private async updateEvent(event: EventInput, revertFunc, view: ViewApi) {
         // Il faut modifier le vo source, mettre à jour côté serveur et notifier en cas d'échec et annuler la modif (remettre la resource et les dates précédentes)
 
         const self = this;
@@ -1176,6 +1471,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         rdv.end_time = tmp_end;
                         rdv.facilitator_id = tmp_facilitator_id;
                     } catch (error) {
+                        //
                     }
                     reject({
                         body: self.label(msg_error_code),
@@ -1203,170 +1499,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
         );
     }
 
-    get fcConfig() {
-
-        const resourceColumns = [];
-        const facilitator_column = {
-            labelText: this.label('programplan.' + this.program_plan_shared_module.name + '.fc.facilitator.name'),
-            field: 'title',
-            group: undefined,
-            width: undefined
-        };
-
-        if (this.program_plan_shared_module.target_facilitator_type_id) {
-            resourceColumns.push({
-                labelText: this.label('programplan.' + this.program_plan_shared_module.name + '.fc.target.name'),
-                field: 'target_name',
-                group: true,
-                width: this.program_plan_controller.resourceColumns_target_name_width
-            });
-            //facilitator_column.group = true;
-            facilitator_column.width = this.program_plan_controller.resourceColumns_facilitator_name_width;
-        }
-
-        resourceColumns.push(facilitator_column);
-
-        if (this.program_plan_shared_module.manager_type_id) {
-            resourceColumns.push({
-                labelText: this.label('programplan.' + this.program_plan_shared_module.name + '.fc.manager.name'),
-                field: 'manager_title',
-                group: true
-            });
-        }
-
-        if (this.program_plan_shared_module.partner_type_id) {
-            resourceColumns.push({
-                labelText: this.label('programplan.' + this.program_plan_shared_module.name + '.fc.partner.name'),
-                field: 'partner_name'
-            });
-        }
-
-        const slotLabelFormat = [
-            'ddd D/M'
-        ];
-
-        if (this.program_plan_controller.slot_interval < 24) {
-            slotLabelFormat.push('a');
-        }
-
-        return {
-            locale: 'fr-fr',
-            timeZone: 'UTC',
-            dayNamesShort: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
-            now: Dates.format(Dates.now(), 'Y-MM-DD'),
-            defaultDate: this.calendar_date,
-            schedulerLicenseKey: '0801712196-fcs-1461229306',
-            editable: this.can_edit_any,
-            droppable: this.can_edit_any,
-            aspectRatio: 3,
-            forceEventDuration: true, // Pour forcer la création du end.
-            scrollTime: '00:00',
-            header: {
-                left: 'today prev,next',
-                center: 'title',
-                right: this.program_plan_controller.month_view ? 'timelineWeek,timelineMonth' : 'timelineWeek'
-            },
-            defaultView: this.viewname,
-            views: {
-                timelineMonth: {
-                    slotWidth: 150 / this.nb_day_slices,
-                    slotLabelInterval: {
-                        hours: this.program_plan_controller.slot_interval
-                    },
-                    slotDuration: {
-                        hours: this.program_plan_controller.slot_interval
-                    },
-                },
-                timelineWeek: {
-                    slotWidth: 150 / this.nb_day_slices,
-                    slotLabelInterval: {
-                        hours: this.program_plan_controller.slot_interval
-                    },
-                    slotDuration: {
-                        hours: this.program_plan_controller.slot_interval
-                    },
-                }
-            },
-            defaultTimedEventDuration: {
-                hours: this.program_plan_controller.slot_interval
-            },
-            navLinks: false,
-            eventOverlap: this.program_plan_controller.event_overlap_hook ? this.program_plan_controller.event_overlap_hook : false,
-            resourceAreaWidth: this.program_plan_controller.resourceAreaWidth,
-            resourceLabelText: this.label('programplan.' + this.program_plan_shared_module.name + '.fc.resourcelabeltext.name'),
-            slotLabelFormat,
-            resourceColumns,
-            resources: this.planningResources
-        };
-    }
-
-    get is_facilitator_specific(): boolean {
-
-        if (!this.selected_rdv) {
-            return false;
-        }
-
-        if (!this.get_tasks_by_ids[this.selected_rdv.task_id]) {
-            return false;
-        }
-
-        return this.get_tasks_by_ids[this.selected_rdv.task_id].is_facilitator_specific;
-    }
-
-    private async reload_rdvs() {
-        this.setRdvsByIds(
-            VOsTypesManager.vosArray_to_vosByIds(
-                await this.program_plan_shared_module.getRDVsOfProgramSegment(this.program_id, this.fcSegment)
-            )
-        );
-    }
-
-    @Watch('fcSegment', { deep: true, immediate: true })
-    private async onChangeFCSegment() {
-
-        const promises: Array<Promise<any>> = [];
-        const self = this;
-
-        // RDVs
-        // Sont chargés lors du changement de segment consulté
-        if (this.program_plan_controller.load_rdv_on_segment_change) {
-
-            promises.push(this.reload_rdvs());
-        }
-
-        if (this.program_plan_shared_module.rdv_prep_type_id) {
-            // Preps
-            promises.push((async () => {
-                self.setPrepsByIds(
-                    VOsTypesManager.vosArray_to_vosByIds(
-                        await this.program_plan_shared_module.getPrepsOfProgramSegment(self.program_id, self.fcSegment)
-                    )
-                );
-            })());
-        }
-
-        // CRs
-        promises.push((async () => {
-            self.setCrsByIds(
-                VOsTypesManager.vosArray_to_vosByIds(
-                    await this.program_plan_shared_module.getCRsOfProgramSegment(self.program_id, self.fcSegment)
-                )
-            );
-        })());
-
-        await all_promises(promises);
-
-        this.set_filter_date_debut(this.fcSegment ? TimeSegmentHandler.getStartTimeSegment(this.fcSegment) : null);
-        this.set_filter_date_fin(this.fcSegment ? Dates.add(TimeSegmentHandler.getEndTimeSegment(this.fcSegment), -1, TimeSegment.TYPE_DAY) : null);
-
-        // this.filter_changed();
-    }
-
     /**
      * Called when a valid external jQuery UI draggable, containing event data, has been dropped onto the calendar.
      * @param event
      */
-    private async onFCEventReceive(event: EventObjectInput) {
+    private async onFCEventReceive(event: EventInput) {
 
         const self = this;
         let errormsg = 'programplan.fc.create.error';
@@ -1803,107 +1940,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
         });
     }
 
-    private onFCEventRender(event: EventObjectInput, element, view: View) {
+    private onFCEventRender(event: EventInput, element, view: ViewApi) {
         this.program_plan_controller.onFCEventRender(event, element, view);
     }
-
-    get user_s_facilitators(): IPlanFacilitator[] {
-        if (!this.user) {
-            return null;
-        }
-
-        if (!this.getFacilitatorsByIds) {
-            return null;
-        }
-
-        const res: IPlanFacilitator[] = [];
-        for (const i in this.getFacilitatorsByIds) {
-            const facilitator = this.getFacilitatorsByIds[i];
-
-            if (facilitator.user_id == this.user.id) {
-                res.push(facilitator);
-            }
-        }
-
-        return (res && res.length) ? res : null;
-    }
-
-    get user_s_managers(): IPlanManager[] {
-        if (!this.user) {
-            return null;
-        }
-
-        if (!this.getManagersByIds) {
-            return null;
-        }
-
-        const res: IPlanManager[] = [];
-        for (const i in this.getManagersByIds) {
-            const manager = this.getManagersByIds[i];
-
-            if (manager.user_id == this.user.id) {
-                res.push(manager);
-            }
-        }
-
-        return (res && res.length) ? res : null;
-    }
-
-    @Watch('selected_rdv', { immediate: true })
-    private async onChangeSelectedRDV() {
-
-        if (!this.selected_rdv) {
-            return;
-        }
-
-        const self = this;
-
-        const rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id)
-            .filter_is_false(field_names<IPlanRDV>().archived)
-            .filter_by_num_eq(field_names<IPlanRDV>().target_id, this.selected_rdv.target_id)
-            .select_vos<IPlanRDV>();
-
-        const rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.vosArray_to_vosByIds(rdvs);
-        self.addRdvsByIds(rdvs_by_ids);
-
-        const rdvs_ids: number[] = ObjectHandler.getNumberMapIndexes(rdvs_by_ids);
-
-        const promises: Array<Promise<any>> = [];
-
-        if (this.program_plan_shared_module.rdv_prep_type_id) {
-            if ((!rdvs_ids) || !rdvs_ids.length) {
-                self.addPrepsByIds([]);
-                return;
-            }
-
-            promises.push((async () => {
-                const vos: IPlanRDVPrep[] = await query(this.program_plan_shared_module.rdv_prep_type_id)
-                    .filter_by_num_has(field_names<IPlanRDVPrep>().rdv_id, rdvs_ids)
-                    .select_vos<IPlanRDVPrep>();
-
-                self.addPrepsByIds(
-                    vos
-                );
-            })());
-        }
-
-        promises.push((async () => {
-
-            if ((!rdvs_ids) || !rdvs_ids.length) {
-                self.addCrsByIds([]);
-                return;
-            }
-
-            const vos: IPlanRDVCR[] = await query(this.program_plan_shared_module.rdv_cr_type_id)
-                .filter_by_num_has(field_names<IPlanRDVCR>().rdv_id, rdvs_ids)
-                .select_vos<IPlanRDVCR>();
-
-            self.addCrsByIds(vos);
-        })());
-
-        await all_promises(promises);
-    }
-
 
     private get_printable_table_weeks() {
         const res = [];
@@ -2084,15 +2123,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return res;
     }
 
-    get nb_day_slices() {
-        return Math.floor(24 / this.program_plan_controller.slot_interval);
-    }
-
-    @Watch('getTargetsByIds', { deep: true, immediate: true })
-    private onchange_getTargetsByIds() {
-        this.reset_targets();
-    }
-
     private reset_targets_throttled() {
         const valid_target_by_ids: { [id: number]: IPlanTarget } = {};
         const valid_targets: IPlanTarget[] = [];
@@ -2119,33 +2149,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
         this.reset_targets();
     }
 
-    @Watch('getFacilitatorsByIds', { deep: true, immediate: true })
-    private reset_facilitators() {
-        this.valid_facilitators = [];
-        for (const i in this.getFacilitatorsByIds) {
-            const facilitator: IPlanFacilitator = this.getFacilitatorsByIds[i];
-
-            if ((!!this.program_plan_controller.is_valid_facilitator) && (!this.program_plan_controller.is_valid_facilitator(facilitator))) {
-                continue;
-            }
-            this.valid_facilitators.push(facilitator);
-        }
-    }
-
-    @Watch('valid_targets', { deep: true, immediate: true })
-    @Watch('getRdvsByIds', { deep: true, immediate: true })
-    private debounce_reset_rdvs() {
-        this.debounced_reset_rdvs();
-    }
-
-    get debounced_reset_rdvs() {
-        const self = this;
-
-        return debounce(async () => {
-            self.reset_rdvs();
-        }, this.program_plan_controller.reset_rdvs_debouncer);
-    }
-
     private reset_rdvs() {
         this.valid_rdvs = [];
         for (const i in this.getRdvsByIds) {
@@ -2165,11 +2168,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
         this.reset_rdvs();
     }
 
-    get show_calendar(): boolean {
-        return this.program_plan_controller.show_calendar;
-    }
-
-    get show_targets_pp(): boolean {
-        return this.program_plan_controller.show_targets_pp;
+    private async reload_rdvs() {
+        this.setRdvsByIds(
+            VOsTypesManager.vosArray_to_vosByIds(
+                await this.program_plan_shared_module.getRDVsOfProgramSegment(this.program_id, this.fcSegment)
+            )
+        );
     }
 }
