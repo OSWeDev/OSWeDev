@@ -14,6 +14,7 @@ import ParamsServerController from '../Params/ParamsServerController';
 import IBGThread from './interfaces/IBGThread';
 import RunBGThreadForkMessage from './messages/RunBGThreadForkMessage';
 import ModuleBGThreadServer from './ModuleBGThreadServer';
+import { RunsOnMainThread } from './annotations/RunsOnMainThread';
 
 export default class BGThreadServerController {
 
@@ -61,18 +62,6 @@ export default class BGThreadServerController {
         ForkedTasksController.register_task(BGThreadServerController.TASK_NAME_register_alive_on_main_thread, this.register_alive_on_main_thread.bind(this));
         ForkedTasksController.register_task(BGThreadServerController.TASK_NAME_is_alive, this.is_alive.bind(this));
         ThreadHandler.set_interval(this.check_bgthreads_last_alive_ticks.bind(this), 10 * 1000, 'BGThreadServerController.check_bgthreads_last_alive_ticks', true);
-    }
-
-    public static async throttled_register_alive_on_main_thread(alive_bgthread_names: { [bgname: string]: boolean }) {
-
-
-        if (!await ForkedTasksController.exec_self_on_main_process(BGThreadServerController.TASK_NAME_register_alive_on_main_thread, alive_bgthread_names)) {
-            return;
-        }
-
-        for (const bgthread_name in alive_bgthread_names) {
-            this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name[bgthread_name] = Dates.now();
-        }
     }
 
     /**
@@ -142,5 +131,12 @@ export default class BGThreadServerController {
 
     private static is_alive(): boolean {
         return true;
+    }
+
+    @RunsOnMainThread
+    public static async throttled_register_alive_on_main_thread(alive_bgthread_names: { [bgname: string]: boolean }) {
+        for (const bgthread_name in alive_bgthread_names) {
+            this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name[bgthread_name] = Dates.now();
+        }
     }
 }

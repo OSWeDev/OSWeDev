@@ -19,6 +19,7 @@ import IForkMessage from './interfaces/IForkMessage';
 import IForkProcess from './interfaces/IForkProcess';
 import PingForkMessage from './messages/PingForkMessage';
 import { Worker } from 'worker_threads';
+import path from 'path';
 
 export default class ForkServerController {
 
@@ -92,10 +93,11 @@ export default class ForkServerController {
             }
 
             ForkServerController.forks_availability[i] = Dates.now();
+            const workerPath = path.resolve(process.cwd(), './dist/server/ForkedProcessWrapper.js');
 
             if (ConfigurationService.node_configuration.debug_forks && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
                 forked.worker = new Worker(
-                    './dist/server/ForkedProcessWrapper.js',
+                    workerPath,
                     {
                         workerData: ForkServerController.get_argv(forked),
                         execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), /*'--max-old-space-size=4096', '--expose-gc'*/],
@@ -103,7 +105,7 @@ export default class ForkServerController {
                 );
             } else {
                 forked.worker = new Worker(
-                    './dist/server/ForkedProcessWrapper.js',
+                    workerPath,
                     {
                         workerData: ForkServerController.get_argv(forked),
                         execArgv: [/*'--max-old-space-size=4096', '--expose-gc'*/],
@@ -121,10 +123,19 @@ export default class ForkServerController {
                 }
             }
 
+            forked.worker.on('error', (error) => {
+                ConsoleHandler.error('Erreur du worker uid:' + forked.uid + ' qui gère les processus : ' + Object.keys(forked.processes).join(', ') + ' : ' + error);
+            });
+
+            forked.worker.on('exit', (code) => {
+                ConsoleHandler.error(`Le worker uid:${forked.uid} s'est arrêté avec le code ${code}. Il gérait les processus : ${Object.keys(forked.processes).join(', ')}`);
+            });
+
             forked.worker.on('message', async (msg: IForkMessage) => {
                 msg = ForkMessageController.reapply_prototypes_on_msg(msg);
                 await ForkMessageController.message_handler(msg, forked.worker);
             });
+
 
             // /**
             //  * On attend le alive du fork avant de continuer

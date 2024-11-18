@@ -208,7 +208,7 @@
     },
     "peerDependencies": {},
     "engines": {
-        "node": ">= 19.8.1",
+        "node": ">= 22.11.0",
         "npm": ">= 6.13.4"
     },
     "browserslist": [

@@ -62,6 +62,8 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
 import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
+import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
+import APIBGThread from '../API/bgthreads/APIBGThread';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -269,7 +271,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public async login_sid(uid: number, sid: string): Promise<boolean> {
 
         try {
-            const session: IServerUserSession = await PushDataServerController.registered_sessions_by_sid[sid];
+            const session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
 
             if (!session) {
                 ConsoleHandler.warn('ModuleAccessPolicyServer.login_session:session not found:SID:' + sid + ':UID:' + uid);
@@ -326,7 +328,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+            await this.insert_or_update_uselog(user_log);
 
             await PushDataServerController.notify_user_and_redirect(session.sid);
 
@@ -588,7 +590,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+            await this.insert_or_update_uselog(user_log);
+
             await PushDataServerController.notify_user_and_redirect(session.sid, redirect_to);
 
             return user.id;
@@ -675,7 +678,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+            await this.insert_or_update_uselog(user_log);
 
             await PushDataServerController.notify_user_and_redirect(session.sid, redirect_to, sso);
 
@@ -743,11 +746,19 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
         user_log.handle_impersonation(session);
 
-        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+        await this.insert_or_update_uselog(user_log);
 
         await PushDataServerController.notify_user_and_redirect(session.sid);
 
         return user.id;
+    }
+
+    /**
+     * On se met sur un bgthread pour libérer express le temps de mettre à jour les userlogs
+     */
+    @RunsOnBgThread(APIBGThread.BGTHREAD_name)
+    private async insert_or_update_uselog(user_log: UserLogVO) {
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
     }
 
     /**

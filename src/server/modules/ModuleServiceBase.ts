@@ -781,7 +781,7 @@ export default abstract class ModuleServiceBase {
                 // export query to txt file for debug
                 const fs = require('fs');
                 const path = require('path');
-                const filename = path.join(__dirname, 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
+                const filename = path.join(process.cwd(), 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
                 fs.writeFile(filename, query);
                 ConsoleHandler.error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.max_size_per_query + ') ' + query.substring(0, 1000) + '...');
 
@@ -793,7 +793,7 @@ export default abstract class ModuleServiceBase {
                 // export query to txt file for debug
                 const fs = require('fs');
                 const path = require('path');
-                const filename = path.join(__dirname, 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
+                const filename = path.join(process.cwd(), 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
                 fs.writeFile(filename, query);
                 ConsoleHandler.error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.max_union_all_per_query + ') ' + query.substring(0, 1000) + '...');
 

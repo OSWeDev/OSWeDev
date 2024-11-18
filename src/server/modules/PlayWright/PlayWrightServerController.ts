@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request } from "express";
 import ModuleAccessPolicy from "../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import IServerUserSession from "../../../shared/modules/AccessPolicy/vos/IServerUserSession";
 import RoleVO from "../../../shared/modules/AccessPolicy/vos/RoleVO";
@@ -42,6 +42,8 @@ export default abstract class PlayWrightServerController {
     public static PARAM_NAME_TEST_USER_PHONE: string = "PlayWrightServerController.TEST_USER_PHONE";
 
     protected static instance: PlayWrightServerController = null;
+
+    private has_changed_password: boolean = false;
 
     protected constructor() { }
 
@@ -87,12 +89,12 @@ export default abstract class PlayWrightServerController {
             throw new Error('PlayWrightServerController: login should not be called in prod');
         }
 
-        let test_user_name: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_NAME);
-        let test_user_email: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_EMAIL);
-        let test_user_firstname: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_FIRSTNAME);
-        let test_user_lastname: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_LASTNAME);
+        let test_user_name: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_NAME, null, 60000);
+        let test_user_email: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_EMAIL, null, 60000);
+        let test_user_firstname: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_FIRSTNAME, null, 60000);
+        let test_user_lastname: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_LASTNAME, null, 60000);
         const test_user_password: string = MatroidIndexHandler.base_10_num_to_base_76_txt(10000 + Math.round(Math.random() * 100000000000)) + MatroidIndexHandler.base_10_num_to_base_76_txt(10000 + Math.round(Math.random() * 100000000000)) + MatroidIndexHandler.base_10_num_to_base_76_txt(10000 + Math.round(Math.random() * 100000000000));
-        let test_user_phone: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_PHONE);
+        let test_user_phone: string = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_PHONE, null, 60000);
 
         if (!test_user_email) {
             if (ConfigurationService.node_configuration.debug_playwright_controller) {
@@ -177,10 +179,17 @@ export default abstract class PlayWrightServerController {
                 ConsoleHandler.log('PlayWrightServerController: test_user found, updating its password');
             }
 
-            // dans tous les cas on reset le mot de passe à chaque session
-            await query(UserVO.API_TYPE_ID).filter_by_id(test_user.id).exec_as_server().update_vos<UserVO>({
-                [field_names<UserVO>().password]: test_user_password
-            });
+            // dans tous les cas on reset le mot de passe si c'est pas encore fait depuis le démarrage
+            if (!this.has_changed_password) {
+                this.has_changed_password = true;
+                if (ConfigurationService.node_configuration.debug_playwright_controller) {
+                    ConsoleHandler.log('PlayWrightServerController: resetting password for test_user.id: ' + test_user.id);
+                }
+
+                await query(UserVO.API_TYPE_ID).filter_by_id(test_user.id).exec_as_server().update_vos<UserVO>({
+                    [field_names<UserVO>().password]: test_user_password
+                });
+            }
         }
 
         if (!test_user.id) {

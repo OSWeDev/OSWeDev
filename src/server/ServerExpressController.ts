@@ -6,7 +6,6 @@ import UserAPIVO from '../shared/modules/AccessPolicy/vos/UserAPIVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
 import { field_names } from '../shared/tools/ObjectHandler';
-import APIBGThread from './modules/API/bgthreads/APIBGThread';
 import { RunsOnBgThread } from './modules/BGThread/annotations/RunsOnBGThread';
 
 export default class ServerExpressController {
@@ -23,7 +22,7 @@ export default class ServerExpressController {
         return ServerExpressController.instance;
     }
 
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name)
+    @RunsOnBgThread('APIBGThread') // En dur pour des pbs de dépendances circulaires
     private async get_user_by_api_key(api_key: string): Promise<UserVO> {
         return await query(UserVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<UserAPIVO>().api_key, api_key, UserAPIVO.API_TYPE_ID)
