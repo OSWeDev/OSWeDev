@@ -1,4 +1,7 @@
-TODO => Checker les horaires des réunions dans le programplan, on a changé la résolution des dates de début et de fin, gros flou artistique sur l'impact de la modif
+TODO 
+    => Checker les horaires des réunions dans le programplan, on a changé la résolution des dates de début et de fin, gros flou artistique sur l'impact de la modif
+    => modifier les bgthreads pour permettre aussi des confs basées sur evenements (oseliarunbgthread, imports, ... qui n'ont pas besoin de se lancer si on a pas de donner à nourrir. Attention on doit tester la condition au lancement du serveur après un timeout défini, et aussi à la fin du run on reteste (ou pas / param) la condition et on relance Asap si la condition est toujours d'actualité)
+
 MIGRATION -> 0.33.5
 Montées de versions
         "express": "4.21.1",

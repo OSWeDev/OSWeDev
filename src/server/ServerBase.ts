@@ -56,12 +56,9 @@ import StatsServerController from './modules/Stats/StatsServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 // import { createTerminus } from '@godaddy/terminus';
 import { IClient } from 'pg-promise/typescript/pg-subset';
-import EventsController from '../shared/modules/Eventify/EventsController';
-import EventifyEventInstanceVO from '../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
 import { field_names } from '../shared/tools/ObjectHandler';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
-import { EVENT_NAME_ForkServerController_ready } from './modules/BGThread/annotations/RunsOnMainThread';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
 import ForkMessageController from './modules/Fork/ForkMessageController';
 import IFork from './modules/Fork/interfaces/IFork';
@@ -102,7 +99,6 @@ export default abstract class ServerBase {
     protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
         ModulesManager.initialize();
-        EventsController.emit_event(EventifyEventInstanceVO.new_event(EVENT_NAME_ForkServerController_ready));
 
         ForkedTasksController.init();
         ForkedTasksController.assert_is_main_process();

@@ -1,9 +1,8 @@
-import EventsController from "../../../../shared/modules/Eventify/EventsController";
-import ForkedProcessWrapperBase from "../../Fork/ForkedProcessWrapperBase";
+import { isMainThread } from "worker_threads";
 import ForkedTasksController from "../../Fork/ForkedTasksController";
+import RegisteredForkedTasksController from "../../Fork/RegisteredForkedTasksController";
 
 
-export const EVENT_NAME_ForkServerController_ready: string = 'BGThreadServerController.ForkServerController_ready';
 
 /**
  * Decorator indicating and handling that the method should be executed on the main thread
@@ -15,14 +14,12 @@ export function RunsOnMainThread(target: any, propertyKey: string, descriptor: P
     //TODO register the method as a task on the main thread, with a UID based on the method name and the class name
     const task_UID = target.constructor.name + '.' + propertyKey;
 
-    EventsController.on_next_event(EVENT_NAME_ForkServerController_ready, () => {
-        if (!ForkedProcessWrapperBase.instance) { // is_main_process
-            ForkedTasksController.register_task(task_UID, originalMethod.bind(target));
-        }
-    });
+    if (isMainThread) { // is_main_process
+        RegisteredForkedTasksController.register_task(task_UID, originalMethod.bind(target));
+    }
 
     descriptor.value = async function (...args: any[]) {
-        if (!!ForkedProcessWrapperBase.instance) { // !is_main_process
+        if (!isMainThread) { // !is_main_process
 
             // Not on main process: execute the method on the main process
             return new Promise(async (resolve, reject) => {

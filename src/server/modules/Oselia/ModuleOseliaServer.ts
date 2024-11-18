@@ -74,6 +74,7 @@ import OseliaRunFunctionCallVO from '../../../shared/modules/Oselia/vos/OseliaRu
 import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
 import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
 import ParamsServerController from '../Params/ParamsServerController';
+import BGThreadServerController from '../BGThread/BGThreadServerController';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -212,6 +213,14 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         postCreateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.reset_has_no_run_ready_to_handle_on_thread);
         postUpdateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.reset_has_no_run_ready_to_handle_on_thread_on_u);
         postDeleteTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.reset_has_no_run_ready_to_handle_on_thread);
+
+        // On force le run des oselia_run dès qu'ils sont créés/modifiés/supprimés
+        postCreateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.asap_oselia_run_bgthread);
+        postUpdateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.asap_oselia_run_bgthread);
+        postDeleteTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.asap_oselia_run_bgthread);
+        postCreateTrigger.registerHandler(GPTAssistantAPIThreadVO.API_TYPE_ID, this, this.asap_oselia_run_bgthread);
+        postUpdateTrigger.registerHandler(GPTAssistantAPIThreadVO.API_TYPE_ID, this, this.asap_oselia_run_bgthread);
+        postDeleteTrigger.registerHandler(GPTAssistantAPIThreadVO.API_TYPE_ID, this, this.asap_oselia_run_bgthread);
 
         postUpdateTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, this, this.update_oselia_run_step_on_u_gpt_run);
 
@@ -2285,5 +2294,9 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             oselia_run_function_call_vo.error_msg = error;
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
         }
+    }
+
+    private async asap_oselia_run_bgthread() {
+        await BGThreadServerController.force_run_asap_by_bgthread_name[OseliaRunBGThread.BGTHREAD_NAME]();
     }
 }

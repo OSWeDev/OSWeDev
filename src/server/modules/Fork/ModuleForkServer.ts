@@ -1,9 +1,10 @@
 
-import { ChildProcess } from 'child_process';
+import { MessagePort, parentPort, Worker } from 'worker_threads';
 import ModuleFork from '../../../shared/modules/Fork/ModuleFork';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import StackContext from '../../StackContext';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import VarsDatasVoUpdateHandler from '../Var/VarsDatasVoUpdateHandler';
@@ -22,8 +23,7 @@ import PingForkACKMessage from './messages/PingForkACKMessage';
 import PingForkMessage from './messages/PingForkMessage';
 import ReloadAsapForkMessage from './messages/ReloadAsapForkMessage';
 import TaskResultForkMessage from './messages/TaskResultForkMessage';
-import StackContext from '../../StackContext';
-import { MessagePort, parentPort, Worker } from 'worker_threads';
+import RegisteredForkedTasksController from './RegisteredForkedTasksController';
 
 export default class ModuleForkServer extends ModuleServerBase {
 
@@ -122,8 +122,8 @@ export default class ModuleForkServer extends ModuleServerBase {
      * On doit donc être sur le main process, on cherche juste la fonction qui a été demandée
      */
     private async handle_mainprocesstask_message(msg: MainProcessTaskForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
-        if ((!msg.message_content) || (!ForkedTasksController.registered_tasks) ||
-            (!ForkedTasksController.registered_tasks[msg.message_content])) {
+        if ((!msg.message_content) || (!RegisteredForkedTasksController.registered_tasks) ||
+            (!RegisteredForkedTasksController.registered_tasks[msg.message_content])) {
 
             return false;
         }
@@ -133,7 +133,7 @@ export default class ModuleForkServer extends ModuleServerBase {
             // On propage le StackContext
             res = await StackContext.runPromise(
                 msg.stack_context,
-                async () => ForkedTasksController.registered_tasks[msg.message_content](...msg.message_content_params)
+                async () => RegisteredForkedTasksController.registered_tasks[msg.message_content](...msg.message_content_params)
             );
         } catch (error) {
             ConsoleHandler.error('handle_mainprocesstask_message:' + error);
@@ -195,8 +195,8 @@ export default class ModuleForkServer extends ModuleServerBase {
      * Si on est sur le bon thread on lance l'action
      */
     private async handle_bgthreadprocesstask_message(msg: BGThreadProcessTaskForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
-        if ((!msg.message_content) || (!ForkedTasksController.registered_tasks) ||
-            (!ForkedTasksController.registered_tasks[msg.message_content]) ||
+        if ((!msg.message_content) || (!RegisteredForkedTasksController.registered_tasks) ||
+            (!RegisteredForkedTasksController.registered_tasks[msg.message_content]) ||
             (!BGThreadServerController.valid_bgthreads_names[msg.bgthread])) {
             return false;
         }
@@ -220,7 +220,7 @@ export default class ModuleForkServer extends ModuleServerBase {
             // On propage le StackContext
             res = await StackContext.runPromise(
                 msg.stack_context,
-                async () => ForkedTasksController.registered_tasks[msg.message_content](...msg.message_content_params)
+                async () => RegisteredForkedTasksController.registered_tasks[msg.message_content](...msg.message_content_params)
             );
 
         } catch (error) {

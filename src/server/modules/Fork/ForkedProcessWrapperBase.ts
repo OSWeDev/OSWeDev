@@ -19,7 +19,7 @@ import EnvParam from '../../env/EnvParam';
 import ServerAPIController from '../API/ServerAPIController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
-import { EVENT_NAME_ForkServerController_ready } from '../BGThread/annotations/RunsOnMainThread';
+import { EVENT_NAME_ForkServerController_ready } from '../BGThread/annotations/RunsOnBGThread';
 import CronServerController from '../Cron/CronServerController';
 import DBDisconnectionServerHandler from '../DAO/disconnection/DBDisconnectionServerHandler';
 import ModuleServiceBase from '../ModuleServiceBase';
@@ -52,7 +52,6 @@ export default abstract class ForkedProcessWrapperBase {
         ModulesManager.initialize();
 
         ForkedProcessWrapperBase.instance = this;
-        EventsController.emit_event(EventifyEventInstanceVO.new_event(EVENT_NAME_ForkServerController_ready));
 
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
@@ -101,6 +100,8 @@ export default abstract class ForkedProcessWrapperBase {
             ConsoleHandler.error("Failed loading argv on forked process+" + error);
             process.exit(1);
         }
+
+        EventsController.emit_event(EventifyEventInstanceVO.new_event(EVENT_NAME_ForkServerController_ready));
 
         let thread_name = 'fork_';
         thread_name += Object.keys(BGThreadServerController.valid_bgthreads_names).join('_').replace(/ \./g, '_');

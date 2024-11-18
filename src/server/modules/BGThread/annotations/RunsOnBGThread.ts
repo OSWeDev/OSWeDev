@@ -1,5 +1,6 @@
 import EventsController from "../../../../shared/modules/Eventify/EventsController";
 import ForkedTasksController from "../../Fork/ForkedTasksController";
+import RegisteredForkedTasksController from "../../Fork/RegisteredForkedTasksController";
 import BGThreadServerController from "../BGThreadServerController";
 
 
@@ -18,7 +19,7 @@ export function RunsOnBgThread(bgthread: string) {
 
         EventsController.on_next_event(EVENT_NAME_ForkServerController_ready, () => {
             if (BGThreadServerController.valid_bgthreads_names[bgthread]) { // on the bg right bgthread
-                ForkedTasksController.register_task(task_UID, originalMethod.bind(target));
+                RegisteredForkedTasksController.register_task(task_UID, originalMethod.bind(target));
             }
         });
 

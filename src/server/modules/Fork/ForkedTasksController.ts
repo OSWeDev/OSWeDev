@@ -13,6 +13,7 @@ import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMe
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
 import MainProcessForwardToBGThreadForkMessage from './messages/MainProcessForwardToBGThreadForkMessage';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
+import RegisteredForkedTasksController from './RegisteredForkedTasksController';
 import ForkMessageCallbackWrapper from './vos/ForkMessageCallbackWrapper';
 
 /**
@@ -27,7 +28,6 @@ export default class ForkedTasksController {
      * Local thread cache -----
      */
     public static registered_task_result_wrappers: { [result_task_uid: number]: ForkMessageCallbackWrapper } = {};
-    public static registered_tasks: { [task_uid: string]: (...task_params) => any } = {};
 
     public static broadexec_with_valid_promise_for_await_TASK_UID: string = 'ForkedTasksController.broadexec_with_valid_promise_for_await';
 
@@ -51,7 +51,7 @@ export default class ForkedTasksController {
             // ForkMessageController.send(new BroadcastWrapperForkMessage(new MainProcessTaskForkMessage(task_uid, task_params)).except_self());
 
             // Si on est pas sur le thread parent, on doit d'abord le lancer en local, puis envoyer aux autres threads
-            await ForkedTasksController.registered_tasks[task_uid](...task_params);
+            await RegisteredForkedTasksController.registered_tasks[task_uid](...task_params);
             await ForkMessageController.send(new BroadcastWrapperForkMessage(
                 new MainProcessTaskForkMessage(
                     task_uid,
@@ -125,7 +125,7 @@ export default class ForkedTasksController {
                             );
                         }));
                     }
-                    promises.push(ForkedTasksController.registered_tasks[task_uid](...task_params));
+                    promises.push(RegisteredForkedTasksController.registered_tasks[task_uid](...task_params));
 
                     await Promise.all(promises);
 
@@ -233,7 +233,7 @@ export default class ForkedTasksController {
         // Si on est sur le bon thread, on exécute
         if (BGThreadServerController.valid_bgthreads_names[bgthread]) {
             // Exécuter la tâche ici
-            return await ForkedTasksController.registered_tasks[task_uid](...task_params);
+            return RegisteredForkedTasksController.registered_tasks[task_uid](...task_params) as T;
         }
 
         // Exécuter la tâche sur le bgthread
@@ -243,7 +243,7 @@ export default class ForkedTasksController {
                 switch (error._type) {
                     case BGThreadNotAliveError.ERROR_TYPE:
                         // Si le BG thread est pas dispo pour le moment, on fait sur le thread actuel, exécuter la tâche ici
-                        resolve(ForkedTasksController.registered_tasks[task_uid](...task_params));
+                        resolve(RegisteredForkedTasksController.registered_tasks[task_uid](...task_params) as T);
                         break;
                     default:
                         reject(error);
@@ -375,8 +375,13 @@ export default class ForkedTasksController {
         return ForkedTasksController.result_task_prefix_thread_uid + '_' + (ForkedTasksController.result_task_uid++);
     }
 
+    /**
+     * @deprecated use RegisteredForkedTasksController.register_task instead
+     * @param task_uid
+     * @param handler
+     */
     public static register_task(task_uid: string, handler: (...task_params) => any) {
-        ForkedTasksController.registered_tasks[task_uid] = handler;
+        RegisteredForkedTasksController.registered_tasks[task_uid] = handler;
     }
 
     /**
@@ -392,7 +397,7 @@ export default class ForkedTasksController {
     //  */
     // public static exec_async_task_on_main_process(task_uid: string, ...task_params) {
     //     if (ForkServerController.is_main_process()) {
-    //         ForkedTasksController.registered_tasks[task_uid](...task_params);
+    //         RegisteredForkedTasksController.registered_tasks[task_uid](...task_params);
     //         return;
     //     }
 

@@ -24,6 +24,8 @@ import OseliaRunBGThreadException from './OseliaRunBGThreadException';
 
 export default class OseliaRunBGThread implements IBGThread {
 
+    public static BGTHREAD_NAME: string = 'OseliaRunBGThread';
+
     /**
      * Les états qu'on peut faire avancer. ça n'empêche pas de créer des bgthreads ou cron pour corriger des blocages d'état et faire de la reprise sur erreur par ailleurs
      * mais ici on s'intéresse aux états qui peuvent avancer. Pas ended, pas en erreur, pas en attente des enfants, pas en cours
@@ -69,8 +71,8 @@ export default class OseliaRunBGThread implements IBGThread {
 
     private static instance: OseliaRunBGThread = null;
 
-    public current_timeout: number = 10;
-    public MAX_timeout: number = 100;
+    public current_timeout: number = 10000;
+    public MAX_timeout: number = 100000;
     public MIN_timeout: number = 10;
 
     private currently_running_thread_ids: { [thread_id: number]: number } = {};
@@ -81,7 +83,7 @@ export default class OseliaRunBGThread implements IBGThread {
     }
 
     get name(): string {
-        return "OseliaRunBGThread";
+        return OseliaRunBGThread.BGTHREAD_NAME;
     }
 
     // istanbul ignore next: nothing to test : getInstance
