@@ -84,6 +84,18 @@ export default class ForkServerController {
 
     public static async reload_unavailable_threads() {
 
+        ConsoleHandler.log('Pour info : Version actuelle de Node.js : ' + process.version);
+
+        const worker = new Worker(path.resolve(process.cwd(), './dist/testWorker.js'));
+
+        worker.on('error', (error) => {
+            console.error('Erreur du worker de test :', error);
+        });
+
+        worker.on('exit', (code) => {
+            console.log(`Le worker de test s'est arrêté avec le code ${code}`);
+        });
+
         // On crée les process et on stocke les liens pour pouvoir envoyer les messages en temps voulu (typiquement pour le lancement des crons)
         for (const i in ForkServerController.forks) {
             const forked: IFork = ForkServerController.forks[i];
@@ -100,6 +112,8 @@ export default class ForkServerController {
                     workerPath,
                     {
                         workerData: ForkServerController.get_argv(forked),
+                        stdout: true, // DELETE ME
+                        stderr: true, // DELETE ME
                         execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), /*'--max-old-space-size=4096', '--expose-gc'*/],
                     }
                 );
@@ -129,6 +143,17 @@ export default class ForkServerController {
 
             forked.worker.on('exit', (code) => {
                 ConsoleHandler.error(`Le worker uid:${forked.uid} s'est arrêté avec le code ${code}. Il gérait les processus : ${Object.keys(forked.processes).join(', ')}`);
+            });
+
+            // DELETE ME
+            // Écouter les sorties du worker
+            forked.worker.stdout.on('data', (data) => {
+                console.log(`STDOUT du worker [uid:${forked.uid}]: ${data}`);
+            });
+
+            // DELETE ME
+            forked.worker.stderr.on('data', (data) => {
+                console.error(`STDERR du worker [uid:${forked.uid}]: ${data}`);
             });
 
             forked.worker.on('message', async (msg: IForkMessage) => {

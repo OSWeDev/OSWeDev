@@ -1,4 +1,3 @@
-
 import { createHash } from 'crypto';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';

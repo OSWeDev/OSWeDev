@@ -25,7 +25,7 @@ import APIAccessDenied from './exceptions/APIAccessDenied';
 import APIParamTranslatorError from './exceptions/APIParamTranslatorError';
 import APIServerHandlerError from './exceptions/APIServerHandlerError';
 import APIGunZipError from './exceptions/APIGunZipError';
-const zlib = require('zlib');
+import zlib from 'zlib';
 
 export default class ModuleAPIServer extends ModuleServerBase {
 

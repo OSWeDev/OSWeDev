@@ -1,4 +1,4 @@
-import zlib from 'zlib';
+import zlib from 'node:zlib';
 import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
 import AjaxCacheController from '../../../../shared/modules/AjaxCache/AjaxCacheController';
 import IAjaxCacheClientController from '../../../../shared/modules/AjaxCache/interfaces/IAjaxCacheClientController';

@@ -13,6 +13,34 @@ Montées de versions
         "npm-watch": "0.13.0",
 
 
+        "@fullcalendar/daygrid": "6.1.15",
+        "@fullcalendar/interaction": "6.1.15",
+        "@fullcalendar/vue": "6.1.15",
+        "fullcalendar": "6.1.15",
+        "fullcalendar-scheduler": "6.1.15",
+
+        "v-calendar": "2.4.2",
+
+        "axios": "1.7.7",
+        
+
+retrait de la dep
+        "vue-full-calendar"
+        "@vue\composition-api@1.7.2"
+        "eslint-config-standard-with-typescript": "43.0.1"
+        crypto
+        zlib
+
+        @azure/identity => inutilisée
+
+        "babel-core": "6.26.0", => inutilisées
+        "babel-loader": "7.1.2",
+        "babel-plugin-istanbul": "6.1.1",
+        "babel-polyfill": "6.23.0",
+        "babel-preset-env": "1.6.1",
+
+"chartjs-plugin-piechart-outlabels" => IMPACTS ? je ne trouve pas l'intégration...
+
 
 Modifier toutes les références d'urls de type :
 vuejsclient/public => public/vuejsclient
@@ -27,3 +55,4 @@ APIControllerWrapper.sah_optimizer
 
 on supprime toutes les stackcontext.get('SESSION') => @runsonmainthread + get('SID') + pushdataservercontroller.registeredsessions_by_sid(sid)
 idem pour 'SELF_USER', on peut utiliser 'UID'
+
