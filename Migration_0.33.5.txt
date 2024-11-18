@@ -23,6 +23,21 @@ Montées de versions
         "v-calendar": "2.4.2",
 
         "axios": "1.7.7",
+
+Dans le projet (pas oswedev)
+        "esbuild-plugin-manifest": "1.0.5",
+
+        "esbuild-plugin-polyfill-node": "0.3.0",
+
+        "@craftamap/esbuild-plugin-html": "0.8.0",
+
+        "esbuild": "0.24.0",
+        "esbuild-plugin-copy": "2.1.1",
+        "esbuild-plugin-ignore": "1.1.1",
+        "esbuild-plugin-pug": "0.0.8",
+        "esbuild-sass-plugin": "3.3.1",
+        "esbuild-vue": "1.2.2",
+
         
 
 retrait de la dep
