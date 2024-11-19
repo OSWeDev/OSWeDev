@@ -13,6 +13,7 @@ import FileServerController from './modules/File/FileServerController';
 import LogVO from '../shared/modules/Logger/vos/LogVO';
 import ParamsManager from '../shared/modules/Params/ParamsManager';
 import ModuleLogger from '../shared/modules/Logger/ModuleLogger';
+import StackContext from './StackContext';
 
 export default class FileLoggerHandler implements ILoggerHandler {
 
@@ -54,11 +55,16 @@ export default class FileLoggerHandler implements ILoggerHandler {
             msg = msg.replace(/$[Oo]/, params[i]);
         }
 
+        if (!msg) {
+            return;
+        }
+
         this.log_to_file_cache.push(LogVO.createNew(
             (((typeof process !== "undefined") && process.pid) ? process.pid : null),
             log_type ?? ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG),
             date,
             msg,
+            StackContext.get('UID'),
             null,
             null,
         ));

@@ -217,6 +217,27 @@
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     )
 
+
+        .options_separator_lvl2 {{ label('var_mixed_charts_widget_options_component.separator.multiple_dataset') }}
+        .multiple_dataset_params
+            .field_ref.multiple_dataset_vo_field_ref
+                .input_label {{ label('var_mixed_charts_widget_options_component.multiple_dataset_vo_field_ref') }}
+                .input_wrapper
+                    Singlevofieldrefholdercomponent(
+                        :vo_field_ref="multiple_dataset_vo_field_ref" @remove_field_ref="remove_multiple_dataset_vo_field_ref" @add_field_ref="add_multiple_dataset_vo_field_ref"
+                        :page_widget_id='page_widget ? page_widget.id : null'
+                    )
+
+            template(v-if="multiple_dataset_vo_field_ref")
+                .max_dataset_values
+                    .input_label {{ label('var_mixed_charts_widget_options_component.max_dataset_values') }}
+                    .input_wrapper
+                        input(
+                            type="number"
+                            v-model="max_dataset_values"
+                            v-tooltip="label('var_mixed_charts_widget_options_component.max_dataset_values.tooltip')"
+                        )
+
         .options_separator_lvl2
 
         .var_charts_options 

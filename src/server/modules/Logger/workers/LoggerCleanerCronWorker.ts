@@ -30,10 +30,12 @@ export default class LoggerCleanerCronWorker implements ICronWorker {
 
     // istanbul ignore next: nothing to test : work
     public async work() {
-        const date: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleLogger.PARAM_LOGGER_CLEANER_DATE, Dates.add(Dates.now(), -15, TimeSegment.TYPE_DAY));
+        // 15 jours par défaut
+        const max_nb_days: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleLogger.PARAM_LOGGER_CLEANER_MAX_NB_DAYS, 15);
+        const date: number = Dates.add(Dates.now(), -max_nb_days, TimeSegment.TYPE_DAY);
         const log_types: LogTypeVO[] = await query(LogTypeVO.API_TYPE_ID).select_vos();
 
-        // On supprimer les logs trop vieux (15 jours par défaut)
+        // On supprimer les logs trop vieux
         for (const i in log_types) {
             await query(LogVO.API_TYPE_ID)
                 .filter_by_date_before(field_names<LogVO>().date, date, TimeSegment.TYPE_DAY)

@@ -29,7 +29,7 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
-
+import Filters from '../../../../../../shared/tools/Filters';
 import './VarRadarChartWidgetComponent.scss';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
@@ -85,7 +85,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        if (this.widget_options.filter_type == 'none') {
+        if (this.widget_options.filter_type == Filters.FILTER_TYPE_none) {
             return null;
         }
         return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;
@@ -719,6 +719,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
 
         const promises = [];
         const label_by_index: { [index: string]: string[] } = {};
+        let cpt_for_var: number = 0;
 
         for (const j in datasets) {
             const dataset = datasets[j];
@@ -789,11 +790,13 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
                         ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
                         return;
                     }
-                    var_params_by_dataset_and_dimension[dataset][dimension_value].id = parseInt(i);
-                    if (label_by_index[parseInt(i)] === undefined) {
-                        label_by_index[parseInt(i)] = [];
+                    var_params_by_dataset_and_dimension[dataset][dimension_value].id = cpt_for_var;
+                    if (label_by_index[cpt_for_var] === undefined) {
+                        label_by_index[cpt_for_var] = [];
                     }
-                    label_by_index[parseInt(i)].push(Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type));
+                    label_by_index[cpt_for_var].push(Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type));
+
+                    cpt_for_var++;
                 })());
             }
         }

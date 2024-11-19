@@ -4,6 +4,7 @@ import CRUDCreateFormComponent from '../../../../../crud/component/create/CRUDCr
 import CRUDComponentManager from '../../../../../crud/CRUDComponentManager';
 import VueComponentBase from '../../../../../VueComponentBase';
 import "./CRUDCreateModalComponent.scss";
+import CRUDFormServices from '../../../../../crud/component/CRUDFormServices';
 
 @Component({
     template: require('./CRUDCreateModalComponent.pug'),
@@ -23,6 +24,7 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
 
     public async open_modal(
         api_type_id: string,
+        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
         onclose_callback: () => Promise<void>,
         vo_init: IDistantVOBase = null,
         show_insert_or_update_target: boolean = true,
@@ -39,6 +41,10 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
         }
 
         if (crud && crud.callback_handle_modal_show_hide) {
+            await CRUDFormServices.load_datas(
+                crud,
+                storeDatas,
+            );
             await crud.callback_handle_modal_show_hide(vo_init, 'create');
         }
 

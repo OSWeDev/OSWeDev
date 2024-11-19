@@ -55,8 +55,42 @@ export default class CheckListModalComponent extends VueComponentBase {
     private finalize_checklist_starting: boolean = false;
     private all_editable_fields: Array<DatatableField<any, any>> = null;
 
-    private onchangevo(vo: IDistantVOBase, field: DatatableField<any, any>, value: any) {
-        this.$emit('onchangevo', vo, field, value);
+
+    get editable_fields(): Array<DatatableField<any, any>> {
+
+        if (!this.checkpoint) {
+            const max_fields: Array<DatatableField<any, any>> = [];
+
+            for (const valid_field_name in this.valid_fields) {
+                const editable_field = this.all_editable_fields.find(
+                    (ef) => ef.datatable_field_uid == valid_field_name
+                );
+
+                max_fields.push(editable_field);
+            }
+
+            return max_fields;
+        }
+
+        if ((!this.checkpoint.item_field_ids) || (!this.checkpoint.item_field_ids.length)) {
+            return [];
+        }
+
+        const res: Array<DatatableField<any, any>> = [];
+
+        for (const i in this.all_editable_fields) {
+            const editable_field = this.all_editable_fields[i];
+
+            if (this.checkpoint.item_field_ids.indexOf(editable_field.datatable_field_uid) >= 0) {
+                if (this.checkpoint.item_fields_tooltip) {
+                    res.push(editable_field.set_tooltip(this.checkpoint.item_fields_tooltip + '.' + editable_field.datatable_field_uid));
+
+                } else {
+                    res.push(editable_field);
+                }
+            }
+        }
+        return res;
     }
 
     @Watch('checklist_controller')
@@ -65,6 +99,10 @@ export default class CheckListModalComponent extends VueComponentBase {
     @Watch('ordered_checkpoints')
     private watchers() {
         this.debounced_update_state_step();
+    }
+
+    private onchangevo(vo: IDistantVOBase, field: DatatableField<any, any>, value: any) {
+        this.$emit('onchangevo', vo, field, value);
     }
 
     private mounted() {
@@ -185,7 +223,7 @@ export default class CheckListModalComponent extends VueComponentBase {
     }
 
     private async finalize_checklist() {
-        if (this.finalize_checklist_starting || CRUDFormServices.getInstance().has_auto_updates_waiting()) {
+        if (this.finalize_checklist_starting || CRUDFormServices.has_auto_updates_waiting()) {
             return;
         }
 
@@ -267,7 +305,7 @@ export default class CheckListModalComponent extends VueComponentBase {
     }
 
     private change_checkpoint(cp: ICheckPoint) {
-        if (CRUDFormServices.getInstance().has_auto_updates_waiting()) {
+        if (CRUDFormServices.has_auto_updates_waiting()) {
             return;
         }
 
@@ -304,40 +342,4 @@ export default class CheckListModalComponent extends VueComponentBase {
         );
     }
 
-    get editable_fields(): Array<DatatableField<any, any>> {
-
-        if (!this.checkpoint) {
-            const max_fields: Array<DatatableField<any, any>> = [];
-
-            for (const valid_field_name in this.valid_fields) {
-                const editable_field = this.all_editable_fields.find(
-                    (ef) => ef.datatable_field_uid == valid_field_name
-                );
-
-                max_fields.push(editable_field);
-            }
-
-            return max_fields;
-        }
-
-        if ((!this.checkpoint.item_field_ids) || (!this.checkpoint.item_field_ids.length)) {
-            return [];
-        }
-
-        const res: Array<DatatableField<any, any>> = [];
-
-        for (const i in this.all_editable_fields) {
-            const editable_field = this.all_editable_fields[i];
-
-            if (this.checkpoint.item_field_ids.indexOf(editable_field.datatable_field_uid) >= 0) {
-                if (this.checkpoint.item_fields_tooltip) {
-                    res.push(editable_field.set_tooltip(this.checkpoint.item_fields_tooltip + '.' + editable_field.datatable_field_uid));
-
-                } else {
-                    res.push(editable_field);
-                }
-            }
-        }
-        return res;
-    }
 }

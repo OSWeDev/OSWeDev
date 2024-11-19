@@ -681,7 +681,7 @@ export default class CRUDComponent extends VueComponentBase {
 
                 try {
 
-                    if (!CRUDFormServices.getInstance().checkForm(self.newVO, self.crud.createDatatable, self.clear_alerts, self.register_alerts)) {
+                    if (!CRUDFormServices.checkForm(self.newVO, self.crud.createDatatable, self.clear_alerts, self.register_alerts)) {
                         self.creating_vo = false;
                         reject({
                             body: self.label('crud.check_form.field_required'),
@@ -1000,7 +1000,7 @@ export default class CRUDComponent extends VueComponentBase {
 
                 try {
 
-                    if (!CRUDFormServices.getInstance().checkForm(self.editableVO, self.crud.updateDatatable, self.clear_alerts, self.register_alerts)) {
+                    if (!CRUDFormServices.checkForm(self.editableVO, self.crud.updateDatatable, self.clear_alerts, self.register_alerts)) {
                         self.updating_vo = false;
                         reject({
                             body: self.label('crud.check_form.field_required'),

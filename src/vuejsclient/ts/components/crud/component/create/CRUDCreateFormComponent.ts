@@ -13,8 +13,6 @@ import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../../../../shared/tools/ObjectHandler';
-import { all_promises } from '../../../../../../shared/tools/PromiseTools';
-import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleAlertAction } from '../../../alert/AlertStore';
 import { ModuleCRUDGetter } from '../../../crud/store/CRUDStore';
@@ -300,28 +298,8 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         this.crud.createDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);
     }
 
-    private async loaddatas() {
-
-        this.isLoading = true;
-
-        if (!this.crud) {
-            this.snotify.error(this.label('crud.errors.loading'));
-            this.isLoading = false;
-            return;
-        }
-
-        /**
-         * On ne veut pas charger par défaut (sauf ref reflective dans un champ de l'objet) tous les vos du type du vo modifié
-         */
-        await all_promises(CRUDFormServices.getInstance().loadDatasFromDatatable(this.crud.createDatatable, this.api_types_involved, this.storeDatas, true));
-
-        await this.prepareNewVO();
-
-        this.isLoading = false;
-    }
-
     private async prepareNewVO() {
-        this.newVO = await CRUDFormServices.getInstance().getNewVO(
+        this.newVO = await CRUDFormServices.getNewVO(
             this.crud, this.vo_init, this.onChangeVO
         );
     }
@@ -355,7 +333,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
                 try {
 
-                    if (!CRUDFormServices.getInstance().checkForm(
+                    if (!CRUDFormServices.checkForm(
                         self.newVO, self.crud.createDatatable, self.clear_alerts, self.register_alerts)) {
                         self.creating_vo = false;
                         reject({
@@ -371,7 +349,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                     }
 
                     // On passe la traduction depuis IHM sur les champs
-                    const apiokVo = CRUDFormServices.getInstance().IHMToData(self.newVO, self.crud.createDatatable, false);
+                    const apiokVo = CRUDFormServices.IHMToData(self.newVO, self.crud.createDatatable, false);
 
                     // On utilise le trigger si il est présent sur le crud
                     if (self.crud.preCreate) {
@@ -434,8 +412,8 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                     }
 
                     // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
-                    await CRUDFormServices.getInstance().updateManyToMany(self.newVO, self.crud.createDatatable, createdVO, self.removeData, self.storeData, self);
-                    await CRUDFormServices.getInstance().updateOneToMany(self.newVO, self.crud.createDatatable, createdVO, self.getStoredDatas, self.updateData);
+                    await CRUDFormServices.updateManyToMany(self.newVO, self.crud.createDatatable, createdVO, self.removeData, self.storeData, self);
+                    await CRUDFormServices.updateOneToMany(self.newVO, self.crud.createDatatable, createdVO, self.getStoredDatas, self.updateData);
 
                     if (self.crud.postCreate) {
                         await self.crud.postCreate(self.newVO);
@@ -499,9 +477,17 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     }
 
     private async reload_datas() {
-        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved(this.api_types_involved);
-        this.api_types_involved = [];
-        await this.loaddatas();
+        this.isLoading = true;
+
+        this.api_types_involved = await CRUDFormServices.load_datas(
+            this.crud,
+            this.storeDatas,
+            this.api_types_involved,
+            this.prepareNewVO.bind(this),
+            true,
+        );
+
+        this.isLoading = false;
     }
 
     private async callCallbackFunctionCreate(): Promise<void> {
@@ -519,7 +505,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
      * @param fileVo
      */
     private async uploadedFile_(vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO) {
-        await CRUDFormServices.getInstance().uploadedFile(vo, field, fileVo, this.api_type_id, this.editableVO, this.updateData, this);
+        await CRUDFormServices.uploadedFile(vo, field, fileVo, this.api_type_id, this.editableVO, this.updateData, this);
     }
 
     private async cancel() {
