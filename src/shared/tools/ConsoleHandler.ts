@@ -65,6 +65,7 @@ export default class ConsoleHandler {
     private static old_console_log: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_warn: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_error: (message?: any, ...optionalParams: any[]) => void = null;
+    private static old_console_debug: (message?: any, ...optionalParams: any[]) => void = null;
 
     private static log_to_console_cache: Array<{ msg: string, date: number, params: any[], log_type: number, url: string }> = [];
     private static log_to_console_throttler = ThrottleHelper.declare_throttle_without_args(this.log_to_console.bind(this), 1000);
@@ -96,6 +97,11 @@ export default class ConsoleHandler {
         ConsoleHandler.old_console_error = console.error;
         console.error = function (msg, ...params) {
             ConsoleHandler.error(msg, ...params);
+        };
+
+        ConsoleHandler.old_console_debug = console.debug;
+        console.debug = function (msg, ...params) {
+            ConsoleHandler.debug(msg, ...params);
         };
     }
 
@@ -130,8 +136,8 @@ export default class ConsoleHandler {
             }
         } else {
             // On est côté client, on récupère l'url
-            if (!ModulesManager.isGenerator && !ModulesManager.isServerSide) {
-                if (!!document?.location?.href && !!document?.location?.origin) {
+            if (!ModulesManager.isGenerator && !ModulesManager.isServerSide && !ModulesManager.isTest) {
+                if ((typeof document != "undefined") && !!document?.location?.href && !!document?.location?.origin) {
                     url = document.location.href.replace(document.location.origin, '');
                 }
             }
@@ -217,7 +223,7 @@ export default class ConsoleHandler {
         }
 
         // On ne log pas les logs du generator en BDD, sinon ça plante car tout n'est pas initialisé
-        if (!ModulesManager.isGenerator && !ModulesManager.isServerSide && !ConsoleHandler.logger_handler && logs?.length) {
+        if (!ModulesManager.isGenerator && !ModulesManager.isServerSide && !ModulesManager.isTest && !ConsoleHandler.logger_handler && logs?.length) {
             // Je suis côté client, je vais enregistrer en BDD
             this.throttled_add_logs_client.push(...logs);
             this.add_logs_client_throttler();
