@@ -564,7 +564,7 @@ export default class PushDataServerController {
         // const notification = APIControllerWrapper.try_translate_vo_to_api(create_vo_notif);
         const notification = create_vo_notif;
 
-        await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
+        return ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
     }
 
     /**
@@ -589,7 +589,7 @@ export default class PushDataServerController {
         // const notification = APIControllerWrapper.try_translate_vo_to_api(update_vo_notif);
         const notification = update_vo_notif;
 
-        await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
+        return ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
     }
 
 
@@ -614,7 +614,7 @@ export default class PushDataServerController {
         // const notification = APIControllerWrapper.try_translate_vo_to_api(delete_vo_notif);
         const notification = delete_vo_notif;
 
-        await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
+        return ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
     }
 
     /**
@@ -633,7 +633,7 @@ export default class PushDataServerController {
             return;
         }
 
-        await PushDataServerController.notify(notification);
+        return PushDataServerController.notify(notification);
     }
 
 
@@ -652,7 +652,7 @@ export default class PushDataServerController {
             return;
         }
 
-        await PushDataServerController.notify(notification);
+        return PushDataServerController.notify(notification);
     }
 
     /**
@@ -688,8 +688,7 @@ export default class PushDataServerController {
             return;
         }
 
-        await PushDataServerController.notify(notification);
-        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyRedirectHomeAndDisconnect');
+        return PushDataServerController.notify(notification);
     }
 
     /**
@@ -729,7 +728,7 @@ export default class PushDataServerController {
             return;
         }
 
-        await PushDataServerController.notify(notification);
+        return PushDataServerController.notify(notification);
     }
 
     /**
@@ -781,8 +780,7 @@ export default class PushDataServerController {
             return;
         }
 
-        await PushDataServerController.notify(notification);
-        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyTabReload');
+        return PushDataServerController.notify(notification);
     }
 
     /**
@@ -800,8 +798,7 @@ export default class PushDataServerController {
             return;
         }
 
-        await PushDataServerController.notify(notification);
-        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyVarsDatas');
+        return PushDataServerController.notify(notification);
     }
 
     @RunsOnMainThread
@@ -812,8 +809,7 @@ export default class PushDataServerController {
             return;
         }
 
-        await PushDataServerController.notify(notification);
-        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyVarsDatasBySocket_');
+        return PushDataServerController.notify(notification);
     }
 
     @RunsOnMainThread
@@ -833,8 +829,7 @@ export default class PushDataServerController {
         notification.user_id = user_id;
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = true;
-        await PushDataServerController.notify(notification);
-        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyDAOGetVoById');
+        return PushDataServerController.notify(notification);
     }
 
     @RunsOnMainThread
@@ -854,8 +849,7 @@ export default class PushDataServerController {
         notification.user_id = user_id;
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = true;
-        await PushDataServerController.notify(notification);
-        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyDAORemoveId');
+        return PushDataServerController.notify(notification);
     }
 
     @RunsOnMainThread
@@ -874,8 +868,7 @@ export default class PushDataServerController {
         notification.user_id = user_id;
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = true;
-        await PushDataServerController.notify(notification);
-        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyDAOGetVos');
+        return PushDataServerController.notify(notification);
     }
 
     @RunsOnMainThread
@@ -897,7 +890,7 @@ export default class PushDataServerController {
                 await PushDataServerController.notifySimple(null, userId, null, msg_type, code_text, auto_read_if_connected, simple_notif_json_params);
             })());
         }
-        await all_promises(promises);
+        return all_promises(promises);
     }
 
     @RunsOnMainThread
@@ -912,7 +905,7 @@ export default class PushDataServerController {
                 await PushDataServerController.notifySimple(null, user.id, null, msg_type, code_text, auto_read_if_connected, simple_notif_json_params);
             })());
         }
-        await all_promises(promises);
+        return all_promises(promises);
     }
 
     @RunsOnMainThread
@@ -955,7 +948,7 @@ export default class PushDataServerController {
         } catch (error) {
             ConsoleHandler.error(error);
         }
-        await all_promises(promises);
+        return all_promises(promises);
     }
 
     // Notifications qui redirigent sur une route avec ou sans paramètres
@@ -1007,7 +1000,7 @@ export default class PushDataServerController {
         } catch (error) {
             ConsoleHandler.error(error);
         }
-        await all_promises(promises);
+        return all_promises(promises);
     }
 
     /**
@@ -1042,7 +1035,7 @@ export default class PushDataServerController {
 
         try {
             if (PushDataServerController.registered_sockets_by_sessionid && PushDataServerController.registered_sockets_by_sessionid[sid]) {
-                await PushDataServerController.notifySimple(Object.values(PushDataServerController.registered_sockets_by_sessionid[sid]).map((w) => w.socketId),
+                return PushDataServerController.notifySimple(Object.values(PushDataServerController.registered_sockets_by_sessionid[sid]).map((w) => w.socketId),
                     null, null, notif_type, code_text, true, simple_notif_json_params);
             }
         } catch (error) {

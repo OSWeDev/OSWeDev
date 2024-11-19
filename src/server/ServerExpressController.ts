@@ -24,7 +24,7 @@ export default class ServerExpressController {
 
     @RunsOnBgThread('APIBGThread') // En dur pour des pbs de dépendances circulaires
     private async get_user_by_api_key(api_key: string): Promise<UserVO> {
-        return await query(UserVO.API_TYPE_ID)
+        return query(UserVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<UserAPIVO>().api_key, api_key, UserAPIVO.API_TYPE_ID)
             .exec_as_server()
             .set_max_age_ms(1000)

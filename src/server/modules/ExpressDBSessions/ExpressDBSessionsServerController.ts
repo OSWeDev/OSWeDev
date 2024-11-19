@@ -55,12 +55,17 @@ export default class ExpressDBSessionsServerController extends Store {
 
     /**
      * On envoie sur un autre thread pour ne pas bloquer le serveur ExpressJS
+     *  Attention : l'id n'est pas mis à jour dans le VO par le moduledao du fait de passage par un bgthread
      * @param sid
      * @returns
      */
     @RunsOnBgThread(APIBGThread.BGTHREAD_name)
-    private async create_session_in_db(session: ExpressSessionVO): Promise<InsertOrDeleteQueryResult> {
-        return ModuleDAOServer.instance.insertOrUpdateVO_as_server(session);
+    private async create_session_in_db(session: ExpressSessionVO): Promise<ExpressSessionVO> {
+        const res = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(session);
+        if (res && res.id) {
+            session.id = res.id;
+        }
+        return session;
     }
 
     /**

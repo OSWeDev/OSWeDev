@@ -151,7 +151,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         for (const i in sids) {
             promises.push(this.do_delete_session(sids[i]));
         }
-        await all_promises(promises);
+        return all_promises(promises);
     }
 
     /**
@@ -184,7 +184,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         } catch (error) {
             ConsoleHandler.error(error);
         }
-        return;
     }
 
     /**
@@ -755,10 +754,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     /**
      * On se met sur un bgthread pour libérer express le temps de mettre à jour les userlogs
+     * Attention le user_log n'a pas d'id du coup puisque le moduledao est lancé sur un autre thread
      */
     @RunsOnBgThread(APIBGThread.BGTHREAD_name)
     private async insert_or_update_uselog(user_log: UserLogVO) {
-        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+        return ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
     }
 
     /**
