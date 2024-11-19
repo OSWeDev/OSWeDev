@@ -1,6 +1,9 @@
 TODO 
     => Checker les horaires des réunions dans le programplan, on a changé la résolution des dates de début et de fin, gros flou artistique sur l'impact de la modif
     => modifier les bgthreads pour permettre aussi des confs basées sur evenements (oseliarunbgthread, imports, ... qui n'ont pas besoin de se lancer si on a pas de donner à nourrir. Attention on doit tester la condition au lancement du serveur après un timeout défini, et aussi à la fin du run on reteste (ou pas / param) la condition et on relance Asap si la condition est toujours d'actualité)
+=> SUPPRIMER de package.json projet                
+        "vue-grid-layout": "2.4.0",
+        "vue-property-decorator": "9.1.2",
 
 MIGRATION -> 0.33.5
 Montées de versions
@@ -27,6 +30,11 @@ Montées de versions
 
         "axios": "1.7.7",
 
+        "vue-class-component": "7.2.6",
+
+                "vue-grid-layout": "2.4.0",
+        "vue-property-decorator": "9.1.2",
+
 Dans le projet (pas oswedev)
         "esbuild-plugin-manifest": "1.0.5",
 
@@ -41,7 +49,7 @@ Dans le projet (pas oswedev)
         "esbuild-sass-plugin": "3.3.1",
         "esbuild-vue": "1.2.2",
 
-        
+
 
 retrait de la dep
         "vue-full-calendar"

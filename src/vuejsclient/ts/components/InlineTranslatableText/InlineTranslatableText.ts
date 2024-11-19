@@ -35,7 +35,7 @@ export default class InlineTranslatableText extends VueComponentBase {
     public set_initializing: (initializing: boolean) => void;
 
     @Prop({ default: null })
-    private code_text: string;
+    public code_text: string;
 
     @Prop({ default: false })
     private is_editable: boolean;

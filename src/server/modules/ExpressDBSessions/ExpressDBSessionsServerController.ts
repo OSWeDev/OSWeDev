@@ -45,32 +45,28 @@ export default class ExpressDBSessionsServerController extends Store {
 
     /**
      * On envoie sur un autre thread pour ne pas bloquer le serveur ExpressJS
-     * @param sid
+     * @param session_id
      * @returns
      */
     @RunsOnBgThread(APIBGThread.BGTHREAD_name)
-    private async get_session_from_db(sid: string): Promise<ExpressSessionVO> {
-        return query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq(field_names<ExpressSessionVO>().sid, sid).exec_as_server().select_vo<ExpressSessionVO>();
+    private async get_session_from_db(session_id: string): Promise<ExpressSessionVO> {
+        return query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq(field_names<ExpressSessionVO>().session_id, session_id).exec_as_server().select_vo<ExpressSessionVO>();
     }
 
     /**
      * On envoie sur un autre thread pour ne pas bloquer le serveur ExpressJS
-     *  Attention : l'id n'est pas mis à jour dans le VO par le moduledao du fait de passage par un bgthread
-     * @param sid
+     *  Attention : l'id n'est pas mis à jour dans le VO du fait de passage par un bgthread
+     * @param session_id
      * @returns
      */
     @RunsOnBgThread(APIBGThread.BGTHREAD_name)
-    private async create_session_in_db(session: ExpressSessionVO): Promise<ExpressSessionVO> {
-        const res = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(session);
-        if (res && res.id) {
-            session.id = res.id;
-        }
-        return session;
+    private async create_session_in_db(session: ExpressSessionVO): Promise<InsertOrDeleteQueryResult> {
+        return ModuleDAOServer.instance.insertOrUpdateVO_as_server(session);
     }
 
     /**
      * On envoie sur un autre thread pour ne pas bloquer le serveur ExpressJS
-     * @param sid
+     * @param session_id
      * @returns
      */
     @RunsOnBgThread(APIBGThread.BGTHREAD_name)
@@ -82,7 +78,7 @@ export default class ExpressDBSessionsServerController extends Store {
 
     /**
      * On envoie sur un autre thread pour ne pas bloquer le serveur ExpressJS
-     * @param sid
+     * @param session_id
      * @returns
      */
     @RunsOnBgThread(APIBGThread.BGTHREAD_name)
@@ -91,156 +87,176 @@ export default class ExpressDBSessionsServerController extends Store {
     }
 
     /**
-     * Attempt to fetch session by the given `sid`.
+     * Attempt to fetch session by the given `session_id`.
      *
-     * @param {string} sid – the session id
+     * @param {string} session_id – the session id
      * @param {(err: Error|null, firstRow?: PGStoreQueryResult) => void} fn – a standard Node.js callback returning the parsed session object
      * @access public
      */
-    public async get(sid, fn) {
-
-        let this_session: ExpressSessionVO = null;
-        let this_parsed_session: IServerUserSession = null;
-        if (ExpressDBSessionsServerController.session_cache[sid] && ExpressDBSessionsServerController.session_cache[sid].expire >= Dates.now()) {
-            this_session = ExpressDBSessionsServerController.session_cache[sid];
-            if (ExpressDBSessionsServerController.parsed_session_cache[sid]) {
-                this_parsed_session = ExpressDBSessionsServerController.parsed_session_cache[sid];
-            }
-        } else {
-
-            // On sort du contexte client pour faire la requete, on doit toujours pouvoir récupérer la session
-            this_session = await this.get_session_from_db(sid);
-            ExpressDBSessionsServerController.session_cache[sid] = this_session;
-            try {
-                this_parsed_session = this_session ? ObjectHandler.try_get_json(this_session.sess) : null;
-                ExpressDBSessionsServerController.parsed_session_cache[sid] = this_parsed_session;
-            } catch {
-                return this.destroy(sid, fn);
-            }
-        }
-
-        if (this_parsed_session) {
-            try {
-                return fn(null, this_parsed_session);
-            } catch {
-                return this.destroy(sid, fn);
-            }
-        }
+    public async get(session_id, fn) {
 
         try {
-            return fn(null);
-        } catch {
-            return this.destroy(sid, fn);
+
+            let this_session: ExpressSessionVO = null;
+            let this_parsed_session: IServerUserSession = null;
+            if (ExpressDBSessionsServerController.session_cache[session_id] && ExpressDBSessionsServerController.session_cache[session_id].expire >= Dates.now()) {
+                this_session = ExpressDBSessionsServerController.session_cache[session_id];
+                if (ExpressDBSessionsServerController.parsed_session_cache[session_id]) {
+                    this_parsed_session = ExpressDBSessionsServerController.parsed_session_cache[session_id];
+                }
+            } else {
+
+                // On sort du contexte client pour faire la requete, on doit toujours pouvoir récupérer la session
+                this_session = await this.get_session_from_db(session_id);
+                ExpressDBSessionsServerController.session_cache[session_id] = this_session;
+                try {
+                    this_parsed_session = this_session ? ObjectHandler.try_get_json(this_session.sess) : null;
+                    ExpressDBSessionsServerController.parsed_session_cache[session_id] = this_parsed_session;
+                } catch {
+                    return this.destroy(session_id, fn);
+                }
+            }
+
+            if (this_parsed_session) {
+                try {
+                    return fn(null, this_parsed_session);
+                } catch {
+                    return this.destroy(session_id, fn);
+                }
+            }
+
+            try {
+                return fn(null);
+            } catch {
+                return this.destroy(session_id, fn);
+            }
+        } catch (error) {
+            ConsoleHandler.error('ExpressDBSessionsServerController.get: error on get session_id:' + session_id + ': ' + error);
+
+            return this.destroy(session_id, fn);
         }
     }
 
     /**
-     * Commit the given `sess` object associated with the given `sid`.
+     * Commit the given `sess` object associated with the given `session_id`.
      *
-     * @param {string} sid – the session id
+     * @param {string} session_id – the session id
      * @param {SessionObject} sess – the session object to store
      * @param {SimpleErrorCallback} fn – a standard Node.js callback returning the parsed session object
      * @access public
      */
-    public async set(sid, sess, fn) {
-        const expireTime = ExpressSessionController.getExpireTime(sess);
-        StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'IN');
+    public async set(session_id, sess, fn) {
+        try {
 
-        /**
-         * On ne met à jour que si : le contenu de la session change (objet sess) ou la date d'expiration a bougé de plus de 7 jours
-         */
-        let cache_sess: ExpressSessionVO = null;
-        let cache_sess_obj: IServerUserSession = null;
-        if (ExpressDBSessionsServerController.session_cache[sid]) {
-            cache_sess = ExpressDBSessionsServerController.session_cache[sid];
-            if (ExpressDBSessionsServerController.parsed_session_cache[sid]) {
-                cache_sess_obj = ExpressDBSessionsServerController.parsed_session_cache[sid];
-            }
-        }
+            const expireTime = ExpressSessionController.getExpireTime(sess);
+            StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'IN');
 
-        const sess_obj = ObjectHandler.try_get_json(sess);
-
-        let do_update = (!cache_sess) ||
-            (!cache_sess.expire) ||
-            !ObjectHandler.are_equal(sess_obj, cache_sess_obj);
-        if (!do_update) {
-            do_update = (Math.abs(expireTime - cache_sess.expire) > 7 * 24 * 60 * 60);
-        }
-
-        const db_session_time_in = Dates.now_ms();
-
-        if (do_update) {
-            let res = cache_sess;
-            if (!res) {
-
-                StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'insert');
-                res = new ExpressSessionVO();
-                res.sid = sid;
-                res.sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
-                res.expire = expireTime;
-                await this.create_session_in_db(res);
-                ExpressDBSessionsServerController.session_cache[sid] = res;
-                StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'set', 'insert_out', Dates.now_ms() - db_session_time_in);
-            } else {
-
-                StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'update');
-                res.sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
-                res.expire = expireTime;
-                await this.update_session_in_db(res);
-                StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'set', 'update_out', Dates.now_ms() - db_session_time_in);
-            }
-
-            if (!res || !res.id) {
-                /**
-                 * On a un problème, on supprime la session du cache pour forcer une nouvelle insertion
-                 */
-                delete ExpressDBSessionsServerController.session_cache[sid];
-                StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'ERROR_session_cache');
-                try {
-                    const db_sess: ExpressSessionVO = await this.get_session_from_db(sid);
-
-                    if (db_sess) {
-                        await this.delete_session_in_db(db_sess.id);
-                        ConsoleHandler.warn('ExpressDBSessionsServerController.set: found a session in db for this sid. deleting and replacing with new session:' + sid);
-
-                        return await this.set(sid, sess, fn);
-                    } else {
-
-                        // on attend un peu et on retente, le serveur est peut-etre pas démarré correctement encore
-                        ConsoleHandler.warn('ExpressDBSessionsServerController.set: no session in db for this sid but insertion failed. Waiting for retry... :' + sid);
-                        await ThreadHandler.sleep(5000, 'ExpressDBSessionsServerController.Set.failed_session_insert');
-                        return await this.touch(sid, sess, fn);
-                    }
-                } catch (error) {
-                    ConsoleHandler.warn('ExpressDBSessionsServerController.set: error on delete sid when insert or update previously failed:' + sid + ': ' + error);
+            /**
+             * On ne met à jour que si : le contenu de la session change (objet sess) ou la date d'expiration a bougé de plus de 7 jours
+             */
+            let cache_sess: ExpressSessionVO = null;
+            let cache_sess_obj: IServerUserSession = null;
+            if (ExpressDBSessionsServerController.session_cache[session_id]) {
+                cache_sess = ExpressDBSessionsServerController.session_cache[session_id];
+                if (ExpressDBSessionsServerController.parsed_session_cache[session_id]) {
+                    cache_sess_obj = ExpressDBSessionsServerController.parsed_session_cache[session_id];
                 }
-                return null;
             }
 
-            ExpressDBSessionsServerController.session_cache[sid].id = ExpressDBSessionsServerController.session_cache[sid].id ? ExpressDBSessionsServerController.session_cache[sid].id : res.id;
+            const sess_obj = ObjectHandler.try_get_json(sess);
 
-            if (!ExpressDBSessionsServerController.session_cache[sid].id) {
-                StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'ERROR_no_id');
-                ConsoleHandler.error('ExpressDBSessionsServerController.set: no id for session sid:' + sid +
-                    ': sess:' + ((typeof sess === 'string') ? sess : JSON.stringify(sess)) +
-                    ': res:' + JSON.stringify(res));
+            let do_update = (!cache_sess) ||
+                (!cache_sess.expire) ||
+                !ObjectHandler.are_equal(sess_obj, cache_sess_obj);
+            if (!do_update) {
+                do_update = (Math.abs(expireTime - cache_sess.expire) > 7 * 24 * 60 * 60);
             }
-        }
 
-        if (fn) {
-            return fn(null);
+            const db_session_time_in = Dates.now_ms();
+
+            if (do_update) {
+                let res = cache_sess;
+                if (!res) {
+
+                    StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'insert');
+                    res = new ExpressSessionVO();
+                    res.session_id = session_id;
+                    res.sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
+                    res.expire = expireTime;
+                    const insert_res = await this.create_session_in_db(res);
+                    if (!insert_res || !insert_res.id) {
+                        StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'ERROR_insert');
+                        ConsoleHandler.error('ExpressDBSessionsServerController.set: error on insert session_id:' + session_id + ': ' + JSON.stringify(res));
+                        return this.destroy(session_id, fn);
+                    }
+                    res.id = insert_res?.id;
+                    ExpressDBSessionsServerController.session_cache[session_id] = res;
+                    StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'set', 'insert_out', Dates.now_ms() - db_session_time_in);
+                } else {
+
+                    StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'update');
+                    res.sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
+                    res.expire = expireTime;
+                    await this.update_session_in_db(res);
+                    StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'set', 'update_out', Dates.now_ms() - db_session_time_in);
+                }
+
+                if (!res || !res.id) {
+                    /**
+                     * On a un problème, on supprime la session du cache pour forcer une nouvelle insertion
+                     */
+                    delete ExpressDBSessionsServerController.session_cache[session_id];
+                    StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'ERROR_session_cache');
+                    try {
+                        const db_sess: ExpressSessionVO = await this.get_session_from_db(session_id);
+
+                        if (db_sess) {
+                            await this.delete_session_in_db(db_sess.id);
+                            ConsoleHandler.warn('ExpressDBSessionsServerController.set: found a session in db for this session_id. deleting and replacing with new session:' + session_id);
+
+                            return await this.set(session_id, sess, fn);
+                        } else {
+
+                            // on attend un peu et on retente, le serveur est peut-etre pas démarré correctement encore
+                            ConsoleHandler.warn('ExpressDBSessionsServerController.set: no session in db for this session_id but insertion failed. Waiting for retry... :' + session_id);
+                            await ThreadHandler.sleep(5000, 'ExpressDBSessionsServerController.Set.failed_session_insert');
+                            return await this.touch(session_id, sess, fn);
+                        }
+                    } catch (error) {
+                        ConsoleHandler.warn('ExpressDBSessionsServerController.set: error on delete session_id when insert or update previously failed:' + session_id + ': ' + error);
+                    }
+                    return null;
+                }
+
+                ExpressDBSessionsServerController.session_cache[session_id].id = ExpressDBSessionsServerController.session_cache[session_id].id ? ExpressDBSessionsServerController.session_cache[session_id].id : res.id;
+
+                if (!ExpressDBSessionsServerController.session_cache[session_id].id) {
+                    StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'ERROR_no_id');
+                    ConsoleHandler.error('ExpressDBSessionsServerController.set: no id for session session_id:' + session_id +
+                        ': sess:' + ((typeof sess === 'string') ? sess : JSON.stringify(sess)) +
+                        ': res:' + JSON.stringify(res));
+                }
+            }
+
+            if (fn) {
+                return fn(null);
+            }
+        } catch (error) {
+            ConsoleHandler.error('ExpressDBSessionsServerController.set: error on set session_id:' + session_id + ': ' + error);
+            return this.destroy(session_id, fn);
         }
     }
 
     /**
-     * Destroy the session associated with the given `sid`.
+     * Destroy the session associated with the given `session_id`.
      *
-     * @param {string} sid – the session id
+     * @param {string} session_id – the session id
      * @param {SimpleErrorCallback} fn – a standard Node.js callback returning the parsed session object
      * @access public
      */
-    public async destroy(sid, fn) {
-        if (!ExpressDBSessionsServerController.session_cache[sid] || !ExpressDBSessionsServerController.session_cache[sid].id) {
+    public async destroy(session_id, fn) {
+
+        if (!ExpressDBSessionsServerController.session_cache[session_id] || !ExpressDBSessionsServerController.session_cache[session_id].id) {
             if (fn) {
                 return fn(null);
             }
@@ -249,14 +265,14 @@ export default class ExpressDBSessionsServerController extends Store {
         StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'destroy', 'IN');
         try {
             const db_session_time_in = Dates.now_ms();
-            await this.delete_session_in_db(ExpressDBSessionsServerController.session_cache[sid].id);
+            await this.delete_session_in_db(ExpressDBSessionsServerController.session_cache[session_id].id);
             StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'destroy', 'OUT', Dates.now_ms() - db_session_time_in);
             StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'destroy', 'OUT');
         } catch (error) {
             StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'destroy', 'error');
-            ConsoleHandler.error('ExpressDBSessionsServerController.destroy: error on delete sid:' + sid + ': ' + error);
+            ConsoleHandler.error('ExpressDBSessionsServerController.destroy: error on delete session_id:' + session_id + ': ' + error);
         }
-        delete ExpressDBSessionsServerController.session_cache[sid];
+        delete ExpressDBSessionsServerController.session_cache[session_id];
 
         if (fn) {
             return fn(null);
@@ -266,36 +282,42 @@ export default class ExpressDBSessionsServerController extends Store {
     /**
      * Touch the given session object associated with the given session ID.
      *
-     * @param {string} sid – the session id
+     * @param {string} session_id – the session id
      * @param {SessionObject} sess – the session object to store
      * @param {SimpleErrorCallback} fn – a standard Node.js callback returning the parsed session object
      * @access public
      */
-    public async touch(sid, sess, fn) {
+    public async touch(session_id, sess, fn) {
         const expireTime = ExpressSessionController.getExpireTime(sess);
 
         /**
          * On ne met à jour que si : le contenu de la session change (objet sess) ou la date d'expiration a bougé de plus de 7 jours
          */
-        let do_update = (!ExpressDBSessionsServerController.session_cache[sid]) || (!ExpressDBSessionsServerController.session_cache[sid].expire);
+        let do_update = (!ExpressDBSessionsServerController.session_cache[session_id]) || (!ExpressDBSessionsServerController.session_cache[session_id].expire);
         if (!do_update) {
-            do_update = (Math.abs(expireTime - ExpressDBSessionsServerController.session_cache[sid].expire) > 7 * 24 * 60 * 60);
+            do_update = (Math.abs(expireTime - ExpressDBSessionsServerController.session_cache[session_id].expire) > 7 * 24 * 60 * 60);
         }
 
         StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'IN');
         const db_session_time_in = Dates.now_ms();
 
         if (do_update) {
-            let res = ExpressDBSessionsServerController.session_cache[sid];
+            let res = ExpressDBSessionsServerController.session_cache[session_id];
             if (!res) {
 
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'insert');
                 res = new ExpressSessionVO();
-                res.sid = sid;
+                res.session_id = session_id;
                 res.sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
                 res.expire = expireTime;
-                await this.create_session_in_db(res);
-                ExpressDBSessionsServerController.session_cache[sid] = res;
+                const insert_res = await this.create_session_in_db(res);
+                if (!insert_res || !insert_res.id) {
+                    StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'ERROR_insert');
+                    ConsoleHandler.error('ExpressDBSessionsServerController.touch: error on insert sid:' + session_id + ': ' + JSON.stringify(res));
+                    return this.destroy(session_id, fn);
+                }
+                res.id = insert_res?.id;
+                ExpressDBSessionsServerController.session_cache[session_id] = res;
                 StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'touch', 'insert_out', Dates.now_ms() - db_session_time_in);
             } else {
 
@@ -310,32 +332,32 @@ export default class ExpressDBSessionsServerController extends Store {
                  * On a un problème, on supprime la session du cache pour forcer une nouvelle insertion
                  */
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'ERROR_session_cache');
-                delete ExpressDBSessionsServerController.session_cache[sid];
+                delete ExpressDBSessionsServerController.session_cache[session_id];
                 try {
-                    const db_sess: ExpressSessionVO = await this.get_session_from_db(sid);
+                    const db_sess: ExpressSessionVO = await this.get_session_from_db(session_id);
                     if (db_sess && db_sess.id) {
                         await this.delete_session_in_db(db_sess.id);
-                        ConsoleHandler.warn('ExpressDBSessionsServerController.touch: found a session in db for this sid. deleting and replacing with new session:' + sid);
+                        ConsoleHandler.warn('ExpressDBSessionsServerController.touch: found a session in db for this session_id. deleting and replacing with new session:' + session_id);
 
-                        return await this.touch(sid, sess, fn);
+                        return await this.touch(session_id, sess, fn);
                     } else {
 
                         // on attend un peu et on retente
-                        ConsoleHandler.warn('ExpressDBSessionsServerController.touch: no session in db for this sid but insertion failed. Waiting for retry... :' + sid);
+                        ConsoleHandler.warn('ExpressDBSessionsServerController.touch: no session in db for this session_id but insertion failed. Waiting for retry... :' + session_id);
                         await ThreadHandler.sleep(5000, 'ExpressDBSessionsServerController.touch.failed_session_insert');
-                        return await this.touch(sid, sess, fn);
+                        return await this.touch(session_id, sess, fn);
                     }
                 } catch (error) {
-                    ConsoleHandler.warn('ExpressDBSessionsServerController.touch: error on delete sid when insert or update previously failed:' + sid + ': ' + error);
+                    ConsoleHandler.warn('ExpressDBSessionsServerController.touch: error on delete session_id when insert or update previously failed:' + session_id + ': ' + error);
                 }
                 return null;
             }
 
-            ExpressDBSessionsServerController.session_cache[sid].id = ExpressDBSessionsServerController.session_cache[sid].id ? ExpressDBSessionsServerController.session_cache[sid].id : res.id;
+            ExpressDBSessionsServerController.session_cache[session_id].id = ExpressDBSessionsServerController.session_cache[session_id].id ? ExpressDBSessionsServerController.session_cache[session_id].id : res.id;
 
-            if (!ExpressDBSessionsServerController.session_cache[sid].id) {
+            if (!ExpressDBSessionsServerController.session_cache[session_id].id) {
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'ERROR_no_id');
-                ConsoleHandler.error('ExpressDBSessionsServerController.touch: no id for session sid:' + sid +
+                ConsoleHandler.error('ExpressDBSessionsServerController.touch: no id for session session_id:' + session_id +
                     ': sess:' + ((typeof sess === 'string') ? sess : JSON.stringify(sess)) +
                     ': res:' + JSON.stringify(res));
             }

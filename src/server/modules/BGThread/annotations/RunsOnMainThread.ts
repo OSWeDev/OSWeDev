@@ -1,6 +1,7 @@
 import { isMainThread } from "worker_threads";
 import ForkedTasksController from "../../Fork/ForkedTasksController";
 import RegisteredForkedTasksController from "../../Fork/RegisteredForkedTasksController";
+import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
 
 
 
@@ -23,12 +24,18 @@ export function RunsOnMainThread(target: any, propertyKey: string, descriptor: P
 
             // Not on main process: execute the method on the main process
             return new Promise(async (resolve, reject) => {
-                await ForkedTasksController.exec_self_on_main_process_and_return_value(
-                    reject,
-                    task_UID, // Using the method name as the task UID
-                    resolve,
-                    ...args
-                );
+                try {
+
+                    await ForkedTasksController.exec_self_on_main_process_and_return_value(
+                        reject,
+                        task_UID, // Using the method name as the task UID
+                        resolve,
+                        ...args
+                    );
+                } catch (error) {
+                    ConsoleHandler.error('Error in RunsOnMainThread: ' + error);
+                    reject(error);
+                }
             });
         } else {
             // On main process: replace the method on this instance with the original method

@@ -129,6 +129,7 @@ import Patch20240530AddUniqNameMailCategory from './patchs/premodules/Patch20240
 import Patch20240827DeleteVersionedAssistantsWithoutInstructions from './patchs/premodules/Patch20240827DeleteVersionedAssistantsWithoutInstructions';
 import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
 import VersionUpdater from './version_updater/VersionUpdater';
+import Patch20241119DeleteSessions from './patchs/premodules/Patch20241119DeleteSessions';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -221,6 +222,7 @@ export default abstract class GeneratorBase {
             Patch2024OSELIAAssistantDescriptionNotNULL.getInstance(),
             Patch20240827DeleteVersionedAssistantsWithoutInstructions.getInstance(),
             Patch20241107SwitchParamsUrlsPublics.getInstance(),
+            Patch20241119DeleteSessions.getInstance(),
         ];
 
         this.post_modules_workers = [

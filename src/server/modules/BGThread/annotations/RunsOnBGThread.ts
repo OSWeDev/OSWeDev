@@ -1,4 +1,5 @@
 import EventsController from "../../../../shared/modules/Eventify/EventsController";
+import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
 import ForkedTasksController from "../../Fork/ForkedTasksController";
 import RegisteredForkedTasksController from "../../Fork/RegisteredForkedTasksController";
 import BGThreadServerController from "../BGThreadServerController";
@@ -28,13 +29,19 @@ export function RunsOnBgThread(bgthread: string) {
 
                 // Execute the method on the right process
                 return new Promise(async (resolve, reject) => {
-                    await ForkedTasksController.exec_self_on_bgthread_and_return_value(
-                        reject,
-                        bgthread,
-                        task_UID, // Using the method name as the task UID
-                        resolve,
-                        ...args
-                    );
+                    try {
+
+                        await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                            reject,
+                            bgthread,
+                            task_UID, // Using the method name as the task UID
+                            resolve,
+                            ...args
+                        );
+                    } catch (error) {
+                        ConsoleHandler.error('Error in RunsOnBgThread: ' + error);
+                        reject(error);
+                    }
                 });
             } else {
                 // On right bgthread : replace the method on this instance with the original method
