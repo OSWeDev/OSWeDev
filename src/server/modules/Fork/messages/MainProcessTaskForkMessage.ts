@@ -1,3 +1,4 @@
+import { IRequestStackContext } from '../../../ServerExpressController';
 import IForkMessage from '../interfaces/IForkMessage';
 
 export default class MainProcessTaskForkMessage implements IForkMessage {
@@ -15,7 +16,7 @@ export default class MainProcessTaskForkMessage implements IForkMessage {
         public message_content: string,
         public message_content_params: any,
 
-        public stack_context: { [key: string]: string | boolean | number }, // Pour maintenir le contexte actif dans l'autre thread
+        public stack_context: IRequestStackContext, // Pour maintenir le contexte actif dans l'autre thread
 
         public callback_forked_uid: number = null,
         public callback_id: string = null

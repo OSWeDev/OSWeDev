@@ -24,13 +24,7 @@ export default abstract class VueAppController {
     public static APP_NAME_LOGIN: string = "login";
     public static APP_NAME_CLIENT: string = "client";
     public static APP_NAME_ADMIN: string = "admin";
-    /**
-     * Ne crée pas d'instance mais permet de récupérer l'instance active
-     */
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        return VueAppController.instance_;
-    }
+
 
     private static instance_: VueAppController;
 
@@ -65,6 +59,14 @@ export default abstract class VueAppController {
         VueAppController.instance_ = this;
     }
 
+    /**
+         * Ne crée pas d'instance mais permet de récupérer l'instance active
+         */
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        return VueAppController.instance_;
+    }
+
     public async initializeFlatLocales() {
         this.ALL_FLAT_LOCALE_TRANSLATIONS = await TranslationManager.get_all_flat_locale_translations();
     }
@@ -80,9 +82,11 @@ export default abstract class VueAppController {
             self.base_url = await ModuleDAO.instance.getBaseUrl();
         })());
 
-        promises.push((async () => {
-            await MenuController.getInstance().reload_from_db();
-        })());
+        if (this.app_name !== VueAppController.APP_NAME_LOGIN) {
+            promises.push((async () => {
+                await MenuController.getInstance().reload_from_db();
+            })());
+        }
 
 
         promises.push((async () => {
@@ -96,16 +100,17 @@ export default abstract class VueAppController {
         }
 
         if (ModuleFeedback.getInstance().actif) {
-
             promises.push((async () => {
                 self.has_access_to_feedback = await ModuleAccessPolicy.getInstance().testAccess(ModuleFeedback.POLICY_FO_ACCESS);
             })());
         }
 
-        if (ModuleSurvey.getInstance().actif) {
-            promises.push((async () => {
-                self.has_access_to_survey = await ModuleAccessPolicy.getInstance().testAccess(ModuleSurvey.POLICY_FO_ACCESS);
-            })());
+        if (this.app_name !== VueAppController.APP_NAME_LOGIN) {
+            if (ModuleSurvey.getInstance().actif) {
+                promises.push((async () => {
+                    self.has_access_to_survey = await ModuleAccessPolicy.getInstance().testAccess(ModuleSurvey.POLICY_FO_ACCESS);
+                })());
+            }
         }
 
         promises.push((async () => {

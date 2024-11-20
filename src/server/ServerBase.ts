@@ -67,6 +67,8 @@ import OseliaServerController from './modules/Oselia/OseliaServerController';
 import ParamsServerController from './modules/Params/ParamsServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
+import StackContext from './StackContext';
+import ServerExpressController from './ServerExpressController';
 
 export default abstract class ServerBase {
 
@@ -293,7 +295,13 @@ export default abstract class ServerBase {
          */
         const cache_duration = 90 * 24 * 60 * 60 * 1000; // 90 jours
 
-        // Cache sur le public
+        // Avant le static du public il faut autoriser la PWA sur /
+        this.app.get('/public/client-sw.*.js', (req, res, next) => {
+            res.header('Service-Worker-Allowed', '/');
+            next();
+        });
+
+        // Cache + static sur le public
         this.app.use('/public', express.static('dist/public', {
             maxAge: cache_duration
         }));
@@ -598,13 +606,13 @@ export default abstract class ServerBase {
 
         this.hook_configure_express();
 
-        if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ServerExpressController:hook_pwa_init:START');
-        }
-        await this.hook_pwa_init();
-        if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ServerExpressController:hook_pwa_init:END');
-        }
+        // if (ConfigurationService.node_configuration.debug_start_server) {
+        //     ConsoleHandler.log('ServerExpressController:hook_pwa_init:START');
+        // }
+        // await this.hook_pwa_init();
+        // if (ConfigurationService.node_configuration.debug_start_server) {
+        //     ConsoleHandler.log('ServerExpressController:hook_pwa_init:END');
+        // }
 
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:registerApis:START');
@@ -654,7 +662,14 @@ export default abstract class ServerBase {
                 .filter_by_text_eq(field_names<FileVO>().path, ModuleFile.SECURED_FILES_ROOT + folders + file_name)
                 .exec_as_server()
                 .select_vo<FileVO>();
-            has_access = (file && file.file_access_policy_name) ? AccessPolicyServerController.check_access_sync(file.file_access_policy_name, true, session.uid) : false;
+            has_access = (file && file.file_access_policy_name) ?
+                await StackContext.runPromise(
+                    await ServerExpressController.getInstance().getStackContextFromReq(req, session.id, session.sid, session.uid),
+                    AccessPolicyServerController.checkAccessSync,
+                    AccessPolicyServerController,
+                    false,
+                    file.file_access_policy_name
+                ) : false;
 
             if (!has_access) {
 
@@ -1003,7 +1018,14 @@ export default abstract class ServerBase {
                 can_fail = false;
             }
 
-            const has_access: boolean = AccessPolicyServerController.check_access_sync(ModuleAccessPolicy.POLICY_FO_ACCESS, true, session.uid, can_fail);
+            const has_access: boolean =
+                await StackContext.runPromise(
+                    await ServerExpressController.getInstance().getStackContextFromReq(req, session.id, session.sid, session.uid),
+                    AccessPolicyServerController.checkAccessSync,
+                    AccessPolicyServerController,
+                    false,
+                    ModuleAccessPolicy.POLICY_FO_ACCESS,
+                    can_fail);
 
             if (!has_access) {
                 await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
@@ -1025,7 +1047,14 @@ export default abstract class ServerBase {
                 can_fail = false;
             }
 
-            const has_access: boolean = AccessPolicyServerController.check_access_sync(ModuleAccessPolicy.POLICY_BO_ACCESS, true, session.uid, can_fail);
+            const has_access: boolean =
+                await StackContext.runPromise(
+                    await ServerExpressController.getInstance().getStackContextFromReq(req, session.id, session.sid, session.uid),
+                    AccessPolicyServerController.checkAccessSync,
+                    AccessPolicyServerController,
+                    false,
+                    ModuleAccessPolicy.POLICY_BO_ACCESS,
+                    can_fail);
 
             if (!has_access) {
 
@@ -1397,23 +1426,22 @@ export default abstract class ServerBase {
     /* istanbul ignore next: nothing to test here */
     protected async hook_on_ready() { }
 
-    /* istanbul ignore next: nothing to test here */
-    protected async hook_pwa_init() {
-        const version = this.getVersion();
+    // /* istanbul ignore next: nothing to test here */
+    // protected async hook_pwa_init() {
 
-        // this.app.get('/public/client-sw.' + version + '.js', (req, res, next) => {
-        //     res.header('Service-Worker-Allowed', '/public/');
+    //     // this.app.get('/public/client-sw.' + version + '.js', (req, res, next) => {
+    //     //     res.header('Service-Worker-Allowed', '/public/');
 
-        // });
+    //     // });
 
-        this.app.get('/public/client-sw.*.js', (req, res, next) => {
-            res.header('Service-Worker-Allowed', '/');
+    //     this.app.get('/public/client-sw.*.js', (req, res, next) => {
+    //         res.header('Service-Worker-Allowed', '/');
 
-            // si on tente de récupérer un service worker qui n'existe pas, on laisse passer l'erreur et on ne recharge pas.
-            // par contre si on est ailleurs dans le /public/, il faudra demander un reload de la page
-            res.sendFile(path.resolve('./dist' + req.url));
-        });
-    }
+    //         // si on tente de récupérer un service worker qui n'existe pas, on laisse passer l'erreur et on ne recharge pas.
+    //         // par contre si on est ailleurs dans le /public/, il faudra demander un reload de la page
+    //         res.sendFile(path.resolve('./dist' + req.url));
+    //     });
+    // }
 
     /* istanbul ignore next: hardly testable */
     protected handleError(promise, res) {

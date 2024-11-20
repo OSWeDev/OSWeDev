@@ -57,7 +57,7 @@ export default class AccessPolicySigninComponent extends VueComponentBase {
 
 
     private async load_logo_url() {
-        this.logo_url = await ModuleParams.getInstance().getParamValueAsString(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url');
+        this.logo_url = await ModuleParams.getInstance().getParamValueAsString(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url', null, 10000);
         if (this.logo_url && (this.logo_url != '""') && (this.logo_url != '')) {
             return;
         }

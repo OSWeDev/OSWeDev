@@ -38,23 +38,23 @@ export default class ModuleParams extends Module {
     // public getParamValue: (
     //     param_name: string,
     //     default_if_undefined?: string | number | boolean,
-    //     max_cache_age_ms?: number) => Promise<string> = APIControllerWrapper.sah(ModuleParams.APINAME_getParamValue);
+    //     max_cache_age_ms: number) => Promise<string> = APIControllerWrapper.sah(ModuleParams.APINAME_getParamValue);
     public getParamValueAsString: (
         param_name: string,
-        default_if_undefined?: string,
-        max_cache_age_ms?: number) => Promise<string> = APIControllerWrapper.sah(ModuleParams.APINAME_getParamValueAsString);
+        default_if_undefined: string,
+        max_cache_age_ms: number) => Promise<string> = APIControllerWrapper.sah(ModuleParams.APINAME_getParamValueAsString);
     public getParamValueAsInt: (
         param_name: string,
-        default_if_undefined?: number,
-        max_cache_age_ms?: number) => Promise<number> = APIControllerWrapper.sah(ModuleParams.APINAME_getParamValueAsInt);
+        default_if_undefined: number,
+        max_cache_age_ms: number) => Promise<number> = APIControllerWrapper.sah(ModuleParams.APINAME_getParamValueAsInt);
     public getParamValueAsBoolean: (
         param_name: string,
-        default_if_undefined?: boolean,
-        max_cache_age_ms?: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleParams.APINAME_getParamValueAsBoolean);
+        default_if_undefined: boolean,
+        max_cache_age_ms: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleParams.APINAME_getParamValueAsBoolean);
     public getParamValueAsFloat: (
         param_name: string,
-        default_if_undefined?: number,
-        max_cache_age_ms?: number) => Promise<number> = APIControllerWrapper.sah(ModuleParams.APINAME_getParamValueAsFloat);
+        default_if_undefined: number,
+        max_cache_age_ms: number) => Promise<number> = APIControllerWrapper.sah(ModuleParams.APINAME_getParamValueAsFloat);
     public setParamValue: (param_name: string, param_value: string) => Promise<void> = APIControllerWrapper.sah(ModuleParams.APINAME_setParamValue);
     public setParamValue_if_not_exists: (param_name: string, param_value: string) => Promise<void> = APIControllerWrapper.sah(ModuleParams.APINAME_setParamValue_if_not_exists);
 

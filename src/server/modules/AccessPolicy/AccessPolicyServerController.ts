@@ -1,7 +1,6 @@
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import IServerUserSession from '../../../shared/modules/AccessPolicy/vos/IServerUserSession';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
@@ -13,16 +12,17 @@ import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
+import { IRequestStackContext } from '../../ServerExpressController';
 import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModulesManagerServer from '../ModulesManagerServer';
-import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
+import ModuleAccessPolicyServer from './ModuleAccessPolicyServer';
 
 export default class AccessPolicyServerController {
 
@@ -171,14 +171,14 @@ export default class AccessPolicyServerController {
      * Privilégier cette fonction synchrone pour vérifier les droits côté serveur
      * @param policy_name
      */
-    public static check_access_sync(policy_name: string, is_client: boolean = true, uid: number = null, can_fail: boolean = false): boolean {
+    public static checkAccessSync(policy_name: string, can_fail: boolean = false): boolean {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!policy_name)) {
             ConsoleHandler.error('checkAccessSync:!policy_name');
             return false;
         }
 
-        if (!is_client) {
+        if (!StackContext.get(reflect<IRequestStackContext>().IS_CLIENT)) {
             return true;
         }
 
@@ -188,6 +188,7 @@ export default class AccessPolicyServerController {
             return false;
         }
 
+        const uid = StackContext.get(reflect<IRequestStackContext>().UID);
         if (!uid) {
             // profil anonyme
             return AccessPolicyServerController.checkAccessTo(
@@ -205,25 +206,6 @@ export default class AccessPolicyServerController {
             target_policy,
             AccessPolicyServerController.getUsersRoles(true, uid),
             undefined, undefined, undefined, undefined, undefined, can_fail);
-    }
-
-    /**
-     * Privilégier cette fonction synchrone pour vérifier les droits côté serveur
-     * @param policy_name
-     * @deprecated utiliser check_access_sync qui n'utilise plus StackContext
-     */
-    public static checkAccessSync(policy_name: string, can_fail: boolean = false): boolean {
-
-        if ((!ModuleAccessPolicy.getInstance().actif) || (!policy_name)) {
-            ConsoleHandler.error('checkAccessSync:!policy_name');
-            return false;
-        }
-
-        if (!StackContext.get('IS_CLIENT')) {
-            return true;
-        }
-
-        return this.check_access_sync(policy_name, true, StackContext.get('UID'), can_fail);
     }
 
     public static async preload_registered_roles_policies() {
@@ -1271,7 +1253,7 @@ export default class AccessPolicyServerController {
             // La dépendance au stackcontext est complexe à résoudre à ce niveau... va falloir y réfléchir
             const sid: string = StackContext.get('SID');
             if (sid) {
-                AccessPolicyDeleteSessionBGThread.getInstance().push_sid_to_delete(sid).then().catch((error) => ConsoleHandler.error(error));
+                ModuleAccessPolicyServer.getInstance().delete_sessions_from_sids([sid]).then().catch((error) => ConsoleHandler.error(error));
             }
         }
         return false;

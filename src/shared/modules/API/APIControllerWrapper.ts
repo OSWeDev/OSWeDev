@@ -224,149 +224,149 @@ export default class APIControllerWrapper {
         return res;
     }
 
-    public static try_translate_vo_from_api(e: any): any {
+    // public static try_translate_vo_from_api(e: any): any {
 
-        if (!e) {
-            return e;
-        }
+    //     if (!e) {
+    //         return e;
+    //     }
 
-        if (Array.isArray(e)) {
-            return APIControllerWrapper.try_translate_vos_from_api(e);
-        }
+    //     if (Array.isArray(e)) {
+    //         return APIControllerWrapper.try_translate_vos_from_api(e);
+    //     }
 
-        const elt = (e as IDistantVOBase);
-        if (!elt._type) {
+    //     const elt = (e as IDistantVOBase);
+    //     if (!elt._type) {
 
-            if (APIControllerWrapper.is_range(e as IRange)) {
-                return APIControllerWrapper.try_translate_range_from_api(e as IRange);
-            }
+    //         if (APIControllerWrapper.is_range(e as IRange)) {
+    //             return APIControllerWrapper.try_translate_range_from_api(e as IRange);
+    //         }
 
-            if (APIControllerWrapper.is_moment_from_api(e)) {
-                return APIControllerWrapper.try_translate_moment_from_api(e);
-            }
+    //         if (APIControllerWrapper.is_moment_from_api(e)) {
+    //             return APIControllerWrapper.try_translate_moment_from_api(e);
+    //         }
 
-            if (APIControllerWrapper.is_date_from_api(e)) {
-                return APIControllerWrapper.try_translate_date_from_api(e);
-            }
+    //         if (APIControllerWrapper.is_date_from_api(e)) {
+    //             return APIControllerWrapper.try_translate_date_from_api(e);
+    //         }
 
-            if (APIControllerWrapper.is_duration_from_api(e)) {
-                return APIControllerWrapper.try_translate_duration_from_api(e);
-            }
+    //         if (APIControllerWrapper.is_duration_from_api(e)) {
+    //             return APIControllerWrapper.try_translate_duration_from_api(e);
+    //         }
 
-            if (typeof e === 'object') {
-                const res = Object.assign({}, e);
-                for (const i in res) {
+    //         if (typeof e === 'object') {
+    //             const res = Object.assign({}, e);
+    //             for (const i in res) {
 
-                    res[i] = APIControllerWrapper.try_translate_vo_from_api(res[i]);
-                }
-                return res;
-            }
+    //                 res[i] = APIControllerWrapper.try_translate_vo_from_api(res[i]);
+    //             }
+    //             return res;
+    //         }
 
-            return e;
-        }
+    //         return e;
+    //     }
 
-        return ModuleTableController.translate_vos_from_api(elt);
-    }
+    //     return ModuleTableController.translate_vos_from_api(elt);
+    // }
 
-    public static try_translate_vo_to_api(e: any, nb_calls: number = 0): any {
+    // public static try_translate_vo_to_api(e: any, nb_calls: number = 0): any {
 
-        nb_calls++;
-        if (!e) {
-            return e;
-        }
+    //     nb_calls++;
+    //     if (!e) {
+    //         return e;
+    //     }
 
-        if (Array.isArray(e)) {
-            return APIControllerWrapper.try_translate_vos_to_api(e);
-        }
+    //     if (Array.isArray(e)) {
+    //         return APIControllerWrapper.try_translate_vos_to_api(e);
+    //     }
 
-        if (nb_calls > 100) {
-            ConsoleHandler.error('try_translate_vo_to_api:TOO MANY CALLS TO TRANSLATE VO TO API - PROBABLY RECURSIVE:_type:' + e._type);
-            throw new Error('try_translate_vo_to_api:TOO MANY CALLS TO TRANSLATE VO TO API - PROBABLY RECURSIVE:_type:' + e._type);
-        }
+    //     if (nb_calls > 100) {
+    //         ConsoleHandler.error('try_translate_vo_to_api:TOO MANY CALLS TO TRANSLATE VO TO API - PROBABLY RECURSIVE:_type:' + e._type);
+    //         throw new Error('try_translate_vo_to_api:TOO MANY CALLS TO TRANSLATE VO TO API - PROBABLY RECURSIVE:_type:' + e._type);
+    //     }
 
-        const elt = (e as IDistantVOBase);
+    //     const elt = (e as IDistantVOBase);
 
-        if (!elt._type) {
+    //     if (!elt._type) {
 
-            if (APIControllerWrapper.is_range(e as IRange)) {
-                return APIControllerWrapper.try_translate_range_to_api(e as IRange);
-            }
+    //         if (APIControllerWrapper.is_range(e as IRange)) {
+    //             return APIControllerWrapper.try_translate_range_to_api(e as IRange);
+    //         }
 
-            if (TypesHandler.getInstance().isDate(e)) {
-                return APIControllerWrapper.try_translate_date_to_api(e);
-            }
+    //         if (TypesHandler.getInstance().isDate(e)) {
+    //             return APIControllerWrapper.try_translate_date_to_api(e);
+    //         }
 
-            if (TypesHandler.getInstance().isMoment(e)) {
-                return APIControllerWrapper.try_translate_moment_to_api(e);
-            }
+    //         if (TypesHandler.getInstance().isMoment(e)) {
+    //             return APIControllerWrapper.try_translate_moment_to_api(e);
+    //         }
 
-            if (TypesHandler.getInstance().isDuration(e)) {
-                return APIControllerWrapper.try_translate_duration_to_api(e);
-            }
+    //         if (TypesHandler.getInstance().isDuration(e)) {
+    //             return APIControllerWrapper.try_translate_duration_to_api(e);
+    //         }
 
-            if (typeof e === 'object') {
+    //         if (typeof e === 'object') {
 
-                // Ignorer les méthodes
-                const res = Object.assign({}, e);
+    //             // Ignorer les méthodes
+    //             const res = Object.assign({}, e);
 
-                for (const i in res) {
+    //             for (const i in res) {
 
-                    if (e[i] == e) {
-                        ConsoleHandler.error('try_translate_vo_to_api:RECURSIVE OBJECT CANNOT BE TRANSLATED TO API:_type:' + e._type);
-                        throw new Error('try_translate_vo_to_api:RECURSIVE OBJECT CANNOT BE TRANSLATED TO API:_type:' + e._type);
-                    }
-                    res[i] = APIControllerWrapper.try_translate_vo_to_api(e[i], nb_calls);
-                }
-                return res;
-            }
+    //                 if (e[i] == e) {
+    //                     ConsoleHandler.error('try_translate_vo_to_api:RECURSIVE OBJECT CANNOT BE TRANSLATED TO API:_type:' + e._type);
+    //                     throw new Error('try_translate_vo_to_api:RECURSIVE OBJECT CANNOT BE TRANSLATED TO API:_type:' + e._type);
+    //                 }
+    //                 res[i] = APIControllerWrapper.try_translate_vo_to_api(e[i], nb_calls);
+    //             }
+    //             return res;
+    //         }
 
-            return e;
-        }
+    //         return e;
+    //     }
 
-        return ModuleTableController.translate_vos_to_api(elt);
-    }
+    //     return ModuleTableController.translate_vos_to_api(elt);
+    // }
 
-    public static try_translate_vos_from_api(e: any): any {
+    // public static try_translate_vos_from_api(e: any): any {
 
-        if (!e) {
-            return e;
-        }
+    //     if (!e) {
+    //         return e;
+    //     }
 
-        if (!Array.isArray(e)) {
-            return APIControllerWrapper.try_translate_vo_from_api(e);
-        }
+    //     if (!Array.isArray(e)) {
+    //         return APIControllerWrapper.try_translate_vo_from_api(e);
+    //     }
 
-        const res = [];
+    //     const res = [];
 
-        for (const i in e) {
-            const elt = e[i];
+    //     for (const i in e) {
+    //         const elt = e[i];
 
-            res.push(APIControllerWrapper.try_translate_vo_from_api(elt));
-        }
+    //         res.push(APIControllerWrapper.try_translate_vo_from_api(elt));
+    //     }
 
-        return res;
-    }
+    //     return res;
+    // }
 
-    public static try_translate_vos_to_api(e: any): any {
+    // public static try_translate_vos_to_api(e: any): any {
 
-        if (!e) {
-            return e;
-        }
+    //     if (!e) {
+    //         return e;
+    //     }
 
-        if (!Array.isArray(e)) {
-            return APIControllerWrapper.try_translate_vo_to_api(e);
-        }
+    //     if (!Array.isArray(e)) {
+    //         return APIControllerWrapper.try_translate_vo_to_api(e);
+    //     }
 
-        const res = [];
+    //     const res = [];
 
-        for (const i in e) {
-            const elt = e[i];
+    //     for (const i in e) {
+    //         const elt = e[i];
 
-            res.push(APIControllerWrapper.try_translate_vo_to_api(elt));
-        }
+    //         res.push(APIControllerWrapper.try_translate_vo_to_api(elt));
+    //     }
 
-        return res;
-    }
+    //     return res;
+    // }
 
     private static instance: APIControllerWrapper = null;
 

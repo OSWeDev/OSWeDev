@@ -24,6 +24,6 @@ export default class Patch20210916SetParamPushData implements IGeneratorWorker {
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        await ParamsServerController.setParamValue_if_not_exists(ModulePushData.PARAM_TECH_DISCONNECT_URL, '/');
+        await ParamsServerController.setParamValue_if_not_exists_as_server(ModulePushData.PARAM_TECH_DISCONNECT_URL, '/');
     }
 }

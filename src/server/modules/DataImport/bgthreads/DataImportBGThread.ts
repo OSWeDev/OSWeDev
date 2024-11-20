@@ -106,7 +106,7 @@ export default class DataImportBGThread implements IBGThread {
                     (dih.state != ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT) &&
                     (dih.state != ModuleDataImport.IMPORTATION_STATE_IMPORTED))) {
                     dih = null;
-                    await ParamsServerController.setParamValue(DataImportBGThread.importing_dih_id_param_name, null);
+                    await ParamsServerController.setParamValue_as_server(DataImportBGThread.importing_dih_id_param_name, null);
                 }
             }
 
@@ -164,7 +164,7 @@ export default class DataImportBGThread implements IBGThread {
                 return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
             }
 
-            await ParamsServerController.setParamValue(DataImportBGThread.importing_dih_id_param_name, dih.id.toString());
+            await ParamsServerController.setParamValue_as_server(DataImportBGThread.importing_dih_id_param_name, dih.id.toString());
 
             await this.handleImportHistoricProgression(dih);
             ConsoleHandler.log('DataImportBGThread DIH[' + dih.id + '] state:' + dih.state + ':');
@@ -181,7 +181,7 @@ export default class DataImportBGThread implements IBGThread {
 
             // Si on est pas dans un état de continuation, on arrête cet import
             //  Tant qu'on gère des imports, on run
-            await ParamsServerController.setParamValue(DataImportBGThread.importing_dih_id_param_name, null);
+            await ParamsServerController.setParamValue_as_server(DataImportBGThread.importing_dih_id_param_name, null);
             this.stats_out('ok', time_in);
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {

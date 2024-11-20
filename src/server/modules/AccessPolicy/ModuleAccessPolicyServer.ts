@@ -33,7 +33,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import TextHandler from '../../../shared/tools/TextHandler';
 import StackContext from '../../StackContext';
@@ -61,9 +61,10 @@ import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisat
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
-import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
+// import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import APIBGThread from '../API/bgthreads/APIBGThread';
+import { IRequestStackContext } from '../../ServerExpressController';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -993,7 +994,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     // istanbul ignore next: cannot test configure
     public async configure() {
 
-        ModuleBGThreadServer.getInstance().registerBGThread(AccessPolicyDeleteSessionBGThread.getInstance());
+        // ModuleBGThreadServer.getInstance().registerBGThread(AccessPolicyDeleteSessionBGThread.getInstance());
 
         // On ajoute un trigger pour la création du compte
         const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
@@ -1702,12 +1703,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         await PasswordInitialisation.getInstance().begininitpwd_uid(num);
     }
 
-    public async addRoleToUser(user_id: number, role_id: number, exec_as_server: boolean = false): Promise<void> {
+    public async addRoleToUser(user_id: number, role_id: number): Promise<void> {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!user_id) || (!role_id)) {
             return;
         }
 
+        const exec_as_server = !StackContext.get(reflect<IRequestStackContext>().IS_CLIENT);
         if (!exec_as_server && !AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
             return;
         }

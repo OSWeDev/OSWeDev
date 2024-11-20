@@ -368,6 +368,30 @@ export default class PushDataServerController {
     }
 
     /**
+     * WARN : Only on main thread (express).
+     * On assert le main thread ici par ce qu'on ne peut pas json.stringify une session
+     * Attention: @RunsOnMainThread impose async, donc si on peut accéder proprement depuis le main thread directement au registered_sessions_by_uid, on le fait
+     * @param userId
+     */
+    public static async getUserSessions(userId: number): Promise<{ [sessId: string]: IServerUserSession }> {
+
+        ForkedTasksController.assert_is_main_process();
+        return PushDataServerController.registered_sessions_by_uid[userId];
+    }
+
+    /**
+     * WARN : Only on main thread (express).
+     * On assert le main thread ici par ce qu'on ne peut pas json.stringify une session
+     * Attention: @RunsOnMainThread impose async, donc si on peut accéder proprement depuis le main thread directement au registered_sessions_by_sid, on le fait
+     * @param sid
+     */
+    public static async getSessionBySid(sid: string): Promise<IServerUserSession> {
+
+        ForkedTasksController.assert_is_main_process();
+        return PushDataServerController.registered_sessions_by_sid[sid];
+    }
+
+    /**
      * On renvoie un socket donc est doit être côté serveur même dans la fonction qui appelle. Donc ici on assert
      * @param userId
      * @param client_tab_id
@@ -464,7 +488,7 @@ export default class PushDataServerController {
      * @param session
      */
     @RunsOnMainThread
-    public static async unregisterSession(sid: string, notify_redirect: boolean = true) {
+    public static async unregisterSession(sid: string, notify_redirect: boolean = true): Promise<void> {
 
         const session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
         if (!session) {
@@ -500,7 +524,7 @@ export default class PushDataServerController {
      * @param session
      */
     @RunsOnMainThread
-    public static async unregisterUserSession(sid: string) {
+    public static async unregisterUserSession(sid: string): Promise<void> {
 
         const session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
 
@@ -522,34 +546,12 @@ export default class PushDataServerController {
     }
 
     /**
-     * WARN : Only on main thread (express).
-     * Attention: @RunsOnMainThread impose async, donc si on peut accéder proprement depuis le main thread directement au registered_sessions_by_uid, on le fait
-     * @param userId
-     */
-    @RunsOnMainThread
-    public static async getUserSessions(userId: number): Promise<{ [sessId: string]: IServerUserSession }> {
-
-        return PushDataServerController.registered_sessions_by_uid[userId];
-    }
-
-    /**
-     * WARN : Only on main thread (express).
-     * Attention: @RunsOnMainThread impose async, donc si on peut accéder proprement depuis le main thread directement au registered_sessions_by_sid, on le fait
-     * @param sid
-     */
-    @RunsOnMainThread
-    public static async getSessionBySid(sid: string): Promise<IServerUserSession> {
-
-        return PushDataServerController.registered_sessions_by_sid[sid];
-    }
-
-    /**
      * On notifie une room IO, avec le vo créé
      * @param room_id
      * @param vo
      */
     @RunsOnMainThread
-    public static async notify_vo_creation(room_id: string, vo: any) {
+    public static async notify_vo_creation(room_id: string, vo: any): Promise<void> {
 
         const create_vo_notif: NotificationVO = new NotificationVO();
         create_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_CREATED;
@@ -574,7 +576,7 @@ export default class PushDataServerController {
      * @param post_update_vo
      */
     @RunsOnMainThread
-    public static async notify_vo_update(room_id: string, pre_update_vo: any, post_update_vo: any) {
+    public static async notify_vo_update(room_id: string, pre_update_vo: any, post_update_vo: any): Promise<void> {
 
         const update_vo_notif: NotificationVO = new NotificationVO();
         update_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_UPDATED;
@@ -599,7 +601,7 @@ export default class PushDataServerController {
      * @param vo
      */
     @RunsOnMainThread
-    public static async notify_vo_deletion(room_id: string, vo: any) {
+    public static async notify_vo_deletion(room_id: string, vo: any): Promise<void> {
 
         const delete_vo_notif: NotificationVO = new NotificationVO();
         delete_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_DELETED;
@@ -624,7 +626,7 @@ export default class PushDataServerController {
      * @param res
      */
     @RunsOnMainThread
-    public static async notifyAPIResult(user_id: number, client_tab_id: string, api_call_id: number, res: any) {
+    public static async notifyAPIResult(user_id: number, client_tab_id: string, api_call_id: number, res: any): Promise<void> {
 
         user_id = ((user_id == null) ? 0 : user_id);
         const notification: NotificationVO = PushDataServerController.getAPIResultNotif(user_id, client_tab_id, null, api_call_id, res);
@@ -644,7 +646,7 @@ export default class PushDataServerController {
      * @param vo
      */
     @RunsOnMainThread
-    public static async notifyVarData(user_id: number, client_tab_id: string, vo: VarDataValueResVO) {
+    public static async notifyVarData(user_id: number, client_tab_id: string, vo: VarDataValueResVO): Promise<void> {
 
         user_id = ((user_id == null) ? 0 : user_id);
         const notification: NotificationVO = PushDataServerController.getVarDataNotif(user_id, client_tab_id, null, vo ? [vo] : null);
@@ -660,7 +662,7 @@ export default class PushDataServerController {
      * On notifie un utilisateur pour forcer la déco et rechargement de la page d'accueil
      */
     @RunsOnMainThread
-    public static async notifyRedirectHomeAndDisconnect(sid: string) {
+    public static async notifyRedirectHomeAndDisconnect(sid: string): Promise<void> {
 
         const session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
 
@@ -700,7 +702,7 @@ export default class PushDataServerController {
         sid: string,
         redirect_uri: string = '/',
         sso: boolean = false
-    ) {
+    ): Promise<void> {
 
         const session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
 
@@ -736,7 +738,7 @@ export default class PushDataServerController {
      * @deprecated Utilise StackContext que l'on ne veut plus utiliser. Préférer notify_user_and_redirect
      */
     @RunsOnMainThread
-    public static async notifyUserLoggedAndRedirect(redirect_uri: string = '/', sso: boolean = false) {
+    public static async notifyUserLoggedAndRedirect(redirect_uri: string = '/', sso: boolean = false): Promise<void> {
 
         const sid = StackContext.get('SID');
 
@@ -744,7 +746,7 @@ export default class PushDataServerController {
     }
 
     @RunsOnMainThread
-    public static async notifyScreenshot(UID: number, CLIENT_TAB_ID: string, gpt_assistant_id: string, gpt_thread_id: string) {
+    public static async notifyScreenshot(UID: number, CLIENT_TAB_ID: string, gpt_assistant_id: string, gpt_thread_id: string): Promise<void> {
         let notification: NotificationVO = null;
         try {
             notification = PushDataServerController.getTechNotif(
@@ -765,7 +767,7 @@ export default class PushDataServerController {
      * On notifie une tab pour reload
      */
     @RunsOnMainThread
-    public static async notifyTabReload(UID: number, CLIENT_TAB_ID: string) {
+    public static async notifyTabReload(UID: number, CLIENT_TAB_ID: string): Promise<void> {
 
         let notification: NotificationVO = null;
         try {
@@ -790,7 +792,7 @@ export default class PushDataServerController {
      * @param vos
      */
     @RunsOnMainThread
-    public static async notifyVarsDatas(user_id: number, client_tab_id: string, vos: VarDataValueResVO[]) {
+    public static async notifyVarsDatas(user_id: number, client_tab_id: string, vos: VarDataValueResVO[]): Promise<void> {
 
         user_id = ((user_id == null) ? 0 : user_id);
         const notification: NotificationVO = PushDataServerController.getVarDataNotif(user_id, client_tab_id, null, vos);
@@ -802,7 +804,7 @@ export default class PushDataServerController {
     }
 
     @RunsOnMainThread
-    public static async notifyVarsDatasBySocket_(socket_id: string, vos: VarDataValueResVO[]) {
+    public static async notifyVarsDatasBySocket_(socket_id: string, vos: VarDataValueResVO[]): Promise<void> {
 
         const notification: NotificationVO = PushDataServerController.getVarDataNotif(PushDataServerController.registereduid_by_socketid[socket_id], PushDataServerController.registeredclient_tab_id_by_socketid[socket_id], socket_id, vos);
         if (!notification) {
@@ -813,7 +815,7 @@ export default class PushDataServerController {
     }
 
     @RunsOnMainThread
-    public static async notifyDAOGetVoById(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number) {
+    public static async notifyDAOGetVoById(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number): Promise<void> {
 
         if ((!user_id) || (!api_type_id) || (!vo_id)) {
             return;
@@ -833,7 +835,7 @@ export default class PushDataServerController {
     }
 
     @RunsOnMainThread
-    public static async notifyDAORemoveId(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number) {
+    public static async notifyDAORemoveId(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number): Promise<void> {
 
         if ((!user_id) || (!api_type_id) || (!vo_id)) {
             return;
@@ -853,7 +855,7 @@ export default class PushDataServerController {
     }
 
     @RunsOnMainThread
-    public static async notifyDAOGetVos(user_id: number, client_tab_id: string, api_type_id: string) {
+    public static async notifyDAOGetVos(user_id: number, client_tab_id: string, api_type_id: string): Promise<void> {
 
         if ((!user_id) || (!api_type_id)) {
             return;
@@ -872,9 +874,9 @@ export default class PushDataServerController {
     }
 
     @RunsOnMainThread
-    public static async broadcastLoggedSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
+    public static async broadcastLoggedSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null): Promise<void> {
 
-        const promises = [];
+        const promises: Array<Promise<void>> = [];
 
         const ids: number[] = [];
         for (const userId_ in PushDataServerController.registeredSockets) {
@@ -890,11 +892,11 @@ export default class PushDataServerController {
                 await PushDataServerController.notifySimple(null, userId, null, msg_type, code_text, auto_read_if_connected, simple_notif_json_params);
             })());
         }
-        return all_promises(promises);
+        return all_promises(promises) as unknown as Promise<void>;
     }
 
     @RunsOnMainThread
-    public static async broadcastAllSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
+    public static async broadcastAllSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null): Promise<void> {
 
         const promises = [];
         const users = await query(UserVO.API_TYPE_ID).select_vos<UserVO>();
@@ -905,11 +907,11 @@ export default class PushDataServerController {
                 await PushDataServerController.notifySimple(null, user.id, null, msg_type, code_text, auto_read_if_connected, simple_notif_json_params);
             })());
         }
-        return all_promises(promises);
+        return all_promises(promises) as unknown as Promise<void>;
     }
 
     @RunsOnMainThread
-    public static async broadcastRoleSimple(role_name: string, msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
+    public static async broadcastRoleSimple(role_name: string, msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null): Promise<void> {
 
         const promises = [];
 
@@ -948,7 +950,7 @@ export default class PushDataServerController {
         } catch (error) {
             ConsoleHandler.error(error);
         }
-        return all_promises(promises);
+        return all_promises(promises) as unknown as Promise<void>;
     }
 
     // Notifications qui redirigent sur une route avec ou sans paramètres
@@ -961,7 +963,7 @@ export default class PushDataServerController {
         notif_route_params_name: string[] = null,
         notif_route_params_values: string[] = null,
         auto_read_if_connected: boolean = false
-    ) {
+    ): Promise<void> {
 
         const promises = [];
 
@@ -1000,7 +1002,7 @@ export default class PushDataServerController {
         } catch (error) {
             ConsoleHandler.error(error);
         }
-        return all_promises(promises);
+        return all_promises(promises) as unknown as Promise<void>;
     }
 
     /**
@@ -1011,8 +1013,7 @@ export default class PushDataServerController {
      * @deprecated On veut supprimer StackContext. Préférer notify_session
      */
     @RunsOnMainThread
-    public static async notifySession(code_text: string, notif_type: number = NotificationVO.SIMPLE_SUCCESS, simple_notif_json_params: string = null) {
-
+    public static async notifySession(code_text: string, notif_type: number = NotificationVO.SIMPLE_SUCCESS, simple_notif_json_params: string = null): Promise<void> {
         return this.notify_session(StackContext.get('SID'), code_text, notif_type, simple_notif_json_params);
     }
 
@@ -1027,7 +1028,7 @@ export default class PushDataServerController {
         sid: string,
         code_text: string,
         notif_type: number = NotificationVO.SIMPLE_SUCCESS,
-        simple_notif_json_params: string = null) {
+        simple_notif_json_params: string = null): Promise<void> {
 
         if (!sid) {
             return;
@@ -1047,7 +1048,7 @@ export default class PushDataServerController {
      * DELETE ME Post suppression StackContext: Does not need StackContext
      */
     @RunsOnMainThread
-    public static async notifySimpleSUCCESS(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null) {
+    public static async notifySimpleSUCCESS(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null): Promise<void> {
 
         return PushDataServerController.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_SUCCESS, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
     }
@@ -1056,7 +1057,7 @@ export default class PushDataServerController {
      * DELETE ME Post suppression StackContext: Does not need StackContext
      */
     @RunsOnMainThread
-    public static async notifySimpleINFO(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null) {
+    public static async notifySimpleINFO(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null): Promise<void> {
 
         return PushDataServerController.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_INFO, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
     }
@@ -1065,7 +1066,7 @@ export default class PushDataServerController {
      * DELETE ME Post suppression StackContext: Does not need StackContext
      */
     @RunsOnMainThread
-    public static async notifySimpleWARN(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null) {
+    public static async notifySimpleWARN(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null): Promise<void> {
 
         return await PushDataServerController.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_WARN, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
     }
@@ -1074,7 +1075,7 @@ export default class PushDataServerController {
      * DELETE ME Post suppression StackContext: Does not need StackContext
      */
     @RunsOnMainThread
-    public static async notifySimpleERROR(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null) {
+    public static async notifySimpleERROR(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null): Promise<void> {
 
         return PushDataServerController.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_ERROR, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
     }
@@ -1091,7 +1092,7 @@ export default class PushDataServerController {
         user_id: number,
         client_tab_id: string,
         full_file_path: string
-    ) {
+    ): Promise<void> {
 
         if (!full_file_path) {
             return;
@@ -1149,7 +1150,7 @@ export default class PushDataServerController {
     }
 
     @RunsOnMainThread
-    public static async notifyRedirectINFO(user_id: number, client_tab_id: string, code_text: string, redirect_route: string = "", notif_route_params_name: string[] = null, notif_route_params_values: string[] = null, auto_read_if_connected: boolean = false) {
+    public static async notifyRedirectINFO(user_id: number, client_tab_id: string, code_text: string, redirect_route: string = "", notif_route_params_name: string[] = null, notif_route_params_values: string[] = null, auto_read_if_connected: boolean = false): Promise<void> {
 
         return PushDataServerController.notifyRedirect(null, user_id, client_tab_id, NotificationVO.SIMPLE_INFO, code_text, redirect_route, notif_route_params_name, notif_route_params_values, auto_read_if_connected);
     }
@@ -1167,7 +1168,7 @@ export default class PushDataServerController {
         notif_route_params_values: string[],
         auto_read_if_connected: boolean,
         simple_notif_json_params: string = null
-    ) {
+    ): Promise<void> {
 
         if ((msg_type === null) || (typeof msg_type == 'undefined') || (!code_text)) {
             return;
@@ -1198,7 +1199,7 @@ export default class PushDataServerController {
         socket_ids: string[], user_id: number, client_tab_id: string,
         msg_type: number, code_text: string, auto_read_if_connected: boolean,
         simple_notif_json_params: string = null,
-        simple_downloadable_link: string = null) {
+        simple_downloadable_link: string = null): Promise<void> {
 
         if ((msg_type === null) || (typeof msg_type == 'undefined') || (!code_text)) {
             return;
@@ -1229,7 +1230,7 @@ export default class PushDataServerController {
      * @param notification
      */
     @RunsOnMainThread
-    private static async notify(notification: NotificationVO) {
+    private static async notify(notification: NotificationVO): Promise<void> {
 
         try {
 
@@ -1286,21 +1287,21 @@ export default class PushDataServerController {
     }
 
     @RunsOnMainThread
-    private static async clearClosedSockets(userId: number, client_tab_id: string) {
+    private static async clearClosedSockets(userId: number, client_tab_id: string): Promise<void> {
 
         if (!client_tab_id) {
             const promises = [];
             for (const i in PushDataServerController.registeredSockets[userId]) {
                 promises.push(PushDataServerController.clearClosedSockets_client_tab_id(userId, i));
             }
-            return all_promises(promises);
+            return all_promises(promises) as unknown as Promise<void>;
         } else {
             return PushDataServerController.clearClosedSockets_client_tab_id(userId, client_tab_id);
         }
     }
 
     @RunsOnMainThread
-    private static async clearClosedSockets_client_tab_id(userId: number, client_tab_id: string) {
+    private static async clearClosedSockets_client_tab_id(userId: number, client_tab_id: string): Promise<void> {
 
         const toclose_tabs: string[] = [];
 

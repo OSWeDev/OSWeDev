@@ -8,34 +8,34 @@ import './InlineTranslatableText.scss';
 import TranslatableTextController from "./TranslatableTextController";
 import { ModuleTranslatableTextAction, ModuleTranslatableTextGetter } from './TranslatableTextStore';
 
-import { createDecorator } from 'vue-class-component';
-import { applyMetadata } from 'vue-property-decorator/lib/helpers/metadata';
+// import { createDecorator } from 'vue-class-component';
+// import { applyMetadata } from 'vue-property-decorator/lib/helpers/metadata';
 
-const MyProp = (options = {}) => {
-    return function (target: any, key: string) {
-        applyMetadata(options, target, key);
+// const MyProp = (options = {}) => {
+//     return function (target: any, key: string) {
+//         applyMetadata(options, target, key);
 
-        // Use createDecorator to inject Vue-specific logic
-        createDecorator((componentOptions, k) => {
-            // Define the property as a getter and setter
-            if (!componentOptions.computed) componentOptions.computed = {};
+//         // Use createDecorator to inject Vue-specific logic
+//         createDecorator((componentOptions, k) => {
+//             // Define the property as a getter and setter
+//             if (!componentOptions.computed) componentOptions.computed = {};
 
-            // Wrap the property to bind to Vue instance
-            componentOptions.computed[k] = {
-                get(this: any) {
-                    // 'this' is the Vue instance at runtime
-                    return this[`__${k}`];
-                },
-                set(this: any, value: any) {
-                    this[`__${k}`] = value;
-                },
-            };
+//             // Wrap the property to bind to Vue instance
+//             componentOptions.computed[k] = {
+//                 get(this: any) {
+//                     // 'this' is the Vue instance at runtime
+//                     return this[`__${k}`];
+//                 },
+//                 set(this: any, value: any) {
+//                     this[`__${k}`] = value;
+//                 },
+//             };
 
-            // Register the property in props if needed
-            (componentOptions.props || (componentOptions.props = {}))[k] = options;
-        })(target, key);
-    };
-};
+//             // Register the property in props if needed
+//             (componentOptions.props || (componentOptions.props = {}))[k] = options;
+//         })(target, key);
+//     };
+// };
 
 // /**
 //  * decorator of a prop
@@ -149,7 +149,8 @@ export default class InlineTranslatableText extends VueComponentBase {
     @ModuleTranslatableTextAction
     public set_initializing: (initializing: boolean) => void;
 
-    @MyProp({ default: null })
+    // @MyProp({ default: null })
+    @Prop({ default: null })
     public code_text: string;
 
     @Prop({ default: false })

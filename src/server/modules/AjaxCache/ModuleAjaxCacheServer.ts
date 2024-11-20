@@ -121,7 +121,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                             param = (wrapped_request.postdatas && ObjectHandler.try_is_json(wrapped_request.postdatas)) ? ObjectHandler.try_get_json(wrapped_request.postdatas) : wrapped_request.postdatas;
                             // On doit traduire ici ce qui ne l'a pas été puisque encodé en JSON
                             // param = APIControllerWrapper.try_translate_vo_from_api(param);
-                            param = ObjectHandler.reapply_prototypes(param);
+                            param = ObjectHandler.reapply_prototypes(param, true);
                         } catch (error) {
                             ConsoleHandler.error('Erreur récupération params post_for_get wrapped:' + error + ':');
                         }

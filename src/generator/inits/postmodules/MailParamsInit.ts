@@ -26,9 +26,9 @@ export default class MailParamsInit implements IGeneratorWorker {
 
     public async work(db: IDatabase<any>) {
 
-        await ParamsServerController.setParamValue(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD1_DAYS, "20");
-        await ParamsServerController.setParamValue(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD2_DAYS, "3");
-        await ParamsServerController.setParamValue(ModuleAccessPolicy.PARAM_NAME_PWD_INVALIDATION_DAYS, "90");
-        await ParamsServerController.setParamValue(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS, "2");
+        await ParamsServerController.setParamValue_as_server(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD1_DAYS, "20");
+        await ParamsServerController.setParamValue_as_server(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD2_DAYS, "3");
+        await ParamsServerController.setParamValue_as_server(ModuleAccessPolicy.PARAM_NAME_PWD_INVALIDATION_DAYS, "90");
+        await ParamsServerController.setParamValue_as_server(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS, "2");
     }
 }

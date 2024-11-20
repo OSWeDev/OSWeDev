@@ -16,6 +16,7 @@ import ConfigurationService from "../../env/ConfigurationService";
 import ModuleAccessPolicyServer from "../AccessPolicy/ModuleAccessPolicyServer";
 import ModuleDAOServer from "../DAO/ModuleDAOServer";
 import ParamsServerController from "../Params/ParamsServerController";
+import StackContext, { ExecAsServer } from "../../StackContext";
 
 
 /**
@@ -56,29 +57,12 @@ export default abstract class PlayWrightServerController {
         return PlayWrightServerController.instance;
     }
 
-    public async setup_and_login(req: Request): Promise<string> {
-        await this.login(req);
-        return this.setup();
-    }
-
-    public async after_each(test_title: string): Promise<void> {
-        test_title = PlayWrightServerController.test_title_to_method_name(test_title);
-        if (this['after_each_' + test_title]) {
-            return this['after_each_' + test_title]();
-        }
-    }
-    public async before_each(test_title: string): Promise<void> {
-        test_title = PlayWrightServerController.test_title_to_method_name(test_title);
-        if (this['before_each_' + test_title]) {
-            return this['before_each_' + test_title]();
-        }
-    }
-
     /**
      * DELETE ME Post suppression StackContext: Does not need StackContext
      * On login le user de test, et si il existe pas on le crée
      *  idem pour les infos du compte, on les génère aléatoirement si elles n'existent pas et on stocke
      */
+    @ExecAsServer
     protected async login(req: Request) {
 
         /**
@@ -173,7 +157,8 @@ export default abstract class PlayWrightServerController {
             if (ConfigurationService.node_configuration.debug_playwright_controller) {
                 ConsoleHandler.log('PlayWrightServerController: adding rôle admin to test_user');
             }
-            await ModuleAccessPolicyServer.getInstance().addRoleToUser(test_user.id, rôle_admin.id, true);
+
+            await ModuleAccessPolicyServer.getInstance().addRoleToUser(test_user.id, rôle_admin.id)
         } else {
             if (ConfigurationService.node_configuration.debug_playwright_controller) {
                 ConsoleHandler.log('PlayWrightServerController: test_user found, updating its password');
@@ -200,6 +185,24 @@ export default abstract class PlayWrightServerController {
             ConsoleHandler.log('PlayWrightServerController: logging in test_user.id: ' + test_user.id);
         }
         await ModuleAccessPolicyServer.getInstance().login_sid(test_user.id, (req.session as IServerUserSession)?.sid);
+    }
+
+    public async setup_and_login(req: Request): Promise<string> {
+        await this.login(req);
+        return this.setup();
+    }
+
+    public async after_each(test_title: string): Promise<void> {
+        test_title = PlayWrightServerController.test_title_to_method_name(test_title);
+        if (this['after_each_' + test_title]) {
+            return this['after_each_' + test_title]();
+        }
+    }
+    public async before_each(test_title: string): Promise<void> {
+        test_title = PlayWrightServerController.test_title_to_method_name(test_title);
+        if (this['before_each_' + test_title]) {
+            return this['before_each_' + test_title]();
+        }
     }
 
     public abstract setup(): Promise<string>;

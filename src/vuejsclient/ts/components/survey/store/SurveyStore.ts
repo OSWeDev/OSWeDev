@@ -11,14 +11,6 @@ export interface ISurveyState {
 
 export default class SurveyStore implements IStoreModule<ISurveyState, SurveyContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): SurveyStore {
-        if (!SurveyStore.instance) {
-            SurveyStore.instance = new SurveyStore();
-        }
-        return SurveyStore.instance;
-    }
-
     private static instance: SurveyStore;
 
     public module_name: string;
@@ -48,7 +40,16 @@ export default class SurveyStore implements IStoreModule<ISurveyState, SurveyCon
             set_hidden: (context: SurveyContext, hidden: boolean) => context.commit(store_mutations_names(this).set_hidden, hidden)
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): SurveyStore {
+        if (!SurveyStore.instance) {
+            SurveyStore.instance = new SurveyStore();
+        }
+        return SurveyStore.instance;
+    }
 }
 
-export const ModuleSurveyGetter = namespace('SurveyStore', Getter);
-export const ModuleSurveyAction = namespace('SurveyStore', Action);
+const __namespace = namespace('SurveyStore');
+export const ModuleSurveyGetter = __namespace.Getter;
+export const ModuleSurveyAction = __namespace.Action;

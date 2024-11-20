@@ -41,14 +41,6 @@ export interface IAnimationReportingVueXState {
 
 export default class AnimationReportingStoreModule implements IStoreModule<IAnimationReportingVueXState, AnimationReportingContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): AnimationReportingStoreModule {
-        if (!AnimationReportingStoreModule.instance) {
-            AnimationReportingStoreModule.instance = new AnimationReportingStoreModule();
-        }
-        return AnimationReportingStoreModule.instance;
-    }
-
     private static instance: AnimationReportingStoreModule;
 
     public module_name: string;
@@ -327,13 +319,22 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
             },
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): AnimationReportingStoreModule {
+        if (!AnimationReportingStoreModule.instance) {
+            AnimationReportingStoreModule.instance = new AnimationReportingStoreModule();
+        }
+        return AnimationReportingStoreModule.instance;
+    }
 }
 
 export const AnimationReportingVuexStore = AnimationReportingStoreModule.getInstance();
 
 const { commit, read, dispatch } = getStoreAccessors<IAnimationReportingVueXState, any>("AnimationReportingVuexStore");
 
-export const ModuleAnimationReportingVuexGetter = namespace('AnimationReportingVuexStore', Getter);
-export const ModuleAnimationReportingVuexAction = namespace('AnimationReportingVuexStore', Action);
+const __namespace = namespace('AnimationReportingVuexStore');
+export const ModuleAnimationReportingVuexGetter = __namespace.Getter;
+export const ModuleAnimationReportingVuexAction = __namespace.Action;
 
 export const set_all_datas_for_filter = dispatch(AnimationReportingVuexStore.actions.set_all_datas_for_filter as ActionHandlerWithPayload<IAnimationReportingVueXState, any, any, {}>);

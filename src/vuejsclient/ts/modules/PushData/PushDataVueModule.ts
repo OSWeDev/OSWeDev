@@ -770,7 +770,7 @@ export default class PushDataVueModule extends VueModuleBase {
                         switch (vo.marker) {
                             case NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME:
 
-                                const PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
+                                const PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL, null, 10000);
 
                                 // let content = LocaleManager.getInstance().i18n.t('PushDataServerController.session_invalidated.___LABEL___');
                                 // VueAppBase.instance_.vueInstance.snotify.warning(content, {

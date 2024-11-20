@@ -1,6 +1,29 @@
 /* istanbul ignore file: only one method, and not willing to test it right now*/
 
+import { reflect } from '../shared/tools/ObjectHandler';
 import cls from './CLSHooked';
+import { IRequestStackContext } from './ServerExpressController';
+
+export const scope_overloads_for_exec_as_server: Partial<IRequestStackContext> = {
+    IS_CLIENT: false,
+    SID: null,
+    UID: null,
+    CLIENT_TAB_ID: null,
+    REFERER: null,
+    SESSION_ID: null,
+};
+
+export function ExecAsServer(target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
+    const originalMethod = descriptor.value;
+
+    descriptor.value = async function (...args: any[]) {
+        // Encapsule la méthode originale dans StackContext.runPromise
+        return await StackContext.exec_as_server(originalMethod, this, true, ...args);
+    };
+
+    return descriptor;
+}
+
 
 export default class StackContext {
 
@@ -18,8 +41,24 @@ export default class StackContext {
      * Le contexte actif pour transmission à un bgthread par exemple
      * @returns the active context
      */
-    public static get_active_context(): { [key: string]: string | number | boolean } {
+    public static get_active_context(): IRequestStackContext {
         return StackContext.ns.active;
+    }
+
+    /**
+     * Au besoin, on change le contexte actif pour refléter le comportement serveur. Si exec_as_server est à false, on ne change rien
+     * Si exec_as_server est à true mais qu'on est déjà en mode serveur, on ne change rien
+     * @param callback
+     * @param exec_as_server
+     * @returns
+     */
+    public static async exec_as_server<T extends Array<unknown>, U>(callback: (...params: T) => U | Promise<U>, this_arg: unknown, exec_as_server: boolean, ...params: T): Promise<U> {
+
+        if (exec_as_server && !!StackContext.get(reflect<IRequestStackContext>().IS_CLIENT)) {
+            return StackContext.runPromise(scope_overloads_for_exec_as_server, callback.apply(this_arg, ...params), this_arg, exec_as_server, ...params);
+        }
+
+        return callback.apply(this_arg, ...params);
     }
 
     /**
@@ -28,7 +67,7 @@ export default class StackContext {
      * @param callback
      * @returns
      */
-    public static async runPromise(scope_overloads: { [key: string]: string | number | boolean }, callback: (...params: any) => Promise<any>): Promise<any> {
+    public static async runPromise<T extends Array<unknown>, U>(scope_overloads: Partial<IRequestStackContext>, callback: (...params: T) => U | Promise<U>, this_arg: unknown, exec_as_server: boolean, ...params: T): Promise<U> {
 
         let result = null;
 
@@ -44,7 +83,7 @@ export default class StackContext {
             }
 
             try {
-                result = await callback();
+                result = await callback.apply(this_arg, ...params);
             } catch (error) {
                 //
             }

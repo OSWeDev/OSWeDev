@@ -333,7 +333,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.enable_file_system_menu = !this.enable_file_system_menu;
         this.enable_image_upload_menu = false;
         this.enable_link_image_menu = false;
-        this.dashboard_export_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_EXPORT_DASHBOARD_ID_PARAM_NAME);
+        this.dashboard_export_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_EXPORT_DASHBOARD_ID_PARAM_NAME, null, 10000);
         const num_range: NumRange = NumRange.createNew(0, 10, true, true, 0);
         await this.listen_for_message(this.dashboard_export_id, num_range);
     }

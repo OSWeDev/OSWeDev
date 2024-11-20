@@ -1514,15 +1514,26 @@ export default class ModuleVarServer extends ModuleServerBase {
                                  * Utilisation du cache local
                                  * On réinsère le contexte client pour les requêtes
                                  */
-                                await StackContext.runPromise({ IS_CLIENT: true, UID: param.uid }, async () => {
+                                await StackContext.runPromise(
+                                    {
+                                        IS_CLIENT: true,
+                                        UID: param.uid,
+                                        CLIENT_TAB_ID: null,
+                                        REFERER: null,
+                                        SESSION_ID: null,
+                                        SID: null,
+                                    },
+                                    async () => {
 
-                                    const query_wrapper: ParameterizedQueryWrapper = await ModuleContextFilterServer.instance.build_select_query(context_query);
-                                    if (!cache_local[query_wrapper.query]) {
-                                        cache_local[query_wrapper.query] = ContextQueryServerController.select_vos(context_query, query_wrapper);
-                                    }
+                                        const query_wrapper: ParameterizedQueryWrapper = await ModuleContextFilterServer.instance.build_select_query(context_query);
+                                        if (!cache_local[query_wrapper.query]) {
+                                            cache_local[query_wrapper.query] = ContextQueryServerController.select_vos(context_query, query_wrapper);
+                                        }
 
-                                    ids_db = await cache_local[query_wrapper.query];
-                                });
+                                        ids_db = await cache_local[query_wrapper.query];
+                                    },
+                                    this,
+                                    false);
                             }
                             if (ConfigurationService.node_configuration.debug_vars_db_param_builder) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:OUT');

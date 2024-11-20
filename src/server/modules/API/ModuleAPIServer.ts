@@ -153,7 +153,9 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 APIBGThread.BGTHREAD_name,
                 ModuleAPIServer.EXEC_API_ON_BGTHREAD_TASK_UID,
                 api.api_name,
-                req.session,
+                req.session.id,
+                req.session.sid,
+                req.session.uid,
                 req.method,
                 req.body,
                 req.headers,
@@ -205,8 +207,9 @@ export default class ModuleAPIServer extends ModuleServerBase {
      */
     private async exec_api<T, U>(
         api_name: string,
-        session: IServerUserSession,
-        // req: Request,
+        session_id: string,
+        sid: string,
+        uid: number,
         request_method: string,
         request_body: any,
         request_headers: any,
@@ -221,9 +224,8 @@ export default class ModuleAPIServer extends ModuleServerBase {
         const api: APIDefinition<T, U> = APIControllerWrapper.registered_apis[api_name];
 
         if (api.access_policy_name) {
-            const uid = session.uid;
-            if (!AccessPolicyServerController.check_access_sync(api.access_policy_name, true, session.uid)) {
-                ConsoleHandler.error('Access denied to API:' + api.api_name + ':sid:' + session.sid + ":uid:" + (session ? session.uid : "null") + ":user_vo:" + ((session && session.user_vo) ? JSON.stringify(session.user_vo) : null));
+            if (!AccessPolicyServerController.checkAccessSync(api.access_policy_name)) {
+                ConsoleHandler.error('Access denied to API:' + api.api_name + ':sid:' + sid + ":uid:" + uid);
                 StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'access_denied_api', api.api_name);
                 throw new APIAccessDenied(api, uid);
             }
@@ -253,13 +255,13 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     } catch (e) {
                         ConsoleHandler.error("gunzipSync :: " + e);
 
-                        throw new APIGunZipError(e, api, session.uid);
+                        throw new APIGunZipError(e, api, uid);
                     }
                 }
             }
 
             // param = APIControllerWrapper.try_translate_vo_from_api(req_body);
-            param = ObjectHandler.reapply_prototypes(req_body);
+            param = ObjectHandler.reapply_prototypes(req_body, true);
 
             has_params = ObjectHandler.hasAtLeastOneAttribute(req_body);
         } else if (api.param_translator && api.param_translator.fromREQ) {
@@ -273,7 +275,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
             } catch (error) {
                 StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'createApiRequestHandler', 'param_translator.fromREQ');
                 ConsoleHandler.error(error);
-                throw new APIParamTranslatorError(error, api, session.uid);
+                throw new APIParamTranslatorError(error, api, uid);
             }
         }
 
@@ -284,6 +286,29 @@ export default class ModuleAPIServer extends ModuleServerBase {
             StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'api.SERVER_HANDLER', api.api_name);
             const date_in_ms = Dates.now_ms();
 
+            // const session = new Proxy(
+            //     {
+            //         sid: sid,
+            //         id: session_id,
+            //         uid: uid,
+            //     },
+            //     {
+            //         get(target, prop) {
+            //             if (prop === 'sid' || prop === 'id' || prop === 'uid') {
+            //                 return target[prop as keyof typeof target];
+            //             }
+            //             throw new Error(
+            //                 "Accessing 'session members' is not allowed, if not sid/uid/id. If you need data from the expressSession load the VO using ExpressDBSessionsServerController.get_session_from_db. If you need to update the express session itself, use PushDataServerController.getSessionBySid from the MainThread."
+            //             );
+            //         },
+            //     }
+            // );
+            const session = {
+                sid: sid,
+                id: session_id,
+                uid: uid,
+            };
+
             const req: Request = {
                 body: request_body,
                 params: request_params,
@@ -292,20 +317,23 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 session: session,
             } as unknown as Request;
             returnvalue = await StackContext.runPromise(
-                await ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                await ServerExpressController.getInstance().getStackContextFromReq(req, session_id, sid, uid),
                 async () => {
                     if (has_params && params && params.length) {
                         return api.SERVER_HANDLER(...params, req, res);
                     } else {
                         return api.SERVER_HANDLER(req, res);
                     }
-                });
+                },
+                this,
+                false,
+            );
 
             StatsController.register_stat_DUREE('ModuleAPIServer', 'api.SERVER_HANDLER', api.api_name, Dates.now_ms() - date_in_ms);
         } catch (error) {
             ConsoleHandler.error(error);
             StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'api.SERVER_HANDLER.ERROR', api.api_name);
-            throw new APIServerHandlerError(error, api, session.uid);
+            throw new APIServerHandlerError(error, api, uid);
         }
 
         if (res && res.headersSent && (!do_notif_result)) {
@@ -366,8 +394,8 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
     //     if (api.access_policy_name) {
     //         const session: IServerUserSession = (req as any).session;
-    //         if (!AccessPolicyServerController.check_access_sync(api.access_policy_name, true, session.uid)) {
-    //             ConsoleHandler.error('Access denied to API:' + api.api_name + ':sessionID:' + req.sessionID + ":uid:" + (session ? session.uid : "null") + ":user_vo:" + ((session && session.user_vo) ? JSON.stringify(session.user_vo) : null));
+    //         if (!AccessPolicyServerController.checkAccessSync(api.access_policy_name, true, uid)) {
+    //             ConsoleHandler.error('Access denied to API:' + api.api_name + ':sessionID:' + req.sessionID + ":uid:" + (session ? uid : "null") + ":user_vo:" + ((session && session.user_vo) ? JSON.stringify(session.user_vo) : null));
     //             StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'access_denied_api', api.api_name);
     //             this.respond_on_error(api, res);
     //             return;

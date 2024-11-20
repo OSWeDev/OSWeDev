@@ -13,14 +13,6 @@ export interface ICRUDState {
 
 export default class CRUDStore implements IStoreModule<ICRUDState, CRUDContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): CRUDStore {
-        if (!CRUDStore.instance) {
-            CRUDStore.instance = new CRUDStore();
-        }
-        return CRUDStore.instance;
-    }
-
     private static instance: CRUDStore;
 
     public module_name: string;
@@ -54,8 +46,17 @@ export default class CRUDStore implements IStoreModule<ICRUDState, CRUDContext> 
             setSelectedVOs: (context: CRUDContext, selectedVOs: IDistantVOBase[]) => context.commit(store_mutations_names(this).setSelectedVOs, selectedVOs)
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): CRUDStore {
+        if (!CRUDStore.instance) {
+            CRUDStore.instance = new CRUDStore();
+        }
+        return CRUDStore.instance;
+    }
 }
 
 export const crudStore = CRUDStore.getInstance();
-export const ModuleCRUDGetter = namespace('CRUDStore', Getter);
-export const ModuleCRUDAction = namespace('CRUDStore', Action);
+const __namespace = namespace('CRUDStore');
+export const ModuleCRUDGetter = __namespace.Getter;
+export const ModuleCRUDAction = __namespace.Action;

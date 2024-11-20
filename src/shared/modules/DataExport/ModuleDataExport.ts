@@ -44,27 +44,27 @@ export default class ModuleDataExport extends Module {
         context_query: ContextQueryVO,
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
-        exportable_datatable_custom_field_columns?: { [datatable_field_uid: string]: string },
+        exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string },
 
-        columns?: TableColumnDescVO[],
-        fields?: { [datatable_field_uid: string]: DatatableField<any, any> },
-        varcolumn_conf?: { [datatable_field_uid: string]: ExportVarcolumnConfVO },
-        active_field_filters?: FieldFiltersVO,
-        custom_filters?: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } },
-        active_api_type_ids?: string[],
-        discarded_field_paths?: { [vo_type: string]: { [field_id: string]: boolean } },
+        columns: TableColumnDescVO[],
+        fields: { [datatable_field_uid: string]: DatatableField<any, any> },
+        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO },
+        active_field_filters: FieldFiltersVO,
+        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } },
+        active_api_type_ids: string[],
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
 
-        is_secured?: boolean,
-        file_access_policy_name?: string,
-        target_user_id?: number,
-        do_not_use_filter_by_datatable_field_uid?: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } },
+        is_secured: boolean,
+        file_access_policy_name: string,
+        target_user_id: number,
+        do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } },
 
-        export_active_field_filters?: boolean,
-        export_vars_indicator?: boolean,
-        send_email_with_export_notification?: boolean,
+        export_active_field_filters: boolean,
+        export_vars_indicator: boolean,
+        send_email_with_export_notification: boolean,
 
-        // vars_indicator?: ExportVarIndicatorVO[],
-        vars_indicator?: ExportVarIndicatorVO,
+        // vars_indicator: ExportVarIndicatorVO[],
+        vars_indicator: ExportVarIndicatorVO,
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO);
 
     public exportDataToXLSX: (
@@ -73,8 +73,8 @@ export default class ModuleDataExport extends Module {
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
         api_type_id: string,
-        is_secured?: boolean,
-        file_access_policy_name?: string
+        is_secured: boolean,
+        file_access_policy_name: string
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVO);
 
     public exportDataToXLSXFile: (
@@ -83,22 +83,22 @@ export default class ModuleDataExport extends Module {
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
         api_type_id: string,
-        is_secured?: boolean,
-        file_access_policy_name?: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile);
+        is_secured: boolean,
+        file_access_policy_name: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile);
 
     public exportDataToMultiSheetsXLSX: (
         filename: string,
         sheets: IExportableSheet[],
         api_type_id: string,
-        is_secured?: boolean,
-        file_access_policy_name?: string) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO);
+        is_secured: boolean,
+        file_access_policy_name: string) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO);
 
     public exportDataToMultiSheetsXLSXFile: (
         filename: string,
         sheets: IExportableSheet[],
         api_type_id: string,
-        is_secured?: boolean,
-        file_access_policy_name?: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile);
+        is_secured: boolean,
+        file_access_policy_name: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile);
 
     private constructor() {
         super("data_export", "DataExport");

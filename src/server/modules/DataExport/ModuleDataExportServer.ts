@@ -343,7 +343,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         if (target_user_id != StackContext.get('UID')) {
 
             await StackContext.runPromise({
-                IS_CLIENT: true, UID: target_user_id
+                IS_CLIENT: true,
+                UID: target_user_id,
+                CLIENT_TAB_ID: null,
+                REFERER: null,
+                SESSION_ID: null,
+                SID: null,
             }, async () => {
                 await this.do_exportContextQueryToXLSX_contextuid(
                     filename,

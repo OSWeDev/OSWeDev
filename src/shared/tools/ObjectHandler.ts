@@ -2,6 +2,7 @@ import ModuleTableController from '../modules/DAO/ModuleTableController';
 import ModuleTableVO from '../modules/DAO/vos/ModuleTableVO';
 import NumRange from '../modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../modules/IDistantVOBase';
+import IIsServerField from '../modules/IIsServerField';
 import ConsoleHandler from './ConsoleHandler';
 import RangeHandler from './RangeHandler';
 
@@ -40,7 +41,7 @@ export default class ObjectHandler {
      * On prend le contenu du message, et on applique les prototypes des objets qui ont été perdus lors du passage par le message
      * @param msg
      */
-    public static reapply_prototypes<T extends unknown | unknown[]>(e: T): T {
+    public static reapply_prototypes<T extends unknown | unknown[]>(e: T, from_api_client: boolean = false): T {
 
         if (Array.isArray(e)) {
             return e.map((e) => this.reapply_prototypes(e)) as T;
@@ -60,6 +61,15 @@ export default class ObjectHandler {
                 e[i] = this.reapply_prototypes(e[i]);
             }
             return e;
+        }
+
+        if (!ModuleTableController.vo_constructor_by_vo_type[e['_type']]) {
+            throw new Error('No constructor for vo type ' + e['_type'] + ' in ModuleTableController.vo_constructor_by_vo_type. This comes probably from a pb in the priority of declaration of the modules, or you are loading data without activation of the corresponding module.');
+        }
+
+        /// Si from_api_client, le field is_server est forcé à FALSE quand on vient du client
+        if (from_api_client && e[reflect<IIsServerField>().is_server]) {
+            e[reflect<IIsServerField>().is_server] = false;
         }
 
         return Object.assign(new ModuleTableController.vo_constructor_by_vo_type[e['_type']](), e);

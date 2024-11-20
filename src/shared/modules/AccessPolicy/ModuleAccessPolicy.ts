@@ -113,7 +113,7 @@ export default class ModuleAccessPolicy extends Module {
     public static PARAM_NAME_LOGIN_INFOS = 'ModuleAccessPolicy.LOGIN_INFOS';
     public static PARAM_NAME_LOGIN_CGU = 'ModuleAccessPolicy.LOGIN_CGU';
 
-    private static instance: ModuleAccessPolicy = null;
+    public static instance: ModuleAccessPolicy = null;
 
     public sendrecapture: (email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_sendrecapture);
     public begininitpwd: (email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_begininitpwd);

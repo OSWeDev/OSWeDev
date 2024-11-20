@@ -2771,6 +2771,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 param.file_access_policy_name,
                 VueAppBase.getInstance().appController.data_user ? VueAppBase.getInstance().appController.data_user.id : null,
                 param.do_not_use_filter_by_datatable_field_uid,
+                null,
+                null,
+                null,
+                null,
             );
         }
     }
