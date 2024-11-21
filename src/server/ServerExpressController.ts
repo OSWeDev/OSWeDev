@@ -30,7 +30,13 @@ export default class ServerExpressController {
         return ServerExpressController.instance;
     }
 
-    @RunsOnBgThread('APIBGThread') // En dur pour des pbs de dépendances circulaires
+    /**
+     * INFO : Nom du BGTHREAD en dur pour des pbs de dépendances circulaires
+     * et on peut lancer en local si le bgthread est pas encore dispo
+     * @param api_key
+     * @returns
+     */
+    @RunsOnBgThread('APIBGThread', true)
     private async get_user_by_api_key(api_key: string): Promise<UserVO> {
         return query(UserVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<UserAPIVO>().api_key, api_key, UserAPIVO.API_TYPE_ID)

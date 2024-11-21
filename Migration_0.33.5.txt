@@ -101,3 +101,5 @@ idem pour 'SELF_USER', on peut utiliser 'UID'
 les moduleparams.getparam sont forcés à 3 params puisqu'on ne devrait jamais avoir des params optionnels (pour le moment) sur les apis, qui rajoutent le param req par exemple à la fin de la liste des params, et donc ça crée des incompatibilités
 donc tous les appels sont à corriger, sachant qu'on peut souvent en 3eme param mettre 10000 pour 10 secondes de cache sur la valeur du param que l'on cherche. sinon par défaut null, null devrait avoir 0 impact sur l'actuel.
 ya quelques autres fonctions concernées, et surtout vérifier avec cette regexp (non exhaustive) les déclarations d'api dans le projet : en regexp : \?: .*= APIControllerWrapper.sah\(
+
+A priori pas d'impact projet mais l'appel à .trigger( pour les triggers doit être réalisé en StackContext.exec_as_admin(

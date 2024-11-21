@@ -1,25 +1,22 @@
-import { fork } from 'child_process';
 
 
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import path from 'path';
+import { Worker } from 'worker_threads';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
-import BGThreadServerController from '../BGThread/BGThreadServerController';
+import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
 import IBGThread from '../BGThread/interfaces/IBGThread';
 import CronServerController from '../Cron/CronServerController';
 import ICronWorker from '../Cron/interfaces/ICronWorker';
-import ForkedProcessWrapperBase from './ForkedProcessWrapperBase';
 import ForkMessageController from './ForkMessageController';
 import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
 import IForkProcess from './interfaces/IForkProcess';
 import PingForkMessage from './messages/PingForkMessage';
-import { Worker } from 'worker_threads';
-import path from 'path';
 
 export default class ForkServerController {
 
@@ -48,10 +45,6 @@ export default class ForkServerController {
     /**
      * ----- Local thread cache
      */
-
-    public static is_main_process(): boolean {
-        return !ForkedProcessWrapperBase.getInstance();
-    }
 
     public static async fork_threads() {
         // On fork a minima une fois pour mettre tous les bgthreads et crons dans un child process
@@ -208,16 +201,16 @@ export default class ForkServerController {
     }
 
     private static prepare_forked_bgtreads(default_fork: IFork) {
-        for (const i in BGThreadServerController.registered_BGThreads) {
-            const bgthread: IBGThread = BGThreadServerController.registered_BGThreads[i];
+        for (const i in BGThreadServerDataManager.registered_BGThreads) {
+            const bgthread: IBGThread = BGThreadServerDataManager.registered_BGThreads[i];
 
             const forked_bgthread: IForkProcess = {
                 name: bgthread.name,
-                type: BGThreadServerController.ForkedProcessType
+                type: BGThreadServerDataManager.ForkedProcessType
             };
 
-            if (!this.fork_by_type_and_name[BGThreadServerController.ForkedProcessType]) {
-                this.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] = {};
+            if (!this.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType]) {
+                this.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType] = {};
             }
 
             if (bgthread.exec_in_dedicated_thread) {
@@ -228,11 +221,11 @@ export default class ForkServerController {
                     uid: this.UID,
                     worker: null
                 };
-                this.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name] = this.forks[this.UID];
+                this.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread.name] = this.forks[this.UID];
                 this.UID++;
             } else {
                 default_fork.processes[bgthread.name] = forked_bgthread;
-                this.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name] = default_fork;
+                this.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread.name] = default_fork;
             }
         }
     }

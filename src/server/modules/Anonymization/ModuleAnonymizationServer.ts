@@ -1,3 +1,4 @@
+import { isMainThread } from 'worker_threads';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -15,7 +16,6 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
-import ForkServerController from '../Fork/ForkServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
@@ -123,7 +123,7 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
         postUpdateTrigger.registerHandler(AnonymizationUserConfVO.API_TYPE_ID, ServerAnonymizationController, ServerAnonymizationController.reload_conf);
         postDeleteTrigger.registerHandler(AnonymizationUserConfVO.API_TYPE_ID, ServerAnonymizationController, ServerAnonymizationController.reload_conf);
 
-        if (ForkServerController.is_main_process()) {
+        if (isMainThread) {
             await ServerAnonymizationController.reload_conf();
         }
     }

@@ -1,4 +1,3 @@
-import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import VarDAG from '../../../modules/Var/vos/VarDAG';
 import IBGThread from '../../BGThread/interfaces/IBGThread';

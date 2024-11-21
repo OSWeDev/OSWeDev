@@ -54,7 +54,7 @@ import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
-import StackContext from '../../StackContext';
+import StackContext, { ExecAsServer, ExecAsServerParam } from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -107,6 +107,41 @@ export default class ModuleDAOServer extends ModuleServerBase {
             ModuleDAOServer.instance = new ModuleDAOServer();
         }
         return ModuleDAOServer.instance;
+    }
+
+    @ExecAsServer
+    private async _insertOrUpdateVO(vo: IDistantVOBase, @ExecAsServerParam exec_as_server: boolean = false): Promise<InsertOrDeleteQueryResult> {
+
+        if (!vo) {
+            return null;
+        }
+
+        if (!vo.id) {
+            const res = await this._insert_vos([vo], exec_as_server);
+            if (res && res.length) {
+                return res[0];
+            }
+        } else {
+
+            /**
+             * On doit traduire les valeurs des champs mais pas les field_ids au format api
+             */
+            // let table = ModuleTableController.module_tables_by_vo_type[vo._type];
+            // let fields = table.get_fields();
+            // for (let i in fields) {
+            //     let field = fields[i];
+
+            //     vo[field.field_name] = table.default_get_field_api_version(vo[field.field_name], field);
+            // }
+            vo = ModuleTableController.translate_vos_to_api(vo, false);
+
+            const res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
+            if (res && res.length) {
+                return res[0];
+            }
+        }
+
+        return null;
     }
 
     public get_all_ranges_from_segmented_table(moduleTable: ModuleTableVO): NumRange[] {
@@ -370,7 +405,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après modification.
                 //  Attention si un des output est false avant modification, on annule la modification
-                const res: boolean[] = await DAOServerController.pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo), exec_as_server);
+                // On exécute les triggers as_admin toujours
+                const res: boolean[] = await StackContext.exec_as_server(
+                    DAOServerController.pre_update_trigger_hook.trigger,
+                    DAOServerController.pre_update_trigger_hook,
+                    true,
+                    vo._type,
+                    new DAOUpdateVOHolder(pre_update_vo, vo),
+                    exec_as_server);
                 if (!BooleanHandler.AND(res, true)) {
                     StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_update_trigger_hook_rejection');
                     return null;
@@ -425,7 +467,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après modification.
                 //  Attention si un des output est false avant modification, on annule la modification
-                const res: boolean[] = await DAOServerController.pre_create_trigger_hook.trigger(vo._type, vo, exec_as_server);
+                // On exécute les triggers as_admin toujours
+                const res: boolean[] = await StackContext.exec_as_server(
+                    DAOServerController.pre_create_trigger_hook.trigger,
+                    DAOServerController.pre_create_trigger_hook,
+                    true,
+                    vo._type,
+                    vo,
+                    exec_as_server);
                 if (!BooleanHandler.AND(res, true)) {
                     StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_create_trigger_hook_rejection');
                     return null;
@@ -2490,7 +2539,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après suppression.
                 //  Attention si un des output est false avant suppression, on annule la suppression
-                const res: boolean[] = await DAOServerController.pre_delete_trigger_hook.trigger(vo._type, vo, exec_as_server);
+                // On exécute les triggers as_admin toujours
+                const res: boolean[] = await StackContext.exec_as_server(
+                    DAOServerController.pre_delete_trigger_hook.trigger,
+                    DAOServerController.pre_delete_trigger_hook,
+                    true,
+                    vo._type,
+                    vo,
+                    exec_as_server);
                 if (!BooleanHandler.AND(res, true)) {
                     StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'pre_delete_trigger_hook_rejection');
                     continue;
@@ -2565,7 +2621,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                 }
 
-                await DAOServerController.post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo, exec_as_server);
+                // On exécute les triggers as_admin toujours
+                await StackContext.exec_as_server(
+                    DAOServerController.post_delete_trigger_hook.trigger,
+                    DAOServerController.post_delete_trigger_hook,
+                    true,
+                    deleted_vo._type,
+                    deleted_vo,
+                    exec_as_server);
             }
             return value;
         });
@@ -3033,7 +3096,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     vo.id = parseInt(results[i].id.toString());
 
                     try {
-                        await DAOServerController.post_create_trigger_hook.trigger(vo._type, vo, exec_as_server);
+                        // On exécute les triggers as_admin toujours
+                        await StackContext.exec_as_server(
+                            DAOServerController.post_create_trigger_hook.trigger,
+                            DAOServerController.post_create_trigger_hook,
+                            true,
+                            vo._type,
+                            vo,
+                            exec_as_server);
                     } catch (error) {
                         ConsoleHandler.error('post_create_trigger_hook :' + vo._type + ':' + vo.id + ':' + error);
                     }
@@ -3115,39 +3185,4 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         return res;
     }
-
-    private async _insertOrUpdateVO(vo: IDistantVOBase, exec_as_server: boolean = false): Promise<InsertOrDeleteQueryResult> {
-
-        if (!vo) {
-            return null;
-        }
-
-        if (!vo.id) {
-            const res = await this._insert_vos([vo], exec_as_server);
-            if (res && res.length) {
-                return res[0];
-            }
-        } else {
-
-            /**
-             * On doit traduire les valeurs des champs mais pas les field_ids au format api
-             */
-            // let table = ModuleTableController.module_tables_by_vo_type[vo._type];
-            // let fields = table.get_fields();
-            // for (let i in fields) {
-            //     let field = fields[i];
-
-            //     vo[field.field_name] = table.default_get_field_api_version(vo[field.field_name], field);
-            // }
-            vo = ModuleTableController.translate_vos_to_api(vo, false);
-
-            const res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
-            if (res && res.length) {
-                return res[0];
-            }
-        }
-
-        return null;
-    }
-
 }

@@ -1,4 +1,5 @@
 
+import { isMainThread } from 'worker_threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -1308,7 +1309,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        if (!ForkServerController.is_main_process()) {
+        if (!isMainThread) {
             throw new Error('getParamDependencies must be called on main process for var explanation');
         }
 

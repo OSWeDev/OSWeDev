@@ -342,37 +342,39 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         if (target_user_id != StackContext.get('UID')) {
 
-            await StackContext.runPromise({
-                IS_CLIENT: true,
-                UID: target_user_id,
-                CLIENT_TAB_ID: null,
-                REFERER: null,
-                SESSION_ID: null,
-                SID: null,
-            }, async () => {
-                await this.do_exportContextQueryToXLSX_contextuid(
-                    filename,
-                    context_query,
-                    ordered_column_list,
-                    column_labels,
-                    exportable_datatable_custom_field_columns,
-                    columns,
-                    fields,
-                    varcolumn_conf,
-                    active_field_filters,
-                    custom_filters,
-                    active_api_type_ids,
-                    discarded_field_paths,
-                    is_secured,
-                    file_access_policy_name,
-                    target_user_id,
-                    do_not_use_filter_by_datatable_field_uid,
-                    export_active_field_filters,
-                    export_vars_indicator,
-                    send_email_with_export_notification,
-                    vars_indicator,
-                );
-            });
+            await StackContext.runPromise(
+                {
+                    IS_CLIENT: true,
+                    UID: target_user_id,
+                    CLIENT_TAB_ID: null,
+                    REFERER: null,
+                    SESSION_ID: null,
+                    SID: null,
+                },
+                this.do_exportContextQueryToXLSX_contextuid,
+                this,
+                false,
+                filename,
+                context_query,
+                ordered_column_list,
+                column_labels,
+                exportable_datatable_custom_field_columns,
+                columns,
+                fields,
+                varcolumn_conf,
+                active_field_filters,
+                custom_filters,
+                active_api_type_ids,
+                discarded_field_paths,
+                is_secured,
+                file_access_policy_name,
+                target_user_id,
+                do_not_use_filter_by_datatable_field_uid,
+                export_active_field_filters,
+                export_vars_indicator,
+                send_email_with_export_notification,
+                vars_indicator,
+            );
         } else {
             await this.do_exportContextQueryToXLSX_contextuid(
                 filename,

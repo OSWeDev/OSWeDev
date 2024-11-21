@@ -1,14 +1,13 @@
 
-import { MessagePort, parentPort, Worker } from 'worker_threads';
+import { MessagePort, parentPort, threadId, Worker } from 'worker_threads';
 import ModuleFork from '../../../shared/modules/Fork/ModuleFork';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import StackContext from '../../StackContext';
-import BGThreadServerController from '../BGThread/BGThreadServerController';
+import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
 import ModuleServerBase from '../ModuleServerBase';
 import VarsDatasVoUpdateHandler from '../Var/VarsDatasVoUpdateHandler';
-import ForkedProcessWrapperBase from './ForkedProcessWrapperBase';
 import ForkedTasksController from './ForkedTasksController';
 import ForkMessageController from './ForkMessageController';
 import ForkServerController from './ForkServerController';
@@ -69,7 +68,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         }
         ConsoleHandler.error("Received KILL SIGN from parent - Before KILL inform parent thread to reload thread asap");
         await ForkMessageController.send(
-            new ReloadAsapForkMessage().set_message_content(ForkedProcessWrapperBase.instance?.process_UID),
+            new ReloadAsapForkMessage().set_message_content(threadId),
             parentPort
         );
         ConsoleHandler.error("Received KILL SIGN from parent - KILL");
@@ -133,7 +132,10 @@ export default class ModuleForkServer extends ModuleServerBase {
             // On propage le StackContext
             res = await StackContext.runPromise(
                 msg.stack_context,
-                async () => RegisteredForkedTasksController.registered_tasks[msg.message_content](...msg.message_content_params)
+                RegisteredForkedTasksController.registered_tasks[msg.message_content],
+                RegisteredForkedTasksController,
+                false,
+                ...msg.message_content_params
             );
         } catch (error) {
             ConsoleHandler.error('handle_mainprocesstask_message:' + error);
@@ -186,8 +188,14 @@ export default class ModuleForkServer extends ModuleServerBase {
             // On propage le StackContext
             await StackContext.runPromise(
                 msg.stack_context,
-                async () => ForkedTasksController.exec_self_on_bgthread_and_return_value(thrower, msg.bgthread, msg.message_content, resolver, ...msg.message_content_params)
-            );
+                ForkedTasksController.exec_self_on_bgthread_and_return_value,
+                ForkedTasksController,
+                false,
+                thrower,
+                msg.bgthread,
+                msg.message_content,
+                resolver,
+                ...msg.message_content_params);
         });
     }
 
@@ -197,7 +205,7 @@ export default class ModuleForkServer extends ModuleServerBase {
     private async handle_bgthreadprocesstask_message(msg: BGThreadProcessTaskForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
         if ((!msg.message_content) || (!RegisteredForkedTasksController.registered_tasks) ||
             (!RegisteredForkedTasksController.registered_tasks[msg.message_content]) ||
-            (!BGThreadServerController.valid_bgthreads_names[msg.bgthread])) {
+            (!BGThreadServerDataManager.valid_bgthreads_names[msg.bgthread])) {
             return false;
         }
 
@@ -220,7 +228,10 @@ export default class ModuleForkServer extends ModuleServerBase {
             // On propage le StackContext
             res = await StackContext.runPromise(
                 msg.stack_context,
-                async () => RegisteredForkedTasksController.registered_tasks[msg.message_content](...msg.message_content_params)
+                RegisteredForkedTasksController.registered_tasks[msg.message_content],
+                RegisteredForkedTasksController,
+                false,
+                ...msg.message_content_params
             );
 
         } catch (error) {

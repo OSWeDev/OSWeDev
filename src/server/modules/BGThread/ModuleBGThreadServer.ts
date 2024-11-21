@@ -5,12 +5,12 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import ModuleBGThread from '../../../shared/modules/BGThread/ModuleBGThread';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
+import EventsController from '../../../shared/modules/Eventify/EventsController';
 import EventifyEventConfVO from '../../../shared/modules/Eventify/vos/EventifyEventConfVO';
 import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
@@ -20,16 +20,16 @@ import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import EventsController from '../../../shared/modules/Eventify/EventsController';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ForkMessageController from '../Fork/ForkMessageController';
 import ForkServerController from '../Fork/ForkServerController';
 import KillForkMessage from '../Fork/messages/KillForkMessage';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import BGThreadServerController from './BGThreadServerController';
-import IBGThread from './interfaces/IBGThread';
 import ParamsServerController from '../Params/ParamsServerController';
+import BGThreadServerController from './BGThreadServerController';
+import BGThreadServerDataManager from './BGThreadServerDataManager';
+import IBGThread from './interfaces/IBGThread';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
 
@@ -149,7 +149,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             return;
         }
 
-        BGThreadServerController.registered_BGThreads[bgthread.name] = bgthread;
+        BGThreadServerDataManager.registered_BGThreads[bgthread.name] = bgthread;
 
         const bgthread_force_run_asap_throttled_task_name = 'BGThreadServerController.force_run_asap_throttled.' + bgthread.name;
         const force_run_asap_throttled = (): Promise<boolean> => {
@@ -190,11 +190,11 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name["KILL BGTHREAD : " + bgthread.name] =
             async () => {
-                if (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
-                    ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name]) {
+                if (ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType] &&
+                    ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread.name]) {
                     await ForkMessageController.send(
                         new KillForkMessage(await ParamsServerController.getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
-                        ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name].worker);
+                        ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread.name].worker);
                 }
             };
 
@@ -209,7 +209,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         }
 
         // On vérifie qu'on peut lancer ce bgthread
-        if (!BGThreadServerController.valid_bgthreads_names[bgthread.name]) {
+        if (!BGThreadServerDataManager.valid_bgthreads_names[bgthread.name]) {
             return;
         }
 
@@ -225,7 +225,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
      */
     public async execute_bgthread(event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO): Promise<void> {
 
-        const bgthread: IBGThread = BGThreadServerController.registered_BGThreads[event.name.split('_').pop()];
+        const bgthread: IBGThread = BGThreadServerDataManager.registered_BGThreads[event.name.split('_').pop()];
 
         if (!bgthread) {
             ConsoleHandler.error('BGThread not found for event : ' + event.name);

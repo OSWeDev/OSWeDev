@@ -3,6 +3,7 @@
 import { reflect } from '../shared/tools/ObjectHandler';
 import cls from './CLSHooked';
 import { IRequestStackContext } from './ServerExpressController';
+import 'reflect-metadata';
 
 export const scope_overloads_for_exec_as_server: Partial<IRequestStackContext> = {
     IS_CLIENT: false,
@@ -13,12 +14,32 @@ export const scope_overloads_for_exec_as_server: Partial<IRequestStackContext> =
     SESSION_ID: null,
 };
 
+// Clé pour stocker l'index du paramètre
+const EXEC_AS_SERVER_PARAM_KEY = Symbol("ExecAsServerParam");
+
+export function ExecAsServerParam(target: any, propertyKey: string, parameterIndex: number) {
+    // Stocker l'index du paramètre marqué
+    Reflect.defineMetadata(EXEC_AS_SERVER_PARAM_KEY, parameterIndex, target, propertyKey);
+}
+
+
 export function ExecAsServer(target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
+
+        // Récupérer l'index du paramètre marqué
+        const paramIndex: number | undefined = Reflect.getMetadata(
+            EXEC_AS_SERVER_PARAM_KEY,
+            target,
+            propertyKey
+        );
+
+        // Si un paramètre est marqué, récupérer sa valeur
+        const execAsServer = paramIndex !== undefined ? args[paramIndex] : true;
+
         // Encapsule la méthode originale dans StackContext.runPromise
-        return await StackContext.exec_as_server(originalMethod, this, true, ...args);
+        return await StackContext.exec_as_server(originalMethod, this, execAsServer, ...args);
     };
 
     return descriptor;
@@ -54,15 +75,17 @@ export default class StackContext {
      */
     public static async exec_as_server<T extends Array<unknown>, U>(callback: (...params: T) => U | Promise<U>, this_arg: unknown, exec_as_server: boolean, ...params: T): Promise<U> {
 
+        // Par défaut, params est un tableau vide si aucun paramètre n'est passé
+        const safeParams = params.length ? params : ([] as unknown as T);
         if (exec_as_server && !!StackContext.get(reflect<IRequestStackContext>().IS_CLIENT)) {
-            return StackContext.runPromise(scope_overloads_for_exec_as_server, callback.apply(this_arg, ...params), this_arg, exec_as_server, ...params);
+            return StackContext.runPromise(scope_overloads_for_exec_as_server, callback, this_arg, exec_as_server, ...safeParams);
         }
 
-        return callback.apply(this_arg, ...params);
+        return callback.apply(this_arg, safeParams);
     }
 
     /**
-     * Limiter l'usage, pas compatible avec les throttles, promisepipeline, ...
+     * Pas compatible avec les throttles / debounce
      * @param scope_overloads
      * @param callback
      * @returns
@@ -83,7 +106,7 @@ export default class StackContext {
             }
 
             try {
-                result = await callback.apply(this_arg, ...params);
+                result = await callback.apply(this_arg, params);
             } catch (error) {
                 //
             }

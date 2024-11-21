@@ -1,5 +1,5 @@
+import { threadId } from 'worker_threads';
 import IForkMessage from '../interfaces/IForkMessage';
-import ForkedProcessWrapperBase from '../ForkedProcessWrapperBase';
 
 export default class BroadcastWrapperForkMessage implements IForkMessage {
 
@@ -14,7 +14,7 @@ export default class BroadcastWrapperForkMessage implements IForkMessage {
 
     public except_self(): BroadcastWrapperForkMessage {
         this.ignore_sender = true;
-        this.sender_uid = ForkedProcessWrapperBase.instance?.process_UID;
+        this.sender_uid = threadId;
         return this;
     }
 }

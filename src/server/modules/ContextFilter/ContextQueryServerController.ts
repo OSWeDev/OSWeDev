@@ -765,7 +765,14 @@ export default class ContextQueryServerController {
                             return null;
                         }
 
-                        await DAOServerController.post_update_trigger_hook.trigger(vo_to_update._type, new DAOUpdateVOHolder(preupdate_vo, vo_to_update), context_query.is_server);
+                        // On exécute les triggers as_admin toujours
+                        await StackContext.exec_as_server(
+                            DAOServerController.post_update_trigger_hook.trigger,
+                            DAOServerController.post_update_trigger_hook,
+                            true,
+                            vo_to_update._type,
+                            new DAOUpdateVOHolder(preupdate_vo, vo_to_update),
+                            context_query.is_server);
 
                         StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'OK');
                         StatsController.register_stat_DUREE('ContextQueryServerController', 'update_vos', 'OK', Dates.now_ms() - time_in);
@@ -860,7 +867,14 @@ export default class ContextQueryServerController {
                     if (has_trigger_pre_delete) {
                         // Ajout des triggers, avant et après suppression.
                         //  Attention si un des output est false avant suppression, on annule la suppression
-                        const preDeleteTrigger_res: boolean[] = await DAOServerController.pre_delete_trigger_hook.trigger(context_query.base_api_type_id, vo_to_delete, context_query.is_server);
+                        // On exécute les triggers as_admin toujours
+                        const preDeleteTrigger_res: boolean[] = await StackContext.exec_as_server(
+                            DAOServerController.pre_delete_trigger_hook.trigger,
+                            DAOServerController.pre_delete_trigger_hook,
+                            true,
+                            context_query.base_api_type_id,
+                            vo_to_delete,
+                            context_query.is_server);
                         if (!BooleanHandler.AND(preDeleteTrigger_res, true)) {
                             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'pre_delete_trigger_hook_rejection');
                             return;
@@ -979,7 +993,14 @@ export default class ContextQueryServerController {
                             ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                         }
 
-                        await DAOServerController.post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo, context_query.is_server);
+                        // On exécute les triggers as_admin toujours
+                        await StackContext.exec_as_server(
+                            DAOServerController.post_delete_trigger_hook.trigger,
+                            DAOServerController.post_delete_trigger_hook,
+                            true,
+                            deleted_vo._type,
+                            deleted_vo,
+                            context_query.is_server);
                     }
                 }
 
@@ -1026,7 +1047,14 @@ export default class ContextQueryServerController {
                                 ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                             }
 
-                            await DAOServerController.post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo, context_query.is_server);
+                            // On exécute les triggers as_admin toujours
+                            await StackContext.exec_as_server(
+                                DAOServerController.post_delete_trigger_hook.trigger,
+                                DAOServerController.post_delete_trigger_hook,
+                                true,
+                                deleted_vo._type,
+                                deleted_vo,
+                                context_query.is_server);
                         }
                     }
                     return value;

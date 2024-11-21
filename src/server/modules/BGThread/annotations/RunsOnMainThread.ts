@@ -1,9 +1,11 @@
 import { isMainThread } from "worker_threads";
-import ForkedTasksController from "../../Fork/ForkedTasksController";
-import RegisteredForkedTasksController from "../../Fork/RegisteredForkedTasksController";
 import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
+import RegisteredForkedTasksController from "../../Fork/RegisteredForkedTasksController";
 
 
+export default class RunsOnMainThreadDataController {
+    public static exec_self_on_main_process_and_return_value_method: (thrower: any, task_uid: string, resolver: any, ...task_params: any[]) => Promise<boolean> = null;
+}
 
 /**
  * Decorator indicating and handling that the method should be executed on the main thread
@@ -15,18 +17,18 @@ export function RunsOnMainThread(target: any, propertyKey: string, descriptor: P
     //TODO register the method as a task on the main thread, with a UID based on the method name and the class name
     const task_UID = target.constructor.name + '.' + propertyKey;
 
-    if (isMainThread) { // is_main_process
+    if (isMainThread) {
         RegisteredForkedTasksController.register_task(task_UID, originalMethod.bind(target));
     }
 
     descriptor.value = async function (...args: any[]) {
-        if (!isMainThread) { // !is_main_process
+        if (!isMainThread) {
 
             // Not on main process: execute the method on the main process
             return new Promise(async (resolve, reject) => {
                 try {
 
-                    await ForkedTasksController.exec_self_on_main_process_and_return_value(
+                    await RunsOnMainThreadDataController.exec_self_on_main_process_and_return_value_method(
                         reject,
                         task_UID, // Using the method name as the task UID
                         resolve,

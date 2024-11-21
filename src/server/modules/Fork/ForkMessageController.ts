@@ -1,13 +1,14 @@
-import { ChildProcess } from 'child_process';
 import { throttle } from 'lodash';
-import { isMainThread, MessagePort, parentPort, workerData, Worker } from 'worker_threads';
+import { isMainThread, MessagePort, parentPort, Worker } from 'worker_threads';
 
 import { performance } from 'perf_hooks';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
+import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
 import ForkServerController from './ForkServerController';
 import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
@@ -15,14 +16,7 @@ import IForkMessageWrapper from './interfaces/IForkMessageWrapper';
 import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMessage';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import BGThreadServerController from '../BGThread/BGThreadServerController';
-import { all_promises } from '../../../shared/tools/PromiseTools';
 import TaskResultForkMessage from './messages/TaskResultForkMessage';
-import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ArrayHandler from '../../../shared/tools/ArrayHandler';
-import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
 
 export default class ForkMessageController {
 
@@ -71,7 +65,7 @@ export default class ForkMessageController {
      */
     public static async broadcast(msg: IForkMessage, ignore_uid: number = null): Promise<boolean> {
 
-        if (!ForkServerController.is_main_process()) {
+        if (!isMainThread) {
             return ForkMessageController.send(new BroadcastWrapperForkMessage(msg), parentPort);
         } else {
 
@@ -87,7 +81,7 @@ export default class ForkMessageController {
 
                 // Les messages de type BGThreadProcessTaskForkMessage sont envoyés uniquement au thread concerné
                 if ((msg.message_type == BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE) &&
-                    (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][(msg as BGThreadProcessTaskForkMessage).bgthread].uid != forked.uid)) {
+                    (ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][(msg as BGThreadProcessTaskForkMessage).bgthread].uid != forked.uid)) {
                     continue;
                 }
 

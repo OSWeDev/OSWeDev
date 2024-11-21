@@ -1,5 +1,7 @@
 TODO
 
+intégrer une option     @ExecAsServer dans @runsonbgthread ou runsonmainthread
+
 est-ce qu'on peut se passer de APIControllerWrapper.requestUrlMatchesApiUrl, quite à limiter aux apis de type post, postforget ?
 
 1 - moduleparam.instance.xxx => avec un getter iso params de vars, qui s'auto supprime post init de l'instance. du coup c'est static en fait et on appel la fonction qu'une fois et ça marche pour tous les modules....

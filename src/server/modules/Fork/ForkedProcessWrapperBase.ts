@@ -19,7 +19,8 @@ import EnvParam from '../../env/EnvParam';
 import ServerAPIController from '../API/ServerAPIController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
-import { EVENT_NAME_ForkServerController_ready } from '../BGThread/annotations/RunsOnBGThread';
+import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
+import RunsOnBgThreadDataController, { EVENT_NAME_ForkServerController_ready } from '../BGThread/annotations/RunsOnBGThread';
 import CronServerController from '../Cron/CronServerController';
 import DBDisconnectionServerHandler from '../DAO/disconnection/DBDisconnectionServerHandler';
 import ModuleServiceBase from '../ModuleServiceBase';
@@ -28,6 +29,8 @@ import StatsServerController from '../Stats/StatsServerController';
 import ForkMessageController from './ForkMessageController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
+import RunsOnMainThreadDataController from '../BGThread/annotations/RunsOnMainThread';
+import ForkedTasksController from './ForkedTasksController';
 
 export default abstract class ForkedProcessWrapperBase {
 
@@ -36,7 +39,6 @@ export default abstract class ForkedProcessWrapperBase {
     /**
      * Local thread cache -----
      */
-    public UID: number;
     private modulesService: ModuleServiceBase;
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 
@@ -45,6 +47,9 @@ export default abstract class ForkedProcessWrapperBase {
      */
 
     public constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
+
+        RunsOnMainThreadDataController.exec_self_on_main_process_and_return_value_method = ForkedTasksController.exec_self_on_main_process_and_return_value.bind(ForkedTasksController);
+        RunsOnBgThreadDataController.exec_self_on_bgthread_and_return_value_method = ForkedTasksController.exec_self_on_bgthread_and_return_value.bind(ForkedTasksController);
 
         // On initialise le Controller pour les APIs
         APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
@@ -78,7 +83,6 @@ export default abstract class ForkedProcessWrapperBase {
         try {
 
             const argv = workerData;
-            this.UID = parseInt(argv[0]);
 
             for (let i = 1; i < argv.length; i++) {
                 const arg = argv[i];
@@ -88,8 +92,8 @@ export default abstract class ForkedProcessWrapperBase {
                 const name: string = splitted[1];
 
                 switch (type) {
-                    case BGThreadServerController.ForkedProcessType:
-                        BGThreadServerController.valid_bgthreads_names[name] = true;
+                    case BGThreadServerDataManager.ForkedProcessType:
+                        BGThreadServerDataManager.valid_bgthreads_names[name] = true;
                         break;
                     case CronServerController.ForkedProcessType:
                         CronServerController.getInstance().valid_crons_names[name] = true;
@@ -104,16 +108,12 @@ export default abstract class ForkedProcessWrapperBase {
         EventsController.emit_event(EventifyEventInstanceVO.new_event(EVENT_NAME_ForkServerController_ready));
 
         let thread_name = 'fork_';
-        thread_name += Object.keys(BGThreadServerController.valid_bgthreads_names).join('_').replace(/ \./g, '_');
+        thread_name += Object.keys(BGThreadServerDataManager.valid_bgthreads_names).join('_').replace(/ \./g, '_');
         StatsController.THREAD_NAME = thread_name;
         StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
         StatsController.getInstance().UNSTACK_THROTTLE = 60000;
         StatsController.new_stats_handler = StatsServerController.new_stats_handler;
         StatsController.register_stat_COMPTEUR('ServerBase', 'START', '-');
-    }
-
-    get process_UID(): number {
-        return this.UID;
     }
 
     // istanbul ignore next: nothing to test

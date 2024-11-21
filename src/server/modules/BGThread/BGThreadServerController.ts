@@ -1,24 +1,22 @@
-import { parentPort } from 'worker_threads';
+import { isMainThread, parentPort } from 'worker_threads';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
-import ForkedProcessWrapperBase from '../Fork/ForkedProcessWrapperBase';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ForkMessageController from '../Fork/ForkMessageController';
 import ForkServerController from '../Fork/ForkServerController';
 import BroadcastWrapperForkMessage from '../Fork/messages/BroadcastWrapperForkMessage';
 import KillForkMessage from '../Fork/messages/KillForkMessage';
 import ParamsServerController from '../Params/ParamsServerController';
-import IBGThread from './interfaces/IBGThread';
+import { RunsOnMainThread } from './annotations/RunsOnMainThread';
+import BGThreadServerDataManager from './BGThreadServerDataManager';
 import RunBGThreadForkMessage from './messages/RunBGThreadForkMessage';
 import ModuleBGThreadServer from './ModuleBGThreadServer';
-import { RunsOnMainThread } from './annotations/RunsOnMainThread';
 
 export default class BGThreadServerController {
 
-    public static ForkedProcessType: string = "BGT";
 
     public static SERVER_READY: boolean = false;
 
@@ -29,11 +27,8 @@ export default class BGThreadServerController {
     /**
      * Local thread cache -----
      */
-    public static registered_BGThreads: { [name: string]: IBGThread } = {};
-
     public static register_bgthreads: boolean = false;
     public static run_bgthreads: boolean = false;
-    public static valid_bgthreads_names: { [name: string]: boolean } = {};
 
     public static force_run_asap_by_bgthread_name: { [bgthread_name: string]: () => void } = {};
 
@@ -53,8 +48,8 @@ export default class BGThreadServerController {
 
     public static init() {
         ForkMessageController.register_message_handler(RunBGThreadForkMessage.FORK_MESSAGE_TYPE, async (msg: RunBGThreadForkMessage) => {
-            if (BGThreadServerController.valid_bgthreads_names[msg.message_content]) {
-                await BGThreadServerController.registered_BGThreads[msg.message_content].work();
+            if (BGThreadServerDataManager.valid_bgthreads_names[msg.message_content]) {
+                await BGThreadServerDataManager.registered_BGThreads[msg.message_content].work();
             }
             return true;
         });
@@ -71,30 +66,30 @@ export default class BGThreadServerController {
      *      sinon on envoie le message au process principal
      */
     public static async executeBGThread(bgthread_name: string) {
-        if (ForkedProcessWrapperBase.getInstance()) {
+        if (!isMainThread) {
 
-            if (BGThreadServerController.valid_bgthreads_names[bgthread_name]) {
+            if (BGThreadServerDataManager.valid_bgthreads_names[bgthread_name]) {
 
                 // On ajoute avant chaque exécution le fait de signaler qu'on est en vie au thread parent, mais au plus vite une fois toutes les 10 secondes
                 await this.register_alive_on_main_thread({ [bgthread_name]: true });
 
-                await BGThreadServerController.registered_BGThreads[bgthread_name].work();
+                await BGThreadServerDataManager.registered_BGThreads[bgthread_name].work();
             } else {
                 await ForkMessageController.send(new BroadcastWrapperForkMessage(new RunBGThreadForkMessage(bgthread_name)), parentPort);
             }
         } else {
 
-            if ((!ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType]) ||
-                (!ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name])) {
+            if ((!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType]) ||
+                (!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread_name])) {
                 return false;
             }
-            const forked = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name];
+            const forked = ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread_name];
             await ForkMessageController.send(new RunBGThreadForkMessage(bgthread_name), forked.worker, forked);
         }
     }
 
     private static async check_bgthreads_last_alive_ticks() {
-        if (!ForkServerController.is_main_process()) {
+        if (!isMainThread) {
             return;
         }
 
@@ -116,11 +111,11 @@ export default class BGThreadServerController {
                 if ((now - last_tick_s) > timeout_s) {
                     ConsoleHandler.error("BGThreadServerController.check_bgthreads_last_alive_ticks timeout on " +
                         bgthread_name + " :last_tick_s=" + last_tick_s + ":timeout_s=" + timeout_s + ": => killing process"); // TODO FIXME ça semble totalement inefficace non ?
-                    if (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
-                        ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name]) {
+                    if (ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType] &&
+                        ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread_name]) {
                         await ForkMessageController.send(
                             new KillForkMessage(await ParamsServerController.getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
-                            ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name].worker);
+                            ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread_name].worker);
                     }
                 }
             })());

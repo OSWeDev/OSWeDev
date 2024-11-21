@@ -1,8 +1,7 @@
 
-import { parentPort } from 'worker_threads';
+import { isMainThread, parentPort } from 'worker_threads';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -10,7 +9,6 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkMessageController from '../Fork/ForkMessageController';
 import ForkServerController from '../Fork/ForkServerController';
-import ForkedProcessWrapperBase from '../Fork/ForkedProcessWrapperBase';
 import BroadcastWrapperForkMessage from '../Fork/messages/BroadcastWrapperForkMessage';
 import ICronWorker from './interfaces/ICronWorker';
 import RunCronForkMessage from './messages/RunCronForkMessage';
@@ -60,7 +58,7 @@ export default class CronServerController {
      *      sinon on envoie le message au process principal
      */
     public async executeWorker(worker_uid: string) {
-        if (ForkedProcessWrapperBase.getInstance()) {
+        if (!isMainThread) {
 
             if (CronServerController.getInstance().valid_crons_names[worker_uid]) {
                 await this.handle_runcron_message(new RunCronForkMessage(worker_uid));

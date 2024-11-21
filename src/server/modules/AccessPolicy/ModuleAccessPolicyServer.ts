@@ -756,8 +756,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     /**
      * On se met sur un bgthread pour libérer express le temps de mettre à jour les userlogs
      * Attention le user_log n'a pas d'id du coup puisque le moduledao est lancé sur un autre thread
+     * INFO : On peut lancer en local si le bgthread est pas encore dispo
      */
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name)
+    @RunsOnBgThread(APIBGThread.BGTHREAD_name, true)
     private async insert_or_update_uselog(user_log: UserLogVO) {
         return ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
     }

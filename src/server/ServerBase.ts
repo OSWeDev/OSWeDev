@@ -33,10 +33,8 @@ import StatsController from '../shared/modules/Stats/StatsController';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import EnvHandler from '../shared/tools/EnvHandler';
-import LocaleManager from '../shared/tools/LocaleManager';
 import ThreadHandler from '../shared/tools/ThreadHandler';
 import FileLoggerHandler from './FileLoggerHandler';
-import I18nextInit from './I18nextInit';
 import MemoryUsageStat from './MemoryUsageStat';
 import ConfigurationService from './env/ConfigurationService';
 import EnvParam from './env/EnvParam';
@@ -59,6 +57,11 @@ import { IClient } from 'pg-promise/typescript/pg-subset';
 import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
 import { field_names } from '../shared/tools/ObjectHandler';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
+import ServerExpressController from './ServerExpressController';
+import StackContext from './StackContext';
+import BGThreadServerDataManager from './modules/BGThread/BGThreadServerDataManager';
+import RunsOnBgThreadDataController from './modules/BGThread/annotations/RunsOnBGThread';
+import RunsOnMainThreadDataController from './modules/BGThread/annotations/RunsOnMainThread';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
 import ForkMessageController from './modules/Fork/ForkMessageController';
 import IFork from './modules/Fork/interfaces/IFork';
@@ -67,8 +70,6 @@ import OseliaServerController from './modules/Oselia/OseliaServerController';
 import ParamsServerController from './modules/Params/ParamsServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
-import StackContext from './StackContext';
-import ServerExpressController from './ServerExpressController';
 
 export default abstract class ServerBase {
 
@@ -100,6 +101,8 @@ export default abstract class ServerBase {
     /* istanbul ignore next: nothing to test here */
     protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
+        RunsOnMainThreadDataController.exec_self_on_main_process_and_return_value_method = ForkedTasksController.exec_self_on_main_process_and_return_value.bind(ForkedTasksController);
+        RunsOnBgThreadDataController.exec_self_on_bgthread_and_return_value_method = ForkedTasksController.exec_self_on_bgthread_and_return_value.bind(ForkedTasksController);
         ModulesManager.initialize();
 
         ForkedTasksController.init();
@@ -1237,7 +1240,7 @@ export default abstract class ServerBase {
             for (let i in fork.processes) {
                 let process = fork.processes[i];
 
-                if (process.type != BGThreadServerController.ForkedProcessType) {
+                if (process.type != BGThreadServerDataManager.ForkedProcessType) {
                     continue;
                 }
 

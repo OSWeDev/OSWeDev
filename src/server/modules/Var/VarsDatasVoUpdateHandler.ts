@@ -14,7 +14,7 @@ import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
-import StackContext from '../../StackContext';
+import StackContext, { ExecAsServer } from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
@@ -973,6 +973,7 @@ export default class VarsDatasVoUpdateHandler {
     }
 
     @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    @ExecAsServer
     private static async register_vo_cud_throttled(vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase>) {
 
         const block_ordered_vos_cud: boolean = await ParamsServerController.getParamValueAsBoolean(

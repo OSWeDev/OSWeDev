@@ -1,12 +1,11 @@
-import { parentPort } from 'worker_threads';
+import { isMainThread, parentPort, threadId } from 'worker_threads';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
-import BGThreadServerController from '../BGThread/BGThreadServerController';
+import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
 import BGThreadNotAliveError from './errors/BGThreadNotAliveError';
-import ForkedProcessWrapperBase from './ForkedProcessWrapperBase';
 import ForkMessageController from './ForkMessageController';
 import ForkServerController from './ForkServerController';
 import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMessage';
@@ -47,7 +46,7 @@ export default class ForkedTasksController {
      * @param task_params
      */
     public static async broadexec(task_uid: string, ...task_params): Promise<boolean> {
-        if (!ForkServerController.is_main_process()) {
+        if (!isMainThread) {
             // ForkMessageController.send(new BroadcastWrapperForkMessage(new MainProcessTaskForkMessage(task_uid, task_params)).except_self());
 
             // Si on est pas sur le thread parent, on doit d'abord le lancer en local, puis envoyer aux autres threads
@@ -57,7 +56,7 @@ export default class ForkedTasksController {
                     task_uid,
                     task_params,
                     StackContext.get_active_context(),
-                    ForkedProcessWrapperBase.instance?.UID,
+                    threadId,
                 )).except_self(), parentPort);
 
             return true;
@@ -68,7 +67,7 @@ export default class ForkedTasksController {
                 task_uid,
                 task_params,
                 StackContext.get_active_context(),
-                ForkedProcessWrapperBase.instance?.UID,
+                threadId,
             ));
         }
     }
@@ -84,7 +83,7 @@ export default class ForkedTasksController {
         return new Promise(async (resolve, reject) => {
             try {
 
-                if (!ForkServerController.is_main_process()) {
+                if (!isMainThread) {
 
                     return await ForkedTasksController.exec_self_on_main_process_and_return_value(
                         reject,
@@ -95,7 +94,7 @@ export default class ForkedTasksController {
 
                     const promises = [];
                     const done_bgt_uid: { [uid: number]: boolean } = {};
-                    const forks = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType];
+                    const forks = ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType];
 
                     for (const fork_name in forks) {
 
@@ -146,7 +145,7 @@ export default class ForkedTasksController {
      * @param resolver fonction resolve issue de la promise de la fonction que l'on souhaite exécuter côté main process
      */
     public static async exec_self_on_main_process_and_return_value(thrower, task_uid: string, resolver, ...task_params): Promise<boolean> {
-        if (!ForkServerController.is_main_process()) {
+        if (!isMainThread) {
 
             const result_task_uid = ForkedTasksController.get_result_task_uid();
             ForkedTasksController.registered_task_result_wrappers[result_task_uid] = new ForkMessageCallbackWrapper(
@@ -162,7 +161,7 @@ export default class ForkedTasksController {
                     task_uid,
                     task_params,
                     StackContext.get_active_context(),
-                    ForkedProcessWrapperBase.instance?.UID,
+                    threadId,
                     result_task_uid,
                 ), parentPort)) {
 
@@ -182,12 +181,12 @@ export default class ForkedTasksController {
      * @param task_params
      */
     public static async exec_self_on_main_process(task_uid: string, ...task_params): Promise<boolean> {
-        if (!ForkServerController.is_main_process()) {
+        if (!isMainThread) {
             await ForkMessageController.send(new MainProcessTaskForkMessage(
                 task_uid,
                 task_params,
                 StackContext.get_active_context(),
-                ForkedProcessWrapperBase.instance?.UID,
+                threadId,
             ), parentPort);
             return false;
         }
@@ -201,13 +200,13 @@ export default class ForkedTasksController {
      * @param task_params
      */
     public static async exec_self_on_bgthread(bgthread: string, task_uid: string, ...task_params): Promise<boolean> {
-        if (!BGThreadServerController.valid_bgthreads_names[bgthread]) {
+        if (!BGThreadServerDataManager.valid_bgthreads_names[bgthread]) {
             const bg_thread_process_task_fork_message = new BGThreadProcessTaskForkMessage(
                 bgthread,
                 task_uid,
                 task_params,
                 StackContext.get_active_context(),
-                ForkedProcessWrapperBase.instance?.UID,
+                threadId,
             );
 
             await ForkMessageController.broadcast(
@@ -231,7 +230,7 @@ export default class ForkedTasksController {
     public static async exec_task_on_bgthread_and_return_value<T>(bgthread: string, task_uid: string, ...task_params): Promise<T> {
 
         // Si on est sur le bon thread, on exécute
-        if (BGThreadServerController.valid_bgthreads_names[bgthread]) {
+        if (BGThreadServerDataManager.valid_bgthreads_names[bgthread]) {
             // Exécuter la tâche ici
             return RegisteredForkedTasksController.registered_tasks[task_uid](...task_params) as T;
         }
@@ -264,7 +263,7 @@ export default class ForkedTasksController {
      * @param resolver fonction resolve issue de la promise de la fonction que l'on souhaite exécuter côté main process
      */
     public static async exec_self_on_bgthread_and_return_value(thrower, bgthread: string, task_uid: string, resolver, ...task_params): Promise<boolean> {
-        if (!BGThreadServerController.valid_bgthreads_names[bgthread]) {
+        if (!BGThreadServerDataManager.valid_bgthreads_names[bgthread]) {
 
             const result_task_uid = ForkedTasksController.get_result_task_uid();
             ForkedTasksController.registered_task_result_wrappers[result_task_uid] = new ForkMessageCallbackWrapper(
@@ -276,17 +275,17 @@ export default class ForkedTasksController {
 
             // Si on est sur le thread principal, on doit checker qu'on peut envoyer le message au bgthread (donc qu'il a démarré) et le faire,
             //  sinon on throw directement
-            if (ForkServerController.is_main_process()) {
+            if (isMainThread) {
 
-                if ((!ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType]) ||
-                    (!ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread])) {
+                if ((!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType]) ||
+                    (!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread])) {
                     delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
                     ConsoleHandler.error("Unable to find target for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
                     thrower("Unable to find target for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
                     return false;
                 }
 
-                let fork = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread];
+                let fork = ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread];
 
                 if (!ForkServerController.forks_alive[fork.uid]) {
                     delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
@@ -301,18 +300,18 @@ export default class ForkedTasksController {
                         task_uid,
                         task_params,
                         StackContext.get_active_context(),
-                        ForkedProcessWrapperBase.instance?.UID,
+                        threadId,
                         result_task_uid,
                     ),
                     fork.worker,
                     fork)) {
                     ConsoleHandler.error('exec_self_on_bgthread_and_return_value:Un message n\'a pas pu être envoyé :' + task_uid + ':');
 
-                    if ((!ForkServerController.forks_alive[fork.uid]) || (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread] != fork)) {
+                    if ((!ForkServerController.forks_alive[fork.uid]) || (ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread] != fork)) {
                         ConsoleHandler.error('exec_self_on_bgthread_and_return_value:Un message n\'a pas pu être envoyé, fork not alive ou fork changed :' + task_uid + ':' + bgthread + ': Waiting 90 seconds before retrying');
                         await ThreadHandler.sleep(90000, 'exec_self_on_bgthread_and_return_value:Un message n\'a pas pu être envoyé, fork not alive ou fork changed');
 
-                        fork = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread];
+                        fork = ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread];
 
                         if (!ForkServerController.forks_alive[fork.uid]) {
                             delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
@@ -327,7 +326,7 @@ export default class ForkedTasksController {
                                 task_uid,
                                 task_params,
                                 StackContext.get_active_context(),
-                                ForkedProcessWrapperBase.instance?.UID,
+                                threadId,
                                 result_task_uid,
                             ),
                             fork.worker,
@@ -366,7 +365,7 @@ export default class ForkedTasksController {
     }
 
     public static assert_is_main_process() {
-        if (!ForkServerController.is_main_process()) {
+        if (!isMainThread) {
             throw new Error('Should not be called on child process. See exec_async_task_on_main_process.');
         }
     }
@@ -396,7 +395,7 @@ export default class ForkedTasksController {
     //  * @param task_params Les paramères à appliquer
     //  */
     // public static exec_async_task_on_main_process(task_uid: string, ...task_params) {
-    //     if (ForkServerController.is_main_process()) {
+    //     if (isMainThread) {
     //         RegisteredForkedTasksController.registered_tasks[task_uid](...task_params);
     //         return;
     //     }

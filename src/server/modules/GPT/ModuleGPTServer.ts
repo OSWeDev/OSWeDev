@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources';
+import { isMainThread } from 'worker_threads';
 import APIControllerWrapper from "../../../shared/modules/API/APIControllerWrapper";
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -24,7 +25,6 @@ import GPTAssistantAPIVectorStoreFileVO from '../../../shared/modules/GPT/vos/GP
 import GPTAssistantAPIVectorStoreVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIVectorStoreVO';
 import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -40,9 +40,9 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
-import ForkServerController from '../Fork/ForkServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import GPTAssistantAPIServerController from './GPTAssistantAPIServerController';
 import AssistantVoTypeDescription from './functions/get_vo_type_description/AssistantVoTypeDescription';
@@ -57,7 +57,6 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
-import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -330,7 +329,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         // On va juste arrêter tous les runs encore en cours au démarrage de l'application pour le moment, jusqu'à ce qu'on ait un système de reprise
         // TODO FIXME : mettre en place un système de reprise
 
-        if (!ForkServerController.is_main_process) {
+        if (!isMainThread) {
             // On évite de le faire sur tous les processus
             return;
         }
