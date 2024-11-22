@@ -7,7 +7,12 @@ import BGThreadServerDataManager from "../BGThreadServerDataManager";
 export const EVENT_NAME_ForkServerController_ready: string = 'BGThreadServerController.ForkServerController_ready';
 
 export default class RunsOnBgThreadDataController {
-    public static exec_self_on_bgthread_and_return_value_method: (thrower: any, task_uid: string, resolver: any, ...task_params: any[]) => Promise<boolean> = null;
+    public static exec_self_on_bgthread_and_return_value_method: (
+        defaults_to_this_thread: boolean,
+        thrower: any,
+        task_uid: string,
+        resolver: any,
+        ...task_params: any[]) => Promise<boolean> = null;
 }
 
 /**
@@ -34,13 +39,24 @@ export function RunsOnBgThread(bgthread: string, defaults_to_this_thread: boolea
                 return new Promise(async (resolve, reject) => {
                     try {
 
-                        await RunsOnBgThreadDataController.exec_self_on_bgthread_and_return_value_method(
+                        if (!await RunsOnBgThreadDataController.exec_self_on_bgthread_and_return_value_method(
+                            defaults_to_this_thread,
                             reject,
                             bgthread,
                             task_UID, // Using the method name as the task UID
                             resolve,
                             ...args
-                        );
+                        )) {
+                            return;
+                        }
+
+                        if (defaults_to_this_thread) {
+                            // Exécuter la tâche ici
+                            return resolve(await originalMethod.apply(this, args));
+                        } else {
+                            reject('RunsOnBgThread failed to send task to bgthread');
+                        }
+
                     } catch (error) {
 
                         if (defaults_to_this_thread && error && error.message && (error._type == BGThreadNotAliveError.ERROR_TYPE)) {
@@ -63,5 +79,7 @@ export function RunsOnBgThread(bgthread: string, defaults_to_this_thread: boolea
                 return originalMethod.apply(this, args);
             }
         };
+
+        return descriptor; // Retourner le descriptor modifié
     };
 }

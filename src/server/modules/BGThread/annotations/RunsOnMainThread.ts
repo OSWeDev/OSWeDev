@@ -50,4 +50,6 @@ export function RunsOnMainThread(target: any, propertyKey: string, descriptor: P
             return originalMethod.apply(this, args);
         }
     };
+
+    return descriptor; // Retourner le descriptor modifié
 }

@@ -78,6 +78,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
             };
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                false,
                 thrower,
                 StatsUnstackerBGThread.getInstance().name,
                 StatsUnstackerBGThread.TASK_NAME_register_aggregated_stats, resolve,

@@ -103,3 +103,5 @@ donc tous les appels sont à corriger, sachant qu'on peut souvent en 3eme param 
 ya quelques autres fonctions concernées, et surtout vérifier avec cette regexp (non exhaustive) les déclarations d'api dans le projet : en regexp : \?: .*= APIControllerWrapper.sah\(
 
 A priori pas d'impact projet mais l'appel à .trigger( pour les triggers doit être réalisé en StackContext.exec_as_admin(
+
+exec_self_on_bgthread_and_return_value => ajout d'un param pour indiquer ce qu'on doit faire en cas de not alive du bgthread. est-ce qu'on tente quand même de lancer l'exec dessus

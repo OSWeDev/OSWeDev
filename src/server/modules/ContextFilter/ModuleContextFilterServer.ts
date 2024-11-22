@@ -11,8 +11,7 @@ import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/Tabl
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import { reflect } from '../../../shared/tools/ObjectHandler';
-import { IRequestStackContext } from '../../ServerExpressController';
-import StackContext, { ExecAsServer } from '../../StackContext';
+import StackContext from '../../StackContext';
 import ModuleServerBase from '../ModuleServerBase';
 import ContextQueryServerController from './ContextQueryServerController';
 

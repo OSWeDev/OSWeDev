@@ -191,6 +191,7 @@ export default class ModuleForkServer extends ModuleServerBase {
                 ForkedTasksController.exec_self_on_bgthread_and_return_value,
                 ForkedTasksController,
                 false,
+                true,
                 thrower,
                 msg.bgthread,
                 msg.message_content,

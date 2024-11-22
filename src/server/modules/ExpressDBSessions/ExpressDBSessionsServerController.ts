@@ -8,7 +8,7 @@ import ExpressSessionVO from '../../../shared/modules/ExpressDBSessions/vos/Expr
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import APIBGThread from '../API/bgthreads/APIBGThread';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
@@ -171,7 +171,22 @@ export default class ExpressDBSessionsServerController extends Store {
 
             let do_update = (!cache_sess) ||
                 (!cache_sess.expire) ||
-                !ObjectHandler.are_equal(sess_obj, cache_sess_obj);
+                !ObjectHandler.are_equal(
+                    sess_obj,
+                    cache_sess_obj,
+                    [
+                        reflect<IServerUserSession>().id, // On ne compare pas l'id car celui issu de la bdd ou préparé pour ne peut pas avoir le même
+                        reflect<IServerUserSession>().last_check_blocked_or_expired,
+                        reflect<IServerUserSession>().last_check_session_validity,
+                        reflect<IServerUserSession>().last_load_date_unix,
+                        reflect<IServerUserSession>().regenerate, // On ne compare pas les fonctions
+                        reflect<IServerUserSession>().reload, // On ne compare pas les fonctions
+                        reflect<IServerUserSession>().save, // On ne compare pas les fonctions
+                        "req", // Req n'existe que sur la session express, pas en base
+                        reflect<IServerUserSession>().touch, // On ne compare pas les fonctions
+                        reflect<IServerUserSession>().cookie, // ATTENTION On ne peut pas comparer les cookies a cause du expire
+                    ]
+                );
             if (!do_update) {
                 do_update = (Math.abs(expireTime - cache_sess.expire) > 7 * 24 * 60 * 60);
             }
@@ -194,7 +209,6 @@ export default class ExpressDBSessionsServerController extends Store {
                         return this.destroy(session_id, fn);
                     }
                     res.id = insert_res?.id;
-                    ExpressDBSessionsServerController.session_cache[session_id] = res;
                     StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'set', 'insert_out', Dates.now_ms() - db_session_time_in);
                 } else {
 
@@ -205,11 +219,15 @@ export default class ExpressDBSessionsServerController extends Store {
                     StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'set', 'update_out', Dates.now_ms() - db_session_time_in);
                 }
 
+                ExpressDBSessionsServerController.session_cache[session_id] = res;
+                ExpressDBSessionsServerController.parsed_session_cache[session_id] = sess;
+
                 if (!res || !res.id) {
                     /**
                      * On a un problème, on supprime la session du cache pour forcer une nouvelle insertion
                      */
                     delete ExpressDBSessionsServerController.session_cache[session_id];
+                    delete ExpressDBSessionsServerController.parsed_session_cache[session_id];
                     StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'ERROR_session_cache');
                     try {
                         const db_sess: ExpressSessionVO = await this.get_session_from_db(session_id);
@@ -277,6 +295,7 @@ export default class ExpressDBSessionsServerController extends Store {
             ConsoleHandler.error('ExpressDBSessionsServerController.destroy: error on delete session_id:' + session_id + ': ' + error);
         }
         delete ExpressDBSessionsServerController.session_cache[session_id];
+        delete ExpressDBSessionsServerController.parsed_session_cache[session_id];
 
         if (fn) {
             return fn(null);
@@ -321,15 +340,19 @@ export default class ExpressDBSessionsServerController extends Store {
                     return this.destroy(session_id, fn);
                 }
                 res.id = insert_res?.id;
-                ExpressDBSessionsServerController.session_cache[session_id] = res;
+
                 StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'touch', 'insert_out', Dates.now_ms() - db_session_time_in);
             } else {
 
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'update');
                 res.expire = expireTime;
                 await this.update_session_in_db(res);
+
                 StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'touch', 'update_out', Dates.now_ms() - db_session_time_in);
             }
+
+            ExpressDBSessionsServerController.session_cache[session_id] = res;
+            ExpressDBSessionsServerController.parsed_session_cache[session_id] = sess;
 
             if (!res || !res.id) {
                 /**
@@ -337,6 +360,7 @@ export default class ExpressDBSessionsServerController extends Store {
                  */
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'ERROR_session_cache');
                 delete ExpressDBSessionsServerController.session_cache[session_id];
+                delete ExpressDBSessionsServerController.parsed_session_cache[session_id];
                 try {
                     const db_sess: ExpressSessionVO = await this.get_session_from_db(session_id);
                     if (db_sess && db_sess.id) {

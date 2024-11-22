@@ -1,5 +1,4 @@
 import ModuleTableController from '../modules/DAO/ModuleTableController';
-import ModuleTableVO from '../modules/DAO/vos/ModuleTableVO';
 import NumRange from '../modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../modules/IDistantVOBase';
 import IIsServerField from '../modules/IIsServerField';
@@ -72,7 +71,18 @@ export default class ObjectHandler {
             e[reflect<IIsServerField>().is_server] = false;
         }
 
-        return Object.assign(new ModuleTableController.vo_constructor_by_vo_type[e['_type']](), e);
+        const res = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[e['_type']](), e);
+
+        // Cas des matroids dont on doit forcer le is_pixel et index
+        if ((res['is_pixel'] != null) && (res['is_pixel'] != e['_is_pixel'])) {
+            res['is_pixel'] = e['_is_pixel'];
+            res['_is_pixel'] = e['_is_pixel'];
+        }
+
+        if ((res['index'] != null) && (res['index'] != e['_index'])) {
+            res['index'] = e['_index'];
+            res['_index'] = e['_index'];
+        }
     }
 
     public static try_get_json(e: any): any {
@@ -288,7 +298,18 @@ export default class ObjectHandler {
         return ObjectHandler.instance;
     }
 
-    public static are_equal(a: any, b: any): boolean {
+    public static are_equal(a: any, b: any, ignore_fields: string[] = null): boolean {
+        if (ignore_fields && ignore_fields.length) {
+            const fields_filter = {};
+            for (const i in ignore_fields) {
+                fields_filter[ignore_fields[i]] = undefined;
+            }
+
+            a = Object.assign({}, a, fields_filter);
+            b = Object.assign({}, b, fields_filter);
+
+            return JSON.stringify(a) == JSON.stringify(b);
+        }
         return JSON.stringify(a) == JSON.stringify(b);
     }
 

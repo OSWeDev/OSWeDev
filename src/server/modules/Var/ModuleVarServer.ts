@@ -25,7 +25,6 @@ import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTC
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -61,7 +60,6 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-import ForkServerController from '../Fork/ForkServerController';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
@@ -540,7 +538,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public async invalidate_var_cache_from_vo_cd(vo: IDistantVOBase): Promise<void> {
 
         try {
-            VarsDatasVoUpdateHandler.register_vo_cud([vo]);
+            VarsDatasVoUpdateHandler.register_vo_cud(vo);
         } catch (error) {
             ConsoleHandler.error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + ':' + vo + ':' + error);
         }
@@ -555,7 +553,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public async invalidate_var_cache_from_vo_u(vo_update_handler: DAOUpdateVOHolder<IDistantVOBase>): Promise<void> {
 
         try {
-            VarsDatasVoUpdateHandler.register_vo_cud([vo_update_handler]);
+            VarsDatasVoUpdateHandler.register_vo_cud(vo_update_handler, null);
         } catch (error) {
             ConsoleHandler.error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
         }
@@ -566,6 +564,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                false,
                 reject,
                 VarsBGThreadNameHolder.bgthread_name,
                 ModuleVarServer.TASK_NAME_invalidate_imports_for_c,
@@ -592,6 +591,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                false,
                 reject,
                 VarsBGThreadNameHolder.bgthread_name,
                 ModuleVarServer.TASK_NAME_invalidate_imports_for_d,
@@ -615,6 +615,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                false,
                 reject,
                 VarsBGThreadNameHolder.bgthread_name,
                 ModuleVarServer.TASK_NAME_invalidate_imports_for_u,

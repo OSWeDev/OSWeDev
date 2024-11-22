@@ -162,6 +162,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                 };
 
                 if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                    false,
                     thrower,
                     bgthread.name,
                     bgthread_force_run_asap_throttled_task_name,

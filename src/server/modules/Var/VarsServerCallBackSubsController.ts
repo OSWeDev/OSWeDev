@@ -182,6 +182,7 @@ export default class VarsServerCallBackSubsController {
             }
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                false,
                 reject,
                 VarsBGThreadNameHolder.bgthread_name,
                 VarsServerCallBackSubsController.TASK_NAME_get_vars_datas,

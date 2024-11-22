@@ -537,6 +537,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             session.user_vo = null;
 
             if ((!email) || (!password) || (!nom)) {
+                session.save((error) => {
+                    if (error) {
+                        ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:' + error);
+                    }
+                });
+
                 return null;
             }
 
@@ -549,6 +555,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                     await PasswordRecovery.getInstance().beginRecovery(user.email);
 
                 }
+                session.save((error) => {
+                    if (error) {
+                        ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:' + error);
+                    }
+                });
+
                 return null;
             } else {
                 user = new UserVO();
@@ -581,6 +593,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             session.uid = user.id;
             session.user_vo = user;
             await PushDataServerController.registerSession(session);
+            session.save((error) => {
+                if (error) {
+                    ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:' + error);
+                }
+            });
 
             // On stocke le log de connexion en base
             const user_log = new UserLogVO();
@@ -667,8 +684,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session.uid = user.id;
             session.user_vo = user;
-
             await PushDataServerController.registerSession(session);
+            session.save((error) => {
+                if (error) {
+                    ConsoleHandler.error('ModuleAccessPolicyServer.loginAndRedirect:session.save:' + error);
+                }
+            });
 
             // On stocke le log de connexion en base
             const user_log = new UserLogVO();
@@ -735,8 +756,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         session.impersonated_from = Object.assign({}, session);
         session.uid = user.id;
         session.user_vo = user;
-
         await PushDataServerController.registerSession(session);
+        session.save((error) => {
+            if (error) {
+                ConsoleHandler.error('ModuleAccessPolicyServer.do_impersonate:session.save:' + error);
+            }
+        });
+
 
         // On stocke le log de connexion en base
         const user_log = new UserLogVO();

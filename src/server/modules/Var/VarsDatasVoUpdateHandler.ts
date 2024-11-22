@@ -1,3 +1,4 @@
+import { PostThrottleParam, PreThrottleParam, THROTTLED_METHOD_PARAM_TYPE } from '../../../shared/annotations/Throttle';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
@@ -13,8 +14,9 @@ import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeli
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
-import StackContext, { ExecAsServer } from '../../StackContext';
+import StackContext from '../../StackContext';
+import { ThrottleAndExecAsServer } from '../../annotations/ThrottleAndExecAsServer';
+import { ThrottleExecAsServerRunsOnBgThread } from '../../annotations/ThrottleExecAsServerRunsOnBgThread';
 import ConfigurationService from '../../env/ConfigurationService';
 import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
@@ -51,8 +53,6 @@ export default class VarsDatasVoUpdateHandler {
     public static ordered_vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = [];
     public static last_call_handled_something: boolean = false;
 
-    public static register_vo_cud = ThrottleHelper.declare_throttle_with_stackable_args(VarsDatasVoUpdateHandler.register_vo_cud_throttled.bind(this), 100, { leading: true, trailing: true });
-
     /**
      * La liste des invalidations en attente de traitement
      */
@@ -60,9 +60,6 @@ export default class VarsDatasVoUpdateHandler {
 
 
     private static last_registration: number = null;
-
-    private static throttled_update_param = ThrottleHelper.declare_throttle_without_args(VarsDatasVoUpdateHandler.update_param.bind(this), 1000, { leading: false, trailing: true });
-    private static throttle_push_invalidators = ThrottleHelper.declare_throttle_with_stackable_args(VarsDatasVoUpdateHandler.throttled_push_invalidators.bind(this), 100, { leading: false, trailing: true });
 
     public static init() {
     }
@@ -286,23 +283,6 @@ export default class VarsDatasVoUpdateHandler {
         await promise_pipeline.end();
     }
 
-    public static async update_param() {
-
-        // On flag, si c'est pas déjà le cas, le fait que des cuds sont en attente, ou pas
-        let new_tag_value = VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0);
-        let old_tag_value = await ParamsServerController.getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
-
-        if (new_tag_value == old_tag_value) {
-            return;
-        }
-
-        await ParamsServerController.setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, new_tag_value);
-
-        // await ParamsServerController.setParamValue(
-        //     VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME,
-        //     VarsDatasVoUpdateHandler.getJSONFrom_ordered_vos_cud());
-    }
-
     /**
      * On doit faire une union sur les intersecteurs, mais ni sur les inclusions ni sur les exacts
      * Pour le moment on implémente pas les inclusions, qui n'ont pas une utilité évidente (on a pas d'interface pour faire ça pour le moment a priori en plus)
@@ -468,14 +448,6 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         return union_invalidators;
-    }
-
-    private static throttled_push_invalidators(invalidators: VarDataInvalidatorVO[]) {
-        if ((!invalidators) || (!invalidators.length)) {
-            return;
-        }
-
-        VarsDatasVoUpdateHandler.invalidators.push(...invalidators);
     }
 
     /**
@@ -972,9 +944,55 @@ export default class VarsDatasVoUpdateHandler {
         return VarsDatasVoUpdateHandler.throttle_push_invalidators(invalidators);
     }
 
-    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
-    @ExecAsServer
-    private static async register_vo_cud_throttled(vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase>) {
+    // @ThrottleExecAsServerRunsOnBgThread(
+    //     {
+    //         param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+    //         leading: true,
+    //         trailing: true,
+    //         throttle_ms: 100,
+    //     },
+    //     VarsBGThreadNameHolder.bgthread_name,
+    //     false
+    // )
+
+
+
+    /***
+     *
+     */
+    @ThrottleAndExecAsServer(
+        {
+            param_type: THROTTLED_METHOD_PARAM_TYPE.NONE,
+            throttle_ms: 1000,
+            leading: false,
+            trailing: true,
+        }
+    )
+    public static async throttled_update_param() {
+
+        // On flag, si c'est pas déjà le cas, le fait que des cuds sont en attente, ou pas
+        const new_tag_value = VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0);
+        const old_tag_value = await ParamsServerController.getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
+
+        if (new_tag_value == old_tag_value) {
+            return;
+        }
+
+        await ParamsServerController.setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, new_tag_value);
+    }
+
+    @ThrottleAndExecAsServer(
+        {
+            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+            leading: true,
+            trailing: true,
+            throttle_ms: 100,
+        }
+    )
+    public static async register_vo_cud(
+        @PreThrottleParam vo_cud: DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase | Array<DAOUpdateVOHolder<IDistantVOBase>> | IDistantVOBase[],
+        @PostThrottleParam vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = null,
+    ) {
 
         const block_ordered_vos_cud: boolean = await ParamsServerController.getParamValueAsBoolean(
             VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME,
@@ -990,5 +1008,29 @@ export default class VarsDatasVoUpdateHandler {
         VarsDatasVoUpdateHandler.last_registration = Dates.now();
 
         VarsDatasVoUpdateHandler.throttled_update_param();
+    }
+
+    /**
+     *
+     */
+    @ThrottleExecAsServerRunsOnBgThread(
+        {
+            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+            throttle_ms: 100,
+            leading: false,
+            trailing: true,
+        },
+        VarsBGThreadNameHolder.bgthread_name,
+        false,
+    )
+    private static throttle_push_invalidators(
+        @PreThrottleParam invalidator: VarDataInvalidatorVO | VarDataInvalidatorVO[],
+        @PostThrottleParam invalidators: VarDataInvalidatorVO[] = null,
+    ) {
+        if ((!invalidators) || (!invalidators.length)) {
+            return;
+        }
+
+        VarsDatasVoUpdateHandler.invalidators.push(...invalidators);
     }
 }

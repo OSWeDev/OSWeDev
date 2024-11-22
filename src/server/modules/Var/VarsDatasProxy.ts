@@ -212,6 +212,7 @@ export default class VarsDatasProxy {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                false,
                 reject,
                 VarsBGThreadNameHolder.bgthread_name,
                 VarsDatasProxy.TASK_NAME_add_to_tree_and_return_datas_that_need_notification,

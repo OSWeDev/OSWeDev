@@ -1253,7 +1253,11 @@ export default abstract class ServerBase {
                 };
 
                 await ForkedTasksController.exec_self_on_bgthread_and_return_value(
-                    thrower, process.name, BGThreadServerController.TASK_NAME_is_alive, resolver
+                    false,
+                    thrower,
+                    process.name,
+                    BGThreadServerController.TASK_NAME_is_alive,
+                    resolver,
                 );
 
                 check_process = true;

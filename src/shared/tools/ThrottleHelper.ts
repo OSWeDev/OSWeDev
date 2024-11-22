@@ -1,14 +1,28 @@
 import { isArray, throttle, ThrottleSettings } from 'lodash';
-import EnvHandler from './EnvHandler';
 import ConsoleHandler from './ConsoleHandler';
+import EnvHandler from './EnvHandler';
 
 export default class ThrottleHelper {
 
-    protected static UID: number = 0;
-    protected static throttles: { [throttle_id: number]: ((...args: any) => any) } = {};
-    protected static throttles_mappable_args: { [throttle_id: number]: { [map_elt_id: string]: any } } = {};
-    protected static throttles_stackable_args: { [throttle_id: number]: any[] } = {};
-    protected static throttles_semaphore: { [throttle_id: number]: boolean } = {};
+    public static throttles: { [throttle_id: number]: ((...args: any) => any) } = {};
+    public static UID: number = 0;
+    public static throttles_mappable_args: { [throttle_id: number]: { [map_elt_id: string]: any } } = {};
+    public static throttles_stackable_args: { [throttle_id: number]: any[] } = {};
+    public static throttles_semaphore: { [throttle_id: number]: boolean } = {};
+
+    public static throttle_with_stackable_args(throttle_id: number, stackable_args: any[]) {
+        if (!ThrottleHelper.throttles[throttle_id]) {
+            return;
+        }
+
+        if (!ThrottleHelper.throttles_stackable_args[throttle_id]) {
+            ThrottleHelper.throttles_stackable_args[throttle_id] = stackable_args;
+        } else {
+            ThrottleHelper.throttles_stackable_args[throttle_id] = ThrottleHelper.throttles_stackable_args[throttle_id].concat(stackable_args);
+        }
+
+        return ThrottleHelper.throttles[throttle_id]();
+    }
 
     public static declare_throttle_without_args(
         func: () => void | Promise<void>,
@@ -63,7 +77,7 @@ export default class ThrottleHelper {
         };
     }
 
-    private static throttle_without_args(throttle_id: number) {
+    public static throttle_without_args(throttle_id: number) {
         if (!ThrottleHelper.throttles[throttle_id]) {
             return;
         }
@@ -74,7 +88,7 @@ export default class ThrottleHelper {
         }
     }
 
-    private static throttle_with_mappable_args(throttle_id: number, mappable_args: { [map_elt_id: string]: any }) {
+    public static throttle_with_mappable_args(throttle_id: number, mappable_args: { [map_elt_id: string]: any }) {
         if (!ThrottleHelper.throttles[throttle_id]) {
             return;
         }
@@ -91,21 +105,7 @@ export default class ThrottleHelper {
         }
     }
 
-    private static throttle_with_stackable_args(throttle_id: number, stackable_args: any[]) {
-        if (!ThrottleHelper.throttles[throttle_id]) {
-            return;
-        }
-
-        if (!ThrottleHelper.throttles_stackable_args[throttle_id]) {
-            ThrottleHelper.throttles_stackable_args[throttle_id] = stackable_args;
-        } else {
-            ThrottleHelper.throttles_stackable_args[throttle_id] = ThrottleHelper.throttles_stackable_args[throttle_id].concat(stackable_args);
-        }
-
-        return ThrottleHelper.throttles[throttle_id]();
-    }
-
-    private static get_next_UID() {
+    public static get_next_UID() {
 
         const new_UID = ThrottleHelper.UID++;
         if (EnvHandler.debug_throttle_uid) {

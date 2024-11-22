@@ -16,7 +16,7 @@ import ConfigurationService from "../../env/ConfigurationService";
 import ModuleAccessPolicyServer from "../AccessPolicy/ModuleAccessPolicyServer";
 import ModuleDAOServer from "../DAO/ModuleDAOServer";
 import ParamsServerController from "../Params/ParamsServerController";
-import StackContext, { ExecAsServer } from "../../StackContext";
+import { ExecAsServer } from "../../annotations/ExecAsServer";
 
 
 /**
@@ -158,7 +158,7 @@ export default abstract class PlayWrightServerController {
                 ConsoleHandler.log('PlayWrightServerController: adding rôle admin to test_user');
             }
 
-            await ModuleAccessPolicyServer.getInstance().addRoleToUser(test_user.id, rôle_admin.id)
+            await ModuleAccessPolicyServer.getInstance().addRoleToUser(test_user.id, rôle_admin.id);
         } else {
             if (ConfigurationService.node_configuration.debug_playwright_controller) {
                 ConsoleHandler.log('PlayWrightServerController: test_user found, updating its password');
