@@ -4,8 +4,17 @@ import ConfigurationService from '../../../../env/ConfigurationService';
 import VarsDeployDepsHandler from '../../VarsDeployDepsHandler';
 import VarsServerController from '../../VarsServerController';
 import VarsProcessBase from './VarsProcessBase';
+import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 
 export default class VarsProcessDeployDeps extends VarsProcessBase {
+
+
+    private static instance: VarsProcessDeployDeps = null;
+
+    private constructor() {
+        super('VarsProcessDeployDeps', VarDAGNode.TAG_1_NOTIFIED_START, VarDAGNode.TAG_2_DEPLOYING, VarDAGNode.TAG_2_DEPLOYED, 2, false, ConfigurationService.node_configuration.max_varsprocessdeploydeps);
+    }
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -13,12 +22,6 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
             VarsProcessDeployDeps.instance = new VarsProcessDeployDeps();
         }
         return VarsProcessDeployDeps.instance;
-    }
-
-    private static instance: VarsProcessDeployDeps = null;
-
-    private constructor() {
-        super('VarsProcessDeployDeps', VarDAGNode.TAG_1_NOTIFIED_START, VarDAGNode.TAG_2_DEPLOYING, VarDAGNode.TAG_2_DEPLOYED, 2, false, ConfigurationService.node_configuration.max_varsprocessdeploydeps);
     }
 
     protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
@@ -41,6 +44,15 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
             if (ConfigurationService.node_configuration.debug_vars) {
                 ConsoleHandler.log('VarsProcessDeployDeps:END - has_valid_value: ' + node.var_data.index + ' ' + node.var_data.value);
             }
+            return true;
+        }
+
+        // Petit contrôle de cohérence suite pb en prod
+        if (node.var_data.index && (node.var_data.index.indexOf('::') > -1) || node.var_data.index.indexOf('null') > -1) {
+            ConsoleHandler.error('VarsProcessDeployDeps.worker_async: node.var_data.index null or contains null: ' + node.var_data.index + ' - On crée une fausse valeur pour éviter de bloquer le système');
+            node.var_data.value_ts = Dates.now();
+            node.var_data.value = 0;
+            node.var_data.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
             return true;
         }
 
