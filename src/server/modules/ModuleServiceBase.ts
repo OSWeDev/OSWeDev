@@ -243,7 +243,7 @@ export default abstract class ModuleServiceBase {
         this.db_ = db;
 
         db.$pool.options.max = ConfigurationService.node_configuration.max_pool;
-        db.$pool.options.idleTimeoutMillis = 120000;
+        db.$pool.options.idleTimeoutMillis = 1;
     }
 
     public async register_all_modules(is_generator: boolean = false) {

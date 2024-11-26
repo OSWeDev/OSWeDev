@@ -1,8 +1,10 @@
+import { PostThrottleParam, PreThrottleParam, Throttle, THROTTLED_METHOD_PARAM_TYPE, ThrottleOptions } from '../../../shared/annotations/Throttle';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import { ThrottleExecAsServerRunsOnMainThread } from '../../annotations/ThrottleExecAsServerRunsOnMainThread';
 import ConfigurationService from '../../env/ConfigurationService';
 import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import ParamsServerController from '../Params/ParamsServerController';
@@ -19,13 +21,6 @@ export default class VarsTabsSubsController {
 
     public static PARAM_NAME_SUBS_CLEAN_THROTTLE: string = 'VarsTabsSubsController.SUBS_CLEAN_THROTTLE';
     public static PARAM_NAME_SUBS_CLEAN_DELAY: string = 'VarsTabsSubsController.SUBS_CLEAN_DELAY';
-
-    /**
-     * Multithreading notes :
-     *  - any data or action in this controller needs to be done on the main thread
-     */
-    public static notify_vardatas = ThrottleHelper.declare_throttle_with_stackable_args(
-        this.notify_vardatas_throttled.bind(this), 100, { leading: true, trailing: true });
 
     /**
      * Les client_tab_ids abonnés à chaque var_index
@@ -185,8 +180,16 @@ export default class VarsTabsSubsController {
      * @param var_datas Tableau ou map (sur index) des vars datas
      * @param is_computing true indique au client de ne pas prendre en compte les valeurs envoyées uniquement le fait q'un calcul est en cours
      */
-    @RunsOnMainThread
-    public static async notify_vardatas_throttled(params: NotifVardatasParam[]): Promise<boolean> {
+    @ThrottleExecAsServerRunsOnMainThread({
+        param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+        throttle_ms: 100,
+        leading: true,
+        trailing: true,
+    })
+    public static async notify_vardatas(
+        @PreThrottleParam pre_param: NotifVardatasParam | NotifVardatasParam[],
+        @PostThrottleParam params: NotifVardatasParam[] = null,
+    ): Promise<boolean> {
 
         await this.clean_old_subs();
 

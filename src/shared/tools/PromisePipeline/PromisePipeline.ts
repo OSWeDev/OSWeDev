@@ -119,6 +119,10 @@ export default class PromisePipeline {
             ConsoleHandler.log('PromisePipeline.push():PREPUSH:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
+        if (!PromisePipeline.all_promise_pipelines_by_uid[this.uid]) {
+            PromisePipeline.all_promise_pipelines_by_uid[this.uid] = this;
+        }
+
         if (this.stat_name) {
             StatsController.register_stat_COMPTEUR('PromisePipeline', this.stat_name, 'IN', 1);
         }
@@ -219,6 +223,8 @@ export default class PromisePipeline {
         });
 
         await wait_for_end;
+
+        delete PromisePipeline.all_promise_pipelines_by_uid[this.uid];
 
         if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('PromisePipeline.end():WAIT END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');

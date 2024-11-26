@@ -1310,9 +1310,10 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        if (!isMainThread) {
-            throw new Error('getParamDependencies must be called on main process for var explanation');
-        }
+        // Je vois pas pkoi... et en plus maintenant que les apis sont sur un bg thread, c'est juste faux
+        // if (!isMainThread) {
+        //     throw new Error('getParamDependencies must be called on main process for var explanation');
+        // }
 
         return SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
 

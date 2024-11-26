@@ -100,7 +100,7 @@ export default class ThrottledQueryServerController {
      */
     public static async shift_select_queries(): Promise<void> {
 
-        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool, 'ThrottledQueryServerController.shift_select_queries', true);
+        // const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool, 'ThrottledQueryServerController.shift_select_queries', true);
         const force_freeze: { [parameterized_full_query: string]: boolean } = {};
         const freeze_check_passed_and_refused: { [parameterized_full_query: string]: boolean } = {};
         const MAX_NB_AUTO_UNION_IN_SELECT = ConfigurationService.node_configuration.max_nb_auto_union_in_select;
@@ -112,13 +112,9 @@ export default class ThrottledQueryServerController {
             await ThreadHandler.sleep(100, "ModuleDAOServer:shift_select_queries:dao_server_coef == 0");
         }
 
-        let fields_labels: string = null;
-        let first = true;
+        let fields_labels: string = ObjectHandler.getFirstAttributeName(ThrottledQueryServerController.throttled_select_query_params_by_fields_labels);
 
-        while (first || !!fields_labels) {
-
-            fields_labels = ObjectHandler.getFirstAttributeName(ThrottledQueryServerController.throttled_select_query_params_by_fields_labels);
-            first = false;
+        while (!!fields_labels) {
 
             const same_field_labels_params: ThrottledSelectQueryParam[] = ThrottledQueryServerController.throttled_select_query_params_by_fields_labels[fields_labels];
             delete ThrottledQueryServerController.throttled_select_query_params_by_fields_labels[fields_labels];
@@ -198,8 +194,10 @@ export default class ThrottledQueryServerController {
                 request_by_group_id,
                 freeze_check_passed_and_refused,
                 force_freeze,
-                promise_pipeline
+                // promise_pipeline
             );
+
+            fields_labels = ObjectHandler.getFirstAttributeName(ThrottledQueryServerController.throttled_select_query_params_by_fields_labels);
         }
     }
 
@@ -208,10 +206,10 @@ export default class ThrottledQueryServerController {
         request_by_group_id: { [group_id: number]: string },
         freeze_check_passed_and_refused: { [parameterized_full_query: string]: boolean },
         force_freeze: { [parameterized_full_query: string]: boolean },
-        promise_pipeline: PromisePipeline
+        // promise_pipeline: PromisePipeline
     ) {
         const self = this;
-        const old_promise_pipeline_max_concurrent_promises = promise_pipeline.max_concurrent_promises;
+        // const old_promise_pipeline_max_concurrent_promises = promise_pipeline.max_concurrent_promises;
 
         for (const group_id_s in request_by_group_id) {
             const gr_id = parseInt(group_id_s);
@@ -229,22 +227,29 @@ export default class ThrottledQueryServerController {
                 ThrottledQueryServerController.throttled_log_dao_server_coef_not_1();
             }
 
-            promise_pipeline.max_concurrent_promises = Math.max(Math.floor(old_promise_pipeline_max_concurrent_promises * AzureMemoryCheckServerController.dao_server_coef), 1);
+            // promise_pipeline.max_concurrent_promises = Math.max(Math.floor(old_promise_pipeline_max_concurrent_promises * AzureMemoryCheckServerController.dao_server_coef), 1);
 
-            await promise_pipeline.push(async () => {
+            // await promise_pipeline.push(async () => {
 
+            // await self.do_select_query(
+            //     request,
+            //     null,
+            //     dedoublonned_same_field_labels_params,
+            //     freeze_check_passed_and_refused,
+            //     force_freeze
+            // );
+            // });
 
-                await self.do_select_query(
-                    request,
-                    null,
-                    dedoublonned_same_field_labels_params,
-                    freeze_check_passed_and_refused,
-                    force_freeze
-                );
-            });
+            self.do_select_query(
+                request,
+                null,
+                dedoublonned_same_field_labels_params,
+                freeze_check_passed_and_refused,
+                force_freeze
+            );
         }
 
-        promise_pipeline.max_concurrent_promises = old_promise_pipeline_max_concurrent_promises;
+        // promise_pipeline.max_concurrent_promises = old_promise_pipeline_max_concurrent_promises;
     }
 
     private static handle_load_from_cache(

@@ -177,7 +177,13 @@ export default class VarsDatasProxy {
 
             // Petit contrôle de cohérence suite pb en prod
             if ((!params_index) || (params_index.indexOf('null') >= 0)) {
-                ConsoleHandler.error('VarsDatasProxy._get_var_datas_or_ask_to_bgthread: params_index null or contains null: ' + params_index + ' - On crée une fausse notif pour éviter de bloquer le système');
+
+                if (!params_index) {
+                    ConsoleHandler.error('VarsDatasProxy._get_var_datas_or_ask_to_bgthread: params_index null: ' + params_index + ' - là on peut rien faire à part tenter d\'ignorer la demande ...');
+                    continue;
+                }
+
+                ConsoleHandler.error('VarsDatasProxy._get_var_datas_or_ask_to_bgthread: params_index contains null: ' + params_index + ' - On crée une fausse notif pour éviter de bloquer le système');
                 found[params_index] = VarDataBaseVO.from_index(params_index) as T;
                 found[params_index].value_ts = Dates.now();
                 found[params_index].value = 0;

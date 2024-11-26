@@ -284,6 +284,7 @@ export default abstract class ServerBase {
         }
 
         this.app = express();
+        this.app.disable('x-powered-by'); // On ne veut pas communiquer la techno utilisée
 
         // On déclare le middleware session
         this.session = expressSession({
@@ -354,7 +355,7 @@ export default abstract class ServerBase {
                 ],
                 '/api_handler/*': [
                     ...session_dependant_middlewares,
-                    this.response_time_middleware.bind(this),
+                    // this.response_time_middleware.bind(this),
                 ],
                 '/': [
                     this.redirect_fragmented_url.bind(this),
@@ -420,26 +421,25 @@ export default abstract class ServerBase {
             [APIDefinition.API_TYPE_POST]: {
                 '/api_handler/*': [
                     ...session_dependant_middlewares,
-                    this.session,
-                    this.response_time_middleware.bind(this),
+                    // this.response_time_middleware.bind(this),
                 ],
             },
         };
         this.apply_middlewares(middlewares_by_urls_and_methd);
 
-        // TODO opti pré-compression des fichiers statiques
-        if (this.envParam.compress) {
-            const shouldCompress = function (req, res) {
-                if (req.headers['x-no-compression']) {
-                    // don't compress responses with this request header
-                    return false;
-                }
+        // // TODO opti pré-compression des fichiers statiques
+        // if (this.envParam.compress) {
+        //     const shouldCompress = function (req, res) {
+        //         if (req.headers['x-no-compression']) {
+        //             // don't compress responses with this request header
+        //             return false;
+        //         }
 
-                // fallback to standard filter function
-                return compression.filter(req, res);
-            };
-            this.app.use(compression({ filter: shouldCompress }));
-        }
+        //         // fallback to standard filter function
+        //         return compression.filter(req, res);
+        //     };
+        //     this.app.use(compression({ filter: shouldCompress }));
+        // }
 
 
         if (ConfigurationService.node_configuration.activate_long_john) {
@@ -804,32 +804,27 @@ export default abstract class ServerBase {
             enableBrotli: true,
             orderPreference: ['br', 'gz'],
             index: false,
-            maxAge: cache_duration,
-            fallthrough: false,
             serveStatic: {
                 cacheControl: true,
                 lastModified: true,
                 etag: true,
-                setHeaders: (res, path) => {
-                    res.setHeader('Cache-Control', 'public, max-age=' + (cache_duration / 1000));
-                },
-            },
-        }
-            , {
                 maxAge: cache_duration,
-                etag: true,
-                lastModified: true,
-
                 fallthrough: false,
-            }));
+            },
+        }));
 
         // Cache sur les files
-        this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), express.static(ModuleFile.FILES_ROOT.replace(/^[.][/]/, ''), {
-            maxAge: cache_duration,
-            etag: true,
-            lastModified: true,
-
-            fallthrough: false,
+        this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), expressStaticGzip(ModuleFile.FILES_ROOT.replace(/^[.][/]/, ''), , {
+            enableBrotli: true,
+            orderPreference: ['br', 'gz'],
+            index: false,
+            serveStatic: {
+                cacheControl: true,
+                lastModified: true,
+                etag: true,
+                maxAge: cache_duration,
+                fallthrough: false,
+            },
         }));
 
         // Pour activation auto let's encrypt - pas de cache
@@ -944,42 +939,42 @@ export default abstract class ServerBase {
         }
     }
 
-    private response_time_middleware(req: Request, res: Response, next: NextFunction) {
-        return responseTime(async (req, res, time) => {
-            const url = req.originalUrl;
-            const method = req.method;
-            const status = res.statusCode;
+    // private response_time_middleware(req: Request, res: Response, next: NextFunction) {
+    //     return responseTime(async (req, res, time) => {
+    //         const url = req.originalUrl;
+    //         const method = req.method;
+    //         const status = res.statusCode;
 
-            const log = `${method} ${url} ${status} ${time.toFixed(3)} ms`;
+    //         const log = `${method} ${url} ${status} ${time.toFixed(3)} ms`;
 
-            // let cleaned_url = req.url.toLowerCase()
-            //     .replace(/[:.]/g, '')
-            //     .replace(/\//g, '_');
+    //         // let cleaned_url = req.url.toLowerCase()
+    //         //     .replace(/[:.]/g, '')
+    //         //     .replace(/\//g, '_');
 
-            StatsController.register_stat_DUREE('express', method, status, time);
-            StatsController.register_stat_COMPTEUR('express', method, status);
+    //         StatsController.register_stat_DUREE('express', method, status, time);
+    //         StatsController.register_stat_COMPTEUR('express', method, status);
 
-            if (status >= 500) {
-                ConsoleHandler.error(log);
-            } else if (status >= 400) {
-                ConsoleHandler.warn(log);
-            } else {
+    //         if (status >= 500) {
+    //             ConsoleHandler.error(log);
+    //         } else if (status >= 400) {
+    //             ConsoleHandler.warn(log);
+    //         } else {
 
-                /**
-                 * On stocke les requêtes par :
-                 *  - par méthode
-                 *  - par status
-                 *  - par temps de réponse - en 2 catégories : toutes les requêtes et les requêtes qui ont pris plus de 1s (paramétrable)
-                 */
-                const slow_queries_limit = await ParamsServerController.getParamValueAsInt(
-                    ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME, 1000, 300000
-                );
-                if (time > slow_queries_limit) {
-                    StatsController.register_stat_COMPTEUR('express', method, 'slow');
-                }
-            }
-        });
-    }
+    //             /**
+    //              * On stocke les requêtes par :
+    //              *  - par méthode
+    //              *  - par status
+    //              *  - par temps de réponse - en 2 catégories : toutes les requêtes et les requêtes qui ont pris plus de 1s (paramétrable)
+    //              */
+    //             const slow_queries_limit = await ParamsServerController.getParamValueAsInt(
+    //                 ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME, 1000, 300000
+    //             );
+    //             if (time > slow_queries_limit) {
+    //                 StatsController.register_stat_COMPTEUR('express', method, 'slow');
+    //             }
+    //         }
+    //     });
+    // }
 
     private async client_home_middleware(req: Request, res: Response) {
 

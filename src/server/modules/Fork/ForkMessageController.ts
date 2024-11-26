@@ -196,6 +196,12 @@ export default class ForkMessageController {
 
         msg.message_content = ObjectHandler.reapply_prototypes(msg.message_content);
 
+        if (!msg['message_content_params']) {
+            return msg;
+        }
+
+        msg['message_content_params'] = ObjectHandler.reapply_prototypes(msg['message_content_params']);
+
         return msg;
     }
 

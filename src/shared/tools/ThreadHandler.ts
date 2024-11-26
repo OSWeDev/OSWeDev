@@ -8,7 +8,7 @@ import DBDisconnectionManager from "./DBDisconnectionManager";
 interface IIntervalConf {
     actif: boolean;
     reason: string;
-    tiemout: number;
+    timeout: number;
     pause_on_db_disconnection: boolean;
     currently_running: boolean;
 }
@@ -60,15 +60,22 @@ export default class ThreadHandler {
 
         StatsController.register_stat_COMPTEUR('ThreadHandler', 'set_interval', reason_ID);
 
-        ThreadHandler.intervals_confs[UID] = {
-            actif: true,
-            reason: reason_ID,
-            tiemout: timeout,
-            pause_on_db_disconnection: pause_on_db_disconnection,
-            currently_running: false
-        };
+        if (!ThreadHandler.intervals_confs[UID]) {
+            ThreadHandler.intervals_confs[UID] = {
+                actif: true,
+                reason: reason_ID,
+                timeout: timeout,
+                pause_on_db_disconnection: pause_on_db_disconnection,
+                currently_running: false
+            };
+        } else {
+            ThreadHandler.intervals_confs[UID].actif = true;
+            ThreadHandler.intervals_confs[UID].reason = reason_ID;
+            ThreadHandler.intervals_confs[UID].timeout = timeout;
+            ThreadHandler.intervals_confs[UID].pause_on_db_disconnection = pause_on_db_disconnection;
+        }
 
-        if (!ThreadHandler.intervals_confs[reason_ID] || !ThreadHandler.intervals_confs[reason_ID].currently_running) {
+        if (!ThreadHandler.intervals_confs[UID] || !ThreadHandler.intervals_confs[UID].currently_running) {
 
             ThreadHandler.intervals_confs[UID].currently_running = true;
 
@@ -81,7 +88,7 @@ export default class ThreadHandler {
                     } else {
                         await func();
                     }
-                    await ThreadHandler.sleep(ThreadHandler.intervals_confs[UID].tiemout, ThreadHandler.intervals_confs[UID].reason, ThreadHandler.intervals_confs[UID].pause_on_db_disconnection);
+                    await ThreadHandler.sleep(ThreadHandler.intervals_confs[UID].timeout, ThreadHandler.intervals_confs[UID].reason, ThreadHandler.intervals_confs[UID].pause_on_db_disconnection);
                 }
                 ThreadHandler.intervals_confs[UID].currently_running = false;
             });

@@ -929,21 +929,6 @@ export default class VarsDatasVoUpdateHandler {
             (VarsDatasVoUpdateHandler.invalidators && (VarsDatasVoUpdateHandler.invalidators.length > 0));
     }
 
-    /**
-     * Demander une ou des invalidations
-     * @param invalidators
-     * @returns
-     */
-    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
-    public static async push_invalidators(invalidators: VarDataInvalidatorVO[]): Promise<unknown> {
-
-        if ((!invalidators) || (!invalidators.length)) {
-            return 'push_invalidators';
-        }
-
-        return VarsDatasVoUpdateHandler.throttle_push_invalidators(invalidators);
-    }
-
     // @ThrottleExecAsServerRunsOnBgThread(
     //     {
     //         param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
@@ -1011,8 +996,10 @@ export default class VarsDatasVoUpdateHandler {
     }
 
     /**
-     *
-     */
+    * Demander une ou des invalidations
+    * @param invalidators
+    * @returns
+    */
     @ThrottleExecAsServerRunsOnBgThread(
         {
             param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
@@ -1023,7 +1010,7 @@ export default class VarsDatasVoUpdateHandler {
         VarsBGThreadNameHolder.bgthread_name,
         false,
     )
-    private static throttle_push_invalidators(
+    public static push_invalidators(
         @PreThrottleParam invalidator: VarDataInvalidatorVO | VarDataInvalidatorVO[],
         @PostThrottleParam invalidators: VarDataInvalidatorVO[] = null,
     ) {

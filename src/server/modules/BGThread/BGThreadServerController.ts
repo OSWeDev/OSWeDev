@@ -1,16 +1,16 @@
 import { isMainThread, parentPort } from 'worker_threads';
+import { PostThrottleParam, PreThrottleParam, THROTTLED_METHOD_PARAM_TYPE } from '../../../shared/annotations/Throttle';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import { ThrottleExecAsServerRunsOnMainThread } from '../../annotations/ThrottleExecAsServerRunsOnMainThread';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ForkMessageController from '../Fork/ForkMessageController';
 import ForkServerController from '../Fork/ForkServerController';
 import BroadcastWrapperForkMessage from '../Fork/messages/BroadcastWrapperForkMessage';
 import KillForkMessage from '../Fork/messages/KillForkMessage';
 import ParamsServerController from '../Params/ParamsServerController';
-import { RunsOnMainThread } from './annotations/RunsOnMainThread';
 import BGThreadServerDataManager from './BGThreadServerDataManager';
 import RunBGThreadForkMessage from './messages/RunBGThreadForkMessage';
 import ModuleBGThreadServer from './ModuleBGThreadServer';
@@ -44,7 +44,6 @@ export default class BGThreadServerController {
      * ----- Local thread cache
      */
 
-    public static register_alive_on_main_thread = ThrottleHelper.declare_throttle_with_mappable_args(this.throttled_register_alive_on_main_thread.bind(this), 10000);
 
     public static init() {
         ForkMessageController.register_message_handler(RunBGThreadForkMessage.FORK_MESSAGE_TYPE, async (msg: RunBGThreadForkMessage) => {
@@ -133,8 +132,14 @@ export default class BGThreadServerController {
         return true;
     }
 
-    @RunsOnMainThread
-    public static async throttled_register_alive_on_main_thread(alive_bgthread_names: { [bgname: string]: boolean }) {
+    @ThrottleExecAsServerRunsOnMainThread({
+        throttle_ms: 10000,
+        param_type: THROTTLED_METHOD_PARAM_TYPE.MAPPABLE,
+    })
+    public static async register_alive_on_main_thread(
+        @PreThrottleParam pre_alive_bgthread_names: { [bgname: string]: boolean },
+        @PostThrottleParam alive_bgthread_names: { [bgname: string]: boolean } = null
+    ) {
         for (const bgthread_name in alive_bgthread_names) {
             this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name[bgthread_name] = Dates.now();
         }
