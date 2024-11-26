@@ -102,6 +102,7 @@ import Patch20240521ChangeFormatDbAssistants from './patchs/premodules/Patch2024
 import Patch20240530AddUniqNameMailCategory from './patchs/premodules/Patch20240530AddUniqNameMailCategory';
 import Patch20240619DeclareFunctionOseliaGenerateImages from './patchs/premodules/Patch20240619DeclareFunctionOseliaGenerateImages';
 import Patch20240827DeleteVersionedAssistantsWithoutInstructions from './patchs/premodules/Patch20240827DeleteVersionedAssistantsWithoutInstructions';
+import Patch20241126TruncateLogs from './patchs/premodules/Patch20241126TruncateLogs';
 import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
@@ -196,6 +197,7 @@ export default abstract class GeneratorBase {
             Patch20240530AddUniqNameMailCategory.getInstance(),
             Patch2024OSELIAAssistantDescriptionNotNULL.getInstance(),
             Patch20240827DeleteVersionedAssistantsWithoutInstructions.getInstance(),
+            Patch20241126TruncateLogs.getInstance(),
         ];
 
         this.post_modules_workers = [

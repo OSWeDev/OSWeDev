@@ -84,7 +84,7 @@ export default class ModuleLogger extends Module {
 
         ModuleTableFieldController.create_new(LogVO.API_TYPE_ID, field_names<LogVO>().process_pid, ModuleTableFieldVO.FIELD_TYPE_int, 'PID du process');
         ModuleTableFieldController.create_new(LogVO.API_TYPE_ID, field_names<LogVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', true).set_segmentation_type(TimeSegment.TYPE_MS).set_format_localized_time(true);
-        ModuleTableFieldController.create_new(LogVO.API_TYPE_ID, field_names<LogVO>().msg, ModuleTableFieldVO.FIELD_TYPE_string, 'Message', true);
+        ModuleTableFieldController.create_new(LogVO.API_TYPE_ID, field_names<LogVO>().msg, ModuleTableFieldVO.FIELD_TYPE_string, 'Message', true).index();
         ModuleTableFieldController.create_new(LogVO.API_TYPE_ID, field_names<LogVO>().client_tab_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Tab client');
         ModuleTableFieldController.create_new(LogVO.API_TYPE_ID, field_names<LogVO>().url, ModuleTableFieldVO.FIELD_TYPE_string, 'URL');
 
