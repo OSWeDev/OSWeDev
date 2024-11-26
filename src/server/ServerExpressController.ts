@@ -14,6 +14,8 @@ export interface IRequestStackContext {
     SESSION_ID: string;
     SID: string;
     CLIENT_TAB_ID: string;
+    CONTEXT_INCOMPATIBLE?: boolean; // Dans le cas où un fonctionnement est incompatible avec le contexte, on peut le désactiver et on indique pourquoi
+    CONTEXT_INCOMPATIBLE_REASON?: string; // Dans le cas où un fonctionnement est incompatible avec le contexte, on peut le désactiver et on indique pourquoi
 }
 
 export default class ServerExpressController {

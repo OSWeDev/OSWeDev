@@ -13,6 +13,19 @@ export const scope_overloads_for_exec_as_server: Partial<IRequestStackContext> =
     SESSION_ID: null,
 };
 
+export function get_scope_overloads_for_context_incompatible(reason: string): Partial<IRequestStackContext> {
+    return {
+        IS_CLIENT: false,
+        SID: null,
+        UID: null,
+        CLIENT_TAB_ID: null,
+        REFERER: null,
+        SESSION_ID: null,
+        CONTEXT_INCOMPATIBLE: true,
+        CONTEXT_INCOMPATIBLE_REASON: reason,
+    };
+}
+
 export default class StackContext {
 
     // public static nsid: string = 'oswedev-stack-context';
@@ -45,7 +58,24 @@ export default class StackContext {
         // Par défaut, params est un tableau vide si aucun paramètre n'est passé
         const safeParams = params.length ? params : ([] as unknown as T);
         if (exec_as_server && !!StackContext.get(reflect<IRequestStackContext>().IS_CLIENT)) {
-            return StackContext.runPromise(scope_overloads_for_exec_as_server, callback, this_arg, exec_as_server, ...safeParams);
+            return StackContext.runPromise(scope_overloads_for_exec_as_server, callback, this_arg, ...safeParams);
+        }
+
+        return callback.apply(this_arg, safeParams);
+    }
+
+    /**
+     * Pour indiquer que tout ce qui se passe dans le callback est incompatible avec la notion même de contexte, donc on passe en mode serveur, et on throw si on get autre chose que IS_CLIENT par la suite
+     * @param callback
+     * @param exec_as_server
+     * @returns
+     */
+    public static async context_incompatible<T extends Array<unknown>, U>(callback: (...params: T) => U | Promise<U>, this_arg: unknown, reason_context_incompatible: string, ...params: T): Promise<U> {
+
+        // Par défaut, params est un tableau vide si aucun paramètre n'est passé
+        const safeParams = params.length ? params : ([] as unknown as T);
+        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+            return StackContext.runPromise(get_scope_overloads_for_context_incompatible(reason_context_incompatible), callback, this_arg, ...safeParams);
         }
 
         return callback.apply(this_arg, safeParams);
@@ -57,7 +87,7 @@ export default class StackContext {
      * @param callback
      * @returns
      */
-    public static async runPromise<T extends Array<unknown>, U>(scope_overloads: Partial<IRequestStackContext>, callback: (...params: T) => U | Promise<U>, this_arg: unknown, exec_as_server: boolean, ...params: T): Promise<U> {
+    public static async runPromise<T extends Array<unknown>, U>(scope_overloads: Partial<IRequestStackContext>, callback: (...params: T) => U | Promise<U>, this_arg: unknown, ...params: T): Promise<U> {
 
         let result = null;
 
@@ -68,7 +98,7 @@ export default class StackContext {
             for (const field_name in scope_overloads) {
                 const field_value = scope_overloads[field_name];
 
-                old_context_values[field_name] = StackContext.get(field_name);
+                old_context_values[field_name] = StackContext.get(field_name, true);
                 StackContext.set(field_name, field_value);
             }
 
@@ -90,8 +120,20 @@ export default class StackContext {
      * Gets a value from the context by key.  Will return undefined if the context has not yet been initialized for this request or if a value is not found for the specified key.
      * @param {string} key
      */
-    public static get(key: string) {
+    public static get(key: string, is_safely_asking_for_context_incompatible_fields: boolean = false) {
         if (StackContext.ns && StackContext.ns.active) {
+
+            // Juste un contrôle de cohérence :
+            //  Si on est incompatible avec le contexte, on ne devrait pas pouvoir accéder à une valeur du contexte autre que IS_CLIENT, ou les questions d'incompatibilité
+            if ((!is_safely_asking_for_context_incompatible_fields) &&
+                (key != reflect<IRequestStackContext>().IS_CLIENT) &&
+                (key != reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE) &&
+                (key != reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE_REASON)) {
+                if (StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+                    throw new Error('Trying to access a context value while in context incompatible mode:' + key + ' - ' + StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE_REASON));
+                }
+            }
+
             const res = StackContext.ns.get(key);
             if (typeof res !== 'undefined') {
                 return res;

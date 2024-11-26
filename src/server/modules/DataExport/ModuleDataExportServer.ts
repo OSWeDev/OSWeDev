@@ -353,7 +353,6 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 },
                 this.do_exportContextQueryToXLSX_contextuid,
                 this,
-                false,
                 filename,
                 context_query,
                 ordered_column_list,

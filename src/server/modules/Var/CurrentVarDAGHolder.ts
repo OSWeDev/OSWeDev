@@ -6,18 +6,31 @@ import ThreadHandler from "../../../shared/tools/ThreadHandler";
 export default class CurrentVarDAGHolder {
 
     public static current_vardag: VarDAG = null;
+    public static has_initialized_stats_process: boolean = false;
 
     /**
      * On lance un process qui va registerStats sur le VarDAG courant, régulièrement
      */
     public static init_stats_process() {
-        ThreadHandler.set_interval(async () => {
-            if (!CurrentVarDAGHolder.current_vardag) {
-                return;
-            }
 
-            CurrentVarDAGHolder.registerStats();
-        }, 10000, 'CurrentVarDAGHolder.init_stats_process', true);
+        if (CurrentVarDAGHolder.has_initialized_stats_process) {
+            return;
+        }
+
+        CurrentVarDAGHolder.has_initialized_stats_process = true;
+        ThreadHandler.set_interval(
+            'CurrentVarDAGHolder.init_stats_process',
+            async () => {
+                if (!CurrentVarDAGHolder.current_vardag) {
+                    return;
+                }
+
+                CurrentVarDAGHolder.registerStats();
+            },
+            10000,
+            'CurrentVarDAGHolder.init_stats_process',
+            true,
+        );
     }
 
     public static registerStats() {

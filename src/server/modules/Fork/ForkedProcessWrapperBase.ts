@@ -14,6 +14,7 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import FileLoggerHandler from '../../FileLoggerHandler';
 import I18nextInit from '../../I18nextInit';
 import MemoryUsageStat from '../../MemoryUsageStat';
+import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import ServerAPIController from '../API/ServerAPIController';
@@ -21,16 +22,16 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
 import RunsOnBgThreadDataController, { EVENT_NAME_ForkServerController_ready } from '../BGThread/annotations/RunsOnBGThread';
+import RunsOnMainThreadDataController from '../BGThread/annotations/RunsOnMainThread';
 import CronServerController from '../Cron/CronServerController';
 import DBDisconnectionServerHandler from '../DAO/disconnection/DBDisconnectionServerHandler';
 import ModuleServiceBase from '../ModuleServiceBase';
 import PushDataServerController from '../PushData/PushDataServerController';
 import StatsServerController from '../Stats/StatsServerController';
 import ForkMessageController from './ForkMessageController';
+import ForkedTasksController from './ForkedTasksController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
-import RunsOnMainThreadDataController from '../BGThread/annotations/RunsOnMainThread';
-import ForkedTasksController from './ForkedTasksController';
 
 export default abstract class ForkedProcessWrapperBase {
 
@@ -55,6 +56,7 @@ export default abstract class ForkedProcessWrapperBase {
         APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
         ModulesManager.initialize();
+        EventsController.hook_stack_incompatible = StackContext.context_incompatible;
 
         ForkedProcessWrapperBase.instance = this;
 
@@ -192,6 +194,12 @@ export default abstract class ForkedProcessWrapperBase {
         // On prévient le process parent qu'on est ready
         await ForkMessageController.send(new AliveForkMessage(), parentPort);
 
-        ThreadHandler.set_interval(MemoryUsageStat.updateMemoryUsageStat, 45000, 'MemoryUsageStat.updateMemoryUsageStat', true);
+        ThreadHandler.set_interval(
+            'MemoryUsageStat.updateMemoryUsageStat',
+            MemoryUsageStat.updateMemoryUsageStat,
+            45000,
+            'MemoryUsageStat.updateMemoryUsageStat',
+            true,
+        );
     }
 }

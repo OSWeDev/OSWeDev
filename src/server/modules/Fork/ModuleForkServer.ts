@@ -134,7 +134,6 @@ export default class ModuleForkServer extends ModuleServerBase {
                 msg.stack_context,
                 RegisteredForkedTasksController.registered_tasks[msg.message_content],
                 RegisteredForkedTasksController,
-                false,
                 ...msg.message_content_params
             );
         } catch (error) {
@@ -190,7 +189,6 @@ export default class ModuleForkServer extends ModuleServerBase {
                 msg.stack_context,
                 ForkedTasksController.exec_self_on_bgthread_and_return_value,
                 ForkedTasksController,
-                false,
                 true,
                 thrower,
                 msg.bgthread,
@@ -231,8 +229,7 @@ export default class ModuleForkServer extends ModuleServerBase {
                 msg.stack_context,
                 RegisteredForkedTasksController.registered_tasks[msg.message_content],
                 RegisteredForkedTasksController,
-                false,
-                ...msg.message_content_params
+                ...msg.message_content_params,
             );
 
         } catch (error) {

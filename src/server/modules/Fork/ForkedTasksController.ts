@@ -34,7 +34,13 @@ export default class ForkedTasksController {
     private static result_task_uid: number = 1;
 
     public static init() {
-        ThreadHandler.set_interval(ForkedTasksController.handle_fork_message_callback_timeout.bind(this), 10000, 'ForkedTasksController.handle_fork_message_callback_timeout', true);
+        ThreadHandler.set_interval(
+            'ForkedTasksController.handle_fork_message_callback_timeout',
+            ForkedTasksController.handle_fork_message_callback_timeout.bind(this),
+            10000,
+            'ForkedTasksController.handle_fork_message_callback_timeout',
+            true,
+        );
     }
 
     /**

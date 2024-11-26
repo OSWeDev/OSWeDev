@@ -1,4 +1,5 @@
 import { throttle } from 'lodash';
+import StackContext from '../../server/StackContext';
 import ThrottleHelper from '../tools/ThrottleHelper';
 
 // Types pour les paramètres du décorateur
@@ -56,7 +57,12 @@ export function Throttle(options: ThrottleOptions) {
                     const params = ThrottleHelper.throttles_stackable_args[UID];
                     ThrottleHelper.throttles_stackable_args[UID] = [];
 
-                    await originalMethod.apply(target, [null, params]);
+                    await StackContext.context_incompatible(
+                        originalMethod,
+                        target,
+                        'Throttle.throttles_stackable_args',
+                        null,
+                        params);
                 }, options.throttle_ms, {
                     leading: options.leading ?? false,
                     trailing: options.trailing ?? true,
@@ -67,7 +73,13 @@ export function Throttle(options: ThrottleOptions) {
                 ThrottleHelper.throttles[UID] = throttle(async () => {
                     const params = ThrottleHelper.throttles_mappable_args[UID];
                     ThrottleHelper.throttles_mappable_args[UID] = {};
-                    await originalMethod.apply(target, [null, params]);
+
+                    await StackContext.context_incompatible(
+                        originalMethod,
+                        target,
+                        'Throttle.throttles_mappable_args',
+                        null,
+                        params);
                 }, options.throttle_ms, {
                     leading: options.leading ?? false,
                     trailing: options.trailing ?? true,
@@ -76,7 +88,12 @@ export function Throttle(options: ThrottleOptions) {
 
             case THROTTLED_METHOD_PARAM_TYPE.NONE:
                 ThrottleHelper.throttles[UID] = throttle(async () => {
-                    await originalMethod.apply(target);
+
+                    await StackContext.context_incompatible(
+                        originalMethod,
+                        target,
+                        'Throttle.throttles_no_args');
+
                 }, options.throttle_ms, {
                     leading: options.leading ?? false,
                     trailing: options.trailing ?? true,

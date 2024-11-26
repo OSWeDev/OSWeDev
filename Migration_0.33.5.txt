@@ -3,10 +3,12 @@ TODO
     => modifier les bgthreads pour permettre aussi des confs basées sur evenements (oseliarunbgthread, imports, ... qui n'ont pas besoin de se lancer si on a pas de donner à nourrir. Attention on doit tester la condition au lancement du serveur après un timeout défini, et aussi à la fin du run on reteste (ou pas / param) la condition et on relance Asap si la condition est toujours d'actualité)
     => permettre de conf runsonbgthread pour que si la méthode ne peut pas être envoyée sur un bgthread, elle soit quand meme exécutée (cas des changements de threads pour "loadbalancing" et pas accès à une data critique sur l'autre thread)
 
-=> SUPPRIMER de package.json projet                
-        "vue-grid-layout": "2.4.0",
-        "vue-property-decorator": "9.1.2",
-        "tslib": "2.8.1",
+    => SUPPRIMER de package.json projet                
+            express-static-gzip
+            "vue-grid-layout": "2.4.0",
+            "vue-property-decorator": "9.1.2",
+            "tslib": "2.8.1",
+
 
 MIGRATION -> 0.33.5
 Montées de versions
@@ -105,3 +107,252 @@ ya quelques autres fonctions concernées, et surtout vérifier avec cette regexp
 A priori pas d'impact projet mais l'appel à .trigger( pour les triggers doit être réalisé en StackContext.exec_as_admin(
 
 exec_self_on_bgthread_and_return_value => ajout d'un param pour indiquer ce qu'on doit faire en cas de not alive du bgthread. est-ce qu'on tente quand même de lancer l'exec dessus
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+======================================= esbuild-plugin-compress =====================================
+Le plan de cette étape, c'est compresser tous les fichiers statiques en amont lors du build et pas à l'exécution avec express.js
+
+Ajouter esbuild-plugin-compress 1.0.1 dans package.json projet, et mettre à jour les confs esbuild
+Discussion avec GPT sur le thème :
+a. Adapter la configuration esbuild pour générer des fichiers pré-compressés
+Étape 1 : Installer un plugin de compression pour esbuild
+
+Utilisez esbuild-plugin-compress pour générer des fichiers .gz et .br lors du build.
+
+Installation :
+
+bash
+Copier le code
+npm install esbuild-plugin-compress --save-dev
+Étape 2 : Importer et ajouter le plugin dans votre configuration
+
+Modifiez votre configuration esbuild pour inclure le plugin.
+
+javascript
+Copier le code
+import esbuildCompress from 'esbuild-plugin-compress';
+
+// ... vos autres imports
+
+// Ajoutez le plugin à votre liste de plugins
+var plugins = [
+  // ... autres plugins existants
+  esbuildCompress({
+    gz: true,
+    brotli: true,
+    deleteOriginalAssets: false, // Conserve les fichiers originaux non compressés
+  }),
+];
+
+// ... reste de la configuration esbuild
+Explications :
+
+gz: true : Génère des fichiers compressés en Gzip (.gz).
+brotli: true : Génère des fichiers compressés en Brotli (.br).
+deleteOriginalAssets: false : Conserve les fichiers originaux, ce qui est important car certains clients peuvent ne pas supporter la compression.
+Étape 3 : Assurer que les fichiers compressés sont placés au bon endroit
+
+Le plugin va générer les fichiers compressés dans le même répertoire que vos fichiers de sortie (dist/public), ce qui facilite leur service par Express.
+
+b. Configurer Express pour servir les fichiers pré-compressés
+Pour servir les fichiers pré-compressés en fonction des capacités du client, utilisez le middleware express-static-gzip.
+
+Installation :
+
+bash
+Copier le code
+npm install express-static-gzip --save
+Modification de votre configuration Express :
+
+javascript
+Copier le code
+import expressStaticGzip from 'express-static-gzip';
+
+// ... votre code existant
+
+const cache_duration = 90 * 24 * 60 * 60 * 1000; // 90 jours
+
+// Servir les fichiers statiques pré-compressés
+this.app.use('/public', expressStaticGzip('dist/public', {
+  enableBrotli: true,
+  orderPreference: ['br', 'gz'],
+  index: false,
+  maxAge: cache_duration,
+  fallthrough: false,
+  serveStatic: {
+    cacheControl: true,
+    lastModified: true,
+    etag: true,
+    setHeaders: (res, path) => {
+      res.setHeader('Cache-Control', 'public, max-age=' + (cache_duration / 1000));
+    },
+  },
+}));
+Explications :
+
+enableBrotli: true : Active la prise en charge de Brotli.
+orderPreference: ['br', 'gz'] : Définit l'ordre de préférence pour les encodages.
+index: false : Empêche le service d'un fichier index par défaut.
+fallthrough: false : Empêche les requêtes non résolues de passer aux middlewares suivants.
+serveStatic : Permet de passer des options supplémentaires à express.static.
+Remarque : Assurez-vous que les fichiers originaux, ainsi que les versions compressées, sont disponibles dans dist/public.
+
+c. Exclure les fichiers statiques des middlewares inutiles
+Pour éviter une surcharge CPU, excluez les fichiers statiques des middlewares tels que compression, cookieParser, session, etc.
+
+Création d'une fonction utilitaire unless :
+
+javascript
+Copier le code
+const unless = (middleware, ...paths) => {
+  return (req, res, next) => {
+    if (paths.some(path => req.path.startsWith(path))) {
+      return next();
+    } else {
+      return middleware(req, res, next);
+    }
+  };
+};
+Application de unless aux middlewares :
+
+javascript
+Copier le code
+// Exclure les fichiers statiques du middleware de compression
+this.app.use(unless(compression(), '/public'));
+
+// Exclure les fichiers statiques du middleware de session
+this.app.use(unless(this.session, '/public'));
+
+// Exclure les fichiers statiques du middleware cookieParser
+this.app.use(unless(cookieParser(), '/public'));
+
+// Exclure les fichiers statiques du parsing du corps de la requête
+this.app.use(unless(express.json({ limit: '150mb' }), '/public'));
+this.app.use(unless(express.urlencoded({ extended: true, limit: '150mb' }), '/public'));
+Explications :
+
+Les middlewares seront appliqués à toutes les requêtes sauf celles dont le chemin commence par /public.
+d. Ajuster les en-têtes HTTP pour la mise en cache
+Assurez-vous que vos fichiers statiques sont servis avec les en-têtes de cache appropriés et que vos middlewares n'écrasent pas ces en-têtes.
+
+Modification du middleware qui définit Cache-Control :
+
+javascript
+Copier le code
+this.app.use((req, res, next) => {
+  // Ne pas modifier l'en-tête Cache-Control pour les fichiers statiques
+  if (!req.baseUrl.startsWith('/public')) {
+    res.setHeader("Cache-Control", "no-cache");
+  }
+  next();
+});
+3. Configuration complète avec les modifications
+
+Voici à quoi ressemblerait votre configuration Express optimisée :
+
+javascript
+Copier le code
+this.app = express();
+
+// Servir les fichiers statiques pré-compressés en priorité
+const cache_duration = 90 * 24 * 60 * 60 * 1000; // 90 jours
+this.app.use('/public', expressStaticGzip('dist/public', {
+  enableBrotli: true,
+  orderPreference: ['br', 'gz'],
+  index: false,
+  maxAge: cache_duration,
+  fallthrough: false,
+  serveStatic: {
+    cacheControl: true,
+    lastModified: true,
+    etag: true,
+    setHeaders: (res, path) => {
+      res.setHeader('Cache-Control', 'public, max-age=' + (cache_duration / 1000));
+    },
+  },
+}));
+
+// Exclure les fichiers statiques des middlewares inutiles
+const unless = (middleware, ...paths) => {
+  return (req, res, next) => {
+    if (paths.some(path => req.path.startsWith(path))) {
+      return next();
+    } else {
+      return middleware(req, res, next);
+    }
+  };
+};
+
+this.app.use(unless(cookieParser(), '/public'));
+this.app.use(unless(this.session, '/public'));
+this.app.use(unless(compression(), '/public'));
+this.app.use(unless(express.json({ limit: '150mb' }), '/public'));
+this.app.use(unless(express.urlencoded({ extended: true, limit: '150mb' }), '/public'));
+
+// Middleware pour ajuster les en-têtes Cache-Control
+this.app.use((req, res, next) => {
+  if (!req.baseUrl.startsWith('/public')) {
+    res.setHeader("Cache-Control", "no-cache");
+  }
+  next();
+});
+
+// ... le reste de votre configuration Express
+4. Adaptation de votre configuration esbuild pour générer des fichiers pré-compressés
+
+Voici comment modifier votre configuration esbuild en intégrant le plugin esbuild-plugin-compress :
+
+javascript
+Copier le code
+// ... vos autres imports
+import esbuildCompress from 'esbuild-plugin-compress';
+
+// ... votre code existant
+
+// Ajoutez le plugin à votre liste de plugins
+var plugins = [
+  polyfillNode(),
+  watch_plugin,
+  copy({ /* ... */ }),
+  vuePlugin(),
+  pugPlugin(),
+  sassPlugin({ /* ... */ }),
+  htmlPlugin({ /* ... */ }),
+  // Ajoutez le plugin de compression ici
+  esbuildCompress({
+    gz: true,
+    brotli: true,
+    deleteOriginalAssets: false,
+  }),
+];
+
+// ... le reste de votre configuration esbuild
+Remarques :
+
+Placez esbuildCompress après les autres plugins pour qu'il puisse compresser les fichiers générés.
+Assurez-vous que deleteOriginalAssets est défini à false pour conserver les fichiers originaux.
+5. Test et validation
+
+Après avoir effectué ces modifications :
+
+Rebuild votre projet en exécutant votre script esbuild.
+Vérifiez que les fichiers .gz et .br sont générés dans dist/public.
+Testez votre application pour vous assurer que les fichiers statiques sont correctement servis.
+Utilisez les outils de développement de votre navigateur pour vérifier que les fichiers sont servis avec Content-Encoding: gzip ou Content-Encoding: br.
+Surveillez l'utilisation du CPU lors de charges de requêtes pour confirmer l'amélioration des performances.
+======================================= esbuild-plugin-compress =====================================

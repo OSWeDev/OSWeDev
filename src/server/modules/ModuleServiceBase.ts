@@ -1,4 +1,4 @@
-import { Express } from 'express';
+import { Application, Express } from 'express';
 import { IDatabase } from 'pg-promise';
 import ModuleAPI from '../../shared/modules/API/ModuleAPI';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -381,7 +381,7 @@ export default abstract class ModuleServiceBase {
      * FIXME : pour le moment on est obligé de tout faire dans l'ordre, impossible de paraléliser à ce niveau
      *  puisque les rôles typiquement créés d'un côté peuvent être utilisés de l'autre ...
      */
-    public async configure_server_modules(app: Express, is_generator: boolean = false) {
+    public async configure_server_modules(app: Application, is_generator: boolean = false) {
         for (const i in this.server_modules) {
             const server_module: ModuleServerBase = this.server_modules[i];
 

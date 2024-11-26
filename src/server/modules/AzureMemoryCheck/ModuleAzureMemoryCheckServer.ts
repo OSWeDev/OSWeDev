@@ -11,16 +11,8 @@ import ParamsServerController from "../Params/ParamsServerController";
 
 export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleAzureMemoryCheckServer.instance) {
-            ModuleAzureMemoryCheckServer.instance = new ModuleAzureMemoryCheckServer();
-        }
-        return ModuleAzureMemoryCheckServer.instance;
-    }
-
     private static instance: ModuleAzureMemoryCheckServer = null;
-    private static interval_uid: number = null;
+    private static interval_uid: string = "ModuleAzureMemoryCheckServer.getAvailableMemory";
 
     private static AZURE_CHECK_MEMORY_ACTIVATION_PARAM_NAME: string = "ModuleAzureMemoryCheck.AZURE_CHECK_MEMORY_ACTIVATION";
 
@@ -39,6 +31,15 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
         super(ModuleAzureMemoryCheck.getInstance().name);
     }
 
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleAzureMemoryCheckServer.instance) {
+            ModuleAzureMemoryCheckServer.instance = new ModuleAzureMemoryCheckServer();
+        }
+        return ModuleAzureMemoryCheckServer.instance;
+    }
+
+
     // istanbul ignore next: cannot test configure
     public async configure() {
 
@@ -48,7 +49,7 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
             return;
         }
         ConsoleHandler.log('Activation du module AzureMemoryCheck');
-        ModuleAzureMemoryCheckServer.interval_uid = ThreadHandler.set_interval(this.getAvailableMemory.bind(this), 1000, 'ModuleAzureMemoryCheckServer.getAvailableMemory', true);
+        ThreadHandler.set_interval(ModuleAzureMemoryCheckServer.interval_uid, this.getAvailableMemory.bind(this), 1000, 'ModuleAzureMemoryCheckServer.getAvailableMemory', true);
     }
 
     // Le plan, c'est vérifier toutes les secondes la mémoire libre, suivre l'évolution sur 60 secondes et si on a une vitesse de remplissage

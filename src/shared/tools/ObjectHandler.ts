@@ -83,6 +83,8 @@ export default class ObjectHandler {
             res['index'] = e['_index'];
             res['_index'] = e['_index'];
         }
+
+        return res;
     }
 
     public static try_get_json(e: any): any {

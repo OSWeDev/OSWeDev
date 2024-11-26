@@ -1,34 +1,34 @@
-import APIControllerWrapper from "../../../../../shared/modules/API/APIControllerWrapper";
-import ModuleCommande from '../../../../../shared/modules/Commerce/Commande/ModuleCommande';
-import CommandeVO from '../../../../../shared/modules/Commerce/Commande/vos/CommandeVO';
-import ProduitParamLigneParamVO from '../../../../../shared/modules/Commerce/Produit/vos/apis/ProduitParamLigneParamVO';
-import AjaxCacheClientController from "../../AjaxCache/AjaxCacheClientController";
+// import APIControllerWrapper from "../../../../../shared/modules/API/APIControllerWrapper";
+// import ModuleCommande from '../../../../../shared/modules/Commerce/Commande/ModuleCommande';
+// import CommandeVO from '../../../../../shared/modules/Commerce/Commande/vos/CommandeVO';
+// import ProduitParamLigneParamVO from '../../../../../shared/modules/Commerce/Produit/vos/apis/ProduitParamLigneParamVO';
+// import AjaxCacheClientController from "../../AjaxCache/AjaxCacheClientController";
 
-export default class CommandeClientController {
+// export default class CommandeClientController {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): CommandeClientController {
-        if (!CommandeClientController.instance) {
-            CommandeClientController.instance = new CommandeClientController();
-        }
-        return CommandeClientController.instance;
-    }
+//     // istanbul ignore next: nothing to test
+//     public static getInstance(): CommandeClientController {
+//         if (!CommandeClientController.instance) {
+//             CommandeClientController.instance = new CommandeClientController();
+//         }
+//         return CommandeClientController.instance;
+//     }
 
-    private static instance: CommandeClientController = null;
+//     private static instance: CommandeClientController = null;
 
-    public async ajouterAuPanier(produitsParam: ProduitParamLigneParamVO[]): Promise<CommandeVO> {
-        const panier: CommandeVO = await this.getPanierEnCours();
-        return await APIControllerWrapper.sah(ModuleCommande.APINAME_ajouterAuPanier)(produitsParam, panier) as CommandeVO;
-    }
+//     public async ajouterAuPanier(produitsParam: ProduitParamLigneParamVO[]): Promise<CommandeVO> {
+//         const panier: CommandeVO = await this.getPanierEnCours();
+//         return await APIControllerWrapper.sah(ModuleCommande.APINAME_ajouterAuPanier)(produitsParam, panier) as CommandeVO;
+//     }
 
-    public async getPanierEnCours(): Promise<CommandeVO> {
-        const result: { panier_id: number } = await AjaxCacheClientController.getInstance().get('/getIdPanierEnCours', null) as { panier_id: number };
-        let panier: CommandeVO = null;
+//     public async getPanierEnCours(): Promise<CommandeVO> {
+//         const result: { panier_id: number } = await AjaxCacheClientController.getInstance().get('/getIdPanierEnCours', null) as { panier_id: number };
+//         let panier: CommandeVO = null;
 
-        if (!result || !result.panier_id) {
-            panier = await ModuleCommande.getInstance().creationPanier();
-        }
+//         if (!result || !result.panier_id) {
+//             panier = await ModuleCommande.getInstance().creationPanier();
+//         }
 
-        return panier;
-    }
-}
+//         return panier;
+//     }
+// }

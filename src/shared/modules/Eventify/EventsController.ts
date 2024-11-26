@@ -7,6 +7,12 @@ import EventifyEventConfVO from "./vos/EventifyEventConfVO";
 export default class EventsController {
 
     public static registered_events_conf_by_name: { [event_conf_name: string]: EventifyEventConfVO } = {};
+
+    /**
+     * Hook initialisé au début du serveur pour pouvoir mettre un flag Context 
+     */
+    public static hook_stack_incompatible: <T extends Array<unknown>, U>(callback: (...params: T) => U | Promise<U>, this_arg: unknown, reason_context_incompatible: string, ...params: T) => Promise<U> = null;
+
     private static registered_listeners: { [event_conf_name: string]: { [listener_conf_name: string]: EventifyEventListenerInstanceVO } } = {};
 
     /**
@@ -145,7 +151,11 @@ export default class EventsController {
                 listener.cb_is_running = true;
 
                 try {
-                    await listener.cb(event, listener);
+                    if (EventsController.hook_stack_incompatible) {
+                        await EventsController.hook_stack_incompatible(listener.cb, listener, 'EventsController.call_listener', event, listener);
+                    } else {
+                        await listener.cb(event, listener);
+                    }
                 } catch (error) {
                     ConsoleHandler.error('Error in EventsController.call_listener for listener ' + listener.name + ' and event ' + event.name + ' : ' + error);
                 }

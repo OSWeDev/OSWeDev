@@ -6,8 +6,6 @@ import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import VarsDeployDepsHandler from '../../VarsDeployDepsHandler';
 import VarsServerController from '../../VarsServerController';
 import VarsProcessBase from './VarsProcessBase';
-import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 
 export default class VarsProcessDeployDeps extends VarsProcessBase {
 

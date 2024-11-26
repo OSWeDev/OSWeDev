@@ -1,4 +1,4 @@
-import { Express, Request, Response } from 'express';
+import { Application, Express, Request, Response } from 'express';
 import zlib from 'zlib';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
@@ -187,7 +187,6 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session_id, sid, uid),
                 api.SERVER_HANDLER,
                 null,
-                false,
                 ...safeParams,
             );
 
@@ -246,7 +245,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(APIBGThread.getInstance());
     }
 
-    public registerExpressApis(app: Express): void {
+    public registerExpressApis(app: Application): void {
 
         const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'registerExpressApis', 'IN');
@@ -266,7 +265,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     // ConsoleHandler.log("AJOUT API POST :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
                     if (api.csrf_protection) {
                         // app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
-                        app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, (req: Request, res: Response) => this.api_request_handler(api, req, res));
+                        app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrf_protection, (req: Request, res: Response) => this.api_request_handler(api, req, res));
                     } else {
                         // app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
                         app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), (req: Request, res: Response) => this.api_request_handler(api, req, res));
@@ -276,7 +275,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     // ConsoleHandler.log("AJOUT API POST FOR GET :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
                     if (api.csrf_protection) {
                         // app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
-                        app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, (req: Request, res: Response) => this.api_request_handler(api, req, res));
+                        app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrf_protection, (req: Request, res: Response) => this.api_request_handler(api, req, res));
                     } else {
                         // app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
                         app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), (req: Request, res: Response) => this.api_request_handler(api, req, res));

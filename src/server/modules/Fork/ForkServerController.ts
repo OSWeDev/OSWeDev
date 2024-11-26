@@ -263,17 +263,23 @@ export default class ForkServerController {
 
     private static async checkForksAvailability() {
 
-        ThreadHandler.set_interval(async () => {
+        ThreadHandler.set_interval(
+            'ForkServerController.checkForksAvailability',
+            async () => {
 
-            for (const i in this.forks) {
-                const forked: IFork = this.forks[i];
+                for (const i in this.forks) {
+                    const forked: IFork = this.forks[i];
 
-                if (!this.forks_availability[i]) {
-                    continue;
+                    if (!this.forks_availability[i]) {
+                        continue;
+                    }
+
+                    await ForkMessageController.send(new PingForkMessage(forked.uid), forked.worker, forked);
                 }
-
-                await ForkMessageController.send(new PingForkMessage(forked.uid), forked.worker, forked);
-            }
-        }, 10000, 'ForkServerController.checkForksAvailability', false);
+            },
+            10000,
+            'ForkServerController.checkForksAvailability',
+            false,
+        );
     }
 }

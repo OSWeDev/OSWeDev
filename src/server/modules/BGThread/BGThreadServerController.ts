@@ -56,7 +56,12 @@ export default class BGThreadServerController {
 
         ForkedTasksController.register_task(BGThreadServerController.TASK_NAME_register_alive_on_main_thread, this.register_alive_on_main_thread.bind(this));
         ForkedTasksController.register_task(BGThreadServerController.TASK_NAME_is_alive, this.is_alive.bind(this));
-        ThreadHandler.set_interval(this.check_bgthreads_last_alive_ticks.bind(this), 10 * 1000, 'BGThreadServerController.check_bgthreads_last_alive_ticks', true);
+        ThreadHandler.set_interval(
+            'BGThreadServerController.check_bgthreads_last_alive_ticks',
+            this.check_bgthreads_last_alive_ticks.bind(this),
+            10 * 1000,
+            'BGThreadServerController.check_bgthreads_last_alive_ticks',
+            true);
     }
 
     /**

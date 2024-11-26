@@ -1,10 +1,24 @@
 /* istanbul ignore file: nothing to test here */
 
+import EventsController from "../modules/Eventify/EventsController";
 import Dates from "../modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../modules/Stats/StatsController";
 import DBDisconnectionManager from "./DBDisconnectionManager";
 
+interface IIntervalConf {
+    actif: boolean;
+    reason: string;
+    tiemout: number;
+    pause_on_db_disconnection: boolean;
+    currently_running: boolean;
+}
+
 export default class ThreadHandler {
+
+    private static intervals_confs: { [uid: string]: IIntervalConf } = {};
+
+    private constructor() {
+    }
 
     /**
      * @param timeout en ms
@@ -35,36 +49,46 @@ export default class ThreadHandler {
     /**
      * Un setInterval, qui est conscient de la déconnexion de la DB au besoin, et surtout qui défini bien un temps d'attente ENTRE les appels de la fonction
      *  donc entre la fin de l'appel précédent et le début de l'appel suivant (et non pas on lance la fonction tous les x ms, même si la fonction est longue à s'exécuter)
+     * @param UID Un identifiant unique pour le thread => permet de le retrouver et de le stopper ou de remplacer la fonction
      * @param func La fonction à exécuter (async)
      * @param timeout en ms
      * @param reason_ID La raison de l'attente, pour les stats
      * @param pause_on_db_disconnection Si true, on attend que la DB soit reconnectée avant de faire le sleep
      * @returns interval_uid du setInterval lié, pour pouvoir le clear
      */
-    public static set_interval(func: () => Promise<void>, timeout: number, reason_ID: string, pause_on_db_disconnection: boolean = false): number {
+    public static set_interval(UID: string, func: () => void | Promise<void>, timeout: number, reason_ID: string, pause_on_db_disconnection: boolean = false) {
 
         StatsController.register_stat_COMPTEUR('ThreadHandler', 'set_interval', reason_ID);
 
-        const interval_uid = ThreadHandler.current_interval_uid++;
-        ThreadHandler.intervals[interval_uid] = true;
-        ThreadHandler.sleep(timeout, reason_ID, pause_on_db_disconnection).then(async () => {
+        ThreadHandler.intervals_confs[UID] = {
+            actif: true,
+            reason: reason_ID,
+            tiemout: timeout,
+            pause_on_db_disconnection: pause_on_db_disconnection,
+            currently_running: false
+        };
 
-            while (ThreadHandler.intervals[interval_uid]) {
-                await func();
-                await ThreadHandler.sleep(timeout, reason_ID, pause_on_db_disconnection);
-            }
-        });
+        if (!ThreadHandler.intervals_confs[reason_ID] || !ThreadHandler.intervals_confs[reason_ID].currently_running) {
 
-        return interval_uid;
+            ThreadHandler.intervals_confs[UID].currently_running = true;
+
+            ThreadHandler.sleep(timeout, reason_ID, pause_on_db_disconnection).then(async () => {
+
+                while (ThreadHandler.intervals_confs[UID].actif) {
+
+                    if (EventsController.hook_stack_incompatible) {
+                        await EventsController.hook_stack_incompatible(func, null, 'ThreadHandler.set_interval');
+                    } else {
+                        await func();
+                    }
+                    await ThreadHandler.sleep(ThreadHandler.intervals_confs[UID].tiemout, ThreadHandler.intervals_confs[UID].reason, ThreadHandler.intervals_confs[UID].pause_on_db_disconnection);
+                }
+                ThreadHandler.intervals_confs[UID].currently_running = false;
+            });
+        }
     }
 
-    public static clear_interval(interval_uid: number) {
-        delete ThreadHandler.intervals[interval_uid];
-    }
-
-    private static current_interval_uid: number = 0;
-    private static intervals: { [interval_uid: number]: boolean } = {};
-
-    private constructor() {
+    public static clear_interval(uid: string) {
+        delete ThreadHandler.intervals_confs[uid];
     }
 }

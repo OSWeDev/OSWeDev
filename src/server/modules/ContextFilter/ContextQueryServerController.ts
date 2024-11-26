@@ -34,7 +34,7 @@ import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
 import ArrayHandler from '../../../shared/tools/ArrayHandler';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -58,6 +58,7 @@ import ContextFieldPathServerController from './ContextFieldPathServerController
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
 import ParamsServerController from '../Params/ParamsServerController';
+import { IRequestStackContext } from '../../ServerExpressController';
 
 export default class ContextQueryServerController {
 
@@ -155,14 +156,17 @@ export default class ContextQueryServerController {
             }
         }
 
-        // Anonymisation
-        const uid = await StackContext.get('UID');
+        // FIXME TODO anonymisation incompatible avec les throttles
+        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+            // Anonymisation
+            const uid = await StackContext.get('UID');
 
-        await ServerAnonymizationController.anonymise_context_filtered_rows(
-            query_res,
-            context_query.fields,
-            uid
-        );
+            await ServerAnonymizationController.anonymise_context_filtered_rows(
+                query_res,
+                context_query.fields,
+                uid
+            );
+        }
 
         return ModuleTableServerController.translate_vos_from_db(query_res);
     }
@@ -238,9 +242,12 @@ export default class ContextQueryServerController {
             query_res = ObjectHandler.clone_vos(query_res);
         }
 
-        // Anonymisation
-        const uid = await StackContext.get('UID');
-        await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        // FIXME TODO anonymisation incompatible avec les throttles
+        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+            // Anonymisation
+            const uid = await StackContext.get('UID');
+            await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        }
 
         return query_res;
     }
@@ -328,9 +335,12 @@ export default class ContextQueryServerController {
             query_res = ObjectHandler.clone_vos(query_res);
         }
 
-        // Anonymisation
-        const uid = await StackContext.get('UID');
-        await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        // FIXME TODO anonymisation incompatible avec les throttles
+        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+            // Anonymisation
+            const uid = await StackContext.get('UID');
+            await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        }
 
         /**
          * Traitement des champs. on met dans + '__raw' les valeurs brutes, et on met dans le champ lui même la valeur formatée
@@ -494,7 +504,6 @@ export default class ContextQueryServerController {
         }
 
         // Anonymisation déjà faite par le select_datatable_rows
-
         for (const i in query_res) {
             const res_field = query_res[i] ? query_res[i][field.alias] : null;
             const line_options: DataFilterOption[] = ContextQueryFieldServerController.translate_db_res_to_dataoption(field, res_field);
