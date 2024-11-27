@@ -814,7 +814,7 @@ export default abstract class ServerBase {
         }));
 
         // Cache sur les files
-        this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), expressStaticGzip(ModuleFile.FILES_ROOT.replace(/^[.][/]/, ''), , {
+        this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), expressStaticGzip(ModuleFile.FILES_ROOT.replace(/^[.][/]/, ''), {
             enableBrotli: true,
             orderPreference: ['br', 'gz'],
             index: false,
