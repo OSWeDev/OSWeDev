@@ -3,7 +3,7 @@ const path = require('path');
 const zlib = require('zlib');
 const brotli = require('brotli');
 
-const directory = path.join(__dirname, 'dist', 'public');
+const directory = path.join(__dirname, '../'); // On devrait démarrer dans dist/public/vuejsclient
 
 function compressFile(filePath) {
     const fileContents = fs.readFileSync(filePath);
