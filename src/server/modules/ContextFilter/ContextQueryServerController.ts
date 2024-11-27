@@ -26,7 +26,6 @@ import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/Tabl
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
@@ -38,6 +37,7 @@ import ObjectHandler, { field_names, reflect } from '../../../shared/tools/Objec
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import { IRequestStackContext } from '../../ServerExpressController';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -52,13 +52,12 @@ import ThrottledQueryServerController from '../DAO/ThrottledQueryServerControlle
 import ThrottledRefuseServerController from '../DAO/ThrottledRefuseServerController';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServiceBase from '../ModuleServiceBase';
+import ParamsServerController from '../Params/ParamsServerController';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
 import ContextAccessServerController from './ContextAccessServerController';
 import ContextFieldPathServerController from './ContextFieldPathServerController';
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
-import ParamsServerController from '../Params/ParamsServerController';
-import { IRequestStackContext } from '../../ServerExpressController';
 
 export default class ContextQueryServerController {
 
@@ -2671,9 +2670,10 @@ export default class ContextQueryServerController {
             if (!loaded) {
                 loaded = true;
 
-                uid = StackContext.get('UID');
-                user = await ModuleAccessPolicyServer.getSelfUser();
-                user_roles_by_role_id = AccessPolicyServerController.getUsersRoles(true, uid);
+                const can_use_context = !StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE);
+                uid = can_use_context ? StackContext.get('UID') : null;
+                user = can_use_context ? await ModuleAccessPolicyServer.getSelfUser() : null;
+                user_roles_by_role_id = uid ? AccessPolicyServerController.getUsersRoles(true, uid) : null;
                 user_roles = ObjectHandler.hasAtLeastOneAttribute(user_roles_by_role_id) ? Object.values(user_roles_by_role_id) : null;
             }
 

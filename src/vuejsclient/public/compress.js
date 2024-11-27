@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
-const brotli = require('brotli');
 
 const directory = path.join(__dirname, '../'); // On devrait démarrer dans dist/public/vuejsclient
 
@@ -25,9 +24,9 @@ function compressFile(filePath) {
 
     try {
 
-        // Brotli compression
-        const brotliCompressed = brotli.compress(fileContents);
-        fs.writeFileSync(filePath + '.br', Buffer.from(brotliCompressed));
+        // Brotli compression using built-in zlib
+        const brotliCompressed = zlib.brotliCompressSync(fileContents);
+        fs.writeFileSync(filePath + '.br', brotliCompressed);
     } catch (error) {
 
         console.error('Error compressing file:', filePath, error);

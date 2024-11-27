@@ -43,7 +43,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import FilterObj, { filter_by_name } from '../../../shared/tools/Filters';
 import LocaleManager from '../../../shared/tools/LocaleManager';
-import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import OrderedPromisePipeline from '../../../shared/tools/PromisePipeline/OrderedPromisePipeline';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
@@ -69,6 +69,7 @@ import default_export_mail_html_template from './default_export_mail_html_templa
 import TableWidgetManager from '../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
 import TemplateHandlerServer from '../Mailer/TemplateHandlerServer';
 import ParamsServerController from '../Params/ParamsServerController';
+import { IRequestStackContext } from '../../ServerExpressController';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -340,7 +341,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
 
-        if (target_user_id != StackContext.get('UID')) {
+        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE) && (target_user_id != StackContext.get('UID'))) {
 
             await StackContext.runPromise(
                 {
