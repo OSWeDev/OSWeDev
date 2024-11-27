@@ -56,8 +56,8 @@ export default abstract class VarsProcessBase {
 
             let did_something = false;
 
-            // Particularité on doit s'enregistrer sur le main thread pour dire qu'on est en vie puisque le bgthread lui est plus vraiment adapté pour le faire
-            BGThreadServerController.register_alive_on_main_thread({ [VarsBGThreadNameHolder.bgthread_name]: true });
+            // // Particularité on doit s'enregistrer sur le main thread pour dire qu'on est en vie puisque le bgthread lui est plus vraiment adapté pour le faire
+            // BGThreadServerController.register_alive_on_main_thread({ [VarsBGThreadNameHolder.bgthread_name]: true });
 
             const valid_nodes: { [node_name: string]: VarDAGNode } = this.waiting_valid_nodes ? this.waiting_valid_nodes : this.get_valid_nodes();
             this.waiting_valid_nodes = null;

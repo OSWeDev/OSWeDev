@@ -23,8 +23,10 @@ export function ThrottleExecAsServerRunsOnBgThread(
         // Appliquer d'abord RunsOnBgThread
         const descriptorAterRunsOnBgThread = RunsOnBgThread(bgthread, defaults_to_this_thread)(target, propertyKey, descriptorAterThrottle);
 
+        // Mais on doit aussi throttle le RunsOnBgThread pour pas patater le bgthread
+        const descriptorAterSecondThrottle = Throttle(throttleOptions)(target, propertyKey, descriptorAterRunsOnBgThread);
 
         // Retourner le descriptor final
-        return descriptorAterRunsOnBgThread;
+        return descriptorAterSecondThrottle;
     };
 }

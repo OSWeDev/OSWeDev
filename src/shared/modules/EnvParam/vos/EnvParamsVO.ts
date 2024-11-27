@@ -49,6 +49,8 @@ export default class EnvParamsVO implements IDistantVOBase {
     // NODE_VERBOSE: boolean;
     public node_verbose: boolean;
 
+    public throw_on_incompatible_stack_context: boolean;
+
     // ACTIVATE_LONG_JOHN: boolean;
     public activate_long_john: boolean;
 

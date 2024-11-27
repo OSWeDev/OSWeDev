@@ -17,8 +17,10 @@ import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleParamsServer from '../Params/ModuleParamsServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
-import { field_names } from '../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import ParamsServerController from '../Params/ParamsServerController';
+import StackContext from '../../StackContext';
+import { IRequestStackContext } from '../../ServerExpressController';
 
 export default class ModuleVersionedServer extends ModuleServerBase {
 
@@ -123,7 +125,8 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(cloned);
 
-        const uid: number = ModuleAccessPolicyServer.getLoggedUserId();
+        const can_use_context = !StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE);
+        const uid: number = can_use_context ? ModuleAccessPolicyServer.getLoggedUserId() : null;
 
         if (uid) {
             vo_update_handler.post_update_vo.version_edit_author_id = uid;

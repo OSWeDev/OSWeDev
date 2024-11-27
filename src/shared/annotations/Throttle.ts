@@ -54,6 +54,7 @@ export function Throttle(options: ThrottleOptions) {
             case THROTTLED_METHOD_PARAM_TYPE.STACKABLE:
 
                 ThrottleHelper.throttles[UID] = throttle(async () => {
+                    ThrottleHelper.throttles_semaphore[UID] = false;
                     const params = ThrottleHelper.throttles_stackable_args[UID];
                     ThrottleHelper.throttles_stackable_args[UID] = [];
 
@@ -71,6 +72,7 @@ export function Throttle(options: ThrottleOptions) {
 
             case THROTTLED_METHOD_PARAM_TYPE.MAPPABLE:
                 ThrottleHelper.throttles[UID] = throttle(async () => {
+                    ThrottleHelper.throttles_semaphore[UID] = false;
                     const params = ThrottleHelper.throttles_mappable_args[UID];
                     ThrottleHelper.throttles_mappable_args[UID] = {};
 
@@ -88,6 +90,7 @@ export function Throttle(options: ThrottleOptions) {
 
             case THROTTLED_METHOD_PARAM_TYPE.NONE:
                 ThrottleHelper.throttles[UID] = throttle(async () => {
+                    ThrottleHelper.throttles_semaphore[UID] = false;
 
                     await StackContext.context_incompatible(
                         originalMethod,
@@ -116,7 +119,15 @@ export function Throttle(options: ThrottleOptions) {
 
         descriptor.value = function (...args: any[]) {
 
-            const item: any = args[preThrottleIndex];
+            let item: any = args[preThrottleIndex];
+
+            // Cas particulier. On peut se retrouver à enchaîner des throttles, par exemple quand on throttle avant un changement de thread, puis à nouveau sur le nouveau thread.
+            // Dans ce cas, on n'aura rien en premier param (null) mais un second param non vide. On le révupère comme si c'était un premier param.
+            if ((item == null) && !!args[postThrottleIndex]) {
+                args[preThrottleIndex] = args[postThrottleIndex];
+                args[postThrottleIndex] = null;
+                item = args[preThrottleIndex];
+            }
 
             // Le second paramètre est géré par le décorateur, pas par l'appelant
             if (!!args[postThrottleIndex]) {

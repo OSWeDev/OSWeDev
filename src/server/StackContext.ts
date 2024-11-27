@@ -1,7 +1,9 @@
 /* istanbul ignore file: only one method, and not willing to test it right now*/
 
+import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import { reflect } from '../shared/tools/ObjectHandler';
 import cls from './CLSHooked';
+import ConfigurationService from './env/ConfigurationService';
 import { IRequestStackContext } from './ServerExpressController';
 
 export const scope_overloads_for_exec_as_server: Partial<IRequestStackContext> = {
@@ -130,7 +132,17 @@ export default class StackContext {
                 (key != reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE) &&
                 (key != reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE_REASON)) {
                 if (StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
-                    throw new Error('Trying to access a context value while in context incompatible mode:' + key + ' - ' + StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE_REASON));
+
+                    if (ConfigurationService.node_configuration.throw_on_incompatible_stack_context) {
+                        throw new Error('Trying to access a context value while in context incompatible mode:' + key + ' - ' + StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE_REASON));
+                    } else {
+                        // Console log stack
+                        try {
+                            throw new Error('Trying to access a context value while in context incompatible mode:' + key + ' - ' + StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE_REASON) + ' - Should be handled explicitly in the code, checking for CONTEXT_INCOMPATIBLE');
+                        } catch (error) {
+                            ConsoleHandler.error(error);
+                        }
+                    }
                 }
             }
 

@@ -80,6 +80,7 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
+import { IRequestStackContext } from '../../ServerExpressController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -1037,10 +1038,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     public async insertOrUpdateVOs_without_triggers(vos: IDistantVOBase[], max_connections_to_use: number = 0, exec_as_server: boolean = false): Promise<InsertOrDeleteQueryResult[]> {
         if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-            const uid: number = StackContext.get('UID');
-            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+
+            const can_use_context = !StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE);
+
+            if (can_use_context) {
+                const uid: number = StackContext.get('UID');
+                const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+                if (uid && CLIENT_TAB_ID) {
+                    ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+                }
             }
             return null;
         }
@@ -1334,12 +1340,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * @param exec_as_server équivalement de l'ancien IS_CLIENT: false. on ignore tous les contrôles de droits
      */
     public async insert_without_triggers_using_COPY(vos: IDistantVOBase[], segmented_value: number = null, exec_as_server: boolean = false): Promise<boolean> {
-        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-            const uid: number = StackContext.get('UID');
-            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
-            }
+        if (this.is_global_update_blocker()) {
             return false;
         }
 
@@ -1774,12 +1775,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     public async truncate(api_type_id: string, ranges: IRange[] = null) {
 
-        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-            const uid: number = StackContext.get('UID');
-            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
-            }
+        if (this.is_global_update_blocker()) {
             return null;
         }
 
@@ -1821,6 +1817,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         } catch (error) {
             ConsoleHandler.error(error);
+            const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+            if (!can_use_context) {
+                return;
+            }
             const uid: number = StackContext.get('UID');
             const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
             await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.truncate.error', true);
@@ -1929,9 +1929,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        const uid = await StackContext.get('UID');
-        if (uid) {
-            await ServerAnonymizationController.anonymise(moduleTable, res, uid, null);
+        const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+        if (can_use_context) {
+            const uid = await StackContext.get('UID');
+            if (uid) {
+                await ServerAnonymizationController.anonymise(moduleTable, res, uid, null);
+            }
         }
 
         return res;
@@ -2013,9 +2016,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        const uid = await StackContext.get('UID');
-        if (uid) {
-            await ServerAnonymizationController.anonymise(moduleTable, [vo], uid, null);
+        const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+
+        if (can_use_context) {
+            const uid = await StackContext.get('UID');
+            if (uid) {
+                await ServerAnonymizationController.anonymise(moduleTable, [vo], uid, null);
+            }
         }
 
         return vo;
@@ -2027,12 +2034,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * @param query_
      */
     public async query(query_: string = null, values: any = null): Promise<any> {
-        if (DAOServerController.GLOBAL_UPDATE_BLOCKER && !/^select /i.test(query_)) {
-            const uid: number = StackContext.get('UID');
-            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
-            }
+        if ((!/^select /i.test(query_)) && this.is_global_update_blocker()) {
             return null;
         }
 
@@ -2477,12 +2479,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'in');
 
-        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-            const uid: number = StackContext.get('UID');
-            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
-            }
+        if (this.is_global_update_blocker()) {
             StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'global_update_blocker');
             return null;
         }
@@ -2650,12 +2647,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private async deleteVOsByIds(API_TYPE_ID: string, ids: number[]): Promise<any[]> {
 
-        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-            const uid: number = StackContext.get('UID');
-            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
-            }
+        if (this.is_global_update_blocker()) {
             return null;
         }
 
@@ -2696,7 +2688,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
         const hooks = DAOServerController.access_hooks[datatable.vo_type] && DAOServerController.access_hooks[datatable.vo_type][access_type] ? DAOServerController.access_hooks[datatable.vo_type][access_type] : [];
-        if (!StackContext.get('IS_CLIENT')) {
+        if (StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE) || !StackContext.get('IS_CLIENT')) {
             // Server
             return vo;
         }
@@ -2808,9 +2800,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        const uid = await StackContext.get('UID');
-        if (uid) {
-            await ServerAnonymizationController.anonymise(datatable, res, uid, null);
+        const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+
+        if (can_use_context) {
+            const uid = await StackContext.get('UID');
+            if (uid) {
+                await ServerAnonymizationController.anonymise(datatable, res, uid, null);
+            }
         }
 
         return res;
@@ -2860,9 +2856,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        const uid = await StackContext.get('UID');
-        if (uid) {
-            await ServerAnonymizationController.anonymise(datatable, res, uid, null);
+        const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+
+        if (can_use_context) {
+            const uid = await StackContext.get('UID');
+            if (uid) {
+                await ServerAnonymizationController.anonymise(datatable, res, uid, null);
+            }
         }
 
         return res;
@@ -2898,12 +2898,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         const time_in = Dates.now_ms();
 
         StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'insert_vos', 'IN');
-        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-            const uid: number = StackContext.get('UID');
-            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
-            }
+        if (this.is_global_update_blocker()) {
             StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'insert_vos', 'GLOBAL_UPDATE_BLOCKER');
             return null;
         }
@@ -3185,5 +3180,23 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         return res;
+    }
+
+    private is_global_update_blocker(): boolean {
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
+
+            const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+
+            if (can_use_context) {
+                const uid: number = StackContext.get('UID');
+                const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+                if (uid && CLIENT_TAB_ID) {
+                    ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+                }
+            }
+            return true;
+        }
+
+        return false;
     }
 }

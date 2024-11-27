@@ -79,7 +79,7 @@ export default class ObjectHandler {
             res['_is_pixel'] = e['_is_pixel'];
         }
 
-        if ((res['index'] != null) && (res['index'] != e['_index'])) {
+        if ((res['index'] != null) && (e['_index'] != null) && (res['index'] != e['_index'])) {
             res['index'] = e['_index'];
             res['_index'] = e['_index'];
         }
