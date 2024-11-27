@@ -158,7 +158,7 @@ export default class ModuleContextFilter extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.registerApi((PostForGetAPIDefinition.new<CountValidSegmentationsParamVO, any[]>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<CountValidSegmentationsParamVO, any[]>(
             null,
             this.name,
             reflect<ModuleContextFilter>().count_valid_segmentations,
@@ -171,10 +171,9 @@ export default class ModuleContextFilter extends Module {
             },
             CountValidSegmentationsParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((PostForGetAPIDefinition.new<SelectVosParamVO, any[]>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<SelectVosParamVO, any[]>(
             null,
             this.name,
             reflect<ModuleContextFilter>().select,
@@ -185,10 +184,9 @@ export default class ModuleContextFilter extends Module {
             },
             SelectVosParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((PostForGetAPIDefinition.new<SelectFilterVisibleOptionsParamVO, DataFilterOption[]>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<SelectFilterVisibleOptionsParamVO, DataFilterOption[]>(
             null,
             this.name,
             reflect<ModuleContextFilter>().select_filter_visible_options,
@@ -199,10 +197,9 @@ export default class ModuleContextFilter extends Module {
             },
             SelectFilterVisibleOptionsParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((PostForGetAPIDefinition.new<SelectDatatableRowsParamVO, any[]>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<SelectDatatableRowsParamVO, any[]>(
             null,
             this.name,
             reflect<ModuleContextFilter>().select_datatable_rows,
@@ -213,10 +210,9 @@ export default class ModuleContextFilter extends Module {
             },
             SelectDatatableRowsParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((PostForGetAPIDefinition.new<SelectCountParamVO, any[]>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<SelectCountParamVO, any[]>(
             null,
             this.name,
             reflect<ModuleContextFilter>().select_count,
@@ -227,10 +223,9 @@ export default class ModuleContextFilter extends Module {
             },
             SelectCountParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((PostForGetAPIDefinition.new<QueryVOFromUniqueFieldContextFiltersParamVO, any[]>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<QueryVOFromUniqueFieldContextFiltersParamVO, any[]>(
             null,
             this.name,
             reflect<ModuleContextFilter>().select_vo_from_unique_field,
@@ -239,10 +234,9 @@ export default class ModuleContextFilter extends Module {
             },
             QueryVOFromUniqueFieldContextFiltersParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((PostForGetAPIDefinition.new<BuildSelectQueryParamVO, ParameterizedQueryWrapper>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<BuildSelectQueryParamVO, ParameterizedQueryWrapper>(
             null,
             this.name,
             reflect<ModuleContextFilter>().build_select_query,
@@ -253,9 +247,8 @@ export default class ModuleContextFilter extends Module {
             },
             BuildSelectQueryParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
-        APIControllerWrapper.registerApi((PostForGetAPIDefinition.new<BuildSelectQueryParamVO, string>(
+        ));
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<BuildSelectQueryParamVO, string>(
             null,
             this.name,
             reflect<ModuleContextFilter>().build_select_query_str,
@@ -266,10 +259,9 @@ export default class ModuleContextFilter extends Module {
             },
             BuildSelectQueryParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((PostForGetAPIDefinition.new<SelectVosParamVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<SelectVosParamVO, IDistantVOBase[]>(
             null,
             this.name,
             reflect<ModuleContextFilter>().select_vos,
@@ -280,10 +272,9 @@ export default class ModuleContextFilter extends Module {
             },
             SelectVosParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((PostAPIDefinition.new<DeleteVosParamVO, InsertOrDeleteQueryResult[]>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<DeleteVosParamVO, InsertOrDeleteQueryResult[]>(
             null,
             this.name,
             reflect<ModuleContextFilter>().delete_vos,
@@ -292,10 +283,9 @@ export default class ModuleContextFilter extends Module {
             },
             DeleteVosParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((PostAPIDefinition.new<UpdateVosParamVO<any>, InsertOrDeleteQueryResult[]>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<UpdateVosParamVO<any>, InsertOrDeleteQueryResult[]>(
             null,
             this.name,
             reflect<ModuleContextFilter>().update_vos,
@@ -304,8 +294,7 @@ export default class ModuleContextFilter extends Module {
             },
             UpdateVosParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
     }
 
     private define_used_api_type_ids_from_query(query_: ContextQueryVO, res: { [api_type_id: string]: boolean }) {

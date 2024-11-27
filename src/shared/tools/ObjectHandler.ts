@@ -73,6 +73,12 @@ export default class ObjectHandler {
 
         const res = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[e['_type']](), e);
 
+        for (const i in res) {
+            if (res[i] && (typeof res[i] == 'object') || Array.isArray(res[i])) {
+                res[i] = this.reapply_prototypes(res[i]);
+            }
+        }
+
         // Cas des matroids dont on doit forcer le is_pixel et index
         if ((res['is_pixel'] != null) && (res['is_pixel'] != e['_is_pixel'])) {
             res['is_pixel'] = e['_is_pixel'];

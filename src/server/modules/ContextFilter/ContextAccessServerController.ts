@@ -6,6 +6,8 @@ import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
+import { reflect } from '../../../shared/tools/ObjectHandler';
+import { IRequestStackContext } from '../../ServerExpressController';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 
@@ -17,7 +19,7 @@ export default class ContextAccessServerController {
         fields: ContextQueryFieldVO[],
         access_type: string): boolean {
 
-        if (context_query.is_server || !StackContext.get('IS_CLIENT')) {
+        if (context_query.is_server || StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE) || !StackContext.get('IS_CLIENT')) {
             return true;
         }
 
@@ -56,7 +58,7 @@ export default class ContextAccessServerController {
         fields: FieldPathWrapper[],
         access_type: string): boolean {
 
-        if (context_query.is_server || !StackContext.get('IS_CLIENT')) {
+        if (context_query.is_server || StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE) || !StackContext.get('IS_CLIENT')) {
             return true;
         }
 
@@ -86,7 +88,7 @@ export default class ContextAccessServerController {
         field_id: string,
         access_type: string): boolean {
 
-        if (context_query.is_server || !StackContext.get('IS_CLIENT')) {
+        if (context_query.is_server || StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE) || !StackContext.get('IS_CLIENT')) {
             return true;
         }
 

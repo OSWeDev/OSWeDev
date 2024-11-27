@@ -51,7 +51,7 @@ export default class ClientAPIController implements IAPIController {
             }
 
             if (sanitize_params) {
-                params = sanitize_params(...params);
+                params = [sanitize_params(...params)]; // on déréférence le tableau, donc on le remet dans un tableau
             }
 
             if (precondition && !precondition(...params)) {

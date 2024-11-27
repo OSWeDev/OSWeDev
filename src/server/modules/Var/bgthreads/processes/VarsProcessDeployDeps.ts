@@ -48,7 +48,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
         }
 
         // Petit contrôle de cohérence suite pb en prod
-        if (node.var_data.index && (node.var_data.index.indexOf('::') > -1) || node.var_data.index.indexOf('null') > -1) {
+        if ((!node.var_data.index) || (node.var_data.index.indexOf('null') > -1)) {
 
             ConsoleHandler.error('VarsProcessDeployDeps.worker_async: node.var_data.index null or contains null: ' + node.var_data.index + ' - On crée une fausse valeur pour éviter de bloquer le système');
             node.var_data.value_ts = Dates.now();
