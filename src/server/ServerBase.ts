@@ -369,9 +369,7 @@ export default abstract class ServerBase {
                 ],
                 '/login': [
                     this.redirect_fragmented_url.bind(this),
-                    express.static(path.resolve('./dist/public/login.html'), {
-                        fallthrough: false,
-                    }),
+                    (req, res) => res.sendFile(path.resolve('./dist/public/login.html'),
                 ],
 
                 // reflect_headers
