@@ -1,14 +1,20 @@
 
-import { watch } from 'fs';
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+// import { Throttle, THROTTLED_METHOD_PARAM_TYPE } from '../../../../../../shared/annotations/Throttle';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
+import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 import ICRUDComponentField from '../../../../../../shared/modules/DAO/interface/ICRUDComponentField';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
 import Datatable from '../../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToManyReferenceDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO';
@@ -18,7 +24,9 @@ import ReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/da
 import RefRangesReferenceDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
+import DataFilterOption from '../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
@@ -26,8 +34,6 @@ import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
@@ -49,14 +55,12 @@ import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponen
 import TSTZInputComponent from '../../../tstzinput/TSTZInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import CRUDComponentManager from '../../CRUDComponentManager';
-import CRUDFormServices from '../CRUDFormServices';
-import './CRUDComponentField.scss';
-import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import DAOController from '../../../../../../shared/modules/DAO/DAOController';
-const debounce = require('lodash/debounce');
-import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
 import CRUDCreateFormComponent from '../create/CRUDCreateFormComponent';
 import CRUDCreateFormController from '../create/CRUDCreateFormController';
+import CRUDFormServices from '../CRUDFormServices';
+import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
+import './CRUDComponentField.scss';
+const debounce = require('lodash/debounce');
 
 @Component({
     template: require('./CRUDComponentField.pug'),
@@ -246,6 +250,10 @@ export default class CRUDComponentField extends VueComponentBase
     private has_focus: boolean = false;
 
     private debounced_validate_inline_input_auto = null;
+    private actual_query: string = null;
+    private last_calculation_cpt: number = 0;
+
+    private filter_visible_options: DataFilterOption[] = [];
 
     get targetModuleTable_count(): number {
         const manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
@@ -273,7 +281,7 @@ export default class CRUDComponentField extends VueComponentBase
             (this.field.type == 'INPUT') ||
             (this.field.datatable_field_uid == this.field.module_table_field_id) ||
             (this.field.semaphore_auto_update_datatable_field_uid_with_vo_type && (this.field.datatable_field_uid == (this.field.moduleTable.vo_type + '___' + this.field.module_table_field_id)))
-        ) && this.field.isVisibleUpdateOrCreate(this.vo);
+        ) && ((!this.field.isVisibleUpdateOrCreate) || this.field.isVisibleUpdateOrCreate(this.vo));
     }
 
     get field_type(): string {
@@ -412,6 +420,129 @@ export default class CRUDComponentField extends VueComponentBase
         if (this.field_value != tmp) {
             this.field_value = tmp;
         }
+    }
+
+    /**
+     * Update visible option
+     *  - This happen | triggered with lodash throttle method (throttled_update_visible_options)
+     *  - Each time visible option shall be updated
+     * @returns void
+     */
+    // @Throttle({
+    //     param_type: THROTTLED_METHOD_PARAM_TYPE.NONE,
+    //     throttle_ms: 300,
+    //     leading: false,
+    //     trailing: true,
+    // })
+    public async update_visible_options(): Promise<void> {
+
+        const launch_cpt: number = (this.last_calculation_cpt + 1);
+
+        this.last_calculation_cpt = launch_cpt;
+
+        // On peut gérer que des refs
+        if ((this.field.type != DatatableField.MANY_TO_ONE_FIELD_TYPE) &&
+            (this.field.type != DatatableField.MANY_TO_MANY_FIELD_TYPE) &&
+            (this.field.type != DatatableField.ONE_TO_MANY_FIELD_TYPE)) {
+
+            throw new Error('CRUDComponentField.update_visible_options: Not implemented for field type: ' + this.field.type);
+        }
+
+        // On ne peut gérer que les tables non segmentées
+        if (this.field.moduleTable.is_segmented) {
+            throw new Error('CRUDComponentField.update_visible_options: Not implemented for segmented table: ' + this.field.moduleTable.vo_type);
+        }
+
+        const target_table = (this.field as (ManyToOneReferenceDatatableFieldVO<any> | ManyToManyReferenceDatatableFieldVO<any, any> | OneToManyReferenceDatatableFieldVO<any>)).targetModuleTable;
+        const api_type_id: string = target_table.vo_type;
+        const inter_target_table = (this.field as (ManyToManyReferenceDatatableFieldVO<any, any>)).interModuleTable;
+        const field_label = ModuleTableController.module_tables_by_vo_type[api_type_id].default_label_field;
+
+        // On ne peut gérer que si on a un champs label pour le targeted_type
+        if (!field_label) {
+            throw new Error('CRUDComponentField.update_visible_options: No label field for api_type_id: ' + api_type_id);
+        }
+
+        const active_api_types: string[] = [this.field.moduleTable.vo_type, api_type_id];
+        const this_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[api_type_id];
+        const target_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[target_table.vo_type];
+
+        if (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
+            active_api_types.push(inter_target_table.vo_type);
+        }
+
+        const access_policy_name = ModuleDAO.instance.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+        const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+
+        if (!has_access) {
+            throw new Error('CRUDComponentField.update_visible_options: No access to api_type_id: ' + api_type_id);
+        }
+
+        const context_query = query(api_type_id)
+            .field(field_label.field_name, 'label')
+            .set_limit(50)
+            .set_sort(new SortByVO(api_type_id, field_label.field_name, true))
+            .using(active_api_types);
+
+        // On ignore les fields de ref qui ne sont pas celui qu'on est en train de gérer
+        for (const i in this_fields) {
+            const field = this_fields[i];
+
+            // Sur un manytomany, on a aucun field à garder sur les sources et dest
+            if (field.field_type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
+                context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                continue;
+            }
+
+            // Sur un OneToMany, c'est dans le target qu'on trouve le field à ignorer
+            if (field.field_type == DatatableField.ONE_TO_MANY_FIELD_TYPE) {
+                context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                continue;
+            }
+
+            // Sur Manytoone on peut se baser sur this_field module_table_field_id pour ignorer les autres
+            if (field.field_name != this.field.module_table_field_id) {
+                context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+            }
+        }
+
+        for (const i in target_fields) {
+            const field = target_fields[i];
+
+            // Sur un manytomany, on a aucun field à garder sur les sources et dest
+            if (field.field_type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
+                context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                continue;
+            }
+
+            // Sur ManyToOne, on a aucun field à garder sur target
+            if (field.field_type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
+                context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                continue;
+            }
+
+            // Sur OnetoMany on peut se baser sur this_field dest_field_id pour ignorer les autres
+            if (field.field_name != (this.field as OneToManyReferenceDatatableFieldVO<any>).dest_field_id) {
+                context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+            }
+        }
+
+        let tmp = await ModuleContextFilter.instance.select_filter_visible_options(
+            context_query,
+            this.actual_query,
+        );
+
+        // We must keep and apply the last request response
+        // - This widget may already have perform a request
+        if (this.last_calculation_cpt != launch_cpt) {
+            return;
+        }
+
+        if (!tmp) {
+            tmp = [];
+        }
+
+        this.filter_visible_options = tmp;
     }
 
     public async mounted() {
@@ -564,10 +695,12 @@ export default class CRUDComponentField extends VueComponentBase
                     });
         }
 
-        if (!this.isLoadingOptions) {
-            this.isLoadingOptions = true;
+        if (!this.field.can_use_async_load_options) {
+            if (!this.isLoadingOptions) {
+                this.isLoadingOptions = true;
+            }
+            await this.prepare_select_options();
         }
-        await this.prepare_select_options();
 
 
         if (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE) {
@@ -1957,5 +2090,10 @@ export default class CRUDComponentField extends VueComponentBase
 
     private async update_inline_form_in_crud(vo: IDistantVOBase) {
         await this.onChangeField();
+    }
+
+    private query_update_visible_options(_query: string) {
+        this.actual_query = _query;
+        this.update_visible_options();
     }
 }

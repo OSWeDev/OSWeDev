@@ -1,10 +1,10 @@
-import StackContext from '../../../server/StackContext';
 import EventsController from '../../modules/Eventify/EventsController';
 import EventifyEventInstanceVO from '../../modules/Eventify/vos/EventifyEventInstanceVO';
 import EventifyEventListenerInstanceVO from '../../modules/Eventify/vos/EventifyEventListenerInstanceVO';
 import ConsoleHandler from '../ConsoleHandler';
 import PromisePipeline from '../PromisePipeline/PromisePipeline';
 import { all_promises } from '../PromiseTools';
+import StackContextWrapper from '../StackContextWrapper';
 import ThrottlePipelineConf from './ThrottlePipelineConf';
 
 export default class ThrottlePipelineHelper {
@@ -152,12 +152,15 @@ export default class ThrottlePipelineHelper {
         await promise_pipeline.push(async () => {
 
             try {
-                const func_result: { [index: string | number]: ResultType } = await StackContext.context_incompatible(
-                    func,
-                    null,
-                    'ThrottlePipelineHelper.handle_throttled_pipeline_call',
-                    params_by_index
-                );
+
+                const func_result: { [index: string | number]: ResultType } =
+                    StackContextWrapper.instance ?
+                        await StackContextWrapper.instance.context_incompatible(
+                            func,
+                            null,
+                            'ThrottlePipelineHelper.handle_throttled_pipeline_call',
+                            params_by_index
+                        ) : await func(params_by_index);
 
                 // On repart des params, ce qui permet de ne pas avoir de résultat pour un index plutôt que d'envoyer null ou undefined
                 const promises = [];

@@ -9,6 +9,22 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
     public _target_module_table_type_id: string;
     public sorted_target_fields: Array<DatatableField<any, any>>;
 
+    /**
+     * Déclenche l'opti de chargement async des options d'un reference field
+     */
+    get can_use_async_load_options() {
+        const api_type_id: string = this.targetModuleTable.vo_type;
+        const field_label = ModuleTableController.module_tables_by_vo_type[api_type_id].default_label_field;
+
+        return !!field_label &&
+            !this.isVisibleUpdateOrCreate &&
+            // !this.sort && TODO FIXME faut le gérer du coup probablement dans la requête de mettre le comportement par défaut de tri si ça a du sens et de permettre un tri via sortbyvo
+            !this.sortEnum &&
+            !this.sieve &&
+            !this.sieveCondition &&
+            !this.sieveEnum;
+    }
+
     get target_module_table_type_id(): string {
         return this._target_module_table_type_id;
     }

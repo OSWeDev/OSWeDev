@@ -26,28 +26,76 @@
             i.fa-duotone.fa-plus-circle
 
     template(v-if="!show_inline_form_in_crud || (show_inline_form_in_crud && !show_inline_form_in_crud_is_create)")
-        multiselect(
-            :class="{'valign-middle': show_pencil_btn}"
-            v-model="field_value",
-            :custom-label="field.voIdToHumanReadable",
-            :options="select_options",
-            autocomplete="off"
-            :placeholder="t(placeholder_string)",
-            :loading="isLoadingOptions",
-            :id="field.datatable_field_uid",
-            :searchable="searchable",
-            :internal-search="false",
-            :allow-empty="!field.is_required",
-            :preselect-first="field.is_required",
-            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))",
-            @search-change="asyncLoadOptions",
-            @input="onChangeField"
+        template(v-if='field.can_use_async_load_options')
+            multiselect(
+                :class="{'valign-middle': show_pencil_btn}"
+                v-model="field_value",
+                label="label"
 
-            :select-label='label("multiselect.selectLabel")'
-            :select-group-label='label("multiselect.selectGroupLabel")'
-            :selected-label='label("multiselect.selectedLabel")'
-            :deselect-label='label("multiselect.deselectLabel")'
-            :deselect-group-label='label("multiselect.deselectGroupLabel")'
-        )
+                :options="filter_visible_options",
+                :placeholder="t(placeholder_string)",
+                :multiple="true"
+                :close-on-select="false"
+                autocomplete="off"
+                :internal-search="false",
+                :searchable="true",
+                :preselect-first="false",
+                :hide-selected="true"
+                
+                :id="field.datatable_field_uid",
+                :allow-empty="!field.is_required",
+                :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))",
 
-        include ./CRUDComponentFieldFooter
+
+                @input="onChangeField",
+                :loading="isLoadingOptions",
+                
+
+
+                :select-label='label("multiselect.selectLabel")'
+                :select-group-label='label("multiselect.selectGroupLabel")'
+                :selected-label='label("multiselect.selectedLabel")'
+                :deselect-label='label("multiselect.deselectLabel")'
+                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+
+                @search-change="query_update_visible_options"
+            )
+
+                span(slot="noOptions") -
+
+                template(slot="option", slot-scope="props")
+                    span.option__title {{ props.option.label }}
+
+                template(slot="tag", slot-scope="props")
+                    .pill_wrapper.bg-success
+                        span.option__tag {{ props.option.label }}
+                        i.fa-solid.fa-square-x(@click='props.remove(props.option)')
+
+                //- ??? track-by="text_uid"
+
+        template(v-else)
+            multiselect(
+                :class="{'valign-middle': show_pencil_btn}"
+                v-model="field_value",
+                :custom-label="field.voIdToHumanReadable",
+                :options="select_options",
+                autocomplete="off"
+                :placeholder="t(placeholder_string)",
+                :loading="isLoadingOptions",
+                :id="field.datatable_field_uid",
+                :searchable="searchable",
+                :internal-search="false",
+                :allow-empty="!field.is_required",
+                :preselect-first="field.is_required",
+                :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))",
+                @search-change="asyncLoadOptions",
+                @input="onChangeField"
+
+                :select-label='label("multiselect.selectLabel")'
+                :select-group-label='label("multiselect.selectGroupLabel")'
+                :selected-label='label("multiselect.selectedLabel")'
+                :deselect-label='label("multiselect.deselectLabel")'
+                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+            )
+
+            include ./CRUDComponentFieldFooter

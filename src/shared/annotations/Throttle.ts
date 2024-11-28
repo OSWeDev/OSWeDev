@@ -1,6 +1,6 @@
 import { throttle } from 'lodash';
-import StackContext from '../../server/StackContext';
 import ThrottleHelper from '../tools/ThrottleHelper';
+import StackContextWrapper from '../tools/StackContextWrapper';
 
 // Types pour les paramètres du décorateur
 export interface ThrottleOptions {
@@ -58,12 +58,17 @@ export function Throttle(options: ThrottleOptions) {
                     const params = ThrottleHelper.throttles_stackable_args[UID];
                     ThrottleHelper.throttles_stackable_args[UID] = [];
 
-                    await StackContext.context_incompatible(
-                        originalMethod,
-                        target,
-                        'Throttle.throttles_stackable_args',
-                        null,
-                        params);
+                    if (!!StackContextWrapper.instance) {
+                        await StackContextWrapper.instance.context_incompatible(
+                            originalMethod,
+                            target,
+                            'Throttle.throttles_stackable_args',
+                            null,
+                            params);
+                    } else {
+                        await originalMethod.apply(target, params);
+                    }
+
                 }, options.throttle_ms, {
                     leading: options.leading ?? false,
                     trailing: options.trailing ?? true,
@@ -76,12 +81,17 @@ export function Throttle(options: ThrottleOptions) {
                     const params = ThrottleHelper.throttles_mappable_args[UID];
                     ThrottleHelper.throttles_mappable_args[UID] = {};
 
-                    await StackContext.context_incompatible(
-                        originalMethod,
-                        target,
-                        'Throttle.throttles_mappable_args',
-                        null,
-                        params);
+                    if (!!StackContextWrapper.instance) {
+                        await StackContextWrapper.instance.context_incompatible(
+                            originalMethod,
+                            target,
+                            'Throttle.throttles_mappable_args',
+                            null,
+                            params);
+                    } else {
+                        await originalMethod.apply(target, [params]);
+                    }
+
                 }, options.throttle_ms, {
                     leading: options.leading ?? false,
                     trailing: options.trailing ?? true,
@@ -92,10 +102,14 @@ export function Throttle(options: ThrottleOptions) {
                 ThrottleHelper.throttles[UID] = throttle(async () => {
                     ThrottleHelper.throttles_semaphore[UID] = false;
 
-                    await StackContext.context_incompatible(
-                        originalMethod,
-                        target,
-                        'Throttle.throttles_no_args');
+                    if (!!StackContextWrapper.instance) {
+                        await StackContextWrapper.instance.context_incompatible(
+                            originalMethod,
+                            target,
+                            'Throttle.throttles_no_args');
+                    } else {
+                        await originalMethod.apply(target, []);
+                    }
 
                 }, options.throttle_ms, {
                     leading: options.leading ?? false,
