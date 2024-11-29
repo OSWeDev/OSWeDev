@@ -112,6 +112,10 @@ export default class CRUDFormServices {
             for (const i in datatable.fields) {
                 const field = datatable.fields[i];
 
+                if (field.can_use_async_load_options) {
+                    continue;
+                }
+
                 res = res.concat(this.loadDatasFromDatatableField(field, api_types_involved, storeDatas));
             }
         }

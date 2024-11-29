@@ -8,6 +8,13 @@ ligne 152 ForkedProcessWrapperBase
     => modifier les bgthreads pour permettre aussi des confs basées sur evenements (oseliarunbgthread, imports, ... qui n'ont pas besoin de se lancer si on a pas de donner à nourrir. Attention on doit tester la condition au lancement du serveur après un timeout défini, et aussi à la fin du run on reteste (ou pas / param) la condition et on relance Asap si la condition est toujours d'actualité)
     => permettre de conf runsonbgthread pour que si la méthode ne peut pas être envoyée sur un bgthread, elle soit quand meme exécutée (cas des changements de threads pour "loadbalancing" et pas accès à une data critique sur l'autre thread)
 
+    => modifier all_promises pour indiquer que c'est incompatible avec le stackcontext dans sa version actuelle
+    => tester de all_promises(cbs) au lieu de all_promises(promises) pour encapsuler chaque appel dans son propre context => mettre un envparam pour un check automatique de non pollution des contextes entre les différents callbacks => on stocke le contexte avant cb, et on check qu'il est identique après await du cb.
+
+    => sur les promisepipeline c'est le même pb, donc on marque incompatible
+    => puis on met en place un contrôle auto de cohérence pré-post cb de chaque promise
+    => et on tente de vérifier la chaine d'appel pour bien avoir une encapsulation de chaque promise appelée.
+
     => SUPPRIMER de package.json projet                
 //            express-static-gzip
 //            "vue-grid-layout": "2.4.0",

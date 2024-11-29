@@ -1,9 +1,9 @@
-import { Throttle, ThrottleOptions } from "../../shared/annotations/Throttle";
+import Throttle, { ThrottleOptions } from "../../shared/annotations/Throttle";
 import { RunsOnMainThread } from "../modules/BGThread/annotations/RunsOnMainThread";
 import { ExecAsServer } from "./ExecAsServer";
 
 // Décorateur Throttled
-export function ThrottleExecAsServerRunsOnMainThread(
+export default function ThrottleExecAsServerRunsOnMainThread(
     throttleOptions: ThrottleOptions
 ) {
     return function (

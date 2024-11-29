@@ -137,6 +137,13 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
 
     public abstract _type: string;
 
+    /**
+     * Déclenche l'opti de chargement async des options d'un reference field
+     */
+    get can_use_async_load_options() {
+        return false;
+    }
+
     get alert_path(): string {
         if (!this.vo_type_full_name) {
             return this.datatable_field_uid;
@@ -525,7 +532,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         this.validate = null;
         this.onChange = null;
         this.onEndOfChange = null;
-        this.isVisibleUpdateOrCreate = () => true;
+        this.isVisibleUpdateOrCreate = null;
     }
 
     private update_moduleTableField() {

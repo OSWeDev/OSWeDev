@@ -71,8 +71,8 @@ import ParamsServerController from './modules/Params/ParamsServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 import APIDefinition from '../shared/modules/API/vos/APIDefinition';
-import responseTime from 'response-time';
 import expressStaticGzip from 'express-static-gzip';
+import StackContextWrapper from '../shared/tools/StackContextWrapper';
 
 export default abstract class ServerBase {
 
@@ -104,6 +104,7 @@ export default abstract class ServerBase {
     /* istanbul ignore next: nothing to test here */
     protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
+        StackContextWrapper.instance = StackContext;
         RunsOnMainThreadDataController.exec_self_on_main_process_and_return_value_method = ForkedTasksController.exec_self_on_main_process_and_return_value.bind(ForkedTasksController);
         RunsOnBgThreadDataController.exec_self_on_bgthread_and_return_value_method = ForkedTasksController.exec_self_on_bgthread_and_return_value.bind(ForkedTasksController);
         ModulesManager.initialize();

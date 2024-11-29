@@ -3,7 +3,7 @@
         include ./AlertComponentContent.pug
 
     template(v-else)
-        v-popover(:content-offset='offset' :direction='tooltip_direction' :align='tooltip_align' :visibility="tooltip_visibility", :toggle-visible-on-click="toggle_visible_on_click")
+        v-popover(:id='v_pop_id' :content-offset='offset' :direction='tooltip_direction' :align='tooltip_align' :visibility="tooltip_visibility", :toggle-visible-on-click="toggle_visible_on_click")
             include ./AlertComponentContent.pug
 
             template(slot="popover-content")

@@ -1,10 +1,9 @@
-import { PostThrottleParam, PreThrottleParam, Throttle, THROTTLED_METHOD_PARAM_TYPE, ThrottleOptions } from '../../../shared/annotations/Throttle';
+import { PostThrottleParam, PreThrottleParam, THROTTLED_METHOD_PARAM_TYPE } from '../../../shared/annotations/Throttle';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
-import { ThrottleExecAsServerRunsOnMainThread } from '../../annotations/ThrottleExecAsServerRunsOnMainThread';
+import ThrottleExecAsServerRunsOnMainThread from '../../annotations/ThrottleExecAsServerRunsOnMainThread';
 import ConfigurationService from '../../env/ConfigurationService';
 import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import ParamsServerController from '../Params/ParamsServerController';
