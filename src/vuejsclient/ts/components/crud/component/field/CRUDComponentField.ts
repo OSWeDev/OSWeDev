@@ -8,7 +8,7 @@ import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
-import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 import ICRUDComponentField from '../../../../../../shared/modules/DAO/interface/ICRUDComponentField';
@@ -59,6 +59,7 @@ import CRUDCreateFormComponent from '../create/CRUDCreateFormComponent';
 import CRUDCreateFormController from '../create/CRUDCreateFormController';
 import CRUDFormServices from '../CRUDFormServices';
 import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
+import Throttle, { THROTTLED_METHOD_PARAM_TYPE } from '../../../../../../shared/annotations/Throttle';
 import './CRUDComponentField.scss';
 const debounce = require('lodash/debounce');
 
@@ -255,6 +256,10 @@ export default class CRUDComponentField extends VueComponentBase
 
     private filter_visible_options: DataFilterOption[] = [];
 
+    private field_value_labels_by_id: { [id: number]: string } = {};
+
+    private can_insert_or_update_target_first_loading_ok: boolean = false;
+
     get targetModuleTable_count(): number {
         const manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
         if (manyToOne && manyToOne.targetModuleTable && manyToOne.targetModuleTable.vo_type && this.getStoredDatas && this.getStoredDatas[manyToOne.targetModuleTable.vo_type]) {
@@ -395,6 +400,77 @@ export default class CRUDComponentField extends VueComponentBase
         return this.auto_validate_inline_input && !!this.auto_validate_start;
     }
 
+    get async_load_options_field_value(): DataFilterOption[] {
+        const res: DataFilterOption[] = [];
+
+        if (!this.field_value) {
+            return res;
+        }
+
+
+        if (!Array.isArray(this.field_value)) {
+
+            // Si on a pas chargé les labels des field_value actuels, on peut pas les afficher
+            if ((!this.field_value_labels_by_id) || (!this.field_value_labels_by_id[this.field_value])) {
+                return res;
+            }
+
+            res.push(new DataFilterOption(
+                DataFilterOption.STATE_SELECTED,
+                this.field_value_labels_by_id[this.field_value],
+                this.field_value,
+            ));
+
+            return res;
+        }
+
+        for (const i in this.field_value) {
+            const id = this.field_value[i];
+
+            // Si on a pas chargé les labels des field_value actuels, on peut pas les afficher
+            if ((!this.field_value_labels_by_id) || (!this.field_value_labels_by_id[id])) {
+                continue;
+            }
+
+            res.push(new DataFilterOption(
+                DataFilterOption.STATE_SELECTED,
+                this.field_value_labels_by_id[id],
+                id,
+            ));
+        }
+
+        return res;
+    }
+
+    set async_load_options_field_value(value: DataFilterOption[]) {
+
+        // Si on est sur un many to one ou un one to many, c'est un int qu'on attend. si c'est many to many, c'est un array
+        if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) || (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE)) {
+            if (value && value.length) {
+
+                if (this.field_value != value[0].id) {
+                    this.field_value = value[0].id;
+                }
+            } else {
+
+                if (this.field_value != null) {
+                    this.field_value = null;
+                }
+            }
+        } else if (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
+
+            const field_value = [];
+
+            for (const i in value) {
+                field_value.push(value[i].id);
+            }
+
+            if (!ObjectHandler.are_equal(field_value, this.field_value)) {
+                this.field_value = field_value;
+            }
+        }
+    }
+
     // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
     // @Watch('field_select_options_enabled')
     @Watch('field', { immediate: true })
@@ -428,13 +504,20 @@ export default class CRUDComponentField extends VueComponentBase
      *  - Each time visible option shall be updated
      * @returns void
      */
-    // @Throttle({
-    //     param_type: THROTTLED_METHOD_PARAM_TYPE.NONE,
-    //     throttle_ms: 300,
-    //     leading: false,
-    //     trailing: true,
-    // })
-    public async update_visible_options(): Promise<void> {
+    @Throttle({
+        param_type: THROTTLED_METHOD_PARAM_TYPE.NONE,
+        throttle_ms: 300,
+        leading: true,
+        trailing: true,
+    })
+    private async update_visible_options(): Promise<void> {
+
+        if (!this.field) {
+            if (this.isLoadingOptions) {
+                this.isLoadingOptions = false;
+            }
+            return;
+        }
 
         const launch_cpt: number = (this.last_calculation_cpt + 1);
 
@@ -463,8 +546,12 @@ export default class CRUDComponentField extends VueComponentBase
             throw new Error('CRUDComponentField.update_visible_options: No label field for api_type_id: ' + api_type_id);
         }
 
+        if (field_label.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text) {
+            throw new Error('CRUDComponentField.update_visible_options: Not implemented for translatable_text label field: ' + field_label.field_name);
+        }
+
         const active_api_types: string[] = [this.field.moduleTable.vo_type, api_type_id];
-        const this_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[api_type_id];
+        const this_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.field.moduleTable.vo_type];
         const target_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[target_table.vo_type];
 
         if (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
@@ -478,59 +565,118 @@ export default class CRUDComponentField extends VueComponentBase
             throw new Error('CRUDComponentField.update_visible_options: No access to api_type_id: ' + api_type_id);
         }
 
-        const context_query = query(api_type_id)
-            .field(field_label.field_name, 'label')
+        // On veut charger les vos, complets, plus tard avec les deps nécessaires aux labels ?, et on prend en priorités, ceux déjà sélectionnés. Et on applique la fonction de label après
+        let query_currently_selected_vos: ContextQueryVO = (this.field_value != null) && ((!Array.isArray(this.field_value)) || this.field_value.length) ? query(target_table.vo_type) : null;
+
+        if (query_currently_selected_vos) {
+            if (Array.isArray(this.field_value)) {
+                query_currently_selected_vos = query_currently_selected_vos.filter_by_ids(this.field_value);
+            } else {
+                query_currently_selected_vos = query_currently_selected_vos.filter_by_id(this.field_value);
+            }
+
+            query_currently_selected_vos = query_currently_selected_vos
+                .field('id')
+                .field(field_label.field_name)
+                .using(active_api_types);
+        }
+
+        // Autres valeurs pour sélection
+        let context_query = query(target_table.vo_type)
+            .field('id')
+            .field(field_label.field_name)
             .set_limit(50)
             .set_sort(new SortByVO(api_type_id, field_label.field_name, true))
             .using(active_api_types);
+
+        if (this.actual_query && this.actual_query.length) {
+            context_query = context_query.filter_by_text_including(
+                field_label.field_name,
+                this.actual_query,
+                null,
+                true);
+            // TODO FIXME is_translatable_label => link vers la trad ! beaucoup de fun encore là
+        }
 
         // On ignore les fields de ref qui ne sont pas celui qu'on est en train de gérer
         for (const i in this_fields) {
             const field = this_fields[i];
 
+            if ((field.field_type != ModuleTableFieldVO.FIELD_TYPE_refrange_array) ||
+                (field.field_type != ModuleTableFieldVO.FIELD_TYPE_foreign_key) ||
+                (field.field_type != ModuleTableFieldVO.FIELD_TYPE_file_ref) ||
+                (field.field_type != ModuleTableFieldVO.FIELD_TYPE_image_ref)) {
+                continue;
+            }
+
             // Sur un manytomany, on a aucun field à garder sur les sources et dest
-            if (field.field_type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
+            if (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
                 context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                if (query_currently_selected_vos) {
+                    query_currently_selected_vos.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                }
                 continue;
             }
 
             // Sur un OneToMany, c'est dans le target qu'on trouve le field à ignorer
-            if (field.field_type == DatatableField.ONE_TO_MANY_FIELD_TYPE) {
+            if (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) {
                 context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                if (query_currently_selected_vos) {
+                    query_currently_selected_vos.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                }
                 continue;
             }
 
             // Sur Manytoone on peut se baser sur this_field module_table_field_id pour ignorer les autres
             if (field.field_name != this.field.module_table_field_id) {
                 context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                if (query_currently_selected_vos) {
+                    query_currently_selected_vos.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                }
             }
         }
 
         for (const i in target_fields) {
             const field = target_fields[i];
 
+            if ((field.field_type != ModuleTableFieldVO.FIELD_TYPE_refrange_array) ||
+                (field.field_type != ModuleTableFieldVO.FIELD_TYPE_foreign_key) ||
+                (field.field_type != ModuleTableFieldVO.FIELD_TYPE_file_ref) ||
+                (field.field_type != ModuleTableFieldVO.FIELD_TYPE_image_ref)) {
+                continue;
+            }
+
             // Sur un manytomany, on a aucun field à garder sur les sources et dest
-            if (field.field_type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
+            if (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
                 context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                if (query_currently_selected_vos) {
+                    query_currently_selected_vos.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                }
                 continue;
             }
 
             // Sur ManyToOne, on a aucun field à garder sur target
-            if (field.field_type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
+            if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
                 context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                if (query_currently_selected_vos) {
+                    query_currently_selected_vos.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                }
                 continue;
             }
 
             // Sur OnetoMany on peut se baser sur this_field dest_field_id pour ignorer les autres
             if (field.field_name != (this.field as OneToManyReferenceDatatableFieldVO<any>).dest_field_id) {
                 context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                if (query_currently_selected_vos) {
+                    query_currently_selected_vos.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                }
             }
         }
 
-        let tmp = await ModuleContextFilter.instance.select_filter_visible_options(
-            context_query,
-            this.actual_query,
-        );
+        const currently_selected_vos: IDistantVOBase[] = query_currently_selected_vos ? await query_currently_selected_vos.select_vos() : null;
+        const options = await context_query.select_vos();
+
+        const tmp: DataFilterOption[] = [];
 
         // We must keep and apply the last request response
         // - This widget may already have perform a request
@@ -538,11 +684,47 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        if (!tmp) {
-            tmp = [];
+        const values_semaphore_by_id: { [id: number]: DataFilterOption } = {};
+        // const is_translatable_label: boolean = (field_label.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text); TODO FIXME osef on refuse les label translatables pour le moment
+
+        for (const i in options) {
+            const option = options[i];
+
+            values_semaphore_by_id[option.id] = new DataFilterOption(
+                DataFilterOption.STATE_SELECTABLE,
+                option[field_label.field_name],
+                option.id
+            );
+            tmp.push(values_semaphore_by_id[option.id]);
+        }
+
+        for (const i in currently_selected_vos) {
+            const option = currently_selected_vos[i];
+
+            if (!values_semaphore_by_id[option.id]) {
+                values_semaphore_by_id[option.id] = new DataFilterOption(
+                    DataFilterOption.STATE_SELECTED,
+                    option[field_label.field_name],
+                    option.id
+                );
+                tmp.push(values_semaphore_by_id[option.id]);
+            }
+
+            if (!this.field_value_labels_by_id[option.id]) {
+                this.field_value_labels_by_id[option.id] = option[field_label.field_name];
+            }
+
+            values_semaphore_by_id[option.id].select_state = DataFilterOption.STATE_SELECTED;
         }
 
         this.filter_visible_options = tmp;
+
+        if (this.isLoadingOptions) {
+            this.isLoadingOptions = false;
+        }
+        if (!this.can_insert_or_update_target_first_loading_ok) {
+            this.can_insert_or_update_target_first_loading_ok = true;
+        }
     }
 
     public async mounted() {
@@ -700,6 +882,12 @@ export default class CRUDComponentField extends VueComponentBase
                 this.isLoadingOptions = true;
             }
             await this.prepare_select_options();
+        } else {
+            if (!this.isLoadingOptions) {
+                this.isLoadingOptions = true;
+            }
+
+            this.update_visible_options.bind(this)();
         }
 
 
@@ -725,8 +913,11 @@ export default class CRUDComponentField extends VueComponentBase
                 });
             }
         }
-        if (this.isLoadingOptions) {
-            this.isLoadingOptions = false;
+
+        if (!this.field.can_use_async_load_options) {
+            if (this.isLoadingOptions) {
+                this.isLoadingOptions = false;
+            }
         }
     }
 
@@ -1306,10 +1497,10 @@ export default class CRUDComponentField extends VueComponentBase
             }
         }
 
+        this.select_options = newOptions;
         if (this.isLoadingOptions) {
             this.isLoadingOptions = false;
         }
-        this.select_options = newOptions;
     }
 
     private asyncLoadEnumOptions(query_str: string) {
@@ -2093,7 +2284,16 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     private query_update_visible_options(_query: string) {
+
+        if (!this.field) {
+            return;
+        }
+
+        if (!this.isLoadingOptions) {
+            this.isLoadingOptions = true;
+        }
+
         this.actual_query = _query;
-        this.update_visible_options();
+        this.update_visible_options.bind(this)();
     }
 }

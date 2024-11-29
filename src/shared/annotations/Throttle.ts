@@ -1,6 +1,7 @@
 import { throttle } from 'lodash';
 import ThrottleHelper from '../tools/ThrottleHelper';
 import StackContextWrapper from '../tools/StackContextWrapper';
+import 'reflect-metadata';
 
 // Types pour les paramètres du décorateur
 export interface ThrottleOptions {
@@ -39,84 +40,13 @@ export function PostThrottleParam(target: unknown, propertyKey: string | symbol,
 }
 
 // Décorateur Throttle
-export function Throttle(options: ThrottleOptions) {
+export default function Throttle(options: ThrottleOptions) {
     return function (
         target: any,
         propertyKey: string,
         descriptor: PropertyDescriptor
     ) {
         const originalMethod = descriptor.value;
-
-        const UID = ThrottleHelper.get_next_UID();
-
-        // Préparer la fonction throttlée en fonction du type de paramètre
-        switch (options.param_type) {
-            case THROTTLED_METHOD_PARAM_TYPE.STACKABLE:
-
-                ThrottleHelper.throttles[UID] = throttle(async () => {
-                    ThrottleHelper.throttles_semaphore[UID] = false;
-                    const params = ThrottleHelper.throttles_stackable_args[UID];
-                    ThrottleHelper.throttles_stackable_args[UID] = [];
-
-                    if (!!StackContextWrapper.instance) {
-                        await StackContextWrapper.instance.context_incompatible(
-                            originalMethod,
-                            target,
-                            'Throttle.throttles_stackable_args',
-                            null,
-                            params);
-                    } else {
-                        await originalMethod.apply(target, params);
-                    }
-
-                }, options.throttle_ms, {
-                    leading: options.leading ?? false,
-                    trailing: options.trailing ?? true,
-                });
-                break;
-
-            case THROTTLED_METHOD_PARAM_TYPE.MAPPABLE:
-                ThrottleHelper.throttles[UID] = throttle(async () => {
-                    ThrottleHelper.throttles_semaphore[UID] = false;
-                    const params = ThrottleHelper.throttles_mappable_args[UID];
-                    ThrottleHelper.throttles_mappable_args[UID] = {};
-
-                    if (!!StackContextWrapper.instance) {
-                        await StackContextWrapper.instance.context_incompatible(
-                            originalMethod,
-                            target,
-                            'Throttle.throttles_mappable_args',
-                            null,
-                            params);
-                    } else {
-                        await originalMethod.apply(target, [params]);
-                    }
-
-                }, options.throttle_ms, {
-                    leading: options.leading ?? false,
-                    trailing: options.trailing ?? true,
-                });
-                break;
-
-            case THROTTLED_METHOD_PARAM_TYPE.NONE:
-                ThrottleHelper.throttles[UID] = throttle(async () => {
-                    ThrottleHelper.throttles_semaphore[UID] = false;
-
-                    if (!!StackContextWrapper.instance) {
-                        await StackContextWrapper.instance.context_incompatible(
-                            originalMethod,
-                            target,
-                            'Throttle.throttles_no_args');
-                    } else {
-                        await originalMethod.apply(target, []);
-                    }
-
-                }, options.throttle_ms, {
-                    leading: options.leading ?? false,
-                    trailing: options.trailing ?? true,
-                });
-                break;
-        }
 
         // Récupérer les indices des paramètres spéciaux
         const preThrottleIndex: number = Reflect.getMetadata('PreThrottleParam', target, propertyKey);
@@ -133,6 +63,13 @@ export function Throttle(options: ThrottleOptions) {
 
         descriptor.value = function (...args: any[]) {
 
+            // On checke qu'on a déjà déclaré le throttle
+            if (!this[propertyKey + '___THROTTLE_UID']) {
+                this[propertyKey + '___THROTTLE_UID'] = ThrottleHelper.get_next_UID();
+            }
+
+            const UID = this[propertyKey + '___THROTTLE_UID'];
+            const self = this;
             let item: any = args[preThrottleIndex];
 
             // Cas particulier. On peut se retrouver à enchaîner des throttles, par exemple quand on throttle avant un changement de thread, puis à nouveau sur le nouveau thread.
@@ -148,18 +85,92 @@ export function Throttle(options: ThrottleOptions) {
                 throw new Error('The second parameter is managed by the decorator, not the caller');
             }
 
+            // On check l'existence du throttle
+
+            if (!ThrottleHelper.throttles[UID]) {
+
+                // Préparer la fonction throttlée en fonction du type de paramètre
+                switch (options.param_type) {
+                    case THROTTLED_METHOD_PARAM_TYPE.STACKABLE:
+
+                        ThrottleHelper.throttles[UID] = throttle((async () => {
+                            ThrottleHelper.throttles_semaphore[UID] = false;
+                            const params = ThrottleHelper.throttles_stackable_args[UID];
+                            ThrottleHelper.throttles_stackable_args[UID] = [];
+
+                            if (!!StackContextWrapper.instance) {
+                                await StackContextWrapper.instance.context_incompatible(
+                                    originalMethod,
+                                    self,
+                                    'Throttle.throttles_stackable_args',
+                                    null,
+                                    params);
+                            } else {
+                                await originalMethod.apply(self, params);
+                            }
+
+                        }), options.throttle_ms, {
+                            leading: options.leading ?? false,
+                            trailing: options.trailing ?? true,
+                        });
+                        break;
+
+                    case THROTTLED_METHOD_PARAM_TYPE.MAPPABLE:
+                        ThrottleHelper.throttles[UID] = throttle((async () => {
+                            ThrottleHelper.throttles_semaphore[UID] = false;
+                            const params = ThrottleHelper.throttles_mappable_args[UID];
+                            ThrottleHelper.throttles_mappable_args[UID] = {};
+
+                            if (!!StackContextWrapper.instance) {
+                                await StackContextWrapper.instance.context_incompatible(
+                                    originalMethod,
+                                    self,
+                                    'Throttle.throttles_mappable_args',
+                                    null,
+                                    params);
+                            } else {
+                                await originalMethod.apply(self, [params]);
+                            }
+
+                        }), options.throttle_ms, {
+                            leading: options.leading ?? false,
+                            trailing: options.trailing ?? true,
+                        });
+                        break;
+
+                    case THROTTLED_METHOD_PARAM_TYPE.NONE:
+                        ThrottleHelper.throttles[UID] = throttle((async () => {
+                            ThrottleHelper.throttles_semaphore[UID] = false;
+
+                            if (!!StackContextWrapper.instance) {
+                                await StackContextWrapper.instance.context_incompatible(
+                                    originalMethod,
+                                    self,
+                                    'Throttle.throttles_no_args');
+                            } else {
+                                await originalMethod.apply(self, []);
+                            }
+
+                        }), options.throttle_ms, {
+                            leading: options.leading ?? false,
+                            trailing: options.trailing ?? true,
+                        });
+                        break;
+                }
+            }
+
             switch (options.param_type) {
                 case THROTTLED_METHOD_PARAM_TYPE.STACKABLE:
                     const stack = item ? (Array.isArray(item) ? item : [item]) : [];
-                    ThrottleHelper.throttle_with_stackable_args(UID, stack);
+                    ThrottleHelper.throttle_with_stackable_args.call(this, UID, stack);
                     break;
 
                 case THROTTLED_METHOD_PARAM_TYPE.MAPPABLE:
-                    ThrottleHelper.throttle_with_mappable_args(UID, item);
+                    ThrottleHelper.throttle_with_mappable_args.call(this, UID, item);
                     break;
 
                 case THROTTLED_METHOD_PARAM_TYPE.NONE:
-                    ThrottleHelper.throttle_without_args(UID);
+                    ThrottleHelper.throttle_without_args.call(this, UID);
                     break;
             }
         };

@@ -1,8 +1,8 @@
-import { Throttle, ThrottleOptions } from "../../shared/annotations/Throttle";
+import Throttle, { ThrottleOptions } from "../../shared/annotations/Throttle";
 import { ExecAsServer } from "./ExecAsServer";
 
 // Décorateur Throttled
-export function ThrottleAndExecAsServer(options: ThrottleOptions) {
+export default function ThrottleAndExecAsServer(options: ThrottleOptions) {
     return function (
         target: any,
         propertyKey: string,

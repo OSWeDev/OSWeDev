@@ -15,6 +15,8 @@ import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 })
 export default class AlertComponent extends VueComponentBase {
 
+    private static VPOP_UID: number = 0;
+
     @ModuleAlertGetter
     private get_alerts: { [path: string]: Alert[] };
 
@@ -59,6 +61,7 @@ export default class AlertComponent extends VueComponentBase {
     private title_translation_params: { [param_name: string]: any };
 
     private throttle_update = ThrottleHelper.declare_throttle_without_args(this.update, 100);
+    private v_pop_id: string = 'AlertComponent__' + (AlertComponent.VPOP_UID++).toString();
 
     @Watch('path')
     public on_change_path() {

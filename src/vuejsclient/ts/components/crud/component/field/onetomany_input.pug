@@ -12,7 +12,9 @@
 
     template(v-if='field.can_use_async_load_options')
         multiselect(
-            v-model="field_value",
+            v-if='can_insert_or_update_target_first_loading_ok'
+                
+            v-model="async_load_options_field_value",
             label="label"
             :options="filter_visible_options",
             :placeholder="t(placeholder_string)",
@@ -32,7 +34,7 @@
             @input="onChangeField",
             :loading="isLoadingOptions",
             
-
+            track-by="id",
 
             :select-label='label("multiselect.selectLabel")'
             :select-group-label='label("multiselect.selectGroupLabel")'

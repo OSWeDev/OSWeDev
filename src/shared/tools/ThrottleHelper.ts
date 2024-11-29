@@ -21,7 +21,7 @@ export default class ThrottleHelper {
             ThrottleHelper.throttles_stackable_args[throttle_id] = ThrottleHelper.throttles_stackable_args[throttle_id].concat(stackable_args);
         }
 
-        return ThrottleHelper.throttles[throttle_id]();
+        return ThrottleHelper.throttles[throttle_id].call(this);
     }
 
     public static declare_throttle_without_args(
@@ -84,7 +84,7 @@ export default class ThrottleHelper {
 
         if (!ThrottleHelper.throttles_semaphore[throttle_id]) {
             ThrottleHelper.throttles_semaphore[throttle_id] = true;
-            ThrottleHelper.throttles[throttle_id]();
+            ThrottleHelper.throttles[throttle_id].call(this);
         }
     }
 
@@ -101,7 +101,7 @@ export default class ThrottleHelper {
 
         if (!ThrottleHelper.throttles_semaphore[throttle_id]) {
             ThrottleHelper.throttles_semaphore[throttle_id] = true;
-            ThrottleHelper.throttles[throttle_id]();
+            ThrottleHelper.throttles[throttle_id].call(this);
         }
     }
 
