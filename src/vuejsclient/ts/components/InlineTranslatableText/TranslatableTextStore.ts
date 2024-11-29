@@ -17,14 +17,6 @@ export interface ITranslatableTextState {
 
 export default class TranslatableTextStore implements IStoreModule<ITranslatableTextState, TranslatableTextContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): TranslatableTextStore {
-        if (!TranslatableTextStore.instance) {
-            TranslatableTextStore.instance = new TranslatableTextStore();
-        }
-        return TranslatableTextStore.instance;
-    }
-
     private static instance: TranslatableTextStore;
 
     public module_name: string;
@@ -88,9 +80,18 @@ export default class TranslatableTextStore implements IStoreModule<ITranslatable
             set_flat_locale_translation: (context: TranslatableTextContext, flat_locale_translation: { code_text: string, value: string }) => context.commit(store_mutations_names(this).set_flat_locale_translation, flat_locale_translation),
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): TranslatableTextStore {
+        if (!TranslatableTextStore.instance) {
+            TranslatableTextStore.instance = new TranslatableTextStore();
+        }
+        return TranslatableTextStore.instance;
+    }
 }
 
 export const TranslatableTextStore_ = TranslatableTextStore.getInstance();
 
-export const ModuleTranslatableTextGetter = namespace('TranslatableTextStore', Getter);
-export const ModuleTranslatableTextAction = namespace('TranslatableTextStore', Action);
+const __namespace = namespace('TranslatableTextStore');
+export const ModuleTranslatableTextGetter = __namespace.Getter;
+export const ModuleTranslatableTextAction = __namespace.Action;

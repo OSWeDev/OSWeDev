@@ -65,6 +65,22 @@ export default class VarWidgetComponent extends VueComponentBase {
 
     private var_param_no_value_or_param_is_invalid: boolean = false;
 
+    get var_filter(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return (this.widget_options.filter_type && this.const_filters[this.widget_options.filter_type]) ? this.const_filters[this.widget_options.filter_type].read : undefined;
+    }
+
+    get var_filter_additional_params(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.filter_additional_params ? ObjectHandler.try_get_json(this.widget_options.filter_additional_params) : undefined;
+    }
+
     get var_id(): number {
         if (!this.widget_options) {
             return null;
@@ -86,7 +102,6 @@ export default class VarWidgetComponent extends VueComponentBase {
     }
 
     get title_name_code_text() {
-
         if (!this.widget_options) {
             return null;
         }
@@ -115,24 +130,7 @@ export default class VarWidgetComponent extends VueComponentBase {
         } catch (error) {
             ConsoleHandler.error(error);
         }
-
         return options;
-    }
-
-    get var_filter(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return (this.widget_options.filter_type && this.const_filters[this.widget_options.filter_type]) ? this.const_filters[this.widget_options.filter_type].read : undefined;
-    }
-
-    get var_filter_additional_params(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.filter_additional_params ? ObjectHandler.try_get_json(this.widget_options.filter_additional_params) : undefined;
     }
 
     public static get_var_custom_filters(
@@ -164,24 +162,21 @@ export default class VarWidgetComponent extends VueComponentBase {
         return custom_filters;
     }
 
-    @Watch('widget_options', { immediate: true })
-    private async onchange_widget_options() {
-        await this.throttled_update_visible_options();
-    }
 
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
         await this.throttled_update_visible_options();
     }
 
-    // @Watch('get_custom_filters', { deep: true })
-    // private async onchange_get_custom_filters() {
-    //     if (!this.var_custom_filters) {
-    //         return;
-    //     }
 
-    //     await this.throttled_update_visible_options();
-    // }
+
+
+
+
+    @Watch('widget_options', { immediate: true })
+    private async onchange_widget_options() {
+        await this.throttled_update_visible_options();
+    }
 
     private async update_visible_options(force: boolean = false) {
 
@@ -279,7 +274,7 @@ export default class VarWidgetComponent extends VueComponentBase {
         // query.limit = this.widget_options.max_visible_options;
         // query.offset = 0;
         // query.active_api_type_ids = this.get_dashboard_api_type_ids;
-        // let tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
+        // let tmp = await ModuleContextFilter.instance.select_filter_visible_options(
         //     this.vo_field_ref.api_type_id,
         //     this.vo_field_ref.field_id,
         //     FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters),

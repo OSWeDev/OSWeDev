@@ -11,7 +11,6 @@ import Module from '../Module';
 import MailCategoryVO from './vos/MailCategoryVO';
 import MailEventVO from './vos/MailEventVO';
 import MailVO from './vos/MailVO';
-import PrepareHTMLParamVO, { PrepareHTMLParamVOStatic } from './vos/PrepareHTMLParamVO';
 
 export default class ModuleMailer extends Module {
 
@@ -47,12 +46,6 @@ export default class ModuleMailer extends Module {
 
     private static instance: ModuleMailer = null;
 
-    public prepareHTML: (
-        template: string,
-        lang_id: number,
-        vars: { [name: string]: string },
-    ) => Promise<any> = APIControllerWrapper.sah<PrepareHTMLParamVO, string>(ModuleMailer.APINAME_prepareHTML);
-
     public sendMail: (
         mailOptions: SendMailOptions
     ) => Promise<any> = APIControllerWrapper.sah<SendMailOptions, any>(
@@ -76,13 +69,6 @@ export default class ModuleMailer extends Module {
             null, // droit null ok ???,
             ModuleMailer.APINAME_sendMail,
             [],
-        ));
-
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<PrepareHTMLParamVO, string>(
-            null, // droit null ok ???,
-            ModuleMailer.APINAME_prepareHTML,
-            [],
-            PrepareHTMLParamVOStatic
         ));
     }
 

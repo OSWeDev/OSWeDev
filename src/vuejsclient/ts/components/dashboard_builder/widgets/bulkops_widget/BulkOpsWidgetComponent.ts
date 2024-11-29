@@ -21,7 +21,7 @@ import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
@@ -36,6 +36,7 @@ import BulkOpsWidgetOptions from './options/BulkOpsWidgetOptions';
 import ModuleTableVO from '../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
+import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
 
 @Component({
     template: require('./BulkOpsWidgetComponent.pug'),
@@ -378,7 +379,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             fields[field.datatable_field_uid] = field;
         }
 
-        const rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_, this.columns_by_field_id, fields);
+        const rows = await ModuleContextFilter.instance.select_datatable_rows(query_, this.columns_by_field_id, fields);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
@@ -414,7 +415,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         context_query.set_limit(0, 0);
         context_query.set_sort(null);
 
-        this.pagination_count = await ModuleContextFilter.getInstance()
+        this.pagination_count = await ModuleContextFilter.instance
             .select_count(context_query);
 
         // Si je ne suis pas sur la dernière demande, je me casse
@@ -440,8 +441,8 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
     }
 
     private async refresh() {
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_datatable_rows));
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_count));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_datatable_rows)));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_count)));
         await this.throttled_update_visible_options();
     }
 
@@ -485,7 +486,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
                                     const context_query: ContextQueryVO = query(self.api_type_id).using(self.get_dashboard_api_type_ids).add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(self.get_active_field_filters));
                                     FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_discarded_field_paths);
 
-                                    await ModuleContextFilter.getInstance().update_vos(
+                                    await ModuleContextFilter.instance.update_vos(
                                         context_query, {
                                         [self.field_id_selected]: new_value
                                     });

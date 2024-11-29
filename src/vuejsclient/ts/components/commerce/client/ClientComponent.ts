@@ -30,7 +30,7 @@ export default class ClientComponent extends VueComponentBase {
 
     private async save(): Promise<void> {
         // Sauvegarde de l'utilisateur en base
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.client);
+        await ModuleDAO.instance.insertOrUpdateVO(this.client);
 
         // On affiche le message de sauvegarde
         this.snotify.info(this.label('client.user.mon-compte.enregistrement.ok'));

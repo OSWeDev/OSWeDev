@@ -95,7 +95,7 @@ export default class ProgramPlanComponentModalHistoric extends VueComponentBase 
                                 let res: InsertOrDeleteQueryResult = null;
 
                                 rdv.archived = true;
-                                res = await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+                                res = await ModuleDAO.instance.insertOrUpdateVO(rdv);
 
                                 if (!res?.id) {
                                     reject({

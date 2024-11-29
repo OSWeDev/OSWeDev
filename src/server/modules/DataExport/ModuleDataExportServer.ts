@@ -43,7 +43,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import FilterObj, { filter_by_name } from '../../../shared/tools/Filters';
 import LocaleManager from '../../../shared/tools/LocaleManager';
-import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import OrderedPromisePipeline from '../../../shared/tools/PromisePipeline/OrderedPromisePipeline';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
@@ -67,6 +67,9 @@ import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
 import default_export_mail_html_template from './default_export_mail_html_template.html';
 import TableWidgetManager from '../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
+import TemplateHandlerServer from '../Mailer/TemplateHandlerServer';
+import ParamsServerController from '../Params/ParamsServerController';
+import { IRequestStackContext } from '../../ServerExpressController';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -222,7 +225,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             file.path = filepath;
             file.file_access_policy_name = file_access_policy_name;
             file.is_secured = is_secured;
-            const res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
+            const res: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(file);
             if ((!res) || (!res.id)) {
                 ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
                 return null;
@@ -297,7 +300,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             vars_indicator,
         );
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(export_query);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(export_query);
 
         return null;
     }
@@ -338,34 +341,40 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
 
-        if (target_user_id != StackContext.get('UID')) {
+        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE) && (target_user_id != StackContext.get('UID'))) {
 
-            await StackContext.runPromise({
-                IS_CLIENT: true, UID: target_user_id
-            }, async () => {
-                await this.do_exportContextQueryToXLSX_contextuid(
-                    filename,
-                    context_query,
-                    ordered_column_list,
-                    column_labels,
-                    exportable_datatable_custom_field_columns,
-                    columns,
-                    fields,
-                    varcolumn_conf,
-                    active_field_filters,
-                    custom_filters,
-                    active_api_type_ids,
-                    discarded_field_paths,
-                    is_secured,
-                    file_access_policy_name,
-                    target_user_id,
-                    do_not_use_filter_by_datatable_field_uid,
-                    export_active_field_filters,
-                    export_vars_indicator,
-                    send_email_with_export_notification,
-                    vars_indicator,
-                );
-            });
+            await StackContext.runPromise(
+                {
+                    IS_CLIENT: true,
+                    UID: target_user_id,
+                    CLIENT_TAB_ID: null,
+                    REFERER: null,
+                    SESSION_ID: null,
+                    SID: null,
+                },
+                this.do_exportContextQueryToXLSX_contextuid,
+                this,
+                filename,
+                context_query,
+                ordered_column_list,
+                column_labels,
+                exportable_datatable_custom_field_columns,
+                columns,
+                fields,
+                varcolumn_conf,
+                active_field_filters,
+                custom_filters,
+                active_api_type_ids,
+                discarded_field_paths,
+                is_secured,
+                file_access_policy_name,
+                target_user_id,
+                do_not_use_filter_by_datatable_field_uid,
+                export_active_field_filters,
+                export_vars_indicator,
+                send_email_with_export_notification,
+                vars_indicator,
+            );
         } else {
             await this.do_exportContextQueryToXLSX_contextuid(
                 filename,
@@ -481,8 +490,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             await ordered_promise_pipeline.push(async () => {
 
                 const datas = (this_context_query.fields?.length > 0) ?
-                    await ModuleContextFilter.getInstance().select_datatable_rows(this_context_query, columns_by_field_id, fields) :
-                    await ModuleContextFilter.getInstance().select_vos(this_context_query);
+                    await ModuleContextFilter.instance.select_datatable_rows(this_context_query, columns_by_field_id, fields) :
+                    await ModuleContextFilter.instance.select_vos(this_context_query);
 
                 if (ConfigurationService.node_configuration.debug_export_context_query_to_xlsx_datas) {
                     for (const i in datas) {
@@ -604,11 +613,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             let SEND_IN_BLUE_TEMPLATE_ID: number = null;
 
             if (send_email_with_export_notification) {
-                SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(
+                SEND_IN_BLUE_TEMPLATE_ID = await ParamsServerController.getParamValueAsInt(
                     ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_EXPORT_NOTIFICATION_TEMPLATE_ID
                 );
             } else {
-                SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(
+                SEND_IN_BLUE_TEMPLATE_ID = await ParamsServerController.getParamValueAsInt(
                     ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID
                 );
             }
@@ -654,7 +663,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 await ModuleMailerServer.getInstance().sendMail({
                     to: user.email,
                     subject: translated_mail_subject.translated,
-                    html: await ModuleMailerServer.getInstance().prepareHTML(default_export_mail_html_template, user.lang_id, {
+                    html: await TemplateHandlerServer.apply_template(default_export_mail_html_template, user.lang_id, true, {
                         FILE_URL: ConfigurationService.node_configuration.base_url + filepath.substring(2, filepath.length)
                     })
                 });
@@ -828,7 +837,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             file.path = filepath;
             file.file_access_policy_name = file_access_policy_name;
             file.is_secured = true;
-            const res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
+            const res: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(file);
             if ((!res) || (!res.id)) {
                 ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
                 return null;
@@ -899,7 +908,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // On log l'export
         if (user_log_id) {
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(ExportLogVO.createNew(
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(ExportLogVO.createNew(
                 api_type_id ? api_type_id : 'N/A',
                 Dates.now(),
                 user_log_id
@@ -1146,7 +1155,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             return null;
         }
 
-        return await this.getFileVo(filepath, is_secured, file_access_policy_name);
+        return this.getFileVo(filepath, is_secured, file_access_policy_name);
     }
 
     private async getFileVo(filepath: string, is_secured: boolean, file_access_policy_name: string): Promise<FileVO> {
@@ -1165,7 +1174,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             file.path = filepath;
             file.file_access_policy_name = file_access_policy_name;
             file.is_secured = is_secured;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(file);
             if (!file.id) {
                 ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
                 return null;
@@ -1277,7 +1286,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // On log l'export
         if (user_log_id) {
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(ExportLogVO.createNew(
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(ExportLogVO.createNew(
                 api_type_id,
                 Dates.now(),
                 user_log_id
@@ -1459,14 +1468,20 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 break;
 
             case ModuleTableFieldVO.FIELD_TYPE_enum:
-                // eslint-disable-next-line no-case-declarations
-                const trads: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, field.enum_values[src_vo[src_field_id]], TranslatableTextVO.API_TYPE_ID)
-                    .filter_by_num_in(field_names<TranslationVO>().lang_id, query(UserVO.API_TYPE_ID).field(field_names<UserVO>().lang_id).filter_by_id(target_user_id))
-                    .select_vos();
-                // eslint-disable-next-line no-case-declarations
-                const trad = trads ? trads[0] : null;
-                dest_vo[dest_field_id] = trad ? trad.translated : null;
+
+                if ((src_vo[src_field_id] != null) && (field.enum_values[src_vo[src_field_id]] != null)) {
+
+                    // eslint-disable-next-line no-case-declarations
+                    const trads: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, field.enum_values[src_vo[src_field_id]], TranslatableTextVO.API_TYPE_ID)
+                        .filter_by_num_in(field_names<TranslationVO>().lang_id, query(UserVO.API_TYPE_ID).field(field_names<UserVO>().lang_id).filter_by_id(target_user_id))
+                        .select_vos();
+                    // eslint-disable-next-line no-case-declarations
+                    const trad = trads ? trads[0] : null;
+                    dest_vo[dest_field_id] = trad ? trad.translated : null;
+                } else {
+                    dest_vo[dest_field_id] = null;
+                }
                 break;
 
 

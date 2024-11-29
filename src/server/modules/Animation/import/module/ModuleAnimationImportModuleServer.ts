@@ -120,7 +120,7 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
             if (!this.alreadyPresent(moduleData, modulesInDB)) {
 
                 const module: AnimationModuleVO = this.createModuleBase(moduleData, themes, roles);
-                const queryRes: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(module);
+                const queryRes: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(module);
 
                 if (!queryRes) {
                     succeeded = false;

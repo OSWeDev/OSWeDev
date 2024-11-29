@@ -53,14 +53,6 @@ export interface IProgramPlanState {
 
 export default class ProgramPlanStore implements IStoreModule<IProgramPlanState, ProgramPlanContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ProgramPlanStore {
-        if (!ProgramPlanStore.instance) {
-            ProgramPlanStore.instance = new ProgramPlanStore();
-        }
-        return ProgramPlanStore.instance;
-    }
-
     private static instance: ProgramPlanStore;
 
     public module_name: string;
@@ -457,7 +449,16 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
 
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ProgramPlanStore {
+        if (!ProgramPlanStore.instance) {
+            ProgramPlanStore.instance = new ProgramPlanStore();
+        }
+        return ProgramPlanStore.instance;
+    }
 }
 
-export const ModuleProgramPlanGetter = namespace('ProgramPlanStore', Getter);
-export const ModuleProgramPlanAction = namespace('ProgramPlanStore', Action);
+const __namespace = namespace('ProgramPlanStore');
+export const ModuleProgramPlanGetter = __namespace.Getter;
+export const ModuleProgramPlanAction = __namespace.Action;

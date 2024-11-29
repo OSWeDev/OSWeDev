@@ -3,42 +3,80 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class TemplateHandlerServer {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): TemplateHandlerServer {
-        if (!TemplateHandlerServer.instance) {
-            TemplateHandlerServer.instance = new TemplateHandlerServer();
-        }
-        return TemplateHandlerServer.instance;
-    }
+    /**
+     * Applique un template, et remplace les variables (valeurs et conditions), traductions, et env params (valeurs et conditions)
+     * ATTENTION : les envs params sont donc lisibles via ce système, cette fonction ne doit être accessible que par des admins
+     * si on est pas asserted_is_server_or_admin on n'a pas le droits aux env params
+     * @param template le template à appliquer
+     * @param lang_id l'id de la langue à utiliser pour les traductions
+     * @param asserted_is_server_or_admin si on est admin ou server, on a le droit de lire les envs params
+     * @param template_vars les variables à remplacer / qui peuvent être utilisées dans le template pour des conditions
+     * @returns le template appliqué
+     */
+    public static async apply_template(
+        template: string,
+        lang_id: number,
+        asserted_is_server_or_admin: boolean = false,
+        template_vars: { [name: string]: string } = null): Promise<string> {
 
-    private static instance: TemplateHandlerServer = null;
-
-    private constructor() {
-    }
-
-    public async prepareHTML(template: string, lang_id: number, vars: { [name: string]: string } = null): Promise<string> {
+        template = this.resolveDates(template);
 
         // Les trads peuvent contenir des envs params
-        template = this.resolveEnvConditions(template);
-        template = this.resolveVarConditions(template, vars);
-        template = await this.replaceTrads(template, lang_id);
-        template = this.replaceEnvParams(template);
+        if (asserted_is_server_or_admin) {
+            template = this.resolveEnvConditions(template);
+        }
 
-        if (vars) {
-            template = this.replaceVars(template, vars);
+        template = this.resolveVarConditions(template, template_vars);
+        template = await this.replaceTrads(template, lang_id);
+
+        if (asserted_is_server_or_admin) {
+            template = this.replaceEnvParams(template);
+        }
+
+        if (template_vars) {
+            template = this.replaceVars(template, template_vars);
         }
 
         return template;
     }
 
     /**
+     * Format §§DATE_FORMAT§§decalage§§segment_type§§format§§
+     * Pour afficher une date formatée, décalée (Dates.add(Dates.now(), decalage, segment_type), au format format
+     */
+    public static resolveDates(template: string): string {
+        const regExp = new RegExp('§§DATE_FORMAT§§([^§ ]+)§§([^§]+)§§([^§]+)§§', 'i');
+
+        while (regExp.test(template)) {
+            const regexpres: string[] = regExp.exec(template);
+
+            try {
+                const decalage: number = parseInt(regexpres[1]);
+                const segment_type: number = parseInt(regexpres[2]);
+                const format: string = regexpres[3];
+                template = template.replace(regExp, Dates.format(Dates.add(Dates.now(), decalage, segment_type), format, true));
+                continue;
+            } catch (error) {
+                ConsoleHandler.error('TemplateHandlerServer.resolveDates error: ' + error);
+            }
+
+            template = template.replace(regExp, '');
+        }
+
+        return template;
+    }
+
+
+    /**
      * Format §§IFENV_ENVPARAMNAME§§then§§else§§
      * Test booleen sur le param, incluant son existence et sa non nullité
      */
-    public resolveEnvConditions(template: string): string {
+    public static resolveEnvConditions(template: string): string {
         const regExp = new RegExp('§§IFENV_([^§ ]+)§§([^§]+)§§([^§]+)§§', 'i');
         const env: EnvParam = ConfigurationService.node_configuration;
         while (regExp.test(template)) {
@@ -62,7 +100,7 @@ export default class TemplateHandlerServer {
      * Format §§IFVAR_VARNAME§§then§§else§§
      * Test booleen sur le param, incluant son existence et sa non nullité
      */
-    public resolveVarConditions(template: string, vars: { [name: string]: string }): string {
+    public static resolveVarConditions(template: string, vars: { [name: string]: string }): string {
         const regExp = new RegExp('§§IFVAR_([^§ ]+)§§([^§]*)§§([^§]*)§§', 'i');
         while (regExp.test(template)) {
             const regexpres: string[] = regExp.exec(template);
@@ -80,7 +118,7 @@ export default class TemplateHandlerServer {
         return template;
     }
 
-    public async replaceTrads(template: string, lang_id: number): Promise<string> {
+    public static async replaceTrads(template: string, lang_id: number): Promise<string> {
 
         const regExp = new RegExp('%%TRAD%%([^% ]+)%%', 'i');
 
@@ -113,7 +151,7 @@ export default class TemplateHandlerServer {
         return template;
     }
 
-    public replaceEnvParams(template: string): string {
+    public static replaceEnvParams(template: string): string {
 
         const regExp = new RegExp('%%ENV%%([^% ]+)%%', 'i');
         const env: EnvParam = ConfigurationService.node_configuration;
@@ -132,7 +170,7 @@ export default class TemplateHandlerServer {
         return template;
     }
 
-    public replaceVars(template: string, vars: { [name: string]: string }): string {
+    public static replaceVars(template: string, vars: { [name: string]: string }): string {
 
         const regExp = new RegExp('%%VAR%%([^% ]+)%%', 'i');
         while (regExp.test(template)) {

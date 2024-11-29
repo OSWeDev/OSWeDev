@@ -12,28 +12,24 @@ import ModuleDataExportServer from '../ModuleDataExportServer';
 
 export default class ExportContextQueryToXLSXBGThread implements IBGThread {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ExportContextQueryToXLSXBGThread.instance) {
-            ExportContextQueryToXLSXBGThread.instance = new ExportContextQueryToXLSXBGThread();
-        }
-        return ExportContextQueryToXLSXBGThread.instance;
-    }
-
     private static instance: ExportContextQueryToXLSXBGThread = null;
 
     public current_timeout: number = 2000;
     public MAX_timeout: number = 2000;
     public MIN_timeout: number = 100;
 
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
-
     public exec_in_dedicated_thread: boolean = true;
 
     get name(): string {
         return "ExportContextQueryToXLSXBGThread";
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ExportContextQueryToXLSXBGThread.instance) {
+            ExportContextQueryToXLSXBGThread.instance = new ExportContextQueryToXLSXBGThread();
+        }
+        return ExportContextQueryToXLSXBGThread.instance;
     }
 
     public async work(): Promise<number> {
@@ -59,7 +55,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
             }
 
             next_export.state = ExportContextQueryToXLSXQueryVO.STATE_EXPORTING;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(next_export);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(next_export);
 
             try {
                 await ModuleDataExportServer.getInstance().do_exportContextQueryToXLSX(
@@ -86,13 +82,13 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
                 );
                 this.stats_out('ok', time_in);
                 next_export.state = ExportContextQueryToXLSXQueryVO.STATE_DONE;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(next_export);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(next_export);
 
             } catch (error) {
                 ConsoleHandler.error(error);
                 this.stats_out('ko', time_in);
                 next_export.state = ExportContextQueryToXLSXQueryVO.STATE_ERROR;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(next_export);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(next_export);
 
             }
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;

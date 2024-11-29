@@ -49,9 +49,6 @@ export default class VarPieChartComponent extends VueComponentBase {
     @Prop({ default: null })
     public filter_additional_params: any[];
 
-    @Prop({ default: false })
-    public reload_on_mount: boolean;
-
     private singleton_waiting_to_be_rendered: boolean = false;
     private rendered: boolean = false;
 
@@ -393,9 +390,9 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
     }
 
-    private async destroyed() {
+    private destroyed() {
 
-        await VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
+        VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
     }
 
     private get_filtered_value(var_data: VarDataValueResVO) {

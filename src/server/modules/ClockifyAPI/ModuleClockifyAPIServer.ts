@@ -15,12 +15,14 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ModuleClockifyAPIServer extends ModuleServerBase {
 
@@ -85,7 +87,7 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
     // Getter des utilisateurs clockify d'un workspace donné
     public async get_all_clockify_users(): Promise<ClockifyUserVO[]> {
         try {
-            const workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
+            const workspace_id: string = await ParamsServerController.getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
 
             const clockify_users: any[] = await this.get_all_pages('api/v1/workspaces/' + workspace_id + '/users');
             const users: ClockifyUserVO[] = clockify_users.map((clockify_user) => {
@@ -105,7 +107,7 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
     // Getter des clients clockify d'un workspace donné
     public async get_all_clockify_clients(): Promise<ClockifyClientVO[]> {
         try {
-            const workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
+            const workspace_id: string = await ParamsServerController.getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
 
             const clockify_clients: any[] = await this.get_all_pages('api/v1/workspaces/' + workspace_id + '/clients');
             const clients: ClockifyClientVO[] = clockify_clients.map((clockify_client) => {
@@ -126,7 +128,7 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
     // Getter des projets clockify d'un workspace donné
     public async get_all_clockify_projects(): Promise<ClockifyProjetVO[]> {
         try {
-            const workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
+            const workspace_id: string = await ParamsServerController.getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
 
             const clockify_projects: any[] = await this.get_all_pages('api/v1/workspaces/' + workspace_id + '/projects');
             const projects: ClockifyProjetVO[] = [];
@@ -159,7 +161,7 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
     // Getter des tâches clockify d'un workspace donné
     public async get_all_clockify_tasks_by_project(): Promise<ClockifyTacheVO[]> {
         try {
-            const workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
+            const workspace_id: string = await ParamsServerController.getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
 
             // On récupère tous les projets clockify que l'on a en base
             const projets: ClockifyProjetVO[] = await query(ClockifyProjetVO.API_TYPE_ID).select_vos();
@@ -194,7 +196,7 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
     // Getter des entrées de temps clockify d'un workspace donné
     public async get_all_clockify_timentries_by_user(time_param: TimeParamClockifyTimeEntry): Promise<ClockifyTimeEntryVO[]> {
         try {
-            const workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
+            const workspace_id: string = await ParamsServerController.getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
 
             // On récupère tous les utilisateurs clockify que l'on a en base
             const users: ClockifyUserVO[] = await query(ClockifyUserVO.API_TYPE_ID).select_vos();
@@ -242,7 +244,7 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
         let res: any[] = [];
         let has_more: boolean = true;
         let page: number = 1;
-        const api_key: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_API_KEY_API_PARAM_NAME);
+        const api_key: string = await ParamsServerController.getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_API_KEY_API_PARAM_NAME);
 
         while (has_more) {
             const elts: any[] = await ModuleRequest.getInstance().sendRequestFromApp(
@@ -275,29 +277,42 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
         let res: any[] = [];
         let has_more: boolean = true;
         let page: number = 1;
-        const api_key: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_API_KEY_API_PARAM_NAME);
+        const api_key: string = await ParamsServerController.getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_API_KEY_API_PARAM_NAME);
 
         while (has_more) {
-            const elts: any[] = await ModuleRequest.getInstance().sendRequestFromApp(
-                ModuleRequest.METHOD_GET,
-                ModuleClockifyAPI.ClockifyAPI_BaseURL,
-                (url.startsWith('/') ? url : '/' + url) + ModuleRequest.getInstance().get_params_url({
-                    page: page.toString(),
-                    start: Dates.format(start_time, "YYYY-MM-DD", true) + "T00:00:00Z",
-                    end: Dates.format(end_time, "YYYY-MM-DD", true) + "T23:59:59Z",
-                }),
-                null,
-                {
-                    'X-Api-Key': api_key,
-                    'Content-Type': 'application/json',
-                },
-                true,
-                null,
-                false,
-            );
+            /**
+             * L'api sort une erreur 429 si on fait une requête qui sort [] comme résultat
+             * et fait tout planter
+             */
+            let elts: any[] = [];
+            try {
+                elts = await ModuleRequest.getInstance().sendRequestFromApp(
+                    ModuleRequest.METHOD_GET,
+                    ModuleClockifyAPI.ClockifyAPI_BaseURL,
+                    (url.startsWith('/') ? url : '/' + url) + ModuleRequest.getInstance().get_params_url({
+                        page: page.toString(),
+                        start: Dates.format(start_time, "YYYY-MM-DD", true) + "T00:00:00Z",
+                        end: Dates.format(end_time, "YYYY-MM-DD", true) + "T23:59:59Z",
+                    }),
+                    null,
+                    {
+                        'X-Api-Key': api_key,
+                        'Content-Type': 'application/json',
+                    },
+                    true,
+                    null,
+                    false,
+                );
 
-            res = res.concat(elts);
-            page++;
+            } catch (error) {
+                ConsoleHandler.log('Probablement une 429, c\'est juste qu\'on récupère une page sans data (celle après la dernière): ', error);
+                elts = [];
+            }
+
+            if (elts.length > 0) {
+                res = res.concat(elts);
+                page++;
+            }
 
             has_more = elts?.length > 0;
         }

@@ -5,7 +5,7 @@ import GPTAssistantAPIToolResourcesVO from './GPTAssistantAPIToolResourcesVO';
 export default class GPTAssistantAPIThreadVO implements IDistantVOBase {
 
     public static OSELIA_THREAD_TITLE_BUILDER_ASSISTANT_NAME: string = 'Oselia - Thread Title Builder';
-
+    public static OSELIA_THREAD_HELPER_ASSISTANT_NAME: string = "Helper";
     public static API_TYPE_ID: string = "gpt_assistant_thread";
 
     public id: number;
@@ -15,6 +15,11 @@ export default class GPTAssistantAPIThreadVO implements IDistantVOBase {
 
     public gpt_thread_id: string;
     public current_default_assistant_id: number;
+
+    /**
+     * Le thread parent. Par exemple on peut choisir de splitt une tâche depuis un run sur le thread A, et créer les threads B et C nouveaux pour les lancer en //. Dans ce cas, le thread est B par exemple mais le parent_thread_id est A
+     */
+    public parent_thread_id: number;
 
     /**
      * Un run est en cours sur ce thread
@@ -73,6 +78,24 @@ export default class GPTAssistantAPIThreadVO implements IDistantVOBase {
      * si elle reste vide pendant plus de Xh.
      */
     public has_content: boolean;
+
+    /**
+     * Permet de savoir si un run est potientiellement prêt à être traité sur ce thread
+     *  en gros c'est à false par défaut, on passe à true sur toute modif/création/suppression de run
+     *  et le bgthread repasse à false si après vérif on est toujours bloqué par un process en cours
+     *  ça permet juste de pas bloquer le bgthread sur des threads qui sont stucks pour x,y raisons (par exemple on coupe le serveur au milieu du traitement, si on reprend pas sur erreur, c'est stuck)
+     */
+    public has_no_run_ready_to_handle: boolean;
+
+    /**
+     * Lien vers le run en cours côté GPT, ou le dernier run en date
+     */
+    public last_gpt_run_id: number;
+
+    /**
+     * Lien vers le run en cours côté Oselia, ou le dernier run en date
+     */
+    public last_oselia_run_id: number;
 
     public oswedev_created_at: number;
 }

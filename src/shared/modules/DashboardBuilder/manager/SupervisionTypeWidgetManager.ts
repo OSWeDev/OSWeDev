@@ -129,7 +129,7 @@ export default class SupervisionTypeWidgetManager {
             // We must do it in two steps to avoid check access failure
             await promise_pipeline.push(async () => {
 
-                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+                const access_policy_name = ModuleDAO.instance.getAccessPolicyName(
                     ModuleDAO.DAO_ACCESS_TYPE_READ,
                     api_type_id
                 );

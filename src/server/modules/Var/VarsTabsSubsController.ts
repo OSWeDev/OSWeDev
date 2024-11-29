@@ -1,10 +1,13 @@
+import { PostThrottleParam, PreThrottleParam, Throttle, THROTTLED_METHOD_PARAM_TYPE, ThrottleOptions } from '../../../shared/annotations/Throttle';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import { ThrottleExecAsServerRunsOnMainThread } from '../../annotations/ThrottleExecAsServerRunsOnMainThread';
 import ConfigurationService from '../../env/ConfigurationService';
-import ForkedTasksController from '../Fork/ForkedTasksController';
+import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
+import ParamsServerController from '../Params/ParamsServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SocketWrapper from '../PushData/vos/SocketWrapper';
 import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCacheManager';
@@ -12,57 +15,71 @@ import NotifVardatasParam from './notifs/NotifVardatasParam';
 
 export default class VarsTabsSubsController {
 
-    public static TASK_NAME_notify_vardatas: string = 'VarsTabsSubsController.notify_vardatas';
-    public static TASK_NAME_get_subs_indexs: string = 'VarsTabsSubsController.get_subs_indexs';
+    // public static TASK_NAME_notify_vardatas: string = 'VarsTabsSubsController.notify_vardatas';
+    // public static TASK_NAME_get_subs_indexs: string = 'VarsTabsSubsController.get_subs_indexs';
 
 
     public static PARAM_NAME_SUBS_CLEAN_THROTTLE: string = 'VarsTabsSubsController.SUBS_CLEAN_THROTTLE';
     public static PARAM_NAME_SUBS_CLEAN_DELAY: string = 'VarsTabsSubsController.SUBS_CLEAN_DELAY';
 
     /**
-     * Multithreading notes :
-     *  - any data or action in this controller needs to be done on the main thread
+     * Les client_tab_ids abonnés à chaque var_index
+     * On stocke la date de la dernière demande pour pouvoir faire un nettoyage
      */
-    public static notify_vardatas = ThrottleHelper.declare_throttle_with_stackable_args(
-        this.notify_vardatas_throttled.bind(this), 100, { leading: true, trailing: true });
+    private static _tabs_subs: { [var_index: string]: { [user_id: number]: { [client_tab_id: string]: { last_notif_value_ts: number, last_registration_ts: number } } } } = {};
+
+    private static last_subs_clean: number = 0;
 
     public static init() {
         // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(VarsTabsSubsController.TASK_NAME_notify_vardatas, this.notify_vardatas.bind(this));
+        // ForkedTasksController.register_task(VarsTabsSubsController.TASK_NAME_notify_vardatas, this.notify_vardatas.bind(this));
         // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(VarsTabsSubsController.TASK_NAME_get_subs_indexs, this.get_subs_indexs.bind(this));
+        // ForkedTasksController.register_task(VarsTabsSubsController.TASK_NAME_get_subs_indexs, this.get_subs_indexs.bind(this));
     }
 
+    @RunsOnMainThread
     public static async get_subs_indexs(force_update: boolean = false): Promise<string[]> {
 
-        const self = this;
+        if (ConfigurationService.node_configuration.debug_vars) {
+            ConsoleHandler.log('get_subs_index:IN:clean_old_subs:IN');
+        }
 
-        return new Promise(async (resolve, reject) => {
+        await this.clean_old_subs(force_update);
 
-            if (!await ForkedTasksController.exec_self_on_main_process_and_return_value(
-                reject, VarsTabsSubsController.TASK_NAME_get_subs_indexs, resolve, force_update)) {
-                return;
-            }
+        if (ConfigurationService.node_configuration.debug_vars) {
+            ConsoleHandler.log('get_subs_index:IN:clean_old_subs:OUT');
+        }
 
-            if (ConfigurationService.node_configuration.debug_vars) {
-                ConsoleHandler.log('get_subs_index:IN:clean_old_subs:IN');
-            }
+        return Object.keys(this._tabs_subs);
 
-            await self.clean_old_subs(force_update);
+        // const self = this;
 
-            if (ConfigurationService.node_configuration.debug_vars) {
-                ConsoleHandler.log('get_subs_index:IN:clean_old_subs:OUT');
-            }
+        // return new Promise(async (resolve, reject) => {
 
-            resolve(Object.keys(self._tabs_subs));
-        });
+        //     if (!await ForkedTasksController.exec_self_on_main_process_and_return_value(
+        //         reject, VarsTabsSubsController.TASK_NAME_get_subs_indexs, resolve, force_update)) {
+        //         return;
+        //     }
+
+        //     if (ConfigurationService.node_configuration.debug_vars) {
+        //         ConsoleHandler.log('get_subs_index:IN:clean_old_subs:IN');
+        //     }
+
+        //     await self.clean_old_subs(force_update);
+
+        //     if (ConfigurationService.node_configuration.debug_vars) {
+        //         ConsoleHandler.log('get_subs_index:IN:clean_old_subs:OUT');
+        //     }
+
+        //     resolve(Object.keys(self._tabs_subs));
+        // });
     }
 
     /**
      * WARN : Only on main thread (express).
      */
+    @RunsOnMainThread
     public static register_sub(user_id: number, client_tab_id: string, param_indexs: string[]) {
-        ForkedTasksController.assert_is_main_process();
 
         user_id = ((user_id == null) ? 0 : user_id);
 
@@ -103,8 +120,8 @@ export default class VarsTabsSubsController {
     /**
      * WARN : Only on main thread (express).
      */
+    @RunsOnMainThread
     public static unregister_sub(user_id: number, client_tab_id: string, param_indexs: string[]) {
-        ForkedTasksController.assert_is_main_process();
 
         user_id = ((user_id == null) ? 0 : user_id);
 
@@ -163,52 +180,87 @@ export default class VarsTabsSubsController {
      * @param var_datas Tableau ou map (sur index) des vars datas
      * @param is_computing true indique au client de ne pas prendre en compte les valeurs envoyées uniquement le fait q'un calcul est en cours
      */
-    public static async notify_vardatas_throttled(params: NotifVardatasParam[]): Promise<boolean> {
-
-        if (!await ForkedTasksController.exec_self_on_main_process(VarsTabsSubsController.TASK_NAME_notify_vardatas, params)) {
-            return false;
-        }
+    @ThrottleExecAsServerRunsOnMainThread({
+        param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+        throttle_ms: 100,
+        leading: true,
+        trailing: true,
+    })
+    public static async notify_vardatas(
+        @PreThrottleParam pre_param: NotifVardatasParam | NotifVardatasParam[],
+        @PostThrottleParam params: NotifVardatasParam[] = null,
+    ): Promise<boolean> {
 
         await this.clean_old_subs();
 
-        const datas_by_socketid_for_notif: { [socketid: number]: VarDataValueResVO[] } = {};
+        // Si on a plusieurs notifs pour un même index de var, on envoie que la dernière
+        const params_by_index: { [index: string]: { ts_ms: number, var_data: VarDataBaseVO, is_computing: boolean } } = {};
         for (const parami in params) {
             const param = params[parami];
 
             for (const i in param.var_datas) {
                 const var_data = param.var_datas[i];
-                const users_tabs_subs = this._tabs_subs[var_data.index];
-                // ConsoleHandler.log('REMOVETHIS:notify_vardatas.1:' + var_data.index + ':');
+                if (!params_by_index[var_data.index]) {
+                    params_by_index[var_data.index] = {
+                        ts_ms: param.ts_ms,
+                        var_data: var_data,
+                        is_computing: param.is_computing
+                    };
+                }
 
-                for (const user_id in users_tabs_subs) {
-                    const tabs_subs = users_tabs_subs[user_id];
+                if (param.ts_ms > params_by_index[var_data.index].ts_ms) {
+                    params_by_index[var_data.index] = {
+                        ts_ms: param.ts_ms,
+                        var_data: var_data,
+                        is_computing: param.is_computing
+                    };
+                }
+            }
+        }
 
-                    /**
-                     * On doit demander tous les sockets actifs pour une tab
-                     */
-                    for (const client_tab_id in tabs_subs) {
-                        const sub = tabs_subs[client_tab_id];
+        const datas_by_socketid_for_notif: { [socketid: number]: VarDataValueResVO[] } = {};
+        for (const parami in params_by_index) {
+            const param = params_by_index[parami];
+            const var_data = param.var_data;
+            const is_computing = param.is_computing;
+            const ts_ms = param.ts_ms;
 
-                        if (!sub) {
-                            continue;
+            const users_tabs_subs = this._tabs_subs[var_data.index];
+            // ConsoleHandler.log('REMOVETHIS:notify_vardatas.1:' + var_data.index + ':');
+
+            for (const user_id in users_tabs_subs) {
+                const tabs_subs = users_tabs_subs[user_id];
+
+                /**
+                 * On doit demander tous les sockets actifs pour une tab
+                 */
+                for (const client_tab_id in tabs_subs) {
+                    const sub = tabs_subs[client_tab_id];
+
+                    if (!sub) {
+                        continue;
+                    }
+
+                    // On peut pas faire ça sinon on n'envoie pas les notifs pour is_cumputing par exemple
+                    // // On envoie l'info que si elle est plus récente que la dernière notif pour ce client
+                    // if (sub.last_notif_value_ts > var_data.value_ts) {
+                    //     continue;
+                    // }
+
+                    sub.last_notif_value_ts = var_data.value_ts;
+
+                    const sockets: SocketWrapper[] = PushDataServerController.getUserSockets(parseInt(user_id.toString()), client_tab_id);
+
+                    for (const j in sockets) {
+                        const socket: SocketWrapper = sockets[j];
+
+                        if (!datas_by_socketid_for_notif[socket.socketId]) {
+                            datas_by_socketid_for_notif[socket.socketId] = [];
                         }
+                        datas_by_socketid_for_notif[socket.socketId].push(new VarDataValueResVO().set_from_vardata(var_data).set_is_computing(is_computing).set_notif_ts(ts_ms));
 
-                        // On envoie l'info que si elle est plus récente que la dernière notif pour ce client
-                        if (sub.last_notif_value_ts >= var_data.value_ts) {
-                            continue;
-                        }
-
-                        sub.last_notif_value_ts = var_data.value_ts;
-
-                        const sockets: SocketWrapper[] = PushDataServerController.getUserSockets(parseInt(user_id.toString()), client_tab_id);
-
-                        for (const j in sockets) {
-                            const socket: SocketWrapper = sockets[j];
-
-                            if (!datas_by_socketid_for_notif[socket.socketId]) {
-                                datas_by_socketid_for_notif[socket.socketId] = [];
-                            }
-                            datas_by_socketid_for_notif[socket.socketId].push(new VarDataValueResVO().set_from_vardata(var_data).set_is_computing(param.is_computing));
+                        if (ConfigurationService.node_configuration.debug_vars_notifs) {
+                            ConsoleHandler.log('VarsTabsSubsController:notify_vardatas:socketid:' + socket.socketId + ':user_id:' + user_id + ':client_tab_id:' + client_tab_id + ':var_index:' + var_data.index + ':' + var_data.value + ':' + var_data.value_ts + ':' + var_data.value_type + ':' + is_computing + ':' + ts_ms + ':');
                         }
                     }
                 }
@@ -223,13 +275,6 @@ export default class VarsTabsSubsController {
         return true;
     }
 
-    /**
-     * Les client_tab_ids abonnés à chaque var_index
-     * On stocke la date de la dernière demande pour pouvoir faire un nettoyage
-     */
-    private static _tabs_subs: { [var_index: string]: { [user_id: number]: { [client_tab_id: string]: { last_notif_value_ts: number, last_registration_ts: number } } } } = {};
-
-    private static last_subs_clean: number = 0;
 
     // /**
     //  * Méthode qui permet de filtrer un tableau de vars et de récupérer les vars actuellement subscribed par des utilisateurs.
@@ -300,11 +345,12 @@ export default class VarsTabsSubsController {
     /**
      * On nettoie les subs qui sont trop anciens, mais on ne fait le checke qu'une fois toutes les X minutes max
      */
+    @RunsOnMainThread
     private static async clean_old_subs(force_update: boolean = false) {
 
         const now = Dates.now();
-        const SUBS_CLEAN_DELAY = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_DELAY, 600, 180000);
-        const SUBS_CLEAN_THROTTLE = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_THROTTLE, 1800, 180000);
+        const SUBS_CLEAN_DELAY = await ParamsServerController.getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_DELAY, 600, 180000);
+        const SUBS_CLEAN_THROTTLE = await ParamsServerController.getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_THROTTLE, 1800, 180000);
 
         if ((!force_update) && (now - this.last_subs_clean) < SUBS_CLEAN_THROTTLE) {
             return;

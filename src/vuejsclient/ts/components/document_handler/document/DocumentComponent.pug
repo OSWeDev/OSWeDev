@@ -1,0 +1,22 @@
+.document.grid-item(
+    @click="open_document(document.document_url)" 
+    target='_blank' 
+    v-tooltip.top="document.description" 
+    :class='classnames[document.importance]'
+)
+
+    .document_name {{ document.name }}
+
+    .document_type(v-if="document.show_icon && !hide_icon")
+        template(v-if='document.type==type_video')
+            i.fa.fa-solid.fa-youtube-play.fa-fw(aria-hidden="true")
+        template(v-if='document.type==type_pdf')
+            i.fa.fa-solid.fa-file-pdf.fa-fw(aria-hidden="true")
+        template(v-if='document.type==type_xls')
+            i.fa.fa-solid.fa-file-excel.fa-fw(aria-hidden="true")
+        template(v-if='document.type==type_doc')
+            i.fa.fa-solid.fa-file-word.fa-fw(aria-hidden="true")
+        template(v-if='document.type==type_ppt')
+            i.fa.fa-solid.fa-file-powerpoint.fa-fw(aria-hidden="true")
+        template(v-if='document.type==type_other')
+            i.fa.fa-solid.fa-file.fa-fw(aria-hidden="true")

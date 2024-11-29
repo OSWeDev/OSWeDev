@@ -99,7 +99,7 @@ export default class VueAnimationQrComponent extends VueComponentBase {
             }
         }
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.editable_uqr);
+        await ModuleDAO.instance.insertOrUpdateVO(this.editable_uqr);
 
         this.$emit('reload');
 
@@ -149,7 +149,7 @@ export default class VueAnimationQrComponent extends VueComponentBase {
 
         this.qr.reponses = JSON.stringify(this.reponses);
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.qr);
+        await ModuleDAO.instance.insertOrUpdateVO(this.qr);
 
         this.snotify.success(this.label('field.auto_update_field_value.succes'));
     }

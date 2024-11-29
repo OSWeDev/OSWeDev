@@ -31,7 +31,7 @@ export default abstract class Module implements IModuleBase {
         this.name = name.toLowerCase();
         this.reflexiveClassName = reflexiveClassName;
         this.specificImportPath = specificImportPath;
-        ModulesManager.getInstance().registerModule(Module.SharedModuleRoleName, this);
+        ModulesManager.registerModule(Module.SharedModuleRoleName, this);
     }
 
     public async hook_module_install(): Promise<void> { }

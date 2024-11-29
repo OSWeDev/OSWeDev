@@ -1,6 +1,6 @@
 /* istanbul ignore file: nothing to test */
 
-import { Express } from 'express';
+import { Application, Express } from 'express';
 import IModuleBase from '../../shared/modules/IModuleBase';
 import Module from '../../shared/modules/Module';
 import ModulesManager from '../../shared/modules/ModulesManager';
@@ -10,7 +10,7 @@ export default abstract class ModuleServerBase implements IModuleBase {
     public static SERVER_MODULE_ROLE_NAME: string = "SERVER_MODULE_ROLE_NAME";
 
     constructor(public name: string) {
-        ModulesManager.getInstance().registerModule(ModuleServerBase.SERVER_MODULE_ROLE_NAME, this);
+        ModulesManager.registerModule(ModuleServerBase.SERVER_MODULE_ROLE_NAME, this);
     }
 
     get actif(): boolean {
@@ -19,13 +19,13 @@ export default abstract class ModuleServerBase implements IModuleBase {
     }
 
     get shared_module(): Module {
-        return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
+        return ModulesManager.getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
     }
 
     public registerApis() { }
 
     public initialize() { }
-    public registerExpressApis(app: Express): void { }
+    public registerExpressApis(app: Application): void { }
     public async registerAccessPolicies(is_generator: boolean = false): Promise<void> { }
     public async registerAccessRoles(): Promise<void> { }
     // istanbul ignore next: cannot test registerServerApiHandlers

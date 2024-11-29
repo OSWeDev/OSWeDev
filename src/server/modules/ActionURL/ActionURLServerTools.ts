@@ -1,4 +1,3 @@
-
 import { createHash } from 'crypto';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
@@ -45,7 +44,7 @@ export default class ActionURLServerTools extends ModuleServerBase {
 
             vos.push(action_url_user);
         }
-        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(vos);
+        await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(vos);
     }
 
     public static create_error_cr(action_url: ActionURLVO, translatable_cr_title: string, translatable_cr_title_params_json: string = null, cr_translatable_text: string = null, translatable_cr_content_params_json: string = null): ActionURLCRVO {

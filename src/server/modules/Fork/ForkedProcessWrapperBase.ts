@@ -1,5 +1,8 @@
 import pg_promise, { IDatabase } from 'pg-promise';
+import { parentPort, workerData } from 'worker_threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import EventsController from '../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
@@ -11,23 +14,28 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import FileLoggerHandler from '../../FileLoggerHandler';
 import I18nextInit from '../../I18nextInit';
 import MemoryUsageStat from '../../MemoryUsageStat';
+import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import ServerAPIController from '../API/ServerAPIController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
+import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
+import RunsOnBgThreadDataController, { EVENT_NAME_ForkServerController_ready } from '../BGThread/annotations/RunsOnBGThread';
+import RunsOnMainThreadDataController from '../BGThread/annotations/RunsOnMainThread';
 import CronServerController from '../Cron/CronServerController';
 import DBDisconnectionServerHandler from '../DAO/disconnection/DBDisconnectionServerHandler';
 import ModuleServiceBase from '../ModuleServiceBase';
+import PushDataServerController from '../PushData/PushDataServerController';
 import StatsServerController from '../Stats/StatsServerController';
 import ForkMessageController from './ForkMessageController';
+import ForkedTasksController from './ForkedTasksController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
-import PushDataServerController from '../PushData/PushDataServerController';
 
 export default abstract class ForkedProcessWrapperBase {
 
-    protected static instance: ForkedProcessWrapperBase;
+    public static instance: ForkedProcessWrapperBase;
 
     /**
      * Local thread cache -----
@@ -35,17 +43,23 @@ export default abstract class ForkedProcessWrapperBase {
     private modulesService: ModuleServiceBase;
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 
-    private UID: number;
     /**
      * ----- Local thread cache
      */
 
     public constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
+        RunsOnMainThreadDataController.exec_self_on_main_process_and_return_value_method = ForkedTasksController.exec_self_on_main_process_and_return_value.bind(ForkedTasksController);
+        RunsOnBgThreadDataController.exec_self_on_bgthread_and_return_value_method = ForkedTasksController.exec_self_on_bgthread_and_return_value.bind(ForkedTasksController);
+
         // On initialise le Controller pour les APIs
         APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
+        ModulesManager.initialize();
+        EventsController.hook_stack_incompatible = StackContext.context_incompatible;
+
         ForkedProcessWrapperBase.instance = this;
+
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
@@ -70,18 +84,18 @@ export default abstract class ForkedProcessWrapperBase {
 
         try {
 
-            this.UID = parseInt(process.argv[2]);
+            const argv = workerData;
 
-            for (let i = 3; i < process.argv.length; i++) {
-                const arg = process.argv[i];
+            for (let i = 1; i < argv.length; i++) {
+                const arg = argv[i];
 
                 const splitted = arg.split(':');
                 const type: string = splitted[0];
                 const name: string = splitted[1];
 
                 switch (type) {
-                    case BGThreadServerController.ForkedProcessType:
-                        BGThreadServerController.valid_bgthreads_names[name] = true;
+                    case BGThreadServerDataManager.ForkedProcessType:
+                        BGThreadServerDataManager.valid_bgthreads_names[name] = true;
                         break;
                     case CronServerController.ForkedProcessType:
                         CronServerController.getInstance().valid_crons_names[name] = true;
@@ -93,17 +107,15 @@ export default abstract class ForkedProcessWrapperBase {
             process.exit(1);
         }
 
+        EventsController.emit_event(EventifyEventInstanceVO.new_event(EVENT_NAME_ForkServerController_ready));
+
         let thread_name = 'fork_';
-        thread_name += Object.keys(BGThreadServerController.valid_bgthreads_names).join('_').replace(/ \./g, '_');
+        thread_name += Object.keys(BGThreadServerDataManager.valid_bgthreads_names).join('_').replace(/ \./g, '_');
         StatsController.THREAD_NAME = thread_name;
         StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
         StatsController.getInstance().UNSTACK_THROTTLE = 60000;
         StatsController.new_stats_handler = StatsServerController.new_stats_handler;
         StatsController.register_stat_COMPTEUR('ServerBase', 'START', '-');
-    }
-
-    get process_UID(): number {
-        return this.UID;
     }
 
     // istanbul ignore next: nothing to test
@@ -174,14 +186,20 @@ export default abstract class ForkedProcessWrapperBase {
         BGThreadServerController.SERVER_READY = true;
         CronServerController.getInstance().server_ready = true;
 
-        process.on('message', async (msg: IForkMessage) => {
-            msg = APIControllerWrapper.try_translate_vo_from_api(msg);
-            await ForkMessageController.message_handler(msg, process);
+        parentPort.on('message', async (msg: IForkMessage) => {
+            msg = ForkMessageController.reapply_prototypes_on_msg(msg);
+            await ForkMessageController.message_handler(msg, parentPort);
         });
 
         // On prévient le process parent qu'on est ready
-        await ForkMessageController.send(new AliveForkMessage());
+        await ForkMessageController.send(new AliveForkMessage(), parentPort);
 
-        ThreadHandler.set_interval(MemoryUsageStat.updateMemoryUsageStat, 45000, 'MemoryUsageStat.updateMemoryUsageStat', true);
+        ThreadHandler.set_interval(
+            'MemoryUsageStat.updateMemoryUsageStat',
+            MemoryUsageStat.updateMemoryUsageStat,
+            45000,
+            'MemoryUsageStat.updateMemoryUsageStat',
+            true,
+        );
     }
 }

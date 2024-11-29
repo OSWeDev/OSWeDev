@@ -53,9 +53,6 @@ export default class VarRadarChart extends VueComponentBase {
     @Prop({ default: null })
     public filter_additional_params: any[];
 
-    @Prop({ default: false })
-    public reload_on_mount: boolean;
-
     private singleton_waiting_to_be_rendered: boolean = false;
     private rendered: boolean = false;
 

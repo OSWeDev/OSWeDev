@@ -12,7 +12,8 @@ export default class APIGPTAskAssistantParam implements IAPIParamTranslator<APIG
         public thread_title: string,
         public content: string,
         public files: FileVO[],
-        public user_id: number
+        public user_id: number,
+        public hide_content: boolean,
     ) { }
 
     public static fromParams(
@@ -21,7 +22,8 @@ export default class APIGPTAskAssistantParam implements IAPIParamTranslator<APIG
         thread_title: string,
         content: string,
         files: FileVO[],
-        user_id: number
+        user_id: number,
+        hide_content: boolean,
     ): APIGPTAskAssistantParam {
 
         return new APIGPTAskAssistantParam(
@@ -30,7 +32,8 @@ export default class APIGPTAskAssistantParam implements IAPIParamTranslator<APIG
             thread_title,
             content,
             files,
-            user_id
+            user_id,
+            hide_content,
         );
     }
 
@@ -41,7 +44,8 @@ export default class APIGPTAskAssistantParam implements IAPIParamTranslator<APIG
             param.thread_title,
             param.content,
             param.files,
-            param.user_id
+            param.user_id,
+            param.hide_content,
         ];
     }
 }

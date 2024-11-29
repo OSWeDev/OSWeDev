@@ -31,6 +31,10 @@ export default interface IEnvParam {
 
     mute__no_sort_by_but_query_limit?: boolean;
 
+    throw_on_incompatible_stack_context?: boolean;
+
+    debug_playwright_controller?: boolean;
+
     debug_slow_queries_ms_limit?: number;
     debug_slow_queries?: boolean;
     debug_param_queries?: boolean;
@@ -44,6 +48,7 @@ export default interface IEnvParam {
     debug_vars_current_tree?: boolean;
     debug_vars_db_param_builder?: boolean;
     debug_vars_server_subs_cbs?: boolean;
+    debug_vars_notifs?: boolean;
     debug_start_server?: boolean;
     debug_imports?: boolean;
     debug_exports?: boolean;
@@ -75,6 +80,8 @@ export default interface IEnvParam {
     debug_export_context_query_to_xlsx_datas_with_vars?: boolean;
     debug_export_context_query_to_xlsx_translated_datas?: boolean;
     debug_export_context_query_to_xlsx_xlsx_datas?: boolean;
+
+    debug_reruns_of_oselia?: boolean;
 
     start_maintenance_acceptation_code: string;
     auto_end_maintenance_on_start: boolean;
@@ -128,4 +135,6 @@ export default interface IEnvParam {
     unblock_openai_push_to_openai_gpt_assistant?: boolean;
 
     silent_no_sort_by_but_query_limit?: boolean;
+
+    log_login_redirects?: boolean;
 }

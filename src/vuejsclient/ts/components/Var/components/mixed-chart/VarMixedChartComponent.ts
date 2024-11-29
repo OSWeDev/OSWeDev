@@ -81,9 +81,6 @@ export default class VarMixedChartComponent extends VueComponentBase {
     @Prop({ default: null })
     public filter_additional_params: any[];
 
-    @Prop({ default: false })
-    public reload_on_mount: boolean;
-
     private singleton_waiting_to_be_rendered: boolean = false;
     private rendered: boolean = false;
 
@@ -513,12 +510,12 @@ export default class VarMixedChartComponent extends VueComponentBase {
         }
     }
 
-    private async destroyed() {
+    private destroyed() {
 
         for (let chart_key in this.charts_var_params) {
             let chart_var_params = this.charts_var_params[chart_key];
 
-            await VarsClientController.getInstance().unRegisterParams(chart_var_params, this.varUpdateCallbacks);
+            VarsClientController.getInstance().unRegisterParams(chart_var_params, this.varUpdateCallbacks);
         }
     }
 

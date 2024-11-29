@@ -26,7 +26,6 @@ import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/Tabl
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
@@ -34,10 +33,11 @@ import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
 import ArrayHandler from '../../../shared/tools/ArrayHandler';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import { IRequestStackContext } from '../../ServerExpressController';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -52,6 +52,7 @@ import ThrottledQueryServerController from '../DAO/ThrottledQueryServerControlle
 import ThrottledRefuseServerController from '../DAO/ThrottledRefuseServerController';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServiceBase from '../ModuleServiceBase';
+import ParamsServerController from '../Params/ParamsServerController';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
 import ContextAccessServerController from './ContextAccessServerController';
 import ContextFieldPathServerController from './ContextFieldPathServerController';
@@ -123,7 +124,7 @@ export default class ContextQueryServerController {
                 context_query
             );
         } else {
-            query_res = await ModuleDAOServer.getInstance().query(
+            query_res = await ModuleDAOServer.instance.query(
                 query_wrapper.query,
                 query_wrapper.params
             );
@@ -154,14 +155,17 @@ export default class ContextQueryServerController {
             }
         }
 
-        // Anonymisation
-        const uid = await StackContext.get('UID');
+        // FIXME TODO anonymisation incompatible avec les throttles
+        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+            // Anonymisation
+            const uid = await StackContext.get('UID');
 
-        await ServerAnonymizationController.anonymise_context_filtered_rows(
-            query_res,
-            context_query.fields,
-            uid
-        );
+            await ServerAnonymizationController.anonymise_context_filtered_rows(
+                query_res,
+                context_query.fields,
+                uid
+            );
+        }
 
         return ModuleTableServerController.translate_vos_from_db(query_res);
     }
@@ -189,7 +193,7 @@ export default class ContextQueryServerController {
         if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
             query_res = await ThrottledQueryServerController.throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
-            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+            query_res = await ModuleDAOServer.instance.query(query_wrapper.query, query_wrapper.params);
         }
 
         let c = (query_res && (query_res.length == 1) && (typeof query_res[0]['c'] != 'undefined') && (query_res[0]['c'] !== null)) ? query_res[0]['c'] : null;
@@ -223,7 +227,7 @@ export default class ContextQueryServerController {
         if (context_query.throttle_query_select) {
             query_res = await ThrottledQueryServerController.throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
-            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+            query_res = await ModuleDAOServer.instance.query(query_wrapper.query, query_wrapper.params);
         }
 
         if ((!query_res) || (!query_res.length)) {
@@ -237,9 +241,12 @@ export default class ContextQueryServerController {
             query_res = ObjectHandler.clone_vos(query_res);
         }
 
-        // Anonymisation
-        const uid = await StackContext.get('UID');
-        await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        // FIXME TODO anonymisation incompatible avec les throttles
+        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+            // Anonymisation
+            const uid = await StackContext.get('UID');
+            await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        }
 
         return query_res;
     }
@@ -306,7 +313,7 @@ export default class ContextQueryServerController {
         if (context_query.throttle_query_select) {
             query_res = await ThrottledQueryServerController.throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
-            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+            query_res = await ModuleDAOServer.instance.query(query_wrapper.query, query_wrapper.params);
         }
 
 
@@ -327,9 +334,12 @@ export default class ContextQueryServerController {
             query_res = ObjectHandler.clone_vos(query_res);
         }
 
-        // Anonymisation
-        const uid = await StackContext.get('UID');
-        await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        // FIXME TODO anonymisation incompatible avec les throttles
+        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+            // Anonymisation
+            const uid = await StackContext.get('UID');
+            await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        }
 
         /**
          * Traitement des champs. on met dans + '__raw' les valeurs brutes, et on met dans le champ lui même la valeur formatée
@@ -493,7 +503,6 @@ export default class ContextQueryServerController {
         }
 
         // Anonymisation déjà faite par le select_datatable_rows
-
         for (const i in query_res) {
             const res_field = query_res[i] ? query_res[i][field.alias] : null;
             const line_options: DataFilterOption[] = ContextQueryFieldServerController.translate_db_res_to_dataoption(field, res_field);
@@ -609,7 +618,7 @@ export default class ContextQueryServerController {
          * au pire si on a des nouvelles lignes, elles nous forcerons à remodifier des lignes déjà updatées. probablement pas très grave
          */
         context_query.query_offset = 0;
-        context_query.query_limit = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAO.PARAM_NAME_MAX_UPDATE_PER_QUERY, 1000, 600000);
+        context_query.query_limit = await ParamsServerController.getParamValueAsInt(ModuleDAO.PARAM_NAME_MAX_UPDATE_PER_QUERY, 1000, 600000);
 
         let might_have_more: boolean = true;
         context_query.set_sort(new SortByVO(context_query.base_api_type_id, 'id', false));
@@ -697,7 +706,7 @@ export default class ContextQueryServerController {
                  * Si les vos sont segmentés, on check en amont l'existence des tables segmentées
                  *  car on ne peut pas les créer en parallèle. Du coup on les crée en amont si besoin
                  */
-                await ModuleDAOServer.getInstance().confirm_segmented_tables_existence(preupdate_vos);
+                await ModuleDAOServer.instance.confirm_segmented_tables_existence(preupdate_vos);
 
                 let vos_to_update: IDistantVOBase[] = ObjectHandler.clone_vos(preupdate_vos);
 
@@ -723,8 +732,8 @@ export default class ContextQueryServerController {
                 });
 
                 // On check les foreign keys avant d'essayer d'enregistrer les vos
-                if (ModuleDAOServer.getInstance().check_foreign_keys) {
-                    vos_to_update = await ModuleDAOServer.getInstance().filterByForeignKeys(vos_to_update);
+                if (ModuleDAOServer.instance.check_foreign_keys) {
+                    vos_to_update = await ModuleDAOServer.instance.filterByForeignKeys(vos_to_update);
 
                     if (!vos_to_update?.length) {
                         StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'filteredByForeignKeys');
@@ -740,7 +749,7 @@ export default class ContextQueryServerController {
 
                     await promise_pipeline.push(async () => {
 
-                        const sql: string = await ModuleDAOServer.getInstance().getqueryfor_insertOrUpdateVO(vo_to_update, preupdate_vo, context_query.is_server);
+                        const sql: string = await ModuleDAOServer.instance.getqueryfor_insertOrUpdateVO(vo_to_update, preupdate_vo, context_query.is_server);
 
                         if (!sql) {
                             ConsoleHandler.warn('Est-ce bien normal ? update_vos :(!sql):' + JSON.stringify(vo_to_update));
@@ -764,7 +773,14 @@ export default class ContextQueryServerController {
                             return null;
                         }
 
-                        await DAOServerController.post_update_trigger_hook.trigger(vo_to_update._type, new DAOUpdateVOHolder(preupdate_vo, vo_to_update), context_query.is_server);
+                        // On exécute les triggers as_admin toujours
+                        await StackContext.exec_as_server(
+                            DAOServerController.post_update_trigger_hook.trigger,
+                            DAOServerController.post_update_trigger_hook,
+                            true,
+                            vo_to_update._type,
+                            new DAOUpdateVOHolder(preupdate_vo, vo_to_update),
+                            context_query.is_server);
 
                         StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'OK');
                         StatsController.register_stat_DUREE('ContextQueryServerController', 'update_vos', 'OK', Dates.now_ms() - time_in);
@@ -833,7 +849,7 @@ export default class ContextQueryServerController {
         //  partie là
 
         context_query.query_offset = 0;
-        context_query.query_limit = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAO.PARAM_NAME_MAX_DELETE_PER_QUERY, 1000, 600000);
+        context_query.query_limit = await ParamsServerController.getParamValueAsInt(ModuleDAO.PARAM_NAME_MAX_DELETE_PER_QUERY, 1000, 600000);
         const InsertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = [];
 
         while (has_more_to_delete) {
@@ -859,7 +875,14 @@ export default class ContextQueryServerController {
                     if (has_trigger_pre_delete) {
                         // Ajout des triggers, avant et après suppression.
                         //  Attention si un des output est false avant suppression, on annule la suppression
-                        const preDeleteTrigger_res: boolean[] = await DAOServerController.pre_delete_trigger_hook.trigger(context_query.base_api_type_id, vo_to_delete, context_query.is_server);
+                        // On exécute les triggers as_admin toujours
+                        const preDeleteTrigger_res: boolean[] = await StackContext.exec_as_server(
+                            DAOServerController.pre_delete_trigger_hook.trigger,
+                            DAOServerController.pre_delete_trigger_hook,
+                            true,
+                            context_query.base_api_type_id,
+                            vo_to_delete,
+                            context_query.is_server);
                         if (!BooleanHandler.AND(preDeleteTrigger_res, true)) {
                             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'pre_delete_trigger_hook_rejection');
                             return;
@@ -978,7 +1001,14 @@ export default class ContextQueryServerController {
                             ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                         }
 
-                        await DAOServerController.post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo, context_query.is_server);
+                        // On exécute les triggers as_admin toujours
+                        await StackContext.exec_as_server(
+                            DAOServerController.post_delete_trigger_hook.trigger,
+                            DAOServerController.post_delete_trigger_hook,
+                            true,
+                            deleted_vo._type,
+                            deleted_vo,
+                            context_query.is_server);
                     }
                 }
 
@@ -1025,7 +1055,14 @@ export default class ContextQueryServerController {
                                 ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                             }
 
-                            await DAOServerController.post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo, context_query.is_server);
+                            // On exécute les triggers as_admin toujours
+                            await StackContext.exec_as_server(
+                                DAOServerController.post_delete_trigger_hook.trigger,
+                                DAOServerController.post_delete_trigger_hook,
+                                true,
+                                deleted_vo._type,
+                                deleted_vo,
+                                context_query.is_server);
                         }
                     }
                     return value;
@@ -1086,10 +1123,10 @@ export default class ContextQueryServerController {
     public static async build_select_query(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
 
         if (context_query.do_count_results) {
-            return await ContextQueryServerController.build_query_count(context_query);
+            return ContextQueryServerController.build_query_count(context_query);
         }
 
-        return await ContextQueryServerController.build_select_query_not_count(context_query);
+        return ContextQueryServerController.build_select_query_not_count(context_query);
     }
 
     public static async get_valid_segmentations(moduletable: ModuleTableVO, context_query: ContextQueryVO): Promise<number[]> {
@@ -2465,7 +2502,7 @@ export default class ContextQueryServerController {
             const context_query_join = context_query.joined_context_queries.find((joined_context_query) => joined_context_query.joined_table_alias == api_type_id);
 
             if (context_query_join) {
-                return await ContextQueryServerController.handle_join_context_query(context_query_join, jointures, tables_aliases_by_type);
+                return ContextQueryServerController.handle_join_context_query(context_query_join, jointures, tables_aliases_by_type);
             }
         }
 
@@ -2491,7 +2528,7 @@ export default class ContextQueryServerController {
                     return aliases_n;
                 }
 
-                return await ContextFilterServerController.updates_cross_jointures(
+                return ContextFilterServerController.updates_cross_jointures(
                     context_query,
                     context_query.query_tables_prefix,
                     selected_field.api_type_id,
@@ -2514,7 +2551,7 @@ export default class ContextQueryServerController {
             return aliases_n;
         }
 
-        return await ContextFilterServerController.updates_jointures(
+        return ContextFilterServerController.updates_jointures(
             context_query, context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
     }
 
@@ -2633,9 +2670,10 @@ export default class ContextQueryServerController {
             if (!loaded) {
                 loaded = true;
 
-                uid = StackContext.get('UID');
-                user = await ModuleAccessPolicyServer.getSelfUser();
-                user_roles_by_role_id = AccessPolicyServerController.getUsersRoles(true, uid);
+                const can_use_context = !StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE);
+                uid = can_use_context ? StackContext.get('UID') : null;
+                user = can_use_context ? await ModuleAccessPolicyServer.getSelfUser() : null;
+                user_roles_by_role_id = uid ? AccessPolicyServerController.getUsersRoles(true, uid) : null;
                 user_roles = ObjectHandler.hasAtLeastOneAttribute(user_roles_by_role_id) ? Object.values(user_roles_by_role_id) : null;
             }
 

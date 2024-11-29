@@ -135,7 +135,7 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
                     code.substring((DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget_to_copy_id).length, code.length);
             }
 
-            const insertOrDeleteQueryResulttt: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page_widget_trad); //Ajout en base.
+            const insertOrDeleteQueryResulttt: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(page_widget_trad); //Ajout en base.
             page_widget_trad.id = insertOrDeleteQueryResulttt.id;
 
             page_widget_to_copy_trads[j] = page_widget_trad;
@@ -147,7 +147,7 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
                 menu_translation.lang_id = translations[0].lang_id;
                 menu_translation.text_id = page_widget_trad.id;
                 menu_translation.translated = translations[0].translated;
-                const resi = await ModuleDAO.getInstance().insertOrUpdateVO(menu_translation);
+                const resi = await ModuleDAO.instance.insertOrUpdateVO(menu_translation);
                 if (resi && resi.id) {
                     this.set_flat_locale_translation({
                         code_text: page_widget_trad.code_text,
@@ -176,7 +176,7 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
         const to_which_page_id: number = this.page_to_copy_in_id;
         page_widget_to_copy.page_id = to_which_page_id;
 
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page_widget_to_copy);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(page_widget_to_copy);
 
         const page_widget_to_copy_id: number = insertOrDeleteQueryResult['id'];
 

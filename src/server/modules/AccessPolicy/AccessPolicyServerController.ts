@@ -1,7 +1,6 @@
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import IServerUserSession from '../../../shared/modules/AccessPolicy/vos/IServerUserSession';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
@@ -13,16 +12,17 @@ import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
+import { IRequestStackContext } from '../../ServerExpressController';
 import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModulesManagerServer from '../ModulesManagerServer';
-import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
+import ModuleAccessPolicyServer from './ModuleAccessPolicyServer';
 
 export default class AccessPolicyServerController {
 
@@ -64,6 +64,34 @@ export default class AccessPolicyServerController {
     public static role_admin: RoleVO = null;
 
     public static hook_user_login: (email: string, password: string) => Promise<UserVO> = null;
+
+    /**
+ * Global application cache - Brocasted CUD - Local R -----
+ */
+
+    /**
+     * Opti pour le démarrage du serveur
+     */
+    private static registered_dependencies_for_loading_process: { [src_pol_id: number]: { [dst_pol_id: number]: PolicyDependencyVO } } = {};
+
+    private static registered_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {};
+
+    private static registered_users_roles: { [uid: number]: RoleVO[] } = {};
+    private static registered_roles_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {};
+    private static registered_policies_by_ids: { [policy_id: number]: AccessPolicyVO } = {};
+
+    private static registered_roles: { [role_name: string]: RoleVO } = {};
+    private static registered_policy_groups: { [group_name: string]: AccessPolicyGroupVO } = {};
+    private static registered_policies: { [policy_name: string]: AccessPolicyVO } = {};
+    /**
+     * ----- Global application cache - Brocasted CUD - Local R
+     */
+
+    private static instance: AccessPolicyServerController = null;
+
+    private static throttled_reload_access_matrix_computation = ThrottleHelper.declare_throttle_without_args(AccessPolicyServerController.reload_access_matrix_computation.bind(this), 1000);
+
+    private constructor() { }
 
     public static init_tasks() {
         // istanbul ignore next: nothing to test : register_task
@@ -150,7 +178,7 @@ export default class AccessPolicyServerController {
             return false;
         }
 
-        if (!StackContext.get('IS_CLIENT')) {
+        if (!StackContext.get(reflect<IRequestStackContext>().IS_CLIENT)) {
             return true;
         }
 
@@ -160,7 +188,7 @@ export default class AccessPolicyServerController {
             return false;
         }
 
-        const uid: number = StackContext.get('UID');
+        const uid = StackContext.get(reflect<IRequestStackContext>().UID);
         if (!uid) {
             // profil anonyme
             return AccessPolicyServerController.checkAccessTo(
@@ -757,7 +785,7 @@ export default class AccessPolicyServerController {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate role ' + role.translatable_name + ' detected, deleting it');
                 const vos = await query(RoleVO.API_TYPE_ID).filter_by_text_eq(field_names<RoleVO>().translatable_name, role.translatable_name).select_vos<RoleVO>();
-                await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
+                await ModuleDAOServer.instance.deleteVOs_as_server(vos);
                 roleFromBDD = null;
             } else {
                 throw error;
@@ -770,7 +798,7 @@ export default class AccessPolicyServerController {
             return roleFromBDD;
         }
 
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(role);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(role);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de role échoué:' + role.translatable_name + ':');
             return null;
@@ -815,7 +843,7 @@ export default class AccessPolicyServerController {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate group ' + group.translatable_name + ' detected, deleting it');
                 const vos = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq(field_names<AccessPolicyGroupVO>().translatable_name, group.translatable_name).select_vos<AccessPolicyGroupVO>();
-                await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
+                await ModuleDAOServer.instance.deleteVOs_as_server(vos);
                 groupFromBDD = null;
             } else {
                 throw error;
@@ -826,7 +854,7 @@ export default class AccessPolicyServerController {
             return groupFromBDD;
         }
 
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(group);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(group);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de groupe échoué :' + group.translatable_name + ':');
             return null;
@@ -876,7 +904,7 @@ export default class AccessPolicyServerController {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate policy ' + policy.translatable_name + ' detected, deleting it');
                 const vos = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq(field_names<AccessPolicyVO>().translatable_name, policy.translatable_name).select_vos<AccessPolicyVO>();
-                await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
+                await ModuleDAOServer.instance.deleteVOs_as_server(vos);
                 ConsoleHandler.error('Duplicate policy ' + policy.translatable_name + ' detected, deleted');
                 policyFromBDD = null;
             } else {
@@ -896,7 +924,7 @@ export default class AccessPolicyServerController {
                 policyFromBDD.module_id = moduleVoID;
                 policyFromBDD.default_behaviour = policy.default_behaviour;
                 policyFromBDD.group_id = policy.group_id;
-                const insertOrDeleteQueryResult_modif: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(policyFromBDD);
+                const insertOrDeleteQueryResult_modif: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(policyFromBDD);
                 if ((!insertOrDeleteQueryResult_modif) || (!insertOrDeleteQueryResult_modif.id)) {
                     ConsoleHandler.error('Modification de droit échoué :' + policyFromBDD.translatable_name + ':');
                     return null;
@@ -909,7 +937,7 @@ export default class AccessPolicyServerController {
             return policyFromBDD;
         }
 
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(policy);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(policy);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de droit échoué :' + policy.translatable_name + ':');
             return null;
@@ -952,7 +980,7 @@ export default class AccessPolicyServerController {
                 // Gestion cas duplication de dépendance qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate policy dependency ' + dependency.src_pol_id + ' -> ' + dependency.depends_on_pol_id + ' detected, deleting it');
                 const vos = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq(field_names<PolicyDependencyVO>().src_pol_id, dependency.src_pol_id).filter_by_num_eq(field_names<PolicyDependencyVO>().depends_on_pol_id, dependency.depends_on_pol_id).select_vos<PolicyDependencyVO>();
-                await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
+                await ModuleDAOServer.instance.deleteVOs_as_server(vos);
                 dependencyFromBDD = null;
             } else {
                 throw error;
@@ -964,7 +992,7 @@ export default class AccessPolicyServerController {
             return dependencyFromBDD;
         }
 
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dependency);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(dependency);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de dépendance échouée :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
             return null;
@@ -1222,43 +1250,14 @@ export default class AccessPolicyServerController {
             );
 
             // On ajoute la session au bgthread d'invalidation si on a un sid
-            const session: IServerUserSession = StackContext.get('SESSION');
-            if (session && session.sid) {
-                ForkedTasksController.exec_self_on_bgthread(
-                    AccessPolicyDeleteSessionBGThread.getInstance().name,
-                    AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids,
-                    session
-                ).then().catch((error) => ConsoleHandler.error(error));
+            // La dépendance au stackcontext est complexe à résoudre à ce niveau... va falloir y réfléchir
+            const sid: string = StackContext.get('SID');
+            if (sid) {
+                ModuleAccessPolicyServer.getInstance().delete_sessions_from_sids([sid]).then().catch((error) => ConsoleHandler.error(error));
             }
         }
         return false;
     }
-
-    /**
-     * Global application cache - Brocasted CUD - Local R -----
-     */
-
-    /**
-     * Opti pour le démarrage du serveur
-     */
-    private static registered_dependencies_for_loading_process: { [src_pol_id: number]: { [dst_pol_id: number]: PolicyDependencyVO } } = {};
-
-    private static registered_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {};
-
-    private static registered_users_roles: { [uid: number]: RoleVO[] } = {};
-    private static registered_roles_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {};
-    private static registered_policies_by_ids: { [policy_id: number]: AccessPolicyVO } = {};
-
-    private static registered_roles: { [role_name: string]: RoleVO } = {};
-    private static registered_policy_groups: { [group_name: string]: AccessPolicyGroupVO } = {};
-    private static registered_policies: { [policy_name: string]: AccessPolicyVO } = {};
-    /**
-     * ----- Global application cache - Brocasted CUD - Local R
-     */
-
-    private static instance: AccessPolicyServerController = null;
-
-    private static throttled_reload_access_matrix_computation = ThrottleHelper.declare_throttle_without_args(AccessPolicyServerController.reload_access_matrix_computation.bind(this), 1000);
 
     private static hasCleanDependencies(
         target_policy: AccessPolicyVO,
@@ -1283,6 +1282,4 @@ export default class AccessPolicyServerController {
 
         return true;
     }
-
-    private constructor() { }
 }

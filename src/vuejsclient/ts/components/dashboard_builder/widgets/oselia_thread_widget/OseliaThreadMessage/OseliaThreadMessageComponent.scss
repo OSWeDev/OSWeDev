@@ -37,8 +37,17 @@
                 transition: all 0.3s ease-in-out;
             }
         }
+    }
 
-        .thread_message_header_right {
+    .thread_message_footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5em;
+        font-size: larger;
+        transition: all 0.3s ease-in-out;
+
+        .thread_message_footer_date {
             font-size: 0.8em;
             color: #9e9e9e;
             transition: all 0.3s ease-in-out;
@@ -88,10 +97,28 @@
         .thread_message_body_content {
             display: block;
             transition: all 0.3s ease-in-out;
-
+            .thread_message_body_text {
+                max-width: 600px;
+                pre {
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                }
+            }
             .sized_by_markdown {
 
                 width: fit-content;
+
+                .thread_message_certitude_button {
+                    transition: all 0.3s ease-in-out;
+                    margin: 0.1em;
+                    cursor: pointer;
+                    padding: 0;
+                    opacity: 0.5;
+                    float: right;
+                    margin-bottom: -2em;
+                    margin-right: 20px;
+                    padding-top: 2px;
+                }
 
                 .thread_message_copy {
                     transition: all 0.3s ease-in-out;
@@ -124,7 +151,7 @@
                 text-align: left;
                 width: fit-content;
                 transition: all 0.3s ease-in-out;
-                padding-right: 2em;
+                padding-right: 3em;
             }
 
             .thread_message_body_action_url {
@@ -152,8 +179,9 @@
     }
 
     .thread_message_attachments {
-        padding-left: 3em;
-
+        flex-direction: row-reverse;
+        display:flex;
+        align-items: end;
         .thread_message_attachment {
             display: inline-flex;
             justify-content: space-evenly;

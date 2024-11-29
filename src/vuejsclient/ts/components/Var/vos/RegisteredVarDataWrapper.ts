@@ -19,7 +19,7 @@ export default class RegisteredVarDataWrapper {
         public var_param: VarDataBaseVO
     ) { }
 
-    public async add_callbacks(callbacks: { [cb_uid: number]: VarUpdateCallback }): Promise<RegisteredVarDataWrapper> {
+    public add_callbacks(callbacks: { [cb_uid: number]: VarUpdateCallback }): RegisteredVarDataWrapper {
         for (const uid in callbacks) {
             const callback = callbacks[uid];
 
@@ -33,7 +33,7 @@ export default class RegisteredVarDataWrapper {
                     (VarsClientController.cached_var_datas[this.var_param.index].value_ts))) {
 
                     if (callback.callback) {
-                        await callback.callback(VarsClientController.cached_var_datas[this.var_param.index]);
+                        callback.callback(VarsClientController.cached_var_datas[this.var_param.index]);
 
                         if (callback.type == VarUpdateCallback.TYPE_ONCE) {
                             continue;
@@ -43,7 +43,7 @@ export default class RegisteredVarDataWrapper {
             } else {
                 if ((callback.value_type == VarUpdateCallback.VALUE_TYPE_ALL)) {
                     if (callback.callback) {
-                        await callback.callback(VarsClientController.cached_var_datas[this.var_param.index]);
+                        callback.callback(VarsClientController.cached_var_datas[this.var_param.index]);
 
                         if (callback.type == VarUpdateCallback.TYPE_ONCE) {
                             continue;

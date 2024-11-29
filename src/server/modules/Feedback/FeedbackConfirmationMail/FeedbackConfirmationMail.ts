@@ -11,6 +11,8 @@ import TranslationVO from '../../../../shared/modules/Translation/vos/Translatio
 import StackContext from '../../../StackContext';
 import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
+import TemplateHandlerServer from '../../Mailer/TemplateHandlerServer';
+import ParamsServerController from '../../Params/ParamsServerController';
 import SendInBlueMailServerController from '../../SendInBlue/SendInBlueMailServerController';
 import FeedbackConfirmationMail_html_template from './FeedbackConfirmationMail_html_template.html';
 
@@ -48,14 +50,14 @@ export default class FeedbackConfirmationMail {
             user = await query(UserVO.API_TYPE_ID).filter_by_id(target_user_id).exec_as_server().select_vo<UserVO>();
         }
 
-        const FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(FeedbackConfirmationMail.PARAM_NAME_FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID);
+        const FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ParamsServerController.getParamValueAsString(FeedbackConfirmationMail.PARAM_NAME_FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID);
         const FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID: number = FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
         // Send mail
         if (FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID) {
 
             // Using SendInBlue
-            return await SendInBlueMailServerController.getInstance().sendWithTemplate(
+            return SendInBlueMailServerController.getInstance().sendWithTemplate(
                 FeedbackConfirmationMail.MAILCATEGORY_FeedbackConfirmationMail,
                 SendInBlueMailVO.createNew(user.name, user.email),
                 FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID,
@@ -72,7 +74,7 @@ export default class FeedbackConfirmationMail {
             await ModuleMailerServer.getInstance().sendMail({
                 to: user.email,
                 subject: translated_mail_subject.translated,
-                html: await ModuleMailerServer.getInstance().prepareHTML(FeedbackConfirmationMail_html_template, user.lang_id, {
+                html: await TemplateHandlerServer.apply_template(FeedbackConfirmationMail_html_template, user.lang_id, true, {
                     FEEDBACK_TITLE: feedback.title,
                     FEEDBACK_ID: feedback.id.toString()
                 })

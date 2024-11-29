@@ -15,7 +15,8 @@ import DocumentHandlerReloadListVO from './vos/DocumentHandlerReloadListVO';
 @Component({
     template: require('./DocumentHandlerComponent.pug'),
     components: {
-        isotope: () => import('vueisotope')
+        isotope: () => import('vueisotope'),
+        Documentcomponent: () => import('./document/DocumentComponent')
     }
 })
 export default class DocumentHandlerComponent extends VueComponentBase {
@@ -39,17 +40,39 @@ export default class DocumentHandlerComponent extends VueComponentBase {
     private all_dt_by_ids: { [id: number]: DocumentTagVO } = {};
     private d_dts: DocumentDocumentTagVO[] = null;
 
-    private classnames: string[] = [
-        'XS',
-        'S',
-        'M',
-        'L',
-        'XL',
-        'XXL'];
-
     private list: DocumentVO[] = [];
 
     private filter_tag_id: number = null;
+
+    get options() {
+        const self = this;
+        return {
+            itemSelector: '.grid-item',
+            layoutMode: 'masonry',
+            masonry: {
+                columnWidth: 100,
+                gutter: 8
+            },
+            getSortData: {
+                name: function (d: DocumentVO) {
+                    return d.name.toLowerCase();
+                }
+            },
+            getFilterData: {
+                tag: function (d: DocumentVO) {
+                    return self.ds_by_dt_ids_and_by_ids[self.filter_tag_id] && self.ds_by_dt_ids_and_by_ids[self.filter_tag_id][d.id];
+                }
+            }
+        };
+    }
+
+    get hasMoreThanOneGroup(): boolean {
+        return !ObjectHandler.hasOneAndOnlyOneAttribute(this.dtg_by_ids);
+    }
+
+    get hasMoreThanOneTag(): boolean {
+        return ObjectHandler.hasAtLeastOneAttribute(this.dt_by_ids) && !ObjectHandler.hasOneAndOnlyOneAttribute(this.dt_by_ids);
+    }
 
     @Watch('get_only_routename')
     public onchange_get_only_routename() {
@@ -91,55 +114,6 @@ export default class DocumentHandlerComponent extends VueComponentBase {
         this.set_has_docs_route_name(datas_list.has_docs_route_name);
     }
 
-    get options() {
-        const self = this;
-        return {
-            itemSelector: '.grid-item',
-            layoutMode: 'masonry',
-            masonry: {
-                columnWidth: 100,
-                gutter: 8
-            },
-            getSortData: {
-                name: function (d: DocumentVO) {
-                    return d.name.toLowerCase();
-                }
-            },
-            getFilterData: {
-                tag: function (d: DocumentVO) {
-                    return self.ds_by_dt_ids_and_by_ids[self.filter_tag_id] && self.ds_by_dt_ids_and_by_ids[self.filter_tag_id][d.id];
-                }
-            }
-        };
-    }
-
-    get type_video() {
-        return DocumentVO.DOCUMENT_TYPE_YOUTUBE;
-    }
-
-    get type_pdf() {
-        return DocumentVO.DOCUMENT_TYPE_PDF;
-    }
-
-    get type_xls() {
-        return DocumentVO.DOCUMENT_TYPE_XLS;
-    }
-
-    get type_doc() {
-        return DocumentVO.DOCUMENT_TYPE_DOC;
-    }
-
-    get type_ppt() {
-        return DocumentVO.DOCUMENT_TYPE_PPT;
-    }
-
-    get type_other() {
-        return DocumentVO.DOCUMENT_TYPE_OTHER;
-    }
-
-    private open_document(url: string) {
-        window.open(url, "_blank");
-    }
 
     private filter_tag(tag: DocumentTagVO) {
         this.filter_tag_id = tag.id;
@@ -149,13 +123,5 @@ export default class DocumentHandlerComponent extends VueComponentBase {
     private unfilter() {
         this.filter_tag_id = null;
         this.$refs['isotope']['unfilter']();
-    }
-
-    get hasMoreThanOneGroup(): boolean {
-        return !ObjectHandler.hasOneAndOnlyOneAttribute(this.dtg_by_ids);
-    }
-
-    get hasMoreThanOneTag(): boolean {
-        return ObjectHandler.hasAtLeastOneAttribute(this.dt_by_ids) && !ObjectHandler.hasOneAndOnlyOneAttribute(this.dt_by_ids);
     }
 }

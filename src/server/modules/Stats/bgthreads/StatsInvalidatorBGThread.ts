@@ -9,6 +9,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
+import ParamsServerController from '../../Params/ParamsServerController';
 import VarsDatasVoUpdateHandler from '../../Var/VarsDatasVoUpdateHandler';
 import VarSecStatsGroupeController from '../vars/controllers/VarSecStatsGroupeController';
 
@@ -18,23 +19,11 @@ export default class StatsInvalidatorBGThread implements IBGThread {
     public static PARAM_NAME_invalidate_x_previous_minutes: string = 'StatsInvalidatorBGThread.invalidate_x_previous_minutes';
     public static PARAM_NAME_invalidate_current_minute: string = 'StatsInvalidatorBGThread.invalidate_current_minute';
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!StatsInvalidatorBGThread.instance) {
-            StatsInvalidatorBGThread.instance = new StatsInvalidatorBGThread();
-        }
-        return StatsInvalidatorBGThread.instance;
-    }
-
     private static instance: StatsInvalidatorBGThread = null;
 
     public current_timeout: number = 20000;
     public MAX_timeout: number = 20000;
     public MIN_timeout: number = 20000;
-
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
 
     private last_update_date_sec: number = null;
 
@@ -42,6 +31,14 @@ export default class StatsInvalidatorBGThread implements IBGThread {
 
     get name(): string {
         return "StatsInvalidatorBGThread";
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!StatsInvalidatorBGThread.instance) {
+            StatsInvalidatorBGThread.instance = new StatsInvalidatorBGThread();
+        }
+        return StatsInvalidatorBGThread.instance;
     }
 
     /**
@@ -55,9 +52,9 @@ export default class StatsInvalidatorBGThread implements IBGThread {
 
             StatsController.register_stat_COMPTEUR('StatsInvalidatorBGThread', 'work', 'IN');
 
-            const invalidation_interval_sec = await ModuleParams.getInstance().getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidation_interval_sec, 30, 300000);
-            const invalidate_x_previous_minutes = await ModuleParams.getInstance().getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidate_x_previous_minutes, 2, 300000);
-            const invalidate_current_minute = await ModuleParams.getInstance().getParamValueAsBoolean(StatsInvalidatorBGThread.PARAM_NAME_invalidate_current_minute, true, 300000);
+            const invalidation_interval_sec = await ParamsServerController.getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidation_interval_sec, 30, 300000);
+            const invalidate_x_previous_minutes = await ParamsServerController.getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidate_x_previous_minutes, 2, 300000);
+            const invalidate_current_minute = await ParamsServerController.getParamValueAsBoolean(StatsInvalidatorBGThread.PARAM_NAME_invalidate_current_minute, true, 300000);
 
             const now_sec = Dates.now();
 

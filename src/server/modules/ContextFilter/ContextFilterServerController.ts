@@ -20,6 +20,8 @@ import ServerAnonymizationController from '../Anonymization/ServerAnonymizationC
 import DAOServerController from '../DAO/DAOServerController';
 import ContextQueryServerController from './ContextQueryServerController';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
+import { reflect } from '../../../shared/tools/ObjectHandler';
+import { IRequestStackContext } from '../../ServerExpressController';
 
 export default class ContextFilterServerController {
 
@@ -73,21 +75,24 @@ export default class ContextFilterServerController {
          */
         const field_type = field_name ? (field ? field.field_type : ModuleTableFieldVO.FIELD_TYPE_int) : null;
 
-        // On tente de déanonymiser avant de construire la requête
-        const uid = await StackContext.get('UID');
-        if (context_filter.param_text) {
-            context_filter.param_text = await ServerAnonymizationController.get_unanonymised_row_field_value(
-                context_filter.param_text,
-                context_filter.vo_type,
-                context_filter.field_name,
-                uid
-            );
-        }
-        if (context_filter.param_textarray) {
-            for (const i in context_filter.param_textarray) {
-                const param_text = context_filter.param_textarray[i];
+        // FIXME TODO : La désanonymisation est incompatible avec le throttle donc avec les throttles select queries !
+        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+            // On tente de déanonymiser avant de construire la requête
+            const uid = await StackContext.get('UID');
+            if (context_filter.param_text) {
+                context_filter.param_text = await ServerAnonymizationController.get_unanonymised_row_field_value(
+                    context_filter.param_text,
+                    context_filter.vo_type,
+                    context_filter.field_name,
+                    uid
+                );
+            }
+            if (context_filter.param_textarray) {
+                for (const i in context_filter.param_textarray) {
+                    const param_text = context_filter.param_textarray[i];
 
-                context_filter.param_textarray[i] = await ServerAnonymizationController.get_unanonymised_row_field_value(param_text, context_filter.vo_type, context_filter.field_name, uid);
+                    context_filter.param_textarray[i] = await ServerAnonymizationController.get_unanonymised_row_field_value(param_text, context_filter.vo_type, context_filter.field_name, uid);
+                }
             }
         }
 
@@ -1418,6 +1423,8 @@ export default class ContextFilterServerController {
                             throw new Error('Not Implemented');
                         }
                         break;
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
+                        throw new Error('Not Implemented');
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_html:

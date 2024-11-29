@@ -2,7 +2,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
-import ThrottlePipelineHelper from '../../../shared/tools/ThrottlePipelineHelper';
+import ThrottlePipelineHelper from '../../../shared/tools/ThrottlePipeline/ThrottlePipelineHelper';
 import ConfigurationService from '../../env/ConfigurationService';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import VarsBGThreadNameHolder from './VarsBGThreadNameHolder';
@@ -182,6 +182,7 @@ export default class VarsServerCallBackSubsController {
             }
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                false,
                 reject,
                 VarsBGThreadNameHolder.bgthread_name,
                 VarsServerCallBackSubsController.TASK_NAME_get_vars_datas,

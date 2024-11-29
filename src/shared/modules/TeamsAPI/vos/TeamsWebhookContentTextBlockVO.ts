@@ -1,12 +1,15 @@
-import { NodeHtmlMarkdown } from 'node-html-markdown';
+// import { NodeHtmlMarkdown } from 'node-html-markdown';
+import TurndownService from 'turndown';
 
 export default class TeamsWebhookContentTextBlockVO {
 
-    private static nhm = new NodeHtmlMarkdown(
-        /* options (optional) */ {},
-        /* customTransformers (optional) */ undefined,
-        /* customCodeBlockTranslators (optional) */ undefined
-    );
+    // private static nhm = new NodeHtmlMarkdown(
+    //     /* options (optional) */ {},
+    //     /* customTransformers (optional) */ undefined,
+    //     /* customCodeBlockTranslators (optional) */ undefined
+    // );
+
+    private static turndown_service = new TurndownService();
 
     public type: string = "TextBlock";
     public text: string;
@@ -16,7 +19,26 @@ export default class TeamsWebhookContentTextBlockVO {
     public size?: string;
     public weight?: string;
 
-    public constructor() { }
+    public constructor() {
+
+        // Personnaliser les règles pour Teams
+        TeamsWebhookContentTextBlockVO.turndown_service.addRule('bold', {
+            filter: ['strong', 'b'],
+            replacement: (content) => `**${content}**`,
+        });
+
+        TeamsWebhookContentTextBlockVO.turndown_service.addRule('italic', {
+            filter: ['em', 'i'],
+            replacement: (content) => `*${content}*`,
+        });
+
+        TeamsWebhookContentTextBlockVO.turndown_service.addRule('removeUnsupported', {
+            filter: (node) => {
+                return ['script', 'style', 'iframe', 'table', 'img'].includes(node.nodeName.toLowerCase());
+            },
+            replacement: () => '',
+        });
+    }
 
     public set_type(type: string): TeamsWebhookContentTextBlockVO {
         this.type = type;
@@ -29,7 +51,11 @@ export default class TeamsWebhookContentTextBlockVO {
          * On traduit le HTML en markdown pour Teams
          */
 
-        this.text = TeamsWebhookContentTextBlockVO.nhm.translate(text);
+        // this.text = TeamsWebhookContentTextBlockVO.nhm.translate(text);
+
+        this.text = TeamsWebhookContentTextBlockVO.turndown_service.turndown(text);
+
+        // this.text = text;
         return this;
     }
 

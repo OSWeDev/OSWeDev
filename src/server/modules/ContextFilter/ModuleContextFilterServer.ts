@@ -10,10 +10,20 @@ import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableF
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import { reflect } from '../../../shared/tools/ObjectHandler';
+import StackContext from '../../StackContext';
 import ModuleServerBase from '../ModuleServerBase';
 import ContextQueryServerController from './ContextQueryServerController';
 
 export default class ModuleContextFilterServer extends ModuleServerBase {
+
+
+    public static instance: ModuleContextFilterServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleContextFilter.instance.name);
+    }
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -24,34 +34,28 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         return ModuleContextFilterServer.instance;
     }
 
-    private static instance: ModuleContextFilterServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleContextFilter.getInstance().name);
-    }
-
     // istanbul ignore next: cannot test configure
     public async configure() {
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
-        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select_filter_visible_options, this.select_filter_visible_options.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select_count, this.select_count.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select_datatable_rows, this.select_datatable_rows.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select_vos, this.select_vos.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select, this.select.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_delete_vos, this.delete_vos.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_update_vos, this.update_vos.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_build_select_query, this.build_select_query.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_build_select_query_str, this.build_select_query_str.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select_vo_from_unique_field, this.select_vo_from_unique_field.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_count_valid_segmentations, this.count_valid_segmentations.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleContextFilter>().select_filter_visible_options, this.select_filter_visible_options.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleContextFilter>().select_count, this.select_count.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleContextFilter>().select_datatable_rows, this.select_datatable_rows.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleContextFilter>().select_vos, this.select_vos.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleContextFilter>().select, this.select.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleContextFilter>().delete_vos, this.delete_vos.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleContextFilter>().update_vos, this.update_vos.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleContextFilter>().build_select_query, this.build_select_query.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleContextFilter>().build_select_query_str, this.build_select_query_str.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleContextFilter>().select_vo_from_unique_field, this.select_vo_from_unique_field.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleContextFilter>().count_valid_segmentations, this.count_valid_segmentations.bind(this));
     }
 
     public async count_valid_segmentations(api_type_id: string, context_query: ContextQueryVO, ignore_self_filter: boolean = true): Promise<number> {
-        return await ContextQueryServerController.count_valid_segmentations(api_type_id, context_query, ignore_self_filter);
+
+        return StackContext.exec_as_server(ContextQueryServerController.count_valid_segmentations, ContextQueryServerController, context_query.is_server, api_type_id, context_query, ignore_self_filter);
     }
 
 
@@ -63,7 +67,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         context_query: ContextQueryVO
     ): Promise<number> {
 
-        return await ContextQueryServerController.select_count(context_query);
+        return StackContext.exec_as_server(ContextQueryServerController.select_count, ContextQueryServerController, context_query.is_server, context_query);
     }
 
     /**
@@ -78,7 +82,15 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     public async update_vos<T extends IDistantVOBase>(
         context_query: ContextQueryVO, new_api_translated_values: { [update_field_id in keyof T]?: any }
     ): Promise<InsertOrDeleteQueryResult[]> {
-        return await ContextQueryServerController.update_vos(context_query, new_api_translated_values);
+
+        // On encapsule au besoin l'appel pour strip le context client (is_server)
+        return StackContext.exec_as_server(
+            ContextQueryServerController.update_vos,
+            ContextQueryServerController,
+            context_query.is_server,
+            context_query,
+            new_api_translated_values
+        );
     }
 
     /**
@@ -90,7 +102,9 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     public async delete_vos(
         context_query: ContextQueryVO
     ): Promise<InsertOrDeleteQueryResult[]> {
-        return await ContextQueryServerController.delete_vos(context_query);
+
+        // On encapsule au besoin l'appel pour strip le context client (is_server)
+        return StackContext.exec_as_server(ContextQueryServerController.delete_vos, ContextQueryServerController, context_query.is_server, context_query);
     }
 
     /**
@@ -130,6 +144,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     public async build_select_query_str(
         context_query: ContextQueryVO
     ): Promise<string> {
+
         const q: ParameterizedQueryWrapper = await this.build_select_query(context_query);
         return q ? q.query : null;
     }
@@ -141,7 +156,9 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     public async build_select_query(
         context_query: ContextQueryVO
     ): Promise<ParameterizedQueryWrapper> {
-        return await ContextQueryServerController.build_select_query(context_query);
+
+        // On encapsule au besoin l'appel pour strip le context client (is_server)
+        return StackContext.exec_as_server(ContextQueryServerController.build_select_query, ContextQueryServerController, context_query.is_server, context_query);
     }
 
     /**
@@ -151,7 +168,9 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     public async select_vos<T extends IDistantVOBase>(
         context_query: ContextQueryVO
     ): Promise<T[]> {
-        return await ContextQueryServerController.select_vos(context_query);
+
+        // On encapsule au besoin l'appel pour strip le context client (is_server)
+        return StackContext.exec_as_server(ContextQueryServerController.select_vos<T>, ContextQueryServerController, context_query.is_server, context_query);
     }
 
     /**
@@ -160,7 +179,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
      */
     private async select(context_query: ContextQueryVO): Promise<any[]> {
 
-        return await ContextQueryServerController.select(context_query);
+        return StackContext.exec_as_server(ContextQueryServerController.select, ContextQueryServerController, context_query.is_server, context_query);
     }
 
     /**
@@ -172,7 +191,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
         fields: { [datatable_field_uid: string]: DatatableField<any, any> }): Promise<any[]> {
 
-        return await ContextQueryServerController.select_datatable_rows(context_query, columns_by_field_id, fields);
+        return StackContext.exec_as_server(ContextQueryServerController.select_datatable_rows, ContextQueryServerController, context_query.is_server, context_query, columns_by_field_id, fields);
     }
 
     /**
@@ -184,9 +203,6 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         actual_query: string
     ): Promise<DataFilterOption[]> {
 
-        return await ContextQueryServerController.select_filter_visible_options(
-            context_query,
-            actual_query
-        );
+        return StackContext.exec_as_server(ContextQueryServerController.select_filter_visible_options, ContextQueryServerController, context_query.is_server, context_query, actual_query);
     }
 }

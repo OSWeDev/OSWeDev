@@ -32,6 +32,7 @@ import { Snotify, SnotifyType } from "vue-snotify";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import ModuleTableController from "../../../shared/modules/DAO/ModuleTableController";
 import VueAppBase from "../../VueAppBase";
+import APIControllerWrapper from "../../../shared/modules/API/APIControllerWrapper";
 
 // MONTHS MIXIN
 const months = [
@@ -409,7 +410,7 @@ export default class VueComponentBase extends Vue
 
     // Permet de savoir si un module est actif ou pas
     protected moduleIsActive(nom_module) {
-        const module: Module = ModulesManager.getInstance().getModuleByNameAndRole(
+        const module: Module = ModulesManager.getModuleByNameAndRole(
             nom_module,
             Module.SharedModuleRoleName,
         ) as Module;
@@ -965,6 +966,7 @@ export default class VueComponentBase extends Vue
     }
 
     protected handle_created_vo_event_callback(list_name: string, sort_function: (a, b) => number, created_vo: IDistantVOBase, map_name: string = null) {
+
         if (map_name) {
             if (!this[map_name]) {
                 Vue.set(this, map_name, {});
@@ -1064,6 +1066,10 @@ export default class VueComponentBase extends Vue
                 room_vo,
                 room_id,
                 (created_vo: IDistantVOBase) => {
+
+                    // On doit invalider du coup les apis get sur ce vo_type !
+                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([created_vo._type]);
+
                     this.handle_created_vo_event_callback(list_name, sort_function, created_vo, map_name);
                 },
             );
@@ -1075,6 +1081,9 @@ export default class VueComponentBase extends Vue
                 room_vo,
                 room_id,
                 async (deleted_vo: IDistantVOBase) => {
+
+                    // On doit invalider du coup les apis get sur ce vo_type !
+                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([deleted_vo._type]);
 
                     const list = map_name ? (this[map_name] ? this[map_name][list_name] : null) : this[list_name];
 
@@ -1092,6 +1101,10 @@ export default class VueComponentBase extends Vue
                 room_vo,
                 room_id,
                 async (pre_update_vo: IDistantVOBase, post_update_vo: IDistantVOBase) => {
+
+                    // On doit invalider du coup les apis get sur ce vo_type !
+                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([pre_update_vo._type]);
+
                     const list = map_name ? (this[map_name] ? this[map_name][list_name] : null) : this[list_name];
 
                     const index = list.findIndex((vo) => vo.id == post_update_vo.id);

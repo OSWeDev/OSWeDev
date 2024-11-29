@@ -28,7 +28,6 @@ import RoleVO from './vos/RoleVO';
 import UserAPIVO from './vos/UserAPIVO';
 import UserLogVO from './vos/UserLogVO';
 import UserRoleVO from './vos/UserRoleVO';
-import UserSessionVO from './vos/UserSessionVO';
 import UserVO from './vos/UserVO';
 import LoginParamVO, { LoginParamVOStatic } from './vos/apis/LoginParamVO';
 import ResetPwdParamVO, { ResetPwdParamVOStatic } from './vos/apis/ResetPwdParamVO';
@@ -100,7 +99,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_GET_AVATAR_URL = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_url";
     public static APINAME_GET_AVATAR_NAME = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_name";
 
-    public static AVATAR_DEFAULT_URL = '/vuejsclient/public/img/avatars/unknown.png';
+    public static AVATAR_DEFAULT_URL = '/public/vuejsclient/img/avatars/unknown.png';
 
     public static APINAME_send_session_share_email = "send_session_share_email";
     public static APINAME_send_session_share_sms = "send_session_share_sms";
@@ -115,7 +114,7 @@ export default class ModuleAccessPolicy extends Module {
     public static PARAM_NAME_LOGIN_INFOS = 'ModuleAccessPolicy.LOGIN_INFOS';
     public static PARAM_NAME_LOGIN_CGU = 'ModuleAccessPolicy.LOGIN_CGU';
 
-    private static instance: ModuleAccessPolicy = null;
+    public static instance: ModuleAccessPolicy = null;
 
     public sendrecapture: (email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_sendrecapture);
     public begininitpwd: (email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_begininitpwd);
@@ -432,7 +431,6 @@ export default class ModuleAccessPolicy extends Module {
     public initialize() {
         this.initializeUser();
         // Pour le moment on initialize pas car conflit entre la génération de la table et le module pgsession
-        this.initializeUserSession();
         this.initializeRole();
         this.initializeUserRoles();
         this.initializeModuleAccessPolicyGroup();
@@ -444,17 +442,13 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUserAPIVO() {
-        let label = ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
-        let field_user_id = ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
-        let datatable_fields = [
-            label,
-            field_user_id,
-            ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().api_key, ModuleTableFieldVO.FIELD_TYPE_string, 'API Key', true).unique()
-        ];
+        const label = ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true)
+            .set_many_to_one_target_moduletable_name(ModuleTableController.module_tables_by_vo_id[UserVO.API_TYPE_ID]);
+        ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().api_key, ModuleTableFieldVO.FIELD_TYPE_string, 'API Key', true).unique();
 
-        ModuleTableController.create_new(this.name, UserAPIVO, label, DefaultTranslationVO.create_new({ 'fr-fr': "Clefs d'API des utilisateurs" }));
-
-        field_user_id.set_many_to_one_target_moduletable_name(ModuleTableController.module_tables_by_vo_id[UserVO.API_TYPE_ID]);
+        ModuleTableController.create_new(this.name, UserAPIVO, label, DefaultTranslationVO.create_new({ 'fr-fr': "Clefs d'API des utilisateurs" }))
+            .set_description('Clefs d\'API des utilisateurs pour les appels API');
     }
 
     private initializeUser() {
@@ -485,26 +479,13 @@ export default class ModuleAccessPolicy extends Module {
             label_field,
             DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateurs" }),
             field_names<UserVO>().name
-        );
+        ).set_description('Comptes utilisateurs');
         field_lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', 'user');
 
         datatable.set_is_archived();
 
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID]);
-    }
-
-    private initializeUserSession() {
-        const label_field = ModuleTableFieldController.create_new(UserSessionVO.API_TYPE_ID, field_names<UserSessionVO>().sid, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'SID' })).unique();
-
-        const datatable_fields = [
-            label_field,
-            ModuleTableFieldController.create_new(UserSessionVO.API_TYPE_ID, field_names<UserSessionVO>().sess, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Information session' })),
-            ModuleTableFieldController.create_new(UserSessionVO.API_TYPE_ID, field_names<UserSessionVO>().expire, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': 'Expiration' })).set_format_localized_time(true).set_segmentation_type(TimeSegment.TYPE_SECOND),
-        ];
-
-        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, UserSessionVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Sessions des utilisateurs" }));
-        datatable.set_bdd_ref('ref', UserSessionVO.API_TYPE_ID);
     }
 
     private initializeRole() {

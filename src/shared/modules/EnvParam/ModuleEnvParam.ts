@@ -136,6 +136,10 @@ export default class ModuleEnvParam extends Module {
         // MUTE__NO_SORT_BY_BUT_QUERY_LIMIT ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().mute__no_sort_by_but_query_limit, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Mute no sort by but query limit', true);
 
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_reruns_of_oselia, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug reruns of Oselia', true, true, false);
+
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_playwright_controller, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug Playwright controller', true, true, false);
+
         // DEBUG_SLOW_QUERIES_MS_LIMIT ?: number;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_slow_queries_ms_limit, ModuleTableFieldVO.FIELD_TYPE_int, 'Debug slow queries ms limit', false);
         // DEBUG_SLOW_QUERIES ?: boolean;
@@ -172,6 +176,7 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_exports, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug exports', true);
         // DEBUG_DELETEVOS ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_deletevos, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug deletevos', true);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().throw_on_incompatible_stack_context, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Throw on incompatible stack context', true, true, false);
         // DEBUG_THROTTLED_SELECT ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_throttled_select, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug throttled select', true);
         // DEBUG_SELECT_DATATABLE_ROWS_query_res ?: boolean;
@@ -284,6 +289,9 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().unblock_openai_push_to_openai_gpt_assistant, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Débloquer les push OpenAI GPT Assistant', true, true, false);
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().silent_no_sort_by_but_query_limit, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Silent "no sort by but query limit"', true, true, true);
+
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_vars_notifs, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug Vars Notifs', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().log_login_redirects, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Log Login Redirects', true, true, false);
 
         ModuleTableController.create_new(this.name, EnvParamsVO, null, 'Static Env Params');
     }

@@ -18,6 +18,8 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import ModuleFileServerBase from './ModuleFileServerBase';
+import { reflect } from '../../../shared/tools/ObjectHandler';
+import { IRequestStackContext } from '../../ServerExpressController';
 
 export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
@@ -140,8 +142,10 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
     }
 
     private async check_secured_files_conf(f: FileVO): Promise<boolean> {
-        const uid = ModuleAccessPolicyServer.getLoggedUserId();
-        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+
+        const can_use_context = !StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE);
+        const uid = can_use_context ? ModuleAccessPolicyServer.getLoggedUserId() : null;
+        const CLIENT_TAB_ID: string = can_use_context ? StackContext.get('CLIENT_TAB_ID') : null;
 
         if (f.is_secured && !f.file_access_policy_name) {
 

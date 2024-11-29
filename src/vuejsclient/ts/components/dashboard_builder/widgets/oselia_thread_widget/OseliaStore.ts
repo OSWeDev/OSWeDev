@@ -10,6 +10,8 @@ export interface IOseliaState {
     can_run_assistant: boolean;
     oselia_first_loading_done: boolean;
     left_panel_open: boolean;
+
+    show_hidden_messages: boolean;
 }
 
 export default class OseliaStore implements IStoreModule<IOseliaState, OseliaContext> {
@@ -24,6 +26,7 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
         set_can_run_assistant(state: IOseliaState, can_run_assistant: boolean) { state.can_run_assistant = can_run_assistant; },
         set_oselia_first_loading_done(state: IOseliaState, oselia_first_loading_done: boolean) { state.oselia_first_loading_done = oselia_first_loading_done; },
         set_left_panel_open(state: IOseliaState, left_panel_open: boolean) { state.left_panel_open = left_panel_open; },
+        set_show_hidden_messages(state: IOseliaState, show_hidden_messages: boolean) { state.show_hidden_messages = show_hidden_messages; },
     };
     public actions: ActionTree<IOseliaState, OseliaContext>;
     public namespaced: boolean = true;
@@ -37,6 +40,7 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
             can_run_assistant: false,
             oselia_first_loading_done: false,
             left_panel_open: false,
+            show_hidden_messages: false,
         };
 
 
@@ -46,6 +50,7 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
             get_can_run_assistant(state: IOseliaState): boolean { return state.can_run_assistant; },
             get_oselia_first_loading_done(state: IOseliaState): boolean { return state.oselia_first_loading_done; },
             get_left_panel_open(state: IOseliaState): boolean { return state.left_panel_open; },
+            get_show_hidden_messages(state: IOseliaState): boolean { return state.show_hidden_messages; },
         };
 
         this.actions = {
@@ -53,6 +58,7 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
             set_can_run_assistant: (context: OseliaContext, can_run_assistant: boolean) => context.commit(store_mutations_names(this).set_can_run_assistant, can_run_assistant),
             set_oselia_first_loading_done: (context: OseliaContext, oselia_first_loading_done: boolean) => context.commit(store_mutations_names(this).set_oselia_first_loading_done, oselia_first_loading_done),
             set_left_panel_open: (context: OseliaContext, left_panel_open: boolean) => context.commit(store_mutations_names(this).set_left_panel_open, left_panel_open),
+            set_show_hidden_messages: (context: OseliaContext, show_hidden_messages: boolean) => context.commit(store_mutations_names(this).set_show_hidden_messages, show_hidden_messages),
         };
     }
 
@@ -65,5 +71,6 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
     }
 }
 
-export const ModuleOseliaGetter = namespace('OseliaStore', Getter);
-export const ModuleOseliaAction = namespace('OseliaStore', Action);
+const __namespace = namespace('OseliaStore');
+export const ModuleOseliaGetter = __namespace.Getter;
+export const ModuleOseliaAction = __namespace.Action;

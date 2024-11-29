@@ -1543,7 +1543,7 @@ export default class CRUDComponentField extends VueComponentBase
 
             // En édition inline + autoupdate, on veut pouvoir aller au plus rapide / simple et donc sauvegarder asap et informer également asap
 
-            const result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(this.vo);
+            const result: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(this.vo);
 
             if ((!result) || (!result.id)) {
 

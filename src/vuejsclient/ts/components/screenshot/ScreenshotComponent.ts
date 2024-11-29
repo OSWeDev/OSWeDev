@@ -9,7 +9,6 @@ import VueComponentBase from '../../../ts/components/VueComponentBase';
 import VueAppController from '../../../VueAppController';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import './ScreenshotComponent.scss';
-
 @Component({
     template: require('./ScreenshotComponent.pug'),
     components: {}
@@ -92,7 +91,7 @@ export default class ScreenshotComponent extends VueComponentBase {
         } catch (error) {
             this.is_taking = false;
             // Gestion des erreurs avec des détails supplémentaires
-            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :" + JSON.stringify(error));
         }
     }
 
@@ -118,7 +117,6 @@ export default class ScreenshotComponent extends VueComponentBase {
                     return;
                 }
 
-                console.dir(imgData);
 
                 const formData = new FormData();
                 formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png');
@@ -143,7 +141,7 @@ export default class ScreenshotComponent extends VueComponentBase {
 
         } catch (error) {
             this.is_taking = false;
-            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :" + JSON.stringify(error));
         }
     }
 
@@ -213,10 +211,10 @@ export default class ScreenshotComponent extends VueComponentBase {
     private async take_fullsize_screenshot() {
         try {
             // Capture de l'écran
-            const captureStream = (await navigator.mediaDevices as any).getDisplayMedia({ preferCurrentTab: true });
+            let captureStream: MediaStream = (await navigator.mediaDevices as any).getDisplayMedia({ preferCurrentTab: true });
             const track = captureStream.getVideoTracks()[0];
-            const image_capture: ImageCapture = new ImageCapture(track);
-
+            // let imageCapture = new ImageCapture(track);
+            const image_capture = new (window as any).ImageCapture(track);
             // Capture de l'image du flux vidéo
             const imageBitmap = await image_capture.grabFrame();
 
@@ -232,7 +230,7 @@ export default class ScreenshotComponent extends VueComponentBase {
             // Retourner le canvas
             return canvas;
         } catch (error) {
-            console.error("Erreur lors de la capture de l'écran :", error);
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :" + JSON.stringify(error));
             return null;
         }
     }
@@ -241,14 +239,18 @@ export default class ScreenshotComponent extends VueComponentBase {
         try {
             // Capture de l'écran
             const capturedCanvas = [];
-            const captureStream = (await navigator.mediaDevices as any).getDisplayMedia({ preferCurrentTab: true });
-            const track = captureStream.getVideoTracks()[0];
+            const options: MediaStreamConstraints = {
+                preferCurrentTab: true,
+            };
+            const captureStream = (await navigator.mediaDevices as MediaDevices).getDisplayMedia(options);
+            const track = (await captureStream).getVideoTracks()[0];
             await this.add_countdown_element();
             for (let i = 0; i < 2; i++) {
                 document.getElementById("countdown").style.display = "flex";
                 await this.countdown(4);
                 document.getElementById("countdown").style.display = "none";
-                const image_capture: ImageCapture = new ImageCapture(track);
+                // const imageCapture = new ImageCapture(track);
+                const image_capture = new (window as any).ImageCapture(track);
                 // Capture de l'image du flux vidéo
                 const imageBitmap = await image_capture.grabFrame();
 
@@ -258,7 +260,6 @@ export default class ScreenshotComponent extends VueComponentBase {
                 canvas.height = imageBitmap.height;
                 canvas.getContext("2d").drawImage(imageBitmap, 0, 0);
                 capturedCanvas.push(canvas);
-                console.log("Image capturée");
             }
 
             track.stop(); // Arrêter le flux pour libérer les ressources
@@ -266,7 +267,7 @@ export default class ScreenshotComponent extends VueComponentBase {
             // Retourner le tableau de canvas
             return capturedCanvas;
         } catch (error) {
-            console.error("Erreur lors de la capture de l'écran :", error);
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :" + JSON.stringify(error));
             return null;
         }
     }
@@ -275,7 +276,6 @@ export default class ScreenshotComponent extends VueComponentBase {
     private async countdown(seconds) {
         for (let i = seconds; i > 0; i--) {
             document.getElementById("countdown").textContent = i;
-            console.log(`Capture d'écran dans ${i} seconde${i > 1 ? 's' : ''}...`);
             await new Promise(resolve => setTimeout(resolve, 1000)); // Attendre 1 seconde
         }
     }

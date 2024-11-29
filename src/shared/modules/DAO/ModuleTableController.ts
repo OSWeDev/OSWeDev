@@ -214,10 +214,25 @@ export default class ModuleTableController {
             return cloneDeep(e);
         }
 
+        // // TODO FIXME DELETE
+        // if (e['_type'] == 'lang') {
+        //     // ConsoleHandler.log('translate_vos_to_api: ' + JSON.stringify(e));
+        //     console.trace('translate_vos_to_api' + JSON.stringify(e));
+        // }
+
+        // On ajoute un marqueur pour indiquer qu'on a déjà traité cet objet, et éviter d'encoder des objets déjà encodés ce qui fait perdre des datas
+        //  On garde dedans la notion d'empilement des demandes pour décoder uniquement quand on a fait autant de decode que de encode
+        if (e['__aprd']) { // apiready
+            e['__aprd']++;
+            return e;
+        }
+
         const res: T = {
             _type: e._type,
             id: e.id,
         } as T;
+
+        res['__aprd'] = 1;
 
         // C'est aussi ici qu'on peut décider de renommer les fields__ en fonction de l'ordre dans la def de moduletable
         //  pour réduire au max l'objet envoyé, et l'offusquer un peu
@@ -248,7 +263,7 @@ export default class ModuleTableController {
                 continue;
             }
 
-            const new_id = translate_field_id ? fieldIdToAPIMap[field.field_name] : field.field_name;
+            const new_id = (fieldIdToAPIMap && translate_field_id) ? fieldIdToAPIMap[field.field_name] : field.field_name;
             res[new_id] = ModuleTableFieldController.translate_field_to_api(e[field.field_name], field, translate_plain_obj_inside_fields_ids);
         }
 
@@ -267,6 +282,21 @@ export default class ModuleTableController {
         const table = ModuleTableController.module_tables_by_vo_type[e._type];
         if ((!e._type) || !table) {
             return cloneDeep(e);
+        }
+
+        // // TODO FIXME DELETE
+        // if (e['_type'] == 'lang') {
+        //     // ConsoleHandler.log('translate_vos_from_api: ' + JSON.stringify(e));
+        //     console.trace('translate_vos_from_api: ' + JSON.stringify(e));
+        // }
+
+        if (e['__aprd'] > 1) {
+            e['__aprd']--;
+            return e as T;
+        } else {
+            if (e['__aprd'] != null) {
+                delete e['__aprd'];
+            }
         }
 
         let res: T = new ModuleTableController.vo_constructor_by_vo_type[table.vo_type]() as T;
@@ -310,7 +340,7 @@ export default class ModuleTableController {
                 continue;
             }
 
-            const old_id = fieldIdToAPIMap[field.field_name];
+            const old_id = fieldIdToAPIMap ? fieldIdToAPIMap[field.field_name] : field.field_name;
             res[field.field_name] = ModuleTableFieldController.translate_field_from_api(e[old_id], field);
         }
 

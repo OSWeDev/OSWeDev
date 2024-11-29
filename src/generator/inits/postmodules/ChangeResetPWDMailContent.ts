@@ -39,7 +39,7 @@ export default class ChangeResetPWDMailContent implements IGeneratorWorker {
                 .select_one();
 
             trad.translated = 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.';
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(trad);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(trad);
         } catch (error) {
             ConsoleHandler.log('Ignore this error if new project: ' + error);
         }

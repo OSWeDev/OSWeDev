@@ -61,7 +61,7 @@ export default class MailStatsEventsComponent extends VueComponentBase {
         let changed_category = false;
         if ((!this.category) || (this.category_name && (this.category_name != this.category.name))) {
             await this.unregister_all_vo_event_callbacks();
-            this.category = await ModuleDAO.getInstance().getNamedVoByName<MailCategoryVO>(MailCategoryVO.API_TYPE_ID, this.category_name);
+            this.category = await ModuleDAO.instance.getNamedVoByName<MailCategoryVO>(MailCategoryVO.API_TYPE_ID, this.category_name);
             changed_category = true;
         }
 

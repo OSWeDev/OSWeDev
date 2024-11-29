@@ -459,7 +459,7 @@ export default class CRUDFormServices {
 
                 if (need_update_links.length > 0) {
 
-                    await ModuleDAO.getInstance().insertOrUpdateVOs(need_update_links);
+                    await ModuleDAO.instance.insertOrUpdateVOs(need_update_links);
                     for (const linki in need_update_links) {
 
                         updateData(need_update_links[linki]);
@@ -531,7 +531,7 @@ export default class CRUDFormServices {
                 if (need_add_links.length > 0) {
                     for (const linki in need_add_links) {
 
-                        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(need_add_links[linki]);
+                        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(need_add_links[linki]);
                         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                             component.snotify.error(component.label('crud.create.errors.many_to_many_failure'));
                             continue;
@@ -541,7 +541,7 @@ export default class CRUDFormServices {
                     }
                 }
                 if (need_delete_links.length > 0) {
-                    await ModuleDAO.getInstance().deleteVOs(need_delete_links);
+                    await ModuleDAO.instance.deleteVOs(need_delete_links);
                     for (const linki in need_delete_links) {
                         removeData({
                             API_TYPE_ID: field.interModuleTable.vo_type,
@@ -616,7 +616,7 @@ export default class CRUDFormServices {
                     editableVO[field.datatable_field_uid] = fileVo[field.datatable_field_uid];
                     fileVo[field.datatable_field_uid] = tmp;
 
-                    await ModuleDAO.getInstance().insertOrUpdateVOs([editableVO, fileVo]);
+                    await ModuleDAO.instance.insertOrUpdateVOs([editableVO, fileVo]);
                     updateData(editableVO);
                     updateData(fileVo);
                 }
@@ -626,7 +626,7 @@ export default class CRUDFormServices {
                 if (vo) {
                     editableVO[field.datatable_field_uid] = fileVo.path;
 
-                    await ModuleDAO.getInstance().insertOrUpdateVO(editableVO);
+                    await ModuleDAO.instance.insertOrUpdateVO(editableVO);
                     updateData(editableVO);
                     updateData(fileVo);
                 }

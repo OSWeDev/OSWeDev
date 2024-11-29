@@ -1,18 +1,17 @@
-import { fork } from 'child_process';
 
 
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import path from 'path';
+import { Worker } from 'worker_threads';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
-import BGThreadServerController from '../BGThread/BGThreadServerController';
+import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
 import IBGThread from '../BGThread/interfaces/IBGThread';
 import CronServerController from '../Cron/CronServerController';
 import ICronWorker from '../Cron/interfaces/ICronWorker';
-import ForkedProcessWrapperBase from './ForkedProcessWrapperBase';
 import ForkMessageController from './ForkMessageController';
 import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
@@ -33,7 +32,7 @@ export default class ForkServerController {
     public static forks_availability: { [uid: number]: number } = {};
     public static forks_reload_asap: { [uid: number]: boolean } = {};
     public static forks_alive: { [uid: number]: boolean } = {};
-    public static forks_alive_historic_pids: { [uid: number]: number[] } = {};
+    // public static forks_alive_historic_pids: { [uid: number]: number[] } = {};
 
     // On informe chaque thread de son identité auprès du parent pour permettre de faire des communications identifiées et plus tard inter-threads
     public static forks_uid_sent: { [uid: number]: boolean } = {};
@@ -42,14 +41,10 @@ export default class ForkServerController {
     public static fork_by_type_and_name: { [exec_type: string]: { [name: string]: IFork } } = {};
 
     public static forks: { [uid: number]: IFork } = {};
-    public static UID: number = 0;
+    public static UID: number = 1;
     /**
      * ----- Local thread cache
      */
-
-    public static is_main_process(): boolean {
-        return !ForkedProcessWrapperBase.getInstance();
-    }
 
     public static async fork_threads() {
         // On fork a minima une fois pour mettre tous les bgthreads et crons dans un child process
@@ -63,7 +58,7 @@ export default class ForkServerController {
         const default_fork: IFork = {
             processes: {},
             uid: this.UID++,
-            child_process: null
+            worker: null
         };
         this.forks[default_fork.uid] = default_fork;
 
@@ -82,6 +77,8 @@ export default class ForkServerController {
 
     public static async reload_unavailable_threads() {
 
+        ConsoleHandler.log('Pour info : Version actuelle de Node.js : ' + process.version);
+
         // On crée les process et on stocke les liens pour pouvoir envoyer les messages en temps voulu (typiquement pour le lancement des crons)
         for (const i in ForkServerController.forks) {
             const forked: IFork = ForkServerController.forks[i];
@@ -91,17 +88,24 @@ export default class ForkServerController {
             }
 
             ForkServerController.forks_availability[i] = Dates.now();
+            const workerPath = path.resolve(process.cwd(), './dist/server/ForkedProcessWrapper.js');
 
             if (ConfigurationService.node_configuration.debug_forks && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
-                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.get_argv(forked), {
-                    execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), '--max-old-space-size=4096', '--expose-gc'],
-                    serialization: "advanced"
-                });
+                forked.worker = new Worker(
+                    workerPath,
+                    {
+                        workerData: ForkServerController.get_argv(forked),
+                        execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), /*'--max-old-space-size=4096', '--expose-gc'*/],
+                    }
+                );
             } else {
-                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.get_argv(forked), {
-                    execArgv: ['--max-old-space-size=4096', '--expose-gc'],
-                    serialization: "advanced"
-                });
+                forked.worker = new Worker(
+                    workerPath,
+                    {
+                        workerData: ForkServerController.get_argv(forked),
+                        execArgv: [/*'--max-old-space-size=4096', '--expose-gc'*/],
+                    }
+                );
             }
 
             if (ForkMessageController.stacked_msg_waiting && ForkMessageController.stacked_msg_waiting.length) {
@@ -109,15 +113,24 @@ export default class ForkServerController {
                     const stacked_msg_waiting = ForkMessageController.stacked_msg_waiting[j];
 
                     if (stacked_msg_waiting.forked_target && (stacked_msg_waiting.forked_target.uid == forked.uid)) {
-                        stacked_msg_waiting.sendHandle = forked.child_process;
+                        stacked_msg_waiting.send_handle = forked.worker;
                     }
                 }
             }
 
-            forked.child_process.on('message', async (msg: IForkMessage) => {
-                msg = APIControllerWrapper.try_translate_vo_from_api(msg);
-                await ForkMessageController.message_handler(msg, forked.child_process);
+            forked.worker.on('error', (error) => {
+                ConsoleHandler.error('Erreur du worker uid:' + forked.uid + ' qui gère les processus : ' + Object.keys(forked.processes).join(', ') + ' : ' + error);
             });
+
+            forked.worker.on('exit', (code) => {
+                ConsoleHandler.error(`Le worker uid:${forked.uid} s'est arrêté avec le code ${code}. Il gérait les processus : ${Object.keys(forked.processes).join(', ')}`);
+            });
+
+            forked.worker.on('message', async (msg: IForkMessage) => {
+                msg = ForkMessageController.reapply_prototypes_on_msg(msg);
+                await ForkMessageController.message_handler(msg, forked.worker);
+            });
+
 
             // /**
             //  * On attend le alive du fork avant de continuer
@@ -188,16 +201,16 @@ export default class ForkServerController {
     }
 
     private static prepare_forked_bgtreads(default_fork: IFork) {
-        for (const i in BGThreadServerController.registered_BGThreads) {
-            const bgthread: IBGThread = BGThreadServerController.registered_BGThreads[i];
+        for (const i in BGThreadServerDataManager.registered_BGThreads) {
+            const bgthread: IBGThread = BGThreadServerDataManager.registered_BGThreads[i];
 
             const forked_bgthread: IForkProcess = {
                 name: bgthread.name,
-                type: BGThreadServerController.ForkedProcessType
+                type: BGThreadServerDataManager.ForkedProcessType
             };
 
-            if (!this.fork_by_type_and_name[BGThreadServerController.ForkedProcessType]) {
-                this.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] = {};
+            if (!this.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType]) {
+                this.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType] = {};
             }
 
             if (bgthread.exec_in_dedicated_thread) {
@@ -206,13 +219,13 @@ export default class ForkServerController {
                         [bgthread.name]: forked_bgthread
                     },
                     uid: this.UID,
-                    child_process: null
+                    worker: null
                 };
-                this.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name] = this.forks[this.UID];
+                this.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread.name] = this.forks[this.UID];
                 this.UID++;
             } else {
                 default_fork.processes[bgthread.name] = forked_bgthread;
-                this.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name] = default_fork;
+                this.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread.name] = default_fork;
             }
         }
     }
@@ -236,7 +249,7 @@ export default class ForkServerController {
                         [cron.worker_uid]: forked_cron
                     },
                     uid: this.UID,
-                    child_process: null
+                    worker: null
                 };
                 this.fork_by_type_and_name[CronServerController.ForkedProcessType][cron.worker_uid] = this.forks[this.UID];
 
@@ -250,17 +263,23 @@ export default class ForkServerController {
 
     private static async checkForksAvailability() {
 
-        ThreadHandler.set_interval(async () => {
+        ThreadHandler.set_interval(
+            'ForkServerController.checkForksAvailability',
+            async () => {
 
-            for (const i in this.forks) {
-                const forked: IFork = this.forks[i];
+                for (const i in this.forks) {
+                    const forked: IFork = this.forks[i];
 
-                if (!this.forks_availability[i]) {
-                    continue;
+                    if (!this.forks_availability[i]) {
+                        continue;
+                    }
+
+                    await ForkMessageController.send(new PingForkMessage(forked.uid), forked.worker, forked);
                 }
-
-                await ForkMessageController.send(new PingForkMessage(forked.uid), forked.child_process, forked);
-            }
-        }, 10000, 'ForkServerController.checkForksAvailability', false);
+            },
+            10000,
+            'ForkServerController.checkForksAvailability',
+            false,
+        );
     }
 }

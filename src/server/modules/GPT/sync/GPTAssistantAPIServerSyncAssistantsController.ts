@@ -28,6 +28,29 @@ import { AssistantResponseFormatOption } from 'openai/resources/beta/threads/thr
 export default class GPTAssistantAPIServerSyncAssistantsController {
 
     /**
+     * On ajoute une méthode pour créer un nouvel assistant côté openai et récupérer l'id pour initialiser le vo chez nous
+     */
+    public static async create_new_assistant_and_get_gpt_id(): Promise<string> {
+        const gpt_obj: Assistant = await GPTAssistantAPIServerController.wrap_api_call(
+            ModuleGPTServer.openai.beta.assistants.create,
+            ModuleGPTServer.openai.beta.assistants,
+            {
+                model: 'gpt-4o-mini',
+                name: 'New Assistant',
+                description: 'New Assistant',
+                instructions: 'New Assistant',
+                metadata: {},
+                response_format: "auto",
+                temperature: 1,
+                tool_resources: null,
+                tools: null,
+                top_p: 1,
+            });
+
+        return gpt_obj.id;
+    }
+
+    /**
      * GPTAssistantAPIFunctionVO
      * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
      */
@@ -258,7 +281,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 await GPTAssistantAPIServerSyncAssistantsController.assign_vo_from_gpt(vo, gpt_obj);
 
                 if (!is_trigger_pre_x) {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(vo);
                 }
             }
 
@@ -337,7 +360,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
                     await GPTAssistantAPIServerSyncAssistantsController.assign_vo_from_gpt(found_vo, assistant);
 
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
                 }
 
                 /**
@@ -369,7 +392,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
             found_vo.archived = true;
             to_update.push(found_vo);
         }
-        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(to_update);
+        await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(to_update);
     }
 
     public static async tool_resources_from_openai_api(data: AssistantCreateParams.ToolResources): Promise<GPTAssistantAPIToolResourcesVO> {
@@ -381,7 +404,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
         const res: GPTAssistantAPIToolResourcesVO = new GPTAssistantAPIToolResourcesVO();
 
         const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2);
-        if (data.code_interpreter) {
+        if (data.code_interpreter && data.code_interpreter.file_ids && data.code_interpreter.file_ids.length) {
             res.code_interpreter_gpt_file_ids = cloneDeep(data.code_interpreter.file_ids);
 
             const code_interpreter_file_ids_ranges: NumRange[] = [];
@@ -395,13 +418,18 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                         throw new Error('GPTAssistantAPIToolResourcesVO: file not found:' + gpt_file_id);
                     }
 
-                    code_interpreter_file_ids_ranges.push(RangeHandler.create_single_elt_NumRange(assistant_file.id, NumSegment.TYPE_INT));
+                    const range = RangeHandler.create_single_elt_NumRange(assistant_file.id, NumSegment.TYPE_INT);
+                    if (!range) {
+                        throw new Error('GPTAssistantAPIToolResourcesVO: file not found:' + gpt_file_id);
+                    }
+
+                    code_interpreter_file_ids_ranges.push(range);
                 });
             }
             res.code_interpreter_file_ids_ranges = code_interpreter_file_ids_ranges;
         }
 
-        if (data.file_search) {
+        if (data.file_search && data.file_search.vector_store_ids && data.file_search.vector_store_ids.length) {
             res.file_search_gpt_vector_store_ids = cloneDeep(data.file_search.vector_store_ids);
 
             const file_search_vector_store_ids_ranges: NumRange[] = [];
@@ -415,7 +443,12 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                         throw new Error('GPTAssistantAPIToolResourcesVO: vector store not found:' + gpt_vector_store_id);
                     }
 
-                    file_search_vector_store_ids_ranges.push(RangeHandler.create_single_elt_NumRange(vector_store_file.id, NumSegment.TYPE_INT));
+                    const range = RangeHandler.create_single_elt_NumRange(vector_store_file.id, NumSegment.TYPE_INT);
+                    if (!range) {
+                        throw new Error('GPTAssistantAPIToolResourcesVO: vector store not found:' + gpt_vector_store_id);
+                    }
+
+                    file_search_vector_store_ids_ranges.push(range);
                 });
             }
             res.file_search_vector_store_ids_ranges = file_search_vector_store_ids_ranges;
@@ -434,17 +467,46 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
         const res: AssistantCreateParams.ToolResources = {};
 
-        if (vo.code_interpreter_gpt_file_ids) {
+        if (vo.code_interpreter_gpt_file_ids && vo.code_interpreter_gpt_file_ids.length) {
             res.code_interpreter = {
                 file_ids: cloneDeep(vo.code_interpreter_gpt_file_ids)
             };
         }
 
-        if (vo.file_search_gpt_vector_store_ids) {
+        if (vo.file_search_gpt_vector_store_ids && vo.file_search_gpt_vector_store_ids.length) {
             res.file_search = {
                 vector_store_ids: cloneDeep(vo.file_search_gpt_vector_store_ids)
             };
         }
+
+        return res;
+    }
+
+    public static async get_tools_definition_from_functions(functions: GPTAssistantAPIFunctionVO[]): Promise<AssistantTool[]> {
+        const res = [];
+
+        if ((!functions) || (!functions.length)) {
+            return null;
+        }
+
+        const promises = [];
+        for (const i in functions) {
+            const func = functions[i];
+
+            promises.push((async () => {
+                const params = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+                    .filter_by_id(func.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                    .set_sort(new SortByVO(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().weight, true))
+                    .exec_as_server()
+                    .select_vos<GPTAssistantAPIFunctionParamVO>();
+                res.push({
+                    type: "function",
+                    function: func.to_GPT_FunctionDefinition(params)
+                });
+            })());
+        }
+
+        await all_promises(promises);
 
         return res;
     }
@@ -521,7 +583,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
             found_vo.archived = true;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
     }
 
@@ -565,7 +627,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
             // found_vo.prepend_thread_vo
             found_vo.archived = false;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
 
         // Là on a vérifié l'existence de la fonction globalement, mais pas le lien avec l'assistant
@@ -579,7 +641,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 ConsoleHandler.log('sync_assistant_function: Updating assistant function in Osélia : ' + tool.name + ' for assistant ' + assistant_vo.nom);
             }
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(assistant_function_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(assistant_function_vo);
         }
 
         // On synchronise les paramètres de la fonction
@@ -662,7 +724,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 found_vo.archived = false;
                 found_vo.default_json_value = from_openai.default_json_value;
 
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
             }
         }
 
@@ -685,7 +747,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
             found_vo.archived = true;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
     }
 
@@ -737,24 +799,11 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 .exec_as_server()
                 .select_vos<GPTAssistantAPIFunctionVO>();
 
-            const promises = [];
-            for (const i in functions) {
-                const func = functions[i];
+            const get_tools_definition_from_functions = await GPTAssistantAPIServerSyncAssistantsController.get_tools_definition_from_functions(functions);
 
-                promises.push((async () => {
-                    const params = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
-                        .filter_by_id(func.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
-                        .set_sort(new SortByVO(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().weight, true))
-                        .exec_as_server()
-                        .select_vos<GPTAssistantAPIFunctionParamVO>();
-                    res.push({
-                        type: "function",
-                        function: func.to_GPT_FunctionDefinition(params)
-                    });
-                })());
+            if (get_tools_definition_from_functions && get_tools_definition_from_functions.length) {
+                res.push(...get_tools_definition_from_functions);
             }
-
-            await all_promises(promises);
         }
 
         return res;

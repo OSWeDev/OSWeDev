@@ -138,7 +138,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
 
             this.storeData(importHistoric);
         }
-        await ModuleDAO.getInstance().insertOrUpdateVOs(importHistorics);
+        await ModuleDAO.instance.insertOrUpdateVOs(importHistorics);
 
         this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(null) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL);
 
@@ -196,7 +196,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         }
 
         this.import_historics[api_type_id].state = ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT;
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.import_historics[api_type_id]);
+        await ModuleDAO.instance.insertOrUpdateVO(this.import_historics[api_type_id]);
     }
 
     private async cancel_importation(api_type_id: string) {
@@ -209,7 +209,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         }
 
         this.import_historics[api_type_id].state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.import_historics[api_type_id]);
+        await ModuleDAO.instance.insertOrUpdateVO(this.import_historics[api_type_id]);
     }
 
     private async checkUnfinishedImportsAndReplacement(done) {
@@ -232,7 +232,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
                             for (const i in unfinished_imports) {
                                 unfinished_imports[i].state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
                             }
-                            await ModuleDAO.getInstance().insertOrUpdateVOs(unfinished_imports);
+                            await ModuleDAO.instance.insertOrUpdateVOs(unfinished_imports);
 
                             await this.checkReplaceExistingImport(done);
                         },

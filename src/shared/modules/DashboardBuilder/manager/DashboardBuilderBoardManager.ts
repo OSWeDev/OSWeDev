@@ -36,7 +36,7 @@ export default class DashboardBuilderBoardManager {
             };
         }
 
-        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DashboardGraphVORefVO.API_TYPE_ID);
+        const access_policy_name = ModuleDAO.instance.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DashboardGraphVORefVO.API_TYPE_ID);
         const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
 
         if (!has_access) {

@@ -7,19 +7,12 @@ import { all_promises } from "../../../shared/tools/PromiseTools";
 import ModuleServerBase from '../ModuleServerBase';
 import AzureMemoryCheckServerController from "./AzureMemoryCheckServerController";
 import ThreadHandler from "../../../shared/tools/ThreadHandler";
+import ParamsServerController from "../Params/ParamsServerController";
 
 export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleAzureMemoryCheckServer.instance) {
-            ModuleAzureMemoryCheckServer.instance = new ModuleAzureMemoryCheckServer();
-        }
-        return ModuleAzureMemoryCheckServer.instance;
-    }
-
     private static instance: ModuleAzureMemoryCheckServer = null;
-    private static interval_uid: number = null;
+    private static interval_uid: string = "ModuleAzureMemoryCheckServer.getAvailableMemory";
 
     private static AZURE_CHECK_MEMORY_ACTIVATION_PARAM_NAME: string = "ModuleAzureMemoryCheck.AZURE_CHECK_MEMORY_ACTIVATION";
 
@@ -38,16 +31,25 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
         super(ModuleAzureMemoryCheck.getInstance().name);
     }
 
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleAzureMemoryCheckServer.instance) {
+            ModuleAzureMemoryCheckServer.instance = new ModuleAzureMemoryCheckServer();
+        }
+        return ModuleAzureMemoryCheckServer.instance;
+    }
+
+
     // istanbul ignore next: cannot test configure
     public async configure() {
 
-        const activated = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_ACTIVATION_PARAM_NAME, false, 180000);
+        const activated = await ParamsServerController.getParamValueAsBoolean(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_ACTIVATION_PARAM_NAME, false, 180000);
 
         if (!activated) {
             return;
         }
         ConsoleHandler.log('Activation du module AzureMemoryCheck');
-        ModuleAzureMemoryCheckServer.interval_uid = ThreadHandler.set_interval(this.getAvailableMemory.bind(this), 1000, 'ModuleAzureMemoryCheckServer.getAvailableMemory', true);
+        ThreadHandler.set_interval(ModuleAzureMemoryCheckServer.interval_uid, this.getAvailableMemory.bind(this), 1000, 'ModuleAzureMemoryCheckServer.getAvailableMemory', true);
     }
 
     // Le plan, c'est vérifier toutes les secondes la mémoire libre, suivre l'évolution sur 60 secondes et si on a une vitesse de remplissage
@@ -68,32 +70,32 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
         let memory_usage_data_max_size: number = null;
         let azure_mem_size: number = null;
 
-        promises.push(ModuleParams.getInstance().getParamValueAsBoolean(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_ACTIVATION_PARAM_NAME, false, 180000).then((res) => {
+        promises.push(ParamsServerController.getParamValueAsBoolean(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_ACTIVATION_PARAM_NAME, false, 180000).then((res) => {
             activated = res;
         }));
-        promises.push(ModuleParams.getInstance().getParamValueAsString(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_CLIENT_ID_PARAM_NAME, null, 180000).then((res) => {
+        promises.push(ParamsServerController.getParamValueAsString(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_CLIENT_ID_PARAM_NAME, null, 180000).then((res) => {
             clientId = res;
         }));
-        promises.push(ModuleParams.getInstance().getParamValueAsString(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_CLIENT_SECRET_PARAM_NAME, null, 180000).then((res) => {
+        promises.push(ParamsServerController.getParamValueAsString(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_CLIENT_SECRET_PARAM_NAME, null, 180000).then((res) => {
             clientSecret = res;
         }));
-        promises.push(ModuleParams.getInstance().getParamValueAsString(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_TENANT_ID_PARAM_NAME, null, 180000).then((res) => {
+        promises.push(ParamsServerController.getParamValueAsString(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_TENANT_ID_PARAM_NAME, null, 180000).then((res) => {
             tenantId = res;
         }));
-        promises.push(ModuleParams.getInstance().getParamValueAsString(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_SUBSCRIPTION_ID_PARAM_NAME, null, 180000).then((res) => {
+        promises.push(ParamsServerController.getParamValueAsString(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_SUBSCRIPTION_ID_PARAM_NAME, null, 180000).then((res) => {
             subscriptionId = res;
         }));
-        promises.push(ModuleParams.getInstance().getParamValueAsString(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_RESOURCE_GROUP_NAME_PARAM_NAME, null, 180000).then((res) => {
+        promises.push(ParamsServerController.getParamValueAsString(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_RESOURCE_GROUP_NAME_PARAM_NAME, null, 180000).then((res) => {
             resourceGroupName = res;
         }));
-        promises.push(ModuleParams.getInstance().getParamValueAsString(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_SERVER_NAME_PARAM_NAME, null, 180000).then((res) => {
+        promises.push(ParamsServerController.getParamValueAsString(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_SERVER_NAME_PARAM_NAME, null, 180000).then((res) => {
             serverName = res;
         }));
 
-        promises.push(ModuleParams.getInstance().getParamValueAsInt(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_USAGE_DATA_MAX_SIZE_PARAM_NAME, 10, 180000).then((res) => {
+        promises.push(ParamsServerController.getParamValueAsInt(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_USAGE_DATA_MAX_SIZE_PARAM_NAME, 10, 180000).then((res) => {
             memory_usage_data_max_size = res;
         }));
-        promises.push(ModuleParams.getInstance().getParamValueAsInt(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_AZURE_MEM_SIZE_PARAM_NAME, null, 180000).then((res) => {
+        promises.push(ParamsServerController.getParamValueAsInt(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_AZURE_MEM_SIZE_PARAM_NAME, null, 180000).then((res) => {
             azure_mem_size = res;
         }));
 

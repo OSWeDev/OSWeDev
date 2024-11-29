@@ -29,6 +29,7 @@ import EvolizCreditVO from './vos/credit/EvolizCreditVO';
 import EvolizAdvanceVO from './vos/advance/EvolizAdvanceVO';
 import EvolizDocumentLinksVO from './vos/document_links/EvolizDocumentLinksVO';
 import EvolizDocumentLinksParam, { EvolizDocumentLinksParamStatic } from './vos/apis/EvolizDocumentLinksParam';
+import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 
 export default class ModuleEvolizAPI extends Module {
 
@@ -62,20 +63,13 @@ export default class ModuleEvolizAPI extends Module {
     public static APINAME_list_credits: string = "list_credits";
     public static APINAME_list_advances: string = "list_advances";
     public static APINAME_get_document_links: string = "get_document_links";
+    public static APINAME_save_invoice: string = "save_invoice";
 
     public static MODULE_NAME: string = 'EvolizAPI';
 
     public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleEvolizAPI.MODULE_NAME;
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleEvolizAPI.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleEvolizAPI.MODULE_NAME + '.FO_ACCESS';
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleEvolizAPI {
-        if (!ModuleEvolizAPI.instance) {
-            ModuleEvolizAPI.instance = new ModuleEvolizAPI();
-        }
-        return ModuleEvolizAPI.instance;
-    }
 
     private static instance: ModuleEvolizAPI = null;
 
@@ -102,10 +96,19 @@ export default class ModuleEvolizAPI extends Module {
     public list_credits: () => Promise<EvolizCreditVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_credits);
     public list_advances: () => Promise<EvolizAdvanceVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_advances);
     public get_document_links: (doc_type: string, doc_id: number) => Promise<EvolizDocumentLinksVO> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_get_document_links);
+    public save_invoice: (invoiceid: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_save_invoice);
 
     private constructor() {
 
         super("evolizapi", ModuleEvolizAPI.MODULE_NAME);
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleEvolizAPI {
+        if (!ModuleEvolizAPI.instance) {
+            ModuleEvolizAPI.instance = new ModuleEvolizAPI();
+        }
+        return ModuleEvolizAPI.instance;
     }
 
     public registerApis() {
@@ -120,6 +123,13 @@ export default class ModuleEvolizAPI extends Module {
             ModuleEvolizAPI.APINAME_get_devis,
             [],
             StringParamVOStatic,
+        ));
+
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<NumberParamVO, boolean>(
+            null,
+            ModuleEvolizAPI.APINAME_save_invoice,
+            [],
+            NumberParamVOStatic,
         ));
 
         APIControllerWrapper.registerApi(new GetAPIDefinition<null, EvolizArticleVO[]>(

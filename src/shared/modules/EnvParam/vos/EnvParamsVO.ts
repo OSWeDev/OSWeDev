@@ -49,6 +49,8 @@ export default class EnvParamsVO implements IDistantVOBase {
     // NODE_VERBOSE: boolean;
     public node_verbose: boolean;
 
+    public throw_on_incompatible_stack_context: boolean;
+
     // ACTIVATE_LONG_JOHN: boolean;
     public activate_long_john: boolean;
 
@@ -85,6 +87,8 @@ export default class EnvParamsVO implements IDistantVOBase {
 
     // MUTE__NO_SORT_BY_BUT_QUERY_LIMIT?: boolean;
     public mute__no_sort_by_but_query_limit: boolean;
+
+    public debug_playwright_controller: boolean;
 
     // DEBUG_SLOW_QUERIES_MS_LIMIT?: number;
     public debug_slow_queries_ms_limit: number;
@@ -169,6 +173,8 @@ export default class EnvParamsVO implements IDistantVOBase {
 
     public debug_throttle_uid: boolean;
 
+    public debug_reruns_of_oselia: boolean;
+
     // DEBUG_CONTEXT_QUERY_build_select_query_not_count?: boolean;
     public debug_context_query_build_select_query_not_count: boolean;
 
@@ -252,4 +258,7 @@ export default class EnvParamsVO implements IDistantVOBase {
     public unblock_openai_push_to_openai_gpt_assistant: boolean;
 
     public silent_no_sort_by_but_query_limit: boolean;
+
+    public debug_vars_notifs: boolean;
+    public log_login_redirects: boolean;
 }

@@ -98,6 +98,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
         });
     }
 
+
     @Watch("api_type_id", { immediate: true })
     private async onchange_api_type_id() {
         if ((!this.selected_vo) || (!this.selected_vo._type)) {
@@ -135,7 +136,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                         .set_sort(new SortByVO(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().id, true))
                         .select_vos<CRUDFieldRemoverConfVO>();
                     doublons.shift();
-                    await ModuleDAO.getInstance().deleteVOs(doublons);
+                    await ModuleDAO.instance.deleteVOs(doublons);
                 }
             }
 
@@ -194,7 +195,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
             new Promise(async (resolve, reject) => {
 
                 try {
-                    const res = await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+                    const res = await ModuleDAO.instance.insertOrUpdateVO(self.crud_field_remover_conf);
                     if (!res.id) {
                         throw new Error('Failed delete_removed_crud_field_id');
                     }
@@ -249,7 +250,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
             new Promise(async (resolve, reject) => {
 
                 try {
-                    const res = await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+                    const res = await ModuleDAO.instance.insertOrUpdateVO(self.crud_field_remover_conf);
                     if (!res.id) {
                         throw new Error('Failed add_removed_crud_field_id');
                     }
@@ -360,7 +361,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                         }
                     }
 
-                    const res = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
+                    const res = await ModuleDAO.instance.insertOrUpdateVO(apiokVo);
                     const id = (res && res.id) ? parseInt(res.id.toString()) : null;
 
                     if ((!res) || (!id) || (id != self.selected_vo.id)) {

@@ -147,7 +147,7 @@ export default class ModuleAnimation extends Module {
     }
 
     public async getParameters(): Promise<AnimationParametersVO> {
-        return await query(AnimationParametersVO.API_TYPE_ID).select_vo<AnimationParametersVO>();
+        return query(AnimationParametersVO.API_TYPE_ID).select_vo<AnimationParametersVO>();
     }
 
     //- ModuleTables

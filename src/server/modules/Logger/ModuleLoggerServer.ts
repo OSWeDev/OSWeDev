@@ -100,7 +100,8 @@ export default class ModuleLoggerServer extends ModuleServerBase {
 
         await ModuleTableDBService.getInstance(null).create_or_update_datatable(
             ModuleTableController.module_tables_by_vo_type[LogVO.API_TYPE_ID],
-            [RangeHandler.create_single_elt_NumRange(vo.id, NumSegment.TYPE_INT)]
+            [RangeHandler.create_single_elt_NumRange(vo.id, NumSegment.TYPE_INT)],
+            []
         );
     }
 }

@@ -54,7 +54,7 @@ import VarsController from '../../../../../../../shared/modules/Var/VarsControll
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import ModuleVocus from '../../../../../../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import SemaphoreHandler from '../../../../../../../shared/tools/SemaphoreHandler';
@@ -84,6 +84,8 @@ import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import './TableWidgetTableComponent.scss';
 import { ModuleDAOAction } from '../../../../dao/store/DaoStore';
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
+import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
+import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -207,6 +209,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     private show_export_alert: boolean = false;
     private already_use_load_widgets_prevalidation: boolean = false;
+
+    private export_to: boolean = false;
+    private export_limit: NumRange = null;
+    private export_count: number = 0;
+    private selected_row_export = [];
+    private has_selected_all: boolean = false;
+    private max_export_limit: number = null;
+    private min_export_limit: number = null;
 
     private throttle_update_query_strings = ThrottleHelper.declare_throttle_without_args(this.update_query_strings.bind(this), 100);
 
@@ -1777,7 +1787,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                             vo[simpleField.module_table_field_id] = value;
                             const data_row_index = this.data_rows.findIndex((e) => e.__crud_actions == row.__crud_actions);
                             this.data_rows[data_row_index][simpleField.module_table_field_id] = value;
-                            await ModuleDAO.getInstance().insertOrUpdateVO(vo);
+                            await ModuleDAO.instance.insertOrUpdateVO(vo);
                             break;
                         }
                         default:
@@ -2335,20 +2345,21 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             (async () => {
                 ConsoleHandler.log('select_datatable_rows');
                 await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query, this.columns);
-                rows = await ModuleContextFilter.getInstance().select_datatable_rows(context_query, this.columns_by_field_id, fields);
+                rows = await ModuleContextFilter.instance.select_datatable_rows(context_query, this.columns_by_field_id, fields);
             })(),
 
             (async () => {
                 query_count.set_limit(0, 0);
                 query_count.set_sort(null);
                 query_count.query_distinct = true;
-                this.pagination_count = await ModuleContextFilter.getInstance().select_count(query_count);
+                this.pagination_count = await ModuleContextFilter.instance.select_count(query_count);
             })()
         ]);
 
         const vos_by_id: { [id: number]: any } = {};
         for (const i in rows) {
             const row = rows[i];
+            rows[i]['selected'] = false;
             vos_by_id[this.get_identifier(row)] = row;
         }
 
@@ -2394,18 +2405,79 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     private async refresh() {
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(
-            new RegExp('.*' + ModuleContextFilter.APINAME_select_datatable_rows)
+            new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_datatable_rows))
         );
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(
-            new RegExp('.*' + ModuleContextFilter.APINAME_select_count)
+            new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_count))
         );
 
         await this.throttle_do_update_visible_options();
     }
 
+    private async select_row(row: any) {
+        if (this.max_export_limit - this.min_export_limit == 1) {
+            this.selected_row_export.push(row);
+            this.do_export();
+        }
+        if (row['selected'] == false) {
+            row['selected'] = !row['selected'];
+            this.export_count++;
+            this.selected_row_export.push(row);
+        } else {
+            row['selected'] = !row['selected'];
+            this.export_count--;
+            this.selected_row_export.splice(this.selected_row_export.indexOf(row, 1));
+        }
+    }
 
+    private async do_export() {
+        if (this.export_count > this.max_export_limit) {
+            return;
+        }
+        window.opener.postMessage(this.selected_row_export);
+        window.close();
+    }
+
+    private async do_select_all() {
+        if (this.has_selected_all) {
+            for (let row of this.data_rows) {
+                row['selected'] = false;
+            }
+            this.export_count = 0;
+            this.selected_row_export = [];
+        } else {
+            for (let row of this.data_rows) {
+                row['selected'] = true;
+                this.selected_row_export.push(row);
+            }
+            this.export_count = this.data_rows.length;
+        }
+        this.has_selected_all = !this.has_selected_all;
+    }
 
     private async mounted() {
+
+
+        if (window.opener && window.opener.instructions) {
+            if (window.opener.instructions["Export"]) {
+                this.export_to = true;
+                this.export_limit = window.opener.instructions["Export"];
+                this.max_export_limit = NumRange.getSegmentedMax(
+                    this.export_limit.min,
+                    this.export_limit.min_inclusiv,
+                    this.export_limit.max,
+                    this.export_limit.max_inclusiv,
+                    this.export_limit.segment_type);
+
+                this.min_export_limit = NumRange.getSegmentedMin(
+                    this.export_limit.min,
+                    this.export_limit.min_inclusiv,
+                    this.export_limit.max,
+                    this.export_limit.max_inclusiv,
+                    this.export_limit.segment_type);
+            }
+        }
+
         const validation_page_widgets = this.get_validation_page_widgets();
 
         if (validation_page_widgets?.length > 0) {
@@ -2534,7 +2606,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('TableWidgetComponent.confirm_delete.start'));
 
-                        const res: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOsByIds(api_type_id, [id]);
+                        const res: InsertOrDeleteQueryResult[] = await ModuleDAO.instance.deleteVOsByIds(api_type_id, [id]);
                         if ((!res) || (res.length != 1) || (!res[0].id)) {
                             self.snotify.error(self.label('TableWidgetComponent.confirm_delete.ko'));
                         } else {
@@ -2576,7 +2648,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
                                 if (vo) {
                                     vo.archived = true;
-                                    res = await ModuleDAO.getInstance().insertOrUpdateVO(vo);
+                                    res = await ModuleDAO.instance.insertOrUpdateVO(vo);
                                 }
 
                                 if (!res?.id) {
@@ -2633,7 +2705,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('crud.actions.delete_all.start'));
 
-                        await ModuleDAO.getInstance().delete_all_vos_triggers_ok(self.crud_activated_api_type);
+                        await ModuleDAO.instance.delete_all_vos_triggers_ok(self.crud_activated_api_type);
                         await self.throttle_do_update_visible_options();
                     },
                     bold: false
@@ -2967,7 +3039,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             // .set_sort(new SortByVO(column.api_type_id, column.field_id, (this.order_asc_on_id != null)));
 
             promises.push((async () => {
-                const res = await ModuleContextFilter.getInstance().select(context_query);
+                const res = await ModuleContextFilter.instance.select(context_query);
 
                 if (res && res[0]) {
                     let column_total: number = res[0][alias_field];
@@ -3054,7 +3126,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private async change_offset(new_offset: number) {
         if (new_offset != this.pagination_offset) {
             this.pagination_offset = new_offset;
-
+            this.has_selected_all = false;
+            this.selected_rows = [];
+            this.export_count = 0;
             this.selected_vos = {};
 
             await this.throttle_do_update_visible_options();

@@ -12,8 +12,6 @@ export default abstract class SupervisedItemServerControllerBase<T extends ISupe
         SupervisionServerController.getInstance().registerServerController(api_type_id, this);
     }
 
-    public abstract get_execute_time_ms(): number;
-
     public async work_all(): Promise<boolean> {
 
         try {
@@ -52,4 +50,5 @@ export default abstract class SupervisedItemServerControllerBase<T extends ISupe
     }
 
     public abstract work_one(item: T, ...args): Promise<boolean>;
+    public abstract get_execute_time_ms(): number;
 }

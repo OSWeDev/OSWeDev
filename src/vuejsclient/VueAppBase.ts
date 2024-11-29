@@ -7,7 +7,7 @@ import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import { ColorPanel, ColorPicker } from 'one-colorpicker';
 import 'select2';
 import VCalendar from 'v-calendar';
-import 'v-calendar/lib/v-calendar.min.css';
+// import 'v-calendar/lib/v-calendar.min.css';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
 import VueCookies from 'vue-cookies-ts';
@@ -92,6 +92,7 @@ export default abstract class VueAppBase {
     public async runApp() {
 
         ConsoleHandler.init();
+        ModulesManager.initialize();
 
         // Chargement des données des modules.
         await this.initializeModulesDatas();
@@ -127,12 +128,12 @@ export default abstract class VueAppBase {
             DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[type] = null,
         );
 
-        const modules_by_name = ModulesManager.getInstance().modules_by_name;
+        const modules_by_name = ModulesManager.modules_by_name;
 
         // On commence par demander tous les droits d'accès des modules
         promises = [];
         for (const module_name in modules_by_name) {
-            const module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
+            const module_: VueModuleBase = ModulesManager.getModuleByNameAndRole(
                 module_name,
                 VueModuleBase.IVueModuleRoleName,
             ) as VueModuleBase;
@@ -161,7 +162,7 @@ export default abstract class VueAppBase {
 
         // On lance les initializeAsync des modules Vue
         for (const module_name in modules_by_name) {
-            const module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
+            const module_: VueModuleBase = ModulesManager.getModuleByNameAndRole(
                 module_name,
                 VueModuleBase.IVueModuleRoleName,
             ) as VueModuleBase;
@@ -276,7 +277,7 @@ export default abstract class VueAppBase {
         //}
 
         let routerRoutes: RouteConfig[] = [];
-        const moduleWrappersByName: { [key: string]: ModuleWrapper } = ModulesManager.getInstance().getModuleWrappersByName();
+        const moduleWrappersByName: { [key: string]: ModuleWrapper } = ModulesManager.getModuleWrappersByName();
 
         for (const i in moduleWrappersByName) {
             const moduleWrapper: ModuleWrapper = moduleWrappersByName[i];
@@ -444,7 +445,7 @@ export default abstract class VueAppBase {
         Vue.use(Snotify);
         Vue.use(VueRouter);
         Vue.use(VueFlags, {
-            iconPath: '/client/public/img/flags/',
+            iconPath: '/public/client/img/flags/',
         });
 
         // Use v-calendar, v-date-picker & v-popover components
@@ -463,7 +464,7 @@ export default abstract class VueAppBase {
         Vue.component('v-slider', async () => (await import('vue-slider-component')));
         Vue.component('vue-dropzone', async () => (await import('vue2-dropzone')));
         Vue.component('var-data', () => import('./ts/components/Var/components/dataref/VarDataRefComponent'));
-        Vue.component('vars-sum', () => import('./ts/components/Var/components/datasum/VarDataSumComponent'));
+        // Vue.component('vars-sum', () => import('./ts/components/Var/components/datasum/VarDataSumComponent'));
         Vue.component('vars-data', () => import('./ts/components/Var/components/datasrefs/VarDatasRefsComponent'));
         Vue.component('var-desc', () => import('./ts/components/Var/components/desc/VarDescComponent'));
         Vue.component('var-if', () => import('./ts/components/Var/components/varif/VarDataIfComponent'));
@@ -547,7 +548,12 @@ export default abstract class VueAppBase {
                 return message;
             }
 
-            self.unregisterVarsBeforeUnload().then().catch((err) => ConsoleHandler.error(err));
+            try {
+
+                self.unregisterVarsBeforeUnload();
+            } catch (error) {
+                ConsoleHandler.error(error);
+            }
 
             return null;
         };
@@ -556,7 +562,7 @@ export default abstract class VueAppBase {
     protected async postInitializationHook() { }
     protected async postMountHook() { }
 
-    protected async unregisterVarsBeforeUnload() {
+    protected unregisterVarsBeforeUnload() {
         if (VarsClientController.registered_var_params) {
             const params: VarDataBaseVO[] = [];
             for (const i in VarsClientController.registered_var_params) {
@@ -564,7 +570,7 @@ export default abstract class VueAppBase {
                 params.push(wrapper.var_param);
             }
             if (params.length) {
-                await VarsClientController.getInstance().unRegisterParams(params);
+                VarsClientController.getInstance().unRegisterParams(params);
             }
         }
     }

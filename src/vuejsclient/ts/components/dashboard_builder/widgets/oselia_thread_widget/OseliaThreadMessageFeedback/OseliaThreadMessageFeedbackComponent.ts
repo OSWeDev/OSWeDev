@@ -80,6 +80,6 @@ export default class OseliaThreadMessageFeedbackComponent extends VueComponentBa
         feedback.feedback = null;
         feedback.feedback_positive = positive;
         feedback.user_id = VueAppController.getInstance().data_user.id;
-        await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
+        await ModuleDAO.instance.insertOrUpdateVO(feedback);
     }
 }

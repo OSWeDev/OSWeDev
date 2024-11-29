@@ -167,7 +167,7 @@ export default class DashboardVOManager {
         access_type = access_type ?? ModuleDAO.DAO_ACCESS_TYPE_READ;
 
         // Check access
-        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+        const access_policy_name = ModuleDAO.instance.getAccessPolicyName(
             access_type,
             DashboardVO.API_TYPE_ID
         );

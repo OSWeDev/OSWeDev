@@ -148,7 +148,7 @@ export default class ModuleDataImport extends Module {
                             }
                         }
                     } catch (error) {
-                        ConsoleHandler.error('Error parsing importJSON', error);
+                        ConsoleHandler.error('Error parsing importJSON' + error + ':' + JSON.stringify(error));
                     }
                 }
 

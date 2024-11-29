@@ -19,11 +19,40 @@ import ConfigurationService from '../../env/ConfigurationService';
 import ActionURLServerTools from '../ActionURL/ActionURLServerTools';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleOseliaServer from '../Oselia/ModuleOseliaServer';
+import ParamsServerController from '../Params/ParamsServerController';
 import SendTeamsLevelParam from './SendTeamsLevelParam';
 
 export default class TeamsAPIServerController {
 
     private static throttle_send_teams = null;
+
+    public static async create_action_button_open_oselia(thread_id: number): Promise<ActionURLVO> {
+        const action = new ActionURLVO();
+
+        action.action_name = 'En parler avec Osélia [' + thread_id + ']';
+        action.action_code = ActionURLServerTools.get_unique_code_from_text(action.action_name);
+        action.action_remaining_counter = -1; // infini
+        action.params_json = thread_id.toString();
+        action.valid_ts_range = RangeHandler.createNew(TSRange.RANGE_TYPE, Dates.now(), Dates.add(Dates.now(), 60, TimeSegment.TYPE_DAY), true, true, TimeSegment.TYPE_DAY);
+
+        action.action_callback_function_name = reflect<ModuleOseliaServer>().open_oselia_db_from_action_url;
+        action.action_callback_module_name = ModuleOseliaServer.getInstance().name;
+
+        action.button_bootstrap_type = ActionURLVO.BOOTSTRAP_BUTTON_TYPE_PRIMARY;
+        action.button_translatable_name = 'TeamsAPIServerController.open_oselia';
+        action.button_translatable_name_params_json = null;
+        action.button_fc_icon_classnames = ['fa-duotone', 'fa-comment-heart'];
+
+        const res = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(action);
+        if ((!res) || (!res.id)) {
+            ConsoleHandler.error('Impossible de créer l\'action URL pour le bouton de discussion avec Osélia : ' + action.action_name);
+            return null;
+        }
+
+        await ActionURLServerTools.add_right_for_admins_on_action_url(action);
+
+        return action;
+    }
 
     /**
      * Utiliser uniquement si on ne veut pas de throttling, ou des boutons pour le moment
@@ -57,20 +86,53 @@ export default class TeamsAPIServerController {
         const send_message_webhook = ConfigurationService.node_configuration.teams_webhook_send_message;
         const { host, path } = this.getHostAndPathFromUrl(send_message_webhook);
 
-        const msg = TextHandler.getInstance().encode_object(message);
-        const webhook_response = await ModuleRequest.getInstance().sendRequestFromApp(
-            ModuleRequest.METHOD_POST,
-            host,
-            path,
-            msg,
-            null,
-            true,
-            null,
-            true,
-            true
-        );
+        let webhook_response = null;
+        try {
+
+            const msg = TextHandler.getInstance().encode_object(message);
+            webhook_response = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_POST,
+                host,
+                path,
+                msg,
+                null,
+                true,
+                null,
+                true,
+                true
+            );
+            ConsoleHandler.log('TeamsAPIServerController.send_to_teams_webhook:Message envoyé');
+        } catch (error) {
+            ConsoleHandler.error('TeamsAPIServerController.send_to_teams_webhook:Impossible d\'envoyer le message Teams:' + group_id + ':' + channel_id + ':' + JSON.stringify(message) + ':' + error);
+
+            try {
+                // Retry
+                ConsoleHandler.log('TeamsAPIServerController.send_to_teams_webhook:RETRY:START');
+                const msg = TextHandler.getInstance().encode_object(message);
+                webhook_response = await ModuleRequest.getInstance().sendRequestFromApp(
+                    ModuleRequest.METHOD_POST,
+                    host,
+                    path,
+                    msg,
+                    null,
+                    true,
+                    null,
+                    true,
+                    true
+                );
+                ConsoleHandler.log('TeamsAPIServerController.send_to_teams_webhook:RETRY:Message envoyé');
+            } catch (error) {
+                ConsoleHandler.error('TeamsAPIServerController.send_to_teams_webhook:RETRY:Impossible de réenvoyer le message Teams:' + group_id + ':' + channel_id + ':' + JSON.stringify(message) + ':' + error);
+                return null;
+            }
+        }
 
         try {
+            if (!webhook_response) {
+                ConsoleHandler.error('TeamsAPIServerController.send_to_teams_webhook:Réponse de Teams vide');
+                return null;
+            }
+
             const message = webhook_response.toString('utf-8');
             console.log(message);
 
@@ -82,7 +144,7 @@ export default class TeamsAPIServerController {
                 action_url.teams_group_id = group_id;
                 action_url.teams_channel_id = channel_id;
             }
-            await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(action_urls);
+            await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(action_urls);
 
             return message_id;
         } catch (error) {
@@ -189,24 +251,29 @@ export default class TeamsAPIServerController {
             return;
         }
 
-        const { host, path } = this.getHostAndPathFromUrl(webhook);
+        try {
 
-        message.groupId = group_id;
-        message.channelId = channel_id;
-        message.messageId = message_id;
+            const { host, path } = this.getHostAndPathFromUrl(webhook);
 
-        const msg = TextHandler.getInstance().encode_object(message);
-        await ModuleRequest.getInstance().sendRequestFromApp(
-            ModuleRequest.METHOD_POST,
-            host,
-            path,
-            msg,
-            null,
-            true,
-            null,
-            true,
-            true
-        );
+            message.groupId = group_id;
+            message.channelId = channel_id;
+            message.messageId = message_id;
+
+            const msg = TextHandler.getInstance().encode_object(message);
+            await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_POST,
+                host,
+                path,
+                msg,
+                null,
+                true,
+                null,
+                true,
+                true
+            );
+        } catch (error) {
+            ConsoleHandler.error('TeamsAPIServerController.update_teams_message:Impossible de mettre à jour le message Teams:' + group_id + ':' + channel_id + ':' + message_id + ':' + JSON.stringify(message) + ':' + error);
+        }
     }
 
     /**
@@ -249,7 +316,7 @@ export default class TeamsAPIServerController {
             const message_Text = new TeamsWebhookContentTextBlockVO().set_text(message).set_size("small");
             body.push(message_Text);
             const open_oselia: ActionURLVO = await this.create_action_button_open_oselia(thread_id);
-            actions.push(new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Oselia'));
+            actions.push(new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Ouvrir oselia'));
             m.attachments.push(new TeamsWebhookContentAttachmentsVO().set_name("Oselia Attachment").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions)));
             await TeamsAPIServerController.send_to_teams_webhook(channel_id, group_id, m, [open_oselia]);
         } catch (error) {
@@ -288,13 +355,13 @@ export default class TeamsAPIServerController {
         channelid_default_value: string = null,
     ) {
         try {
-            let group_id: string = groupid_param_name ? await ModuleParams.getInstance().getParamValueAsString(groupid_param_name, groupid_default_value, 180000) : null;
+            let group_id: string = groupid_param_name ? await ParamsServerController.getParamValueAsString(groupid_param_name, groupid_default_value, 180000) : null;
             if ((!group_id) && groupid_param_name) {
                 ConsoleHandler.warn('TeamsAPIServerController.send_teams_level:Le paramètre "' + groupid_param_name + '" n\'a pas été trouvé, on utilise la valeur par défaut de configuration "' + ConfigurationService.node_configuration.teams_groupid__tech) + '"';
             }
             group_id = group_id ? group_id : ConfigurationService.node_configuration.teams_groupid__tech;
 
-            let channel_id: string = channelid_param_name ? await ModuleParams.getInstance().getParamValueAsString(channelid_param_name, channelid_default_value, 180000) : null;
+            let channel_id: string = channelid_param_name ? await ParamsServerController.getParamValueAsString(channelid_param_name, channelid_default_value, 180000) : null;
             if ((!channel_id) && channelid_param_name) {
                 ConsoleHandler.warn('TeamsAPIServerController.send_teams_level:Le paramètre "' + channelid_param_name + '" n\'a pas été trouvé, on utilise la valeur par défaut de configuration "' + ConfigurationService.node_configuration['teams_channelid__tech_' + level.toLowerCase()] + '"');
             }
@@ -406,33 +473,5 @@ export default class TeamsAPIServerController {
 
             await TeamsAPIServerController.send_to_teams_webhook(channel_id, group_id, m);
         }
-    }
-
-    private static async create_action_button_open_oselia(thread_id: number): Promise<ActionURLVO> {
-        const action = new ActionURLVO();
-
-        action.action_name = 'En parler avec Osélia [' + thread_id + ']';
-        action.action_code = ActionURLServerTools.get_unique_code_from_text(action.action_name);
-        action.action_remaining_counter = -1; // infini
-        action.params_json = thread_id.toString();
-        action.valid_ts_range = RangeHandler.createNew(TSRange.RANGE_TYPE, Dates.now(), Dates.add(Dates.now(), 60, TimeSegment.TYPE_DAY), true, true, TimeSegment.TYPE_DAY);
-
-        action.action_callback_function_name = reflect<ModuleOseliaServer>().open_oselia_db_from_action_url;
-        action.action_callback_module_name = ModuleOseliaServer.getInstance().name;
-
-        action.button_bootstrap_type = ActionURLVO.BOOTSTRAP_BUTTON_TYPE_PRIMARY;
-        action.button_translatable_name = 'TeamsAPIServerController.open_oselia';
-        action.button_translatable_name_params_json = null;
-        action.button_fc_icon_classnames = ['fa-duotone', 'fa-comment-heart'];
-
-        const res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action);
-        if ((!res) || (!res.id)) {
-            ConsoleHandler.error('Impossible de créer l\'action URL pour le bouton de discussion avec Osélia : ' + action.action_name);
-            return null;
-        }
-
-        await ActionURLServerTools.add_right_for_admins_on_action_url(action);
-
-        return action;
     }
 }

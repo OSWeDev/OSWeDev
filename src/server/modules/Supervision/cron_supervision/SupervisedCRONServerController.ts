@@ -64,7 +64,7 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
 
         if (!planification) {
             supervised_pdv.state = SupervisionController.STATE_ERROR;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(supervised_pdv);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(supervised_pdv);
             return true;
         }
 
@@ -79,7 +79,7 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
 
         if (!next_planned_launch) {
             supervised_pdv.state = SupervisionController.STATE_WARN;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(supervised_pdv);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(supervised_pdv);
             return true;
         }
 
@@ -89,12 +89,12 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
 
         if (time_waited < -max_time_to_wait_sec) {
             supervised_pdv.state = SupervisionController.STATE_ERROR;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(supervised_pdv);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(supervised_pdv);
             return true;
         }
 
         supervised_pdv.state = SupervisionController.STATE_OK;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(supervised_pdv);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(supervised_pdv);
         return true;
     }
 
@@ -113,7 +113,7 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
                 '' : (' - ' + existing.planification_uid));
             existing.state = SupervisionController.STATE_UNKOWN;
             existing.invalid = true;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(existing);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(existing);
         }
     }
 

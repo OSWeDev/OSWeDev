@@ -322,7 +322,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                             this.selected_rapport.prochain_suivi,
                         );
 
-                        const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_rapport);
+                        let res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(new_rapport);
 
                         if (!res?.id) {
                             throw new Error('Erreur lors de la sauvegarde');
@@ -364,7 +364,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                     action: async (toast) => {
                         this.$snotify.remove(toast.id);
 
-                        await ModuleDAO.getInstance().deleteVOs([this.selected_rapport]);
+                        await ModuleDAO.instance.deleteVOs([this.selected_rapport]);
 
                         this.throttle_update_visible_options();
                         this.selected_rapport = null;
@@ -390,17 +390,18 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
 
         const exhi: ExportHistoricVO = new ExportHistoricVO();
 
-        exhi.export_file_access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, SuiviCompetencesRapportVO.API_TYPE_ID);
+        exhi.export_file_access_policy_name = ModuleDAO.instance.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, SuiviCompetencesRapportVO.API_TYPE_ID);
         exhi.export_is_secured = true;
 
         const export_params: ExportSuiviCompetencesRapportHandlerParam = new ExportSuiviCompetencesRapportHandlerParam();
         export_params.rapport_id_ranges = [RangeHandler.create_single_elt_NumRange(this.selected_rapport.id, NumSegment.TYPE_INT)];
 
-        exhi.export_params_stringified = JSON.stringify(APIControllerWrapper.try_translate_vo_to_api(export_params));
+        // exhi.export_params_stringified = JSON.stringify(APIControllerWrapper.try_translate_vo_to_api(export_params));
+        exhi.export_params_stringified = JSON.stringify(export_params);
         exhi.export_to_uid = this.data_user.id;
         exhi.export_type_id = ModuleSuiviCompetences.EXPORT_SUIVI_COMPETENCES_RAPPORT;
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
+        await ModuleDAO.instance.insertOrUpdateVO(exhi);
 
         this.start_export_excel = false;
 

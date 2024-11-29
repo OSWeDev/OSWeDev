@@ -8,7 +8,10 @@ import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../../../DAO/vos/DAOUpdateVOHolder';
+import ModuleParamsServer from '../../../Params/ModuleParamsServer';
+import ParamsServerController from '../../../Params/ParamsServerController';
 import CurrentBatchDSCacheHolder from '../../CurrentBatchDSCacheHolder';
+import ModuleVarServer from '../../ModuleVarServer';
 import VarsDatasVoUpdateHandler from '../../VarsDatasVoUpdateHandler';
 import DataSourcesController from '../../datasource/DataSourcesController';
 import VarsdatasComputerBGThread from '../VarsdatasComputerBGThread';
@@ -18,10 +21,19 @@ export default class VarsProcessInvalidator {
     public static WARN_MAX_EXECUTION_TIME_SECOND: number = 60;
     public static ALERT_MAX_EXECUTION_TIME_SECOND: number = 120;
 
+    private static timeout_ms_invalidation_param_name: string = 'VarsProcessInvalidator.timeout_ms_invalidation';
+    private static timeout_ms_log_param_name: string = 'VarsProcessInvalidator.timeout_ms_log';
+
     private static instance: VarsProcessInvalidator = null;
+
+    private static max_ordered_vos_cud_param_name: string = 'VarsProcessInvalidator.max_ordered_vos_cud';
+    private static max_invalidators_param_name: string = 'VarsProcessInvalidator.max_invalidators';
 
     private last_clear_datasources_cache: number = null;
     private last_registration: number = null;
+
+    private ten_last_intersectors_invalidations_duration_ms: number[] = [];
+    private ten_last_vocuds_invalidations_duration_ms: number[] = [];
 
     protected constructor(
         protected name: string = 'VarsProcessInvalidator',
@@ -38,8 +50,8 @@ export default class VarsProcessInvalidator {
 
 
     public async work(): Promise<void> {
-        VarsProcessInvalidator.WARN_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_WARN_MAX_EXECUTION_TIME_SECOND, 60);
-        VarsProcessInvalidator.ALERT_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_ALERT_MAX_EXECUTION_TIME_SECOND, 120);
+        VarsProcessInvalidator.WARN_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_WARN_MAX_EXECUTION_TIME_SECOND, 60, null);
+        VarsProcessInvalidator.ALERT_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_ALERT_MAX_EXECUTION_TIME_SECOND, 120, null);
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
@@ -51,6 +63,9 @@ export default class VarsProcessInvalidator {
 
             if (!did_something) {
                 await ThreadHandler.sleep(this.thread_sleep, this.name);
+            } else {
+                // On va quand même attendre un peu pour laisser le temps aux autres process de push des vars par exemple
+                await ThreadHandler.sleep(10, this.name);
             }
         }
     }
@@ -81,17 +96,42 @@ export default class VarsProcessInvalidator {
                 ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:IN');
             }
 
+            const max_invalidators = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_invalidators_param_name, 500, 30000);
+            const max_ordered_vos_cud = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_ordered_vos_cud_param_name, 200, 30000);
+
+            if (await this.check_if_needs_to_invalidate_all_vars(max_invalidators, max_ordered_vos_cud)) {
+                await ModuleVarServer.getInstance().force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole();
+                return;
+            }
+
+            // On s'intéresse à la durée des invalidations si on fait full vocuds ou full invalidators mais pas de mixs et pas de partiels
+            const start_date_ms = Dates.now_ms();
+            let handles_vocuds = false;
+            let handles_invalidators = false;
+            let has_max_vocuds = false;
+            let has_max_invalidators = false;
+
+
             // On doit d'abord déployer les intersecteurs qui ont été demandés via des intersecteurs
             //  puis on génère ceux liés à des invalidations/modifs de VOS (qui sont déployés avant ajout à la liste des intersecteurs)
             //  et on les applique
 
+            // On limite à 500 invalidateurs : totalement arbitraire, comme les 500 vos cuds ...
+            // // On déploie les intersecteurs pour les demandes liées à des vars invalidées
+            // const invalidators = VarsDatasVoUpdateHandler.invalidators ? VarsDatasVoUpdateHandler.invalidators : [];
+            // VarsDatasVoUpdateHandler.invalidators = [];
+
             // On déploie les intersecteurs pour les demandes liées à des vars invalidées
-            const invalidators = VarsDatasVoUpdateHandler.invalidators ? VarsDatasVoUpdateHandler.invalidators : [];
-            VarsDatasVoUpdateHandler.invalidators = [];
+            const invalidators = (VarsDatasVoUpdateHandler.invalidators && VarsDatasVoUpdateHandler.invalidators.length) ? VarsDatasVoUpdateHandler.invalidators.splice(0, max_invalidators).filter((e) => !!e) : [];
 
             let has_first_invalidator = false;
+            if (invalidators.length) {
+                ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb invalidators:' + invalidators.length + '/' + max_invalidators + ' max - (' + VarsDatasVoUpdateHandler.invalidators.length + ' restants)');
+                handles_invalidators = true;
+                has_max_invalidators = (invalidators.length == max_invalidators);
+            }
+
             if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb invalidators:' + invalidators.length);
                 if (invalidators && invalidators.length) {
                     ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:first invalidator for example:');
                     invalidators[0].console_log();
@@ -100,15 +140,13 @@ export default class VarsProcessInvalidator {
             }
 
             if (VarsDatasVoUpdateHandler && VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) {
-                let ordered_vos_cud = [];
 
-                // On limite à 500VOs invalidés à la fois => plus ou moins arbitraire, faudrait probablement trouver des façons plus convenables de choisir ce nombre...
-                for (let i = 0; (i < 500) && VarsDatasVoUpdateHandler.ordered_vos_cud.length; i++) {
-                    const vo = VarsDatasVoUpdateHandler.ordered_vos_cud.shift();
+                const ordered_vos_cud = (VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) ? VarsDatasVoUpdateHandler.ordered_vos_cud.splice(0, max_ordered_vos_cud).filter((e) => !!e) : [];
 
-                    if (vo) {
-                        ordered_vos_cud.push(vo);
-                    }
+                if (ordered_vos_cud.length) {
+                    ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb ordered_vos_cud:' + ordered_vos_cud.length + '/' + max_ordered_vos_cud + ' max - (' + VarsDatasVoUpdateHandler.ordered_vos_cud.length + ' restants)');
+                    handles_vocuds = true;
+                    has_max_vocuds = (ordered_vos_cud.length == max_ordered_vos_cud);
                 }
 
                 /**
@@ -142,6 +180,24 @@ export default class VarsProcessInvalidator {
              */
             if (deployed_invalidators) {
                 await VarsDatasVoUpdateHandler.handle_invalidators(deployed_invalidators);
+            }
+
+            if (has_max_vocuds && !handles_invalidators) {
+                this.ten_last_vocuds_invalidations_duration_ms.push(Dates.now_ms() - start_date_ms);
+                if (this.ten_last_vocuds_invalidations_duration_ms.length > 10) {
+                    this.ten_last_vocuds_invalidations_duration_ms.shift();
+                }
+
+                ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:handled max vocuds and no intersectors in:' + this.ten_last_vocuds_invalidations_duration_ms[this.ten_last_vocuds_invalidations_duration_ms.length - 1] + 'ms');
+            }
+
+            if (has_max_invalidators && !handles_vocuds) {
+                this.ten_last_intersectors_invalidations_duration_ms.push(Dates.now_ms() - start_date_ms);
+                if (this.ten_last_intersectors_invalidations_duration_ms.length > 10) {
+                    this.ten_last_intersectors_invalidations_duration_ms.shift();
+                }
+
+                ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:handled max invalidators and no vocuds in:' + this.ten_last_intersectors_invalidations_duration_ms[this.ten_last_intersectors_invalidations_duration_ms.length - 1] + 'ms');
             }
 
             if (ConfigurationService.node_configuration.debug_vars_invalidation) {
@@ -198,5 +254,51 @@ export default class VarsProcessInvalidator {
                 delete CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[ds.name];
             }
         }
+    }
+
+    private async check_if_needs_to_invalidate_all_vars(
+        max_invalidators: number,
+        max_ordered_vos_cud: number,
+    ): Promise<boolean> {
+
+        /**
+         * Si on a plus de 10 rounds d'invalidations max, on peut commencer à estimer le temps que ça prendra de tout dépiler
+         *   avec cette info, on compare le temps total à un temps max (paramétré) au delà duquel on décide d'invalider toutes les vars directement pour pas perdre trop de temps
+         */
+        let ten_last_intersectors_invalidations_duration_mean = 0;
+        if (this.ten_last_intersectors_invalidations_duration_ms.length == 10) {
+            for (const duration of this.ten_last_intersectors_invalidations_duration_ms) {
+                ten_last_intersectors_invalidations_duration_mean += duration;
+            }
+            ten_last_intersectors_invalidations_duration_mean /= 10;
+        }
+
+        let ten_last_vocuds_invalidations_duration_mean = 0;
+        if (this.ten_last_vocuds_invalidations_duration_ms.length == 10) {
+            for (const duration of this.ten_last_vocuds_invalidations_duration_ms) {
+                ten_last_vocuds_invalidations_duration_mean += duration;
+            }
+            ten_last_vocuds_invalidations_duration_mean /= 10;
+        }
+        const intersectors_invalidations_duration_remaining_estimation =
+            Math.floor(VarsDatasVoUpdateHandler.invalidators.length / max_invalidators) * ten_last_intersectors_invalidations_duration_mean +
+            Math.floor(VarsDatasVoUpdateHandler.ordered_vos_cud.length / max_ordered_vos_cud) * ten_last_vocuds_invalidations_duration_mean;
+        if (!!intersectors_invalidations_duration_remaining_estimation) {
+            const timeout_ms_invalidation = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_invalidation_param_name, 60000, 30000);
+            const timeout_ms_log = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_log_param_name, 3000, 30000);
+
+            if (intersectors_invalidations_duration_remaining_estimation >= timeout_ms_log) {
+                ConsoleHandler.log('VarsProcessInvalidator:check_if_needs_to_invalidate_all_vars:intersectors_invalidations_duration_remaining_estimation:LOG:' + intersectors_invalidations_duration_remaining_estimation + 'ms (log >= ' + timeout_ms_log + 'ms, invalidation >= ' + timeout_ms_invalidation + 'ms)');
+            }
+
+            if (intersectors_invalidations_duration_remaining_estimation >= timeout_ms_invalidation) {
+                ConsoleHandler.warn('VarsProcessInvalidator:check_if_needs_to_invalidate_all_vars:intersectors_invalidations_duration_remaining_estimation:INVALIDATION:' + intersectors_invalidations_duration_remaining_estimation + 'ms (invalidation >= ' + timeout_ms_invalidation + 'ms) :détails:' +
+                    ':nb invalidators:' + VarsDatasVoUpdateHandler.invalidators.length + '/' + max_invalidators + 'max invalidators - mean ' + ten_last_intersectors_invalidations_duration_mean + 'ms par pack = ' + Math.floor(VarsDatasVoUpdateHandler.invalidators.length / max_invalidators) * ten_last_intersectors_invalidations_duration_mean + 'ms total invalidation time' +
+                    ':nb ordered_vos_cud:' + VarsDatasVoUpdateHandler.ordered_vos_cud.length + '/' + max_ordered_vos_cud + 'max ordered_vos_cud - mean ' + ten_last_vocuds_invalidations_duration_mean + 'ms par pack = ' + Math.floor(VarsDatasVoUpdateHandler.ordered_vos_cud.length / max_ordered_vos_cud) * ten_last_vocuds_invalidations_duration_mean + 'ms total invalidation time');
+                return true;
+            }
+        }
+
+        return false;
     }
 }

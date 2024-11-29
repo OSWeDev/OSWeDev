@@ -24,6 +24,6 @@ export default class Patch20211203ClearVarCaches implements IGeneratorWorker {
     public async work(db: IDatabase<any>) {
 
         // await ModuleVarServer.getInstance().delete_all_cache();
-        // await ModuleDAOServer.getInstance().truncate(SlowVarVO.API_TYPE_ID);
+        // await ModuleDAOServer.instance.truncate(SlowVarVO.API_TYPE_ID);
     }
 }

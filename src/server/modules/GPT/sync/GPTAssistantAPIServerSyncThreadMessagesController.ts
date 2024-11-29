@@ -108,6 +108,11 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
     }
 
     public static async push_thread_message_id(thread_message_id: number) {
+        if (thread_message_id && GPTAssistantAPIServerSyncThreadMessagesController.already_syncing_thread_message[thread_message_id]) {
+            ConsoleHandler.log('push_thread_message_id: Already syncing thread message for thread_message_id ' + thread_message_id);
+            return;
+        }
+
         const thread_message = thread_message_id ? await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID).filter_by_id(thread_message_id).exec_as_server().select_vo<GPTAssistantAPIThreadMessageVO>() : null;
 
         if (!thread_message) {
@@ -167,7 +172,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             if (!gpt_obj) {
 
                 // Si on a aucun contenu à envoyer à OpenAI, on a pas de message non plus et c'est normal
-                if ((!message_contents_create) || (!message_contents_create.length)) {
+                if ((!message_contents_create) || (!message_contents_create.length) || (!vo.is_ready)) {
                     return null;
                 }
 
@@ -230,32 +235,19 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
             // On met à jour le vo avec les infos de l'objet OpenAI si c'est nécessaire
             // On récupère le poids, en listant les messages du thread dans OpenAI
+            // On ne fait cette recherche que si le vo.weight est null, car sinon on a déjà fait la recherche
             let weight: number = null;
-            const thread_messages: Message[] = await GPTAssistantAPIServerSyncThreadMessagesController.get_all_messages(vo.gpt_thread_id);
-            for (const i in thread_messages) {
-                const thread_message = thread_messages[i];
+            if (vo.weight == null) {
+                const thread_messages: Message[] = await GPTAssistantAPIServerSyncThreadMessagesController.get_all_messages(vo.gpt_thread_id);
+                for (const i in thread_messages) {
+                    const thread_message = thread_messages[i];
 
-                if (thread_message.id == gpt_obj.id) {
-                    weight = parseInt(i);
-                    break;
-                }
-            }
-
-            // Si on a une diff sur les contenus, et qu'on est en pleine synchro, on peut pas pousser une nouvelle modif du VO
-            // TODO FIXME : Par contre est-ce qu'il faudrait pas relancer une synchro sur ce threadmessage à la limite à la fin de la synchro ? pour s'assurer que tout est ok ? et sinon peter une erreur ?
-            if (!GPTAssistantAPIServerSyncController.compare_values(message_contents_full, gpt_obj.content)) {
-                if (GPTAssistantAPIServerSyncThreadMessagesController.syncing_semaphores_promises[gpt_obj.id]) {
-
-                    if (ConfigurationService.node_configuration.debug_openai_sync) {
-                        ConsoleHandler.log('push_thread_message_to_openai: message_contents_full != gpt_obj.content mais GPTAssistantAPIServerSyncThreadMessagesController.is_syncing : ' + vo.id);
+                    if (thread_message.id == gpt_obj.id) {
+                        weight = parseInt(i);
+                        break;
                     }
-
-                    return gpt_obj;
-                } else {
-                    throw new Error('Error while pushing thread message to OpenAI : has diff on contents :api_type_id:' + vo._type + ':vo_id:' + vo.id + ':gpt_id:' + gpt_obj.id);
                 }
             }
-
             if (GPTAssistantAPIServerSyncThreadMessagesController.thread_message_has_diff(vo, attachments, /*message_contents_full,*/ gpt_obj) || vo.archived) {
 
                 if (ConfigurationService.node_configuration.debug_openai_sync) {
@@ -265,9 +257,23 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                 await GPTAssistantAPIServerSyncThreadMessagesController.assign_vo_from_gpt(vo, gpt_obj, weight);
 
                 if (!is_trigger_pre_x) {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(vo);
                 }
             }
+            // // Si on a une diff sur les contenus, et qu'on est en pleine synchro, on peut pas pousser une nouvelle modif du VO
+            // // TODO FIXME : Par contre est-ce qu'il faudrait pas relancer une synchro sur ce threadmessage à la limite à la fin de la synchro ? pour s'assurer que tout est ok ? et sinon peter une erreur ?
+            // if (!GPTAssistantAPIServerSyncController.compare_values(message_contents_full, gpt_obj.content)) {
+            //     if (GPTAssistantAPIServerSyncThreadMessagesController.syncing_semaphores_promises[gpt_obj.id]) {
+
+            //         if (ConfigurationService.node_configuration.debug_openai_sync) {
+            //             ConsoleHandler.log('push_thread_message_to_openai: message_contents_full != gpt_obj.content mais GPTAssistantAPIServerSyncThreadMessagesController.is_syncing : ' + vo.id);
+            //         }
+
+            //         return gpt_obj;
+            //     } else {
+            //         throw new Error('Error while pushing thread message to OpenAI : has diff on contents :api_type_id:' + vo._type + ':vo_id:' + vo.id + ':gpt_id:' + gpt_obj.id);
+            //     }
+            // }
 
             return gpt_obj;
         } catch (error) {
@@ -362,7 +368,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             thread_message_vo.user_id = (thread_message.metadata && thread_message.metadata['user_id']) ? parseInt(thread_message.metadata['user_id']) : thread_vo.user_id;
 
             await GPTAssistantAPIServerSyncThreadMessagesController.assign_vo_from_gpt(thread_message_vo, thread_message, weight);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_message_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_message_vo);
         }
 
         const attachments = GPTAssistantAPIServerSyncThreadMessagesController.attachments_to_openai_api(thread_message_vo);
@@ -394,7 +400,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             ConsoleHandler.log('sync_thread_message: Updating thread message in Osélia : ' + thread_message_vo.id);
         }
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_message_vo);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_message_vo);
         GPTAssistantAPIServerSyncThreadMessagesController.already_syncing_thread_message[thread_message_vo.id] = false;
     }
 
@@ -522,7 +528,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             found_vo.thread_message_id = thread_message_vo.id;
             found_vo.weight = (found_vo.weight != null) ? found_vo.weight : weight;
             found_vo.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
     }
 
@@ -586,7 +592,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             found_vo.thread_message_id = thread_message_vo.id;
             found_vo.weight = (found_vo.weight != null) ? found_vo.weight : weight;
             found_vo.type = GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
     }
 
@@ -642,7 +648,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             found_vo.thread_message_id = thread_message_vo.id;
             found_vo.weight = (found_vo.weight != null) ? found_vo.weight : weight;
             found_vo.type = GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE_URL;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
     }
 
@@ -783,16 +789,16 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                     // On ajoute le nom de l'emetteur du message + son id - si on est sur un message de type user
                     // eslint-disable-next-line no-case-declarations
                     let content_type_text = content.content_type_text.value;
-                    if (vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
-                        if (!user) {
-                            user = await query(UserVO.API_TYPE_ID).filter_by_id(vo.user_id).exec_as_server().select_vo<UserVO>();
-                        }
+                    // if (vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
+                    //     if (!user) {
+                    //         user = await query(UserVO.API_TYPE_ID).filter_by_id(vo.user_id).exec_as_server().select_vo<UserVO>();
+                    //     }
 
-                        const intro_info_user = GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(user);
-                        if (!content_type_text.startsWith(intro_info_user)) {
-                            content_type_text = intro_info_user + content_type_text;
-                        }
-                    }
+                    //     const intro_info_user = GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(user);
+                    //     if (!content_type_text.startsWith(intro_info_user)) {
+                    //         content_type_text = intro_info_user + content_type_text;
+                    //     }
+                    // }
 
                     res.push({
                         type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],
@@ -856,12 +862,12 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                     // On ajoute le nom de l'emetteur du message + son id - si on est sur un message de type user
                     // eslint-disable-next-line no-case-declarations
                     let content_type_text = content.content_type_text.value;
-                    if (vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
-                        const intro_info_user = GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(user);
-                        if (!content_type_text.startsWith(intro_info_user)) {
-                            content_type_text = intro_info_user + content_type_text;
-                        }
-                    }
+                    // if (vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
+                    //     const intro_info_user = GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(user);
+                    //     if (!content_type_text.startsWith(intro_info_user)) {
+                    //         content_type_text = intro_info_user + content_type_text;
+                    //     }
+                    // }
 
                     res.push({
                         type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],
@@ -941,42 +947,48 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
     private static async assign_vo_from_gpt(vo: GPTAssistantAPIThreadMessageVO, gpt_obj: Message, weight: number) {
         if (gpt_obj.assistant_id) {
-            const assistant = await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(gpt_obj.assistant_id);
+            if ((!vo.assistant_id) || (gpt_obj.assistant_id != vo.gpt_assistant_id)) {
+                const assistant = await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(gpt_obj.assistant_id);
 
-            if (!assistant) {
-                throw new Error('Error while pushing thread message to OpenAI : assistant not found : ' + gpt_obj.assistant_id);
+                if (!assistant) {
+                    throw new Error('Error while pushing thread message to OpenAI : assistant not found : ' + gpt_obj.assistant_id);
+                }
+
+                vo.gpt_assistant_id = gpt_obj.assistant_id;
+                vo.assistant_id = assistant.id;
             }
-
-            vo.gpt_assistant_id = gpt_obj.assistant_id;
-            vo.assistant_id = assistant.id;
         } else {
             vo.gpt_assistant_id = null;
             vo.assistant_id = null;
         }
 
         if (gpt_obj.run_id) {
-            const run = await GPTAssistantAPIServerSyncRunsController.get_run_or_sync(gpt_obj.thread_id, gpt_obj.run_id);
+            if ((!vo.run_id) || (gpt_obj.run_id != vo.gpt_run_id)) {
+                const run = await GPTAssistantAPIServerSyncRunsController.get_run_or_sync(gpt_obj.thread_id, gpt_obj.run_id);
 
-            if (!run) {
-                throw new Error('Error while pushing thread message to OpenAI : run not found : ' + gpt_obj.run_id);
+                if (!run) {
+                    throw new Error('Error while pushing thread message to OpenAI : run not found : ' + gpt_obj.run_id);
+                }
+
+                vo.gpt_run_id = gpt_obj.run_id;
+                vo.run_id = run.id;
             }
-
-            vo.gpt_run_id = gpt_obj.run_id;
-            vo.run_id = run.id;
         } else {
             vo.gpt_run_id = null;
             vo.run_id = null;
         }
 
         if (gpt_obj.thread_id) {
-            const thread = await GPTAssistantAPIServerSyncThreadsController.get_thread_or_sync(gpt_obj.thread_id);
+            if ((!vo.thread_id) || (gpt_obj.thread_id != vo.gpt_thread_id)) {
+                const thread = await GPTAssistantAPIServerSyncThreadsController.get_thread_or_sync(gpt_obj.thread_id);
 
-            if (!thread) {
-                throw new Error('Error while pushing thread message to OpenAI : thread not found : ' + gpt_obj.thread_id);
+                if (!thread) {
+                    throw new Error('Error while pushing thread message to OpenAI : thread not found : ' + gpt_obj.thread_id);
+                }
+
+                vo.gpt_thread_id = gpt_obj.thread_id;
+                vo.thread_id = thread.id;
             }
-
-            vo.gpt_thread_id = gpt_obj.thread_id;
-            vo.thread_id = thread.id;
         } else {
             vo.gpt_thread_id = null;
             vo.thread_id = null;

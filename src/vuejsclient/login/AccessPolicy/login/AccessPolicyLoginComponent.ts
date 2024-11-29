@@ -9,6 +9,7 @@ import NFCHandler from "../../../ts/components/NFCConnect/NFCHandler";
 import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './AccessPolicyLoginComponent.scss';
+import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
 
 @Component({
     template: require('./AccessPolicyLoginComponent.pug'),
@@ -40,6 +41,10 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     private has_error_form: boolean = false;
 
     private is_ok_loging: boolean = false;
+
+    get nfcconnect_available() {
+        return (!NFCHandler.getInstance().ndef_active) && !!window['NDEFReader'];
+    }
 
     private async mounted() {
         const promises = [];
@@ -74,11 +79,11 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         )());
 
         promises.push((async () =>
-            this.pdf_info = await ModuleParams.getInstance().getParamValueAsString(ModuleAccessPolicy.PARAM_NAME_LOGIN_INFOS)
+            this.pdf_info = await ModuleParams.getInstance().getParamValueAsString(ModuleAccessPolicy.PARAM_NAME_LOGIN_INFOS, null, 10000)
         )());
 
         promises.push((async () =>
-            this.pdf_cgu = await ModuleParams.getInstance().getParamValueAsString(ModuleAccessPolicy.PARAM_NAME_LOGIN_CGU)
+            this.pdf_cgu = await ModuleParams.getInstance().getParamValueAsString(ModuleAccessPolicy.PARAM_NAME_LOGIN_CGU, null, 10000)
         )());
 
         await all_promises(promises);
@@ -94,12 +99,14 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
                 location += '?session_id=' + session_id;
             }
 
+            ConsoleHandler.log('AccessPolicyLoginComponent mounted logged_id:' + logged_id + ':redirect_to:' + location);
+
             window.location = (location as any);
         }
     }
 
     private async load_logo_url() {
-        this.logo_url = await ModuleParams.getInstance().getParamValueAsString(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url');
+        this.logo_url = await ModuleParams.getInstance().getParamValueAsString(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url', null, 10000);
         if (this.logo_url && (this.logo_url != '""') && (this.logo_url != '')) {
             return;
         }
@@ -183,9 +190,5 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
 
     private set_show_password(show_password: boolean) {
         this.show_password = show_password;
-    }
-
-    get nfcconnect_available() {
-        return (!NFCHandler.getInstance().ndef_active) && !!window['NDEFReader'];
     }
 }

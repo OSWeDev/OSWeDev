@@ -49,7 +49,7 @@ export default class Patch20220725DashboardWidgetUpdate implements IGeneratorWor
 
             dw.is_filter = true;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dw);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(dw);
         }
     }
 }

@@ -12,8 +12,16 @@ import TypesHandler from '../../../shared/tools/TypesHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleServerBase from '../ModuleServerBase';
 import TemplateHandlerServer from './TemplateHandlerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 
 export default class ModuleMailerServer extends ModuleServerBase {
+
+    private static instance: ModuleMailerServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleMailer.getInstance().name);
+    }
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -21,13 +29,6 @@ export default class ModuleMailerServer extends ModuleServerBase {
             ModuleMailerServer.instance = new ModuleMailerServer();
         }
         return ModuleMailerServer.instance;
-    }
-
-    private static instance: ModuleMailerServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleMailer.getInstance().name);
     }
 
     // istanbul ignore next: cannot test configure
@@ -105,11 +106,6 @@ export default class ModuleMailerServer extends ModuleServerBase {
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleMailer.APINAME_sendMail, this.sendMail.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleMailer.APINAME_prepareHTML, this.prepareHTML.bind(this));
-    }
-
-    public async prepareHTML(template: string, lang_id: number, vars: { [name: string]: string } = null): Promise<string> {
-        return TemplateHandlerServer.getInstance().prepareHTML(template, lang_id, vars);
     }
 
     public async sendMail(mailOptions: SendMailOptions): Promise<any> {
@@ -133,13 +129,13 @@ export default class ModuleMailerServer extends ModuleServerBase {
             let suffix: string = null;
             await all_promises([
                 (async () => {
-                    mailOptions.from = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_FROM, ModuleMailer.DEFAULT_FROM, 1000 * 60 * 5); // 5 minutes
+                    mailOptions.from = await ParamsServerController.getParamValueAsString(ModuleMailer.PARAM_NAME_FROM, ModuleMailer.DEFAULT_FROM, 1000 * 60 * 5); // 5 minutes
                 })(),
                 (async () => {
-                    prefix = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_SUBJECT_PREFIX, ModuleMailer.DEFAULT_SUBJECT_PREFIX, 1000 * 60 * 5); // 5 minutes
+                    prefix = await ParamsServerController.getParamValueAsString(ModuleMailer.PARAM_NAME_SUBJECT_PREFIX, ModuleMailer.DEFAULT_SUBJECT_PREFIX, 1000 * 60 * 5); // 5 minutes
                 })(),
                 (async () => {
-                    suffix = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_SUBJECT_SUFFIX, ModuleMailer.DEFAULT_SUBJECT_SUFFIX, 1000 * 60 * 5); // 5 minutes
+                    suffix = await ParamsServerController.getParamValueAsString(ModuleMailer.PARAM_NAME_SUBJECT_SUFFIX, ModuleMailer.DEFAULT_SUBJECT_SUFFIX, 1000 * 60 * 5); // 5 minutes
                 })()
             ]);
 
@@ -242,19 +238,19 @@ export default class ModuleMailerServer extends ModuleServerBase {
         let secure: boolean = null;
         await all_promises([
             (async () => {
-                user = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_AUTH_USER, ModuleMailer.DEFAULT_AUTH_USER, 1000 * 60 * 5); // 5 minutes
+                user = await ParamsServerController.getParamValueAsString(ModuleMailer.PARAM_NAME_AUTH_USER, ModuleMailer.DEFAULT_AUTH_USER, 1000 * 60 * 5); // 5 minutes
             })(),
             (async () => {
-                pass = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_AUTH_PASS, ModuleMailer.DEFAULT_AUTH_PASS, 1000 * 60 * 5); // 5 minutes
+                pass = await ParamsServerController.getParamValueAsString(ModuleMailer.PARAM_NAME_AUTH_PASS, ModuleMailer.DEFAULT_AUTH_PASS, 1000 * 60 * 5); // 5 minutes
             })(),
             (async () => {
-                host = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_HOST, ModuleMailer.DEFAULT_HOST, 1000 * 60 * 5); // 5 minutes
+                host = await ParamsServerController.getParamValueAsString(ModuleMailer.PARAM_NAME_HOST, ModuleMailer.DEFAULT_HOST, 1000 * 60 * 5); // 5 minutes
             })(),
             (async () => {
-                port = await ModuleParams.getInstance().getParamValueAsInt(ModuleMailer.PARAM_NAME_PORT, ModuleMailer.DEFAULT_PORT, 1000 * 60 * 5); // 5 minutes
+                port = await ParamsServerController.getParamValueAsInt(ModuleMailer.PARAM_NAME_PORT, ModuleMailer.DEFAULT_PORT, 1000 * 60 * 5); // 5 minutes
             })(),
             (async () => {
-                secure = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleMailer.PARAM_NAME_SECURE, ModuleMailer.DEFAULT_SECURE, 1000 * 60 * 5); // 5 minutes
+                secure = await ParamsServerController.getParamValueAsBoolean(ModuleMailer.PARAM_NAME_SECURE, ModuleMailer.DEFAULT_SECURE, 1000 * 60 * 5); // 5 minutes
             })()
         ]);
 

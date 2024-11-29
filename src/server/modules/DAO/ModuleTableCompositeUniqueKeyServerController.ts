@@ -58,10 +58,10 @@ export default class ModuleTableCompositeUniqueKeyServerController {
         }
 
         if (to_deletes.length) {
-            await ModuleDAOServer.getInstance().deleteVOs_as_server(to_deletes);
+            await ModuleDAOServer.instance.deleteVOs_as_server(to_deletes);
         }
         if (to_inserts.length) {
-            await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(to_inserts);
+            await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(to_inserts);
         }
 
         db_composite_unique_keys = await query(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID).select_vos<ModuleTableCompositeUniqueKeyVO>();

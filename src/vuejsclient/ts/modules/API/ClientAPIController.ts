@@ -4,6 +4,7 @@ import IAPIController from '../../../../shared/modules/API/interfaces/IAPIContro
 import IAPIParamTranslator from '../../../../shared/modules/API/interfaces/IAPIParamTranslator';
 import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
 import APINotifTypeResultVO from '../../../../shared/modules/PushData/vos/APINotifTypeResultVO';
+import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 
 export default class ClientAPIController implements IAPIController {
@@ -21,6 +22,8 @@ export default class ClientAPIController implements IAPIController {
      */
     public static api_waiting_for_result_notif_waiting_for_solvers: { [api_call_id: number]: () => void } = {};
 
+    private static instance: ClientAPIController = null;
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ClientAPIController {
         if (!ClientAPIController.instance) {
@@ -30,20 +33,17 @@ export default class ClientAPIController implements IAPIController {
         return ClientAPIController.instance;
     }
 
-    private static instance: ClientAPIController = null;
-
-    public get_shared_api_handler<T extends IAPIParamTranslator<T>, U>(
+    public sah<T extends IAPIParamTranslator<T>, U>(
         api_name: string,
         sanitize_params: (...params) => any[] = null,
         precondition: (...params) => boolean = null,
         precondition_default_value: any = null,
-        registered_apis: { [api_name: string]: APIDefinition<any, any> } = {},
         sanitize_result: (res: any, ...params) => any = null
     ): (...params) => Promise<U> {
 
         return async (...params) => {
 
-            const apiDefinition: APIDefinition<T, U> = registered_apis[api_name];
+            const apiDefinition: APIDefinition<T, U> = APIControllerWrapper.registered_apis[api_name];
 
             if (!apiDefinition) {
 
@@ -51,7 +51,7 @@ export default class ClientAPIController implements IAPIController {
             }
 
             if (sanitize_params) {
-                params = sanitize_params(...params);
+                params = [sanitize_params(...params)]; // on déréférence le tableau, donc on le remet dans un tableau
             }
 
             if (precondition && !precondition(...params)) {
@@ -63,15 +63,58 @@ export default class ClientAPIController implements IAPIController {
                 return precondition_default_value;
             }
 
+            if (!sanitize_result) {
+                return this.handleAPI(apiDefinition, ...params);
+            }
+
             let res = await this.handleAPI(apiDefinition, ...params);
 
-            if (sanitize_result) {
-                res = sanitize_result(res, ...params);
-            }
+            res = sanitize_result(res, ...params);
 
             return res;
         };
     }
+
+    // public get_shared_api_handler<T extends IAPIParamTranslator<T>, U>(
+    //     api_name: string,
+    //     sanitize_params: (...params) => any[] = null,
+    //     precondition: (...params) => boolean = null,
+    //     precondition_default_value: any = null,
+    //     registered_apis: { [api_name: string]: APIDefinition<any, any> } = {},
+    //     sanitize_result: (res: any, ...params) => any = null
+    // ): (...params) => Promise<U> {
+
+    //     return async (...params) => {
+
+    //         const apiDefinition: APIDefinition<T, U> = registered_apis[api_name];
+
+    //         if (!apiDefinition) {
+
+    //             throw new Error('API client undefined:' + api_name + ':');
+    //         }
+
+    //         if (sanitize_params) {
+    //             params = sanitize_params(...params);
+    //         }
+
+    //         if (precondition && !precondition(...params)) {
+
+    //             if (sanitize_result) {
+    //                 return sanitize_result(precondition_default_value, ...params);
+    //             }
+
+    //             return precondition_default_value;
+    //         }
+
+    //         let res = await this.handleAPI(apiDefinition, ...params);
+
+    //         if (sanitize_result) {
+    //             res = sanitize_result(res, ...params);
+    //         }
+
+    //         return res;
+    //     };
+    // }
 
     private async handleAPI<T extends IAPIParamTranslator<T>, U>(apiDefinition: APIDefinition<T, U>, ...api_params): Promise<U> {
         const translated_param: IAPIParamTranslator<T> = APIControllerWrapper.translate_param(apiDefinition, ...api_params);
@@ -104,7 +147,8 @@ export default class ClientAPIController implements IAPIController {
                     apiDefinition,
                     (APIControllerWrapper.BASE_API_URL + api_name).toLowerCase(),
                     API_TYPES_IDS_involved,
-                    ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
+                    // ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
+                    ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(translated_param)) : null,
                     null,
                     'application/json; charset=utf-8',
                     null,
@@ -119,7 +163,8 @@ export default class ClientAPIController implements IAPIController {
                         apiDefinition,
                         (APIControllerWrapper.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
+                        // ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
+                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(translated_param)) : null,
                         null,
                         'application/json; charset=utf-8') as string;
 
@@ -135,14 +180,16 @@ export default class ClientAPIController implements IAPIController {
                         apiDefinition,
                         (APIControllerWrapper.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
+                        // ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
+                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(translated_param)) : null,
                         null,
                         'application/json; charset=utf-8') as U;
                 }
         }
 
         // On tente de traduire si on reconnait un type de vo
-        api_res = APIControllerWrapper.try_translate_vo_from_api(api_res);
+        // api_res = APIControllerWrapper.try_translate_vo_from_api(api_res);
+        api_res = ObjectHandler.reapply_prototypes(api_res);
 
         // Si on a une api de type result notif, on vient de récupérer un ID normalement, qu'on stocke en attendant la notif
         if (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF) {

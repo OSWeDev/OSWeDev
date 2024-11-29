@@ -3,6 +3,7 @@
 import { IDatabase } from 'pg-promise';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import ParamsServerController from '../../../server/modules/Params/ParamsServerController';
 
 export default class Patch20230517InitParamsStats implements IGeneratorWorker {
 
@@ -24,7 +25,7 @@ export default class Patch20230517InitParamsStats implements IGeneratorWorker {
 
     public async work(db: IDatabase<any>) {
 
-        await ModuleParams.getInstance().setParamValueAsNumber("StatsController.UNSTACK_THROTTLE_SERVER", 60000);
-        await ModuleParams.getInstance().setParamValueAsNumber("StatsController.UNSTACK_THROTTLE_CLIENT", 5000);
+        await ParamsServerController.setParamValueAsNumber("StatsController.UNSTACK_THROTTLE_SERVER", 60000);
+        await ParamsServerController.setParamValueAsNumber("StatsController.UNSTACK_THROTTLE_CLIENT", 5000);
     }
 }

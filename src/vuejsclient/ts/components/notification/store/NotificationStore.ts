@@ -22,14 +22,6 @@ export interface INotificationState {
 
 export default class NotificationStore implements IStoreModule<INotificationState, NotificationContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): NotificationStore {
-        if (!NotificationStore.instance) {
-            NotificationStore.instance = new NotificationStore();
-        }
-        return NotificationStore.instance;
-    }
-
     private static instance: NotificationStore;
 
     public module_name: string;
@@ -105,14 +97,23 @@ export default class NotificationStore implements IStoreModule<INotificationStat
         };
     }
 
+    // istanbul ignore next: nothing to test
+    public static getInstance(): NotificationStore {
+        if (!NotificationStore.instance) {
+            NotificationStore.instance = new NotificationStore();
+        }
+        return NotificationStore.instance;
+    }
+
     private async read_notifs() {
         if ((!this.state.mark_as_read) || (!this.state.mark_as_read.length)) {
             return;
         }
-        await ModuleDAO.getInstance().insertOrUpdateVOs(this.state.mark_as_read);
+        await ModuleDAO.instance.insertOrUpdateVOs(this.state.mark_as_read);
         this.state.mark_as_read = [];
     }
 }
 
-export const ModuleNotificationGetter = namespace('NotificationStore', Getter);
-export const ModuleNotificationAction = namespace('NotificationStore', Action);
+const __namespace = namespace('NotificationStore');
+export const ModuleNotificationGetter = __namespace.Getter;
+export const ModuleNotificationAction = __namespace.Action;

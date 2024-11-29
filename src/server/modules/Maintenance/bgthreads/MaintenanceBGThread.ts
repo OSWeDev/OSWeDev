@@ -9,19 +9,12 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import ParamsServerController from '../../Params/ParamsServerController';
 import PushDataServerController from '../../PushData/PushDataServerController';
 import MaintenanceServerController from '../MaintenanceServerController';
 import ModuleMaintenanceServer from '../ModuleMaintenanceServer';
 
 export default class MaintenanceBGThread implements IBGThread {
-
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!MaintenanceBGThread.instance) {
-            MaintenanceBGThread.instance = new MaintenanceBGThread();
-        }
-        return MaintenanceBGThread.instance;
-    }
 
     private static instance: MaintenanceBGThread = null;
 
@@ -29,14 +22,19 @@ export default class MaintenanceBGThread implements IBGThread {
     public MAX_timeout: number = 60000;
     public MIN_timeout: number = 1000;
 
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
     private constructor() {
     }
 
     get name(): string {
         return "MaintenanceBGThread";
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!MaintenanceBGThread.instance) {
+            MaintenanceBGThread.instance = new MaintenanceBGThread();
+        }
+        return MaintenanceBGThread.instance;
     }
 
     public async work(): Promise<number> {
@@ -67,9 +65,9 @@ export default class MaintenanceBGThread implements IBGThread {
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
-            const timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120, 180000);
-            const timeout_minutes_msg2: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES, 15, 180000);
-            const timeout_minutes_msg3: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES, 5, 180000);
+            const timeout_minutes_msg1: number = await ParamsServerController.getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120, 180000);
+            const timeout_minutes_msg2: number = await ParamsServerController.getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES, 15, 180000);
+            const timeout_minutes_msg3: number = await ParamsServerController.getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES, 5, 180000);
 
             let changed: boolean = false;
 
@@ -105,7 +103,7 @@ export default class MaintenanceBGThread implements IBGThread {
             }
 
             if (changed) {
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(maintenance);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(maintenance);
             }
             this.stats_out('ok', time_in);
             return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;

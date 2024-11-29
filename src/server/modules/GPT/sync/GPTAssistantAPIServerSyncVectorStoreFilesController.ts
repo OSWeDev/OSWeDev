@@ -135,7 +135,7 @@ export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
                 await GPTAssistantAPIServerSyncVectorStoreFilesController.assign_vo_from_gpt(vo, gpt_obj);
 
                 if (!is_trigger_pre_x) {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(vo);
                 }
             }
 
@@ -211,7 +211,7 @@ export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
 
             await GPTAssistantAPIServerSyncVectorStoreFilesController.assign_vo_from_gpt(found_vo, vector_store_file);
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
 
         // Les files qu'on trouve dans Osélia mais pas dans OpenAI, on les archive
@@ -233,7 +233,7 @@ export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
 
             found_vo.archived = true;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
     }
 

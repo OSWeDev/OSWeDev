@@ -115,7 +115,7 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
 
             if (!this.alreadyPresent(QRData, QRsInDB, modules)) {
                 const QR = this.createQRBase(QRData, modules);
-                const queryRes = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(QR);
+                const queryRes = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(QR);
 
                 if (!queryRes) {
                     succeeded = false;

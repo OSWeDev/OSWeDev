@@ -23,7 +23,7 @@ export default abstract class CheckListControllerBase {
     public abstract get_ordered_editable_fields(): Promise<Array<DatatableField<any, any>>>;
 
     get shared_module(): Module {
-        return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
+        return ModulesManager.getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
     }
 
     get checklist_shared_module(): ModuleCheckListBase {

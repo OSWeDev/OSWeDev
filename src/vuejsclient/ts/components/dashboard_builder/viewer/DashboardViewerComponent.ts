@@ -86,23 +86,8 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
     private can_edit: boolean = false;
 
-
-    private select_widget(page_widget) {
-        this.selected_widget = page_widget;
-    }
-
     get has_navigation_history(): boolean {
         return this.get_page_history && (this.get_page_history.length > 0);
-    }
-
-    private select_previous_page() {
-        this.page = this.get_page_history[this.get_page_history.length - 1];
-        this.pop_page_history(null);
-    }
-
-    private select_page_clear_navigation(page: DashboardPageVO) {
-        this.set_page_history([]);
-        this.page = page;
     }
 
     get visible_pages(): DashboardPageVO[] {
@@ -121,125 +106,6 @@ export default class DashboardViewerComponent extends VueComponentBase {
         }
 
         return res;
-    }
-
-    private async init_api_type_ids_and_discarded_field_paths() {
-        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(this.dashboard.id);
-        this.set_dashboard_api_type_ids(api_type_ids);
-        this.set_discarded_field_paths(discarded_field_paths);
-    }
-
-    /**
-     * Quand on change de dahsboard, on supprime les filtres contextuels existants (en tout cas par défaut)
-     *  on pourrait vouloir garder les filtres communs aussi => non implémenté (il faut un switch et supprimer les filtres non applicables aux widgets du dashboard)
-     *  et on pourrait vouloir garder tous les filtres => non implémenté (il faut un switch et simplement ne pas supprimer les filtres)
-     */
-    @Watch("dashboard_id", { immediate: true })
-    private async onchange_dashboard_id() {
-        this.loading = true;
-
-        if (!this.dashboard_id) {
-            this.can_edit = false;
-            this.loading = false;
-            return;
-        }
-
-        // Update the dashboard navigation history
-        DashboardVOManager.update_dashboard_navigation_history(
-            this.dashboard_id,
-            this.get_dashboard_navigation_history,
-            this.set_dashboard_navigation_history
-        );
-
-        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
-            ModuleDAO.DAO_ACCESS_TYPE_READ,
-            DashboardVO.API_TYPE_ID
-        );
-
-        const has_dashboard_access = await ModuleAccessPolicy.getInstance().testAccess(
-            access_policy_name
-        );
-
-        if (!has_dashboard_access) {
-            this.loading = false;
-            return;
-        }
-
-        this.dashboard = await DashboardVOManager.find_dashboard_by_id(
-            this.dashboard_id
-        );
-
-        if (!this.dashboard) {
-            this.can_edit = false;
-            this.loading = false;
-            return;
-        }
-
-        await this.init_api_type_ids_and_discarded_field_paths();
-
-        // // FIXME : JNE pour MDU : Je remets le clear en place, en le supprimant tu as juste partagé tous les filtres de tous les dashboards entre eux,
-        // // ya aucune notion de paramétrage associée... donc je remets dans l'état inital et on corrigera le partage par la suite...
-        // this.clear_active_field_filters();
-
-        const shared_filters: SharedFiltersVO[] = await DashboardVOManager.load_shared_filters_with_dashboard_id(
-            this.dashboard.id,
-        );
-
-        this.add_shared_filters_to_map(shared_filters);
-
-        this.pages = await this.load_dashboard_pages_by_dashboard_id(
-            this.dashboard.id
-        );
-
-        if (!this.pages) {
-            this.isLoading = false;
-            this.can_edit = false;
-            return;
-        }
-
-        WidgetOptionsVOManager.getInstance().initialize();
-
-        WeightHandler.getInstance().sortByWeight(this.pages);
-        this.page = this.pages[0];
-
-        this.can_edit = await ModuleAccessPolicy.getInstance().testAccess(
-            ModuleDashboardBuilder.POLICY_BO_ACCESS
-        );
-
-        this.loading = false;
-    }
-
-    /**
-     * load_dashboard_pages_by_dashboard_id
-     * - Load the dashboard pages by dashboard id and sort them by weight
-     *
-     * @param {number} [dashboard_id]
-     * @param {boolean} [options.refresh]
-     * @returns {Promise<DashboardVO[]>}
-     */
-    private async load_dashboard_pages_by_dashboard_id(
-        dashboard_id: number,
-        options?: { refresh?: boolean }
-    ): Promise<DashboardPageVO[]> {
-
-        const dashboard_pages = await DashboardPageVOManager.find_dashboard_pages_by_dashboard_id(
-            dashboard_id,
-            {
-                sorts: [
-                    new SortByVO(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().weight, true),
-                    new SortByVO(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().id, true)
-                ]
-            },
-            options
-        );
-
-        return dashboard_pages;
-    }
-
-    private select_page(page: DashboardPageVO) {
-        this.add_page_history(this.page);
-        this.select_widget(null);
-        this.page = page;
     }
 
     get dashboard_name_code_text(): string {
@@ -277,6 +143,141 @@ export default class DashboardViewerComponent extends VueComponentBase {
         );
     }
 
+    /**
+     * Quand on change de dahsboard, on supprime les filtres contextuels existants (en tout cas par défaut)
+     *  on pourrait vouloir garder les filtres communs aussi => non implémenté (il faut un switch et supprimer les filtres non applicables aux widgets du dashboard)
+     *  et on pourrait vouloir garder tous les filtres => non implémenté (il faut un switch et simplement ne pas supprimer les filtres)
+     */
+    @Watch("dashboard_id", { immediate: true })
+    private async onchange_dashboard_id() {
+        this.loading = true;
+
+        if (!this.dashboard_id) {
+            this.can_edit = false;
+            this.loading = false;
+            return;
+        }
+
+        // Update the dashboard navigation history
+        DashboardVOManager.update_dashboard_navigation_history(
+            this.dashboard_id,
+            this.get_dashboard_navigation_history,
+            this.set_dashboard_navigation_history
+        );
+
+        const access_policy_name = ModuleDAO.instance.getAccessPolicyName(
+            ModuleDAO.DAO_ACCESS_TYPE_READ,
+            DashboardVO.API_TYPE_ID
+        );
+
+        const has_dashboard_access = await ModuleAccessPolicy.getInstance().testAccess(
+            access_policy_name
+        );
+
+        if (!has_dashboard_access) {
+            this.loading = false;
+            return;
+        }
+
+        this.dashboard = await DashboardVOManager.find_dashboard_by_id(
+            this.dashboard_id
+        );
+
+        if (!this.dashboard) {
+            this.can_edit = false;
+            this.loading = false;
+            return;
+        }
+
+        await this.init_api_type_ids_and_discarded_field_paths();
+
+        // // FIXME : JNE pour MDU : Je remets le clear en place, en le supprimant tu as juste partagé tous les filtres de tous les dashboards entre eux,
+        // // ya aucune notion de paramétrage associée... donc je remets dans l'état inital et on corrigera le partage par la suite...
+        // this.clear_active_field_filters();
+
+        const shared_filters: SharedFiltersVO[] = await DashboardVOManager.load_shared_filters_with_dashboard_id(
+            this.dashboard.id,
+        );
+
+        if (shared_filters?.length > 0) {
+
+            this.add_shared_filters_to_map(shared_filters);
+        }
+
+        this.pages = await this.load_dashboard_pages_by_dashboard_id(
+            this.dashboard.id
+        );
+
+        if (!this.pages) {
+            this.isLoading = false;
+            this.can_edit = false;
+            return;
+        }
+
+        WidgetOptionsVOManager.getInstance().initialize();
+
+        WeightHandler.getInstance().sortByWeight(this.pages);
+        this.page = this.pages[0];
+
+        this.can_edit = await ModuleAccessPolicy.getInstance().testAccess(
+            ModuleDashboardBuilder.POLICY_BO_ACCESS
+        );
+
+        this.loading = false;
+    }
+
+    private select_widget(page_widget) {
+        this.selected_widget = page_widget;
+    }
+    private select_previous_page() {
+        this.page = this.get_page_history[this.get_page_history.length - 1];
+        this.pop_page_history(null);
+    }
+
+    private select_page_clear_navigation(page: DashboardPageVO) {
+        this.set_page_history([]);
+        this.page = page;
+    }
+
+
+    private async init_api_type_ids_and_discarded_field_paths() {
+        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(this.dashboard.id);
+        this.set_dashboard_api_type_ids(api_type_ids);
+        this.set_discarded_field_paths(discarded_field_paths);
+    }
+
+    /**
+     * load_dashboard_pages_by_dashboard_id
+     * - Load the dashboard pages by dashboard id and sort them by weight
+     *
+     * @param {number} [dashboard_id]
+     * @param {boolean} [options.refresh]
+     * @returns {Promise<DashboardVO[]>}
+     */
+    private async load_dashboard_pages_by_dashboard_id(
+        dashboard_id: number,
+        options?: { refresh?: boolean }
+    ): Promise<DashboardPageVO[]> {
+
+        const dashboard_pages = await DashboardPageVOManager.find_dashboard_pages_by_dashboard_id(
+            dashboard_id,
+            {
+                sorts: [
+                    new SortByVO(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().weight, true),
+                    new SortByVO(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().id, true)
+                ]
+            },
+            options
+        );
+
+        return dashboard_pages;
+    }
+
+    private select_page(page: DashboardPageVO) {
+        this.add_page_history(this.page);
+        this.select_widget(null);
+        this.page = page;
+    }
 
     // private mounted() {
     //     let body = document.getElementById('page-top');

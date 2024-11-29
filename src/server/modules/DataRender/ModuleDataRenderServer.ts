@@ -106,7 +106,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             return null;
         }
 
-        const rendererModule: DataRenderModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(dataRenderer.render_handler_module, ModuleServerBase.SERVER_MODULE_ROLE_NAME) as DataRenderModuleBase;
+        const rendererModule: DataRenderModuleBase = ModulesManager.getModuleByNameAndRole(dataRenderer.render_handler_module, ModuleServerBase.SERVER_MODULE_ROLE_NAME) as DataRenderModuleBase;
 
         const latest_data: IDistantVOBase & IRenderedData = await query(rendererModule.database.vo_type).set_sort(new SortByVO(rendererModule.database.vo_type, 'data_dateindex', false)).set_limit(1).select_vo<IDistantVOBase & IRenderedData>();
 
@@ -118,11 +118,11 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     }
 
     public async getDataRenderers(): Promise<DataRendererVO[]> {
-        return await query(DataRendererVO.API_TYPE_ID).select_vos<DataRendererVO>();
+        return query(DataRendererVO.API_TYPE_ID).select_vos<DataRendererVO>();
     }
 
     public async getDataRenderer(text: string): Promise<DataRendererVO> {
-        return await query(DataRendererVO.API_TYPE_ID).filter_by_text_eq(field_names<DataRendererVO>().renderer_name, text).select_vo<DataRendererVO>();
+        return query(DataRendererVO.API_TYPE_ID).filter_by_text_eq(field_names<DataRendererVO>().renderer_name, text).select_vo<DataRendererVO>();
     }
 
     /**
@@ -140,7 +140,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             TimeSegmentHandler.getEndTimeSegment(timeSegment),
             rendered_data_time_segment_type
         );
-        return await query(datatable.vo_type)
+        return query(datatable.vo_type)
             .filter_by_num_has(field_names<IRenderedData & IDistantVOBase>().data_dateindex, timeSegments.map((ts: TimeSegment) => ts.index))
             .select_vos<T>();
     }
@@ -158,11 +158,11 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
                 timeSegments_in += "," + timeSegment.index;
             }
         }
-        await ModuleDAOServer.getInstance().query('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' in (' + timeSegments_in + ');');
+        await ModuleDAOServer.instance.query('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' in (' + timeSegments_in + ');');
     }
 
     public async clearDataSegment(moduletable: ModuleTableVO, timeSegment: TimeSegment, date_field_name: string = 'data_dateindex'): Promise<void> {
-        await ModuleDAOServer.getInstance().query('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' = $1;', [timeSegment.index]);
+        await ModuleDAOServer.instance.query('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' = $1;', [timeSegment.index]);
     }
 
     public async getDataRenderingLogs(): Promise<DataRenderingLogVO[]> {

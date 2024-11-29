@@ -1,3 +1,6 @@
+import EventsController from "../../modules/Eventify/EventsController";
+import EventifyEventInstanceVO from "../../modules/Eventify/vos/EventifyEventInstanceVO";
+import EventifyEventListenerInstanceVO from "../../modules/Eventify/vos/EventifyEventListenerInstanceVO";
 import Dates from "../../modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../../modules/Stats/StatsController";
 import ConsoleHandler from "../ConsoleHandler";
@@ -6,7 +9,10 @@ import ThreadHandler from "../ThreadHandler";
 
 export default class PromisePipeline {
 
+
     public static DEBUG_PROMISE_PIPELINE_WORKER_STATS: boolean = false;
+
+    private static all_promise_pipelines_by_uid: { [uid: number]: PromisePipeline } = {};
     private static GLOBAL_UID: number = 0;
 
     private uid: number = 0;
@@ -35,16 +41,40 @@ export default class PromisePipeline {
     ) {
         this.uid = PromisePipeline.GLOBAL_UID++;
 
+        // Dès qu'on a une stat, on lance le worker. Si il est déjà lancé ça aura pas d'impact
         if (this.stat_name && this.stat_worker) {
-            ThreadHandler.set_interval(async () => {
-                StatsController.register_stat_QUANTITE('PromisePipeline', this.stat_name, 'RUNNING', this.nb_running_promises);
-            }, 10000, 'PromisePipeline.stat_worker', true);
+            ThreadHandler.set_interval(
+                'PromisePipeline.stat_all_promise_pipelines',
+                PromisePipeline.stat_all_promise_pipelines,
+                10000,
+                'PromisePipeline.stat_worker',
+                true);
+        }
+    }
 
+    get free_slot_event_name(): string {
+        return 'PromisePipeline.free_slot_event_' + this.uid;
+    }
+
+    get has_running_or_waiting_promises(): boolean {
+        return (this.nb_running_promises > 0) || (Object.keys(this.all_waiting_and_running_promises_by_cb_uid).length > 0);
+    }
+
+    private static stat_all_promise_pipelines() {
+        let n = 0;
+        for (const uid in PromisePipeline.all_promise_pipelines_by_uid) {
+            const promise_pipeline = PromisePipeline.all_promise_pipelines_by_uid[uid];
+            n++;
+
+            StatsController.register_stat_QUANTITE('PromisePipeline', promise_pipeline.stat_name, 'RUNNING', promise_pipeline.nb_running_promises);
             if (PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS) {
-                ThreadHandler.set_interval(async () => {
-                    ConsoleHandler.log('PromisePipeline:STATS:' + this.stat_name + ':' + this.uid + ':' + this.nb_running_promises);
-                }, 1000, 'PromisePipeline.stat_worker.console_log', false);
+                ConsoleHandler.log('PromisePipeline:STATS:' + promise_pipeline.stat_name + ':' + promise_pipeline.uid + ':' + promise_pipeline.nb_running_promises);
             }
+        }
+
+        StatsController.register_stat_QUANTITE('PromisePipeline', 'all_promise_pipelines', 'NB', n);
+        if (PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS) {
+            ConsoleHandler.log('PromisePipeline:all_promise_pipelines:NB:' + n);
         }
     }
 
@@ -61,27 +91,25 @@ export default class PromisePipeline {
 
         return new Promise(async (resolve, reject) => {
 
-            while (!this.has_free_slot()) {
-                await ThreadHandler.sleep(1, 'PromisePipeline.await_free_slot');
-            }
+            EventsController.on_next_event(
+                this.free_slot_event_name,
+                (async (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO): Promise<any> => {
+                    if (this.stat_name) {
+                        StatsController.register_stat_DUREE('PromisePipeline', this.stat_name, 'await_free_slot', Dates.now_ms() - time_in);
+                    }
 
-            if (this.stat_name) {
-                StatsController.register_stat_DUREE('PromisePipeline', this.stat_name, 'await_free_slot', Dates.now_ms() - time_in);
-            }
-
-            resolve();
+                    resolve();
+                }).bind(this));
         });
-    }
-
-    get has_running_or_waiting_promises(): boolean {
-        return (this.nb_running_promises > 0) || (Object.keys(this.all_waiting_and_running_promises_by_cb_uid).length > 0);
     }
 
     /**
      * Objectif : Ajouter une promise au pipeline, mais uniquement quand on aura de la place dans le pipeline
+     *      On renvoie la promise de la méthode cb, donc si on await le push on attend que cb soit lancée, et si on await await push on attend que cb soit terminée
      * @param cb la méthode à appeler quand on peut, et qui renverra une promise supplémentaire
+     * @returns la promise de la méthode cb
      */
-    public async push(cb: () => Promise<any>): Promise<void> {
+    public async push<T>(cb: () => Promise<T>): Promise<() => Promise<T>> {
 
         if (!(typeof cb === 'function')) {
             throw new Error(`Unexpected type of callback given : ${typeof cb}`);
@@ -91,10 +119,15 @@ export default class PromisePipeline {
             ConsoleHandler.log('PromisePipeline.push():PREPUSH:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
+        if (!PromisePipeline.all_promise_pipelines_by_uid[this.uid]) {
+            PromisePipeline.all_promise_pipelines_by_uid[this.uid] = this;
+        }
+
         if (this.stat_name) {
             StatsController.register_stat_COMPTEUR('PromisePipeline', this.stat_name, 'IN', 1);
         }
 
+        let cb_uid = null;
         if (this.has_free_slot()) {
 
             if (EnvHandler.debug_promise_pipeline) {
@@ -103,7 +136,7 @@ export default class PromisePipeline {
 
             this.cb_uid++;
 
-            const cb_uid = this.cb_uid;
+            cb_uid = this.cb_uid;
 
             // Add/Append in the waitlist for each given callback
             this.all_waiting_and_running_promises_by_cb_uid[cb_uid] = this.do_cb(cb, cb_uid);
@@ -139,7 +172,7 @@ export default class PromisePipeline {
 
             this.cb_uid++;
 
-            const cb_uid = this.cb_uid;
+            cb_uid = this.cb_uid;
 
             // Add/Append in the waitlist for each given callback
             this.all_waiting_and_running_promises_by_cb_uid[cb_uid] = this.do_cb(cb, cb_uid);
@@ -148,6 +181,12 @@ export default class PromisePipeline {
         if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('PromisePipeline.push():POSTPUSH:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
+
+        if (cb_uid === null) {
+            throw new Error('Unexpected null cb_uid');
+        }
+
+        return async () => this.all_waiting_and_running_promises_by_cb_uid[cb_uid];
     }
 
     public has_free_slot(): boolean {
@@ -185,6 +224,8 @@ export default class PromisePipeline {
 
         await wait_for_end;
 
+        delete PromisePipeline.all_promise_pipelines_by_uid[this.uid];
+
         if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('PromisePipeline.end():WAIT END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
@@ -212,6 +253,8 @@ export default class PromisePipeline {
         }
 
         this.nb_running_promises--;
+
+        EventsController.emit_event(EventifyEventInstanceVO.new_event(this.free_slot_event_name));
 
         // Remove the callback promise from the waitlist
         delete this.all_waiting_and_running_promises_by_cb_uid[cb_uid];

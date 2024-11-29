@@ -1,3 +1,4 @@
+@use "sass:color";
 @import "skin-variables";
 
 .pull-right {
@@ -27,7 +28,8 @@
 
 .btn-danger:hover,
 .btn-danger:active {
-    background-color: darken($color: $danger_color, $amount: 10%) !important;
+    background-color: color.adjust($color: $danger_color, $lightness: -10%) !important;
+    // background-color: darken($color: $danger_color, $amount: 10%) !important;
 }
 
 .bg-danger {
@@ -54,7 +56,8 @@
 
 .btn-warning:hover,
 .btn-warning:active {
-    background-color: darken($color: $button_warning_color, $amount: 10%) !important;
+    background-color: color.adjust($color: $button_warning_color, $lightness: -10%) !important;
+    // background-color: darken($color: $button_warning_color, $amount: 10%) !important;
 }
 
 .bg-warning {
@@ -86,19 +89,23 @@ a.text-danger:focus {
 }
 
 a.text-primary:hover {
-    color: lighten($color: $button_primary_bg_color, $amount: 20%);
+    color: color.adjust($color: $button_primary_bg_color, $lightness: 20%);
+    // color: lighten($color: $button_primary_bg_color, $amount: 20%);
 }
 
 a.text-warning:hover {
-    color: lighten($color: $button_warning_color, $amount: 20%);
+    color: color.adjust($color: $button_warning_color, $lightness: 20%);
+    // color: lighten($color: $button_warning_color, $amount: 20%);
 }
 
 a.text-success:hover {
-    color: lighten($color: $success_color, $amount: 20%);
+    color: color.adjust($color: $success_color, $lightness: 20%);
+    // color: lighten($color: $success_color, $amount: 20%);
 }
 
 a.text-danger:hover {
-    color: lighten($color: $danger_color, $amount: 20%);
+    color: color.adjust($color: $danger_color, $lightness: 20%);
+    // color: lighten($color: $danger_color, $amount: 20%);
 }
 
 .display_inline_block {

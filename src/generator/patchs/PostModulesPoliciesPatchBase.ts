@@ -105,7 +105,7 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
          * Supprimer les droits existants du role_destination
          */
         let rights_role_destination: RolePolicyVO[] = await query(RolePolicyVO.API_TYPE_ID).filter_by_num_eq(field_names<RolePolicyVO>().role_id, role_destination.id).select_vos<RolePolicyVO>();
-        await ModuleDAO.getInstance().deleteVOs(rights_role_destination);
+        await ModuleDAO.instance.deleteVOs(rights_role_destination);
 
         /**
          * Charger les droits du role_source
@@ -126,7 +126,7 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
             rights_role_destination.push(right_role_destination);
         }
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(rights_role_destination);
+        await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(rights_role_destination);
     }
 
     protected abstract do_policies_activations(

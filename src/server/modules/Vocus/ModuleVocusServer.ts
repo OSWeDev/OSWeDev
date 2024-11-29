@@ -130,7 +130,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
             /**
              * On ignore les modules inactifs
              */
-            if (table.module_name && !ModulesManager.getInstance().getModuleByNameAndRole(table.module_name, Module.SharedModuleRoleName).actif) {
+            if (table.module_name && !ModulesManager.getModuleByNameAndRole(table.module_name, Module.SharedModuleRoleName).actif) {
                 continue;
             }
 

@@ -11,6 +11,9 @@ export default class ExpressSessionVO implements IDistantVOBase {
      */
     public sess: string;
 
-    public sid: string;
+    /**
+     * session.id, not the sid !
+     */
+    public session_id: string;
     public expire: number;
 }

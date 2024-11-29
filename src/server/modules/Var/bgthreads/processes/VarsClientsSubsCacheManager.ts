@@ -23,7 +23,12 @@ export default class VarsClientsSubsCacheManager {
     public static TASK_NAME_throttled_remove_subs: string = 'throttled_remove_subs';
 
     public static init() {
-        ThreadHandler.set_interval(VarsClientsSubsCacheManager.update_clients_subs_indexes_cache.bind(VarsClientsSubsCacheManager), 30000, 'VarsClientsSubsCacheManager.update_clients_subs_indexes_cache', false);
+        ThreadHandler.set_interval(
+            'VarsClientsSubsCacheManager.update_clients_subs_indexes_cache',
+            VarsClientsSubsCacheManager.update_clients_subs_indexes_cache.bind(VarsClientsSubsCacheManager),
+            30000,
+            'VarsClientsSubsCacheManager.update_clients_subs_indexes_cache',
+            false);
 
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(VarsClientsSubsCacheManager.TASK_NAME_throttled_add_new_subs, VarsClientsSubsCacheManager.throttled_add_new_subs);

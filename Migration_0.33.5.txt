@@ -1,0 +1,132 @@
+TODO 
+
+BGThreadProcessTask
+msg.message_content_params[0] == 'register_params'
+ligne 152 ForkedProcessWrapperBase
+
+    => Checker les horaires des réunions dans le programplan, on a changé la résolution des dates de début et de fin, gros flou artistique sur l'impact de la modif
+    => modifier les bgthreads pour permettre aussi des confs basées sur evenements (oseliarunbgthread, imports, ... qui n'ont pas besoin de se lancer si on a pas de donner à nourrir. Attention on doit tester la condition au lancement du serveur après un timeout défini, et aussi à la fin du run on reteste (ou pas / param) la condition et on relance Asap si la condition est toujours d'actualité)
+    => permettre de conf runsonbgthread pour que si la méthode ne peut pas être envoyée sur un bgthread, elle soit quand meme exécutée (cas des changements de threads pour "loadbalancing" et pas accès à une data critique sur l'autre thread)
+
+    => SUPPRIMER de package.json projet                
+//            express-static-gzip
+//            "vue-grid-layout": "2.4.0",
+//            "vue-property-decorator": "9.1.2",
+//            "tslib": "2.8.1",
+//        "brotli": "^1.3.3",
+
+
+
+MIGRATION -> 0.33.5
+Montées de versions
+        "express": "4.21.1",
+        "express-fileupload": "1.5.1",
+        "express-http-context": "1.2.4",
+        "express-locale": "2.0.2",
+        "express-session": "1.18.1",
+
+        "node": "22.11.0",
+
+        "@playwright/test": "1.48.2",
+
+        "npm-watch": "0.13.0",
+
+
+        "@fullcalendar/daygrid": "6.1.15",
+        "@fullcalendar/interaction": "6.1.15",
+        "@fullcalendar/vue": "6.1.15",
+        "fullcalendar": "6.1.15",
+        "fullcalendar-scheduler": "6.1.15",
+
+        "v-calendar": "2.4.2",
+
+        "axios": "1.7.7",
+
+        "vue-class-component": "7.2.6",
+
+                "vue-grid-layout": "2.4.0",
+        "vue-property-decorator": "9.1.2",
+
+Dans le projet (pas oswedev)
+        "esbuild-plugin-manifest": "1.0.5",
+
+        "esbuild-plugin-polyfill-node": "0.3.0",
+
+        "@craftamap/esbuild-plugin-html": "0.8.0",
+
+        "esbuild": "0.24.0",
+        "esbuild-plugin-copy": "2.1.1",
+        "esbuild-plugin-ignore": "1.1.1",
+        "esbuild-plugin-pug": "0.0.8",
+        "esbuild-sass-plugin": "3.3.1",
+        "esbuild-vue": "1.2.2",
+
+
+
+retrait de la dep
+        "vue-full-calendar"
+        "@vue\composition-api@1.7.2"
+        "eslint-config-standard-with-typescript": "43.0.1"
+        crypto
+        zlib
+
+        @azure/identity => inutilisée
+
+        "babel-core": "6.26.0", => inutilisées
+        "babel-loader": "7.1.2",
+        "babel-plugin-istanbul": "6.1.1",
+        "babel-polyfill": "6.23.0",
+        "babel-preset-env": "1.6.1",
+
+"chartjs-plugin-piechart-outlabels" => IMPACTS ? je ne trouve pas l'intégration...
+
+
+Modifier toutes les références d'urls de type :
+vuejsclient/public => public/vuejsclient
+client/public => public/client
+admin/public => public/admin
+login/public => public/login
+
+REPLACE ALL (à la main individuellement :) pour le moment utile que pour les apis qui n'ont ((!sanitize_params) && (!precondition) && (!sanitize_result)) )
+APIControllerWrapper.sah
+APIControllerWrapper.sah_optimizer
+
+
+Vérifier au passage que les tsconfig ont bien :
+        "target": "es2020",
+        "module": "CommonJS",
+        "lib": [
+            "es2020",
+            "es6",
+            "dom",
+            "ESNext"
+        ],
+        "moduleResolution": "node",
+
+
+on supprime toutes les stackcontext.get('SESSION') => @runsonmainthread + get('SID') + pushdataservercontroller.registeredsessions_by_sid(sid)
+idem pour 'SELF_USER', on peut utiliser 'UID'
+
+les moduleparams.getparam sont forcés à 3 params puisqu'on ne devrait jamais avoir des params optionnels (pour le moment) sur les apis, qui rajoutent le param req par exemple à la fin de la liste des params, et donc ça crée des incompatibilités
+donc tous les appels sont à corriger, sachant qu'on peut souvent en 3eme param mettre 10000 pour 10 secondes de cache sur la valeur du param que l'on cherche. sinon par défaut null, null devrait avoir 0 impact sur l'actuel.
+ya quelques autres fonctions concernées, et surtout vérifier avec cette regexp (non exhaustive) les déclarations d'api dans le projet : en regexp : \?: .*= APIControllerWrapper.sah\(
+
+A priori pas d'impact projet mais l'appel à .trigger( pour les triggers doit être réalisé en StackContext.exec_as_admin(
+
+exec_self_on_bgthread_and_return_value => ajout d'un param pour indiquer ce qu'on doit faire en cas de not alive du bgthread. est-ce qu'on tente quand même de lancer l'exec dessus
+
+Ajout de l'étape de compression dans le package.json
+        "compress": ".\\node_modules\\.bin\\node.cmd .\\dist\\public\\vuejsclient\\compress.js",
+        "compile-prod": "npm run clean && npm run build-generator && npm run generate && npm run build-server && npm run build && npm run compress && npm run build-service-worker",
+
+On peut ajouter clinic dans le package.json pour analyser l'appli <= pour le moment j'ai pas réussi a avoir un bilan utilisable...
+        "clinic": "clinic doctor -- node .\\dist\\server\\Server.js",
+        "clinic-bubble": "clinic bubbleprof -- node .\\dist\\server\\Server.js",
+
+Nouvelle erreur volontairement lancée à analyser - je paramètre le throw et par défaut ça log en erreur mais ça throw pas... :
+"Trying to access a context value while in context incompatible mode"
+Bien tester tous les comprtements de l'appli, spécifiquement ceux qui utilisent le stackcontext, pour vérifier si c'est possible d'accéder hors context valide (suite à un throttle typiquement)
+Dans ce cas, soit il faut adapter le comportement pour être compatible avec le stackcontext (si c'est nécessaire d'avoir les infos de context de requete par exemple)
+Soit on ajoute ce contrôle et on esquive les autres get sur le contexte : Par exemple :
+        const can_use_context = !StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE);
+        const CLIENT_TAB_ID: string = can_use_context ? StackContext.get('CLIENT_TAB_ID') : null;

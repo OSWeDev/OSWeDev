@@ -19,15 +19,6 @@ import ImgHtmlComponentTemplate from './component_templates/ImgHtml/ImgHtmlCompo
 
 export default class CMSFrontVueModule extends VueModuleBase {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): CMSFrontVueModule {
-        if (!CMSFrontVueModule.instance) {
-            CMSFrontVueModule.instance = new CMSFrontVueModule();
-        }
-
-        return CMSFrontVueModule.instance;
-    }
-
     private static instance: CMSFrontVueModule = null;
 
     private constructor() {
@@ -36,6 +27,15 @@ export default class CMSFrontVueModule extends VueModuleBase {
         this.policies_needed = [
             ModuleCMS.POLICY_FO_ACCESS
         ];
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): CMSFrontVueModule {
+        if (!CMSFrontVueModule.instance) {
+            CMSFrontVueModule.instance = new CMSFrontVueModule();
+        }
+
+        return CMSFrontVueModule.instance;
     }
 
     public async initializeAsync() {

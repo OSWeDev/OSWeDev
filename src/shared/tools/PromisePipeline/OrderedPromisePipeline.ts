@@ -3,6 +3,7 @@ import StatsController from "../../modules/Stats/StatsController";
 import ConsoleHandler from "../ConsoleHandler";
 import EnvHandler from "../EnvHandler";
 import ThreadHandler from "../ThreadHandler";
+import PromisePipeline from "./PromisePipeline";
 
 /**
  * Globalement la même idée que le PromisePipeline,
@@ -12,6 +13,8 @@ import ThreadHandler from "../ThreadHandler";
  * cb1 peut renvoyer un résultat qu'on stocke pour passer en param de cb2
  */
 export default class OrderedPromisePipeline {
+
+    private static all_ordered_promise_pipelines_by_uid: { [uid: number]: OrderedPromisePipeline } = {};
 
     private static GLOBAL_UID: number = 0;
 
@@ -49,9 +52,31 @@ export default class OrderedPromisePipeline {
         this.uid = OrderedPromisePipeline.GLOBAL_UID++;
 
         if (this.stat_name) {
-            ThreadHandler.set_interval(async () => {
-                StatsController.register_stat_QUANTITE('OrderedPromisePipeline', this.stat_name, 'RUNNING', this.nb_running_promises);
-            }, 10000, 'OrderedPromisePipeline.stat_worker', true);
+            // Dès qu'on a une stat, on lance le worker. Si il est déjà lancé ça aura pas d'impact
+            ThreadHandler.set_interval(
+                'OrderedPromisePipeline.stat_all_ordered_promise_pipelines',
+                OrderedPromisePipeline.stat_all_ordered_promise_pipelines,
+                10000,
+                'OrderedPromisePipeline.stat_worker',
+                true);
+        }
+    }
+
+    private static stat_all_ordered_promise_pipelines() {
+        let n = 0;
+        for (const uid in OrderedPromisePipeline.all_ordered_promise_pipelines_by_uid) {
+            const ordered_promise_pipeline = OrderedPromisePipeline.all_ordered_promise_pipelines_by_uid[uid];
+            n++;
+
+            StatsController.register_stat_QUANTITE('OrderedPromisePipeline', ordered_promise_pipeline.stat_name, 'RUNNING', ordered_promise_pipeline.nb_running_promises);
+            if (PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS) {
+                ConsoleHandler.log('OrderedPromisePipeline:STATS:' + ordered_promise_pipeline.stat_name + ':' + ordered_promise_pipeline.uid + ':' + ordered_promise_pipeline.nb_running_promises);
+            }
+        }
+
+        StatsController.register_stat_QUANTITE('OrderedPromisePipeline', 'all_ordered_promise_pipelines', 'NB', n);
+        if (PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS) {
+            ConsoleHandler.log('OrderedPromisePipeline:all_ordered_promise_pipelines:NB:' + n);
         }
     }
 
@@ -72,6 +97,9 @@ export default class OrderedPromisePipeline {
         if (this.stat_name) {
             StatsController.register_stat_COMPTEUR('OrderedPromisePipeline', this.stat_name, 'IN', 1);
         }
+
+        // On stocke dans la map des pipelines
+        OrderedPromisePipeline.all_ordered_promise_pipelines_by_uid[this.uid] = this;
 
         if (this.has_free_slot()) {
 
@@ -160,6 +188,8 @@ export default class OrderedPromisePipeline {
         });
 
         await wait_for_end;
+        // On libère la mémoire
+        delete OrderedPromisePipeline.all_ordered_promise_pipelines_by_uid[this.uid];
 
         if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.end():WAIT END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');

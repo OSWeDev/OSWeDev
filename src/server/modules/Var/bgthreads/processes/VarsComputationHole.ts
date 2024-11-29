@@ -4,7 +4,6 @@ import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import ForkedTasksController from '../../../Fork/ForkedTasksController';
 import CurrentVarDAGHolder from '../../CurrentVarDAGHolder';
-import VarDAG from '../../vos/VarDAG';
 
 export default class VarsComputationHole {
 
@@ -21,6 +20,8 @@ export default class VarsComputationHole {
     // public static processes_waiting_for_computation_hole_end: { [process_name: string]: boolean } = {};
     public static currently_in_a_hole_semaphore: boolean = false;
     public static redo_in_a_hole_semaphore: boolean = false;
+
+    public static ask_for_hole_termination: boolean = false;
 
     private static current_cbs_stack: Array<() => {}> = [];
     private static currently_waiting_for_hole_semaphore: boolean = false;
@@ -69,22 +70,27 @@ export default class VarsComputationHole {
 
         VarsComputationHole.currently_waiting_for_hole_semaphore = true;
 
-        VarsComputationHole.waiting_for_computation_hole = true;
-
         do {
+            VarsComputationHole.waiting_for_computation_hole = true;
+
             if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsComputationHole:wait_for_hole:wrap_handle_hole:IN');
             }
             VarsComputationHole.redo_in_a_hole_semaphore = false;
-            await VarsComputationHole.wrap_handle_hole();
+            const asked_for_hole_termination = await VarsComputationHole.wrap_handle_hole();
             if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsComputationHole:wait_for_hole:wrap_handle_hole:OUT:' + VarsComputationHole.redo_in_a_hole_semaphore + ':' + VarsComputationHole.current_cbs_stack.length);
             }
 
             if (VarsComputationHole.redo_in_a_hole_semaphore && VarsComputationHole.current_cbs_stack.length) {
 
-                if (ConfigurationService.node_configuration.debug_vars_invalidation || ConfigurationService.node_configuration.debug_vars_processes) {
-                    await ThreadHandler.sleep(100, 'VarsComputationHole.wait_for_hole.pause_between_holes');
+                VarsComputationHole.waiting_for_computation_hole = false;
+
+                if (asked_for_hole_termination) {
+                    // On marque une pause plus longue si on a demandé explicitement une pause
+                    await ThreadHandler.sleep(1000, 'VarsComputationHole.wait_for_hole.pause_between_holes');
+                } else {
+                    await ThreadHandler.sleep(10, 'VarsComputationHole.wait_for_hole.pause_between_holes');
                 }
             }
         } while (VarsComputationHole.redo_in_a_hole_semaphore && VarsComputationHole.current_cbs_stack.length);
@@ -93,7 +99,7 @@ export default class VarsComputationHole {
         VarsComputationHole.waiting_for_computation_hole = false;
     }
 
-    private static async wrap_handle_hole() {
+    private static async wrap_handle_hole(): Promise<boolean> {
         try {
 
             try {
@@ -107,26 +113,37 @@ export default class VarsComputationHole {
             } catch (error) {
                 ConsoleHandler.error('VarsComputationHole:wrap_handle_hole:wait_for_everyone_to_be_ready:' + error);
             }
-            await VarsComputationHole.handle_hole();
 
-            // await VarsComputationHole.free_everyone();
+            return await VarsComputationHole.handle_hole();
         } catch (error) {
             ConsoleHandler.error('VarsComputationHole:wrap_handle_hole:' + error);
         }
     }
 
-    private static async handle_hole() {
+    private static async handle_hole(): Promise<boolean> {
 
         VarsComputationHole.currently_in_a_hole_semaphore = true;
         VarsComputationHole.currently_waiting_for_hole_semaphore = false;
+
+        VarsComputationHole.ask_for_hole_termination = false;
+
+        let asked_for_hole_termination = false;
 
         // On fait les cbs à la suite, pas en // par ce que si on demande un trou c'est probablement pour être seul sur l'arbre
         while (VarsComputationHole.current_cbs_stack.length) {
             const cb = VarsComputationHole.current_cbs_stack.shift();
             await cb();
+
+            if (VarsComputationHole.ask_for_hole_termination) {
+                asked_for_hole_termination = true;
+                break;
+            }
         }
+        VarsComputationHole.ask_for_hole_termination = false;
 
         VarsComputationHole.currently_in_a_hole_semaphore = false;
+
+        return asked_for_hole_termination;
     }
 
     private static async wait_for_everyone_to_be_ready(): Promise<void> {

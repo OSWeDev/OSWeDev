@@ -32,9 +32,9 @@ export default class Patch20240905AddOseliaAssistantThreadTitleWriter implements
             assistant.nom = GPTAssistantAPIThreadVO.OSELIA_THREAD_TITLE_BUILDER_ASSISTANT_NAME;
             assistant.description = 'Assistant dont le but est d\'utiliser les 100 premiers mots d\'un thread pour en faire le titre';
             assistant.instructions = 'Ton rôle est simple, on te fournit les 100 premiers mots d\'une discussion entre un ou plusieurs humains et un ou plusieurs assistants IA ' +
-                +'et tu dois définir un titre à la discussion (dont tu peux présumer la finalité, tu ne fais pas un résumé, mais tu dois identifier un titre inventif - unique - qui permettra à l\'utilisateur humain de retrouver rapidement une discussion passée par son titre). Tu ne dois renvoyer que le titre sans guillemets ou autres fioritures.';
+                'et tu dois définir un titre à la discussion (dont tu peux présumer la finalité, tu ne fais pas un résumé, mais tu dois identifier un titre inventif - unique - qui permettra à l\'utilisateur humain de retrouver rapidement une discussion passée par son titre). Tu ne dois renvoyer que le titre sans guillemets ou autres fioritures.';
             assistant.model = 'gpt-4o-mini';
-            await ModuleDAO.getInstance().insertOrUpdateVO(assistant);
+            await ModuleDAO.instance.insertOrUpdateVO(assistant);
         }
     }
 }

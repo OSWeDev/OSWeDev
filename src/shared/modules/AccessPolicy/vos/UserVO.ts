@@ -5,24 +5,6 @@ import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 export default class UserVO implements IArchivedVOBase, IVersionedVO {
     public static API_TYPE_ID: string = "user";
 
-    public static createNew(
-        name: string,
-        email: string,
-        phone: string,
-        password: string,
-        lang_id: number
-    ): UserVO {
-        const user: UserVO = new UserVO();
-
-        user.name = name;
-        user.email = email;
-        user.phone = phone;
-        user.password = password;
-        user.lang_id = lang_id;
-
-        return user;
-    }
-
     public id: number;
     public _type: string = UserVO.API_TYPE_ID;
 
@@ -80,4 +62,22 @@ export default class UserVO implements IArchivedVOBase, IVersionedVO {
     public version_timestamp: number;
     public version_edit_author_id: number;
     public version_edit_timestamp: number;
+
+    public static createNew(
+        name: string,
+        email: string,
+        phone: string,
+        password: string,
+        lang_id: number
+    ): UserVO {
+        const user: UserVO = new UserVO();
+
+        user.name = name;
+        user.email = email;
+        user.phone = phone;
+        user.password = password;
+        user.lang_id = lang_id;
+
+        return user;
+    }
 }

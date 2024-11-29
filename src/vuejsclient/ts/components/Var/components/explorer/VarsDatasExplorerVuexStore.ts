@@ -14,14 +14,6 @@ export interface IVarsDatasExplorerVueXState {
 
 export default class VarsDatasExplorerStoreModule implements IStoreModule<IVarsDatasExplorerVueXState, VarsDatasExplorerContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): VarsDatasExplorerStoreModule {
-        if (!VarsDatasExplorerStoreModule.instance) {
-            VarsDatasExplorerStoreModule.instance = new VarsDatasExplorerStoreModule();
-        }
-        return VarsDatasExplorerStoreModule.instance;
-    }
-
     private static instance: VarsDatasExplorerStoreModule;
 
     public module_name: string;
@@ -53,9 +45,18 @@ export default class VarsDatasExplorerStoreModule implements IStoreModule<IVarsD
             set_filtered_datas: (context: VarsDatasExplorerContext, filtered_datas: { [index: string]: VarDataBaseVO }) => context.commit(store_mutations_names(this).set_filtered_datas, filtered_datas),
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): VarsDatasExplorerStoreModule {
+        if (!VarsDatasExplorerStoreModule.instance) {
+            VarsDatasExplorerStoreModule.instance = new VarsDatasExplorerStoreModule();
+        }
+        return VarsDatasExplorerStoreModule.instance;
+    }
 }
 
 export const VarsDatasExplorerVuexStore = VarsDatasExplorerStoreModule.getInstance();
 
-export const ModuleVarsDatasExplorerVuexGetter = namespace('VarsDatasExplorerVuexStore', Getter);
-export const ModuleVarsDatasExplorerVuexAction = namespace('VarsDatasExplorerVuexStore', Action);
+const __namespace = namespace('VarsDatasExplorerVuexStore');
+export const ModuleVarsDatasExplorerVuexGetter = __namespace.Getter;
+export const ModuleVarsDatasExplorerVuexAction = __namespace.Action;

@@ -110,7 +110,7 @@ export default class SupervisionWidgetManager {
         }
 
         // Select the supervision probs by api_type_id
-        return await SupervisionWidgetManager.select_supervision_probs_by_api_type_id(
+        return SupervisionWidgetManager.select_supervision_probs_by_api_type_id(
             dashboard,
             widget_options,
             context_filters_by_api_type_id,
@@ -200,7 +200,7 @@ export default class SupervisionWidgetManager {
             // Récupération des sondes
             await promise_pipeline.push(async () => {
 
-                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+                const access_policy_name = ModuleDAO.instance.getAccessPolicyName(
                     ModuleDAO.DAO_ACCESS_TYPE_READ,
                     api_type_id
                 );

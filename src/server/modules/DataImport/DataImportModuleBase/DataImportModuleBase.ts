@@ -15,7 +15,7 @@ export default abstract class DataImportModuleBase<ImportedData extends IImporte
     protected constructor(public name: string) {
         super(name);
         this.name = name;
-        ModulesManager.getInstance().registerModule(DataImportModuleBase.DataImportRoleName, this);
+        ModulesManager.registerModule(DataImportModuleBase.DataImportRoleName, this);
     }
 
     public registerApis() { }

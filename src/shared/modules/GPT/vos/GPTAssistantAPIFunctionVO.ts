@@ -27,6 +27,14 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase, IVersi
 
     public archived: boolean;
 
+    /**
+     * Pour créer un entennoir via un PromisePipeline sur l'ensemble des appels à cette fonction
+     *  Par exemple certaines actions peuvent avoir besoin de supprimer et recréer des vos, et si on le lance 2 fois en même temps ça peut poser problème
+     */
+    public use_promise_pipeline: boolean;
+    public promise_pipeline_max_concurrency: number;
+
+
     // IVersionedVO
     public parent_id: number;
     public trashed: boolean;
@@ -50,10 +58,13 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase, IVersi
             description: this.gpt_function_description,
 
             name: this.gpt_function_name,
+            // strict: true, ça a pas l'air totalement au point ce truc.... pour le moment on peut pas en tout cas déclarer des fonctions avec des params optionnels en strict... à voir si c'est normal mais c'est pas documenté en l'état
+
             parameters: {
                 type: 'object',
                 properties: gpt_params,
                 required: params.filter((param) => param.required).map((param) => param.gpt_funcparam_name),
+                additionalProperties: false,
             }
         };
 

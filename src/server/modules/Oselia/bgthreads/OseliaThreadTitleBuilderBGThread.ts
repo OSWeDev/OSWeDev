@@ -8,7 +8,6 @@ import GPTAssistantAPIThreadMessageContentVO from '../../../../shared/modules/GP
 import GPTAssistantAPIThreadMessageVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -16,7 +15,6 @@ import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import GPTAssistantAPIServerController from '../../GPT/GPTAssistantAPIServerController';
-import GPTAssistantAPIServerSyncThreadMessagesController from '../../GPT/sync/GPTAssistantAPIServerSyncThreadMessagesController';
 
 export default class OseliaThreadTitleBuilderBGThread implements IBGThread {
 
@@ -26,9 +24,6 @@ export default class OseliaThreadTitleBuilderBGThread implements IBGThread {
     public MAX_timeout: number = 3000;
     public MIN_timeout: number = 1000;
 
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
     private constructor() {
     }
 
@@ -147,43 +142,40 @@ export default class OseliaThreadTitleBuilderBGThread implements IBGThread {
             return;
         }
 
-        // On charge les contenus dans l'ordre et on en tire les 100 premiers mots pour le titre
-        const contents = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
-            .filter_by_id(thread.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
-            .using(GPTAssistantAPIThreadVO.API_TYPE_ID)
-            .using(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-            .set_sort(new SortByVO(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().id, true))
-            .select_vos<GPTAssistantAPIThreadMessageContentVO>();
+        // Messages du thread -> Prendre message sans hidden
 
-        const user_by_thread_message_id: { [thread_message_id: number]: UserVO } = {};
-        const user_by_id: { [id: number]: UserVO } = {};
-        const thread_messages_by_id: { [id: number]: GPTAssistantAPIThreadMessageVO } = VOsTypesManager.vosArray_to_vosByIds(thread_messages);
+        const messages_contents: { [name: string]: string }[] = [];
+        for (const message of thread_messages) {
 
-        for (const i in thread_messages) {
-            const thread_message = thread_messages[i];
-            user_by_thread_message_id[thread_message.id] = user_by_id[thread_message.user_id] ? user_by_id[thread_message.user_id] :
-                await query(UserVO.API_TYPE_ID)
-                    .filter_by_id(thread_message.user_id)
-                    .exec_as_server()
-                    .select_vo<UserVO>();
-            user_by_id[thread_message.user_id] = user_by_thread_message_id[thread_message.id];
+            const message_content = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
+                .filter_by_id(message.id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                .filter_is_false(field_names<GPTAssistantAPIThreadMessageContentVO>().hidden)
+                .using(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                .set_sort(new SortByVO(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().id, true))
+                .select_vo<GPTAssistantAPIThreadMessageContentVO>();
+            if ((!message_content) || (!message_content.content_type_text) || (!message_content.content_type_text.value)) {
+                continue;
+            }
+            const new_content = {};
+            switch (message.role) {
+                case message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER:
+                    const sender = await query(UserVO.API_TYPE_ID)
+                        .filter_by_id(message.user_id)
+                        .select_vo<UserVO>();
+                    new_content[sender.name] = message_content.content_type_text.value;
+                    break;
+                case message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT:
+                    new_content["IA"] = message_content.content_type_text.value;
+                    break;
+            }
+            messages_contents.push(new_content);
         }
 
         const words = [];
         let nb_added_words = 0;
-        for (const i in contents) {
-            const content = contents[i];
-
-            if ((!content.content_type_text) || (!content.content_type_text.value)) {
-                continue;
-            }
-
-            if ((thread_messages_by_id[content.thread_message_id].role !== GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) &&
-                (thread_messages_by_id[content.thread_message_id].role !== GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT)) {
-                continue;
-            }
-
-            const content_words = content.content_type_text.value.trim().split(' ');
+        for (const content of messages_contents) {
+            const sender = Object.keys(content)[0];
+            const content_words = Object.values(content)[0].trim().split(' ');
             let has_added_message_intro = false;
             for (const j in content_words) {
                 const word = content_words[j].trim();
@@ -197,16 +189,7 @@ export default class OseliaThreadTitleBuilderBGThread implements IBGThread {
                 }
 
                 if (!has_added_message_intro) {
-                    if (thread_messages_by_id[content.thread_message_id].role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
-                        words.push(GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(
-                            user_by_thread_message_id[content.thread_message_id],
-                            true,
-                            false,
-                            '[  [:]] ',
-                        ) + ':');
-                    } else {
-                        words.push('[IA]:');
-                    }
+                    words.push('[' + sender + ']' + ':');
                     has_added_message_intro = true;
                 }
 
@@ -267,7 +250,7 @@ export default class OseliaThreadTitleBuilderBGThread implements IBGThread {
                 thread.thread_title = response_content.content_type_text.value;
                 thread.needs_thread_title_build = false;
                 thread.thread_title_auto_build_locked = (words.length >= 100);
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread);
                 return;
             }
         }

@@ -15,6 +15,8 @@ import { field_names } from '../../../../shared/tools/ObjectHandler';
 import StackContext from '../../../StackContext';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
+import TemplateHandlerServer from '../../Mailer/TemplateHandlerServer';
+import ParamsServerController from '../../Params/ParamsServerController';
 import SendInBlueMailServerController from '../../SendInBlue/SendInBlueMailServerController';
 import SendInBlueSmsServerController from '../../SendInBlue/sms/SendInBlueSmsServerController';
 import ModuleAccessPolicyServer from '../ModuleAccessPolicyServer';
@@ -44,14 +46,14 @@ export default class PasswordRecovery {
 
     public async beginRecovery(email: string): Promise<boolean> {
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecovery(email);
 
         return await this.beginRecovery_user(user);
     }
 
     public async beginRecovery_uid(uid: number): Promise<boolean> {
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecoveryUID(uid);
 
         return await this.beginRecovery_user(user);
     }
@@ -68,7 +70,7 @@ export default class PasswordRecovery {
 
         await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-        const SEND_IN_BLUE_TEMPLATE_ID: number = await ModuleParams.getInstance().getParamValueAsInt(PasswordRecovery.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
+        const SEND_IN_BLUE_TEMPLATE_ID: number = await ParamsServerController.getParamValueAsInt(PasswordRecovery.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
 
         // Send mail
         if (SEND_IN_BLUE_TEMPLATE_ID) {
@@ -94,7 +96,7 @@ export default class PasswordRecovery {
             await ModuleMailerServer.getInstance().sendMail({
                 to: user.email,
                 subject: translated_mail_subject.translated,
-                html: await ModuleMailerServer.getInstance().prepareHTML(recovery_mail_html_template, user.lang_id, {
+                html: await TemplateHandlerServer.apply_template(recovery_mail_html_template, user.lang_id, true, {
                     EMAIL: user.email,
                     UID: user.id.toString(),
                     CODE_CHALLENGE: user.recovery_challenge
@@ -105,22 +107,22 @@ export default class PasswordRecovery {
 
     public async beginRecoverySMS(email: string): Promise<boolean> {
 
-        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+        if (!await ParamsServerController.getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
             return;
         }
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecovery(email);
 
         return await this.beginRecoverySMS_user(user);
     }
 
     public async beginRecoverySMS_uid(uid: number): Promise<boolean> {
 
-        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+        if (!await ParamsServerController.getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
             return;
         }
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecoveryUID(uid);
 
         return await this.beginRecoverySMS_user(user);
     }
@@ -148,15 +150,14 @@ export default class PasswordRecovery {
             .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, PasswordRecovery.CODE_TEXT_SMS_RECOVERY, TranslatableTextVO.API_TYPE_ID)
             .filter_by_id(user.lang_id, LangVO.API_TYPE_ID).select_vo<TranslationVO>();
 
-        const session = StackContext.get('SESSION');
-        const sid = session.sid;
+        const sid = StackContext.get('SID');
 
         await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
         // Using SendInBlue
         await SendInBlueSmsServerController.getInstance().send(
             SendInBlueSmsFormatVO.createNew(phone, lang.code_phone),
-            await ModuleMailerServer.getInstance().prepareHTML(translation.translated, user.lang_id, {
+            await TemplateHandlerServer.apply_template(translation.translated, user.lang_id, true, {
                 EMAIL: user.email,
                 UID: user.id.toString(),
                 CODE_CHALLENGE: user.recovery_challenge,

@@ -46,8 +46,17 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
 
     private widget: DashboardWidgetVO = null;
 
-    private mounted() {
-        if ((!this.page_widget?.id) || (this.page_widget.page_id != this.dashboard_page?.id)) {
+    @Watch('page_widget', { immediate: true })
+    private async onchange_widget() {
+        if ((!this.page_widget) || (this.page_widget.page_id != this.dashboard_page?.id)) {
+            return;
+        }
+
+        this.widget = await query(DashboardWidgetVO.API_TYPE_ID)
+            .filter_by_id(this.page_widget.widget_id)
+            .select_vo<DashboardWidgetVO>();
+
+        if (!this.page_widget.id) {
             return;
         }
 
@@ -60,17 +69,8 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
         }
     }
 
-    @Watch('page_widget', { immediate: true })
-    private async onchange_widget() {
-        if ((!this.page_widget) || (this.page_widget.page_id != this.dashboard_page?.id)) {
-            return;
-        }
-
-        this.widget = await query(DashboardWidgetVO.API_TYPE_ID)
-            .filter_by_id(this.page_widget.widget_id)
-            .select_vo<DashboardWidgetVO>();
-
-        if (!this.page_widget.id) {
+    private mounted() {
+        if ((!this.page_widget?.id) || (this.page_widget.page_id != this.dashboard_page?.id)) {
             return;
         }
 

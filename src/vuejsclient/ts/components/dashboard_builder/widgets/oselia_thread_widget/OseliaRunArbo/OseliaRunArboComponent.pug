@@ -1,0 +1,25 @@
+.oselia_run_arbo
+    template(v-for='oselia_run in oselia_runs')
+        .oselia_run_arbo_run
+            .oselia_run_arbo_run_header(:class='"oselia_run_state_" + oselia_run.state')
+                //- @click='show_children=!show_children' 
+                .oselia_run_arbo_run_weight(v-if='show_weights') {{ oselia_run.weight }}
+                .oselia_run_arbo_run_id {{ '[' + oselia_run.id + ((!!oselia_run.rerun_of_run_id) ? ' <- ' + oselia_run.rerun_of_run_id : '') + ']' }}
+                .oselia_run_arbo_run_name {{ oselia_run.name }}
+                .oselia_run_arbo_run_state {{ t(states_labels[oselia_run.state]) }}
+                template(v-if='error_states[oselia_run.state]')
+                    .oselia_run_arbo_run_error {{ oselia_run.error_msg }}
+                template(v-if='rerun_states[oselia_run.state]')
+                    .oselia_run_arbo_run_rerun {{ oselia_run.rerun_reason }}
+                template(v-if='encours_states[oselia_run.state]')
+                    .oselia_run_arbo_run_encours
+                        i.fa.fa-spinner.fa-spin
+                //- .oselia_run_arbo_run_children_toggle
+                //-     i.fa.fa-chevron-right(:class='{"fa-rotate-90": show_children}')
+
+            .oselia_run_arbo_run_children(v-if='show_children')
+                Oseliarunarbocomponent(
+                    :thread_id='null'
+                    :parent_run_id='oselia_run.id'
+                    :show_weights='!oselia_run.childrens_are_multithreaded'
+                )

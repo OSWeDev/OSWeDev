@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -24,7 +24,6 @@ import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
 import ModuleVO from '../../../shared/modules/ModuleVO';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
@@ -34,11 +33,12 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import TextHandler from '../../../shared/tools/TextHandler';
 import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
@@ -50,6 +50,7 @@ import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SendInBlueMailServerController from '../SendInBlue/SendInBlueMailServerController';
 import SendInBlueSmsServerController from '../SendInBlue/sms/SendInBlueSmsServerController';
@@ -60,15 +61,14 @@ import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisat
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
-import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
-import UserAPIVO from '../../../shared/modules/AccessPolicy/vos/UserAPIVO';
-import ConfigurationService from '../../env/ConfigurationService';
+// import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
+import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
+import APIBGThread from '../API/bgthreads/APIBGThread';
+import { IRequestStackContext } from '../../ServerExpressController';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
-    public static TASK_NAME_onBlockOrInvalidateUserDeleteSessions = 'ModuleAccessPolicyServer.onBlockOrInvalidateUserDeleteSessions';
-    public static TASK_NAME_delete_sessions_from_other_thread = 'ModuleAccessPolicyServer.delete_sessions_from_other_thread';
     private static instance: ModuleAccessPolicyServer = null;
 
     private debug_check_access: boolean = false;
@@ -79,7 +79,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         super(ModuleAccessPolicy.getInstance().name);
 
         // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, this.delete_sessions_from_other_thread.bind(this));
         AccessPolicyServerController.init_tasks();
     }
 
@@ -91,21 +90,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return ModuleAccessPolicyServer.instance;
     }
 
+    /**
+     *
+     * @deprecated se base sur le StackContext et on veut supprimer ce module
+     */
     public static getLoggedUserId(): number {
 
         try {
 
-            const session = StackContext.get('SESSION');
-
-            if (session && session.uid) {
-                return session.uid;
-            }
-
-            const uid = StackContext.get('UID');
-
-            if (uid) {
-                return uid;
-            }
+            return StackContext.get('UID');
         } catch (error) {
             ConsoleHandler.error(error);
         }
@@ -120,12 +113,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     /**
      * On ajoute un cache au sein de la session pour éviter de faire des requêtes inutiles
+     * @deprecated se base sur le StackContext et on veut supprimer ce module
      */
     public static async getSelfUser(): Promise<UserVO> {
-
-        if (StackContext.get('SELF_USER')) {
-            return StackContext.get('SELF_USER');
-        }
 
         /**
          * on doit pouvoir charger son propre user
@@ -135,7 +125,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_server().select_vo<UserVO>();
+        return query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_server().select_vo<UserVO>();
     }
 
     public static async getMyLang(): Promise<LangVO> {
@@ -144,7 +134,659 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if (!user) {
             return null;
         }
-        return await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
+        return query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
+    }
+
+    /**
+     *
+     * @param sids Les sids à invalider
+     * @returns
+     */
+    @RunsOnMainThread
+    public async delete_sessions_from_sids(sids: string[]) {
+        if (!sids || !sids.length) {
+            return;
+        }
+
+        const promises = [];
+        for (const i in sids) {
+            promises.push(this.do_delete_session(sids[i]));
+        }
+        return all_promises(promises);
+    }
+
+    /**
+     * Fonction qui détruit les sessions de l'utilisateur que l'on est en train de bloquer - exécutée sur le main process
+     * @param uid
+     */
+    @RunsOnMainThread
+    public async onBlockOrInvalidateUserDeleteSessions(uid: number) {
+
+        try {
+
+            const sessions: { [sessId: string]: IServerUserSession } = await PushDataServerController.getUserSessions(uid);
+            for (const i in sessions) {
+                const session: IServerUserSession = sessions[i];
+
+                if (!session) {
+                    continue;
+                }
+
+                try {
+                    await ConsoleHandler.log('unregisterSession:onBlockOrInvalidateUserDeleteSessions:uid:' + session.uid);
+                    await PushDataServerController.unregisterSession(session.sid);
+                    session.destroy(() => {
+                    });
+                } catch (error) {
+                    ConsoleHandler.error(error);
+                }
+                break;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
+    @RunsOnMainThread
+    public async logout_sid(sid: string) {
+
+        let session = PushDataServerController.registered_sessions_by_sid[sid];
+        return new Promise(async (accept, reject) => {
+
+            let user_log = null;
+
+            if (session && session.uid) {
+                const uid: number = session.uid;
+
+                // On stocke le log de connexion en base
+                user_log = new UserLogVO();
+                user_log.user_id = uid;
+                user_log.log_time = Dates.now();
+                user_log.referer = null;
+                user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
+
+                /**
+                 * Gestion du impersonate
+                 */
+                user_log.handle_impersonation(session);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+            }
+
+            /**
+             * Gestion du impersonate => on restaure la session précédente
+             */
+            if (session && !!session.impersonated_from) {
+
+                await ConsoleHandler.log('unregisterSession:logout:impersonated_from');
+                await PushDataServerController.unregisterSession(session.sid);
+
+                session = Object.assign(session, session.impersonated_from);
+                delete session.impersonated_from;
+                // session = session.impersonated_from; ???
+
+                session.save((err) => {
+                    if (err) {
+                        ConsoleHandler.log(err);
+                    }
+                    accept(err);
+                });
+            } else {
+
+                await ConsoleHandler.log('unregisterSession:logout:uid:' + session.uid);
+                await PushDataServerController.unregisterSession(session.sid);
+
+                session.uid = null;
+                session.user_vo = null;
+                session.save((err) => {
+                    if (err) {
+                        ConsoleHandler.log(err);
+                    }
+                    accept(err);
+                });
+            }
+        });
+    }
+
+    /**
+     *
+     * @returns
+     * @deprecated utilise StackContext que l'on souhaite supprimer. Utiliser plutôt logout_session
+     */
+    @RunsOnMainThread
+    public async logout(req: Request, res: Response) {
+
+        return this.logout_sid(req.session.sid);
+    }
+
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     * A n'utiliser que dans des contextes attentifs à la sécu. pas de vérif de mdp ici.
+     * @param uid
+     * @returns
+     */
+    @RunsOnMainThread
+    public async login_sid(uid: number, sid: string): Promise<boolean> {
+
+        try {
+            const session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
+
+            if (!session) {
+                ConsoleHandler.warn('ModuleAccessPolicyServer.login_session:session not found:SID:' + sid + ':UID:' + uid);
+                return false;
+            }
+
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
+                // On est en readonly partout, donc on informe sur impossibilité de se connecter
+                await PushDataServerController.notify_session(
+                    session.sid,
+                    'error.global_update_blocker.activated.___LABEL___',
+                    NotificationVO.SIMPLE_ERROR
+                );
+                return false;
+            }
+
+            if (!uid) {
+                return false;
+            }
+
+            const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
+
+            if (!user) {
+                return false;
+            }
+
+            if (user.blocked) {
+                return false;
+            }
+
+            if (!user.logged_once) {
+                user.logged_once = true;
+
+                await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
+                    [field_names<UserVO>().logged_once]: user.logged_once
+                });
+            }
+
+            session.uid = user.id;
+            session.user_vo = user;
+            session.save((error) => {
+                if (error) {
+                    ConsoleHandler.error('ModuleAccessPolicyServer.login_session:session.save:' + error);
+                }
+            });
+
+            await PushDataServerController.registerSession(session);
+
+            // On stocke le log de connexion en base
+            const user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = Dates.now();
+            user_log.impersonated = false;
+            user_log.referer = StackContext.get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+
+            await this.insert_or_update_uselog(user_log);
+
+            await PushDataServerController.notify_user_and_redirect(session.sid);
+
+            return true;
+        } catch (error) {
+            ConsoleHandler.error("login uid:" + uid + ":" + error);
+        }
+
+        return false;
+    }
+
+    /**
+     * A n'utiliser que dans des contextes attentifs à la sécu. pas de vérif de mdp ici.
+     * @param uid
+     * @returns
+     * @deprecated utilise StackContext que l'on souhaite supprimer. Utiliser plutôt login_session
+     */
+    @RunsOnMainThread
+    public async login(uid: number): Promise<boolean> {
+
+        const sid = StackContext.get('SID');
+
+        return this.login_sid(uid, sid);
+    }
+
+    @RunsOnMainThread
+    public isLogedAs(): boolean {
+
+        try {
+
+            const sid = StackContext.get('SID');
+            const session = PushDataServerController.registered_sessions_by_sid[sid];
+
+            if (session && !!session.impersonated_from) {
+                return true;
+            }
+            return false;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return false;
+        }
+    }
+
+    /**
+     * Renvoie le UID de l'admin qui utilise la fonction logAs
+     *  On remonte à la racine des logas
+     */
+    @RunsOnMainThread
+    public getAdminLogedUserId(): number {
+
+        try {
+
+            const sid = StackContext.get('SID');
+            const session = PushDataServerController.registered_sessions_by_sid[sid];
+
+            let impersonated_from_session = (session && session.impersonated_from) ? session.impersonated_from : null;
+
+            while (impersonated_from_session && !!impersonated_from_session.impersonated_from) {
+                impersonated_from_session = impersonated_from_session.impersonated_from;
+            }
+
+            if (impersonated_from_session && !!impersonated_from_session.uid) {
+                return impersonated_from_session.uid;
+            }
+            return null;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return null;
+        }
+    }
+
+    /**
+     * Renvoie la session de l'admin qui utilise la fonction logAs
+     */
+    @RunsOnMainThread
+    public getAdminLogedUserSession(): IServerUserSession {
+
+        try {
+
+            const sid = StackContext.get('SID');
+            let session = PushDataServerController.registered_sessions_by_sid[sid];
+
+            if (!session.impersonated_from) {
+                return null;
+            }
+
+            while (session && !!session.impersonated_from) {
+                session = session.impersonated_from;
+            }
+            return session;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return null;
+        }
+    }
+
+    @RunsOnMainThread
+    public getUserSession(): IServerUserSession {
+
+        try {
+
+            const sid = StackContext.get('SID');
+            const session = PushDataServerController.registered_sessions_by_sid[sid];
+
+            return session;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return null;
+        }
+    }
+
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
+    @RunsOnMainThread
+    private async do_delete_session(sid: string) {
+
+        let session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
+
+        /**
+         * On veut supprimer la session et déconnecter tout le monde
+         */
+        let user_log = null;
+
+        if (!session) {
+            return;
+        }
+
+        if (session && session.uid) {
+            const uid: number = session.uid;
+
+            // On stocke le log de connexion en base
+            user_log = new UserLogVO();
+            user_log.user_id = uid;
+            user_log.log_time = Dates.now();
+            user_log.referer = null;
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
+            user_log.handle_impersonation(session);
+
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+        }
+
+        /**
+         * Gestion du impersonate => dans le cas présent on logout aussi le compte principal
+         */
+        while (session && !!session.impersonated_from) {
+
+            await ConsoleHandler.log('unregisterSession:delete_session:impersonated_from:uid:' + session.uid);
+            await PushDataServerController.unregisterSession(session.sid, false);
+
+            session = Object.assign(session, session.impersonated_from);
+            // delete session.impersonated_from;
+
+            const uid: number = session.uid;
+
+            // On stocke le log de connexion en base
+            user_log = new UserLogVO();
+            user_log.user_id = uid;
+            user_log.log_time = Dates.now();
+            user_log.referer = null;
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
+            user_log.handle_impersonation(session);
+
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+        }
+
+        await ConsoleHandler.log('unregisterSession:delete_session:uid:' + session.uid);
+        await PushDataServerController.unregisterSession(session.sid, true);
+
+        session.uid = null;
+        session.user_vo = null;
+        session.destroy((err) => {
+            if (err) {
+                ConsoleHandler.log(err);
+            }
+        });
+    }
+
+    @RunsOnMainThread
+    private async signinAndRedirect(nom: string, email: string, password: string, redirect_to: string): Promise<number> {
+
+        try {
+            const sid = StackContext.get('SID');
+            const session = PushDataServerController.registered_sessions_by_sid[sid];
+
+            if (!session) {
+                ConsoleHandler.warn('ModuleAccessPolicyServer.signinAndRedirect:session not found:SID:' + sid + ':UID:' + email);
+                return null;
+            }
+
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
+                // On est en readonly partout, donc on informe sur impossibilité de se connecter
+                await PushDataServerController.notifySession(
+                    'error.global_update_blocker.activated.___LABEL___',
+                    NotificationVO.SIMPLE_ERROR
+                );
+                return null;
+            }
+
+            if (session && session.uid) {
+                await PushDataServerController.notify_user_and_redirect(session.sid, redirect_to);
+                return session.uid;
+            }
+
+            session.uid = null;
+            session.user_vo = null;
+
+            if ((!email) || (!password) || (!nom)) {
+                session.save((error) => {
+                    if (error) {
+                        ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:' + error);
+                    }
+                });
+
+                return null;
+            }
+
+            let user: UserVO = await ModuleDAOServer.instance.selectOneUser(email, password);
+
+            if (user) {
+
+                if (user.invalidated) {
+
+                    await PasswordRecovery.getInstance().beginRecovery(user.email);
+
+                }
+                session.save((error) => {
+                    if (error) {
+                        ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:' + error);
+                    }
+                });
+
+                return null;
+            } else {
+                user = new UserVO();
+            }
+
+            user.logged_once = true;
+            user.name = nom;
+            user.password = password;
+            user.email = email;
+            user.blocked = false;
+            user.reminded_pwd_1 = false;
+            user.reminded_pwd_2 = false;
+            user.invalidated = false;
+            user.recovery_challenge = "";
+            user.phone = "";
+            user.recovery_expiration = 0;
+            user.password_change_date = Dates.now();
+            user.creation_date = Dates.now();
+
+
+            // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
+            const lang: LangVO = await query(LangVO.API_TYPE_ID).set_sort(new SortByVO(LangVO.API_TYPE_ID, field_names<LangVO>().id, true)).set_limit(1).select_vo<LangVO>();
+            user.lang_id = lang.id;
+
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
+
+            if (!user.id) {
+                throw new Error('Impossible de créer le compte');
+            }
+            session.uid = user.id;
+            session.user_vo = user;
+            await PushDataServerController.registerSession(session);
+            session.save((error) => {
+                if (error) {
+                    ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:' + error);
+                }
+            });
+
+            // On stocke le log de connexion en base
+            const user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = Dates.now();
+            user_log.impersonated = false;
+            user_log.referer = StackContext.get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+
+            await this.insert_or_update_uselog(user_log);
+
+            await PushDataServerController.notify_user_and_redirect(session.sid, redirect_to);
+
+            return user.id;
+        } catch (error) {
+            ConsoleHandler.error("login:" + email + ":" + error);
+        }
+
+        return null;
+    }
+
+    @RunsOnMainThread
+    private async loginAndRedirect(email: string, password: string, redirect_to: string, sso: boolean): Promise<number> {
+
+        try {
+            const sid = StackContext.get('SID');
+            const session = PushDataServerController.registered_sessions_by_sid[sid];
+
+            if (!session) {
+                ConsoleHandler.warn('ModuleAccessPolicyServer.signinAndRedirect:session not found:SID:' + sid + ':UID:' + email);
+                return null;
+            }
+
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
+                // On est en readonly partout, donc on informe sur impossibilité de se connecter
+                await PushDataServerController.notifySession(
+                    'error.global_update_blocker.activated.___LABEL___',
+                    NotificationVO.SIMPLE_ERROR
+                );
+                return null;
+            }
+
+            if (session && session.uid) {
+                await PushDataServerController.notify_user_and_redirect(session.sid, redirect_to, sso);
+                return session.uid;
+            }
+
+            session.uid = null;
+            session.user_vo = null;
+
+            if ((!email) || (!password)) {
+                return null;
+            }
+
+            let user: UserVO = null;
+
+            if (AccessPolicyServerController.hook_user_login) {
+                user = await AccessPolicyServerController.hook_user_login(email, password);
+            } else {
+                user = await ModuleDAOServer.instance.selectOneUser(email, password);
+            }
+
+            if (!user) {
+                return null;
+            }
+
+            if (user.blocked) {
+                return null;
+            }
+
+            if (user.invalidated) {
+
+                // Si le mot de passe est invalidé on refuse la connexion mais on envoie aussi un mail pour récupérer le mot de passe si on l'a pas déjà envoyé
+                // if ((!user.recovery_expiration) || (user.recovery_expiration<=Dates.now())) {
+                await PasswordRecovery.getInstance().beginRecovery(user.email);
+                // }
+                return null;
+            }
+
+            if (!user.logged_once) {
+                user.logged_once = true;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
+            }
+
+            session.uid = user.id;
+            session.user_vo = user;
+            await PushDataServerController.registerSession(session);
+            session.save((error) => {
+                if (error) {
+                    ConsoleHandler.error('ModuleAccessPolicyServer.loginAndRedirect:session.save:' + error);
+                }
+            });
+
+            // On stocke le log de connexion en base
+            const user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = Dates.now();
+            user_log.impersonated = false;
+            user_log.referer = StackContext.get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+
+            await this.insert_or_update_uselog(user_log);
+
+            await PushDataServerController.notify_user_and_redirect(session.sid, redirect_to, sso);
+
+            return user.id;
+        } catch (error) {
+            ConsoleHandler.error("login:" + email + ":" + error);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param context_query la requete qui permet de récupérer le user à impersonate
+     * @returns l'id de l'utilisateur qui a été impersoné
+     */
+    @RunsOnMainThread
+    private async do_impersonate(context_query: ContextQueryVO): Promise<number> {
+        const sid = StackContext.get('SID');
+        const session = PushDataServerController.registered_sessions_by_sid[sid];
+
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
+            // On est en readonly partout, donc on informe sur impossibilité de se connecter
+            await PushDataServerController.notifySimpleERROR(
+                StackContext.get('UID'),
+                StackContext.get('CLIENT_TAB_ID'),
+                'error.global_update_blocker.activated.___LABEL___'
+            );
+            return null;
+        }
+
+        if ((!session) || (!session.uid)) {
+            return null;
+        }
+
+        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
+            return null;
+        }
+
+        const user: UserVO = await context_query.select_vo<UserVO>();
+
+        if (!user) {
+            return null;
+        }
+
+        if (user.blocked || user.invalidated || user.archived) {
+            ConsoleHandler.error("impersonate:blocked or invalidated or archived");
+            context_query.log(true);
+            await PushDataServerController.notifySimpleERROR(session.uid, CLIENT_TAB_ID, 'Impossible de se connecter avec un compte bloqué, invalidé ou archivé', true);
+            return null;
+        }
+
+        session.impersonated_from = Object.assign({}, session);
+        session.uid = user.id;
+        session.user_vo = user;
+        await PushDataServerController.registerSession(session);
+        session.save((error) => {
+            if (error) {
+                ConsoleHandler.error('ModuleAccessPolicyServer.do_impersonate:session.save:' + error);
+            }
+        });
+
+
+        // On stocke le log de connexion en base
+        const user_log = new UserLogVO();
+        user_log.user_id = user.id;
+        user_log.log_time = Dates.now();
+        user_log.referer = StackContext.get('REFERER');
+        user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+        user_log.handle_impersonation(session);
+
+        await this.insert_or_update_uselog(user_log);
+
+        await PushDataServerController.notify_user_and_redirect(session.sid);
+
+        return user.id;
+    }
+
+    /**
+     * On se met sur un bgthread pour libérer express le temps de mettre à jour les userlogs
+     * Attention le user_log n'a pas d'id du coup puisque le moduledao est lancé sur un autre thread
+     * INFO : On peut lancer en local si le bgthread est pas encore dispo
+     */
+    @RunsOnBgThread(APIBGThread.BGTHREAD_name, true)
+    private async insert_or_update_uselog(user_log: UserLogVO) {
+        return ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
     }
 
     /**
@@ -352,7 +994,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         access.group_id = group_id;
         access.default_behaviour = default_behaviour;
         access.translatable_name = translatable_name;
-        return await this.registerPolicy(access, DefaultTranslationVO.create_new(default_translations), moduleVO);
+        return this.registerPolicy(access, DefaultTranslationVO.create_new(default_translations), moduleVO);
     }
 
     public async addDependency(src_pol: AccessPolicyVO, default_behaviour: number, depends_on_pol_id: AccessPolicyVO): Promise<PolicyDependencyVO> {
@@ -360,7 +1002,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         dep.default_behaviour = default_behaviour;
         dep.src_pol_id = src_pol.id;
         dep.depends_on_pol_id = depends_on_pol_id.id;
-        return await this.registerPolicyDependency(dep);
+        return this.registerPolicyDependency(dep);
     }
 
     // istanbul ignore next: cannot test registerCrons
@@ -372,14 +1014,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     // istanbul ignore next: cannot test registerAccessHooks
     public registerAccessHooks(): void {
 
-        ModuleDAOServer.getInstance().registerContextAccessHook(AccessPolicyVO.API_TYPE_ID, this, this.filterPolicyByActivModulesContextAccessHook);
-        ModuleDAOServer.getInstance().registerAccessHook(AccessPolicyVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterPolicyByActivModules);
+        ModuleDAOServer.instance.registerContextAccessHook(AccessPolicyVO.API_TYPE_ID, this, this.filterPolicyByActivModulesContextAccessHook);
+        ModuleDAOServer.instance.registerAccessHook(AccessPolicyVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterPolicyByActivModules);
     }
 
     // istanbul ignore next: cannot test configure
     public async configure() {
 
-        ModuleBGThreadServer.getInstance().registerBGThread(AccessPolicyDeleteSessionBGThread.getInstance());
+        // ModuleBGThreadServer.getInstance().registerBGThread(AccessPolicyDeleteSessionBGThread.getInstance());
 
         // On ajoute un trigger pour la création du compte
         const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
@@ -1017,65 +1659,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         // return user.avatar_url;
     }
 
-    public async logout() {
-
-        return new Promise(async (accept, reject) => {
-
-            let user_log = null;
-            let session = StackContext.get('SESSION');
-
-            if (session && session.uid) {
-                const uid: number = session.uid;
-
-                // On stocke le log de connexion en base
-                user_log = new UserLogVO();
-                user_log.user_id = uid;
-                user_log.log_time = Dates.now();
-                user_log.referer = null;
-                user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
-
-                /**
-                 * Gestion du impersonate
-                 */
-                user_log.handle_impersonation(session);
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
-            }
-
-            /**
-             * Gestion du impersonate => on restaure la session précédente
-             */
-            if (session && !!session.impersonated_from) {
-
-                await ConsoleHandler.log('unregisterSession:logout:impersonated_from');
-                await PushDataServerController.unregisterSession(session);
-
-                session = Object.assign(session, session.impersonated_from);
-                delete session.impersonated_from;
-                // session = session.impersonated_from; ???
-
-                session.save((err) => {
-                    if (err) {
-                        ConsoleHandler.log(err);
-                    }
-                    accept(err);
-                });
-            } else {
-
-                await ConsoleHandler.log('unregisterSession:logout:uid:' + session.uid);
-                await PushDataServerController.unregisterSession(session);
-
-                session.uid = null;
-                session.user_vo = null;
-                session.save((err) => {
-                    if (err) {
-                        ConsoleHandler.log(err);
-                    }
-                    accept(err);
-                });
-            }
-        });
-    }
-
     public async sendrecapture(text: string): Promise<void> {
         if (!text) {
             return;
@@ -1109,7 +1692,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+        if (!await ParamsServerController.getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
             return;
         }
 
@@ -1129,7 +1712,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+        if (!await ParamsServerController.getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
             return;
         }
 
@@ -1148,12 +1731,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         await PasswordInitialisation.getInstance().begininitpwd_uid(num);
     }
 
-    public async addRoleToUser(user_id: number, role_id: number, exec_as_server: boolean = false): Promise<void> {
+    public async addRoleToUser(user_id: number, role_id: number): Promise<void> {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!user_id) || (!role_id)) {
             return;
         }
 
+        const exec_as_server = !StackContext.get(reflect<IRequestStackContext>().IS_CLIENT);
         if (!exec_as_server && !AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
             return;
         }
@@ -1167,7 +1751,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             userRole = new UserRoleVO();
             userRole.role_id = role_id;
             userRole.user_id = user_id;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(userRole, exec_as_server);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(userRole, exec_as_server);
         }
     }
 
@@ -1197,7 +1781,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         // Si un code existe déjà et n'a pas encore expiré, on le prolonge et on le renvoie pour pas invalider un mail qui serait très récent
         if (user.recovery_challenge && user.recovery_expiration && (user.recovery_expiration >= Dates.now())) {
             console.debug("challenge - pushing expiration:" + user.email + ':' + user.recovery_challenge + ':');
-            user.recovery_expiration = Dates.add(Dates.now(), await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
+            user.recovery_expiration = Dates.add(Dates.now(), await ParamsServerController.getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
 
             await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
                 [field_names<UserVO>().recovery_expiration]: user.recovery_expiration
@@ -1207,7 +1791,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         const challenge: string = TextHandler.getInstance().generateChallenge();
         user.recovery_challenge = challenge;
-        user.recovery_expiration = Dates.add(Dates.now(), await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
+        user.recovery_expiration = Dates.add(Dates.now(), await ParamsServerController.getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
         console.debug("challenge:" + user.email + ':' + challenge + ':');
 
         await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
@@ -1226,7 +1810,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await ModuleDAOServer.getInstance().query('update ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' set ' +
+        await ModuleDAOServer.instance.query('update ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' set ' +
             "lang_id=$1 where id=$2",
             [num, user_id]);
     }
@@ -1236,7 +1820,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerRole(role: RoleVO, default_translation: DefaultTranslationVO): Promise<RoleVO> {
-        return await AccessPolicyServerController.registerRole(role, default_translation);
+        return AccessPolicyServerController.registerRole(role, default_translation);
     }
 
     /**
@@ -1244,7 +1828,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerPolicyGroup(group: AccessPolicyGroupVO, default_translation: DefaultTranslationVO): Promise<AccessPolicyGroupVO> {
-        return await AccessPolicyServerController.registerPolicyGroup(group, default_translation);
+        return AccessPolicyServerController.registerPolicyGroup(group, default_translation);
     }
 
     /**
@@ -1252,7 +1836,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerPolicy(policy: AccessPolicyVO, default_translation: DefaultTranslationVO, moduleVO: ModuleVO): Promise<AccessPolicyVO> {
-        return await AccessPolicyServerController.registerPolicy(policy, default_translation, moduleVO);
+        return AccessPolicyServerController.registerPolicy(policy, default_translation, moduleVO);
     }
 
 
@@ -1261,7 +1845,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        return await AccessPolicyServerController.registerPolicyDependency(dependency);
+        return AccessPolicyServerController.registerPolicyDependency(dependency);
     }
 
     /**
@@ -1275,194 +1859,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return true;
             }
 
-            const res = await ModuleDAOServer.getInstance().query('select invalidated or blocked as invalidated from ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
+            const res = await ModuleDAOServer.instance.query('select invalidated or blocked as invalidated from ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
             const invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : false;
             return !invalidated;
         } catch (error) {
             ConsoleHandler.error(error);
         }
         return false;
-    }
-
-    /**
-     * Fonction qui détruit les sessions de l'utilisateur que l'on est en train de bloquer - exécutée sur le main process
-     * @param uid
-     */
-    public async onBlockOrInvalidateUserDeleteSessions(uid: number) {
-
-        // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, this.onBlockOrInvalidateUserDeleteSessions.bind(this));
-
-        if (!await ForkedTasksController.exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, uid)) {
-            return;
-        }
-
-        try {
-
-            const sessions: { [sessId: string]: IServerUserSession } = PushDataServerController.getUserSessions(uid);
-            for (const i in sessions) {
-                const session: IServerUserSession = sessions[i];
-
-                if (!session) {
-                    continue;
-                }
-
-                try {
-                    await ConsoleHandler.log('unregisterSession:onBlockOrInvalidateUserDeleteSessions:uid:' + session.uid);
-                    await PushDataServerController.unregisterSession(session);
-                    session.destroy(() => {
-                    });
-                } catch (error) {
-                    ConsoleHandler.error(error);
-                }
-                break;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-        return;
-    }
-
-    /**
-     * A n'utiliser que dans des contextes attentifs à la sécu. pas de vérif de mdp ici.
-     * @param uid
-     * @returns
-     */
-    public async login(uid: number): Promise<boolean> {
-
-        try {
-            const session = StackContext.get('SESSION');
-
-            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-                // On est en readonly partout, donc on informe sur impossibilité de se connecter
-                await PushDataServerController.notifySession(
-                    'error.global_update_blocker.activated.___LABEL___',
-                    NotificationVO.SIMPLE_ERROR
-                );
-                return false;
-            }
-
-            if (!uid) {
-                return false;
-            }
-
-            const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
-
-            if (!user) {
-                return false;
-            }
-
-            if (user.blocked) {
-                return false;
-            }
-
-            if (!user.logged_once) {
-                user.logged_once = true;
-
-                await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
-                    [field_names<UserVO>().logged_once]: user.logged_once
-                });
-            }
-
-            session.uid = user.id;
-            session.user_vo = user;
-
-            PushDataServerController.registerSession(session);
-
-            // On stocke le log de connexion en base
-            const user_log = new UserLogVO();
-            user_log.user_id = user.id;
-            user_log.log_time = Dates.now();
-            user_log.impersonated = false;
-            user_log.referer = StackContext.get('REFERER');
-            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
-
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
-
-            await PushDataServerController.notifyUserLoggedAndRedirect();
-
-            return true;
-        } catch (error) {
-            ConsoleHandler.error("login uid:" + uid + ":" + error);
-        }
-
-        return false;
-    }
-
-    public isLogedAs(): boolean {
-
-        try {
-
-            const session = StackContext.get('SESSION');
-
-            if (session && !!session.impersonated_from) {
-                return true;
-            }
-            return false;
-        } catch (error) {
-            ConsoleHandler.error(error);
-            return false;
-        }
-    }
-
-    /**
-     * Renvoie le UID de l'admin qui utilise la fonction logAs
-     *  On remonte à la racine des logas
-     */
-    public getAdminLogedUserId(): number {
-
-        try {
-
-            const session = StackContext.get('SESSION');
-
-            let impersonated_from_session = (session && session.impersonated_from) ? session.impersonated_from : null;
-
-            while (impersonated_from_session && !!impersonated_from_session.impersonated_from) {
-                impersonated_from_session = impersonated_from_session.impersonated_from;
-            }
-
-            if (impersonated_from_session && !!impersonated_from_session.uid) {
-                return impersonated_from_session.uid;
-            }
-            return null;
-        } catch (error) {
-            ConsoleHandler.error(error);
-            return null;
-        }
-    }
-
-    /**
-     * Renvoie la session de l'admin qui utilise la fonction logAs
-     */
-    public getAdminLogedUserSession(): IServerUserSession {
-
-        try {
-
-            let res = StackContext.get('SESSION');
-
-            if (!res.impersonated_from) {
-                return null;
-            }
-
-            while (res && !!res.impersonated_from) {
-                res = res.impersonated_from;
-            }
-            return res;
-        } catch (error) {
-            ConsoleHandler.error(error);
-            return null;
-        }
-    }
-
-    public getUserSession(): IServerUserSession {
-
-        try {
-
-            return StackContext.get('SESSION') as IServerUserSession;
-        } catch (error) {
-            ConsoleHandler.error(error);
-            return null;
-        }
     }
 
     public checkAccessByRoleIds(role_ids: number[]): boolean {
@@ -1488,21 +1891,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
         }
         return false;
-    }
-
-    public async delete_sessions_from_other_thread(session_to_delete_by_sids: { [sid: string]: IServerUserSession }) {
-        if (!session_to_delete_by_sids) {
-            return;
-        }
-
-        for (const sid in session_to_delete_by_sids) {
-            await StackContext.runPromise(
-                { SESSION: session_to_delete_by_sids[sid] },
-                async () => {
-                    await this.delete_session();
-                }
-            );
-        }
     }
 
     private async togglePolicy(policy_id: number, role_id: number): Promise<boolean> {
@@ -1532,7 +1920,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if (role_policy) {
 
             // Si oui on la supprime
-            const insertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = await ModuleDAOServer.getInstance().deleteVOs_as_server([role_policy]);
+            const insertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = await ModuleDAOServer.instance.deleteVOs_as_server([role_policy]);
             if ((!insertOrDeleteQueryResults) || (!insertOrDeleteQueryResults.length)) {
                 return false;
             }
@@ -1544,7 +1932,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         role_policy.granted = true;
         role_policy.role_id = role.id;
 
-        insertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(role_policy);
+        insertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(role_policy);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             return false;
         }
@@ -1657,7 +2045,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        return await PasswordRecovery.getInstance().beginRecovery(text);
+        return PasswordRecovery.getInstance().beginRecovery(text);
     }
 
     private async beginRecoverSMS(text: string): Promise<boolean> {
@@ -1666,11 +2054,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+        if (!await ParamsServerController.getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
             return;
         }
 
-        return await PasswordRecovery.getInstance().beginRecoverySMS(text);
+        return PasswordRecovery.getInstance().beginRecoverySMS(text);
     }
 
     private async checkCode(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
@@ -1679,7 +2067,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        return await PasswordReset.getInstance().checkCode(email, challenge);
+        return PasswordReset.getInstance().checkCode(email, challenge);
     }
 
     private async checkCodeUID(uid: number, challenge: string, new_pwd1: string): Promise<boolean> {
@@ -1688,7 +2076,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        return await PasswordReset.getInstance().checkCodeUID(uid, challenge);
+        return PasswordReset.getInstance().checkCodeUID(uid, challenge);
     }
 
     private async resetPwd(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
@@ -1697,7 +2085,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        return await PasswordReset.getInstance().resetPwd(email, challenge, new_pwd1);
+        return PasswordReset.getInstance().resetPwd(email, challenge, new_pwd1);
     }
 
     private async resetPwdUID(uid: number, challenge: string, new_pwd1: string): Promise<boolean> {
@@ -1706,7 +2094,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        return await PasswordReset.getInstance().resetPwdUID(uid, challenge, new_pwd1);
+        return PasswordReset.getInstance().resetPwdUID(uid, challenge, new_pwd1);
     }
 
     private async handleTriggerUserVOUpdate(vo_update_holder: DAOUpdateVOHolder<UserVO>): Promise<boolean> {
@@ -1864,174 +2252,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
-    private async signinAndRedirect(nom: string, email: string, password: string, redirect_to: string): Promise<number> {
-
-        try {
-            const session = StackContext.get('SESSION');
-
-            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-                // On est en readonly partout, donc on informe sur impossibilité de se connecter
-                await PushDataServerController.notifySession(
-                    'error.global_update_blocker.activated.___LABEL___',
-                    NotificationVO.SIMPLE_ERROR
-                );
-                return null;
-            }
-
-            if (session && session.uid) {
-                await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to);
-                return session.uid;
-            }
-
-            session.uid = null;
-            session.user_vo = null;
-
-            if ((!email) || (!password) || (!nom)) {
-                return null;
-            }
-
-            let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
-
-            if (user) {
-
-                if (user.invalidated) {
-
-                    await PasswordRecovery.getInstance().beginRecovery(user.email);
-
-                }
-                return null;
-            } else {
-                user = new UserVO();
-            }
-
-            user.logged_once = true;
-            user.name = nom;
-            user.password = password;
-            user.email = email;
-            user.blocked = false;
-            user.reminded_pwd_1 = false;
-            user.reminded_pwd_2 = false;
-            user.invalidated = false;
-            user.recovery_challenge = "";
-            user.phone = "";
-            user.recovery_expiration = 0;
-            user.password_change_date = Dates.now();
-            user.creation_date = Dates.now();
-
-
-            // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
-            const lang: LangVO = await query(LangVO.API_TYPE_ID).set_sort(new SortByVO(LangVO.API_TYPE_ID, field_names<LangVO>().id, true)).set_limit(1).select_vo<LangVO>();
-            user.lang_id = lang.id;
-
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
-
-            if (!user.id) {
-                throw new Error('Impossible de créer le compte');
-            }
-            session.uid = user.id;
-            session.user_vo = user;
-            PushDataServerController.registerSession(session);
-
-            // On stocke le log de connexion en base
-            const user_log = new UserLogVO();
-            user_log.user_id = user.id;
-            user_log.log_time = Dates.now();
-            user_log.impersonated = false;
-            user_log.referer = StackContext.get('REFERER');
-            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
-
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
-            await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to);
-
-            return user.id;
-        } catch (error) {
-            ConsoleHandler.error("login:" + email + ":" + error);
-        }
-
-        return null;
-    }
-
-    private async loginAndRedirect(email: string, password: string, redirect_to: string, sso: boolean): Promise<number> {
-
-        try {
-            const session = StackContext.get('SESSION');
-
-            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-                // On est en readonly partout, donc on informe sur impossibilité de se connecter
-                await PushDataServerController.notifySession(
-                    'error.global_update_blocker.activated.___LABEL___',
-                    NotificationVO.SIMPLE_ERROR
-                );
-                return null;
-            }
-
-            if (session && session.uid) {
-                await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to, sso);
-                return session.uid;
-            }
-
-            session.uid = null;
-            session.user_vo = null;
-
-            if ((!email) || (!password)) {
-                return null;
-            }
-
-            let user: UserVO = null;
-
-            if (AccessPolicyServerController.hook_user_login) {
-                user = await AccessPolicyServerController.hook_user_login(email, password);
-            } else {
-                user = await ModuleDAOServer.getInstance().selectOneUser(email, password);
-            }
-
-            if (!user) {
-                return null;
-            }
-
-            if (user.blocked) {
-                return null;
-            }
-
-            if (user.invalidated) {
-
-                // Si le mot de passe est invalidé on refuse la connexion mais on envoie aussi un mail pour récupérer le mot de passe si on l'a pas déjà envoyé
-                // if ((!user.recovery_expiration) || (user.recovery_expiration<=Dates.now())) {
-                await PasswordRecovery.getInstance().beginRecovery(user.email);
-                // }
-                return null;
-            }
-
-            if (!user.logged_once) {
-                user.logged_once = true;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
-            }
-
-            session.uid = user.id;
-            session.user_vo = user;
-
-            PushDataServerController.registerSession(session);
-
-            // On stocke le log de connexion en base
-            const user_log = new UserLogVO();
-            user_log.user_id = user.id;
-            user_log.log_time = Dates.now();
-            user_log.impersonated = false;
-            user_log.referer = StackContext.get('REFERER');
-            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
-
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
-
-            await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to, sso);
-
-            return user.id;
-        } catch (error) {
-            ConsoleHandler.error("login:" + email + ":" + error);
-        }
-
-        return null;
-    }
-
     private async impersonate(uid: number): Promise<number> {
 
         if (!uid) {
@@ -2045,66 +2265,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return null;
-    }
-
-    /**
-     * @param context_query la requete qui permet de récupérer le user à impersonate
-     * @returns l'id de l'utilisateur qui a été impersoné
-     */
-    private async do_impersonate(context_query: ContextQueryVO): Promise<number> {
-        const session = StackContext.get('SESSION');
-        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-
-        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-            // On est en readonly partout, donc on informe sur impossibilité de se connecter
-            await PushDataServerController.notifySimpleERROR(
-                StackContext.get('UID'),
-                StackContext.get('CLIENT_TAB_ID'),
-                'error.global_update_blocker.activated.___LABEL___'
-            );
-            return null;
-        }
-
-        if ((!session) || (!session.uid)) {
-            return null;
-        }
-
-        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
-            return null;
-        }
-
-        const user: UserVO = await context_query.select_vo<UserVO>();
-
-        if (!user) {
-            return null;
-        }
-
-        if (user.blocked || user.invalidated || user.archived) {
-            ConsoleHandler.error("impersonate:blocked or invalidated or archived");
-            context_query.log(true);
-            await PushDataServerController.notifySimpleERROR(session.uid, CLIENT_TAB_ID, 'Impossible de se connecter avec un compte bloqué, invalidé ou archivé', true);
-            return null;
-        }
-
-        session.impersonated_from = Object.assign({}, session);
-        session.uid = user.id;
-        session.user_vo = user;
-
-        PushDataServerController.registerSession(session);
-
-        // On stocke le log de connexion en base
-        const user_log = new UserLogVO();
-        user_log.user_id = user.id;
-        user_log.log_time = Dates.now();
-        user_log.referer = StackContext.get('REFERER');
-        user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
-        user_log.handle_impersonation(session);
-
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
-
-        await PushDataServerController.notifyUserLoggedAndRedirect();
-
-        return user.id;
     }
 
     private async impersonateLogin(email: string, password: string, redirect_to: string): Promise<number> {
@@ -2246,7 +2406,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user.email = user.email.trim();
             user.phone = user.phone ? user.phone.trim() : null;
 
-            return await ModuleDAOServer.getInstance().selectUsersForCheckUnicity(user.name, user.email, user.phone, user.id);
+            return await ModuleDAOServer.instance.selectUsersForCheckUnicity(user.name, user.email, user.phone, user.id);
         } catch (error) {
             ConsoleHandler.error(error);
         }
@@ -2287,8 +2447,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async send_session_share_email(mail_category: string, url: string, email: string): Promise<MailVO> {
-        const SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
-        return await SendInBlueMailServerController.getInstance().sendWithTemplate(
+        const SEND_IN_BLUE_TEMPLATE_ID = await ParamsServerController.getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
+        return SendInBlueMailServerController.getInstance().sendWithTemplate(
             mail_category,
             SendInBlueMailVO.createNew(email, email),
             SEND_IN_BLUE_TEMPLATE_ID,
@@ -2300,19 +2460,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async send_session_share_sms(text: string, phone: string) {
-        await SendInBlueSmsServerController.getInstance().send(
+        return SendInBlueSmsServerController.getInstance().send(
             SendInBlueSmsFormatVO.createNew(phone),
             text,
             'session_share');
     }
 
     private get_my_sid(req: Request, res: Response) {
-        // let session = StackContext.get('SESSION');
-        // if (!session) {
-        //     return null;
-        // }
-        // return session.id;
-        return res.req.cookies['sid'];
+        return (res && res.req && res.req.cookies) ? res.req.cookies['sid'] : req.session.sid;
     }
 
     private get_my_session_id(req: Request, res: Response) {
@@ -2324,61 +2479,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return res.req.sessionID;
     }
 
-    private async delete_session() {
+    /**
+     * DELETE ME Post suppression StackContext: Does not need StackContext
+     */
+    private async delete_session(req: Request) {
 
-        /**
-         * On veut supprimer la session et déconnecter tout le monde
-         */
-        let user_log = null;
-        let session = StackContext.get('SESSION');
-
-        if (session && session.uid) {
-            const uid: number = session.uid;
-
-            // On stocke le log de connexion en base
-            user_log = new UserLogVO();
-            user_log.user_id = uid;
-            user_log.log_time = Dates.now();
-            user_log.referer = null;
-            user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
-            user_log.handle_impersonation(session);
-
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
-        }
-
-        /**
-         * Gestion du impersonate => dans le cas présent on logout aussi le compte principal
-         */
-        while (session && !!session.impersonated_from) {
-
-            await ConsoleHandler.log('unregisterSession:delete_session:impersonated_from:uid:' + session.uid);
-            await PushDataServerController.unregisterSession(session, false);
-
-            session = Object.assign(session, session.impersonated_from);
-            // delete session.impersonated_from;
-
-            const uid: number = session.uid;
-
-            // On stocke le log de connexion en base
-            user_log = new UserLogVO();
-            user_log.user_id = uid;
-            user_log.log_time = Dates.now();
-            user_log.referer = null;
-            user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
-            user_log.handle_impersonation(session);
-
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
-        }
-
-        await ConsoleHandler.log('unregisterSession:delete_session:uid:' + session.uid);
-        await PushDataServerController.unregisterSession(session, true);
-
-        session.uid = null;
-        session.user_vo = null;
-        session.destroy((err) => {
-            if (err) {
-                ConsoleHandler.log(err);
-            }
-        });
+        return this.do_delete_session((req.session as IServerUserSession)?.sid);
     }
 }

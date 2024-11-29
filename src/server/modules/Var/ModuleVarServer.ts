@@ -24,7 +24,6 @@ import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTC
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -39,7 +38,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -60,11 +59,11 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-import ForkServerController from '../Fork/ForkServerController';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import CurrentBatchDSCacheHolder from './CurrentBatchDSCacheHolder';
@@ -81,6 +80,8 @@ import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
 import AutoVarServerController from './auto/AutoVarServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
+import VarsClientsSubsCacheHolder from './bgthreads/processes/VarsClientsSubsCacheHolder';
+import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCacheManager';
 import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
@@ -536,7 +537,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public async invalidate_var_cache_from_vo_cd(vo: IDistantVOBase): Promise<void> {
 
         try {
-            VarsDatasVoUpdateHandler.register_vo_cud([vo]);
+            VarsDatasVoUpdateHandler.register_vo_cud(vo);
         } catch (error) {
             ConsoleHandler.error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + ':' + vo + ':' + error);
         }
@@ -551,7 +552,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public async invalidate_var_cache_from_vo_u(vo_update_handler: DAOUpdateVOHolder<IDistantVOBase>): Promise<void> {
 
         try {
-            VarsDatasVoUpdateHandler.register_vo_cud([vo_update_handler]);
+            VarsDatasVoUpdateHandler.register_vo_cud(vo_update_handler, null);
         } catch (error) {
             ConsoleHandler.error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
         }
@@ -562,6 +563,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                false,
                 reject,
                 VarsBGThreadNameHolder.bgthread_name,
                 ModuleVarServer.TASK_NAME_invalidate_imports_for_c,
@@ -588,6 +590,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                false,
                 reject,
                 VarsBGThreadNameHolder.bgthread_name,
                 ModuleVarServer.TASK_NAME_invalidate_imports_for_d,
@@ -611,6 +614,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                false,
                 reject,
                 VarsBGThreadNameHolder.bgthread_name,
                 ModuleVarServer.TASK_NAME_invalidate_imports_for_u,
@@ -741,7 +745,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         // for (let api_type_id in VarsServerController.varcacheconf_by_api_type_ids) {
         //     let moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
 
-        //     await ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');
+        //     await ModuleDAOServer.instance.query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');
         // }
     }
 
@@ -791,7 +795,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
-        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_register_params, this.register_params.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleVar>().register_params, this.register_params.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_update_params_registration, this.update_params_registration.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
@@ -920,7 +924,7 @@ export default class ModuleVarServer extends ModuleServerBase {
          * On recharge toutes les 5 minutes
          */
         if ((this.limit_nb_ts_ranges_on_param_by_context_filter == null) || (this.limit_nb_ts_ranges_on_param_by_context_filter_last_update < (Dates.now() - 300))) {
-            this.limit_nb_ts_ranges_on_param_by_context_filter = await ModuleParams.getInstance().getParamValueAsInt(ModuleVar.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100, 180000);
+            this.limit_nb_ts_ranges_on_param_by_context_filter = await ParamsServerController.getParamValueAsInt(ModuleVar.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100, 180000);
             this.limit_nb_ts_ranges_on_param_by_context_filter_last_update = Dates.now();
         }
         return this.limit_nb_ts_ranges_on_param_by_context_filter;
@@ -937,22 +941,33 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        await VarsComputationHole.exec_in_computation_hole(this.force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole);
+        await VarsComputationHole.exec_in_computation_hole(this.force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole.bind(this));
     }
 
     public async force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole(): Promise<void> {
+
+        ConsoleHandler.warn('ModuleVarServer:force_delete_all_cache_except_imported_data:IN');
+
+        VarsDatasVoUpdateHandler.invalidators = [];
+        VarsDatasVoUpdateHandler.ordered_vos_cud = [];
 
         const promises = [];
         for (const api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
 
             const moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
-            promises.push(ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';'));
+            promises.push(ModuleDAOServer.instance.query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';'));
         }
         await all_promises(promises);
 
         CurrentVarDAGHolder.current_vardag = new VarDAG();
         CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
-        CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
+
+        ConsoleHandler.warn('ModuleVarServer:force_delete_all_cache_except_imported_data:re_register_all_subs');
+
+        // On veut pousser un register de toutes les vars clients à nouveau pour les recalculs asap
+        await ModuleVarServer.getInstance().re_register_all_subs(true); // on vient de vider le cache par définition de la base à l'instant, on ne fait pas de requetes inutiles
+
+        ConsoleHandler.warn('ModuleVarServer:force_delete_all_cache_except_imported_data:OUT');
     }
 
     private async onCVarConf(vcc: VarConfVO) {
@@ -1233,7 +1248,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        return await SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
+        return SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
 
             const var_controller = VarsServerController.registered_vars_controller[VarsController.var_conf_by_id[param.var_id].name];
 
@@ -1269,7 +1284,7 @@ export default class ModuleVarServer extends ModuleServerBase {
      */
     private async getAggregatedVarDatas(param: VarDataBaseVO): Promise<{ [var_data_index: string]: VarDataBaseVO }> {
 
-        return await SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
+        return SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
 
             const var_dag: VarDAG = new VarDAG();
             const node = await VarDAGNode.getInstance(var_dag, param, false);
@@ -1294,11 +1309,12 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        if (!ForkServerController.is_main_process()) {
-            throw new Error('getParamDependencies must be called on main process for var explanation');
-        }
+        // Je vois pas pkoi... et en plus maintenant que les apis sont sur un bg thread, c'est juste faux
+        // if (!isMainThread) {
+        //     throw new Error('getParamDependencies must be called on main process for var explanation');
+        // }
 
-        return await SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
+        return SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
 
 
             /**
@@ -1509,15 +1525,26 @@ export default class ModuleVarServer extends ModuleServerBase {
                                  * Utilisation du cache local
                                  * On réinsère le contexte client pour les requêtes
                                  */
-                                await StackContext.runPromise({ IS_CLIENT: true, UID: param.uid }, async () => {
+                                await StackContext.runPromise(
+                                    {
+                                        IS_CLIENT: true,
+                                        UID: param.uid,
+                                        CLIENT_TAB_ID: null,
+                                        REFERER: null,
+                                        SESSION_ID: null,
+                                        SID: null,
+                                    },
+                                    async () => {
 
-                                    const query_wrapper: ParameterizedQueryWrapper = await ModuleContextFilterServer.getInstance().build_select_query(context_query);
-                                    if (!cache_local[query_wrapper.query]) {
-                                        cache_local[query_wrapper.query] = ContextQueryServerController.select_vos(context_query, query_wrapper);
-                                    }
+                                        const query_wrapper: ParameterizedQueryWrapper = await ModuleContextFilterServer.instance.build_select_query(context_query);
+                                        if (!cache_local[query_wrapper.query]) {
+                                            cache_local[query_wrapper.query] = ContextQueryServerController.select_vos(context_query, query_wrapper);
+                                        }
 
-                                    ids_db = await cache_local[query_wrapper.query];
-                                });
+                                        ids_db = await cache_local[query_wrapper.query];
+                                    },
+                                    this,
+                                );
                             }
                             if (ConfigurationService.node_configuration.debug_vars_db_param_builder) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:OUT');
@@ -1623,11 +1650,13 @@ export default class ModuleVarServer extends ModuleServerBase {
             ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':OUT');
         }
 
+        var_param.rebuild_index();
+
         resolve(refuse_param ? null : var_param);
     }
 
     private async get_var_data(var_data_index: string): Promise<VarDataBaseVO> {
-        return await VarsServerCallBackSubsController.get_var_data(var_data_index);
+        return VarsServerCallBackSubsController.get_var_data(var_data_index);
     }
 
     /**
@@ -1815,5 +1844,30 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         VarsServerController.registerVar(autovarconf, AutoVarServerController.getInstance(autovarconf));
+    }
+
+    private async re_register_all_subs(has_deleted_all_cache_right_before_and_in_same_hole: boolean = true) {
+
+        // On réinsère les registers (clients et serveurs)
+        await VarsClientsSubsCacheManager.update_clients_subs_indexes_cache(true);
+        // Server
+        const subs: string[] = Object.keys(VarsServerCallBackSubsController.cb_subs);
+        // Clients
+        subs.push(...Object.keys(VarsClientsSubsCacheHolder.clients_subs_indexes_cache));
+
+        const all_vardagnode_promises: Array<Promise<any>> = [];
+        for (const j in subs) {
+
+            const index = subs[j];
+
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                ConsoleHandler.log('ModuleVarServer.re_register_all_subs:REINSERT:' + index);
+            }
+
+            // on vient de supprimer => ok mais les imports ???
+            all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false/*, has_deleted_all_cache_right_before_and_in_same_hole*/));
+        }
+
+        await all_promises(all_vardagnode_promises);
     }
 }

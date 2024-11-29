@@ -553,7 +553,12 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
             // Choix du pool de requête
             if (!request_barrel_num_from_request_uid[request_uid]) {
-                request_barrel_num++;
+
+                // On passe au suivant si on a déjà utilisé plus de 10 requetes dans ce barrel
+                const slot = wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]];
+                if (slot && (slot.length >= 10)) {
+                    request_barrel_num++;
+                }
 
                 if (request_barrel_num >= nb_requests) {
                     request_barrel_num = 0;

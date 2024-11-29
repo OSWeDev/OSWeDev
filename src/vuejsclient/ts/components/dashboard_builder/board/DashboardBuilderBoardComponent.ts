@@ -91,6 +91,9 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     @ModuleDashboardPageAction
     private set_active_field_filters: (param: FieldFiltersVO) => void;
 
+    @ModuleDashboardPageAction
+    private clear_active_field_filters: () => void;
+
     @Prop()
     private dashboard_page: DashboardPageVO;
 
@@ -297,7 +300,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                         ConsoleHandler.error(error);
                     }
 
-                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page_widget);
+                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(page_widget);
                     if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                         reject({
                             body: self.label('DashboardBuilderBoardComponent.add_widget_to_page.ko'),
@@ -364,7 +367,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
         widget.h = newH;
         widget.w = newW;
-        await ModuleDAO.getInstance().insertOrUpdateVO(widget);
+        await ModuleDAO.instance.insertOrUpdateVO(widget);
         this.set_page_widget(widget);
     }
 
@@ -389,7 +392,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
         widget.x = newX;
         widget.y = newY;
-        await ModuleDAO.getInstance().insertOrUpdateVO(widget);
+        await ModuleDAO.instance.insertOrUpdateVO(widget);
         this.set_page_widget(widget);
     }
 
@@ -414,7 +417,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
                                 try {
 
-                                    await ModuleDAO.getInstance().deleteVOs([page_widget]);
+                                    await ModuleDAO.instance.deleteVOs([page_widget]);
                                     let i = 0;
                                     for (; i < self.widgets.length; i++) {
                                         const w = self.widgets[i];
@@ -493,7 +496,9 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
             if (json_options && json_options.hide_filter) {
                 return true;
             }
-        } catch { }
+        } catch {
+            return false;
+        }
 
         return false;
     }

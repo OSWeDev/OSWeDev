@@ -13,6 +13,8 @@ import { field_names } from '../../../../shared/tools/ObjectHandler';
 import StackContext from '../../../StackContext';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
+import TemplateHandlerServer from '../../Mailer/TemplateHandlerServer';
+import ParamsServerController from '../../Params/ParamsServerController';
 import SendInBlueMailServerController from '../../SendInBlue/SendInBlueMailServerController';
 import SendInBlueSmsServerController from '../../SendInBlue/sms/SendInBlueSmsServerController';
 import ModuleAccessPolicyServer from '../ModuleAccessPolicyServer';
@@ -42,7 +44,7 @@ export default class PasswordInitialisation {
 
     public async begininitpwd(email: string): Promise<boolean> {
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -57,7 +59,7 @@ export default class PasswordInitialisation {
 
     public async begininitpwd_uid(uid: number): Promise<boolean> {
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecoveryUID(uid);
 
         if (!user) {
             return false;
@@ -74,7 +76,7 @@ export default class PasswordInitialisation {
 
         await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-        const SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInitialisation.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
+        const SEND_IN_BLUE_TEMPLATE_ID_s: string = await ParamsServerController.getParamValueAsString(PasswordInitialisation.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
         const SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
         // Send mail
@@ -100,7 +102,7 @@ export default class PasswordInitialisation {
             await ModuleMailerServer.getInstance().sendMail({
                 to: user.email,
                 subject: translated_mail_subject.translated,
-                html: await ModuleMailerServer.getInstance().prepareHTML(initpwd_mail_html_template, user.lang_id, {
+                html: await TemplateHandlerServer.apply_template(initpwd_mail_html_template, user.lang_id, true, {
                     EMAIL: user.email,
                     UID: user.id.toString(),
                     CODE_CHALLENGE: user.recovery_challenge
@@ -112,11 +114,11 @@ export default class PasswordInitialisation {
 
     public async beginRecoverySMS(email: string): Promise<boolean> {
 
-        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+        if (!await ParamsServerController.getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
             return;
         }
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -145,7 +147,7 @@ export default class PasswordInitialisation {
         // Using SendInBlue
         await SendInBlueSmsServerController.getInstance().send(
             SendInBlueSmsFormatVO.createNew(phone, lang.code_phone),
-            await ModuleMailerServer.getInstance().prepareHTML(translation.translated, user.lang_id, {
+            await TemplateHandlerServer.apply_template(translation.translated, user.lang_id, true, {
                 EMAIL: user.email,
                 UID: user.id.toString(),
                 CODE_CHALLENGE: user.recovery_challenge

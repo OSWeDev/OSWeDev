@@ -20,7 +20,7 @@ export default abstract class VueModuleBase implements IVueModule {
 
         this.routes = [];
         // L'initialisation est appelée dans le register directement
-        ModulesManager.getInstance().registerModule(VueModuleBase.IVueModuleRoleName, this);
+        ModulesManager.registerModule(VueModuleBase.IVueModuleRoleName, this);
     }
 
     get actif(): boolean {
@@ -29,7 +29,7 @@ export default abstract class VueModuleBase implements IVueModule {
     }
 
     get shared_module(): Module {
-        return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
+        return ModulesManager.getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
     }
 
     public registerApis() { }
