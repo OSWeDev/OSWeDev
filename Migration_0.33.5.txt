@@ -110,6 +110,12 @@ Vérifier au passage que les tsconfig ont bien :
         ],
         "moduleResolution": "node",
 
+et vérifier qu'on a les 3 lignes suivantes
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "useDefineForClassFields": false // Ajoutez cette ligne pour utiliser l'ancienne syntaxe
+
+
 
 on supprime toutes les stackcontext.get('SESSION') => @runsonmainthread + get('SID') + pushdataservercontroller.registeredsessions_by_sid(sid)
 idem pour 'SELF_USER', on peut utiliser 'UID'
