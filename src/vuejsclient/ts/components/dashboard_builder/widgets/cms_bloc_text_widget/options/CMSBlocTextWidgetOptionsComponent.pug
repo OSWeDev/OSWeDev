@@ -18,28 +18,11 @@
                     .titre_field_ref_for_template
                         .input_label {{ label('cms_image.widget_option.titre_field_ref_for_template') }}
                         .input_wrapper
-                            multiselect(
-                                :preselect-first="false"
-                                :multiple="false"
-                                v-model="titre_field_ref_for_template"
-                                :options="titre_field_ref_for_template_options"
-                                :allow-empty="true"
-                                :custom-label="fieldRefOptionLabel"
-
-                                :searchable="true"
-                                :internal-search="true"
-                                :limit="50"
-                                :loading="multiselect_loading"
-
-                                @search-change="titre_field_ref_multiselect_search_change"
-
-                                track-by="id"
-
-                                :select-label='label("multiselect.selectLabel")'
-                                :select-group-label='label("multiselect.selectGroupLabel")'
-                                :selected-label='label("multiselect.selectedLabel")'
-                                :deselect-label='label("multiselect.deselectLabel")'
-                                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                            Singlevofieldrefholdercomponent(
+                                :vo_field_ref="titre_field_ref_for_template"
+                                @remove_field_ref="remove_titre_field_ref_for_template"
+                                @add_field_ref="add_titre_field_ref_for_template"
+                                :page_widget_id='page_widget ? page_widget.id : null'
                             )
                 template(v-else)
                     Vuequilleditor(v-model='titre', :options="optionsEditeur")
@@ -51,28 +34,11 @@
                     .sous_titre_field_ref_for_template
                         .input_label {{ label('cms_image.widget_option.sous_titre_field_ref_for_template') }}
                         .input_wrapper
-                            multiselect(
-                                :preselect-first="false"
-                                :multiple="false"
-                                v-model="sous_titre_field_ref_for_template"
-                                :options="sous_titre_field_ref_for_template_options"
-                                :allow-empty="true"
-                                :custom-label="fieldRefOptionLabel"
-
-                                :searchable="true"
-                                :internal-search="true"
-                                :limit="50"
-                                :loading="multiselect_loading"
-
-                                @search-change="sous_titre_field_ref_multiselect_search_change"
-
-                                track-by="id"
-
-                                :select-label='label("multiselect.selectLabel")'
-                                :select-group-label='label("multiselect.selectGroupLabel")'
-                                :selected-label='label("multiselect.selectedLabel")'
-                                :deselect-label='label("multiselect.deselectLabel")'
-                                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                            Singlevofieldrefholdercomponent(
+                                :vo_field_ref="sous_titre_field_ref_for_template"
+                                @remove_field_ref="remove_sous_titre_field_ref_for_template"
+                                @add_field_ref="add_sous_titre_field_ref_for_template"
+                                :page_widget_id='page_widget ? page_widget.id : null'
                             )
 
                 template(v-else)
@@ -85,28 +51,11 @@
                     .contenu_field_ref_for_template
                         .input_label {{ label('cms_image.widget_option.contenu_field_ref_for_template') }}
                         .input_wrapper
-                            multiselect(
-                                :preselect-first="false"
-                                :multiple="false"
-                                v-model="contenu_field_ref_for_template"
-                                :options="contenu_field_ref_for_template_options"
-                                :allow-empty="true"
-                                :custom-label="fieldRefOptionLabel"
-
-                                :searchable="true"
-                                :internal-search="true"
-                                :limit="50"
-                                :loading="multiselect_loading"
-
-                                @search-change="contenu_field_ref_multiselect_search_change"
-
-                                track-by="id"
-
-                                :select-label='label("multiselect.selectLabel")'
-                                :select-group-label='label("multiselect.selectGroupLabel")'
-                                :selected-label='label("multiselect.selectedLabel")'
-                                :deselect-label='label("multiselect.deselectLabel")'
-                                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                            Singlevofieldrefholdercomponent(
+                                :vo_field_ref="contenu_field_ref_for_template"
+                                @remove_field_ref="remove_contenu_field_ref_for_template"
+                                @add_field_ref="add_contenu_field_ref_for_template"
+                                :page_widget_id='page_widget ? page_widget.id : null'
                             )
 
                 template(v-else)

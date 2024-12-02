@@ -36,38 +36,6 @@ export default class ImageComponent extends VueComponentBase {
 
     protected uid: number = null;
 
-    @Watch('imagevo')
-    public async updateImageVO() {
-        const dropzone = (this.$refs['filedropzone' + this.uid] as any);
-
-        if (!dropzone) {
-            return;
-        }
-        dropzone.removeAllFiles();
-        if (!this.imagevo) {
-            return;
-        }
-
-        const path: string = this.imagevo[this.field.module_table_field_id];
-
-        const mock = {
-            accepted: true,
-            name: path.replace(/^.*[\\/]([^\\/]+)$/, '$1'),
-            url: path
-        };
-
-        mock.accepted = true;
-
-        dropzone.files.push(mock);
-        dropzone.emit('addedfile', mock);
-        dropzone.createThumbnailFromUrl(mock, mock.url);
-        dropzone.emit('complete', mock);
-    }
-
-    public async mounted() {
-        this.uid = ImageComponent.__UID++;
-    }
-
     get dropzoneOptions() {
         const self = this;
 
@@ -131,5 +99,41 @@ export default class ImageComponent extends VueComponentBase {
         };
 
         return Object.assign(dropoptions, this.options);
+    }
+
+    @Watch('imagevo')
+    public async updateImageVO() {
+        const dropzone = (this.$refs['filedropzone' + this.uid] as any);
+
+        if (!dropzone) {
+            return;
+        }
+        dropzone.removeAllFiles();
+        if (!this.imagevo) {
+            return;
+        }
+
+        const path: string = this.imagevo[this.field.module_table_field_id];
+
+        if (!path) {
+            return;
+        }
+
+        const mock = {
+            accepted: true,
+            name: path.replace(/^.*[\\/]([^\\/]+)$/, '$1'),
+            url: path
+        };
+
+        mock.accepted = true;
+
+        dropzone.files.push(mock);
+        dropzone.emit('addedfile', mock);
+        dropzone.createThumbnailFromUrl(mock, mock.url);
+        dropzone.emit('complete', mock);
+    }
+
+    public async mounted() {
+        this.uid = ImageComponent.__UID++;
     }
 }

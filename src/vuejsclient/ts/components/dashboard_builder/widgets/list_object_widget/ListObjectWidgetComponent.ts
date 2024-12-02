@@ -3,6 +3,8 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -12,6 +14,8 @@ import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vo
 import ListObjectWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/ListObjectWidgetOptionsVO';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './ListObjectWidgetComponent.scss';
@@ -47,10 +51,12 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
     private titles: any[] = [];
     private subtitles: any[] = [];
-    private images: FileVO[] = [];
+    private image_paths: string[] = [];
     private numbers: any[] = [];
     private urls: any[] = [];
     private max_range_nb: number[] = [];
+
+    private throttle_reload_values = ThrottleHelper.declare_throttle_without_args(this.reload_values.bind(this), 300, { leading: false });
 
     get widget_options(): ListObjectWidgetOptionsVO {
         if (!this.page_widget) {
@@ -78,23 +84,23 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         }
     }
 
-    @Watch('widget_options', { immediate: true, deep: true })
+    @Watch('widget_options')
     @Watch('get_active_field_filters', { immediate: true, deep: true })
-    private async onchange_widget_options() {
-        if (!this.widget_options) {
-
-            return;
-        }
-        this.titles = await this.get_titles();
-        this.subtitles = await this.get_subtitles();
-        this.images = await this.get_images();
-        this.numbers = await this.get_numbers();
-        this.urls = await this.get_urls();
-        this.max_range_nb = Array.from({ length: Math.max(...[this.titles.length, this.subtitles.length, this.images.length, this.numbers.length, this.urls.length]) }, (x, i) => i);
+    private onchange_widget_options() {
+        this.throttle_reload_values();
     }
 
-    private async mounted() {
-        this.onchange_widget_options();
+    private async reload_values() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.titles = await this.get_titles();
+        this.subtitles = await this.get_subtitles();
+        this.image_paths = await this.get_image_paths();
+        this.numbers = await this.get_numbers();
+        this.urls = await this.get_urls();
+        this.max_range_nb = Array.from({ length: Math.max(...[this.titles.length, this.subtitles.length, this.image_paths.length, this.numbers.length, this.urls.length]) }, (x, i) => i);
     }
 
     private async get_titles() {
@@ -156,7 +162,7 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         return res;
     }
 
-    private async get_images() {
+    private async get_image_paths() {
         if (!this.widget_options.image_id || !this.widget_options.image_id.api_type_id || !this.widget_options.image_id.field_id) {
             return [];
         }
@@ -178,16 +184,38 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         }
 
         const images = await query_.select_vos();
-        const res = [];
+        const res: string[] = [];
+        const field: ModuleTableFieldVO = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.widget_options.image_id.api_type_id][this.widget_options.image_id.field_id];
+        const promises = [];
+
         for (const image of images) {
-            res.push(image[this.widget_options.image_id.field_id]);
+            if (!image[this.widget_options.image_id.field_id]) {
+                res.push(null);
+                continue;
+            }
+
+            switch (field.field_type) {
+                case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+
+                    const file: FileVO = await query(field.foreign_ref_vo_type).filter_by_id(image[this.widget_options.image_id.field_id]).select_vo();
+                    res.push(file?.path);
+                    break;
+
+                case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                case ModuleTableFieldVO.FIELD_TYPE_image_field:
+                case ModuleTableFieldVO.FIELD_TYPE_string:
+                    res.push(image[this.widget_options.image_id.field_id]);
+                    break;
+            }
         }
 
-        const file_res: FileVO[] = [];
-        for (let res_ of res) {
-            file_res.push(await query(FileVO.API_TYPE_ID).filter_by_id(res_).select_vo());
+        if (promises?.length) {
+            await all_promises(promises);
         }
-        return file_res;
+
+        return res;
     }
 
     private async get_numbers() {

@@ -33,6 +33,7 @@ import DashboardVO from './vos/DashboardVO';
 import DashboardViewportVO from './vos/DashboardViewportVO';
 import DashboardWidgetVO from './vos/DashboardWidgetVO';
 import FavoritesFiltersVO from './vos/FavoritesFiltersVO';
+import LinkDashboardAndApiTypeIdVO from './vos/LinkDashboardAndApiTypeIdVO';
 import SharedFiltersVO from './vos/SharedFiltersVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
 import VOFieldRefVO from './vos/VOFieldRefVO';
@@ -111,6 +112,7 @@ export default class ModuleDashboardBuilder extends Module {
 
         this.initialize_DashboardViewportVO();
         this.initialize_DashboardActiveonViewportVO();
+        this.initialize_LinkDashboardAndApiTypeIdVO();
     }
 
     private init_DashboardVO(): ModuleTableVO {
@@ -660,5 +662,14 @@ export default class ModuleDashboardBuilder extends Module {
                 dashboard_viewport_id,
                 dashboard_page_id,
             ]);
+    }
+
+    private initialize_LinkDashboardAndApiTypeIdVO() {
+        ModuleTableFieldController.create_new(LinkDashboardAndApiTypeIdVO.API_TYPE_ID, field_names<LinkDashboardAndApiTypeIdVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard", true)
+            .set_many_to_one_target_moduletable_name(DashboardPageVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(LinkDashboardAndApiTypeIdVO.API_TYPE_ID, field_names<LinkDashboardAndApiTypeIdVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Type de données', true).unique();
+
+        ModuleTableController.create_new(this.name, LinkDashboardAndApiTypeIdVO, null, "DBB Template pour un api type id");
     }
 }

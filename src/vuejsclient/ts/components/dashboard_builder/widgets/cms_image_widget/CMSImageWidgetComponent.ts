@@ -10,6 +10,11 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
+import ImageVO from '../../../../../../shared/modules/Image/vos/ImageVO';
 
 @Component({
     template: require('./CMSImageWidgetComponent.pug'),
@@ -28,6 +33,9 @@ export default class CMSImageWidgetComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
+
+    @ModuleDashboardPageGetter
+    private get_cms_vo: IDistantVOBase;
 
     private file_id: number = null;
     private file_path: string = null;
@@ -116,6 +124,11 @@ export default class CMSImageWidgetComponent extends VueComponentBase {
         return res;
     }
 
+    @Watch('get_cms_vo')
+    private async onchange_get_cms_vo() {
+        this.file_path = await this.get_value(this.widget_options.file_id, this.widget_options.field_ref_for_template);
+    }
+
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.widget_options) {
@@ -123,9 +136,9 @@ export default class CMSImageWidgetComponent extends VueComponentBase {
             this.radius = null;
             this.use_for_template = false;
             this.field_ref_for_template = null;
-
             return;
         }
+
         this.file_id = this.widget_options.file_id;
         this.radius = this.widget_options.radius;
         this.use_for_template = this.widget_options.use_for_template;
@@ -133,17 +146,54 @@ export default class CMSImageWidgetComponent extends VueComponentBase {
         this.mise_en_page = this.widget_options.mise_en_page;
         this.position = this.widget_options.position;
 
-        let file_path: string = null;
-
-        if (this.file_id) {
-            const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
-            file_path = file ? file.path : null;
-        }
-
-        this.file_path = file_path;
+        this.file_path = await this.get_value(this.widget_options.file_id, this.widget_options.field_ref_for_template);
     }
 
     private async mounted() {
         this.onchange_widget_options();
+    }
+
+    private async get_value(data: any, field_ref: VOFieldRefVO): Promise<string> {
+        if (!this.widget_options.use_for_template) {
+            if (data) {
+                const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(data).select_vo();
+                return file ? file.path : null;
+            }
+
+            return null;
+        }
+
+        if (this.get_cms_vo && field_ref?.field_id && this.get_cms_vo[field_ref.field_id]) {
+            const field: ModuleTableFieldVO = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[field_ref.api_type_id][field_ref.field_id];
+
+            if (!field) {
+                return null;
+            }
+
+            let file: FileVO = null;
+            const available_api_type_ids: string[] = [
+                FileVO.API_TYPE_ID,
+                ImageVO.API_TYPE_ID
+            ];
+
+            switch (field.field_type) {
+                case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    if (!available_api_type_ids.includes(field.foreign_ref_vo_type)) {
+                        return null;
+                    }
+
+                    file = await query(field.foreign_ref_vo_type).filter_by_id(this.get_cms_vo[field_ref.field_id]).select_vo();
+                    return file ? file.path : null;
+
+                case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                case ModuleTableFieldVO.FIELD_TYPE_image_field:
+                case ModuleTableFieldVO.FIELD_TYPE_string:
+                    return this.get_cms_vo[field_ref.field_id];
+            }
+        }
+
+        return null;
     }
 }

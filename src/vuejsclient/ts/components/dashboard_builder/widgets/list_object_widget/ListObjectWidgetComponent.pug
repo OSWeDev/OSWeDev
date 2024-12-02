@@ -5,11 +5,11 @@ include ../../../../../views/mixins/loading.pug
         template(v-if="widget_options.display_orientation == 'Vertical'")
             .list_object_widget_component
                 template(v-for="i in max_range_nb")
-                    .object
+                    .object(:href="urls[i]" :target="(widget_options.blank ? '_blank' : '')")
                         .first_row
-                            template(v-if="images && (images.length > 0) && images[i]")
+                            template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
                                 .image 
-                                    img(:src='images[i].path' alt="")
+                                    img(:src='image_paths[i]' alt="")
                             .title_and_sub
                                 template(v-if="titles && (titles.length > 0) && titles[i]")
                                     .title {{ titles[i] }}
@@ -19,15 +19,15 @@ include ../../../../../views/mixins/loading.pug
                             template(v-if="numbers && (numbers.length > 0) && numbers[i]")
                                 .number {{ numbers[i] }}
                             .arrow 
-                                template(v-if="widget_options.button_elements && (urls.length>0) && urls[i]")
-                                    a.fa-solid.fa-arrow-right(:href="urls[i]" :target="widget_options.blank ?  '_blank' : '' ")
+                                template(v-if="widget_options.button_elements && urls[i]")
+                                    .fa-light.fa-arrow-right.ml-2
         template(v-else-if="widget_options.display_orientation == 'Horizontal'")
             .list_card_widget_component
                 template(v-for="i in max_range_nb")
-                    .card 
-                        template(v-if="images && (images.length > 0) && images[i]")
+                    a.card(:href="urls[i]" :target="(widget_options.blank ? '_blank' : '')")
+                        template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
                             .image 
-                                img(:src='images[i].path' alt="")
+                                img(:src='image_paths[i]' alt="")
                         .card_content 
                             template(v-if="titles && (titles.length > 0) && titles[i]")
                                 .title {{ titles[i] }}
@@ -37,5 +37,5 @@ include ../../../../../views/mixins/loading.pug
                                 template(v-if="numbers && (numbers.length > 0) && numbers[i]")
                                     .number {{ numbers[i] }}
                                 .arrow 
-                                    template(v-if="widget_options.button_elements && (urls.length>0) && urls[i]")
-                                        a.fa-solid.fa-arrow-right(:href="urls[i]" :target="widget_options.blank ?  '_blank' : '' ")
+                                    template(v-if="widget_options.button_elements && urls[i]")
+                                        .fa-light.fa-arrow-right.ml-2()

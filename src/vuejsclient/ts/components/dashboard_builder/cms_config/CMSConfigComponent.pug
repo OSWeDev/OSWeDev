@@ -1,7 +1,44 @@
+include ../../../../views/mixins/loading.pug
+
 .cms_config
-   Tablesgraphcomponent(
-      :is_cms_config='is_cms_config'
-      @add_api_type_id='add_api_type_id' 
-      @del_api_type_id='del_api_type_id'
-      @update_discarded_field_paths='update_discarded_field_paths'
-   )
+    +loading()
+        Tablesgraphcomponent(
+            :is_cms_config='true'
+            @add_api_type_id='add_api_type_id' 
+            @del_api_type_id='del_api_type_id'
+            @update_discarded_field_paths='update_discarded_field_paths'
+        )
+
+        template(v-if="get_dashboard_api_type_ids?.length > 0")
+            h2.mt-3 {{ label('cms_config.template_for_api_type_id') }}
+            table.table.table-striped.table-hover
+                thead
+                    tr
+                        th {{ label('cms_config.api_type_id') }}
+                        th {{ label('cms_config.dbb_id') }}
+
+                tbody
+                    template(v-for="api_type_id in get_dashboard_api_type_ids")
+                        tr
+                            td {{ get_table_label(api_type_id) }}
+                            td
+                                multiselect(
+                                    :preselect-first="false"
+                                    :multiple="false"
+                                    v-model="dbb_by_api_type_id[api_type_id]"
+                                    :placeholder="label('cms_config.dbb_id')"
+                                    :options="dbbs"
+                                    :custom-label="multiselectOptionLabel"
+
+                                    :searchable="true"
+                                    :internal-search="true"
+                                    @input="onchange_dbb_by_api_type_id"
+
+                                    track-by="id"
+
+                                    :select-label='label("multiselect.selectLabel")'
+                                    :select-group-label='label("multiselect.selectGroupLabel")'
+                                    :selected-label='label("multiselect.selectedLabel")'
+                                    :deselect-label='label("multiselect.deselectLabel")'
+                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                )

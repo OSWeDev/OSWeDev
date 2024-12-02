@@ -67,6 +67,15 @@ export default class TablesGraphComponent extends VueComponentBase {
     private semaphore_init_or_update_graph: boolean = false;
     private semaphore_init_or_update_graph_hitted: boolean = false;
 
+    @Watch('dashboard', { immediate: true })
+    private async onchange_dashboard() {
+        if (!this.dashboard) {
+            return;
+        }
+
+        await this.throttle_init_or_update_graph();
+    }
+
     private async init_or_update_graph() {
 
         if (this.is_cms_config) {
@@ -232,16 +241,6 @@ export default class TablesGraphComponent extends VueComponentBase {
 
     private mounted() {
         this.throttle_init_or_update_graph();
-    }
-
-
-    @Watch('dashboard', { immediate: true })
-    private async onchange_dashboard() {
-        if (!this.dashboard) {
-            return;
-        }
-
-        await this.throttle_init_or_update_graph();
     }
 
     private async update_discarded_field_paths(discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) {

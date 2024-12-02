@@ -56,6 +56,7 @@ export interface IDashboardPageState {
     dashboard_api_type_ids: string[];
     discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
     cms_vo: IDistantVOBase;
+    cms_dashboard_id: number;
 }
 
 export default class DashboardPageStore implements IStoreModule<IDashboardPageState, DashboardPageContext> {
@@ -86,6 +87,9 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
         },
         set_cms_vo(state: IDashboardPageState, cms_vo: IDistantVOBase) {
             state.cms_vo = cms_vo;
+        },
+        set_cms_dashboard_id(state: IDashboardPageState, cms_dashboard_id: number) {
+            state.cms_dashboard_id = cms_dashboard_id;
         },
 
         set_widgets_invisibility(state: IDashboardPageState, widgets_invisibility: { [w_id: number]: boolean }) {
@@ -296,6 +300,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             dashboard_api_type_ids: [],
             discarded_field_paths: {},
             cms_vo: null,
+            cms_dashboard_id: null,
         };
 
 
@@ -315,6 +320,9 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             get_cms_vo(state: IDashboardPageState): IDistantVOBase {
                 return state.cms_vo;
+            },
+            get_cms_dashboard_id(state: IDashboardPageState): number {
+                return state.cms_dashboard_id;
             },
 
             get_custom_filters(state: IDashboardPageState): string[] {
@@ -383,6 +391,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             set_page_widgets_components_by_pwid: (context: DashboardPageContext, page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) => context.commit(store_mutations_names(this).set_page_widgets_components_by_pwid, page_widgets_components_by_pwid),
             set_discarded_field_paths: (context: DashboardPageContext, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) => context.commit(store_mutations_names(this).set_discarded_field_paths, discarded_field_paths),
             set_cms_vo: (context: DashboardPageContext, cms_vo: IDistantVOBase) => context.commit(store_mutations_names(this).set_cms_vo, cms_vo),
+            set_cms_dashboard_id: (context: DashboardPageContext, cms_dashboard_id: number) => context.commit(store_mutations_names(this).set_cms_dashboard_id, cms_dashboard_id),
             set_widget_invisibility: (context: DashboardPageContext, w_id: number) => context.commit(store_mutations_names(this).set_widget_invisibility, w_id),
             set_widget_visibility: (context: DashboardPageContext, w_id: number) => context.commit(store_mutations_names(this).set_widget_visibility, w_id),
             set_widgets_invisibility: (context: DashboardPageContext, widgets_invisibility: { [w_id: number]: boolean }) => context.commit(store_mutations_names(this).set_widgets_invisibility, widgets_invisibility),

@@ -61,14 +61,6 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
         return options;
     }
 
-    get cms_vo_api_type_id() {
-        return this.$route.params.cms_vo_api_type_id;
-    }
-
-    get cms_vo_id() {
-        return this.$route.params.cms_vo_id;
-    }
-
     @Watch('get_cms_vo')
     private onchange_get_cms_vo() {
         this.titre = this.get_value(this.widget_options.titre, this.widget_options.titre_field_ref_for_template);

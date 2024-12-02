@@ -1,5 +1,6 @@
 include ../../../../../views/mixins/loading.pug
 
-.cms_image_widget_component.text-center
+.cms_image_widget_component_container
     template(v-if="img_path")
-        span(:style="widget_style")
+        .cms_image_widget_component.text-center
+            span(:style="widget_style")

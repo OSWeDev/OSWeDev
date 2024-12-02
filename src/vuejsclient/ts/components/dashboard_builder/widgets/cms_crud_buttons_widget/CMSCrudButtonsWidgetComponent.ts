@@ -20,6 +20,7 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import CRUDCreateModalComponent from '../table_widget/crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from '../table_widget/crud_modals/update/CRUDUpdateModalComponent';
 import './CMSCrudButtonsWidgetComponent.scss';
+import { ModuleDAOAction } from '../../../dao/store/DaoStore';
 
 @Component({
     template: require('./CMSCrudButtonsWidgetComponent.pug'),
@@ -41,6 +42,9 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_cms_vo: IDistantVOBase;
+
+    @ModuleDAOAction
+    private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
     private show_add: boolean = true;
     private show_update: boolean = true;
@@ -70,14 +74,6 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
         return options;
     }
 
-    get cms_vo_api_type_id(): string {
-        return this.get_cms_vo?._type;
-    }
-
-    get cms_vo_id(): number {
-        return this.get_cms_vo?.id;
-    }
-
     @Watch('get_cms_vo')
     private onchange_get_cms_vo() {
         this.show_add = this.widget_options.show_add;
@@ -103,12 +99,14 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
     private async mounted() {
         this.user = VueAppController.getInstance().data_user;
 
-        this.has_access_to_add = await ModuleAccessPolicy.getInstance().testAccess(
-            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.cms_vo_api_type_id));
-        this.has_access_to_update = await ModuleAccessPolicy.getInstance().testAccess(
-            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.cms_vo_api_type_id));
-        this.has_access_to_delete = await ModuleAccessPolicy.getInstance().testAccess(
-            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.cms_vo_api_type_id));
+        if (this.get_cms_vo?._type) {
+            this.has_access_to_add = await ModuleAccessPolicy.getInstance().testAccess(
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.get_cms_vo._type));
+            this.has_access_to_update = await ModuleAccessPolicy.getInstance().testAccess(
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.get_cms_vo._type));
+            this.has_access_to_delete = await ModuleAccessPolicy.getInstance().testAccess(
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.get_cms_vo._type));
+        }
 
         this.onchange_widget_options();
     }
@@ -118,12 +116,23 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
     }
 
     private open_add_modal() {
-        (this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent).open_modal(this.cms_vo_api_type_id, this.update_visible_options.bind(this));
+        if (this.get_cms_vo?._type) {
+            (this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent).open_modal(this.get_cms_vo._type,
+                this.storeDatas,
+                this.update_visible_options.bind(this)
+            );
+        }
     }
     private open_update_modal() {
-        (this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent).open_modal(this.get_cms_vo, this.update_visible_options.bind(this));
+        (this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent).open_modal(
+            this.get_cms_vo,
+            this.storeDatas,
+            this.update_visible_options.bind(this)
+        );
     }
     private open_delete_modal() {
-        CRUDHandler.getDeleteLink(this.cms_vo_api_type_id, this.cms_vo_id);
+        if (this.get_cms_vo?._type && this.get_cms_vo.id) {
+            CRUDHandler.getDeleteLink(this.get_cms_vo._type, this.get_cms_vo.id);
+        }
     }
 }

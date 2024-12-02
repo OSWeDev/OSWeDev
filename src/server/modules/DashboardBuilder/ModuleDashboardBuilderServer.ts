@@ -27,6 +27,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import DashboardBuilderCronWorkersHandler from './DashboardBuilderCronWorkersHandler';
 import FavoritesFiltersVOService from './service/FavoritesFiltersVOService';
+import DashboardGraphVORefVO from '../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -3937,6 +3938,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Boutons de CRUD" },
             'dashboards.widgets.icons_tooltips.crudbuttons.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Type de contenu" },
+            'cms_config.api_type_id.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Dashboard pour template" },
+            'cms_config.dbb_id.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Affectation d'un template pour un type de contenu" },
+            'cms_config.template_for_api_type_id.___LABEL___'
+        ));
 
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
@@ -3945,6 +3958,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         postCreateTrigger.registerHandler(DashboardViewportVO.API_TYPE_ID, this, this.postCreateDashboardViewport);
         postCreateTrigger.registerHandler(DashboardPageVO.API_TYPE_ID, this, this.postCreateDashboardPage);
+        postCreateTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.postCreateDashboard);
         // postCreateTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.postCreateDashboardPageWidget);
 
         const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
@@ -4131,6 +4145,38 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }
 
         await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(liens_actifs);
+    }
+
+    private async postCreateDashboard(dbb: DashboardVO) {
+        if (!dbb) {
+            return;
+        }
+
+        if (!dbb.is_cms_compatible) {
+            return;
+        }
+
+        // On récupère le 1er dbb pour récupérer tous les graphs
+        const dbb_graphs_cms: DashboardGraphVORefVO[] = await query(DashboardGraphVORefVO.API_TYPE_ID)
+            .filter_by_num_in(
+                field_names<DashboardGraphVORefVO>().dashboard_id,
+                query(DashboardVO.API_TYPE_ID)
+                    .field(field_names<DashboardVO>().id)
+                    .filter_is_true(field_names<DashboardVO>().is_cms_compatible)
+                    .set_limit(1)
+            )
+            .select_vos();
+
+        if (!dbb_graphs_cms?.length) {
+            return;
+        }
+
+        for (const i in dbb_graphs_cms) {
+            delete dbb_graphs_cms[i].id;
+            dbb_graphs_cms[i].dashboard_id = dbb.id;
+        }
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(dbb_graphs_cms);
     }
 
     private async viewportBecomeDefault(viewport: DashboardViewportVO) {

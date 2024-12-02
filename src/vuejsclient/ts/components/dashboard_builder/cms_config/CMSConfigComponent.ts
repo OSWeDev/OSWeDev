@@ -1,54 +1,25 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
-import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
-import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
-import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import DashboardBuilderController from '../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
-import DashboardBuilderBoardManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
-import DashboardPageVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
-import DashboardPageWidgetVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
-import DashboardVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
-import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
-import DashboardActiveonViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
-import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
-import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
-import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
-import ModuleDataImport from '../../../../../shared/modules/DataImport/ModuleDataImport';
-import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
-import ModuleTranslation from '../../../../../shared/modules/Translation/ModuleTranslation';
-import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
-import LangVO from '../../../../../shared/modules/Translation/vos/LangVO';
-import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/TranslatableTextVO';
-import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
-import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
-import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
-import LocaleManager from '../../../../../shared/tools/LocaleManager';
-import ObjectHandler, { field_names } from '../../../../../shared/tools/ObjectHandler';
-import { all_promises } from '../../../../../shared/tools/PromiseTools';
-import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
-import WeightHandler from '../../../../../shared/tools/WeightHandler';
-import VueAppController from '../../../../VueAppController';
+import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
+import VueComponentBase from '../../VueComponentBase';
 import DashboardBuilderBoardComponent from '../board/DashboardBuilderBoardComponent';
 import DroppableVoFieldsComponent from '../droppable_vo_fields/DroppableVoFieldsComponent';
-import { ModuleDroppableVoFieldsAction } from '../droppable_vo_fields/DroppableVoFieldsStore';
 import DashboardMenuConfComponent from '../menu_conf/DashboardMenuConfComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import DashboardSharedFiltersComponent from '../shared_filters/DashboardSharedFiltersComponent';
 import TablesGraphComponent from '../tables_graph/TablesGraphComponent';
 import DashboardBuilderWidgetsComponent from '../widgets/DashboardBuilderWidgetsComponent';
-import DashboardBuilderWidgetsController from '../widgets/DashboardBuilderWidgetsController';
-import IExportableWidgetOptions from '../widgets/IExportableWidgetOptions';
-import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
-import TranslatableTextController from '../../InlineTranslatableText/TranslatableTextController';
-import { ModuleTranslatableTextAction } from '../../InlineTranslatableText/TranslatableTextStore';
-import VueComponentBase from '../../VueComponentBase';
 import './CMSConfigComponent.scss';
+import LinkDashboardAndApiTypeIdVO from '../../../../../shared/modules/DashboardBuilder/vos/LinkDashboardAndApiTypeIdVO';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ObjectHandler, { field_names } from '../../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
+import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
+import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
+import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
+import { cloneDeep } from 'lodash';
 
 @Component({
     template: require('./CMSConfigComponent.pug'),
@@ -71,84 +42,100 @@ export default class CMSConfigComponent extends VueComponentBase {
     private set_dashboard_api_type_ids: (dashboard_api_type_ids: string[]) => void;
 
     @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
 
     @Prop({ default: null })
     private dashboard_id: string;
 
-    @ModuleDashboardPageAction
-    private set_page_widgets_components_by_pwid: (page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) => void;
+    private link_ddb_api_type_id: { [api_type_id: string]: LinkDashboardAndApiTypeIdVO } = {};
+    private dbbs: DashboardVO[] = [];
+    private dbb_by_api_type_id: { [api_type_id: string]: DashboardVO } = {};
 
-    @ModuleDashboardPageGetter
-    private get_page_history: DashboardPageVO[];
+    private async onchange_dbb_by_api_type_id() {
+        const todelete: LinkDashboardAndApiTypeIdVO[] = [];
+        const new_link_ddb_api_type_id: { [api_type_id: string]: LinkDashboardAndApiTypeIdVO } = {};
 
-    @ModuleDashboardPageAction
-    private set_page_widgets: (page_widgets: DashboardPageWidgetVO[]) => void;
+        for (const api_type_id in this.dbb_by_api_type_id) {
+            const dbb: DashboardVO = this.dbb_by_api_type_id[api_type_id];
 
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+            if (!this.link_ddb_api_type_id[api_type_id]) {
+                // Si je n'ai pas d'ID, je n'essaye pas d'enregistrer un truc, ça ne sert à rien
+                if (!dbb?.id) {
+                    continue;
+                }
 
-    @ModuleDashboardPageAction
-    private delete_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+                new_link_ddb_api_type_id[api_type_id] = LinkDashboardAndApiTypeIdVO.createNew(dbb.id, api_type_id);
+            } else {
+                new_link_ddb_api_type_id[api_type_id] = cloneDeep(this.link_ddb_api_type_id[api_type_id]);
+            }
 
-    @ModuleTranslatableTextAction
-    private set_flat_locale_translations: (translations: { [code_text: string]: string }) => void;
+            if (!dbb?.id) {
+                todelete.push(this.link_ddb_api_type_id[api_type_id]);
+                continue;
+            }
 
-    @ModuleDashboardPageAction
-    private add_page_history: (page_history: DashboardPageVO) => void;
+            new_link_ddb_api_type_id[api_type_id].dashboard_id = dbb?.id;
+        }
 
-    @ModuleDashboardPageAction
-    private set_page_history: (page_history: DashboardPageVO[]) => void;
+        if (todelete?.length) {
+            await ModuleDAO.getInstance().deleteVOs(todelete);
+        }
 
-    @ModuleDashboardPageAction
-    private set_dashboard_navigation_history: (
-        dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }
-    ) => void;
+        await ModuleDAO.getInstance().insertOrUpdateVOs(ObjectHandler.arrayFromMap(new_link_ddb_api_type_id));
 
-    @ModuleDashboardPageGetter
-    private get_dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number };
-
-    @ModuleDashboardPageAction
-    private pop_page_history: (fk) => void;
-
-    @ModuleDashboardPageAction
-    private set_custom_filters: (custom_filters: string[]) => void;
-
-    @ModuleDashboardPageAction
-    private add_shared_filters_to_map: (shared_filters: SharedFiltersVO[]) => void;
-
-    @ModuleDroppableVoFieldsAction
-    private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
-
-    private dashboards: DashboardVO[] = [];
-    private dashboard: DashboardVO = null;
-    private loading: boolean = true;
-
-    private show_cms_dashboard_pages: boolean = true;
-    private pages: DashboardPageVO[] = [];
-    private page: DashboardPageVO = null; // The current page
-
-    private show_build_page: boolean = true;
-    private show_menu_conf: boolean = false;
-
-    private selected_widget: DashboardPageWidgetVO = null;
-
-    private collapsed_fields_wrapper: boolean = true;
-    private collapsed_fields_wrapper_2: boolean = true;
-
-    private can_use_clipboard: boolean = false;
-
-    private viewports: DashboardViewportVO[] = [];
-    private selected_viewport: DashboardViewportVO = null;
-    private is_dbb_actived_on_viewport: boolean = false;
-
-    private is_cms_config: boolean = true;
+        this.link_ddb_api_type_id = new_link_ddb_api_type_id;
+    }
 
     private async mounted() {
-        const self = this;
+        this.startLoading();
+
+        const promises = [];
+
+        promises.push((async () => {
+            this.link_ddb_api_type_id = ObjectHandler.mapByStringFieldFromArray(
+                await query(LinkDashboardAndApiTypeIdVO.API_TYPE_ID).select_vos(),
+                field_names<LinkDashboardAndApiTypeIdVO>().api_type_id
+            );
+        })());
+
+        promises.push((async () => {
+            this.dbbs = await query(DashboardVO.API_TYPE_ID)
+                .field(field_names<DashboardVO>().id)
+                .filter_is_true(field_names<DashboardVO>().is_cms_compatible)
+                .select_vos();
+        })());
+
+        promises.push((async () => {
+            const dbb_graphs_cms: DashboardGraphVORefVO[] = await query(DashboardGraphVORefVO.API_TYPE_ID)
+                .filter_by_num_in(
+                    field_names<DashboardGraphVORefVO>().dashboard_id,
+                    query(DashboardVO.API_TYPE_ID)
+                        .field(field_names<DashboardVO>().id)
+                        .filter_is_true(field_names<DashboardVO>().is_cms_compatible)
+                        .set_limit(1)
+                )
+                .select_vos();
+
+            const dashboard_api_type_ids: string[] = [];
+
+            for (const i in dbb_graphs_cms) {
+                dashboard_api_type_ids.push(dbb_graphs_cms[i].vo_type);
+            }
+
+            this.set_dashboard_api_type_ids(dashboard_api_type_ids);
+        })());
+
+        await all_promises(promises);
+
+        const dbb_by_ids: { [id: number]: DashboardVO } = VOsTypesManager.vosArray_to_vosByIds(this.dbbs);
+
+        for (const api_type_id in this.link_ddb_api_type_id) {
+            if (this.link_ddb_api_type_id[api_type_id].dashboard_id) {
+                this.dbb_by_api_type_id[api_type_id] = dbb_by_ids[this.link_ddb_api_type_id[api_type_id].dashboard_id];
+            }
+        }
+
+        this.stopLoading();
     }
 
     private async add_api_type_id(api_type_id: string) {
@@ -172,5 +159,21 @@ export default class CMSConfigComponent extends VueComponentBase {
 
     private async update_discarded_field_paths(discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) {
         this.set_discarded_field_paths(discarded_field_paths);
+    }
+
+    private multiselectOptionLabel(filter_item: DashboardVO): string {
+        if ((filter_item == null) || (typeof filter_item == 'undefined')) {
+            return '';
+        }
+
+        return this.t(filter_item.translatable_name_code_text);
+    }
+
+    private get_table_label(api_type_id: string) {
+        if (!ModuleTableController.module_tables_by_vo_type[api_type_id]?.label?.code_text) {
+            return api_type_id;
+        }
+
+        return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
     }
 }

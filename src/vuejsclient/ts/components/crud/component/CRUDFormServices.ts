@@ -27,6 +27,7 @@ import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment'
 import { SnotifyToast } from 'vue-snotify';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
+import ICRUDComponentField from '../../../../../shared/modules/DAO/interface/ICRUDComponentField';
 
 export default class CRUDFormServices {
 
@@ -601,17 +602,22 @@ export default class CRUDFormServices {
      * @param fileVo
      */
     public static async uploadedFile(
-        vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO | ImageVO,
-        api_type_id: string, editableVO: IDistantVOBase, updateData: (vo_upd: IDistantVOBase) => void,
-        component: VueComponentBase) {
+        vo: IDistantVOBase,
+        field: DatatableField<any, any>,
+        fileVo: FileVO | ImageVO,
+        api_type_id: string,
+        editableVO: IDistantVOBase,
+        updateData: (vo_upd: IDistantVOBase) => void,
+        component: VueComponentBase
+    ): Promise<boolean> {
         if ((!fileVo) || (!fileVo.id)) {
-            return;
+            return false;
         }
 
         switch (api_type_id) {
             case FileVO.API_TYPE_ID:
             case ImageVO.API_TYPE_ID:
-                if (vo && vo.id) {
+                if (vo && vo.id && editableVO) {
                     const tmp = editableVO[field.datatable_field_uid];
                     editableVO[field.datatable_field_uid] = fileVo[field.datatable_field_uid];
                     fileVo[field.datatable_field_uid] = tmp;
@@ -620,19 +626,27 @@ export default class CRUDFormServices {
                     updateData(editableVO);
                     updateData(fileVo);
                 }
+
+                component.$emit('close');
                 break;
 
             default:
-                if (vo) {
+                if (editableVO) {
                     editableVO[field.datatable_field_uid] = fileVo.path;
 
-                    await ModuleDAO.getInstance().insertOrUpdateVO(editableVO);
+                    // await ModuleDAO.getInstance().insertOrUpdateVO(editableVO);
                     updateData(editableVO);
                     updateData(fileVo);
+                } else if (vo) {
+                    vo[field.datatable_field_uid] = fileVo.path;
+
+                    updateData(vo);
+                    updateData(fileVo);
                 }
-                break;
+
+                return true;
         }
 
-        component.$emit('close');
+        return false;
     }
 }
