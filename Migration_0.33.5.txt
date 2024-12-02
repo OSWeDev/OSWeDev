@@ -143,3 +143,91 @@ Dans ce cas, soit il faut adapter le comportement pour être compatible avec le 
 Soit on ajoute ce contrôle et on esquive les autres get sur le contexte : Par exemple :
         const can_use_context = !StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE);
         const CLIENT_TAB_ID: string = can_use_context ? StackContext.get('CLIENT_TAB_ID') : null;
+
+
+Dans esbuild.mjs, ajouter en début de fichier :
+// Define the custom plugin
+const pwaManifestPlugin = {
+    name: 'pwa-manifest',
+    setup(build) {
+        build.onEnd(() => {
+            const manifestContent = {
+                name: config.app_title,
+                short_name: config.app_title,
+                display: "standalone",
+                orientation: 'any',
+                start_url: config.base_url + 'login',
+                description: config.app_title,
+                background_color: '#ffffff',
+                theme_color: '#002454',
+                icons: [
+                    {
+                        "src": config.base_url + 'public/client/img/logo_pwa.png',
+                        "sizes": "any",
+                        "type": "image/png",
+                        "purpose": "any",
+                    },
+                ],
+            };
+
+            // Determine the output path
+            const outputPath = path.join(
+                project_path,
+                'dist',
+                'public',
+                'manifest-' + version + '.json',
+            );
+
+            // Write the manifest file
+            fs.writeFileSync(
+                outputPath,
+                JSON.stringify(manifestContent, null, 2),
+                'utf-8',
+            );
+
+            console.log('PWA manifest written to ' + outputPath);
+        });
+    },
+};
+
+
+Remplacer la condition if (config.activate_pwa) { ... } par :
+if (config.activate_pwa) {
+    // plugins.unshift(manifestPlugin({
+    //     filename: 'manifest-' + version + '.json',
+    //     // commenté car effectivement du coup il fait plus rien... filter: /a^/, // This regex matches nothing => reco chatgpt vs [ERROR] There is a conflicting manifest key for 'dist\public\chunk-1-1-6-1731947081.js.js.map'. First conflicting output: 'dist/public/chunk-UU3K3R42-1-1-6-1731947081.js.js.map'. Second conflicting output: 'dist/public/chunk-ZTWV3WRO-1-1-6-1731947081.js.js.map'. [plugin manifest]
+    //     generate: (entries) => {
+    //         return {
+    //             name: config.app_title,
+    //             short_name: config.app_title,
+    //             display: "standalone",
+    //             orientation: 'any',
+    //             start_url: config.base_url + 'login',
+    //             description: config.app_title,
+    //             background_color: '#ffffff',
+    //             theme_color: '#002454',
+    //             icons: [
+    //                 {
+    //                     "src": config.base_url + 'public/client/img/logo_pwa.png',
+    //                     "sizes": "any",
+    //                     "type": "image/png",
+    //                     "purpose": "any",
+    //                 },
+    //             ],
+    //         };
+    //     },
+    // }));
+    if (config.activate_pwa) {
+        plugins.unshift(pwaManifestPlugin);
+    }
+}
+
+Dans const context = await esbuild.context({
+...
+Modifier si besoin :
+    chunkNames: '[name]-[hash]-' + version,
+...
+Ajouter :
+    tsconfig: 'tsconfig.json',
+...
+});
