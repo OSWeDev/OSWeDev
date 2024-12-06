@@ -7,13 +7,13 @@ import EventifyEventConfVO from "./vos/EventifyEventConfVO";
 export default class EventsController {
 
     public static registered_events_conf_by_name: { [event_conf_name: string]: EventifyEventConfVO } = {};
+    public static registered_listeners: { [event_conf_name: string]: { [listener_conf_name: string]: EventifyEventListenerInstanceVO } } = {};
 
     /**
-     * Hook initialisé au début du serveur pour pouvoir mettre un flag Context 
+     * Hook initialisé au début du serveur pour pouvoir mettre un flag Context
      */
     public static hook_stack_incompatible: <T extends Array<unknown>, U>(callback: (...params: T) => U | Promise<U>, this_arg: unknown, reason_context_incompatible: string, ...params: T) => Promise<U> = null;
 
-    private static registered_listeners: { [event_conf_name: string]: { [listener_conf_name: string]: EventifyEventListenerInstanceVO } } = {};
 
     /**
      * Méthode qui gère l'impact de l'évènement sur les listeners

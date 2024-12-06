@@ -32,6 +32,7 @@ export default interface IEnvParam {
     mute__no_sort_by_but_query_limit?: boolean;
 
     throw_on_incompatible_stack_context?: boolean;
+    activate_incompatible_stack_context?: boolean;
 
     debug_playwright_controller?: boolean;
 
@@ -121,7 +122,7 @@ export default interface IEnvParam {
 
     block_teams_messages?: boolean;
     unblock_realtime_api?: boolean;
-    
+
     express_secret: string;
     logo_path?: string;
 

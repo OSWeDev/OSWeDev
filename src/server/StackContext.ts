@@ -76,7 +76,7 @@ export default class StackContext {
 
         // Par défaut, params est un tableau vide si aucun paramètre n'est passé
         const safeParams = params.length ? params : ([] as unknown as T);
-        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        if (ConfigurationService.node_configuration.activate_incompatible_stack_context && !StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
             return StackContext.runPromise(get_scope_overloads_for_context_incompatible(reason_context_incompatible), callback, this_arg, ...safeParams);
         }
 
@@ -127,7 +127,8 @@ export default class StackContext {
 
             // Juste un contrôle de cohérence :
             //  Si on est incompatible avec le contexte, on ne devrait pas pouvoir accéder à une valeur du contexte autre que IS_CLIENT, ou les questions d'incompatibilité
-            if ((!is_safely_asking_for_context_incompatible_fields) &&
+            if (ConfigurationService.node_configuration.activate_incompatible_stack_context &&
+                (!is_safely_asking_for_context_incompatible_fields) &&
                 (key != reflect<IRequestStackContext>().IS_CLIENT) &&
                 (key != reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE) &&
                 (key != reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE_REASON)) {

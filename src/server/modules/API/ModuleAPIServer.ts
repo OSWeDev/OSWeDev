@@ -26,6 +26,7 @@ import APIAccessDenied from './exceptions/APIAccessDenied';
 import APIGunZipError from './exceptions/APIGunZipError';
 import APIParamTranslatorError from './exceptions/APIParamTranslatorError';
 import APIServerHandlerError from './exceptions/APIServerHandlerError';
+import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 
 export default class ModuleAPIServer extends ModuleServerBase {
 
@@ -46,6 +47,57 @@ export default class ModuleAPIServer extends ModuleServerBase {
             ModuleAPIServer.instance = new ModuleAPIServer();
         }
         return ModuleAPIServer.instance;
+    }
+
+    /**
+     * Quand on renvoit le résultat en notif, on doit le faire depuis le thread principal
+     * @param notif_result_uid
+     * @param notif_result_tab_id
+     * @param api_call_id
+     * @param returnvalue
+     * @returns
+     */
+    @RunsOnMainThread
+    private async try_send_notif_result(
+        notif_result_uid: number,
+        notif_result_tab_id: string,
+        api_call_id: number,
+        returnvalue: any,
+    ) {
+
+        // Tant qu'on a pas de socket avec cette tab à date, on attend sagement.
+        // On informe quand même au bout de 10 secondes en console et toutes les minutes par la suite en console
+        //  dans le cas où on aurait toujours pas de socket pour informer d'un pb problème
+        let i = 0;
+        let timeout = 18; // 3 minutes sans accès au socket, on bloque l'API et on logue
+
+        while (
+            (!PushDataServerController.registeredSockets) ||
+            (!PushDataServerController.registeredSockets[notif_result_uid]) ||
+            (!PushDataServerController.registeredSockets[notif_result_uid][notif_result_tab_id])
+        ) {
+
+            if (i == 0) {
+                ConsoleHandler.warn('Waiting for socket to send notif result:' + notif_result_uid + ':' + notif_result_tab_id);
+            } else if (i % 6 == 0) {
+                ConsoleHandler.log('Still waiting for socket to send notif result:' + notif_result_uid + ':' + notif_result_tab_id + ':' + i + ' * 10s - Probable deadlock');
+            }
+
+            await ThreadHandler.sleep(10000, 'Waiting for socket to send notif result:' + notif_result_uid + ':' + notif_result_tab_id);
+            i++;
+
+            if (i >= timeout) {
+                ConsoleHandler.error('Timeout waiting for socket to send notif result:' + notif_result_uid + ':' + notif_result_tab_id + ':' + i + ' * 10s - Probable deadlock - ABORTING');
+                return;
+            }
+        }
+
+        await PushDataServerController.notifyAPIResult(
+            notif_result_uid,
+            notif_result_tab_id,
+            api_call_id,
+            returnvalue,
+        );
     }
 
     /**
@@ -381,47 +433,5 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 res.end(null);
                 return;
         }
-    }
-
-    private async try_send_notif_result(
-        notif_result_uid: number,
-        notif_result_tab_id: string,
-        api_call_id: number,
-        returnvalue: any,
-    ) {
-
-        // Tant qu'on a pas de socket avec cette tab à date, on attend sagement.
-        // On informe quand même au bout de 10 secondes en console et toutes les minutes par la suite en console
-        //  dans le cas où on aurait toujours pas de socket pour informer d'un pb problème
-        let i = 0;
-        let timeout = 18; // 3 minutes sans accès au socket, on bloque l'API et on logue
-
-        while (
-            (!PushDataServerController.registeredSockets) ||
-            (!PushDataServerController.registeredSockets[notif_result_uid]) ||
-            (!PushDataServerController.registeredSockets[notif_result_uid][notif_result_tab_id])
-        ) {
-
-            if (i == 0) {
-                ConsoleHandler.warn('Waiting for socket to send notif result:' + notif_result_uid + ':' + notif_result_tab_id);
-            } else if (i % 6 == 0) {
-                ConsoleHandler.log('Still waiting for socket to send notif result:' + notif_result_uid + ':' + notif_result_tab_id + ':' + i + ' * 10s - Probable deadlock');
-            }
-
-            await ThreadHandler.sleep(10000, 'Waiting for socket to send notif result:' + notif_result_uid + ':' + notif_result_tab_id);
-            i++;
-
-            if (i >= timeout) {
-                ConsoleHandler.error('Timeout waiting for socket to send notif result:' + notif_result_uid + ':' + notif_result_tab_id + ':' + i + ' * 10s - Probable deadlock - ABORTING');
-                return;
-            }
-        }
-
-        await PushDataServerController.notifyAPIResult(
-            notif_result_uid,
-            notif_result_tab_id,
-            api_call_id,
-            returnvalue,
-        );
     }
 }

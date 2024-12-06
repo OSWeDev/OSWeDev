@@ -108,7 +108,6 @@ export default abstract class ServerBase {
         RunsOnMainThreadDataController.exec_self_on_main_process_and_return_value_method = ForkedTasksController.exec_self_on_main_process_and_return_value.bind(ForkedTasksController);
         RunsOnBgThreadDataController.exec_self_on_bgthread_and_return_value_method = ForkedTasksController.exec_self_on_bgthread_and_return_value.bind(ForkedTasksController);
         ModulesManager.initialize();
-        EventsController.hook_stack_incompatible = StackContext.context_incompatible;
 
         ForkedTasksController.init();
         ForkedTasksController.assert_is_main_process();
@@ -126,6 +125,7 @@ export default abstract class ServerBase {
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
         PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.debug_promise_pipeline_worker_stats;
         DBDisconnectionManager.instance = new DBDisconnectionServerHandler();
+        EventsController.hook_stack_incompatible = ConfigurationService.node_configuration.activate_incompatible_stack_context ? StackContext.context_incompatible : null;
 
         ConsoleHandler.init();
         FileLoggerHandler.getInstance().prepare().then(() => {

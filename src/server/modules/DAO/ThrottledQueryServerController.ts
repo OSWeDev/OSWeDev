@@ -90,8 +90,8 @@ export default class ThrottledQueryServerController {
                 // await EventsController.emit_event(EventifyEventInstanceVO.instantiate(await this.get_EVENT_push_throttled_select_query_params_by_fields_labels()));
 
                 // On check que le listener est bien en place, sinon on le met en place
-                if (!EventsController.registered_events_conf_by_name[this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME]) {
-                    EventsController.on_every_event_throttle_cb(this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME, this.shift_select_queries.bind(this), 1);
+                if (!EventsController.registered_listeners[this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME]) {
+                    EventsController.on_every_event_throttle_cb(this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME, this.shift_select_queries.bind(this), 0);
                 }
 
                 EventsController.emit_event(EventifyEventInstanceVO.new_event(this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME));

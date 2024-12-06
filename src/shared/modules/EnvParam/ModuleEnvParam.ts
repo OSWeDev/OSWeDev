@@ -177,6 +177,7 @@ export default class ModuleEnvParam extends Module {
         // DEBUG_DELETEVOS ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_deletevos, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug deletevos', true);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().throw_on_incompatible_stack_context, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Throw on incompatible stack context', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_incompatible_stack_context, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate incompatible stack context', true, true, false);
         // DEBUG_THROTTLED_SELECT ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_throttled_select, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug throttled select', true);
         // DEBUG_SELECT_DATATABLE_ROWS_query_res ?: boolean;

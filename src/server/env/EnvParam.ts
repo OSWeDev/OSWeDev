@@ -37,7 +37,9 @@ export default class EnvParam implements IEnvParam {
 
     public mute__no_sort_by_but_query_limit?: boolean = false;
 
+    public activate_incompatible_stack_context?: boolean = false;
     public throw_on_incompatible_stack_context?: boolean = false;
+
 
     public debug_forks?: boolean = false;
     public debug_vars?: boolean = false;
