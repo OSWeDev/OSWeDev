@@ -4,6 +4,7 @@ import AbstractVO from "../../VO/abstract/AbstractVO";
 import VarConfVO from "../../Var/vos/VarConfVO";
 import VOFieldRefVO from "./VOFieldRefVO";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
+import Filters from '../../../../shared/tools/Filters';
 
 /**
  * On va gérer 2 types de paramétrages :
@@ -142,7 +143,7 @@ export default class VarPieChartWidgetOptionsVO extends AbstractVO {
              * On gère un filtre global identique en param sur les 2 vars (si pas de dimension)
              *  par ce qu'on considère qu'on devrait pas avoir 2 formats différents à ce stade
              */
-            'none',
+            Filters.FILTER_TYPE_none,
             null,
 
             /**

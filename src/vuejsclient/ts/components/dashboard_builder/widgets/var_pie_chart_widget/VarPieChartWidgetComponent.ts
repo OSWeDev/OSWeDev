@@ -32,6 +32,7 @@ import ValidationFiltersWidgetController from '../validation_filters_widget/Vali
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import './VarPieChartWidgetComponent.scss';
 import VarPieChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
+import Filters from '../../../../../../shared/tools/Filters';
 
 @Component({
     template: require('./VarPieChartWidgetComponent.pug')
@@ -92,7 +93,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        if (this.widget_options.filter_type == 'none') {
+        if (this.widget_options.filter_type == Filters.FILTER_TYPE_none) {
             return null;
         }
         return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;

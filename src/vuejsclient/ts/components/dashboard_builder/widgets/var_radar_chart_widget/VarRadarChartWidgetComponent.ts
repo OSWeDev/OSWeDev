@@ -29,7 +29,7 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
-
+import Filters from '../../../../../../shared/tools/Filters';
 import './VarRadarChartWidgetComponent.scss';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
@@ -85,7 +85,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        if (this.widget_options.filter_type == 'none') {
+        if (this.widget_options.filter_type == Filters.FILTER_TYPE_none) {
             return null;
         }
         return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;

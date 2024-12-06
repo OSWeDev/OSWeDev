@@ -76,7 +76,9 @@ export default class ModuleRequestServer extends ModuleServerBase {
             if (add_content_length_to_headers && ((method == ModuleRequest.METHOD_POST) || (method == ModuleRequest.METHOD_PATCH)) && !!dataPosts && (dataPosts.length > 0)) {
                 // .byteLength pour avoir la gestion des caractères spéciaux tel que les accents
                 headers['Content-Length'] = Buffer.byteLength(dataPosts);
-                headers['Content-Type'] = 'application/json';
+                if (!headers['Content-Type']) {
+                    headers['Content-Type'] = 'application/json';
+                }
             }
 
             function callback(res: http.IncomingMessage) {

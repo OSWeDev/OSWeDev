@@ -94,7 +94,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            return StackContext.get('UID');
+            const session = StackContext.get('SESSION');
+
+            if (session && session.uid) {
+                return session.uid;
+            }
+
+            const uid = StackContext.get('UID');
+
+            if (uid) {
+                return uid;
+            }
         } catch (error) {
             ConsoleHandler.error(error);
         }

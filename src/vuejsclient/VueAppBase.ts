@@ -3,6 +3,7 @@ import 'bootstrap';
 import $ from 'jquery';
 import moment from 'moment';
 
+import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import { ColorPanel, ColorPicker } from 'one-colorpicker';
 import 'select2';
 import VCalendar from 'v-calendar';
@@ -25,7 +26,6 @@ import Snotify from 'vue-snotify';
 import { ClientTable } from "vue-tables-2";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
-import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import ModuleAccessPolicy from "../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import ModuleTableController from "../shared/modules/DAO/ModuleTableController";
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
@@ -364,7 +364,14 @@ export default abstract class VueAppBase {
 
         VueAppController.getInstance().initGoogleAnalytics(code_google_analytics);
 
-        this.vueRouter.beforeEach((route, redirect, next) => {
+        this.vueRouter.beforeEach(async (route, redirect, next) => {
+            if (!navigator.onLine) {
+                const same_version_app: boolean = await PushDataVueModule.getInstance().wait_navigator_online();
+
+                if (!same_version_app) {
+                    return;
+                }
+            }
 
             time_in_router = Dates.now_ms();
             if (route.name) {

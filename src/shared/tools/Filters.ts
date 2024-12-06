@@ -9,6 +9,8 @@ import Dates from '../modules/FormatDatesNombres/Dates/Dates';
 
 export default class FilterObj<T, U, K> {
 
+    public static FILTER_TYPE_none = 'none';
+
     // readToHourFilter = (
     //     value: number | string,
     //     rounded: boolean = false,

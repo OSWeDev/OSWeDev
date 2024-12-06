@@ -35,6 +35,7 @@ import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTa
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VarChartScalesOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
 import VarChartOptionsItemComponent from '../var_chart_options/item/VarChartOptionsItemComponent';
+import Filters from '../../../../../../shared/tools/Filters';
 import VarChartOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
 
 @Component({
@@ -232,7 +233,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
         return Object.assign({}, obj, interaction_option);
     }
-    
+
     get charts_scales_options(): { [chart_id: string]: VarChartScalesOptionsVO } {
         if (!this.widget_options) {
             return null;
@@ -1133,7 +1134,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         if (this.temp_current_scale == null) {
             return value;
         }
-        if (current_scale.filter_type == 'none') {
+        if (current_scale.filter_type == Filters.FILTER_TYPE_none) {
             return value;
         }
 
@@ -1167,7 +1168,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         if (current_scale == null) {
             return value;
         }
-        if (current_scale.filter_type == 'none') {
+        if (current_scale.filter_type == Filters.FILTER_TYPE_none) {
             return value;
         }
 
