@@ -18,6 +18,11 @@ export default class TSRange implements IRange {
     public segment_type: number;
     public range_type: number = TSRange.RANGE_TYPE;
 
+    /**
+     * Ignore this property - only used for type checking
+     */
+    private is_ts_range: boolean = true;
+
     private constructor() { }
 
     /**

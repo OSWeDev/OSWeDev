@@ -4,6 +4,7 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import ParamsManager from '../../../shared/modules/Params/ParamsManager';
 import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';

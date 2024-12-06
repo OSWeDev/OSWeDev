@@ -670,7 +670,7 @@ export default class PushDataServerController {
 
         let notification: NotificationVO = null;
         try {
-            const sid = session.sid;
+            sid = session.sid;
             if (!sid) {
                 return;
             }

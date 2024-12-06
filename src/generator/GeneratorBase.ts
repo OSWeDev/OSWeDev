@@ -97,7 +97,6 @@ import Patch20240329Adduniquserconstraints from './patchs/premodules/Patch202403
 import Patch20240329CeliaToOseliaDBWidget from './patchs/premodules/Patch20240329CeliaToOseliaDBWidget';
 // import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
 import Patch20240619DeclareFunctionOseliaGenerateImages from './patchs/postmodules/Patch20240619DeclareFunctionOseliaGenerateImages';
-import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
 import Patch20240912PreinitOseliaPrices from './patchs/postmodules/Patch20240912PreinitOseliaPrices';
 import Patch20240926AddOseliaFunction_TRELLO_trello_create_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_create_card';
 import Patch20240926AddOseliaFunction_TRELLO_trello_delete_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_delete_card';
@@ -127,9 +126,14 @@ import Patch20240515RunStatusToEnum from './patchs/premodules/Patch20240515RunSt
 import Patch20240521ChangeFormatDbAssistants from './patchs/premodules/Patch20240521ChangeFormatDbAssistants';
 import Patch20240530AddUniqNameMailCategory from './patchs/premodules/Patch20240530AddUniqNameMailCategory';
 import Patch20240827DeleteVersionedAssistantsWithoutInstructions from './patchs/premodules/Patch20240827DeleteVersionedAssistantsWithoutInstructions';
+import Patch20241126TruncateLogs from './patchs/premodules/Patch20241126TruncateLogs';
 import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
 import VersionUpdater from './version_updater/VersionUpdater';
+import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
+import Patch20241010CreateLogType from './patchs/postmodules/Patch20241010CreateLogType';
+import Patch20241030SuiviCompetencesGroupeShortName from './patchs/postmodules/Patch20241030SuiviCompetencesGroupeShortName';
 import Patch20241119DeleteSessions from './patchs/premodules/Patch20241119DeleteSessions';
+// import Patch20241129PreCreateEventsConfs from './patchs/premodules/Patch20241129PreCreateEventsConfs';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -223,6 +227,8 @@ export default abstract class GeneratorBase {
             Patch20240827DeleteVersionedAssistantsWithoutInstructions.getInstance(),
             Patch20241107SwitchParamsUrlsPublics.getInstance(),
             Patch20241119DeleteSessions.getInstance(),
+            Patch20241126TruncateLogs.getInstance(),
+            // Patch20241129PreCreateEventsConfs.getInstance(),
         ];
 
         this.post_modules_workers = [
@@ -257,6 +263,8 @@ export default abstract class GeneratorBase {
             Patch20240905InitAllThreadsOseliaToHavingContents.getInstance(),
             Patch20240905AddOseliaAssistantThreadTitleWriter.getInstance(),
             Patch20240906DeleteOldAssistantObjDBLinks.getInstance(),
+            Patch20241010CreateLogType.getInstance(),
+            Patch20241030SuiviCompetencesGroupeShortName.getInstance(),
             Patch20240912PreinitOseliaPrices.getInstance(),
 
             Patch20240926AddOseliaFunction_TRELLO_trello_create_card.getInstance(),
@@ -340,6 +348,10 @@ export default abstract class GeneratorBase {
         console.log("pre modules initialization workers done.");
 
         await this.modulesService.register_all_modules(true);
+
+        // console.log("ParamsManager.reloadPreloadParams: ...");
+        // await ParamsManager.reloadPreloadParams();
+        // console.log("ParamsManager.reloadPreloadParams:OK");
 
         console.log("VersionUpdater: ...");
         await VersionUpdater.getInstance().update_version();

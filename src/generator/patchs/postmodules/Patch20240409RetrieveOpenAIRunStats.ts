@@ -1,6 +1,7 @@
 import { IDatabase } from 'pg-promise';
 import ModuleGPTServer from '../../../server/modules/GPT/ModuleGPTServer';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
 
 export default class Patch20240409RetrieveOpenAIRunStats implements IGeneratorWorker {
 
@@ -20,6 +21,8 @@ export default class Patch20240409RetrieveOpenAIRunStats implements IGeneratorWo
     }
 
     public async work(db: IDatabase<unknown>) {
-        await ModuleGPTServer.getInstance().sync_openai_datas();
+        if (ModuleGPT.getInstance().actif) {
+            await ModuleGPTServer.getInstance().sync_openai_datas();
+        }
     }
 }

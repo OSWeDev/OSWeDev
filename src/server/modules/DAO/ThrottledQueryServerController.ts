@@ -23,21 +23,20 @@ import ThrottledSelectQueryParam from "./vos/ThrottledSelectQueryParam";
 
 export default class ThrottledQueryServerController {
 
-
     private static current_select_query_promises: { [parameterized_full_query: string]: Promise<any> } = {};
     private static current_promise_resolvers: { [query_index: number]: (value: unknown) => void } = {};
 
     /**
      * L'évènement indiquant qu'il y a des éléments dans throttled_select_query_params_by_fields_labels
      */
-    private static EVENT_push_throttled_select_query_params_by_fields_labels_CONF: EventifyEventConfVO = null;
+    // private static EVENT_push_throttled_select_query_params_by_fields_labels_CONF: EventifyEventConfVO = null;
     private static EVENT_push_throttled_select_query_params_by_fields_labels_NAME: string = 'ThrottledQueryServerController.push_throttled_select_query_params_by_fields_labels';
 
     /**
      * La configuration du callback pour lévènement de push des queries
      */
-    private static LISTENER_push_throttled_select_query_params_by_fields_labels_CONF: EventifyEventListenerConfVO = null;
-    private static LISTENER_push_throttled_select_query_params_by_fields_labels_INSTANCE: EventifyEventListenerInstanceVO = null;
+    // private static LISTENER_push_throttled_select_query_params_by_fields_labels_CONF: EventifyEventListenerConfVO = null;
+    // private static LISTENER_push_throttled_select_query_params_by_fields_labels_INSTANCE: EventifyEventListenerInstanceVO = null;
 
     /**
      * Les params du throttled_select_query
@@ -73,7 +72,7 @@ export default class ThrottledQueryServerController {
 
         const self = this;
 
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             const param = new ThrottledSelectQueryParam([resolve], context_query, parameterizedQueryWrapperFields, query_, values);
 
@@ -88,7 +87,14 @@ export default class ThrottledQueryServerController {
                 self.throttled_select_query_params_by_fields_labels[param.fields_labels].push(param);
 
                 // On push, donc on lance l'évènement indiquant qu'il y a des éléments dans throttled_select_query_params_by_fields_labels
-                await EventsController.emit_event(EventifyEventInstanceVO.instantiate(await this.get_EVENT_push_throttled_select_query_params_by_fields_labels()));
+                // await EventsController.emit_event(EventifyEventInstanceVO.instantiate(await this.get_EVENT_push_throttled_select_query_params_by_fields_labels()));
+
+                // On check que le listener est bien en place, sinon on le met en place
+                if (!EventsController.registered_events_conf_by_name[this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME]) {
+                    EventsController.on_every_event_throttle_cb(this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME, this.shift_select_queries.bind(this), 1);
+                }
+
+                EventsController.emit_event(EventifyEventInstanceVO.new_event(this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME));
             } catch (error) {
                 reject(error);
             }
@@ -436,53 +442,55 @@ export default class ThrottledQueryServerController {
         // await all_promises(all_params_promises);
     }
 
-    private static async get_EVENT_push_throttled_select_query_params_by_fields_labels(): Promise<EventifyEventConfVO> {
-        if (this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF) {
-            return this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF;
-        }
+    // private static async get_EVENT_push_throttled_select_query_params_by_fields_labels(): Promise<EventifyEventConfVO> {
+    //     if (this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF) {
+    //         return this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF;
+    //     }
 
-        await all_promises([
-            (async () => {
-                this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF = await query(EventifyEventConfVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<EventifyEventConfVO>().name, this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME)
-                    .exec_as_server()
-                    .unthrottle_query_select()
-                    .select_vo<EventifyEventConfVO>();
-            })(),
-            (async () => {
-                this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF = await query(EventifyEventListenerConfVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<EventifyEventListenerConfVO>().event_conf_name, this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME)
-                    .exec_as_server()
-                    .unthrottle_query_select()
-                    .select_vo<EventifyEventListenerConfVO>();
-            })()
-        ]);
+    //     await all_promises([
+    //         (async () => {
+    //             this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF = await query(EventifyEventConfVO.API_TYPE_ID)
+    //                 .filter_by_text_eq(field_names<EventifyEventConfVO>().name, this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME)
+    //                 .exec_as_server()
+    //                 .unthrottle_query_select()
+    //                 .select_vo<EventifyEventConfVO>();
+    //         })(),
+    //         (async () => {
+    //             this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF = await query(EventifyEventListenerConfVO.API_TYPE_ID)
+    //                 .filter_by_text_eq(field_names<EventifyEventListenerConfVO>().event_conf_name, this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME)
+    //                 .exec_as_server()
+    //                 .unthrottle_query_select()
+    //                 .select_vo<EventifyEventListenerConfVO>();
+    //         })()
+    //     ]);
 
-        if (!this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF) {
-            this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF = new EventifyEventConfVO();
-            this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF.name = this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME;
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF);
-        }
+    //     if (!this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF) {
+    //         this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF = new EventifyEventConfVO();
+    //         this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF.name = this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME;
+    //         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF);
+    //     }
 
-        if (!this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF) {
-            this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF = new EventifyEventListenerConfVO();
-            this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.event_conf_name = this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME;
-            this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.cb_module_name = ModuleDAOServer.instance.name;
-            this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.cb_function_name = reflect<ModuleDAOServer>().shift_select_queries;
-            this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.cooldown_ms = 1;
-            this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.throttled = true;
-            this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.event_conf_id = this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF.id;
-            this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.event_conf_name = this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME;
-            this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.max_calls = 0;
-            this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.name = this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME;
-            this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.is_bgthread = false;
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF);
-        }
+    //     if (!this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF) {
+    //         this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF = new EventifyEventListenerConfVO();
+    //         this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.event_conf_name = this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME;
+    //         this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.cb_module_name = ModuleDAOServer.instance.name;
+    //         this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.cb_function_name = reflect<ModuleDAOServer>().shift_select_queries;
+    //         this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.cooldown_ms = 1;
+    //         this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.throttled = true;
+    //         this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.event_conf_id = this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF.id;
+    //         this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.event_conf_name = this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME;
+    //         this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.max_calls = 0;
+    //         this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.name = this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME;
+    //         this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF.is_bgthread = false;
+    //         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF);
+    //     }
 
-        this.LISTENER_push_throttled_select_query_params_by_fields_labels_INSTANCE = EventifyEventListenerInstanceVO.instantiate(this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF);
-        EventsController.register_event_conf(this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF);
-        EventsController.register_event_listener(this.LISTENER_push_throttled_select_query_params_by_fields_labels_INSTANCE);
+    //     EventsController.on_every_event_throttle_cb(this.EVENT_push_throttled_select_query_params_by_fields_labels_NAME, this.shift_select_queries.bind(this), 1);
 
-        return this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF;
-    }
+    //     this.LISTENER_push_throttled_select_query_params_by_fields_labels_INSTANCE = EventifyEventListenerInstanceVO.instantiate(this.LISTENER_push_throttled_select_query_params_by_fields_labels_CONF);
+    //     EventsController.register_event_conf(this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF);
+    //     EventsController.register_event_listener(this.LISTENER_push_throttled_select_query_params_by_fields_labels_INSTANCE);
+
+    //     return this.EVENT_push_throttled_select_query_params_by_fields_labels_CONF;
+    // }
 }

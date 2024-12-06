@@ -245,7 +245,7 @@ export default class PromisePipeline {
         try {
             await cb();
         } catch (error) {
-            ConsoleHandler.error('PromisePipeline.do_cb():ERROR:' + error + ':' + cb_uid + ':' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
+            ConsoleHandler.error('PromisePipeline.do_cb():ERROR:' + (error.stack ? error.stack : error) + ':' + cb_uid + ':' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
         if (EnvHandler.debug_promise_pipeline) {

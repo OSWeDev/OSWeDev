@@ -2,6 +2,7 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ParamsManager from '../../../shared/modules/Params/ParamsManager';
 import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
@@ -63,10 +64,22 @@ export default class ParamsServerController {
         return ModuleDAOServer.instance.insertOrUpdateVO_as_server(param, exec_as_server);
     }
 
-    public static delete_params_cache(vo: ParamVO) {
+    public static async delete_params_cache(vo: ParamVO) {
         delete ParamsServerController.throttled_param_cache_value[vo.name];
         delete ParamsServerController.throttled_param_cache_lastupdate_ms[vo.name];
         delete ParamsServerController.semaphore_param[vo.name];
+
+        // Si on a des preloads params, on les met à jour ou on le supprime
+        if (!!ParamsManager.preload_params[vo.name]) {
+            // On est sur une suppression, on supprime complètement le param
+            if (!vo.id) {
+                delete ParamsManager.preload_params[vo.name];
+                return;
+            }
+
+            // Sinon on met à jour le param
+            await ParamsManager.reloadPreloadParam(vo.name);
+        }
     }
 
     /**

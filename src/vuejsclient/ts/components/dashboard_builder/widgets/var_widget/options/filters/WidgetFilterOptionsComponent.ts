@@ -33,7 +33,7 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
 
     private filter_type: string = null;
     private filter_uids: string[] = [
-        'none',
+        Filters.FILTER_TYPE_none,
         Filters.FILTER_TYPE_amount,
         Filters.FILTER_TYPE_percent,
         Filters.FILTER_TYPE_toFixed,
@@ -65,6 +65,15 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
         return res;
     }
 
+    @Watch('filter_type')
+    private onchange_filter_type() {
+        const ftype = this.filter_by_names[this.filter_type];
+        if (ftype != this.actual_filter_type) {
+            this.$emit('update_additional_options', null);
+            this.$emit('update_filter_type', ftype);
+        }
+    }
+
     @Watch('actual_filter_type', { immediate: true })
     private onchange_actual_filter_type() {
         if (this.filter_type) {
@@ -80,13 +89,5 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
 
     private update_additional_options(additional_options) {
         this.$emit('update_additional_options', additional_options);
-    }
-
-    @Watch('filter_type')
-    private onchange_filter_type() {
-        const ftype = this.filter_by_names[this.filter_type];
-        if (ftype != this.actual_filter_type) {
-            this.$emit('update_filter_type', ftype);
-        }
     }
 }

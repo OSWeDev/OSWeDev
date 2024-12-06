@@ -59,6 +59,7 @@
         "no-useless-escape": "warn",
         "prefer-const": "warn",
         "no-extra-boolean-cast": "off",
+        "no-shadow": "error",
         "no-case-declarations": "off"
     }
 }

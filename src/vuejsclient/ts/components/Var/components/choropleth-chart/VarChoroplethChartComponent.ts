@@ -16,6 +16,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
+import { _adapters, CategoryScale, LinearScale, LogarithmicScale, RadialLinearScale, TimeScale } from 'chart.js';
 @Component({
     template: require('./VarChoroplethChartComponent.pug'),
     components: {
@@ -69,6 +70,23 @@ export default class VarChoroplethChartComponent extends VueComponentBase {
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
+
+
+    get all_data_loaded(): boolean {
+
+        if ((!this.var_params) || (!this.var_params.length) || (!this.var_dataset_descriptor)) {
+            return false;
+        }
+
+        for (const i in this.var_params) {
+            const var_param = this.var_params[i];
+
+            if ((!this.var_datas) || (!this.var_datas[var_param.id]) || (typeof this.var_datas[var_param.id].value === 'undefined')) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     get chart_data() {
         if (!this.all_data_loaded) {
@@ -133,21 +151,6 @@ export default class VarChoroplethChartComponent extends VueComponentBase {
         return plugins;
     }
 
-    get all_data_loaded(): boolean {
-
-        if ((!this.var_params) || (!this.var_params.length) || (!this.var_dataset_descriptor)) {
-            return false;
-        }
-
-        for (const i in this.var_params) {
-            const var_param = this.var_params[i];
-
-            if ((!this.var_datas) || (!this.var_datas[var_param.id]) || (typeof this.var_datas[var_param.id].value === 'undefined')) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     get datasets(): any[] {
 
@@ -241,11 +244,6 @@ export default class VarChoroplethChartComponent extends VueComponentBase {
         return res;
     }
 
-    @Watch('data')
-    private async onchange_datasets() {
-        await this.debounced_render_or_update_chart_js();
-    }
-
     @Watch('var_params', { immediate: true })
     private onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
 
@@ -270,7 +268,7 @@ export default class VarChoroplethChartComponent extends VueComponentBase {
     }
 
     @Watch('var_dataset_descriptor')
-    private async onchange_descriptors(new_var_dataset_descriptor: VarChoroplethDataSetDescriptor, old_var_dataset_descriptor: VarChoroplethDataSetDescriptor) {
+    private onchange_descriptors(new_var_dataset_descriptor: VarChoroplethDataSetDescriptor, old_var_dataset_descriptor: VarChoroplethDataSetDescriptor) {
 
         // On doit vérifier qu'ils sont bien différents
         new_var_dataset_descriptor = new_var_dataset_descriptor ? new_var_dataset_descriptor : null;
@@ -296,6 +294,11 @@ export default class VarChoroplethChartComponent extends VueComponentBase {
         // this.onchange_all_data_loaded();
     }
 
+    @Watch('data')
+    private async onchange_datasets() {
+        await this.debounced_render_or_update_chart_js();
+    }
+
     @Watch('chart_plugins', { immediate: true })
     @Watch('chart_data')
     @Watch('chart_options')
@@ -311,7 +314,7 @@ export default class VarChoroplethChartComponent extends VueComponentBase {
 
     public async created() {
         let chart = Chart;
-        Chart.register(ChoroplethController, GeoFeature, ColorScale, ProjectionScale, ChartDataLabels);
+        Chart.register(ChoroplethController, GeoFeature, ColorScale, ProjectionScale, ChartDataLabels, CategoryScale, LinearScale, LogarithmicScale, TimeScale, RadialLinearScale);
         window['Chart'] = chart;
         Chart['helpers'] = helpers;
         await import("chartjs-plugin-datalabels");

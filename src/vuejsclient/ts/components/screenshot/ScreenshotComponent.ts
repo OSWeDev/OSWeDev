@@ -99,7 +99,7 @@ export default class ScreenshotComponent extends VueComponentBase {
         this.is_taking = true;
         try {
             const canvasList = await this.take_video_capture();
-            let voList = [];
+            const voList = [];
             for (let i = 0; i < canvasList.length; i++) {
                 this.is_taking = true;
                 const canvas = canvasList[i];
@@ -168,12 +168,6 @@ export default class ScreenshotComponent extends VueComponentBase {
 
                 try {
 
-                    const height = canvas.height;
-                    const width = canvas.width;
-
-                    const coef_height = ((height > (210 - 20)) ? (210 - 20) / height : 1);
-                    const coef_width = ((width > (297 - 20)) ? (297 - 20) / width : 1);
-                    const coef = (coef_height < coef_width) ? coef_height : coef_width;
                     canvas.toBlob(async (imgData: Blob) => {
 
                         if (!imgData) {
@@ -220,15 +214,15 @@ export default class ScreenshotComponent extends VueComponentBase {
             let captureStream: MediaStream = (await navigator.mediaDevices as any).getDisplayMedia({ preferCurrentTab: true });
             const track = captureStream.getVideoTracks()[0];
             // let imageCapture = new ImageCapture(track);
-            const imageCapture = new (window as any).ImageCapture(track);
+            const image_capture = new (window as any).ImageCapture(track);
             // Capture de l'image du flux vidéo
-            let imageBitmap = await imageCapture.grabFrame();
+            const imageBitmap = await image_capture.grabFrame();
 
             // Arrêter le flux pour libérer les ressources
             track.stop();
 
             // Création du canvas et dessin de l'image capturée
-            let canvas = document.createElement("canvas");
+            const canvas = document.createElement("canvas");
             canvas.width = imageBitmap.width;
             canvas.height = imageBitmap.height;
             canvas.getContext("2d").drawImage(imageBitmap, 0, 0);
@@ -256,12 +250,12 @@ export default class ScreenshotComponent extends VueComponentBase {
                 await this.countdown(4);
                 document.getElementById("countdown").style.display = "none";
                 // const imageCapture = new ImageCapture(track);
-                const imageCapture = new (window as any).ImageCapture(track);
+                const image_capture = new (window as any).ImageCapture(track);
                 // Capture de l'image du flux vidéo
-                let imageBitmap = await imageCapture.grabFrame();
+                const imageBitmap = await image_capture.grabFrame();
 
                 // Création du canvas et dessin de l'image capturée
-                let canvas = document.createElement("canvas");
+                const canvas = document.createElement("canvas");
                 canvas.width = imageBitmap.width;
                 canvas.height = imageBitmap.height;
                 canvas.getContext("2d").drawImage(imageBitmap, 0, 0);

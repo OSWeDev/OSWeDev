@@ -44,6 +44,9 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             'fr-fr': 'Jour'
         }, 'timesegment.day.type_name'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Milliseconde'
+        }, 'timesegment.ms.type_name'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mois'
         }, 'timesegment.month.type_name'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({

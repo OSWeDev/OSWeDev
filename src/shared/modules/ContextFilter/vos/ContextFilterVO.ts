@@ -1104,7 +1104,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
     }
 
     public log(is_error: boolean = false) {
-        let log_func = ConsoleHandler.log;
+        let log_func = ConsoleHandler.debug;
 
         if (is_error) {
             log_func = ConsoleHandler.error;

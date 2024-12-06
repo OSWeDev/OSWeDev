@@ -39,7 +39,7 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         "ColorBrewer",
         "Matplotlib",
         "Coolors",
-    ]
+    ];
     private color_palettes: string[][] = [
         [
             '#4E79A7', // Bleu
@@ -84,31 +84,30 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         ]
     ];
     private tmp_selected_color_palette: string = null;
-    @Watch('options', { immediate: true, deep: true })
-    private on_input_options_changed() {
-        if (isEqual(this.options_props, this.options)) {
-            return;
+
+    get var_names(): string[] {
+
+        let res: string[] = [];
+
+        for (let i in VarsController.var_conf_by_name) {
+            let var_conf = VarsController.var_conf_by_name[i];
+            res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
         }
 
-        this.options_props = this.options;
-        this.use_palette = this.options_props.some(option_prop => option_prop.color_palette && option_prop.color_palette.length > 0);
-        this.tmp_selected_color_palette = this.use_palette ? this.color_palettes_labels[this.searchIndexOfArray(this.options_props[0].color_palette, this.color_palettes)] : null;
+        res.sort((a, b) => {
+            let a_ = a.split(' | ')[1];
+            let b_ = b.split(' | ')[1];
 
-    }
-
-    private searchIndexOfArray(target: any, source: any): number {
-        for (let i = 0; i <= source.length; i++) {
-            if (JSON.stringify(target) === JSON.stringify(source[i])) {
-                return i;
+            if (a_ < b_) {
+                return -1;
             }
-        }
-        return -1;
-    }
+            if (a_ > b_) {
+                return 1;
+            }
 
-    private switch_use_palette() {
-        this.use_palette = !this.use_palette;
-        this.tmp_selected_color_palette = null;
-        this.emit_change();
+            return 0;
+        });
+        return res;
     }
 
     @Watch('tmp_selected_color_palette')
@@ -133,6 +132,33 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
             }
         });
 
+        this.emit_change();
+    }
+
+    @Watch('options', { immediate: true, deep: true })
+    private on_input_options_changed() {
+        if (isEqual(this.options_props, this.options)) {
+            return;
+        }
+
+        this.options_props = this.options;
+        this.use_palette = this.options_props.some(option_prop => option_prop.color_palette && option_prop.color_palette.length > 0);
+        this.tmp_selected_color_palette = this.use_palette ? this.color_palettes_labels[this.searchIndexOfArray(this.options_props[0].color_palette, this.color_palettes)] : null;
+
+    }
+
+    private searchIndexOfArray(target: any, source: any): number {
+        for (let i = 0; i <= source.length; i++) {
+            if (JSON.stringify(target) === JSON.stringify(source[i])) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private switch_use_palette() {
+        this.use_palette = !this.use_palette;
+        this.tmp_selected_color_palette = null;
         this.emit_change();
     }
 
@@ -188,30 +214,5 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
 
     private emit_change() {
         this.$emit('on_change', this.options_props);
-    }
-
-    get var_names(): string[] {
-
-        let res: string[] = [];
-
-        for (let i in VarsController.var_conf_by_name) {
-            let var_conf = VarsController.var_conf_by_name[i];
-            res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
-        }
-
-        res.sort((a, b) => {
-            let a_ = a.split(' | ')[1];
-            let b_ = b.split(' | ')[1];
-
-            if (a_ < b_) {
-                return -1;
-            }
-            if (a_ > b_) {
-                return 1;
-            }
-
-            return 0;
-        });
-        return res;
     }
 }

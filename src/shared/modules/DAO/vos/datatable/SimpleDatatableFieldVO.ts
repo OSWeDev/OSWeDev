@@ -510,6 +510,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                             return value ? Dates.startOf(value, TimeSegment.TYPE_YEAR) : null;
                         case TimeSegment.TYPE_QUARTER:
                             return value ? Dates.startOf(value, TimeSegment.TYPE_QUARTER) : null;
+                        case TimeSegment.TYPE_MS:
+                            return value ? Dates.startOf(value, TimeSegment.TYPE_MS) : null;
                         case TimeSegment.TYPE_DAY:
                             return value ? this.getMomentDateFieldInclusif(Dates.startOf(value, TimeSegment.TYPE_DAY), false) : null;
                         default:
@@ -534,8 +536,12 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                                 break;
                             case TimeSegment.TYPE_YEAR:
                                 res_tstz_array.push(v ? Dates.startOf(v, TimeSegment.TYPE_YEAR) : null);
+                                break;
                             case TimeSegment.TYPE_QUARTER:
                                 res_tstz_array.push(v ? Dates.startOf(v, TimeSegment.TYPE_QUARTER) : null);
+                                break;
+                            case TimeSegment.TYPE_MS:
+                                res_tstz_array.push(v ? Dates.startOf(v, TimeSegment.TYPE_MS) : null);
                                 break;
                             case TimeSegment.TYPE_DAY:
                                 res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_DAY), false) : null);
