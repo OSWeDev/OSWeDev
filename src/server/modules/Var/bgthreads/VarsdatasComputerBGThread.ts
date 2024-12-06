@@ -26,6 +26,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     public static PARAM_NAME_bg_estimated_ms_limit: string = 'VarsdatasComputerBGThread.bg_estimated_ms_limit';
     public static PARAM_NAME_bg_min_nb_vars: string = 'VarsdatasComputerBGThread.bg_min_nb_vars';
     public static PARAM_NAME_client_request_min_nb_vars: string = 'VarsdatasComputerBGThread.client_request_min_nb_vars';
+    public static PARAM_NAME_WARN_MAX_EXECUTION_TIME_SECOND: string = 'VarsdatasComputerBGThread.WARN_MAX_EXECUTION_TIME_SECOND';
+    public static PARAM_NAME_ALERT_MAX_EXECUTION_TIME_SECOND: string = 'VarsdatasComputerBGThread.ALERT_MAX_EXECUTION_TIME_SECOND';
 
     /**
      * le JSON ne devrait être utilisé que au lancement de l'appli, mais systématiquement par contre au lancement, le reste du temps c'est l'appli qui fait référence pour les voscud
@@ -97,6 +99,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             this.internal_semaphore = true;
 
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
+            CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
             CurrentVarDAGHolder.current_vardag = new VarDAG();
 
             // On initialise ce qui a besoin de l'être

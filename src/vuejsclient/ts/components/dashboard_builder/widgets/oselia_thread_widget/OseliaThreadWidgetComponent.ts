@@ -41,11 +41,13 @@ import DatatableComponentField from '../../../datatable/component/fields/Datatab
 import MailIDEventsComponent from '../../../mail_id_events/MailIDEventsComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
-import OseliaLeftPanelComponent from './OseliaLeftPanel/OseliaLeftPanelComponent';
 import OseliaRunArboComponent from './OseliaRunArbo/OseliaRunArboComponent';
 import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
 import './OseliaThreadWidgetComponent.scss';
+import OseliaLeftPanelComponent from './OseliaLeftPanel/OseliaLeftPanelComponent';
+import ConfigurationService from '../../../../../../server/env/ConfigurationService';
+import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
     components: {
@@ -98,6 +100,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
 
+    @ModuleDashboardPageAction
+    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
+
     @ModuleOseliaGetter
     private get_too_many_assistants: boolean;
     @ModuleOseliaGetter
@@ -138,6 +143,11 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private wait_for_data: boolean = false;
     private data_received: any = null;
     private dashboard_export_id: number = null;
+    private is_creating_thread: boolean = false;
+    private send_message_create: boolean = false;
+    private is_recording_voice: boolean = false;
+    private voice_record: MediaRecorder = null;
+    private use_realtime_voice: boolean = false;
     private has_access_to_debug: boolean = false;
 
     private expand_thread_cached_datas: boolean = false;
@@ -189,7 +199,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     @Watch('data_received')
-    private async onchange_data_receieved() {
+    private async onchange_data_received() {
         const files = [];
         if (this.data_received.length > 0) {
             for (let row of this.data_received) {
@@ -230,6 +240,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async mounted() {
+        this.use_realtime_voice = ConfigurationService.node_configuration.unblock_realtime_api;
+
         this.frame = parent.document.getElementById('OseliaContainer');
 
         this.has_access_to_debug = await ModuleAccessPolicy.getInstance().testAccess(ModuleOselia.POLICY_BO_ACCESS);
@@ -282,6 +294,15 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
 
         await this.set_thread();
+
+        if (!this.thread) {
+            this.is_creating_thread = true;
+        } else {
+            if (this.is_creating_thread) {
+                this.is_creating_thread = false;
+                this.send_message_create = true;
+            }
+        }
 
         this.is_loading_thread = false;
         this.has_access_to_thread = !!this.thread;
@@ -375,6 +396,47 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
     }
 
+    private async start_voice_record() {
+        const audioChunks = [];
+
+        if (!this.is_recording_voice) {
+            // Commencer l'enregistrement vocal
+            try {
+                // await ModuleGPT.getInstance().connect_to_realtime_voice(null,null,this.data_user.id);
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                this.voice_record = new MediaRecorder(stream);
+
+                if (!this.voice_record) {
+                    return;
+                }
+
+                this.voice_record.start();
+
+                // Collecte des données à chaque fois que des données sont disponibles
+                this.voice_record.ondataavailable = (e) => {
+                    audioChunks.push(e.data);
+                };
+
+                // Lorsque l'enregistrement est arrêté, créez le fichier audio et jouez-le
+                this.voice_record.onstop = () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/mpeg-3' });
+                    // Téléverser le fichier une fois qu'il est créé
+                    const file = new File([blob], "audio.mp3", { type: "audio/mpeg-3" });
+                    this.do_upload_file(null, file);
+                };
+            } catch (err) {
+                console.error("Error accessing microphone", err);
+            }
+        } else {
+            // Arrêter l'enregistrement vocal
+            if (this.voice_record && this.voice_record.state === "recording") {
+                this.voice_record.stop();  // Cela déclenche l'événement 'onstop' ci-dessus
+            }
+        }
+
+        this.is_recording_voice = !this.is_recording_voice;
+    }
+
     private async do_upload_file(fileHandle?: FileSystemFileHandle, files?: File) {
         let file: File;
         if (files) {
@@ -386,6 +448,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         const formData = new FormData();
         const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
         formData.append('file', file, file_name);
+
         await AjaxCacheClientController.getInstance().post(
             null,
             '/ModuleFileServer/upload',
@@ -459,17 +522,35 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
+        const current_user = VueAppController.getInstance().data_user;
+        const current_user_role = await query(UserRoleVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<UserRoleVO>().user_id, current_user.id)
+            .select_vo<UserRoleVO>();
+        if (this.thread.user_id != 2) {
+            if (current_user.id != this.thread.user_id && current_user_role.role_id == 3) { // == 3 pas sûr mais pas trouvé de static avec le role admin, query du coup ?
+                // do something here
+                if (await ModuleOselia.getInstance().send_join_request(current_user.id, this.thread.id) == 'denied') {
+                    return;
+                }
+            }
+        }
+
+
         await this.unregister_all_vo_event_callbacks();
         this.current_thread_id = this.thread.id;
 
         await this.set_assistant();
         await this.register_single_vo_updates(GPTAssistantAPIThreadVO.API_TYPE_ID, this.thread.id, reflect<this>().thread);
 
+
         // On check qu'on a un assistant et un seul
         if (this.assistant) {
             this.try_set_can_run_assistant(true);
         }
-
+        if (this.send_message_create && this.new_message_text && this.new_message_text.length > 0) {
+            await this.send_message();
+            this.send_message_create = false;
+        }
         // On récupère les contenus du message
         await this.register_vo_updates_on_list(
             GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
@@ -508,6 +589,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.$nextTick(() => {
             this.scroll_to_bottom();
         });
+
     }
 
     private try_parse_json(json: string): any {
@@ -561,6 +643,14 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         if (!nb_threads) {
             if (this.thread) {
                 this.thread = null;
+            }
+            if (context_query_select.filters.length > 0) {
+                for (let filter of context_query_select.filters) {
+                    if ((filter.field_name == field_names<GPTAssistantAPIThreadVO>().id) && (filter.param_numeric)) {
+                        await ModuleOselia.getInstance().send_join_request(VueAppController.getInstance().data_user.id, filter.param_numeric);
+                        return;
+                    }
+                }
             }
             return;
         }
@@ -622,7 +712,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         if (!assistant) {
             return;
         }
-
         this.assistant = assistant;
     }
 
@@ -709,6 +798,31 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         // }));
     }
 
+
+    private async send_create_thread_message() {
+        try {
+            if (!this.new_message_text) {
+                return;
+            }
+
+            const new_thread: number = await ModuleOselia.getInstance().create_thread();
+
+            if (new_thread) {
+                this.set_active_field_filter({
+                    field_id: field_names<GPTAssistantAPIThreadVO>().id,
+                    vo_type: GPTAssistantAPIThreadVO.API_TYPE_ID,
+                    active_field_filter: filter(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().id).by_id(new_thread)
+                });
+                return;
+            } else {
+                return;
+            }
+        } catch (error) {
+            ConsoleHandler.error('error while creating thread:' + error);
+        }
+
+    }
+
     private expand_window() {
         this.is_expanded = !this.is_expanded;
         this.frame.style.width = this.is_expanded ? '640px' : '483px'; // c'est pas des %, c'est des px qu'on doit utiliser (cf scss qui définit la media query)
@@ -739,7 +853,11 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 // Empêche le comportement par défaut
                 event.preventDefault();
                 // Exécute la fonction send
-                this.send_message();
+                if (this.is_creating_thread) {
+                    this.send_create_thread_message();
+                } else {
+                    this.send_message();
+                }
             }
         }
     }

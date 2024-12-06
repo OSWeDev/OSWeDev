@@ -63,6 +63,9 @@ export default abstract class VarsProcessBase {
             this.waiting_valid_nodes = null;
 
             if (valid_nodes && Object.keys(valid_nodes).length) {
+                // Si on a des nodes dans l'arbre, on va regarder si le process n'est pas bloqué
+                CurrentVarDAGHolder.check_current_vardag_throttler();
+
                 if (!this.as_batch) {
                     did_something = await this.handle_individual_worker(promise_pipeline, valid_nodes);
                 } else {

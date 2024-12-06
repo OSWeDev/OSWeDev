@@ -6,7 +6,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -28,7 +28,6 @@ import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTComple
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -57,6 +56,14 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
+import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import IUserData from '../../../shared/modules/DAO/interface/IUserData';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import { field_names } from '../../../shared/tools/ObjectHandler';
+import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -83,6 +90,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_generate_response, this.generate_response.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_ask_assistant, this.ask_assistant.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_rerun, this.rerun.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_connect_to_realtime_voice, this.connect_to_realtime_voice.bind(this));
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_sync_openai_datas] = this.sync_openai_datas;
     }
@@ -116,6 +124,21 @@ export default class ModuleGPTServer extends ModuleServerBase {
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
         return GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, thread_title, content, files, user_id, hide_content);
     }
+
+    // /**
+    //  * Demander un run d'un assistant suite à un nouveau message
+    //  * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
+    //  * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
+    //  * @param user_id contenu text du nouveau message
+    //  * @returns
+    //  */
+    // public async connect_to_realtime_voice(
+    //     session_id: string,
+    //     conversation_id: string,
+    //     user_id: number
+    // ): Promise<GPTRealtimeAPIConversationItemVO[]> {
+    //     return await GPTAssistantAPIServerController.connect_to_realtime_voice(session_id, conversation_id, user_id);
+    // }
 
     public async assistant_function_get_vo_type_description_controller(
         thread_vo: GPTAssistantAPIThreadVO,
@@ -447,6 +470,45 @@ export default class ModuleGPTServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    public registerAccessHooks(): void {
+        ModuleDAOServer.getInstance().registerContextAccessHook(GPTAssistantAPIThreadVO.API_TYPE_ID, this, this.filterThreadsByUserIn);
+    }
+
+
+    /**
+     * Context access hook pour les Threads. On sélectionne l'id des vos valides
+     * @param moduletable La table sur laquelle on fait la demande
+     * @param uid L'uid lié à la session qui fait la requête
+     * @param user L'utilisateur qui fait la requête
+     * @param user_data Les datas de profil de l'utilisateur qui fait la requête
+     * @param user_roles Les rôles de l'utilisateur qui fait la requête
+     * @returns la query qui permet de filtrer les vos valides
+     */
+    private async filterThreadsByUserIn(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+
+        const loggedUserId: number = ModuleAccessPolicyServer.getLoggedUserId();
+        if (!loggedUserId) {
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
+        }
+
+        if (user_roles && user_roles.find((role) => role.id == AccessPolicyServerController.role_admin.id)) {
+            const res: ContextQueryVO = query(moduletable.vo_type)
+                .field(field_names<IDistantVOBase>().id, 'filter_' + moduletable.vo_type + '_id')
+                .exec_as_server();
+
+            return res;
+        }
+        const res: ContextQueryVO = query(moduletable.vo_type)
+            .field(field_names<IDistantVOBase>().id, 'filter_' + moduletable.vo_type + '_id')
+            .filter_by_num_in(field_names<GPTAssistantAPIThreadVO>().id,
+                query(OseliaThreadUserVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<OseliaThreadUserVO>().user_id, loggedUserId)
+                    .field(field_names<OseliaThreadUserVO>().thread_id))
+            .exec_as_server();
+
+        return res;
+    }
+
     /**
      * istanbul ignore next: cannot test extern apis
      * @deprecated use Assistants instead => cheaper / faster / better control. Will be removed soon
@@ -507,8 +569,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
             }
 
             return await GPTAssistantAPIServerController.wrap_api_call(
-                ModuleGPTServer.openai.chat.completions.create,
-                ModuleGPTServer.openai.chat.completions,
+                ModuleGPTServer?.openai?.chat?.completions?.create,
+                ModuleGPTServer?.openai?.chat?.completions,
                 {
                     model: modelId,
                     messages: currentMessages as ChatCompletionMessageParam[],
@@ -516,12 +578,14 @@ export default class ModuleGPTServer extends ModuleServerBase {
         } catch (err) {
             ConsoleHandler.error(err);
         }
+
+        return null;
     }
 
     private async api_response_handler(conversation: GPTCompletionAPIConversationVO, result: any): Promise<GPTCompletionAPIMessageVO> {
         try {
-            const responseText = result.choices.shift().message.content;
-            const responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
+            let responseText = result?.choices?.length ? result.choices.shift().message.content : null;
+            let responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
             responseMessage.date = Dates.now();
             responseMessage.content = responseText;
             responseMessage.role_type = GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
@@ -534,6 +598,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
         } catch (err) {
             ConsoleHandler.error(err);
         }
+
+        return null;
     }
 
     private pre_create_trigger_handler_for_ThreadMessageVO(vo: GPTAssistantAPIThreadMessageVO): boolean {

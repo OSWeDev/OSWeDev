@@ -32,10 +32,7 @@ import ValidationFiltersWidgetController from '../validation_filters_widget/Vali
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import VarChoroplethChartWidgetOptions from './options/VarChoroplethChartWidgetOptions';
 import './VarChoroplethChartWidgetComponent.scss';
-import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
-import DefaultTranslationVO from '../../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
-import { Chart } from 'vue-chartjs';
-import { color } from 'chart.js/helpers';
+import Filters from '../../../../../../shared/tools/Filters';
 
 @Component({
     template: require('./VarChoroplethChartWidgetComponent.pug')
@@ -106,7 +103,7 @@ export default class VarChoroplethChartWidgetComponent extends VueComponentBase 
             return null;
         }
 
-        if (this.widget_options.filter_type == 'none') {
+        if (this.widget_options.filter_type == Filters.FILTER_TYPE_none) {
             return null;
         }
         return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;

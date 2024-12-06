@@ -1,4 +1,3 @@
-import { cloneDeep } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
@@ -10,10 +9,7 @@ import CRUDFieldRemoverConfVO from '../../../../../../shared/modules/DAO/vos/CRU
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import { all_promises } from '../../../../../../shared/tools/PromiseTools';
-import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import { ModuleAlertAction } from '../../../alert/AlertStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import DatatableComponent from '../../../datatable/component/DatatableComponent';
@@ -78,6 +74,108 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     private crud_field_remover_conf_edit: boolean = false;
     private crud_field_remover_conf: CRUDFieldRemoverConfVO = null;
     private POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS: boolean = false;
+
+    get api_type_id(): string {
+        if (this.selected_vo) {
+            return this.selected_vo._type;
+        }
+
+        if (!this.crud) {
+            return null;
+        }
+
+        return this.crud.readDatatable.API_TYPE_ID;
+    }
+
+    get CRUDTitle(): string {
+        if (!this.crud) {
+            return null;
+        }
+
+        return this.label('crud.read.title', {
+            datatable_title:
+                this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].label.code_text)
+        });
+    }
+
+
+    @Watch("api_type_id", { immediate: true })
+    private async onchange_api_type_id() {
+        if ((!this.selected_vo) || (!this.selected_vo._type)) {
+            if (this.crud) {
+                this.crud = null;
+            }
+            return;
+        }
+
+        if (!CRUDComponentManager.getInstance().cruds_by_api_type_id[this.selected_vo._type]) {
+            await CRUDComponentManager.getInstance().registerCRUD(
+                this.api_type_id,
+                null,
+                null,
+                null
+            );
+        }
+
+        if ((!this.crud) || (this.crud.api_type_id != this.api_type_id)) {
+            this.crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
+
+            try {
+                this.crud_field_remover_conf = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, this.api_type_id)
+                    .filter_is_true(field_names<CRUDFieldRemoverConfVO>().is_update)
+                    .select_vo<CRUDFieldRemoverConfVO>();
+            } catch (error) {
+                if (error.message == 'Multiple results on select_vo is not allowed : ' + this.api_type_id) {
+                    /**
+                     * On gère les doublons au cas où on ait un problème de synchronisation en supprimant les plus récents
+                     */
+                    const doublons = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, this.api_type_id)
+                        .filter_is_true(field_names<CRUDFieldRemoverConfVO>().is_update)
+                        .set_sort(new SortByVO(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().id, true))
+                        .select_vos<CRUDFieldRemoverConfVO>();
+                    doublons.shift();
+                    await ModuleDAO.instance.deleteVOs(doublons);
+                }
+            }
+
+            if (this.crud_field_remover_conf && this.crud_field_remover_conf.module_table_field_ids && this.crud_field_remover_conf.module_table_field_ids.length) {
+                this.remove_fields(this.crud_field_remover_conf.module_table_field_ids);
+            }
+        }
+    }
+
+    // Handle Loading of stored data
+
+    @Watch("crud", { immediate: true })
+    private async updatedCRUD() {
+
+        if (this.crud) {
+            await this.reload_datas();
+        }
+    }
+
+    @Watch("selected_vo", { immediate: true })
+    private updateSelected_vo() {
+        if (!this.selected_vo) {
+            this.editableVO = null;
+            return;
+        }
+
+        const self = this;
+        const waiter = () => {
+            if (!self.dao_store_loaded) {
+                setTimeout(waiter, 300);
+            } else {
+                // On passe la traduction en IHM sur les champs
+                self.editableVO = CRUDFormServices.dataToIHM(self.selected_vo, self.crud.updateDatatable, true);
+                self.onChangeVO(self.editableVO);
+            }
+        };
+
+        waiter();
+    }
 
     public update_key() {
         if (this.crud && (this.crud_updateDatatable_key != this.crud.updateDatatable.key)) {
@@ -191,53 +289,6 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
         this.POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS = await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS);
     }
 
-    @Watch("api_type_id", { immediate: true })
-    private async onchange_api_type_id() {
-        if ((!this.selected_vo) || (!this.selected_vo._type)) {
-            if (this.crud) {
-                this.crud = null;
-            }
-            return;
-        }
-
-        if (!CRUDComponentManager.getInstance().cruds_by_api_type_id[this.selected_vo._type]) {
-            await CRUDComponentManager.getInstance().registerCRUD(
-                this.api_type_id,
-                null,
-                null,
-                null
-            );
-        }
-
-        if ((!this.crud) || (this.crud.api_type_id != this.api_type_id)) {
-            this.crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
-
-            try {
-                this.crud_field_remover_conf = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, this.api_type_id)
-                    .filter_is_true(field_names<CRUDFieldRemoverConfVO>().is_update)
-                    .select_vo<CRUDFieldRemoverConfVO>();
-            } catch (error) {
-                if (error.message == 'Multiple results on select_vo is not allowed : ' + this.api_type_id) {
-                    /**
-                     * On gère les doublons au cas où on ait un problème de synchronisation en supprimant les plus récents
-                     */
-                    const doublons = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
-                        .filter_by_text_eq(field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, this.api_type_id)
-                        .filter_is_true(field_names<CRUDFieldRemoverConfVO>().is_update)
-                        .set_sort(new SortByVO(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().id, true))
-                        .select_vos<CRUDFieldRemoverConfVO>();
-                    doublons.shift();
-                    await ModuleDAO.instance.deleteVOs(doublons);
-                }
-            }
-
-            if (this.crud_field_remover_conf && this.crud_field_remover_conf.module_table_field_ids && this.crud_field_remover_conf.module_table_field_ids.length) {
-                this.remove_fields(this.crud_field_remover_conf.module_table_field_ids);
-            }
-        }
-    }
-
     /**
      * Si on a toujours un datatable par défaut, donc celui du read, on doit d'abord le cloner pour le modifier uniquement dans notre cas
      * @param fields les champs à supprimer du CRUD
@@ -248,66 +299,6 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
             this.crud.updateDatatable = CRUD.copy_datatable(this.crud.readDatatable);
         }
         this.crud.updateDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);
-    }
-
-    private async loaddatas() {
-
-        this.isLoading = true;
-
-        if (!this.crud) {
-            this.snotify.error(this.label('crud.errors.loading'));
-            this.isLoading = false;
-            return;
-        }
-
-        /**
-         * On ne veut pas charger par défaut (sauf ref reflective dans un champ de l'objet) tous les vos du type du vo modifié
-         */
-        await all_promises(CRUDFormServices.getInstance().loadDatasFromDatatable(this.crud.updateDatatable, this.api_types_involved, this.storeDatas, true));
-
-        this.isLoading = false;
-    }
-
-    // Handle Loading of stored data
-
-    @Watch("crud", { immediate: true })
-    private async updatedCRUD() {
-
-        if (this.crud) {
-            await this.reload_datas();
-        }
-    }
-
-    get CRUDTitle(): string {
-        if (!this.crud) {
-            return null;
-        }
-
-        return this.label('crud.read.title', {
-            datatable_title:
-                this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].label.code_text)
-        });
-    }
-
-    @Watch("selected_vo", { immediate: true })
-    private updateSelected_vo() {
-        if (!this.selected_vo) {
-            this.editableVO = null;
-            return;
-        }
-
-        const self = this;
-        const waiter = () => {
-            if (!self.dao_store_loaded) {
-                setTimeout(waiter, 300);
-            } else {
-                // On passe la traduction en IHM sur les champs
-                self.editableVO = CRUDFormServices.getInstance().dataToIHM(self.selected_vo, self.crud.updateDatatable, true);
-                self.onChangeVO(self.editableVO);
-            }
-        };
-
-        waiter();
     }
 
     private async updateVO() {
@@ -335,7 +326,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
                 try {
 
-                    if (!CRUDFormServices.getInstance().checkForm(self.editableVO, self.crud.updateDatatable, self.clear_alerts, self.register_alerts)) {
+                    if (!CRUDFormServices.checkForm(self.editableVO, self.crud.updateDatatable, self.clear_alerts, self.register_alerts)) {
                         self.updating_vo = false;
                         reject({
                             body: self.label('crud.check_form.field_required'),
@@ -350,7 +341,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                     }
 
                     // On passe la traduction depuis IHM sur les champs
-                    const apiokVo = CRUDFormServices.getInstance().IHMToData(self.editableVO, self.crud.updateDatatable, true);
+                    const apiokVo = CRUDFormServices.IHMToData(self.editableVO, self.crud.updateDatatable, true);
 
                     // On utilise le trigger si il est présent sur le crud
                     if (self.crud.preUpdate) {
@@ -403,8 +394,8 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                     }
 
                     // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
-                    await CRUDFormServices.getInstance().updateManyToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.removeData, self.storeData, self);
-                    await CRUDFormServices.getInstance().updateOneToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.getStoredDatas, self.updateData);
+                    await CRUDFormServices.updateManyToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.removeData, self.storeData, self);
+                    await CRUDFormServices.updateOneToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.getStoredDatas, self.updateData);
 
                     if (self.crud.postUpdate) {
                         await self.crud.postUpdate(self.editableVO);
@@ -470,33 +461,29 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
      * @param fileVo
      */
     private async uploadedFile_(vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO) {
-        await CRUDFormServices.getInstance().uploadedFile(vo, field, fileVo, this.api_type_id, this.editableVO, this.updateData, this);
+        await CRUDFormServices.uploadedFile(vo, field, fileVo, this.api_type_id, this.editableVO, this.updateData, this);
     }
 
     private async reload_datas() {
         this.dao_store_loaded = false;
-        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved(this.api_types_involved);
-        this.api_types_involved = [];
-        await this.loaddatas();
+        this.isLoading = true;
+
+        this.api_types_involved = await CRUDFormServices.load_datas(
+            this.crud,
+            this.storeDatas,
+            this.api_types_involved,
+            null,
+            true,
+        );
+
         this.dao_store_loaded = true;
+        this.isLoading = false;
     }
 
     private async callCallbackFunctionUpdate(): Promise<void> {
         if (this.crud && this.crud.callback_function_update) {
             await this.crud.callback_function_update(this.editableVO);
         }
-    }
-
-    get api_type_id(): string {
-        if (this.selected_vo) {
-            return this.selected_vo._type;
-        }
-
-        if (!this.crud) {
-            return null;
-        }
-
-        return this.crud.readDatatable.API_TYPE_ID;
     }
 
     private async cancel() {

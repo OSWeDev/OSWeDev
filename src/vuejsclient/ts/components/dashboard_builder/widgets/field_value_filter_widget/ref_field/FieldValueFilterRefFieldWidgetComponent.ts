@@ -675,13 +675,15 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
         for (const i in this.advanced_ref_field_filters) {
             const advanced_filter: AdvancedRefFieldFilter = this.advanced_ref_field_filters[i];
 
-            tmp_context_filter = this.get_advanced_ref_field_filter(
-                tmp_context_filter,
-                advanced_filter,
-                field,
-                this.vo_field_ref,
-                previous_filter
-            );
+            if (field) {
+                tmp_context_filter = this.get_advanced_ref_field_filter(
+                    tmp_context_filter,
+                    advanced_filter,
+                    field,
+                    this.vo_field_ref,
+                    previous_filter
+                );
+            }
         }
 
         if (tmp_context_filter) {

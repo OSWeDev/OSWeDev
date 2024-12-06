@@ -1,6 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import { cloneDeep, every, filter, isEqual } from 'lodash';
+import { cloneDeep, every, isEqual } from 'lodash';
 import VarChartOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -14,6 +14,7 @@ import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/Modu
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import VarChartScalesOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
+import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
 
 @Component({
     template: require('./VarChartOptionsItemComponent.pug'),
@@ -21,6 +22,7 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
         Chartjsscaleoptionscomponent: ChartJsScaleOptionsComponent,
         Singlevofieldrefholdercomponent: SingleVoFieldRefHolderComponent,
         Inlinetranslatabletext: InlineTranslatableText,
+        Widgetfilteroptionscomponent: WidgetFilterOptionsComponent,
     }
 })
 export default class VarChartOptionsItemComponent extends VueComponentBase {
@@ -62,6 +64,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     private border_color: string = '#666';
     private border_width: number = null;
     private has_gradient: boolean = false;
+    private show_values: boolean = false;
     private filter_type: string = '';
     private filter_additional_params: string = '';
     private graphe_types: string[] = [
@@ -86,8 +89,70 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         'right'
     ];
 
-    public async created() {
-        this.chart_id = this.chart_id ?? Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+    /**
+         * fields_that_could_get_custom_filter
+         *
+         * @returns {string[]}
+         */
+    get fields_that_could_get_custom_filter(): string[] {
+        const res: string[] = [];
+
+        if (!this.var_id || (!VarsController.var_conf_by_id[this.var_id])) {
+            return null;
+        }
+
+        const var_param_type = VarsController.var_conf_by_id[this.var_id].var_data_vo_type;
+        if (!var_param_type) {
+            return null;
+        }
+
+        if (!this.custom_filter_names) {
+            this.custom_filter_names = {};
+        }
+
+        const fields = ModuleTableController.module_tables_by_vo_type[var_param_type].get_fields();
+        for (const i in fields) {
+            const field = fields[i];
+
+            if (
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)
+            ) {
+
+                res.push(field.field_id);
+
+                if (typeof this.custom_filter_names[field.field_id] === "undefined") {
+                    this.custom_filter_names[field.field_id] = null;
+                }
+            }
+        }
+
+        return res;
+    }
+    get var_names(): string[] {
+
+        const res: string[] = [];
+
+        for (const i in VarsController.var_conf_by_name) {
+            const var_conf = VarsController.var_conf_by_name[i];
+
+            res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
+        }
+
+        res.sort((a, b) => {
+            const a_ = a.split(' | ')[1];
+            const b_ = b.split(' | ')[1];
+
+            if (a_ < b_) {
+                return -1;
+            }
+            if (a_ > b_) {
+                return 1;
+            }
+
+            return 0;
+        });
+        return res;
     }
 
     @Watch('options', { immediate: true, deep: true })
@@ -97,7 +162,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         }
 
         for (const key in this.options) {
-            if (this.hasOwnProperty(key)) {
+            if (Object.prototype.hasOwnProperty.call(this, key)) {
                 this[key] = this.options[key];
             }
         }
@@ -145,11 +210,45 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         await this.throttled_emit_changes();
     }
 
-
-
     @Watch('border_color')
     private async on_change_border_color() {
         await this.throttled_emit_changes();
+    }
+
+    @Watch('border_width')
+    private async on_changborder_width() {
+        await this.throttled_emit_changes();
+    }
+
+    @Watch('selected_filter_name')
+    private async change_selected_filter_name() {
+        if (this.fields_that_could_get_scales_filter[this.scale_filter_names.indexOf(this.selected_filter_name)]) {
+            this.selected_filter_id = this.fields_that_could_get_scales_filter[this.scale_filter_names.indexOf(this.selected_filter_name)].chart_id;
+        }
+
+        await this.throttled_emit_changes();
+    }
+
+    @Watch('fields_that_could_get_scales_filter', { immediate: true, deep: true })
+    private async on_change_fields_that_could_get_scales_filter() {
+        if (!this.fields_that_could_get_scales_filter) {
+            return [];
+        }
+        const res: string[] = [];
+        for (const i in this.fields_that_could_get_scales_filter) {
+            const scale_options = new VarChartScalesOptionsVO().from(this.fields_that_could_get_scales_filter[i]);
+            const allScaleOptionsUndefined = every(scale_options, scaleOptions => scaleOptions === undefined);
+            if (!allScaleOptionsUndefined) {
+                const title_name = this.t(scale_options.get_title_name_code_text(this.page_widget_id, scale_options.chart_id)) != scale_options.get_title_name_code_text(this.page_widget_id, scale_options.chart_id) ? this.t(scale_options.get_title_name_code_text(this.page_widget_id, scale_options.chart_id)) : 'Axe - ' + scale_options.chart_id.toString();
+                res.push(title_name);
+            }
+        }
+        this.scale_filter_names = res;
+        await this.throttled_emit_changes();
+    }
+
+    public async created() {
+        this.chart_id = this.chart_id ?? Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
     }
 
     private async on_change_gradient() {
@@ -157,8 +256,8 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         await this.throttled_emit_changes();
     }
 
-    @Watch('border_width')
-    private async on_changborder_width() {
+    private async switch_show_values() {
+        this.show_values = !this.show_values;
         await this.throttled_emit_changes();
     }
 
@@ -188,76 +287,6 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         await this.throttled_emit_changes();
     }
 
-
-    @Watch('selected_filter_name')
-    private async change_selected_filter_name() {
-        if (this.fields_that_could_get_scales_filter[this.scale_filter_names.indexOf(this.selected_filter_name)]) {
-            this.selected_filter_id = this.fields_that_could_get_scales_filter[this.scale_filter_names.indexOf(this.selected_filter_name)].chart_id;
-        };
-
-        await this.throttled_emit_changes();
-    }
-
-    @Watch('fields_that_could_get_scales_filter', { immediate: true, deep: true })
-    private async on_change_fields_that_could_get_scales_filter() {
-        if (!this.fields_that_could_get_scales_filter) {
-            return [];
-        }
-        const res: string[] = [];
-        for (const i in this.fields_that_could_get_scales_filter) {
-            const scale_options = new VarChartScalesOptionsVO().from(this.fields_that_could_get_scales_filter[i]);
-            const allScaleOptionsUndefined = every(scale_options, scaleOptions => scaleOptions === undefined);
-            if (!allScaleOptionsUndefined) {
-                let title_name = this.t(scale_options.get_title_name_code_text(this.page_widget_id, scale_options.chart_id)) != scale_options.get_title_name_code_text(this.page_widget_id, scale_options.chart_id) ? this.t(scale_options.get_title_name_code_text(this.page_widget_id, scale_options.chart_id)) : 'Axe - ' + scale_options.chart_id.toString();
-                res.push(title_name);
-            }
-        }
-        this.scale_filter_names = res;
-        await this.throttled_emit_changes();
-    }
-
-    /**
-     * fields_that_could_get_custom_filter
-     *
-     * @returns {string[]}
-     */
-    get fields_that_could_get_custom_filter(): string[] {
-        let res: string[] = [];
-
-        if (!this.var_id || (!VarsController.var_conf_by_id[this.var_id])) {
-            return null;
-        }
-
-        const var_param_type = VarsController.var_conf_by_id[this.var_id].var_data_vo_type;
-        if (!var_param_type) {
-            return null;
-        }
-
-        if (!this.custom_filter_names) {
-            this.custom_filter_names = {};
-        }
-
-        const fields = ModuleTableController.module_tables_by_vo_type[var_param_type].get_fields();
-        for (const i in fields) {
-            const field = fields[i];
-
-            if (
-                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
-                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)
-            ) {
-
-                res.push(field.field_id);
-
-                if (typeof this.custom_filter_names[field.field_id] === "undefined") {
-                    this.custom_filter_names[field.field_id] = null;
-                }
-            }
-        }
-
-        return res;
-    }
-
-
     private async emit_change() {
         // Set up all params fields
         this.options_props.chart_id = this.chart_id; // To load the var data
@@ -268,36 +297,11 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         this.options_props.border_width = this.border_width;
         this.options_props.custom_filter_names = this.custom_filter_names;
         this.options_props.has_gradient = this.has_gradient;
+        this.options_props.show_values = this.show_values;
         this.options_props.filter_additional_params = this.filter_additional_params;
         this.options_props.filter_type = this.filter_type;
         this.options_props.selected_filter_id = this.selected_filter_id;
         this.options_props.selected_filter_name = this.selected_filter_name;
         this.$emit('on_change', this.options_props);
-    }
-
-    get var_names(): string[] {
-
-        const res: string[] = [];
-
-        for (const i in VarsController.var_conf_by_name) {
-            const var_conf = VarsController.var_conf_by_name[i];
-
-            res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
-        }
-
-        res.sort((a, b) => {
-            const a_ = a.split(' | ')[1];
-            const b_ = b.split(' | ')[1];
-
-            if (a_ < b_) {
-                return -1;
-            }
-            if (a_ > b_) {
-                return 1;
-            }
-
-            return 0;
-        });
-        return res;
     }
 }

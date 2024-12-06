@@ -4,6 +4,7 @@ import { field_names, reflect } from '../../tools/ObjectHandler';
 import { all_promises } from '../../tools/PromiseTools';
 import RangeHandler from '../../tools/RangeHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
+import APIDefinition from '../API/vos/APIDefinition';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
@@ -194,7 +195,8 @@ export default class ModuleVar extends Module {
             this.name,
             reflect<ModuleVar>().register_params,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
-            APISimpleVOsParamVOStatic
+            APISimpleVOsParamVOStatic,
+            APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
         APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
             ModuleVar.POLICY_FO_ACCESS,
@@ -207,7 +209,8 @@ export default class ModuleVar extends Module {
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_unregister_params,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
-            APISimpleVOsParamVOStatic
+            APISimpleVOsParamVOStatic,
+            APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<StringParamVO, { [dep_name: string]: string }>(

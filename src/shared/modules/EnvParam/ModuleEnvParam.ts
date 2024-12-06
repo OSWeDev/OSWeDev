@@ -160,6 +160,8 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_vars_processes, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug vars processes', true);
         // DEBUG_VARS_INVALIDATION ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_vars_invalidation, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug vars invalidation', true);
+        // debug_vars_invalidation_param_intersector ?: boolean;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_vars_invalidation_param_intersector, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug vars invalidation param intersector', true);
         // DEBUG_VARS_CURRENT_TREE ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_vars_current_tree, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug vars current tree', true);
         // DEBUG_VARS_DB_PARAM_BUILDER ?: boolean;
@@ -272,7 +274,7 @@ export default class ModuleEnvParam extends Module {
 
         // BLOCK_TEAMS_MESSAGES ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().block_teams_messages, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Bloquer les messages Teams', true);
-
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().unblock_realtime_api, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Débloquer l\'API temps réel', false, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().logo_path, ModuleTableFieldVO.FIELD_TYPE_string, 'URL du logo');
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_openai_sync, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug OpenAI Sync', true, true, true);

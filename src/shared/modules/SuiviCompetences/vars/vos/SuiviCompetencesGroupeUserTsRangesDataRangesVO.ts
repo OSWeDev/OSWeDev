@@ -13,7 +13,7 @@ export default class SuiviCompetencesGroupeUserTsRangesDataRangesVO extends VarD
         suivi_comp_groupe_id_ranges: NumRange[],
         suivi_comp_grille_id_ranges: NumRange[],
         user_id_ranges: NumRange[],
-        ts_ranges: NumRange[],
+        ts_ranges: TSRange[],
     ): T {
 
         if (

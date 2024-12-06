@@ -98,7 +98,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            return StackContext.get('UID');
+            const session = StackContext.get('SESSION');
+
+            if (session && session.uid) {
+                return session.uid;
+            }
+
+            const uid = StackContext.get('UID');
+
+            if (uid) {
+                return uid;
+            }
         } catch (error) {
             ConsoleHandler.error(error);
         }
@@ -1620,6 +1630,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_logout, this.logout.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_delete_session, this.delete_session.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_get_my_sid, this.get_my_sid.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_get_my_session_id, this.get_my_session_id.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_send_session_share_email, this.send_session_share_email.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_send_session_share_sms, this.send_session_share_sms.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_UID, this.BEGIN_RECOVER_UID.bind(this));
@@ -2467,6 +2478,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private get_my_sid(req: Request, res: Response) {
         return (res && res.req && res.req.cookies) ? res.req.cookies['sid'] : req.session.sid;
+    }
+
+    private get_my_session_id(req: Request, res: Response) {
+        // let session = StackContext.get('SESSION');
+        // if (!session) {
+        //     return null;
+        // }
+        // return session.id;
+        return res.req.sessionID;
     }
 
     /**

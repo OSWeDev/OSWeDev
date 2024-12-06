@@ -637,6 +637,12 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Traduction automatique KO : {error}'
         }, 'get_gpt_translation.error.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Pas de connexion internet'
+        }, 'no_internet.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Merci de recharger votre page suite à votre problème de connexion internet'
+        }, 'observer_error_no_internet.___LABEL___'));
     }
 
     /**

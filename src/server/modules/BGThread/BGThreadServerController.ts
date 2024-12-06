@@ -13,6 +13,7 @@ export default class BGThreadServerController {
 
     // public static TASK_NAME_register_alive_on_main_thread: string = "BGThreadServerController.register_alive_on_main_thread";
     public static TASK_NAME_is_alive: string = "BGThreadServerController.is_alive";
+    public static TASK_NAME_kill_bgthread: string = "BGThreadServerController.kill_bgthread";
     public static PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s: string = "BGThreadServerController.BGTHREAD_LAST_ALIVE_TIMEOUT_s";
 
     /**

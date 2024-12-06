@@ -70,7 +70,7 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
 
         if (this.sso) {
             promises.push((async () =>
-                session_id = await ModuleAccessPolicy.getInstance().get_my_sid()
+                session_id = await ModuleAccessPolicy.getInstance().get_my_session_id()
             )());
         }
 

@@ -23,11 +23,11 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../shared/tools/LocaleManager';
 import { field_names } from '../../../shared/tools/ObjectHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
-import ConfigurationService from '../../env/ConfigurationService';
 
 export default class ModuleActionURLServer extends ModuleServerBase {
 
@@ -180,19 +180,28 @@ export default class ModuleActionURLServer extends ModuleServerBase {
 
                 const lang = await query(LangVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).select_vo<LangVO>();
                 const title_text = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq(field_names<TranslatableTextVO>().code_text, action_cr.translatable_cr_title).exec_as_server().select_vo<TranslatableTextVO>();
-                const content_text = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq(field_names<TranslatableTextVO>().code_text, action_cr.translatable_cr_content).exec_as_server().select_vo<TranslatableTextVO>();
 
-                if (lang && title_text && content_text) {
+                let content_text = null;
+                if (!!action_cr.translatable_cr_content) {
+                    content_text = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq(field_names<TranslatableTextVO>().code_text, action_cr.translatable_cr_content).exec_as_server().select_vo<TranslatableTextVO>();
+                }
+
+                title_content = action_cr.translatable_cr_title;
+                message_content = action_cr.translatable_cr_content;
+                if (lang && title_text) {
                     const title_translation = await ModuleTranslation.getInstance().getTranslation(lang.id, title_text.id);
-                    const content_translation = await ModuleTranslation.getInstance().getTranslation(lang.id, title_text.id);
 
-                    if (title_translation && content_translation) {
+                    if (title_translation) {
                         title_content = LocaleManager.getInstance().t(title_translation.translated, action_cr.translatable_cr_title_params_json);
+                    }
+                }
+
+                if (lang && content_text) {
+                    const content_translation = await ModuleTranslation.getInstance().getTranslation(lang.id, content_text.id);
+
+                    if (content_translation) {
                         message_content = LocaleManager.getInstance().t(content_translation.translated, action_cr.translatable_cr_content_params_json);
                     }
-                } else {
-                    title_content = action_cr.translatable_cr_title;
-                    message_content = action_cr.translatable_cr_content;
                 }
             }
             const body = [];

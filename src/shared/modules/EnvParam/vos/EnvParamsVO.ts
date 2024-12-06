@@ -120,6 +120,9 @@ export default class EnvParamsVO implements IDistantVOBase {
     // DEBUG_VARS_INVALIDATION?: boolean;
     public debug_vars_invalidation: boolean;
 
+    // debug_vars_invalidation_param_intersector?: boolean;
+    public debug_vars_invalidation_param_intersector: boolean;
+
     // DEBUG_VARS_CURRENT_TREE?: boolean;
     public debug_vars_current_tree: boolean;
 
@@ -241,6 +244,7 @@ export default class EnvParamsVO implements IDistantVOBase {
     // BLOCK_TEAMS_MESSAGES?: boolean;
     public block_teams_messages: boolean;
 
+    public unblock_realtime_api: boolean = false;
     // logo_path?: string;
     public logo_path: string;
 

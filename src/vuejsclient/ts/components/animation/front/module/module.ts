@@ -201,15 +201,9 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     private async closeModal(restart: boolean) {
         if (restart) {
             if (this.um) {
-                const user_qrs: AnimationUserQRVO[] = await query(AnimationUserQRVO.API_TYPE_ID)
-                    .filter_by_num_has(field_names<AnimationUserQRVO>().qr_id, this.qrs.map((m) => m.id))
-                    .filter_by_num_eq(field_names<AnimationUserQRVO>().user_id, this.logged_user_id)
-                    .select_vos<AnimationUserQRVO>();
+                await ModuleAnimation.getInstance().resetThemesOrModules([this.logged_user_id], [], [this.anim_module.id]);
+                AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([AnimationUserModuleVO.API_TYPE_ID, AnimationUserQRVO.API_TYPE_ID]);
 
-                let toDelete: IDistantVOBase[] = [this.um];
-                toDelete = toDelete.concat(user_qrs);
-
-                await ModuleDAO.instance.deleteVOs(toDelete);
                 await this.reloadAsyncDatas();
 
                 $(this.$refs.restartmodulemodal).modal('hide');

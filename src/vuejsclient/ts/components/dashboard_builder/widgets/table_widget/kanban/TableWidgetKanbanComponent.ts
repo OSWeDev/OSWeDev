@@ -71,6 +71,7 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import './TableWidgetKanbanComponent.scss';
 import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
+import { ModuleDAOAction } from '../../../../dao/store/DaoStore';
 import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
@@ -88,6 +89,9 @@ import APIControllerWrapper from '../../../../../../../shared/modules/API/APICon
     }
 })
 export default class TableWidgetKanbanComponent extends VueComponentBase {
+
+    @ModuleDAOAction
+    private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
@@ -865,7 +869,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 case TableColumnDescVO.TYPE_component:
                     res[column.id] = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                     break;
-                case TableColumnDescVO.TYPE_var_ref:
+                case TableColumnDescVO.TYPE_var_ref: {
                     const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
                         column.id.toString(),
                         column.var_id,
@@ -875,7 +879,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
                     res[column.id] = var_data_field;
                     break;
-                case TableColumnDescVO.TYPE_vo_field_ref:
+                }
+                case TableColumnDescVO.TYPE_vo_field_ref: {
                     const field = moduleTable.get_field_by_id(column.field_id);
                     // let field_type = field ? field.field_type : moduletablfiel
                     // switch (field.field_type) {
@@ -903,6 +908,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     //         break;
                     // }
                     break;
+                }
                 case TableColumnDescVO.TYPE_crud_actions:
                     res[column.id] = CRUDActionsDatatableFieldVO.createNew().setModuleTable(moduleTable);
                     break;
@@ -1903,7 +1909,11 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         const update_vo = await query(type).filter_by_id(id).select_vo();
 
         if (update_vo && update_vo.id) {
-            await this.get_Crudupdatemodalcomponent.open_modal(update_vo, this.onclose_modal.bind(this));
+            await this.get_Crudupdatemodalcomponent.open_modal(
+                update_vo,
+                this.storeDatas,
+                this.onclose_modal.bind(this),
+            );
         }
     }
 
@@ -1925,7 +1935,11 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     private async open_create() {
-        await this.get_Crudcreatemodalcomponent.open_modal(this.crud_activated_api_type, this.throttled_update_visible_options.bind(this));
+        await this.get_Crudcreatemodalcomponent.open_modal(
+            this.crud_activated_api_type,
+            this.storeDatas,
+            this.throttled_update_visible_options.bind(this),
+        );
     }
 
     private async onchange_dashboard_vo_route_param() {
@@ -2025,7 +2039,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             case TableColumnDescVO.TYPE_component:
                 res = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                 break;
-            case TableColumnDescVO.TYPE_var_ref:
+            case TableColumnDescVO.TYPE_var_ref: {
                 const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
                     column.id.toString(),
                     column.var_id,
@@ -2035,7 +2049,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
                 res = var_data_field;
                 break;
-            case TableColumnDescVO.TYPE_vo_field_ref:
+            }
+            case TableColumnDescVO.TYPE_vo_field_ref: {
                 const field = moduleTable.get_field_by_id(column.field_id);
                 // let field_type = field ? field.field_type : moduletablfiel
                 // switch (field.field_type) {
@@ -2063,6 +2078,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 //         break;
                 // }
                 break;
+            }
             case TableColumnDescVO.TYPE_crud_actions:
                 res = CRUDActionsDatatableFieldVO.createNew().setModuleTable(moduleTable);
                 break;
@@ -2371,7 +2387,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 // this.kanban_column_labels = Object.values(kanban_column_field.enum_values).map((enum_value: string) => this.t(enum_value));
                 this.kanban_column_is_enum = true;
                 break;
-            default:
+            default: {
                 this.kanban_column_is_enum = false;
                 let kanban_column_values_query = query(this.kanban_column.api_type_id).field(this.kanban_column.field_id).field(field_names<IDistantVOBase>().id);
                 if (this.widget_options.use_kanban_column_weight_if_exists) {
@@ -2403,6 +2419,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     this.kanban_column_values_to_index[row[this.kanban_column_field.field_id].toString()] = kanban_index;
                     this.kanban_column_index_to_ref_field_id[kanban_index] = row['id'];
                 }
+            }
             // this.kanban_column_labels = this.kanban_column_values;
         }
 
@@ -2944,6 +2961,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     private async open_create_column() {
-        await this.get_Crudcreatemodalcomponent.open_modal(this.kanban_column.api_type_id, this.throttled_update_visible_options.bind(this));
+        await this.get_Crudcreatemodalcomponent.open_modal(
+            this.kanban_column.api_type_id,
+            this.storeDatas,
+            this.throttled_update_visible_options.bind(this),
+        );
     }
 }

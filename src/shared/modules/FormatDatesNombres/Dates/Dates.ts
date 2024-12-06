@@ -88,6 +88,11 @@ export default class Dates {
                  * Je vois pas comment éviter de passer par un moment à ce stade ou un Date
                  */
                 return moment.unix(date).utc().add(nb, 'quarter').unix();
+            case TimeSegment.TYPE_MS:
+                /**
+                 * Je vois pas comment éviter de passer par un moment à ce stade ou un Date
+                 */
+                return moment.unix(date).utc().add(nb, 'ms').unix();
             case TimeSegment.TYPE_SECOND:
                 return Math.floor(nb + date);
             case TimeSegment.TYPE_WEEK:
@@ -122,18 +127,17 @@ export default class Dates {
                 return date - date % 60;
             case TimeSegment.TYPE_MONTH:
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                const mm = moment.unix(date).utc();
-                return mm.startOf('month').unix();
+                return moment.unix(date).utc().startOf('month').unix();
             case TimeSegment.TYPE_SECOND:
                 return date; // useless as f*ck don't call this
             case TimeSegment.TYPE_WEEK:
                 return date - ((date - 345600) % 604800); // 01/01/70 = jeudi
             case TimeSegment.TYPE_YEAR:
-                const my = moment.unix(date).utc();
-                return my.startOf('year').unix();
+                return moment.unix(date).utc().startOf('year').unix();
             case TimeSegment.TYPE_QUARTER:
-                let mq = moment.unix(date).utc();
-                return mq.startOf('quarter').unix();
+                return moment.unix(date).utc().startOf('quarter').unix();
+            case TimeSegment.TYPE_MS:
+                return moment.unix(date).utc().startOf('ms').unix();
 
             default:
                 return date;
@@ -158,21 +162,19 @@ export default class Dates {
             case TimeSegment.TYPE_MINUTE:
                 return date - date % 60 + 60 - 1;
             case TimeSegment.TYPE_MONTH:
-                const mm = moment.unix(date).utc();
-                return mm.endOf('month').unix();
+                return moment.unix(date).utc().endOf('month').unix();
             case TimeSegment.TYPE_SECOND:
                 return date; // useless as f*ck don't call this
             case TimeSegment.TYPE_WEEK:
                 return date - ((date - 345600) % 604800) + 604800 - 1;
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                const mryms = moment.unix(date).utc();
-                return mryms.endOf('month').add(1, 'year').unix();
+                return moment.unix(date).utc().endOf('month').add(1, 'year').unix();
             case TimeSegment.TYPE_YEAR:
-                const my = moment.unix(date).utc();
-                return my.endOf('year').unix();
+                return moment.unix(date).utc().endOf('year').unix();
             case TimeSegment.TYPE_QUARTER:
-                let mq = moment.unix(date).utc();
-                return mq.endOf('quarter').unix();
+                return moment.unix(date).utc().endOf('quarter').unix();
+            case TimeSegment.TYPE_MS:
+                return moment.unix(date).utc().endOf('ms').unix();
 
             default:
                 return date;
@@ -209,6 +211,10 @@ export default class Dates {
                 return Dates.year(date).toString();
             case TimeSegment.TYPE_QUARTER:
                 return LocaleManager.getInstance().label('time_segment.quarter') + Dates.quarter(date).toString();
+            case TimeSegment.TYPE_MS:
+                const seconds = Math.floor(date / 1000);
+                date = date % 1000;
+                return Dates.format(seconds, 'YYYY-MM-DD HH:mm:ss.' + String(date).padStart(3, '0'), localized);
             case TimeSegment.TYPE_DAY:
             default:
                 return Dates.format(date, LocaleManager.getInstance().t('Y-MM-DD'), localized);
@@ -255,6 +261,10 @@ export default class Dates {
                 let mqa = moment.unix(a).utc();
                 let mqb = moment.unix(b).utc();
                 return mqa.diff(mqb, 'quarter', precise);
+            case TimeSegment.TYPE_MS:
+                let msa = moment.unix(a).utc();
+                let msb = moment.unix(b).utc();
+                return msa.diff(msb, 'ms', precise);
 
             default:
                 return null;

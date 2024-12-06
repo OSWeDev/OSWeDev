@@ -869,12 +869,12 @@ export default class CRUDComponentField extends VueComponentBase
             await ModuleAccessPolicy.getInstance().testAccess(
                 DAOController.getAccessPolicyName(
                     ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE,
-                    (this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type)).then((res: boolean) => {
-
-                        if (self.can_insert_or_update_target != res) {
-                            self.can_insert_or_update_target = res;
-                        }
-                    });
+                    (this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type)
+            ).then((res: boolean) => {
+                if (self.can_insert_or_update_target != res) {
+                    self.can_insert_or_update_target = res;
+                }
+            });
         }
 
         if (!this.field.can_use_async_load_options) {
@@ -1815,7 +1815,7 @@ export default class CRUDComponentField extends VueComponentBase
     private async validate_inline_input(event) {
 
         if (this.auto_validate_start) {
-            CRUDFormServices.getInstance().auto_updates_waiting[this.this_CRUDComp_UID] = false;
+            CRUDFormServices.auto_updates_waiting[this.this_CRUDComp_UID] = false;
             this.auto_validate_start = null;
         }
 
@@ -2222,7 +2222,7 @@ export default class CRUDComponentField extends VueComponentBase
                     }, 50);
                 } else {
                     this.auto_validate_start = Dates.now();
-                    CRUDFormServices.getInstance().auto_updates_waiting[this.this_CRUDComp_UID] = true;
+                    CRUDFormServices.auto_updates_waiting[this.this_CRUDComp_UID] = true;
                 }
             } else {
                 await this.validate_inline_input(event);

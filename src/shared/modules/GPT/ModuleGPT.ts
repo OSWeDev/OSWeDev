@@ -21,6 +21,7 @@ import OseliaUserPromptVO from '../Oselia/vos/OseliaUserPromptVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import APIGPTAskAssistantParam, { APIGPTAskAssistantParamStatic } from './api/APIGPTAskAssistantParam';
 import APIGPTGenerateResponseParam, { APIGPTGenerateResponseParamStatic } from './api/APIGPTGenerateResponseParam';
+import APIRealtimeVoiceConnectParam from './api/APIRealtimeVoiceConnectParam';
 import GPTAssistantAPIAssistantFunctionVO from './vos/GPTAssistantAPIAssistantFunctionVO';
 import GPTAssistantAPIAssistantVO from './vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIErrorVO from './vos/GPTAssistantAPIErrorVO';
@@ -44,6 +45,7 @@ import GPTAssistantAPIVectorStoreFileVO from './vos/GPTAssistantAPIVectorStoreFi
 import GPTAssistantAPIVectorStoreVO from './vos/GPTAssistantAPIVectorStoreVO';
 import GPTCompletionAPIConversationVO from './vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from './vos/GPTCompletionAPIMessageVO';
+import GPTRealtimeAPIConversationItemVO from './vos/GPTRealtimeAPIConversationItemVO';
 
 export default class ModuleGPT extends Module {
 
@@ -58,13 +60,13 @@ export default class ModuleGPT extends Module {
 
     public static APINAME_ask_assistant: string = "modulegpt_ask_assistant";
     public static APINAME_rerun: string = "modulegpt_rerun";
+    // public static APINAME_connect_to_realtime_voice: string = "modulegpt_connect_to_realtime_voice";
 
     public static MANUAL_TASK_NAME_sync_openai_datas: string = ModuleGPT.MODULE_NAME + ".sync_openai_datas";
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleGPT.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".FO_ACCESS";
-
     public static POLICY_ask_assistant = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".ask_assistant";
     public static POLICY_rerun = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".rerun";
 
@@ -97,6 +99,20 @@ export default class ModuleGPT extends Module {
         user_id: number,
         hide_content: boolean
     ) => Promise<GPTAssistantAPIThreadMessageVO[]> = APIControllerWrapper.sah<APIGPTAskAssistantParam, GPTAssistantAPIThreadMessageVO[]>(ModuleGPT.APINAME_ask_assistant);
+
+    // /**
+    //  * Demander un run d'un assistant suite à un nouveau message
+    //  * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
+    //  * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
+    //  * @param user_id contenu text du nouveau message
+    //  * @returns
+    //  */
+    // public connect_to_realtime_voice: (
+    //     session_id: string,
+    //     conversation_id: string,
+    //     user_id: number,
+
+    // ) => Promise<GPTRealtimeAPIConversationItemVO[]> = APIControllerWrapper.sah<APIRealtimeVoiceConnectParam, GPTRealtimeAPIConversationItemVO[]>(ModuleGPT.APINAME_connect_to_realtime_voice); 
 
     /**
      * Re-run un run d'un assistant suite à un nouveau message par exemple ou pour essayer d'avoir une réponse plus pertinente

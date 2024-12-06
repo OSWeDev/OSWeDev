@@ -48,6 +48,8 @@ import SuiviCompetencesRapportSousGroupeDataRangesVO from '../../../../../../sha
 import SuiviCompetencesGroupeVO from '../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGroupeVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
+import { ModuleDAOAction } from '../../../dao/store/DaoStore';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 
 @Component({
     template: require('./SuiviCompetencesWidgetComponent.pug'),
@@ -57,6 +59,9 @@ import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefCompo
     }
 })
 export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
+
+    @ModuleDAOAction
+    private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
@@ -190,7 +195,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
             SuiviCompetencesWidgetController.default_action_rapport = null;
         }
 
-        let context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+        const context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
             FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
         );
 
@@ -216,7 +221,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                 if (this.widget_options.filtered_role_ids?.length) {
                     let select_options_enabled: number[] = [];
 
-                    let users: UserVO[] = await query(UserVO.API_TYPE_ID)
+                    const users: UserVO[] = await query(UserVO.API_TYPE_ID)
                         .field(field_names<UserVO>().id)
                         .filter_by_num_x_ranges(
                             field_names<UserRoleVO>().role_id,
@@ -259,7 +264,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(context_query_rapport, this.get_discarded_field_paths);
 
-        let rapports: SuiviCompetencesRapportVO[] = await context_query_rapport.select_vos();
+        const rapports: SuiviCompetencesRapportVO[] = await context_query_rapport.select_vos();
 
         this.rapports = rapports?.length ? rapports : [];
     }
@@ -271,6 +276,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
 
         await this.get_Crudcreatemodalcomponent.open_modal(
             SuiviCompetencesRapportVO.API_TYPE_ID,
+            this.storeDatas,
             this.update_visible_options.bind(this),
             SuiviCompetencesWidgetController.default_vo_init_rapport,
             false,
@@ -305,7 +311,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                     action: async (toast) => {
                         this.$snotify.remove(toast.id);
 
-                        let new_rapport: SuiviCompetencesRapportVO = SuiviCompetencesRapportVO.createNew(
+                        const new_rapport: SuiviCompetencesRapportVO = SuiviCompetencesRapportVO.createNew(
                             Dates.now(),
                             this.selected_rapport.suivi_comp_grille_id,
                             this.selected_rapport.user_id,
@@ -382,12 +388,12 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
 
         this.start_export_excel = true;
 
-        let exhi: ExportHistoricVO = new ExportHistoricVO();
+        const exhi: ExportHistoricVO = new ExportHistoricVO();
 
         exhi.export_file_access_policy_name = ModuleDAO.instance.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, SuiviCompetencesRapportVO.API_TYPE_ID);
         exhi.export_is_secured = true;
 
-        let export_params: ExportSuiviCompetencesRapportHandlerParam = new ExportSuiviCompetencesRapportHandlerParam();
+        const export_params: ExportSuiviCompetencesRapportHandlerParam = new ExportSuiviCompetencesRapportHandlerParam();
         export_params.rapport_id_ranges = [RangeHandler.create_single_elt_NumRange(this.selected_rapport.id, NumSegment.TYPE_INT)];
 
         // exhi.export_params_stringified = JSON.stringify(APIControllerWrapper.try_translate_vo_to_api(export_params));
@@ -431,7 +437,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     }
 
     private reload_all_rapport_item_by_ids() {
-        let res: { [item_id: number]: SuiviCompetencesItemRapportVO } = {};
+        const res: { [item_id: number]: SuiviCompetencesItemRapportVO } = {};
 
         for (const i in this.rapport_item_by_ids) {
             res[this.rapport_item_by_ids[i].suivi_comp_item_id] = this.rapport_item_by_ids[i];
@@ -462,10 +468,10 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
 
     private reload_indicateur_option_rapport_item_by_ids() {
 
-        let res: { [item_id: number]: DataFilterOption } = {};
+        const res: { [item_id: number]: DataFilterOption } = {};
 
-        for (let i in this.rapport_item_by_ids) {
-            let item_site: SuiviCompetencesItemRapportVO = this.rapport_item_by_ids[i];
+        for (const i in this.rapport_item_by_ids) {
+            const item_site: SuiviCompetencesItemRapportVO = this.rapport_item_by_ids[i];
 
             if (item_site.indicateur != null) {
                 res[item_site.suivi_comp_item_id] = this.indicateur_options_by_item_ids[item_site.suivi_comp_item_id].find((indicateur: DataFilterOption) => {
@@ -478,23 +484,23 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     }
 
     private reload_indicateur_options_by_item_ids() {
-        let res: { [item_id: number]: DataFilterOption[] } = {};
+        const res: { [item_id: number]: DataFilterOption[] } = {};
 
-        for (let i in this.all_groupes) {
-            for (let j in this.all_groupes[i].sous_groupe) {
-                for (let k in this.all_groupes[i].sous_groupe[j].items) {
-                    let item: SuiviCompetencesItemVO = this.all_groupes[i].sous_groupe[j].items[k];
+        for (const i in this.all_groupes) {
+            for (const j in this.all_groupes[i].sous_groupe) {
+                for (const k in this.all_groupes[i].sous_groupe[j].items) {
+                    const item: SuiviCompetencesItemVO = this.all_groupes[i].sous_groupe[j].items[k];
 
-                    let indicateurs_item: SuiviCompetencesIndicateurVO[] = SuiviCompetencesIndicateurTableFieldTypeController.getInstance().get_value(item);
+                    const indicateurs_item: SuiviCompetencesIndicateurVO[] = SuiviCompetencesIndicateurTableFieldTypeController.getInstance().get_value(item);
 
                     if (!indicateurs_item?.length) {
                         continue;
                     }
 
-                    let indicateurs: DataFilterOption[] = [];
+                    const indicateurs: DataFilterOption[] = [];
 
-                    for (let i_idx in indicateurs_item) {
-                        let indicateur: SuiviCompetencesIndicateurVO = indicateurs_item[i_idx];
+                    for (const i_idx in indicateurs_item) {
+                        const indicateur: SuiviCompetencesIndicateurVO = indicateurs_item[i_idx];
 
                         indicateurs.push(new DataFilterOption(
                             DataFilterOption.STATE_SELECTABLE,
@@ -518,7 +524,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
 
     private reload_filtered_groupes() {
 
-        let res: SuiviCompetencesGroupeResult[] = [];
+        const res: SuiviCompetencesGroupeResult[] = [];
 
         if (
             !this.get_active_field_filters ||
@@ -535,11 +541,11 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
             return;
         }
 
-        for (let i in this.all_groupes) {
-            let groupe: SuiviCompetencesGroupeResult = this.all_groupes[i];
+        for (const i in this.all_groupes) {
+            const groupe: SuiviCompetencesGroupeResult = this.all_groupes[i];
             let is_ok_groupe: boolean = true;
 
-            for (let field_name in this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID]) {
+            for (const field_name in this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID]) {
                 // Si j'ai un filtrage multiple et que le groupe a la valeur, je rajoute
                 if (
                     !!this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID][field_name]?.param_textarray?.length
@@ -579,23 +585,23 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                 continue;
             }
 
-            let groupe_cloned: SuiviCompetencesGroupeResult = cloneDeep(groupe);
+            const groupe_cloned: SuiviCompetencesGroupeResult = cloneDeep(groupe);
             groupe_cloned.sous_groupe = [];
 
-            for (let j in groupe.sous_groupe) {
-                let sous_groupe = groupe.sous_groupe[j];
-                let sous_groupe_cloned: { id: number, name: string, items: SuiviCompetencesItemVO[] } = cloneDeep(sous_groupe);
+            for (const j in groupe.sous_groupe) {
+                const sous_groupe = groupe.sous_groupe[j];
+                const sous_groupe_cloned: { id: number, name: string, items: SuiviCompetencesItemVO[] } = cloneDeep(sous_groupe);
                 sous_groupe_cloned.items = [];
 
-                for (let k in sous_groupe.items) {
-                    let item: SuiviCompetencesItemVO = sous_groupe.items[k];
-                    let item_rapport: SuiviCompetencesItemRapportVO = this.all_rapport_item_by_ids[item.id];
+                for (const k in sous_groupe.items) {
+                    const item: SuiviCompetencesItemVO = sous_groupe.items[k];
+                    const item_rapport: SuiviCompetencesItemRapportVO = this.all_rapport_item_by_ids[item.id];
 
                     if (!item_rapport) {
                         continue;
                     }
 
-                    for (let field_name in this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID]) {
+                    for (const field_name in this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID]) {
                         if (
                             !!this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID][field_name] &&
                             !RangeHandler.elt_intersects_any_range(item_rapport.indicateur, this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID][field_name].param_numranges)
@@ -629,10 +635,10 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let niveau_maturite_styles: NiveauMaturiteStyle[] = NiveauMaturiteStyle.get_value(this.widget_options?.niveau_maturite_styles);
-        let value_base_100: number = var_value.value * 100;
+        const niveau_maturite_styles: NiveauMaturiteStyle[] = NiveauMaturiteStyle.get_value(this.widget_options?.niveau_maturite_styles);
+        const value_base_100: number = var_value.value * 100;
 
-        let niveau_maturite_style: NiveauMaturiteStyle = niveau_maturite_styles.find((e) => {
+        const niveau_maturite_style: NiveauMaturiteStyle = niveau_maturite_styles.find((e) => {
             if (
                 (e.min <= value_base_100) &&
                 (e.max >= value_base_100)

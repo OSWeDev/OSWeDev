@@ -178,7 +178,6 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
     public static async push_assistant_to_openai(vo: GPTAssistantAPIAssistantVO, is_trigger_pre_x: boolean = true): Promise<Assistant> {
         try {
-
             if (!vo) {
                 throw new Error('No assistant_vo provided');
             }
@@ -753,7 +752,6 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
     }
 
     private static async get_all_assistants(): Promise<Assistant[]> {
-
         let res: Assistant[] = [];
 
         let assistants_page: AssistantsPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.assistants.list, ModuleGPTServer.openai.beta.assistants);

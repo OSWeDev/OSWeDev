@@ -29,7 +29,7 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
-
+import Filters from '../../../../../../shared/tools/Filters';
 import './VarRadarChartWidgetComponent.scss';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
@@ -71,34 +71,21 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
 
     private ordered_dimension: number[] = null;
     private label_by_index: { [index: string]: string[] } = null;
-    private var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = null;
-    private var_params_1_et_2: { [dimension_value: number]: VarDataBaseVO } = null;
+    private var_params_by_dataset_and_dimension: { [dataset_label: string]: { [dimension_value: number]: VarDataBaseVO } } = null;
+    private var_params_1_et_2_by_dataset_and_dimension: { [dataset_label: string]: { [dimension_value: number]: VarDataBaseVO } } = null;
 
     private last_calculation_cpt: number = 0;
 
-    private current_var_params = null;
+    private current_var_params_by_datasets: { [dataset_label: string]: VarDataBaseVO[] } = null;
     private current_var_dataset_descriptor = null;
     private current_options = null;
-
-    @Watch('options')
-    @Watch('var_dataset_descriptor')
-    @Watch('var_params')
-    private async onOptionsChange() {
-        if (!this.options || !this.var_dataset_descriptor || !this.var_params) {
-            return;
-        }
-
-        this.current_options = this.options;
-        this.current_var_dataset_descriptor = this.var_dataset_descriptor;
-        this.current_var_params = this.var_params;
-    }
 
     get var_filter(): () => string {
         if (!this.widget_options) {
             return null;
         }
 
-        if (this.widget_options.filter_type == 'none') {
+        if (this.widget_options.filter_type == Filters.FILTER_TYPE_none) {
             return null;
         }
         return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;
@@ -121,19 +108,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
             return this.t(this.widget_options.get_title_name_code_text(this.page_widget.id));
         }
 
-        return 'Title'
-    }
-
-    private get_bool_option(option: string, default_value: boolean): boolean {
-        return (this.widget_options && (typeof this.widget_options[option] === 'boolean')) ? this.widget_options[option] : default_value;
-    }
-
-    private getLabels(value, context) {
-        if (this.var_filter) {
-            return this.var_filter.apply(this, [value].concat(this.var_filter_additional_params));
-        } else {
-            return value;
-        }
+        return 'Title';
     }
 
     get options() {
@@ -211,14 +186,6 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
         return this.$snotify;
     }
 
-    private getlabel(var_param: VarDataBaseVO) {
-
-        if (!this.label_by_index) {
-            return null;
-        }
-        return this.label_by_index[var_param.id];
-    }
-
     /**
      * 2 cas : soit on a 2 vars, soit on a 1 var et une dimension sur laquelle on déploie la var
      */
@@ -282,51 +249,57 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
         }
     }
 
-    get var_params(): VarDataBaseVO[] {
+    get var_params_by_datasets(): { [dataset_label: string]: VarDataBaseVO[] } {
 
         if (!this.widget_options) {
             return null;
         }
 
-        let res: VarDataBaseVO[] = [];
+        let res: { [dataset_label: string]: VarDataBaseVO[] } = {};
+
         if (this.widget_options.has_dimension) {
-            if ((!this.var_params_by_dimension) || (!this.ordered_dimension) ||
-                (Object.keys(this.var_params_by_dimension).length != this.ordered_dimension.length)) {
+            if ((!this.var_params_by_dataset_and_dimension) || (!this.ordered_dimension) ||
+                (!this.var_params_by_dataset_and_dimension[Object.keys(this.var_params_by_dataset_and_dimension)[0]] || (Object.keys(this.var_params_by_dataset_and_dimension[Object.keys(this.var_params_by_dataset_and_dimension)[0]]).length != this.ordered_dimension.length))) {
                 return null;
             }
 
-            for (let i in this.ordered_dimension) {
-                let dimension = this.ordered_dimension[i];
+            for (const dataset_label in this.var_params_by_dataset_and_dimension) {
+                const var_params_by_dimension = this.var_params_by_dataset_and_dimension[dataset_label];
+                res[dataset_label] = [];
 
-                if (!this.var_params_by_dimension[dimension]) {
-                    return null;
+                for (const i in this.ordered_dimension) {
+                    let dimension = this.ordered_dimension[i];
+
+                    if (!var_params_by_dimension[dimension]) {
+                        return null;
+                    }
+
+                    res[dataset_label].push(var_params_by_dimension[dimension]);
                 }
-
-                res.push(this.var_params_by_dimension[dimension]);
             }
-            return res;
         } else {
-            if ((!this.var_params_1_et_2) || (!this.ordered_dimension) ||
-                (Object.keys(this.var_params_1_et_2).length != this.ordered_dimension.length)) {
+            if ((!this.var_params_1_et_2_by_dataset_and_dimension) || (!this.ordered_dimension) ||
+                (!this.var_params_1_et_2_by_dataset_and_dimension[Object.keys(this.var_params_1_et_2_by_dataset_and_dimension)[0]] || (Object.keys(this.var_params_1_et_2_by_dataset_and_dimension[Object.keys(this.var_params_1_et_2_by_dataset_and_dimension)[0]]).length != this.ordered_dimension.length))) {
                 return null;
             }
 
-            for (let i in this.ordered_dimension) {
-                let dimension = this.ordered_dimension[i];
+            for (const dataset_label in this.var_params_1_et_2_by_dataset_and_dimension) {
+                const var_params_1_et_2_by_dimension = this.var_params_1_et_2_by_dataset_and_dimension[dataset_label];
+                res[dataset_label] = [];
 
-                if (!this.var_params_1_et_2[dimension]) {
-                    return null;
+                for (const i in this.ordered_dimension) {
+                    let dimension = this.ordered_dimension[i];
+
+                    if (!var_params_1_et_2_by_dimension[dimension]) {
+                        return null;
+                    }
+
+                    res[dataset_label].push(var_params_1_et_2_by_dimension[dimension]);
                 }
-
-                res.push(this.var_params_1_et_2[dimension]);
             }
-            return res;
         }
-    }
 
-    @Watch('get_active_field_filters', { deep: true })
-    private async onchange_active_field_filters() {
-        await this.throttled_update_visible_options();
+        return res;
     }
 
     get var_custom_filters_1(): { [var_param_field_name: string]: string } {
@@ -345,6 +318,71 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
         return ObjectHandler.hasAtLeastOneAttribute(this.widget_options.filter_custom_field_filters_2) ? this.widget_options.filter_custom_field_filters_2 : null;
     }
 
+    get widget_options() {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: VarRadarChartWidgetOptionsVO = null;
+        try {
+            if (!!this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as VarRadarChartWidgetOptionsVO;
+                options = options ? new VarRadarChartWidgetOptionsVO().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    }
+
+    @Watch('widget_options', { immediate: true })
+    private async onchange_widget_options() {
+        await this.throttled_update_visible_options();
+    }
+
+    @Watch('get_active_field_filters', { deep: true })
+    private async onchange_active_field_filters() {
+        await this.throttled_update_visible_options();
+    }
+
+    @Watch('options')
+    @Watch('var_dataset_descriptor')
+    @Watch('var_params_by_datasets')
+    private async onOptionsChange() {
+        if (!this.options || !this.var_dataset_descriptor || !this.var_params_by_datasets) {
+            return;
+        }
+
+        this.current_options = this.options;
+        this.current_var_dataset_descriptor = this.var_dataset_descriptor;
+        this.current_var_params_by_datasets = this.var_params_by_datasets;
+    }
+
+    private get_bool_option(option: string, default_value: boolean): boolean {
+        return (this.widget_options && (typeof this.widget_options[option] === 'boolean')) ? this.widget_options[option] : default_value;
+    }
+
+    private getLabels(value, context) {
+        if (this.var_filter) {
+            return this.var_filter.apply(this, [value].concat(this.var_filter_additional_params));
+        } else {
+            return value;
+        }
+    }
+
+    private getlabel(var_param: VarDataBaseVO) {
+
+        if (!this.label_by_index) {
+            return null;
+        }
+        return this.label_by_index[var_param.id];
+    }
+
     private async update_visible_options(force: boolean = false) {
 
         // Si j'ai mon bouton de validation des filtres qui est actif, j'attends que ce soit lui qui m'appelle
@@ -354,10 +392,6 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
 
 
         await this.throttle_do_update_visible_options();
-    }
-
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
     }
 
     private has_widget_validation_filtres(): boolean {
@@ -392,16 +426,16 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
 
     private async get_var_params_by_dimension_when_dimension_is_vo_field_ref(
         custom_filters_1: { [var_param_field_name: string]: ContextFilterVO }
-    ): Promise<{ [dimension_value: number]: VarDataBaseVO }> {
+    ): Promise<{ [dataset_label: string]: { [dimension_value: number]: VarDataBaseVO } }> {
 
         if ((!this.widget_options.var_id_1) || !VarsController.var_conf_by_id[this.widget_options.var_id_1] || !this.widget_options.dimension_vo_field_ref) {
             return null;
         }
 
-        let var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = {};
+        let var_params_by_dataset_and_dimension: { [dataset_label: string]: { [dimension_value: number]: VarDataBaseVO } } = {};
 
         if (this.widget_options.dimension_vo_field_ref == null) {
-            return
+            return;
         }
         /**
          * Si la dimension est un champ de référence, on va chercher les valeurs possibles du champs en fonction des filtres actifs
@@ -422,98 +456,169 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
             ));
         }
 
-        let dimensions = await query_.select_vos(); // on query tout l'objet pour pouvoir faire les labels des dimensions si besoin .field(this.widget_options.dimension_vo_field_ref.field_id)
+        const dimensions = await query_.select_vos(); // on query tout l'objet pour pouvoir faire les labels des dimensions si besoin .field(this.widget_options.dimension_vo_field_ref.field_id)
 
         if ((!dimensions) || (!dimensions.length)) {
-            this.var_params_by_dimension = null;
+            this.var_params_by_dataset_and_dimension = null;
             return;
         }
 
-        let promises = [];
-        let ordered_dimension: number[] = [];
-        let label_by_index: { [index: string]: string[] } = {};
-        let dimension_table = (this.widget_options.dimension_is_vo_field_ref && this.widget_options.dimension_vo_field_ref.api_type_id) ?
-            ModuleTableController.module_tables_by_vo_type[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
-        for (let i in dimensions) {
-            let dimension: any = dimensions[i];
-            let dimension_value: any = dimension[this.widget_options.dimension_vo_field_ref.field_id];
-            if (!dimension_value) {
-                dimension_value = '[NULL]'
+        const datasets = [];
+
+        // Si on cherche à avoir du multi dataset, il faut charger les données
+        if (this.widget_options.multiple_dataset_vo_field_ref?.field_id) {
+
+            const query_dataset: ContextQueryVO = query(this.widget_options.multiple_dataset_vo_field_ref.api_type_id)
+                .set_limit(this.widget_options.max_dataset_values)
+                .using(this.get_dashboard_api_type_ids)
+                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                    FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                ));
+            FieldValueFilterWidgetManager.add_discarded_field_paths(query_dataset, this.get_discarded_field_paths);
+
+            const datasets_vos = await query_dataset.select_vos();
+
+            for (const i in datasets_vos) {
+                const dataset = datasets_vos[i];
+                const dataset_label = dataset[this.widget_options.multiple_dataset_vo_field_ref.field_id];
+
+                if ((dataset_label != null)) {
+                    datasets.push(dataset_label);
+                }
             }
-            if (ordered_dimension.includes(dimension_value)) {
-                continue;
+        } else {
+            if (this.var_dataset_descriptor.label_translatable_code != '') {
+                datasets.push(this.t(this.var_dataset_descriptor.label_translatable_code));
+            } else {
+                datasets.push('Label');
             }
-            ordered_dimension.push(dimension_value);
-
-            promises.push((async () => {
-
-                /**
-                 * Si on a pas de filtre actuellement on le crée, sinon on le remplace avec un filtre sur valeur exacte
-                 */
-                let active_field_filters = cloneDeep(this.get_active_field_filters);
-                if (!active_field_filters) {
-                    active_field_filters = {};
-                }
-
-                if (!active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id]) {
-                    active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id] = {};
-                }
-
-                switch (typeof dimension_value) {
-                    case 'string':
-                        active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
-                            this.widget_options.dimension_vo_field_ref.api_type_id,
-                            this.widget_options.dimension_vo_field_ref.field_id
-                        ).by_text_has(dimension_value);
-                        break;
-                    case 'number':
-                        active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
-                            this.widget_options.dimension_vo_field_ref.api_type_id,
-                            this.widget_options.dimension_vo_field_ref.field_id
-                        ).by_num_has([dimension_value]);
-                        break;
-                }
-
-                var_params_by_dimension[dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                    VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
-                    active_field_filters,
-                    custom_filters_1,
-                    this.get_dashboard_api_type_ids,
-                    this.get_discarded_field_paths);
-
-                if (!var_params_by_dimension[dimension_value]) {
-                    if (dimension_value !== '[NULL]') {
-                        // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
-                        this.snotify.error(this.t('var_line_chart_widget.error.no_data'));
-                        ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
-                        return;
-                    } else {
-                        var_params_by_dimension[dimension_value] = new VarDataBaseVO();
-                    }
-                }
-
-                var_params_by_dimension[dimension_value].id = parseInt(i);
-                let label = 'NULL';
-                if (this.widget_options.dimension_vo_field_ref.field_id) {
-                    if (dimension[this.widget_options.dimension_vo_field_ref.field_id]) {
-                        label = dimension[this.widget_options.dimension_vo_field_ref.field_id];
-                    }
-                } else if (dimension_table && dimension_table.default_label_field) {
-                    label = dimension[dimension_table.default_label_field.field_id];
-                } else if (dimension_table && dimension_table.table_label_function) {
-                    label = dimension_table.table_label_function(dimension);
-                }
-                if (label_by_index[parseInt(i)] === undefined) {
-                    label_by_index[parseInt(i)] = [];
-                }
-                label_by_index[parseInt(i)].push(label);
-
-            })());
         }
+
+        const promises = [];
+        const ordered_dimension: number[] = [];
+        const label_by_index: { [index: string]: string[] } = {};
+        const dimension_table = (this.widget_options.dimension_is_vo_field_ref && this.widget_options.dimension_vo_field_ref.api_type_id) ?
+            ModuleTableController.module_tables_by_vo_type[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
+        let cpt_for_var: number = 0;
+
+        for (const j in datasets) {
+            const dataset = datasets[j];
+
+            var_params_by_dataset_and_dimension[dataset] = {};
+
+            for (const i in dimensions) {
+                const dimension: any = dimensions[i];
+                let dimension_value: any = dimension[this.widget_options.dimension_vo_field_ref.field_id];
+
+                if (!dimension_value) {
+                    dimension_value = '[NULL]';
+                }
+
+                if (!ordered_dimension.includes(dimension_value)) {
+                    ordered_dimension.push(dimension_value);
+                }
+
+                promises.push((async () => {
+
+                    /**
+                     * Si on a pas de filtre actuellement on le crée, sinon on le remplace avec un filtre sur valeur exacte
+                     */
+                    let active_field_filters = cloneDeep(this.get_active_field_filters);
+                    if (!active_field_filters) {
+                        active_field_filters = {};
+                    }
+
+                    if (!active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id]) {
+                        active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id] = {};
+                    }
+
+                    switch (typeof dimension_value) {
+                        case 'string':
+                            active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
+                                this.widget_options.dimension_vo_field_ref.api_type_id,
+                                this.widget_options.dimension_vo_field_ref.field_id
+                            ).by_text_has(dimension_value);
+                            break;
+                        case 'number':
+                            active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
+                                this.widget_options.dimension_vo_field_ref.api_type_id,
+                                this.widget_options.dimension_vo_field_ref.field_id
+                            ).by_num_has([dimension_value]);
+                            break;
+                    }
+
+                    // Si on a un field de dataset, on doit le rajouter aux filtres
+                    if (this.widget_options.multiple_dataset_vo_field_ref?.field_id) {
+                        if (!active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id]) {
+                            active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id] = {};
+                        }
+
+                        switch (typeof dataset) {
+                            case 'string':
+                                active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                                    this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
+                                    this.widget_options.multiple_dataset_vo_field_ref.field_id
+                                ).by_text_has(dataset);
+                                break;
+                            case 'number':
+                                active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                                    this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
+                                    this.widget_options.multiple_dataset_vo_field_ref.field_id
+                                ).by_num_has([dataset]);
+                                break;
+                        }
+                    }
+
+                    var_params_by_dataset_and_dimension[dataset][dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
+                        VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
+                        active_field_filters,
+                        custom_filters_1,
+                        this.get_dashboard_api_type_ids,
+                        this.get_discarded_field_paths);
+
+                    if (!var_params_by_dataset_and_dimension[dataset][dimension_value]) {
+                        // Si on est sur du multi dataset, on peut avoir des datasets sans données
+                        if ((dimension_value !== '[NULL]') && (datasets.length == 1)) {
+                            // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
+                            this.snotify.error(this.t('var_line_chart_widget.error.no_data'));
+                            ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
+                            return;
+                        } else {
+                            var_params_by_dataset_and_dimension[dataset][dimension_value] = new VarDataBaseVO();
+                        }
+                    }
+
+                    var_params_by_dataset_and_dimension[dataset][dimension_value].id = cpt_for_var;
+
+                    let label = 'NULL';
+                    if (this.widget_options.dimension_vo_field_ref.field_id) {
+                        if (dimension[this.widget_options.dimension_vo_field_ref.field_id]) {
+                            label = dimension[this.widget_options.dimension_vo_field_ref.field_id];
+                        }
+                    } else if (dimension_table && dimension_table.default_label_field) {
+                        label = dimension[dimension_table.default_label_field.field_id];
+                    } else if (dimension_table && dimension_table.table_label_function) {
+                        label = dimension_table.table_label_function(dimension);
+                    }
+                    if (label_by_index[cpt_for_var] === undefined) {
+                        label_by_index[cpt_for_var] = [];
+                    }
+
+                    if (label_by_index[cpt_for_var].indexOf(label) < 0) {
+                        label_by_index[cpt_for_var].push(label);
+                    }
+
+                    cpt_for_var++;
+                })());
+            }
+        }
+
         await all_promises(promises);
+
         this.ordered_dimension = ordered_dimension;
         this.label_by_index = label_by_index;
-        return var_params_by_dimension;
+
+        return var_params_by_dataset_and_dimension;
     }
 
     /**
@@ -525,24 +630,24 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
      */
     private async get_var_params_by_dimension_when_dimension_is_custom_filter(
         custom_filters_1: { [var_param_field_name: string]: ContextFilterVO }
-    ): Promise<{ [dimension_value: number]: VarDataBaseVO }> {
+    ): Promise<{ [dataset_label: string]: { [dimension_value: number]: VarDataBaseVO } }> {
 
         if ((!this.widget_options.var_id_1) || !VarsController.var_conf_by_id[this.widget_options.var_id_1]) {
             return null;
         }
 
-        let var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = {};
+        let var_params_by_dataset_and_dimension: { [dataset_label: string]: { [dimension_value: number]: VarDataBaseVO } } = {};
 
         /**
          * Sinon on se base sur la liste des valeurs possibles pour la dimension segmentée
          */
         if (!this.widget_options.dimension_custom_filter_name) {
-            this.var_params_by_dimension = null;
+            this.var_params_by_dataset_and_dimension = null;
             return;
         }
 
         if (!this.widget_options.filter_custom_field_filters_1) {
-            this.var_params_by_dimension = null;
+            this.var_params_by_dataset_and_dimension = null;
             return;
         }
 
@@ -560,7 +665,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
         }
 
         if (!found) {
-            this.var_params_by_dimension = null;
+            this.var_params_by_dataset_and_dimension = null;
             return;
         }
 
@@ -570,74 +675,137 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
          *  puis on itère sur ces ranges en fonction de la segmentation sélectionnée
          *  en limitant au nombre max de valeurs de dimension
          */
-        let dimension_values: number[] = this.get_dimension_values();
+        const dimension_values: number[] = this.get_dimension_values();
 
         if ((!dimension_values) || (!dimension_values.length)) {
-            this.var_params_by_dimension = null;
+            this.var_params_by_dataset_and_dimension = null;
             this.ordered_dimension = null;
             this.label_by_index = null;
             return;
         }
 
+        const datasets = [];
+
+        // Si on cherche à avoir du multi dataset, il faut charger les données
+        if (this.widget_options.multiple_dataset_vo_field_ref?.field_id) {
+
+            const query_dataset: ContextQueryVO = query(this.widget_options.multiple_dataset_vo_field_ref.api_type_id)
+                .set_limit(this.widget_options.max_dataset_values)
+                .using(this.get_dashboard_api_type_ids)
+                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                    FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                ));
+            FieldValueFilterWidgetManager.add_discarded_field_paths(query_dataset, this.get_discarded_field_paths);
+
+            const datasets_vos = await query_dataset.select_vos();
+
+            for (const i in datasets_vos) {
+                const dataset = datasets_vos[i];
+                const dataset_label = dataset[this.widget_options.multiple_dataset_vo_field_ref.field_id];
+
+                if ((dataset_label != null)) {
+                    datasets.push(dataset_label);
+                }
+            }
+        } else {
+            if (this.var_dataset_descriptor.label_translatable_code != '') {
+                datasets.push(this.t(this.var_dataset_descriptor.label_translatable_code));
+            } else {
+                datasets.push('Label');
+            }
+        }
+
         this.ordered_dimension = dimension_values;
 
-        let promises = [];
-        let label_by_index: { [index: string]: string[] } = {};
-        for (let i in dimension_values) {
-            let dimension_value: number = dimension_values[i];
+        const promises = [];
+        const label_by_index: { [index: string]: string[] } = {};
+        let cpt_for_var: number = 0;
 
-            promises.push((async () => {
+        for (const j in datasets) {
+            const dataset = datasets[j];
 
-                /**
-                 * Si on a pas de filtre actuellement on le crée, sinon on le remplace avec un filtre sur valeur exacte
-                 */
-                let active_field_filters = cloneDeep(this.get_active_field_filters);
+            var_params_by_dataset_and_dimension[dataset] = {};
+            for (const i in dimension_values) {
+                const dimension_value: number = dimension_values[i];
 
-                active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name] = filter(
-                    ContextFilterVO.CUSTOM_FILTERS_TYPE,
-                    this.widget_options.dimension_custom_filter_name
-                ).by_date_x_ranges([RangeHandler.create_single_elt_TSRange(dimension_value, this.widget_options.dimension_custom_filter_segment_type)]);
+                promises.push((async () => {
 
-                let update_custom_filters_1 = cloneDeep(custom_filters_1);
-                if (this.get_active_field_filters && this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] &&
-                    this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name]) {
+                    /**
+                     * Si on a pas de filtre actuellement on le crée, sinon on le remplace avec un filtre sur valeur exacte
+                     */
+                    let active_field_filters = cloneDeep(this.get_active_field_filters);
 
-                    for (let field_name in this.widget_options.filter_custom_field_filters_1) {
+                    active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name] = filter(
+                        ContextFilterVO.CUSTOM_FILTERS_TYPE,
+                        this.widget_options.dimension_custom_filter_name
+                    ).by_date_x_ranges([RangeHandler.create_single_elt_TSRange(dimension_value, this.widget_options.dimension_custom_filter_segment_type)]);
 
-                        let custom_filter_name = this.widget_options.filter_custom_field_filters_1[field_name];
-                        if (custom_filter_name == this.widget_options.dimension_custom_filter_name) {
-                            if (!update_custom_filters_1) {
-                                update_custom_filters_1 = {};
+                    let update_custom_filters_1 = cloneDeep(custom_filters_1);
+                    if (this.get_active_field_filters && this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] &&
+                        this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name]) {
+
+                        for (let field_name in this.widget_options.filter_custom_field_filters_1) {
+
+                            let custom_filter_name = this.widget_options.filter_custom_field_filters_1[field_name];
+                            if (custom_filter_name == this.widget_options.dimension_custom_filter_name) {
+                                if (!update_custom_filters_1) {
+                                    update_custom_filters_1 = {};
+                                }
+                                update_custom_filters_1[field_name] = active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name];
                             }
-                            update_custom_filters_1[field_name] = active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name];
                         }
                     }
-                }
 
-                var_params_by_dimension[dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                    VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
-                    active_field_filters,
-                    update_custom_filters_1,
-                    this.get_dashboard_api_type_ids,
-                    this.get_discarded_field_paths);
+                    // Si on a un field de dataset, on doit le rajouter aux filtres
+                    if (this.widget_options.multiple_dataset_vo_field_ref?.field_id) {
+                        if (!active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id]) {
+                            active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id] = {};
+                        }
 
-                if (!var_params_by_dimension[dimension_value]) {
-                    // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
-                    ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
-                    return;
-                }
-                var_params_by_dimension[dimension_value].id = parseInt(i);
-                if (label_by_index[parseInt(i)] === undefined) {
-                    label_by_index[parseInt(i)] = [];
-                }
-                label_by_index[parseInt(i)].push(Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type));
-            })());
+                        switch (typeof dataset) {
+                            case 'string':
+                                active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                                    this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
+                                    this.widget_options.multiple_dataset_vo_field_ref.field_id
+                                ).by_text_has(dataset);
+                                break;
+                            case 'number':
+                                active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                                    this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
+                                    this.widget_options.multiple_dataset_vo_field_ref.field_id
+                                ).by_num_has([dataset]);
+                                break;
+                        }
+                    }
+
+                    var_params_by_dataset_and_dimension[dataset][dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
+                        VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
+                        active_field_filters,
+                        update_custom_filters_1,
+                        this.get_dashboard_api_type_ids,
+                        this.get_discarded_field_paths);
+
+                    if (!var_params_by_dataset_and_dimension[dataset][dimension_value]) {
+                        // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
+                        ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
+                        return;
+                    }
+                    var_params_by_dataset_and_dimension[dataset][dimension_value].id = cpt_for_var;
+                    if (label_by_index[cpt_for_var] === undefined) {
+                        label_by_index[cpt_for_var] = [];
+                    }
+                    label_by_index[cpt_for_var].push(Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type));
+
+                    cpt_for_var++;
+                })());
+            }
         }
 
         await all_promises(promises);
 
         this.label_by_index = label_by_index;
-        return var_params_by_dimension;
+
+        return var_params_by_dataset_and_dimension;
     }
 
     /**
@@ -687,8 +855,8 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
         if (!this.widget_options) {
             this.ordered_dimension = null;
             this.label_by_index = null;
-            this.var_params_1_et_2 = null;
-            this.var_params_by_dimension = null;
+            this.var_params_1_et_2_by_dataset_and_dimension = null;
+            this.var_params_by_dataset_and_dimension = null;
             return;
         }
 
@@ -704,15 +872,15 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
         custom_filters_1: { [var_param_field_name: string]: ContextFilterVO },
         launch_cpt: number
     ) {
-        if (this.var_params_1_et_2) {
-            this.var_params_1_et_2 = null;
+        if (this.var_params_1_et_2_by_dataset_and_dimension) {
+            this.var_params_1_et_2_by_dataset_and_dimension = null;
         }
 
-        let var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = {};
+        let var_params_by_dataset_and_dimension: { [dataset_label: string]: { [dimension_value: number]: VarDataBaseVO } } = {};
         if (!!this.widget_options.dimension_is_vo_field_ref) {
-            var_params_by_dimension = await this.get_var_params_by_dimension_when_dimension_is_vo_field_ref(custom_filters_1);
+            var_params_by_dataset_and_dimension = await this.get_var_params_by_dimension_when_dimension_is_vo_field_ref(custom_filters_1);
         } else {
-            var_params_by_dimension = await this.get_var_params_by_dimension_when_dimension_is_custom_filter(custom_filters_1);
+            var_params_by_dataset_and_dimension = await this.get_var_params_by_dimension_when_dimension_is_custom_filter(custom_filters_1);
         }
 
         // Si je ne suis pas sur la dernière demande, je me casse
@@ -720,7 +888,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
             return;
         }
 
-        this.var_params_by_dimension = var_params_by_dimension;
+        this.var_params_by_dataset_and_dimension = var_params_by_dataset_and_dimension;
     }
 
     private async set_var_params_1_et_2(
@@ -730,36 +898,102 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
 
         if (((!this.widget_options.var_id_1) || !VarsController.var_conf_by_id[this.widget_options.var_id_1]) ||
             ((!this.widget_options.var_id_2) || !VarsController.var_conf_by_id[this.widget_options.var_id_2])) {
-            this.var_params_by_dimension = null;
-            this.var_params_1_et_2 = null;
+            this.var_params_by_dataset_and_dimension = null;
+            this.var_params_1_et_2_by_dataset_and_dimension = null;
             return null;
         }
 
-        if (this.var_params_by_dimension) {
-            this.var_params_by_dimension = null;
+        if (this.var_params_by_dataset_and_dimension) {
+            this.var_params_by_dataset_and_dimension = null;
         }
 
-        let custom_filters_2: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters_2, this.get_active_field_filters);
+        const custom_filters_2: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters_2, this.get_active_field_filters);
+        const var_params_1_et_2_by_dataset_and_dimension: { [dataset_label: string]: { [dimension_value: number]: VarDataBaseVO } } = {};
+        const promises = [];
+        const datasets = [];
 
-        let promises = [];
-        let var_1 = null;
-        let var_2 = null;
-        promises.push((async () => {
-            var_1 = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
-                this.get_active_field_filters,
-                custom_filters_1,
-                this.get_dashboard_api_type_ids,
-                this.get_discarded_field_paths);
-        })());
-        promises.push((async () => {
-            var_2 = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                VarsController.var_conf_by_id[this.widget_options.var_id_2].name,
-                this.get_active_field_filters,
-                custom_filters_2,
-                this.get_dashboard_api_type_ids,
-                this.get_discarded_field_paths);
-        })());
+        // Si on cherche à avoir du multi dataset, il faut charger les données
+        if (this.widget_options.multiple_dataset_vo_field_ref?.field_id) {
+
+            const query_dataset: ContextQueryVO = query(this.widget_options.multiple_dataset_vo_field_ref.api_type_id)
+                .set_limit(this.widget_options.max_dataset_values)
+                .using(this.get_dashboard_api_type_ids)
+                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                    FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                ));
+            FieldValueFilterWidgetManager.add_discarded_field_paths(query_dataset, this.get_discarded_field_paths);
+
+            const datasets_vos = await query_dataset.select_vos();
+
+            for (const i in datasets_vos) {
+                const dataset = datasets_vos[i];
+                const dataset_label = dataset[this.widget_options.multiple_dataset_vo_field_ref.field_id];
+
+                if ((dataset_label != null)) {
+                    datasets.push(dataset_label);
+                }
+            }
+        } else {
+            if (this.var_dataset_descriptor.label_translatable_code != '') {
+                datasets.push(this.t(this.var_dataset_descriptor.label_translatable_code));
+            } else {
+                datasets.push('Label');
+            }
+        }
+
+        for (const i in datasets) {
+            const dataset = datasets[i];
+
+            var_params_1_et_2_by_dataset_and_dimension[dataset] = {};
+
+            /**
+             * Si on a pas de filtre actuellement on le crée, sinon on le remplace avec un filtre sur valeur exacte
+             */
+            let active_field_filters = cloneDeep(this.get_active_field_filters);
+
+            if (!active_field_filters) {
+                active_field_filters = {};
+            }
+
+            // Si on a un field de dataset, on doit le rajouter aux filtres
+            if (this.widget_options.multiple_dataset_vo_field_ref?.field_id) {
+                if (!active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id]) {
+                    active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id] = {};
+                }
+
+                switch (typeof dataset) {
+                    case 'string':
+                        active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                            this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
+                            this.widget_options.multiple_dataset_vo_field_ref.field_id
+                        ).by_text_has(dataset);
+                        break;
+                    case 'number':
+                        active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                            this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
+                            this.widget_options.multiple_dataset_vo_field_ref.field_id
+                        ).by_num_has([dataset]);
+                        break;
+                }
+            }
+
+            promises.push((async () => {
+                var_params_1_et_2_by_dataset_and_dimension[dataset][0] = await ModuleVar.getInstance().getVarParamFromContextFilters(
+                    VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
+                    active_field_filters,
+                    custom_filters_1,
+                    this.get_dashboard_api_type_ids,
+                    this.get_discarded_field_paths);
+            })());
+            promises.push((async () => {
+                var_params_1_et_2_by_dataset_and_dimension[dataset][1] = await ModuleVar.getInstance().getVarParamFromContextFilters(
+                    VarsController.var_conf_by_id[this.widget_options.var_id_2].name,
+                    active_field_filters,
+                    custom_filters_2,
+                    this.get_dashboard_api_type_ids,
+                    this.get_discarded_field_paths);
+            })());
+        }
 
         await all_promises(promises);
 
@@ -767,43 +1001,13 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
         if (this.last_calculation_cpt != launch_cpt) {
             return;
         }
-        if (!var_1 || !var_2) {
-            this.var_params_by_dimension = null;
-            this.var_params_1_et_2 = null;
-            return null;
-        }
 
         this.ordered_dimension = [0, 1];
         this.label_by_index = {
             0: [this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1))],
             1: [this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_2))]
         };
-        this.var_params_1_et_2 = {
-            0: var_1,
-            1: var_2
-        };
-    }
 
-    @Watch('widget_options', { immediate: true })
-    private async onchange_widget_options() {
-        await this.throttled_update_visible_options();
-    }
-
-    get widget_options() {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: VarRadarChartWidgetOptionsVO = null;
-        try {
-            if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as VarRadarChartWidgetOptionsVO;
-                options = options ? new VarRadarChartWidgetOptionsVO().from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
+        this.var_params_1_et_2_by_dataset_and_dimension = var_params_1_et_2_by_dataset_and_dimension;
     }
 }
