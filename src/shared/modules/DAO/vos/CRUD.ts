@@ -168,7 +168,7 @@ export default class CRUD<T extends IDistantVOBase> {
             let dt_fields: Array<DatatableField<any, any>> = [
                 ComputedDatatableFieldVO.createNew(
                     field.field_id + '__target_label',
-                    ModuleDAO.getInstance().get_compute_function_uid(field.foreign_ref_vo_type)
+                    ModuleDAO.instance.get_compute_function_uid(field.foreign_ref_vo_type)
                 )
             ];
 
@@ -207,7 +207,7 @@ export default class CRUD<T extends IDistantVOBase> {
                             [
                                 ComputedDatatableFieldVO.createNew(
                                     field.foreign_ref_vo_type + '__' + field.field_id + '__target_label',
-                                    ModuleDAO.getInstance().get_compute_function_uid(field.foreign_ref_vo_type)
+                                    ModuleDAO.instance.get_compute_function_uid(field.foreign_ref_vo_type)
                                 )
                             ]);
                     }
@@ -231,7 +231,7 @@ export default class CRUD<T extends IDistantVOBase> {
                     const dt_fields: Array<DatatableField<any, any>> = [
                         ComputedDatatableFieldVO.createNew(
                             field.field_id + '__target_label',
-                            ModuleDAO.getInstance().get_compute_function_uid(field.foreign_ref_vo_type)
+                            ModuleDAO.instance.get_compute_function_uid(field.foreign_ref_vo_type)
                         )
                     ];
 
@@ -331,7 +331,7 @@ export default class CRUD<T extends IDistantVOBase> {
                         [
                             ComputedDatatableFieldVO.createNew(
                                 otherField.foreign_ref_vo_type + '__' + field.field_id + '__target_label',
-                                ModuleDAO.getInstance().get_compute_function_uid(otherField.foreign_ref_vo_type)
+                                ModuleDAO.instance.get_compute_function_uid(otherField.foreign_ref_vo_type)
                             )
                         ]));
                     continue;
@@ -414,7 +414,7 @@ export default class CRUD<T extends IDistantVOBase> {
                         [
                             ComputedDatatableFieldVO.createNew(
                                 field.field_id + '__target_label',
-                                ModuleDAO.getInstance().get_compute_function_uid(table.vo_type)
+                                ModuleDAO.instance.get_compute_function_uid(table.vo_type)
                             )
                         ]));
                     continue;

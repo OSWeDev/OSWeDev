@@ -1,3 +1,4 @@
+import { IRequestStackContext } from '../../../ServerExpressController';
 import IForkMessage from '../interfaces/IForkMessage';
 
 export default class BGThreadProcessTaskForkMessage implements IForkMessage {
@@ -15,6 +16,10 @@ export default class BGThreadProcessTaskForkMessage implements IForkMessage {
         public bgthread: string,
         public message_content: string,
         public message_content_params: any,
+
+        public stack_context: IRequestStackContext, // Pour maintenir le contexte actif dans l'autre thread
+
+        public callback_forked_uid: number = null,
         public callback_id: string = null
     ) {
 

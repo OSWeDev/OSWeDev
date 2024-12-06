@@ -103,7 +103,7 @@ export default class MaintenanceBGThread implements IBGThread {
             }
 
             if (changed) {
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(maintenance);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(maintenance);
             }
             this.stats_out('ok', time_in);
             return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;

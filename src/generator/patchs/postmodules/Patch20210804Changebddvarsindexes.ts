@@ -67,7 +67,7 @@ export default class Patch20210804Changebddvarsindexes implements IGeneratorWork
                     " as matches) " +
                     " where _bdd_only_index ~* '^(?:(.*\\[\\[)(\\d{13}),(\\d{13})(\\)\\].*))+$'";
 
-                await ModuleDAOServer.getInstance().query(query);
+                await ModuleDAOServer.instance.query(query);
 
                 nb_runs--;
             }

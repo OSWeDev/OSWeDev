@@ -50,8 +50,8 @@ export default class VarsProcessInvalidator {
 
 
     public async work(): Promise<void> {
-        VarsProcessInvalidator.WARN_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_WARN_MAX_EXECUTION_TIME_SECOND, 60);
-        VarsProcessInvalidator.ALERT_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_ALERT_MAX_EXECUTION_TIME_SECOND, 120);
+        VarsProcessInvalidator.WARN_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_WARN_MAX_EXECUTION_TIME_SECOND, 60, null);
+        VarsProcessInvalidator.ALERT_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_ALERT_MAX_EXECUTION_TIME_SECOND, 120, null);
 
         // eslint-disable-next-line no-constant-condition
         while (true) {

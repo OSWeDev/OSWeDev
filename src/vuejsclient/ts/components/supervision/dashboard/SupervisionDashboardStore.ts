@@ -29,14 +29,6 @@ export interface ISupervisionState {
 
 export default class SupervisionDashboardStore implements IStoreModule<ISupervisionState, SupervisionContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): SupervisionDashboardStore {
-        if (!SupervisionDashboardStore.instance) {
-            SupervisionDashboardStore.instance = new SupervisionDashboardStore();
-        }
-        return SupervisionDashboardStore.instance;
-    }
-
     private static instance: SupervisionDashboardStore;
 
     public module_name: string;
@@ -139,7 +131,16 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             set_api_type_ids_by_category_ids: (context: SupervisionContext, api_type_ids_by_category_ids: { [id: number]: string[] }): any => context.commit(store_mutations_names(this).set_api_type_ids_by_category_ids, api_type_ids_by_category_ids),
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): SupervisionDashboardStore {
+        if (!SupervisionDashboardStore.instance) {
+            SupervisionDashboardStore.instance = new SupervisionDashboardStore();
+        }
+        return SupervisionDashboardStore.instance;
+    }
 }
 
-export const ModuleSupervisionGetter = namespace('SupervisionDashboardStore', Getter);
-export const ModuleSupervisionAction = namespace('SupervisionDashboardStore', Action);
+const __namespace = namespace('SupervisionDashboardStore');
+export const ModuleSupervisionGetter = __namespace.Getter;
+export const ModuleSupervisionAction = __namespace.Action;

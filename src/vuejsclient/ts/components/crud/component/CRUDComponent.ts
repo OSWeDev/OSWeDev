@@ -717,7 +717,7 @@ export default class CRUDComponent extends VueComponentBase {
                         }
                     }
 
-                    const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
+                    const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(apiokVo);
                     if ((!res) || (!res.id)) {
                         self.creating_vo = false;
                         reject({
@@ -884,7 +884,7 @@ export default class CRUDComponent extends VueComponentBase {
 
                 if (need_update_links.length > 0) {
 
-                    await ModuleDAO.getInstance().insertOrUpdateVOs(need_update_links);
+                    await ModuleDAO.instance.insertOrUpdateVOs(need_update_links);
                     for (const linki in need_update_links) {
 
                         this.updateData(need_update_links[linki]);
@@ -952,7 +952,7 @@ export default class CRUDComponent extends VueComponentBase {
                 if (need_add_links.length > 0) {
                     for (const linki in need_add_links) {
 
-                        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(need_add_links[linki]);
+                        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(need_add_links[linki]);
                         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                             this.snotify.error(this.label('crud.create.errors.many_to_many_failure'));
                             continue;
@@ -962,7 +962,7 @@ export default class CRUDComponent extends VueComponentBase {
                     }
                 }
                 if (need_delete_links.length > 0) {
-                    await ModuleDAO.getInstance().deleteVOs(need_delete_links);
+                    await ModuleDAO.instance.deleteVOs(need_delete_links);
                     for (const linki in need_delete_links) {
                         this.removeData({
                             API_TYPE_ID: field.interModuleTable.vo_type,
@@ -1035,7 +1035,7 @@ export default class CRUDComponent extends VueComponentBase {
                         }
                     }
 
-                    const res = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
+                    const res = await ModuleDAO.instance.insertOrUpdateVO(apiokVo);
                     const id = (res && res.id) ? parseInt(res.id.toString()) : null;
 
                     if ((!res) || (!id) || (id != self.selectedVO.id)) {
@@ -1140,7 +1140,7 @@ export default class CRUDComponent extends VueComponentBase {
 
                 try {
 
-                    await ModuleDAO.getInstance().deleteVOs([this.selectedVO]);
+                    await ModuleDAO.instance.deleteVOs([this.selectedVO]);
 
                     // On invalide le cache pour éviter de récupérer le même vo depuis le cache
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.selectedVO._type]);
@@ -1238,7 +1238,7 @@ export default class CRUDComponent extends VueComponentBase {
                     this.editableVO[field.datatable_field_uid] = fileVo[field.datatable_field_uid];
                     fileVo[field.datatable_field_uid] = tmp;
 
-                    await ModuleDAO.getInstance().insertOrUpdateVOs([this.editableVO, fileVo]);
+                    await ModuleDAO.instance.insertOrUpdateVOs([this.editableVO, fileVo]);
                     this.updateData(this.editableVO);
                     this.updateData(fileVo);
                 }
@@ -1248,7 +1248,7 @@ export default class CRUDComponent extends VueComponentBase {
                 if (vo) {
                     this.editableVO[field.datatable_field_uid] = fileVo.path;
 
-                    await ModuleDAO.getInstance().insertOrUpdateVO(this.editableVO);
+                    await ModuleDAO.instance.insertOrUpdateVO(this.editableVO);
                     this.updateData(this.editableVO);
                     this.updateData(fileVo);
                 }
@@ -1294,7 +1294,7 @@ export default class CRUDComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('crud.actions.delete_all.start'));
 
-                        await ModuleDAO.getInstance().truncate(self.api_type_id);
+                        await ModuleDAO.instance.truncate(self.api_type_id);
                         await self.reload_datas();
                     },
                     bold: false,

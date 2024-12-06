@@ -44,7 +44,7 @@ export default class PasswordInitialisation {
 
     public async begininitpwd(email: string): Promise<boolean> {
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -59,7 +59,7 @@ export default class PasswordInitialisation {
 
     public async begininitpwd_uid(uid: number): Promise<boolean> {
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecoveryUID(uid);
 
         if (!user) {
             return false;
@@ -118,7 +118,7 @@ export default class PasswordInitialisation {
             return;
         }
 
-        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.instance.selectOneUserForRecovery(email);
 
         if (!user) {
             return false;

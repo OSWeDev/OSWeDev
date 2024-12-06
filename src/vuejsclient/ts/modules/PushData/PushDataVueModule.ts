@@ -21,6 +21,8 @@ import ClientAPIController from "../API/ClientAPIController";
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
 import VOEventRegistrationsHandler from "./VOEventRegistrationsHandler";
+import ThreadHandler from "../../../../shared/tools/ThreadHandler";
+import TimeSegment from "../../../../shared/modules/DataRender/vos/TimeSegment";
 import EnvParamsVO from "../../../../shared/modules/EnvParam/vos/EnvParamsVO";
 import ModuleEnvParam from "../../../../shared/modules/EnvParam/ModuleEnvParam";
 import ModuleAccessPolicy from "../../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
@@ -29,8 +31,6 @@ import OseliaController from "../../../../shared/modules/Oselia/OseliaController
 import ModuleGPT from "../../../../shared/modules/GPT/ModuleGPT";
 import VueAppController from "../../../VueAppController";
 import FileVO from "../../../../shared/modules/File/vos/FileVO";
-import ThreadHandler from "../../../../shared/tools/ThreadHandler";
-import TimeSegment from "../../../../shared/modules/DataRender/vos/TimeSegment";
 
 export default class PushDataVueModule extends VueModuleBase {
 
@@ -388,7 +388,8 @@ export default class PushDataVueModule extends VueModuleBase {
             ConsoleHandler.error("notifications_handler:!VueAppBase.instance_: Might loose some notifications:" + JSON.stringify(notifications));
             return;
         }
-        notifications = APIControllerWrapper.try_translate_vos_from_api(notifications);
+        // notifications = APIControllerWrapper.try_translate_vos_from_api(notifications);
+        notifications = ObjectHandler.reapply_prototypes(notifications);
 
         /**
          * On regroupe par type pour gérer en bloc ensuite
@@ -884,7 +885,7 @@ export default class PushDataVueModule extends VueModuleBase {
                         switch (vo.marker) {
                             case NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME:
 
-                                const PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
+                                const PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL, null, 10000);
 
                                 // let content = LocaleManager.getInstance().i18n.t('PushDataServerController.session_invalidated.___LABEL___');
                                 // VueAppBase.instance_.vueInstance.snotify.warning(content, {

@@ -99,7 +99,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_GET_AVATAR_URL = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_url";
     public static APINAME_GET_AVATAR_NAME = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_name";
 
-    public static AVATAR_DEFAULT_URL = '/vuejsclient/public/img/avatars/unknown.png';
+    public static AVATAR_DEFAULT_URL = '/public/vuejsclient/img/avatars/unknown.png';
 
     public static APINAME_send_session_share_email = "send_session_share_email";
     public static APINAME_send_session_share_sms = "send_session_share_sms";
@@ -114,7 +114,7 @@ export default class ModuleAccessPolicy extends Module {
     public static PARAM_NAME_LOGIN_INFOS = 'ModuleAccessPolicy.LOGIN_INFOS';
     public static PARAM_NAME_LOGIN_CGU = 'ModuleAccessPolicy.LOGIN_CGU';
 
-    private static instance: ModuleAccessPolicy = null;
+    public static instance: ModuleAccessPolicy = null;
 
     public sendrecapture: (email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_sendrecapture);
     public begininitpwd: (email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_begininitpwd);

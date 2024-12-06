@@ -1,6 +1,6 @@
 /* istanbul ignore file: nothing to test */
 
-import { Express } from 'express';
+import { Application, Express } from 'express';
 import IModuleBase from '../../shared/modules/IModuleBase';
 import Module from '../../shared/modules/Module';
 import ModulesManager from '../../shared/modules/ModulesManager';
@@ -25,7 +25,7 @@ export default abstract class ModuleServerBase implements IModuleBase {
     public registerApis() { }
 
     public initialize() { }
-    public registerExpressApis(app: Express): void { }
+    public registerExpressApis(app: Application): void { }
     public async registerAccessPolicies(is_generator: boolean = false): Promise<void> { }
     public async registerAccessRoles(): Promise<void> { }
     // istanbul ignore next: cannot test registerServerApiHandlers

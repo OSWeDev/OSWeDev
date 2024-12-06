@@ -160,7 +160,7 @@ export default class CMSPageComponent extends VueComponentBase {
 
             instantiated_page_component.weight = index;
 
-            const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(instantiated_page_component);
+            const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(instantiated_page_component);
             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                 return false;
             }
@@ -205,7 +205,7 @@ export default class CMSPageComponent extends VueComponentBase {
             weight: index
         };
 
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_composant_constructor);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(new_composant_constructor);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             this.snotify.error(this.label('cms.insert_new_composant.failure'));
             return;
@@ -232,7 +232,7 @@ export default class CMSPageComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('cms.delete.start'));
 
-                        const insertOrDeleteQueryResult_: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([instantiated_page_component]);
+                        const insertOrDeleteQueryResult_: InsertOrDeleteQueryResult[] = await ModuleDAO.instance.deleteVOs([instantiated_page_component]);
                         if ((!insertOrDeleteQueryResult_) || (insertOrDeleteQueryResult_.length != 1)) {
                             self.snotify.error(self.label('cms.delete.error'));
                             return;

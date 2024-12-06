@@ -43,7 +43,7 @@ export default class Patch20241023AddOseliaFunction_azure_get_last_unread_email 
             func.prepend_thread_vo = true;
             func.use_promise_pipeline = false;
             func.json_stringify_output = true;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(func);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(func);
 
             await this.create_params_description_if_not_exists(func);
         }
@@ -60,7 +60,7 @@ export default class Patch20241023AddOseliaFunction_azure_get_last_unread_email 
         registration_name_param.required = true;
         registration_name_param.weight = 0;
         registration_name_param.default_json_value = null;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(registration_name_param);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(registration_name_param);
 
         // email: string,
         const email_param: GPTAssistantAPIFunctionParamVO = new GPTAssistantAPIFunctionParamVO();
@@ -71,7 +71,7 @@ export default class Patch20241023AddOseliaFunction_azure_get_last_unread_email 
         email_param.required = true;
         email_param.weight = 2;
         email_param.default_json_value = null;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(email_param);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(email_param);
 
         // mark_as_read: string,
         const mark_as_read_param: GPTAssistantAPIFunctionParamVO = new GPTAssistantAPIFunctionParamVO();
@@ -82,7 +82,7 @@ export default class Patch20241023AddOseliaFunction_azure_get_last_unread_email 
         mark_as_read_param.required = false;
         mark_as_read_param.weight = 3;
         mark_as_read_param.default_json_value = JSON.stringify(false);
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(mark_as_read_param);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(mark_as_read_param);
 
     }
 }

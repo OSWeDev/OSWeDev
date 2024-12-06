@@ -43,7 +43,7 @@ export default class VarsImportsHandler {
         node: VarDAGNode,
         FOR_TU_imports: VarDataBaseVO[] = null) {
 
-        const imports: VarDataBaseVO[] = FOR_TU_imports ? FOR_TU_imports : (ConfigurationService.IS_UNIT_TEST_MODE ? [] : await ModuleDAO.getInstance().getVarImportsByMatroidParams(node.var_data._type, [node.var_data], null));
+        const imports: VarDataBaseVO[] = FOR_TU_imports ? FOR_TU_imports : (ConfigurationService.IS_UNIT_TEST_MODE ? [] : await ModuleDAO.instance.getVarImportsByMatroidParams(node.var_data._type, [node.var_data], null));
 
         if ((!imports) || (!imports.length)) {
             return;

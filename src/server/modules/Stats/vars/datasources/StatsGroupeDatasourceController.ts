@@ -21,7 +21,7 @@ export default class StatsGroupeDatasourceController extends DataSourceControlle
 
     public async get_data(param: StatsGroupSecDataRangesVO): Promise<StatsGroupVO[]> {
 
-        return await query(StatsGroupVO.API_TYPE_ID)
+        return query(StatsGroupVO.API_TYPE_ID)
             .filter_by_ids(param.stats_groupe_id_ranges)
             .select_vos<StatsGroupVO>();
     }

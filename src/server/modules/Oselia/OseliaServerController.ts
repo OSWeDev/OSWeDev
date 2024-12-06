@@ -51,7 +51,7 @@ export default class OseliaServerController {
             .filter_by_text_eq(field_names<OseliaPromptVO>().name, prompt_name)
             .exec_as_server()
             .select_vo<OseliaPromptVO>();
-        return await OseliaServerController.prompt_oselia(prompt, prompt_parameters, thread_title, thread, user_id, files);
+        return OseliaServerController.prompt_oselia(prompt, prompt_parameters, thread_title, thread, user_id, files);
     }
 
     public static async prompt_oselia(
@@ -167,14 +167,14 @@ export default class OseliaServerController {
                 for (const i in prompt_parameters) {
                     thread.metadata[i] = prompt_parameters[i];
                 }
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread);
             }
 
             thread.current_oselia_prompt_id = prompt.id;
             if (assistant) {
                 thread.current_default_assistant_id = assistant.id;
             }
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread);
 
             prompt_string = await OseliaServerController.apply_cache_parameters(prompt_string, thread);
             prompt_string = OseliaServerController.apply_prompt_parameters(prompt_string, prompt_parameters);
@@ -275,6 +275,6 @@ export default class OseliaServerController {
         const thread_referrer: OseliaThreadReferrerVO = new OseliaThreadReferrerVO();
         thread_referrer.thread_id = thread.id;
         thread_referrer.referrer_id = referrer.id;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_referrer);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_referrer);
     }
 }

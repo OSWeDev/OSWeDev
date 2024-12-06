@@ -161,7 +161,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
 
     get role_assistant_avatar_url() {
-        return '/vuejsclient/public/img/avatars/oselia.png';
+        return '/public/vuejsclient/img/avatars/oselia.png';
     }
 
     get file_system_url() {
@@ -354,7 +354,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.enable_file_system_menu = !this.enable_file_system_menu;
         this.enable_image_upload_menu = false;
         this.enable_link_image_menu = false;
-        this.dashboard_export_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_EXPORT_DASHBOARD_ID_PARAM_NAME);
+        this.dashboard_export_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_EXPORT_DASHBOARD_ID_PARAM_NAME, null, 10000);
         const num_range: NumRange = NumRange.createNew(0, 10, true, true, 0);
         await this.listen_for_message(this.dashboard_export_id, num_range);
     }
@@ -461,7 +461,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 // Upload via insert or update
                 const new_file = new FileVO();
                 new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
-                const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
+                const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
                 new_file.id = resnew_file.id;
                 this.thread_files.push({ ['.' + file.name.split('.').pop()]: new_file });
             });

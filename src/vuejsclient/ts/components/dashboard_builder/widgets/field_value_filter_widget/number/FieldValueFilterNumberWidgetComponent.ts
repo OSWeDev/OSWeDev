@@ -622,7 +622,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 this.vo_field_ref.api_type_id;
 
 
-            const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+            const access_policy_name = ModuleDAO.instance.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
             const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
 
             if (!has_access) {
@@ -684,7 +684,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     true);
             }
 
-            tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
+            tmp = await ModuleContextFilter.instance.select_filter_visible_options(
                 query_,
                 this.actual_query
             );

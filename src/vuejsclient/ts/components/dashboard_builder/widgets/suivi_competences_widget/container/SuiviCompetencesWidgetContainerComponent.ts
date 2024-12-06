@@ -106,7 +106,7 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
 
         this.all_rapport_item_by_ids[item.id].indicateur = this.indicateur_option_rapport_item_by_ids[item.id] ? this.indicateur_option_rapport_item_by_ids[item.id].id : null;
 
-        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(this.all_rapport_item_by_ids[item.id]);
+        let res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(this.all_rapport_item_by_ids[item.id]);
 
         if (!res?.id) {
             throw new Error('Erreur lors de la sauvegarde');

@@ -110,7 +110,7 @@ export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
                 await GPTAssistantAPIServerSyncVectorStoreFileBatchesController.assign_vo_from_gpt(vo, gpt_obj);
 
                 if (!is_trigger_pre_x) {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(vo);
                 }
             }
 
@@ -180,7 +180,7 @@ export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
                     }
 
                     await GPTAssistantAPIServerSyncVectorStoreFileBatchesController.assign_vo_from_gpt(vector_store_file_batch_vo, vector_store_file_batch_gpt);
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vector_store_file_batch_vo);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(vector_store_file_batch_vo);
                 }
             });
         }

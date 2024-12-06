@@ -24,7 +24,7 @@ export default class UserCompteComponent extends VueComponentBase {
         }
 
         // Sauvegarde de l'utilisateur en base
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.user);
+        await ModuleDAO.instance.insertOrUpdateVO(this.user);
 
         // On affiche le message de sauvegarde
         this.snotify.info(this.label('client.user.mon-compte.enregistrement.ok'));

@@ -99,7 +99,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
 
             fimg.formatted_src = vo_update_handler.post_update_vo.path;
         }
-        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(fimgs);
+        await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(fimgs);
     }
 
     private async handleTriggerPostUpdateImageFormat(update: DAOUpdateVOHolder<ImageFormatVO>) {
@@ -286,7 +286,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
                 new_img_file = new FileVO();
                 new_img_file.is_secured = false;
                 new_img_file.path = new_src;
-                const resnew_img_file: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_img_file);
+                const resnew_img_file: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(new_img_file);
                 new_img_file.id = resnew_img_file.id;
             }
 
@@ -350,7 +350,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             new_img_formattee.remplir_haut = format.remplir_haut;
             new_img_formattee.remplir_larg = format.remplir_larg;
             new_img_formattee.formatted_src = new_img_file.path;
-            const res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_img_formattee);
+            const res = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(new_img_formattee);
             new_img_formattee.id = res.id;
             return new_img_formattee;
         } catch (error) {

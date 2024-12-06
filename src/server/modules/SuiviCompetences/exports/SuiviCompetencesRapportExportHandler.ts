@@ -65,7 +65,8 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
             return null;
         }
 
-        let import_params: ExportSuiviCompetencesRapportHandlerParam = APIControllerWrapper.try_translate_vo_from_api(JSON.parse(exhi.export_params_stringified));
+        // let import_params: ExportSuiviCompetencesRapportHandlerParam = APIControllerWrapper.try_translate_vo_from_api(JSON.parse(exhi.export_params_stringified));
+        let import_params: ExportSuiviCompetencesRapportHandlerParam = ObjectHandler.reapply_prototypes(JSON.parse(exhi.export_params_stringified));
 
         let datas: SuiviCompetencesItemRapportVO[] = await query(SuiviCompetencesItemRapportVO.API_TYPE_ID)
             .filter_by_num_x_ranges(field_names<SuiviCompetencesItemRapportVO>().rapport_id, import_params.rapport_id_ranges)

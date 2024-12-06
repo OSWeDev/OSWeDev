@@ -338,7 +338,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
         this.$snotify.async(this.label('programplan.create_cr.start'), () => new Promise(async (resolve, reject) => {
             try {
 
-                const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cr);
+                const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(cr);
                 if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                     throw new Error('Erreur serveur');
                 }
@@ -421,7 +421,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
     private async update_cr_action(cr: IPlanRDVCR, autosave: boolean) {
         this.$snotify.async(this.label('programplan.update_cr.start'), () => new Promise(async (resolve, reject) => {
             try {
-                const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cr);
+                const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(cr);
                 if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id) || (insertOrDeleteQueryResult.id != cr.id)) {
                     throw new Error('Erreur serveur');
                 }
@@ -498,7 +498,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
                                 try {
 
-                                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([cr]);
+                                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.instance.deleteVOs([cr]);
                                     if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1) || (insertOrDeleteQueryResult[0].id != cr.id)) {
                                         throw new Error('Erreur serveur');
                                     }

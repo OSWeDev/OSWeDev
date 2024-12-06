@@ -1,7 +1,6 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import { field_names } from '../../tools/ObjectHandler';
+import { field_names, reflect } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import APIDefinition from '../API/vos/APIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import ModuleTableController from '../DAO/ModuleTableController';
@@ -40,26 +39,14 @@ export default class ModuleContextFilter extends Module {
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleContextFilter.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleContextFilter.MODULE_NAME + ".BO_ACCESS";
 
-    public static APINAME_select: string = "select";
-    public static APINAME_select_filter_visible_options: string = "select_filter_visible_options";
-    public static APINAME_select_datatable_rows: string = "select_datatable_rows";
-    public static APINAME_select_count: string = "select_count";
-    public static APINAME_select_vos: string = "select_vos";
-    public static APINAME_delete_vos: string = "delete_vos";
-    public static APINAME_update_vos: string = "update_vos";
-    public static APINAME_select_vo_from_unique_field: string = "select_vo_from_unique_field";
-    public static APINAME_count_valid_segmentations: string = "count_valid_segmentations";
-    public static APINAME_build_select_query: string = "build_select_query";
-    public static APINAME_build_select_query_str: string = "build_select_query_str";
-
-    private static instance: ModuleContextFilter = null;
+    public static instance: ModuleContextFilter = null;
 
 
     /**
      * Compter les segmentations valides à partir des filtres passés en paramètres (pour un type segmenté donné)
      * @param context_query
      */
-    public count_valid_segmentations: (api_type_id: string, context_query: ContextQueryVO, ignore_self_filter?: boolean) => Promise<number> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_count_valid_segmentations);
+    public count_valid_segmentations: (api_type_id: string, context_query: ContextQueryVO, ignore_self_filter?: boolean) => Promise<number> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleContextFilter>().count_valid_segmentations);
 
     /**
      * Filtrer des infos avec les context filters, en indiquant obligatoirement les champs ciblés, qui peuvent appartenir à des tables différentes
@@ -67,7 +54,7 @@ export default class ModuleContextFilter extends Module {
      */
     public select: (
         context_query: ContextQueryVO
-    ) => Promise<any[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_select);
+    ) => Promise<any[]> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleContextFilter>().select);
 
     /**
      * Filtrer des infos avec les context filters, en indiquant obligatoirement les champs ciblés, qui peuvent appartenir à des tables différentes
@@ -77,7 +64,7 @@ export default class ModuleContextFilter extends Module {
         context_query: ContextQueryVO,
         columns_by_field_name: { [datatable_field_uid: string]: TableColumnDescVO },
         fields: { [datatable_field_uid: string]: DatatableField<any, any> }
-    ) => Promise<any[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_select_datatable_rows);
+    ) => Promise<any[]> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleContextFilter>().select_datatable_rows);
 
     /**
      * Compter les résultats
@@ -85,7 +72,7 @@ export default class ModuleContextFilter extends Module {
      */
     public select_count: (
         context_query: ContextQueryVO
-    ) => Promise<number> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_select_count);
+    ) => Promise<number> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleContextFilter>().select_count);
 
     /**
      * Récupérer un vo par un field d'unicité
@@ -97,25 +84,25 @@ export default class ModuleContextFilter extends Module {
         api_type_id: string,
         unique_field_name: string,
         unique_field_value: any,
-    ) => Promise<T> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_select_vo_from_unique_field);
+    ) => Promise<T> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleContextFilter>().select_vo_from_unique_field);
 
     /**
      * Créer la requête sur la base des filtres
      * @param context_query
      */
-    public build_select_query: (context_query: ContextQueryVO) => Promise<ParameterizedQueryWrapper> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_build_select_query);
+    public build_select_query: (context_query: ContextQueryVO) => Promise<ParameterizedQueryWrapper> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleContextFilter>().build_select_query);
 
     /**
      * Créer la requête sur la base des filtres => renvoie que la query en mode texte
      * @param context_query
      */
-    public build_select_query_str: (context_query: ContextQueryVO) => Promise<string> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_build_select_query_str);
+    public build_select_query_str: (context_query: ContextQueryVO) => Promise<string> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleContextFilter>().build_select_query_str);
 
     /**
      * Filtrer des vos avec les context filters
      * @param context_query le champs fields doit être null pour demander des vos complets
      */
-    public select_vos: <T extends IDistantVOBase>(context_query: ContextQueryVO) => Promise<T[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_select_vos);
+    public select_vos: <T extends IDistantVOBase>(context_query: ContextQueryVO) => Promise<T[]> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleContextFilter>().select_vos);
 
     /**
      * Delete des vos en appliquant les filtres
@@ -123,7 +110,7 @@ export default class ModuleContextFilter extends Module {
      *  en bdd côté perf, on pourrait vouloir ajouter cette option mais attention aux triggers qui
      *  ne seraient pas exécutés dans ce cas...
      */
-    public delete_vos: (context_query: ContextQueryVO) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_delete_vos);
+    public delete_vos: (context_query: ContextQueryVO) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleContextFilter>().delete_vos);
 
     /**
      * Update des vos en appliquant les filtres
@@ -134,7 +121,7 @@ export default class ModuleContextFilter extends Module {
      */
     public update_vos: <T extends IDistantVOBase>(
         context_query: ContextQueryVO, new_api_translated_values: { [update_field_name in keyof T]?: any }
-    ) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_update_vos);
+    ) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleContextFilter>().update_vos);
 
     /**
      * Filtrer des datafilteroption (pour les filtrages type multiselect) avec les context filters, en indiquant obligatoirement le champs ciblé
@@ -143,7 +130,7 @@ export default class ModuleContextFilter extends Module {
     public select_filter_visible_options: (
         context_query: ContextQueryVO,
         actual_query: string
-    ) => Promise<DataFilterOption[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_select_filter_visible_options);
+    ) => Promise<DataFilterOption[]> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleContextFilter>().select_filter_visible_options);
 
     private constructor() {
 
@@ -171,9 +158,10 @@ export default class ModuleContextFilter extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.registerApi((new PostForGetAPIDefinition<CountValidSegmentationsParamVO, any[]>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<CountValidSegmentationsParamVO, any[]>(
             null,
-            ModuleContextFilter.APINAME_count_valid_segmentations,
+            this.name,
+            reflect<ModuleContextFilter>().count_valid_segmentations,
             (params: CountValidSegmentationsParamVO) => {
                 const res: { [api_type_id: string]: boolean } = {
                     [params.api_type_id]: true
@@ -183,12 +171,12 @@ export default class ModuleContextFilter extends Module {
             },
             CountValidSegmentationsParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((new PostForGetAPIDefinition<SelectVosParamVO, any[]>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<SelectVosParamVO, any[]>(
             null,
-            ModuleContextFilter.APINAME_select,
+            this.name,
+            reflect<ModuleContextFilter>().select,
             (params: SelectVosParamVO) => {
                 const res: { [api_type_id: string]: boolean } = {};
                 this.define_used_api_type_ids_from_query(params.context_query, res);
@@ -196,12 +184,12 @@ export default class ModuleContextFilter extends Module {
             },
             SelectVosParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((new PostForGetAPIDefinition<SelectFilterVisibleOptionsParamVO, DataFilterOption[]>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<SelectFilterVisibleOptionsParamVO, DataFilterOption[]>(
             null,
-            ModuleContextFilter.APINAME_select_filter_visible_options,
+            this.name,
+            reflect<ModuleContextFilter>().select_filter_visible_options,
             (params: SelectFilterVisibleOptionsParamVO) => {
                 const res: { [api_type_id: string]: boolean } = {};
                 this.define_used_api_type_ids_from_query(params.context_query, res);
@@ -209,12 +197,12 @@ export default class ModuleContextFilter extends Module {
             },
             SelectFilterVisibleOptionsParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((new PostForGetAPIDefinition<SelectDatatableRowsParamVO, any[]>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<SelectDatatableRowsParamVO, any[]>(
             null,
-            ModuleContextFilter.APINAME_select_datatable_rows,
+            this.name,
+            reflect<ModuleContextFilter>().select_datatable_rows,
             (params: SelectDatatableRowsParamVO) => {
                 const res: { [api_type_id: string]: boolean } = {};
                 this.define_used_api_type_ids_from_query(params.context_query, res);
@@ -222,12 +210,12 @@ export default class ModuleContextFilter extends Module {
             },
             SelectDatatableRowsParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((new PostForGetAPIDefinition<SelectCountParamVO, any[]>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<SelectCountParamVO, any[]>(
             null,
-            ModuleContextFilter.APINAME_select_count,
+            this.name,
+            reflect<ModuleContextFilter>().select_count,
             (params: SelectCountParamVO) => {
                 const res: { [api_type_id: string]: boolean } = {};
                 this.define_used_api_type_ids_from_query(params.context_query, res);
@@ -235,23 +223,23 @@ export default class ModuleContextFilter extends Module {
             },
             SelectCountParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((new PostForGetAPIDefinition<QueryVOFromUniqueFieldContextFiltersParamVO, any[]>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<QueryVOFromUniqueFieldContextFiltersParamVO, any[]>(
             null,
-            ModuleContextFilter.APINAME_select_vo_from_unique_field,
+            this.name,
+            reflect<ModuleContextFilter>().select_vo_from_unique_field,
             (params: QueryVOFromUniqueFieldContextFiltersParamVO) => {
                 return [params.api_type_id];
             },
             QueryVOFromUniqueFieldContextFiltersParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((new PostForGetAPIDefinition<BuildSelectQueryParamVO, ParameterizedQueryWrapper>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<BuildSelectQueryParamVO, ParameterizedQueryWrapper>(
             null,
-            ModuleContextFilter.APINAME_build_select_query,
+            this.name,
+            reflect<ModuleContextFilter>().build_select_query,
             (params: BuildSelectQueryParamVO) => {
                 const res: { [api_type_id: string]: boolean } = {};
                 this.define_used_api_type_ids_from_query(params.context_query, res);
@@ -259,11 +247,11 @@ export default class ModuleContextFilter extends Module {
             },
             BuildSelectQueryParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
-        APIControllerWrapper.registerApi((new PostForGetAPIDefinition<BuildSelectQueryParamVO, string>(
+        ));
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<BuildSelectQueryParamVO, string>(
             null,
-            ModuleContextFilter.APINAME_build_select_query_str,
+            this.name,
+            reflect<ModuleContextFilter>().build_select_query_str,
             (params: BuildSelectQueryParamVO) => {
                 const res: { [api_type_id: string]: boolean } = {};
                 this.define_used_api_type_ids_from_query(params.context_query, res);
@@ -271,12 +259,12 @@ export default class ModuleContextFilter extends Module {
             },
             BuildSelectQueryParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((new PostForGetAPIDefinition<SelectVosParamVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi(PostForGetAPIDefinition.new<SelectVosParamVO, IDistantVOBase[]>(
             null,
-            ModuleContextFilter.APINAME_select_vos,
+            this.name,
+            reflect<ModuleContextFilter>().select_vos,
             (params: SelectVosParamVO) => {
                 const res: { [api_type_id: string]: boolean } = {};
                 this.define_used_api_type_ids_from_query(params.context_query, res);
@@ -284,30 +272,29 @@ export default class ModuleContextFilter extends Module {
             },
             SelectVosParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((new PostAPIDefinition<DeleteVosParamVO, InsertOrDeleteQueryResult[]>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<DeleteVosParamVO, InsertOrDeleteQueryResult[]>(
             null,
-            ModuleContextFilter.APINAME_delete_vos,
+            this.name,
+            reflect<ModuleContextFilter>().delete_vos,
             (params: DeleteVosParamVO) => {
                 return params.context_query ? [params.context_query.base_api_type_id] : null;
             },
             DeleteVosParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
 
-        APIControllerWrapper.registerApi((new PostAPIDefinition<UpdateVosParamVO<any>, InsertOrDeleteQueryResult[]>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<UpdateVosParamVO<any>, InsertOrDeleteQueryResult[]>(
             null,
-            ModuleContextFilter.APINAME_update_vos,
+            this.name,
+            reflect<ModuleContextFilter>().update_vos,
             (params: UpdateVosParamVO<any>) => {
                 return params.context_query ? [params.context_query.base_api_type_id] : null;
             },
             UpdateVosParamVOStatic,
             // APIDefinition.API_RETURN_TYPE_NOTIF,
-        )).exec_on_api_bgthread());
-        // )));
+        ));
     }
 
     private define_used_api_type_ids_from_query(query_: ContextQueryVO, res: { [api_type_id: string]: boolean }) {

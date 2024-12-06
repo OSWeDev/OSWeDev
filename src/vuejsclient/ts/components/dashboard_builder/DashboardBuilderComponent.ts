@@ -285,7 +285,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                             { refresh: true },
                         );
 
-                        await ModuleDAO.getInstance().deleteVOs(
+                        await ModuleDAO.instance.deleteVOs(
                             old_pages,
                         );
                     }
@@ -406,7 +406,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             new Promise(async (resolve, reject) => {
 
                 try {
-                    await ModuleDAO.getInstance().insertOrUpdateVOs(self.pages);
+                    await ModuleDAO.instance.insertOrUpdateVOs(self.pages);
 
                     self.pages = await this.load_dashboard_pages_by_dashboard_id(
                         self.dashboard.id,
@@ -653,7 +653,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private async switch_hide_navigation(page: DashboardPageVO) {
         page.hide_navigation = !page.hide_navigation;
-        await ModuleDAO.getInstance().insertOrUpdateVO(page);
+        await ModuleDAO.instance.insertOrUpdateVO(page);
     }
 
     /**
@@ -827,7 +827,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         const page = new DashboardPageVO();
         page.dashboard_id = this.dashboard.id;
         page.weight = 0;
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(page);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             this.snotify.error(this.label('DashboardBuilderComponent.create_new_dashboard.ko'));
             this.dashboard = null;
@@ -896,7 +896,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.dashboard = new DashboardVO();
         this.set_dashboard_api_type_ids([]);
 
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(
             this.dashboard,
         );
 
@@ -933,13 +933,13 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private async switch_group_filters(page: DashboardPageVO) {
         page.group_filters = !page.group_filters;
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(page);
+        await ModuleDAO.instance.insertOrUpdateVO(page);
     }
 
     private async switch_collapse_filters(page: DashboardPageVO) {
         page.collapse_filters = !page.collapse_filters;
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(page);
+        await ModuleDAO.instance.insertOrUpdateVO(page);
     }
 
     private async confirm_delete_dashboard() {
@@ -967,7 +967,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('DashboardBuilderComponent.delete_dashboard.start'));
 
-                        await ModuleDAO.getInstance().deleteVOs([self.dashboard]);
+                        await ModuleDAO.instance.deleteVOs([self.dashboard]);
                         self.dashboards = self.dashboards.filter((p) => p.id != self.dashboard.id);
                         self.dashboard = self.dashboards[0];
 
@@ -1011,7 +1011,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('DashboardBuilderComponent.delete_page.start'));
 
-                        await ModuleDAO.getInstance().deleteVOs([page]);
+                        await ModuleDAO.instance.deleteVOs([page]);
                         self.pages = self.pages.filter((p) => p.id != page.id);
                         if (self.page.id == page.id) {
                             self.page = self.pages[0];

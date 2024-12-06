@@ -253,12 +253,10 @@ export default class VarChoroplethChartComponent extends VueComponentBase {
         }
 
         if (old_var_params && old_var_params.length) {
-            console.log('unregister');
             await VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
         }
 
         if (new_var_params && new_var_params.length) {
-            console.log('register');
             await VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
         }
 

@@ -24,6 +24,8 @@ import OseliaRunBGThreadException from './OseliaRunBGThreadException';
 
 export default class OseliaRunBGThread implements IBGThread {
 
+    public static BGTHREAD_NAME: string = 'OseliaRunBGThread';
+
     /**
      * Les états qu'on peut faire avancer. ça n'empêche pas de créer des bgthreads ou cron pour corriger des blocages d'état et faire de la reprise sur erreur par ailleurs
      * mais ici on s'intéresse aux états qui peuvent avancer. Pas ended, pas en erreur, pas en attente des enfants, pas en cours
@@ -69,8 +71,8 @@ export default class OseliaRunBGThread implements IBGThread {
 
     private static instance: OseliaRunBGThread = null;
 
-    public current_timeout: number = 10;
-    public MAX_timeout: number = 100;
+    public current_timeout: number = 10000;
+    public MAX_timeout: number = 100000;
     public MIN_timeout: number = 10;
 
     private currently_running_thread_ids: { [thread_id: number]: number } = {};
@@ -81,7 +83,7 @@ export default class OseliaRunBGThread implements IBGThread {
     }
 
     get name(): string {
-        return "OseliaRunBGThread";
+        return OseliaRunBGThread.BGTHREAD_NAME;
     }
 
     // istanbul ignore next: nothing to test : getInstance
@@ -193,7 +195,7 @@ export default class OseliaRunBGThread implements IBGThread {
         if (!next_handleable_run) {
             // Si on a pas de prochain run à traiter, on met à jour le thread et on sort
             thread.has_no_run_ready_to_handle = true;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread);
             return;
         }
 
@@ -229,7 +231,7 @@ export default class OseliaRunBGThread implements IBGThread {
                 throw new Error('OseliaRunBGThread.handle_next_thread_run: next_handleable_run.state not handled: ' + next_handleable_run.state);
         }
 
-        // await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(next_handleable_run);
+        // await ModuleDAOServer.instance.insertOrUpdateVO_as_server(next_handleable_run);
     }
 
     /**
@@ -422,7 +424,7 @@ export default class OseliaRunBGThread implements IBGThread {
                         child_thread.thread_vo.needs_thread_title_build = false;
                         child_thread.thread_vo.thread_title_auto_build_locked = true;
                         child_thread.thread_vo.parent_thread_id = thread.id;
-                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(child_thread.thread_vo);
+                        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(child_thread.thread_vo);
 
                         await OseliaRunTemplateServerController.create_run_from_template(
                             element_run_template,

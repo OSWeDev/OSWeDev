@@ -58,7 +58,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
         panier.date = Dates.now();
         panier.statut = CommandeVO.STATUT_PANIER;
 
-        const result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(panier);
+        const result: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(panier);
         panier.id = result.id;
 
         return panier;
@@ -79,7 +79,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     }
 
     public async getParamLigneCommandeById(num: number, text: string): Promise<ParamLigneCommandeVO> {
-        return await ModuleDAOServer.getInstance().selectOne<ParamLigneCommandeVO>(
+        return await ModuleDAOServer.instance.selectOne<ParamLigneCommandeVO>(
             text,
             ' WHERE t.ligne_commande_id = $1', [num]
         );
@@ -98,9 +98,9 @@ export default class ModuleCommandeServer extends ModuleServerBase {
         ligne.produit_id = produitParam.produit.id;
         ligne.quantite = 1;
 
-        const result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(ligne);
+        const result: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(ligne);
         produitParam.ligneParam.ligne_commande_id = result.id;
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(produitParam.ligneParam);
+        await ModuleDAO.instance.insertOrUpdateVO(produitParam.ligneParam);
     }
 }

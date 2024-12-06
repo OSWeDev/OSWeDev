@@ -29,11 +29,11 @@ export default class Patch20241010CreateLogType implements IGeneratorWorker {
         await this.createLogType(LogTypeVO.createNew('DEBUG', 4), ModuleLogger.PARAM_LOGGER_LOG_TYPE_DEBUG);
         await ModuleParams.getInstance().setParamValueAsNumber(
             ModuleLogger.PARAM_LOGGER_LOG_TYPE_CLIENT_MAX,
-            await ModuleParams.getInstance().getParamValueAsInt(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR)
+            await ModuleParams.getInstance().getParamValueAsInt(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR, null, null)
         );
         await ModuleParams.getInstance().setParamValueAsNumber(
             ModuleLogger.PARAM_LOGGER_LOG_TYPE_SERVER_MAX,
-            await ModuleParams.getInstance().getParamValueAsInt(ModuleLogger.PARAM_LOGGER_LOG_TYPE_DEBUG)
+            await ModuleParams.getInstance().getParamValueAsInt(ModuleLogger.PARAM_LOGGER_LOG_TYPE_DEBUG, null, null)
         );
     }
 

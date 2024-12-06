@@ -52,7 +52,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_board_card
             function_TRELLO_trello_get_board_cards.gpt_function_name = 'trello_get_board_cards';
             function_TRELLO_trello_get_board_cards.json_stringify_output = true;
             function_TRELLO_trello_get_board_cards.gpt_function_description = "Get all of the actions of a Board";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(function_TRELLO_trello_get_board_cards);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(function_TRELLO_trello_get_board_cards);
         }
 
         let argument_id = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -70,7 +70,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_board_card
             argument_id.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_id.not_in_function_params = true;
             argument_id.weight = 0;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_id);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_id);
         }
     }
 }

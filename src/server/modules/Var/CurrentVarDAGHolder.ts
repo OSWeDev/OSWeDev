@@ -18,22 +18,35 @@ export default class CurrentVarDAGHolder {
 
     public static previous_vardag_deps: { [dep_name: string]: { tags: string[], outgoing_deps: string[], incoming_deps: string[] } } = null;
     public static current_vardag: VarDAG = null;
-    public static has_send_kill_bgthread: boolean = false;
+    public static has_initialized_stats_process: boolean = false;
+    public static last_check_current_vardag: number = null;
     public static check_current_vardag_throttler = ThrottleHelper.declare_throttle_without_args(this.check_current_vardag.bind(this), 2000);
     public static console_log_throttler = ThrottleHelper.declare_throttle_with_mappable_args(this.console_log, 10000);
-    public static last_check_current_vardag: number = null;
+    public static has_send_kill_bgthread: boolean = false;
 
     /**
      * On lance un process qui va registerStats sur le VarDAG courant, régulièrement
      */
     public static init_stats_process() {
-        ThreadHandler.set_interval(async () => {
-            if (!CurrentVarDAGHolder.current_vardag) {
-                return;
-            }
 
-            CurrentVarDAGHolder.registerStats();
-        }, 10000, 'CurrentVarDAGHolder.init_stats_process', true);
+        if (CurrentVarDAGHolder.has_initialized_stats_process) {
+            return;
+        }
+
+        CurrentVarDAGHolder.has_initialized_stats_process = true;
+        ThreadHandler.set_interval(
+            'CurrentVarDAGHolder.init_stats_process',
+            async () => {
+                if (!CurrentVarDAGHolder.current_vardag) {
+                    return;
+                }
+
+                CurrentVarDAGHolder.registerStats();
+            },
+            10000,
+            'CurrentVarDAGHolder.init_stats_process',
+            true,
+        );
     }
 
     public static registerStats() {

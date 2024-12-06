@@ -103,7 +103,7 @@ export default class MenuOrganizerComponent extends VueComponentBase {
         if (!this.selected_item) {
             return;
         }
-        await ModuleDAO.getInstance().insertOrUpdateVOs([this.selected_item]);
+        await ModuleDAO.instance.insertOrUpdateVOs([this.selected_item]);
         const item = await query(MenuElementVO.API_TYPE_ID).filter_by_id(this.selected_item.id).select_vo<MenuElementVO>();
         this.db_menus_by_ids[item.id] = item;
         this.selected_item = item;
@@ -467,7 +467,7 @@ export default class MenuOrganizerComponent extends VueComponentBase {
         }
 
         if (diffs && diffs.length) {
-            await ModuleDAO.getInstance().insertOrUpdateVOs(diffs);
+            await ModuleDAO.instance.insertOrUpdateVOs(diffs);
         }
         await this.reload_from_db();
         await MenuController.getInstance().reload_from_db();

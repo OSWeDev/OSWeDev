@@ -45,7 +45,7 @@ export default class Patch20241016AddOseliaFunction_OSELIA_get_cache_value imple
             get_cache_value_function.gpt_function_name = 'get_cache_value';
             get_cache_value_function.json_stringify_output = false;
             get_cache_value_function.gpt_function_description = "Charger un résultat depuis le cache dans un contexte (thread) donné. Si on ne trouve pas dans le thread actuel, on cherche dans le cache du thread parent, et ainsi de suite jusqu'à trouver ou remonter à la racine.";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(get_cache_value_function);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(get_cache_value_function);
         }
 
         let argument_key = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -63,7 +63,7 @@ export default class Patch20241016AddOseliaFunction_OSELIA_get_cache_value imple
             argument_key.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_key.not_in_function_params = false;
             argument_key.weight = 0;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_key);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_key);
         }
     }
 }

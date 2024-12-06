@@ -106,7 +106,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
             if (!this.alreadyPresent(themeData, themesInDB)) {
                 const theme: AnimationThemeVO = this.createThemeBase(themeData);
 
-                const queryRes = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(theme);
+                const queryRes = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(theme);
 
                 if (!queryRes) {
                     succeeded = false;

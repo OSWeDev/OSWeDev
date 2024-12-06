@@ -14,6 +14,8 @@ import LogVO from '../shared/modules/Logger/vos/LogVO';
 import ParamsManager from '../shared/modules/Params/ParamsManager';
 import ModuleLogger from '../shared/modules/Logger/ModuleLogger';
 import StackContext from './StackContext';
+import { reflect } from '../shared/tools/ObjectHandler';
+import { IRequestStackContext } from './ServerExpressController';
 
 export default class FileLoggerHandler implements ILoggerHandler {
 
@@ -59,12 +61,13 @@ export default class FileLoggerHandler implements ILoggerHandler {
             return;
         }
 
+        const can_use_context = !StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE);
         this.log_to_file_cache.push(LogVO.createNew(
             (((typeof process !== "undefined") && process.pid) ? process.pid : null),
             log_type ?? ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG),
             date,
             msg,
-            StackContext.get('UID'),
+            can_use_context ? StackContext.get('UID') : null,
             null,
             null,
         ));

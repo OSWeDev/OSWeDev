@@ -81,7 +81,7 @@ export default class MenuController {
                 return;
             }
 
-            const res = await ModuleDAO.getInstance().insertOrUpdateVO(elt);
+            const res = await ModuleDAO.instance.insertOrUpdateVO(elt);
             if ((!res) || (!res.id)) {
                 ConsoleHandler.error("Failed declare_menu_element:" + elt);
                 return null;

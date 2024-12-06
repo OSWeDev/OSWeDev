@@ -288,7 +288,7 @@ export default class DashboardBuilderOseliaChatComponent extends VueComponentBas
                         ConsoleHandler.error(error);
                     }
 
-                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page_widget);
+                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(page_widget);
                     if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                         reject({
                             body: self.label('DashboardBuilderOseliaChatComponent.add_widget_to_page.ko'),
@@ -343,7 +343,7 @@ export default class DashboardBuilderOseliaChatComponent extends VueComponentBas
 
         widget.h = newH;
         widget.w = newW;
-        await ModuleDAO.getInstance().insertOrUpdateVO(widget);
+        await ModuleDAO.instance.insertOrUpdateVO(widget);
         this.set_page_widget(widget);
     }
 
@@ -368,7 +368,7 @@ export default class DashboardBuilderOseliaChatComponent extends VueComponentBas
 
         widget.x = newX;
         widget.y = newY;
-        await ModuleDAO.getInstance().insertOrUpdateVO(widget);
+        await ModuleDAO.instance.insertOrUpdateVO(widget);
         this.set_page_widget(widget);
     }
 
@@ -393,7 +393,7 @@ export default class DashboardBuilderOseliaChatComponent extends VueComponentBas
 
                                 try {
 
-                                    await ModuleDAO.getInstance().deleteVOs([page_widget]);
+                                    await ModuleDAO.instance.deleteVOs([page_widget]);
                                     let i = 0;
                                     for (; i < self.widgets.length; i++) {
                                         const w = self.widgets[i];

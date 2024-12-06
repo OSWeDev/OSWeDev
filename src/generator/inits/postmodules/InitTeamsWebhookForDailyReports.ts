@@ -24,6 +24,6 @@ export default class InitTeamsWebhookForDailyReports implements IGeneratorWorker
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        await ParamsServerController.setParamValue(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME, 'outlook.office.com');
+        await ParamsServerController.setParamValue_as_server(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME, 'outlook.office.com');
     }
 }

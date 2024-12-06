@@ -41,7 +41,7 @@ export default class ModuleTranslationsImportDefaultFormats {
         import_base_data_import_file.type = DataImportFormatVO.TYPE_XLSX;
         import_base_data_import_file.type_column_position = DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL;
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server([import_base_data_import_file]);
+        await ModuleDAOServer.instance.insertOrUpdateVOs_as_server([import_base_data_import_file]);
         import_base_data_import_file = await ModuleDataImport.getInstance().getDataImportFile(default_import_format_name);
 
         if (!import_base_data_import_file) {
@@ -57,6 +57,6 @@ export default class ModuleTranslationsImportDefaultFormats {
         import_base_data_import_columns.push(DataImportColumnVO.createNew('code_text', import_base_data_import_file.id).addColumnLabels(['code_text']).setMandatory());
         import_base_data_import_columns.push(DataImportColumnVO.createNew('translated', import_base_data_import_file.id).addColumnLabels(['translated']).setMandatory());
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(import_base_data_import_columns);
+        await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(import_base_data_import_columns);
     }
 }

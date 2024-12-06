@@ -4,7 +4,11 @@ import ConsoleHandler from '../../tools/ConsoleHandler';
 import TypesHandler from '../../tools/TypesHandler';
 import ModuleTableController from '../DAO/ModuleTableController';
 import IRange from '../DataRender/interfaces/IRange';
+import EventsController from '../Eventify/EventsController';
+import EventifyEventInstanceVO from '../Eventify/vos/EventifyEventInstanceVO';
 import IDistantVOBase from '../IDistantVOBase';
+import Module from '../Module';
+import ModulesManager from '../ModulesManager';
 import IAPIController from './interfaces/IAPIController';
 import IAPIParamTranslator from './interfaces/IAPIParamTranslator';
 import IDateAPI from './interfaces/IDateAPI';
@@ -16,6 +20,7 @@ export default class APIControllerWrapper {
 
     public static BASE_API_URL: string = "/api_handler/";
     public static API_CONTROLLER: IAPIController = null;
+    public static API_REGISTERED_EVENT: string = 'API_REGISTERED';
 
     /**
      * Local thread cache -----
@@ -40,6 +45,7 @@ export default class APIControllerWrapper {
      * @param sanitize_params used to sanitize params if provided
      * @param precondition returns false if we refuse, and the api returns precondition_default_value
      * @param precondition_default_value default value if !precondition
+     * @deprecated use APIControllerWrapper.sah_optimizer for more optimizations
      */
     public static sah<T, U>(
         api_name: string,
@@ -49,20 +55,87 @@ export default class APIControllerWrapper {
         sanitize_result: (res: any, ...params) => any = null,
         use_notif_for_result: boolean = false
     ): (...params) => Promise<U> {
-        return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(
+
+        return APIControllerWrapper.API_CONTROLLER.sah(
             api_name, sanitize_params, precondition,
-            precondition_default_value, APIControllerWrapper.registered_apis, sanitize_result, use_notif_for_result);
+            precondition_default_value, sanitize_result, use_notif_for_result);
+    }
+
+    /**
+    * Return Shared API Handler => la fonction qui gère la demande en fonction de si l'on est client ou server
+    *   On essaie d'optimiser le fonctionnement des apis, en prenant le nom de la fonction et du module, ce qui
+    *   permet de modifier la fonction dès que l'api handler est réellement enregistrée, et de remplacer idéalement
+    *   directement la fonction du module shared par la fonction de l'api handler sans intermédiaire
+    * On en profite pour standardiser le nom des fonctions d'api en nom_module__nom_fonction en minuscule
+    * @param api_name
+    * @param sanitize_params used to sanitize params if provided
+    * @param precondition returns false if we refuse, and the api returns precondition_default_value
+    * @param precondition_default_value default value if !precondition
+    */
+    public static sah_optimizer<T, U>(
+        module_name: string,
+        function_name: string,
+        sanitize_params: (...params) => any[] = null,
+        precondition: (...params) => boolean = null,
+        precondition_default_value: any = null,
+        sanitize_result: (res: any, ...params) => any = null,
+        use_notif_for_result: boolean = false
+    ): (...params) => Promise<U> {
+
+
+        const api_name = APIControllerWrapper.get_api_name_from_module_function(module_name, function_name);
+
+        // L'opti ne peut concerner que le serveur
+        if (ModulesManager.isServerSide) {
+            EventsController.on_next_event(APIControllerWrapper.API_REGISTERED_EVENT + '_' + api_name, async () => {
+
+                if ((!sanitize_params) && (!precondition) && (!sanitize_result)) {
+                    const m = ModulesManager.getModuleByNameAndRole(module_name, Module.SharedModuleRoleName);
+                    m[function_name] = APIControllerWrapper.registered_apis[api_name].SERVER_HANDLER;
+                }
+            });
+        }
+
+        return APIControllerWrapper.API_CONTROLLER.sah(
+            api_name, sanitize_params, precondition,
+            precondition_default_value, sanitize_result, use_notif_for_result);
+    }
+
+    public static get_api_name_from_module_function(module_name: string, function_name: string): string {
+        return module_name.toLowerCase() + '__' + function_name.toLowerCase();
     }
 
     public static registerApi<T, U>(apiDefinition: APIDefinition<T, U>) {
         APIControllerWrapper.registered_apis[apiDefinition.api_name] = apiDefinition;
     }
 
+    /**
+     * @param api_name
+     * @param SERVER_HANDLER
+     * @deprecated since sah is deprecated, the use of api_name is also deprecated and replaced by module_name and function_name. Use register_server_api_handler instead
+     */
     public static registerServerApiHandler<T, U>(api_name: string, SERVER_HANDLER: (translated_param: T) => Promise<U>) {
         if (!APIControllerWrapper.registered_apis[api_name]) {
             throw new Error("Registering server API Handler on unknown API:" + api_name);
         }
         APIControllerWrapper.registered_apis[api_name].SERVER_HANDLER = SERVER_HANDLER;
+
+        EventsController.emit_event(EventifyEventInstanceVO.new_event(APIControllerWrapper.API_REGISTERED_EVENT + '_' + api_name));
+    }
+
+    /**
+     * @param api_name
+     * @param SERVER_HANDLER
+     */
+    public static register_server_api_handler<T, U>(module_name: string, function_name: string, SERVER_HANDLER: (translated_param: T) => Promise<U>) {
+        const api_name = APIControllerWrapper.get_api_name_from_module_function(module_name, function_name);
+
+        if (!APIControllerWrapper.registered_apis[api_name]) {
+            throw new Error("Registering server API Handler on unknown API:" + api_name);
+        }
+        APIControllerWrapper.registered_apis[api_name].SERVER_HANDLER = SERVER_HANDLER;
+
+        EventsController.emit_event(EventifyEventInstanceVO.new_event(APIControllerWrapper.API_REGISTERED_EVENT + '_' + api_name));
     }
 
     public static translate_param<T, U>(apiDefinition: APIDefinition<T, U>, ...api_params): IAPIParamTranslator<T> {
@@ -151,148 +224,149 @@ export default class APIControllerWrapper {
         return res;
     }
 
-    public static try_translate_vo_from_api(e: any): any {
+    // public static try_translate_vo_from_api(e: any): any {
 
-        if (!e) {
-            return e;
-        }
+    //     if (!e) {
+    //         return e;
+    //     }
 
-        if (Array.isArray(e)) {
-            return APIControllerWrapper.try_translate_vos_from_api(e);
-        }
+    //     if (Array.isArray(e)) {
+    //         return APIControllerWrapper.try_translate_vos_from_api(e);
+    //     }
 
-        const elt = (e as IDistantVOBase);
-        if (!elt._type) {
+    //     const elt = (e as IDistantVOBase);
+    //     if (!elt._type) {
 
-            if (APIControllerWrapper.is_range(e as IRange)) {
-                return APIControllerWrapper.try_translate_range_from_api(e as IRange);
-            }
+    //         if (APIControllerWrapper.is_range(e as IRange)) {
+    //             return APIControllerWrapper.try_translate_range_from_api(e as IRange);
+    //         }
 
-            if (APIControllerWrapper.is_moment_from_api(e)) {
-                return APIControllerWrapper.try_translate_moment_from_api(e);
-            }
+    //         if (APIControllerWrapper.is_moment_from_api(e)) {
+    //             return APIControllerWrapper.try_translate_moment_from_api(e);
+    //         }
 
-            if (APIControllerWrapper.is_date_from_api(e)) {
-                return APIControllerWrapper.try_translate_date_from_api(e);
-            }
+    //         if (APIControllerWrapper.is_date_from_api(e)) {
+    //             return APIControllerWrapper.try_translate_date_from_api(e);
+    //         }
 
-            if (APIControllerWrapper.is_duration_from_api(e)) {
-                return APIControllerWrapper.try_translate_duration_from_api(e);
-            }
+    //         if (APIControllerWrapper.is_duration_from_api(e)) {
+    //             return APIControllerWrapper.try_translate_duration_from_api(e);
+    //         }
 
-            if (typeof e === 'object') {
-                const res = Object.assign({}, e);
-                for (const i in res) {
+    //         if (typeof e === 'object') {
+    //             const res = Object.assign({}, e);
+    //             for (const i in res) {
 
-                    res[i] = APIControllerWrapper.try_translate_vo_from_api(res[i]);
-                }
-                return res;
-            }
+    //                 res[i] = APIControllerWrapper.try_translate_vo_from_api(res[i]);
+    //             }
+    //             return res;
+    //         }
 
-            return e;
-        }
+    //         return e;
+    //     }
 
-        return ModuleTableController.translate_vos_from_api(elt);
-    }
+    //     return ModuleTableController.translate_vos_from_api(elt);
+    // }
 
-    public static try_translate_vo_to_api(e: any, nb_calls: number = 0): any {
+    // public static try_translate_vo_to_api(e: any, nb_calls: number = 0): any {
 
-        nb_calls++;
-        if (!e) {
-            return e;
-        }
+    //     nb_calls++;
+    //     if (!e) {
+    //         return e;
+    //     }
 
-        if (Array.isArray(e)) {
-            return APIControllerWrapper.try_translate_vos_to_api(e);
-        }
+    //     if (Array.isArray(e)) {
+    //         return APIControllerWrapper.try_translate_vos_to_api(e);
+    //     }
 
-        if (nb_calls > 100) {
-            ConsoleHandler.error('try_translate_vo_to_api:TOO MANY CALLS TO TRANSLATE VO TO API - PROBABLY RECURSIVE:_type:' + e._type);
-            throw new Error('try_translate_vo_to_api:TOO MANY CALLS TO TRANSLATE VO TO API - PROBABLY RECURSIVE:_type:' + e._type);
-        }
+    //     if (nb_calls > 100) {
+    //         ConsoleHandler.error('try_translate_vo_to_api:TOO MANY CALLS TO TRANSLATE VO TO API - PROBABLY RECURSIVE:_type:' + e._type);
+    //         throw new Error('try_translate_vo_to_api:TOO MANY CALLS TO TRANSLATE VO TO API - PROBABLY RECURSIVE:_type:' + e._type);
+    //     }
 
-        const elt = (e as IDistantVOBase);
-        if (!elt._type) {
+    //     const elt = (e as IDistantVOBase);
 
-            if (APIControllerWrapper.is_range(e as IRange)) {
-                return APIControllerWrapper.try_translate_range_to_api(e as IRange);
-            }
+    //     if (!elt._type) {
 
-            if (TypesHandler.getInstance().isDate(e)) {
-                return APIControllerWrapper.try_translate_date_to_api(e);
-            }
+    //         if (APIControllerWrapper.is_range(e as IRange)) {
+    //             return APIControllerWrapper.try_translate_range_to_api(e as IRange);
+    //         }
 
-            if (TypesHandler.getInstance().isMoment(e)) {
-                return APIControllerWrapper.try_translate_moment_to_api(e);
-            }
+    //         if (TypesHandler.getInstance().isDate(e)) {
+    //             return APIControllerWrapper.try_translate_date_to_api(e);
+    //         }
 
-            if (TypesHandler.getInstance().isDuration(e)) {
-                return APIControllerWrapper.try_translate_duration_to_api(e);
-            }
+    //         if (TypesHandler.getInstance().isMoment(e)) {
+    //             return APIControllerWrapper.try_translate_moment_to_api(e);
+    //         }
 
-            if (typeof e === 'object') {
+    //         if (TypesHandler.getInstance().isDuration(e)) {
+    //             return APIControllerWrapper.try_translate_duration_to_api(e);
+    //         }
 
-                // Ignorer les méthodes
-                const res = Object.assign({}, e);
+    //         if (typeof e === 'object') {
 
-                for (const i in res) {
+    //             // Ignorer les méthodes
+    //             const res = Object.assign({}, e);
 
-                    if (e[i] == e) {
-                        ConsoleHandler.error('try_translate_vo_to_api:RECURSIVE OBJECT CANNOT BE TRANSLATED TO API:_type:' + e._type);
-                        throw new Error('try_translate_vo_to_api:RECURSIVE OBJECT CANNOT BE TRANSLATED TO API:_type:' + e._type);
-                    }
-                    res[i] = APIControllerWrapper.try_translate_vo_to_api(e[i], nb_calls);
-                }
-                return res;
-            }
+    //             for (const i in res) {
 
-            return e;
-        }
+    //                 if (e[i] == e) {
+    //                     ConsoleHandler.error('try_translate_vo_to_api:RECURSIVE OBJECT CANNOT BE TRANSLATED TO API:_type:' + e._type);
+    //                     throw new Error('try_translate_vo_to_api:RECURSIVE OBJECT CANNOT BE TRANSLATED TO API:_type:' + e._type);
+    //                 }
+    //                 res[i] = APIControllerWrapper.try_translate_vo_to_api(e[i], nb_calls);
+    //             }
+    //             return res;
+    //         }
 
-        return ModuleTableController.translate_vos_to_api(elt);
-    }
+    //         return e;
+    //     }
 
-    public static try_translate_vos_from_api(e: any): any {
+    //     return ModuleTableController.translate_vos_to_api(elt);
+    // }
 
-        if (!e) {
-            return e;
-        }
+    // public static try_translate_vos_from_api(e: any): any {
 
-        if (!Array.isArray(e)) {
-            return APIControllerWrapper.try_translate_vo_from_api(e);
-        }
+    //     if (!e) {
+    //         return e;
+    //     }
 
-        const res = [];
+    //     if (!Array.isArray(e)) {
+    //         return APIControllerWrapper.try_translate_vo_from_api(e);
+    //     }
 
-        for (const i in e) {
-            const elt = e[i];
+    //     const res = [];
 
-            res.push(APIControllerWrapper.try_translate_vo_from_api(elt));
-        }
+    //     for (const i in e) {
+    //         const elt = e[i];
 
-        return res;
-    }
+    //         res.push(APIControllerWrapper.try_translate_vo_from_api(elt));
+    //     }
 
-    public static try_translate_vos_to_api(e: any): any {
+    //     return res;
+    // }
 
-        if (!e) {
-            return e;
-        }
+    // public static try_translate_vos_to_api(e: any): any {
 
-        if (!Array.isArray(e)) {
-            return APIControllerWrapper.try_translate_vo_to_api(e);
-        }
+    //     if (!e) {
+    //         return e;
+    //     }
 
-        const res = [];
+    //     if (!Array.isArray(e)) {
+    //         return APIControllerWrapper.try_translate_vo_to_api(e);
+    //     }
 
-        for (const i in e) {
-            const elt = e[i];
+    //     const res = [];
 
-            res.push(APIControllerWrapper.try_translate_vo_to_api(elt));
-        }
+    //     for (const i in e) {
+    //         const elt = e[i];
 
-        return res;
-    }
+    //         res.push(APIControllerWrapper.try_translate_vo_to_api(elt));
+    //     }
+
+    //     return res;
+    // }
 
     private static instance: APIControllerWrapper = null;
 

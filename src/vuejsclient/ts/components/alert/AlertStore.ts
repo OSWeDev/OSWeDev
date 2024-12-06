@@ -16,14 +16,6 @@ export interface IAlertState {
 
 export default class AlertStore implements IStoreModule<IAlertState, AlertContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): AlertStore {
-        if (!AlertStore.instance) {
-            AlertStore.instance = new AlertStore();
-        }
-        return AlertStore.instance;
-    }
-
     private static instance: AlertStore;
 
     public module_name: string;
@@ -213,7 +205,16 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
             toggle_show_alerts_list: (context: AlertContext) => context.commit(store_mutations_names(this).toggle_show_alerts_list, null),
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): AlertStore {
+        if (!AlertStore.instance) {
+            AlertStore.instance = new AlertStore();
+        }
+        return AlertStore.instance;
+    }
 }
 
-export const ModuleAlertGetter = namespace('AlertStore', Getter);
-export const ModuleAlertAction = namespace('AlertStore', Action);
+const __namespace = namespace('AlertStore');
+export const ModuleAlertGetter = __namespace.Getter;
+export const ModuleAlertAction = __namespace.Action;

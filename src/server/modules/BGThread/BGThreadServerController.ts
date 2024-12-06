@@ -1,28 +1,17 @@
-import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { all_promises } from '../../../shared/tools/PromiseTools';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
-import ForkedProcessWrapperBase from '../Fork/ForkedProcessWrapperBase';
+import { isMainThread, parentPort } from 'worker_threads';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ForkMessageController from '../Fork/ForkMessageController';
 import ForkServerController from '../Fork/ForkServerController';
 import BroadcastWrapperForkMessage from '../Fork/messages/BroadcastWrapperForkMessage';
-import KillForkMessage from '../Fork/messages/KillForkMessage';
-import ParamsServerController from '../Params/ParamsServerController';
-import IBGThread from './interfaces/IBGThread';
+import BGThreadServerDataManager from './BGThreadServerDataManager';
 import RunBGThreadForkMessage from './messages/RunBGThreadForkMessage';
-import ModuleBGThreadServer from './ModuleBGThreadServer';
 
 export default class BGThreadServerController {
 
-    public static ForkedProcessType: string = "BGT";
 
     public static SERVER_READY: boolean = false;
 
-    public static TASK_NAME_register_alive_on_main_thread: string = "BGThreadServerController.register_alive_on_main_thread";
+    // public static TASK_NAME_register_alive_on_main_thread: string = "BGThreadServerController.register_alive_on_main_thread";
     public static TASK_NAME_is_alive: string = "BGThreadServerController.is_alive";
     public static TASK_NAME_kill_bgthread: string = "BGThreadServerController.kill_bgthread";
     public static PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s: string = "BGThreadServerController.BGTHREAD_LAST_ALIVE_TIMEOUT_s";
@@ -30,53 +19,41 @@ export default class BGThreadServerController {
     /**
      * Local thread cache -----
      */
-    public static registered_BGThreads: { [name: string]: IBGThread } = {};
-
     public static register_bgthreads: boolean = false;
     public static run_bgthreads: boolean = false;
-    public static valid_bgthreads_names: { [name: string]: boolean } = {};
 
     public static force_run_asap_by_bgthread_name: { [bgthread_name: string]: () => void } = {};
 
-    /**
-     * On met en place un système généralisé à tous les bghtreads, qui impose aux bgthreads de se déclarer
-     *  alive régulièrement et si il y a un défaut à ce niveau, et qu'un timeout est défini sur le bghtread, alors
-     *  on lance un kill automatique du processus qui est bloqué. (et on le relance).
-     *  !! ça signifie qu'il faut être sûr que le process est bien en erreur systématiquement quand on atteint le timeout !!
-     *  Par défaut pas de timeout, mais on peut le définir dans le bgthread
-     */
-    public static MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name: { [bgthread_name: string]: number } = {};
-    /**
-     * ----- Local thread cache
-     */
+    // On met en pause ce truc par ce que les bgthreads ne fonctionnant plus en permanence, on peut atteindre le timeout beaucoup plus facilement. à revoir (ou pas)
+    // /**
+    //  * On met en place un système généralisé à tous les bghtreads, qui impose aux bgthreads de se déclarer
+    //  *  alive régulièrement et si il y a un défaut à ce niveau, et qu'un timeout est défini sur le bghtread, alors
+    //  *  on lance un kill automatique du processus qui est bloqué. (et on le relance).
+    //  *  !! ça signifie qu'il faut être sûr que le process est bien en erreur systématiquement quand on atteint le timeout !!
+    //  *  Par défaut pas de timeout, mais on peut le définir dans le bgthread
+    //  */
+    // public static MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name: { [bgthread_name: string]: number } = {};
+    // /**
+    //  * ----- Local thread cache
+    //  */
 
-    public static register_alive_on_main_thread = ThrottleHelper.declare_throttle_with_mappable_args(this.throttled_register_alive_on_main_thread.bind(this), 10000);
 
     public static init() {
         ForkMessageController.register_message_handler(RunBGThreadForkMessage.FORK_MESSAGE_TYPE, async (msg: RunBGThreadForkMessage) => {
-            if (BGThreadServerController.valid_bgthreads_names[msg.message_content]) {
-                await BGThreadServerController.registered_BGThreads[msg.message_content].work();
+            if (BGThreadServerDataManager.valid_bgthreads_names[msg.message_content]) {
+                await BGThreadServerDataManager.registered_BGThreads[msg.message_content].work();
             }
             return true;
         });
 
-        ForkedTasksController.register_task(BGThreadServerController.TASK_NAME_register_alive_on_main_thread, this.register_alive_on_main_thread.bind(this));
+        // ForkedTasksController.register_task(BGThreadServerController.TASK_NAME_register_alive_on_main_thread, this.register_alive_on_main_thread.bind(this));
         ForkedTasksController.register_task(BGThreadServerController.TASK_NAME_is_alive, this.is_alive.bind(this));
-        ForkedTasksController.register_task(BGThreadServerController.TASK_NAME_kill_bgthread, this.kill_bgthread.bind(this));
-
-        ThreadHandler.set_interval(this.check_bgthreads_last_alive_ticks.bind(this), 10 * 1000, 'BGThreadServerController.check_bgthreads_last_alive_ticks', true);
-    }
-
-    public static async throttled_register_alive_on_main_thread(alive_bgthread_names: { [bgname: string]: boolean }) {
-
-
-        if (!await ForkedTasksController.exec_self_on_main_process(BGThreadServerController.TASK_NAME_register_alive_on_main_thread, alive_bgthread_names)) {
-            return;
-        }
-
-        for (const bgthread_name in alive_bgthread_names) {
-            this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name[bgthread_name] = Dates.now();
-        }
+        // ThreadHandler.set_interval(
+        //     'BGThreadServerController.check_bgthreads_last_alive_ticks',
+        //     this.check_bgthreads_last_alive_ticks.bind(this),
+        //     10 * 1000,
+        //     'BGThreadServerController.check_bgthreads_last_alive_ticks',
+        //     true);
     }
 
     /**
@@ -86,79 +63,78 @@ export default class BGThreadServerController {
      *      sinon on envoie le message au process principal
      */
     public static async executeBGThread(bgthread_name: string) {
-        if (ForkedProcessWrapperBase.getInstance()) {
+        if (!isMainThread) {
 
-            if (BGThreadServerController.valid_bgthreads_names[bgthread_name]) {
+            if (BGThreadServerDataManager.valid_bgthreads_names[bgthread_name]) {
 
-                // On ajoute avant chaque exécution le fait de signaler qu'on est en vie au thread parent, mais au plus vite une fois toutes les 10 secondes
-                await this.register_alive_on_main_thread({ [bgthread_name]: true });
+                // // On ajoute avant chaque exécution le fait de signaler qu'on est en vie au thread parent, mais au plus vite une fois toutes les 10 secondes
+                // await this.register_alive_on_main_thread({ [bgthread_name]: true });
 
-                await BGThreadServerController.registered_BGThreads[bgthread_name].work();
+                await BGThreadServerDataManager.registered_BGThreads[bgthread_name].work();
             } else {
-                await ForkMessageController.send(new BroadcastWrapperForkMessage(new RunBGThreadForkMessage(bgthread_name)));
+                await ForkMessageController.send(new BroadcastWrapperForkMessage(new RunBGThreadForkMessage(bgthread_name)), parentPort);
             }
         } else {
 
-            if ((!ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType]) ||
-                (!ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name])) {
+            if ((!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType]) ||
+                (!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread_name])) {
                 return false;
             }
-            const forked = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name];
-            await ForkMessageController.send(new RunBGThreadForkMessage(bgthread_name), forked.child_process, forked);
+            const forked = ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread_name];
+            await ForkMessageController.send(new RunBGThreadForkMessage(bgthread_name), forked.worker, forked);
         }
     }
 
-    public static async kill_bgthread(bgthread_name: string, force_empty_vars_datas_vo_update_cache: boolean) {
-        if (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
-            ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name]
-        ) {
-            await ForkMessageController.send(
-                new KillForkMessage(
-                    await ModuleParams.getInstance().getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000),
-                    force_empty_vars_datas_vo_update_cache
-                ),
-                ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name].child_process
-            );
-        }
-    }
+    // private static async check_bgthreads_last_alive_ticks() {
+    //     if (!isMainThread) {
+    //         return;
+    //     }
 
-    private static async check_bgthreads_last_alive_ticks() {
-        if (!ForkServerController.is_main_process()) {
-            return;
-        }
+    //     const now = Dates.now();
 
-        const now = Dates.now();
+    //     const promises = [];
 
-        const promises = [];
+    //     for (const bgthread_name in this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name) {
 
-        for (const bgthread_name in this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name) {
+    //         promises.push((async () => {
+    //             const last_tick_s = this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name[bgthread_name];
+    //             const timeout_s = await ParamsServerController.getParamValueAsInt(BGThreadServerController.PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s + '.' + bgthread_name, null, 60 * 60 * 1000);
 
-            promises.push((async () => {
-                const last_tick_s = this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name[bgthread_name];
-                const timeout_s = await ParamsServerController.getParamValueAsInt(BGThreadServerController.PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s + '.' + bgthread_name, null, 60 * 60 * 1000);
+    //             // Timeout == null || timeout == 0 => pas de timeout
+    //             if ((!timeout_s) || (!last_tick_s)) {
+    //                 return;
+    //             }
 
-                // Timeout == null || timeout == 0 => pas de timeout
-                if ((!timeout_s) || (!last_tick_s)) {
-                    return;
-                }
+    //             if ((now - last_tick_s) > timeout_s) {
+    //                 ConsoleHandler.error("BGThreadServerController.check_bgthreads_last_alive_ticks timeout on " +
+    //                     bgthread_name + " :last_tick_s=" + last_tick_s + ":timeout_s=" + timeout_s + ": => killing process"); // TODO FIXME ça semble totalement inefficace non ?
+    //                 if (ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType] &&
+    //                     ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread_name]) {
+    //                     await ForkMessageController.send(
+    //                         new KillForkMessage(await ParamsServerController.getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
+    //                         ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread_name].worker);
+    //                 }
+    //             }
+    //         })());
+    //     }
 
-                if ((now - last_tick_s) > timeout_s) {
-                    ConsoleHandler.error("BGThreadServerController.check_bgthreads_last_alive_ticks timeout on " +
-                        bgthread_name + " :last_tick_s=" + last_tick_s + ":timeout_s=" + timeout_s + ": => killing process"); // TODO FIXME ça semble totalement inefficace non ?
-                    if (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
-                        ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name]) {
-                        await ForkMessageController.send(
-                            new KillForkMessage(await ParamsServerController.getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
-                            ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name].child_process);
-                    }
-                }
-            })());
-        }
-
-        await all_promises(promises);
-    }
+    //     await all_promises(promises);
+    // }
 
     private static is_alive(): boolean {
         return true;
     }
+
+    // @ThrottleExecAsServerRunsOnMainThread({
+    //     throttle_ms: 10000,
+    //     param_type: THROTTLED_METHOD_PARAM_TYPE.MAPPABLE,
+    // })
+    // public static async register_alive_on_main_thread(
+    //     @PreThrottleParam pre_alive_bgthread_names: { [bgname: string]: boolean },
+    //     @PostThrottleParam alive_bgthread_names: { [bgname: string]: boolean } = null
+    // ) {
+    //     for (const bgthread_name in alive_bgthread_names) {
+    //         this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name[bgthread_name] = Dates.now();
+    //     }
+    // }
 }

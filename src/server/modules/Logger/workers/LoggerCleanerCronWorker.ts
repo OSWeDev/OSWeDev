@@ -31,7 +31,7 @@ export default class LoggerCleanerCronWorker implements ICronWorker {
     // istanbul ignore next: nothing to test : work
     public async work() {
         // 15 jours par défaut
-        const max_nb_days: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleLogger.PARAM_LOGGER_CLEANER_MAX_NB_DAYS, 15);
+        const max_nb_days: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleLogger.PARAM_LOGGER_CLEANER_MAX_NB_DAYS, 15, null);
         const date: number = Dates.add(Dates.now(), -max_nb_days, TimeSegment.TYPE_DAY);
         const log_types: LogTypeVO[] = await query(LogTypeVO.API_TYPE_ID).select_vos();
 

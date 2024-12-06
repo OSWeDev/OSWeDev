@@ -165,32 +165,32 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         // IPlanManager
         // id
         // READ team ou tous
-        ModuleDAOServer.getInstance().registerAccessHook(this.programplan_shared_module.manager_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterManagerByIdByAccess);
-        ModuleDAOServer.getInstance().registerContextAccessHook(this.programplan_shared_module.manager_type_id, this, this.filterManagerByIdByContextAccessHook);
+        ModuleDAOServer.instance.registerAccessHook(this.programplan_shared_module.manager_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterManagerByIdByAccess);
+        ModuleDAOServer.instance.registerContextAccessHook(this.programplan_shared_module.manager_type_id, this, this.filterManagerByIdByContextAccessHook);
 
 
         // IPlanFacilitator
         // manager_id
         // READ team ou tous
-        ModuleDAOServer.getInstance().registerAccessHook(this.programplan_shared_module.facilitator_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterIPlanFacilitatorByManagerByAccess);
-        ModuleDAOServer.getInstance().registerContextAccessHook(this.programplan_shared_module.facilitator_type_id, this, this.filterIPlanFacilitatorByManagerByContextAccessHook);
+        ModuleDAOServer.instance.registerAccessHook(this.programplan_shared_module.facilitator_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterIPlanFacilitatorByManagerByAccess);
+        ModuleDAOServer.instance.registerContextAccessHook(this.programplan_shared_module.facilitator_type_id, this, this.filterIPlanFacilitatorByManagerByContextAccessHook);
 
         // IPlanRDV
         // facilitator_id
         // READ team ou tous(en fonction du manager lié au facilitator_id du RDV ...)
-        ModuleDAOServer.getInstance().registerAccessHook(this.programplan_shared_module.rdv_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterRDVsByFacilitatorIdByAccess);
-        ModuleDAOServer.getInstance().registerContextAccessHook(this.programplan_shared_module.rdv_type_id, this, this.filterRDVsByFacilitatorIdByContextAccessHook);
+        ModuleDAOServer.instance.registerAccessHook(this.programplan_shared_module.rdv_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterRDVsByFacilitatorIdByAccess);
+        ModuleDAOServer.instance.registerContextAccessHook(this.programplan_shared_module.rdv_type_id, this, this.filterRDVsByFacilitatorIdByContextAccessHook);
 
         // et CREATE / UPDATE / DELETE own / team / tous => on part du principe que c'est l'interface qui bloque à ce niveau
 
         // IPlanRDVCR => en fonction du IPlanRDV sur CRUD
-        ModuleDAOServer.getInstance().registerAccessHook(this.programplan_shared_module.rdv_cr_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterRDVCRPrepsByFacilitatorIdByAccess);
-        ModuleDAOServer.getInstance().registerContextAccessHook(this.programplan_shared_module.rdv_cr_type_id, this, this.filterRDVCRPrepsByFacilitatorIdByContextAccessHook);
+        ModuleDAOServer.instance.registerAccessHook(this.programplan_shared_module.rdv_cr_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterRDVCRPrepsByFacilitatorIdByAccess);
+        ModuleDAOServer.instance.registerContextAccessHook(this.programplan_shared_module.rdv_cr_type_id, this, this.filterRDVCRPrepsByFacilitatorIdByContextAccessHook);
 
         if (this.programplan_shared_module.rdv_prep_type_id) {
             // IPlanRDVPrep => en fonction du IPlanRDV sur CRUD
-            ModuleDAOServer.getInstance().registerAccessHook(this.programplan_shared_module.rdv_prep_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterRDVCRPrepsByFacilitatorIdByAccess);
-            ModuleDAOServer.getInstance().registerContextAccessHook(this.programplan_shared_module.rdv_prep_type_id, this, this.filterRDVCRPrepsByFacilitatorIdByContextAccessHook);
+            ModuleDAOServer.instance.registerAccessHook(this.programplan_shared_module.rdv_prep_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterRDVCRPrepsByFacilitatorIdByAccess);
+            ModuleDAOServer.instance.registerContextAccessHook(this.programplan_shared_module.rdv_prep_type_id, this, this.filterRDVCRPrepsByFacilitatorIdByContextAccessHook);
         }
     }
 
@@ -879,7 +879,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
             if (rdv.state != state) {
                 rdv.state = state;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(rdv);
             }
         }
 
@@ -909,7 +909,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         if (rdv.state != state) {
             rdv.state = state;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(rdv);
         }
 
         return true;
@@ -938,7 +938,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         if (rdv.state != state) {
             rdv.state = state;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(rdv);
         }
 
         return true;
@@ -967,7 +967,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         if (rdv.state != state) {
             rdv.state = state;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(rdv);
         }
 
         return true;
@@ -996,7 +996,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         if (rdv.state != state) {
             rdv.state = state;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(rdv);
         }
 
         return true;

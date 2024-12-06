@@ -12,14 +12,6 @@ export interface IDroppableVoFieldsState {
 
 export default class DroppableVoFieldsStore implements IStoreModule<IDroppableVoFieldsState, DroppableVoFieldsContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): DroppableVoFieldsStore {
-        if (!DroppableVoFieldsStore.instance) {
-            DroppableVoFieldsStore.instance = new DroppableVoFieldsStore();
-        }
-        return DroppableVoFieldsStore.instance;
-    }
-
     private static instance: DroppableVoFieldsStore;
 
     public module_name: string;
@@ -70,9 +62,18 @@ export default class DroppableVoFieldsStore implements IStoreModule<IDroppableVo
             switch_selected_field: (context: DroppableVoFieldsContext, infos: { api_type_id: string, field_id: string }) => context.commit(store_mutations_names(this).switch_selected_field, infos),
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): DroppableVoFieldsStore {
+        if (!DroppableVoFieldsStore.instance) {
+            DroppableVoFieldsStore.instance = new DroppableVoFieldsStore();
+        }
+        return DroppableVoFieldsStore.instance;
+    }
 }
 
 export const DroppableVoFieldsStoreInstance = DroppableVoFieldsStore.getInstance();
 
-export const ModuleDroppableVoFieldsGetter = namespace('DroppableVoFieldsStore', Getter);
-export const ModuleDroppableVoFieldsAction = namespace('DroppableVoFieldsStore', Action);
+const __namespace = namespace('DroppableVoFieldsStore');
+export const ModuleDroppableVoFieldsGetter = __namespace.Getter;
+export const ModuleDroppableVoFieldsAction = __namespace.Action;

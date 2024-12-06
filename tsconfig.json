@@ -9,6 +9,7 @@
         "importHelpers": true,
         "lib": [
             "es2020",
+            "es6",
             "dom",
             "ESNext"
         ],
@@ -16,11 +17,11 @@
         "types": [
             "node"
         ],
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "removeComments": false,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
         "declaration": true,
         "skipLibCheck": true
     },

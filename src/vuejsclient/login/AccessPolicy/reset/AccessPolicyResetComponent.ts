@@ -76,8 +76,8 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
         // }
 
         this.has_sms_activation =
-            await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION) &&
-            await ModuleParams.getInstance().getParamValueAsBoolean(ModuleAccessPolicy.PARAM_NAME_CAN_RECOVER_PWD_BY_SMS);
+            await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION, null, 10000) &&
+            await ModuleParams.getInstance().getParamValueAsBoolean(ModuleAccessPolicy.PARAM_NAME_CAN_RECOVER_PWD_BY_SMS, null, 10000);
     }
     //     for (let j in this.$route.query) {
     //         switch (j) {
@@ -229,7 +229,7 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
     }
 
     private async load_logo_url() {
-        this.logo_url = await ModuleParams.getInstance().getParamValueAsString(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url');
+        this.logo_url = await ModuleParams.getInstance().getParamValueAsString(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url', null, 10000);
         if (this.logo_url && (this.logo_url != '""') && (this.logo_url != '')) {
             return;
         }

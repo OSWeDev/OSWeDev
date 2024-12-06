@@ -49,7 +49,7 @@ export default class Patch20240305MigrationCodesTradsMinusculesENV implements IG
             this.replaceEnvParams_to_lower(translation.translated, env);
             ConsoleHandler.log('replaceEnvParams_to_lower:APRES: ' + translation.translated);
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(translation);
         }
 
         // On refait la même chose pour les §§IFENV_ENVPARAMNAME§§then§§else§§
@@ -69,7 +69,7 @@ export default class Patch20240305MigrationCodesTradsMinusculesENV implements IG
             this.replaceIFEnvParams_to_lower(translation.translated, env);
             ConsoleHandler.log('replaceIFEnvParams_to_lower:APRES: ' + translation.translated);
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(translation);
         }
     }
 

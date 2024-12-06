@@ -31,6 +31,8 @@ export default interface IEnvParam {
 
     mute__no_sort_by_but_query_limit?: boolean;
 
+    throw_on_incompatible_stack_context?: boolean;
+
     debug_playwright_controller?: boolean;
 
     debug_slow_queries_ms_limit?: number;

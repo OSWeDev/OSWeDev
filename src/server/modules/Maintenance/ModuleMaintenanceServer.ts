@@ -159,7 +159,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         DAOServerController.GLOBAL_UPDATE_BLOCKER = false;
 
         await PushDataServerController.broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(maintenance);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(maintenance);
         if (!!uid) {
             await PushDataServerController.notifyDAOGetVoById(uid, null, MaintenanceVO.API_TYPE_ID, maintenance.id);
         }
@@ -183,7 +183,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         planned_maintenance.end_ts = Dates.now();
 
         await PushDataServerController.broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(planned_maintenance);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(planned_maintenance);
         if (!!uid) {
             await PushDataServerController.notifyDAOGetVoById(uid, null, MaintenanceVO.API_TYPE_ID, planned_maintenance.id);
         }
@@ -222,7 +222,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
          *  - Par défaut on laisse 1 minute entre la réception de la notification et le passage en readonly de l'application
          */
         ConsoleHandler.error('Maintenance programmée dans 10 minutes');
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(maintenance);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(maintenance);
 
         const readonly_maintenance_deadline = await ParamsServerController.getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000, 180000);
         await ThreadHandler.sleep(readonly_maintenance_deadline, 'ModuleMaintenanceServer.start_maintenance');

@@ -43,7 +43,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_validate_run implemen
             validate_run_function.gpt_function_name = 'validate_oselia_run';
             validate_run_function.json_stringify_output = false;
             validate_run_function.gpt_function_description = "Valider l\'étape actuelle d\'un run Osélia";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(validate_run_function);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(validate_run_function);
         }
     }
 }

@@ -74,13 +74,13 @@ export default class ModuleSuiviCompetences extends Module {
 
     public registerApis() {
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIArrayNumberParamsVO, SuiviCompetencesGroupeResult[]>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, SuiviCompetencesGroupeVO.API_TYPE_ID),
+            ModuleDAO.instance.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, SuiviCompetencesGroupeVO.API_TYPE_ID),
             ModuleSuiviCompetences.APINAME_get_all_suivi_competences_groupe,
             [SuiviCompetencesGroupeVO.API_TYPE_ID, SuiviCompetencesSousGroupeVO.API_TYPE_ID, SuiviCompetencesItemVO.API_TYPE_ID, SuiviCompetencesGrilleVO.API_TYPE_ID],
             APIArrayNumberParamsVOStatic
         ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<Number2ParamVO, boolean>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, SuiviCompetencesRapportVO.API_TYPE_ID),
+            ModuleDAO.instance.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, SuiviCompetencesRapportVO.API_TYPE_ID),
             ModuleSuiviCompetences.APINAME_duplicate_suivi_competences_rapport,
             [SuiviCompetencesRapportVO.API_TYPE_ID, SuiviCompetencesItemRapportVO.API_TYPE_ID],
             Number2ParamVOStatic

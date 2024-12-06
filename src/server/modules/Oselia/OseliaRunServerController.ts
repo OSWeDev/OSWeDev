@@ -31,7 +31,7 @@ export default class OseliaRunServerController {
             throw new Error('get_oselia_run_from_grp_run_id: No gpt_run_id provided');
         }
 
-        return await query(OseliaRunVO.API_TYPE_ID)
+        return query(OseliaRunVO.API_TYPE_ID)
             .add_filters([
                 ContextFilterVO.or([
                     filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().split_gpt_run_id).by_num_eq(gpt_run_id),
@@ -181,7 +181,7 @@ export default class OseliaRunServerController {
             thread.thread_vo.thread_title = run.thread_title;
             thread.thread_vo.needs_thread_title_build = false;
             thread.thread_vo.thread_title_auto_build_locked = true;
-            await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server([thread.thread_vo, run]);
+            await ModuleDAOServer.instance.insertOrUpdateVOs_as_server([thread.thread_vo, run]);
         }
 
         const res = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
@@ -295,7 +295,7 @@ export default class OseliaRunServerController {
             default:
                 throw new Error('OseliaRunBGThread.update_oselia_run_state: Not Implemented');
         }
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run);
     }
 
     /**
@@ -307,7 +307,7 @@ export default class OseliaRunServerController {
         }
 
         if (run.file_id_ranges) {
-            return await query(FileVO.API_TYPE_ID)
+            return query(FileVO.API_TYPE_ID)
                 .filter_by_ids(run.file_id_ranges)
                 .exec_as_server()
                 .select_vos<FileVO>();
@@ -364,7 +364,7 @@ export default class OseliaRunServerController {
                 const prompt_prefix_validator = await ParamsServerController.getParamValueAsString(OseliaRunServerController.PARAM_NAME_VALIDATOR_PROMPT_PREFIX);
                 run.initialised_validator_prompt = (prompt_prefix_validator ? prompt_prefix_validator + ' ' : '') + run.initialised_run_prompt;
 
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run);
             }
         } catch (error) {
             throw new Error('get_initialised_prompt: ' + error.message);

@@ -106,7 +106,7 @@ export default class DataImportBGThread implements IBGThread {
                     (dih.state != ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT) &&
                     (dih.state != ModuleDataImport.IMPORTATION_STATE_IMPORTED))) {
                     dih = null;
-                    await ParamsServerController.setParamValue(DataImportBGThread.importing_dih_id_param_name, null);
+                    await ParamsServerController.setParamValue_as_server(DataImportBGThread.importing_dih_id_param_name, null);
                 }
             }
 
@@ -164,7 +164,7 @@ export default class DataImportBGThread implements IBGThread {
                 return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
             }
 
-            await ParamsServerController.setParamValue(DataImportBGThread.importing_dih_id_param_name, dih.id.toString());
+            await ParamsServerController.setParamValue_as_server(DataImportBGThread.importing_dih_id_param_name, dih.id.toString());
 
             await this.handleImportHistoricProgression(dih);
             ConsoleHandler.log('DataImportBGThread DIH[' + dih.id + '] state:' + dih.state + ':');
@@ -181,7 +181,7 @@ export default class DataImportBGThread implements IBGThread {
 
             // Si on est pas dans un état de continuation, on arrête cet import
             //  Tant qu'on gère des imports, on run
-            await ParamsServerController.setParamValue(DataImportBGThread.importing_dih_id_param_name, null);
+            await ParamsServerController.setParamValue_as_server(DataImportBGThread.importing_dih_id_param_name, null);
             this.stats_out('ok', time_in);
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {
@@ -245,7 +245,7 @@ export default class DataImportBGThread implements IBGThread {
             importHistoric.use_fast_track = false;
             importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
         }
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(importHistoric);
     }
 
     /**
@@ -312,7 +312,7 @@ export default class DataImportBGThread implements IBGThread {
             return false;
         }
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(importHistoric);
 
         return true;
     }
@@ -377,7 +377,7 @@ export default class DataImportBGThread implements IBGThread {
             case ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT:
 
                 importHistoric.state = (((importHistoric.status_before_reimport != null) && (typeof importHistoric.status_before_reimport != 'undefined')) ? importHistoric.status_before_reimport : ModuleDataImport.IMPORTATION_STATE_POSTTREATED);
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(importHistoric);
 
                 const new_importHistoric = new DataImportHistoricVO();
                 new_importHistoric.api_type_id = importHistoric.api_type_id;
@@ -392,7 +392,7 @@ export default class DataImportBGThread implements IBGThread {
                 new_importHistoric.reimport_of_dih_id = importHistoric.id;
                 new_importHistoric.use_fast_track = importHistoric.use_fast_track;
 
-                const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_importHistoric);
+                const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(new_importHistoric);
 
                 if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                     ConsoleHandler.error('!insertOrDeleteQueryResult dans handleImportHistoricProgression');
@@ -435,6 +435,6 @@ export default class DataImportBGThread implements IBGThread {
 
         const dih = dihs[0];
         await ModuleDataImport.getInstance().reimportdih(dih);
-        return await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(dih.id).select_vo<DataImportHistoricVO>();
+        return query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(dih.id).select_vo<DataImportHistoricVO>();
     }
 }

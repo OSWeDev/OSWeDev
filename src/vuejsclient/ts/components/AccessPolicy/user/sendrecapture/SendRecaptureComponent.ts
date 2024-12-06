@@ -25,7 +25,7 @@ export default class SendRecaptureComponent extends VueComponentBase {
     private has_sms_activation: boolean = false;
 
     public async mounted() {
-        this.has_sms_activation = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION);
+        this.has_sms_activation = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION, null, 10000);
     }
 
     get category_name() {

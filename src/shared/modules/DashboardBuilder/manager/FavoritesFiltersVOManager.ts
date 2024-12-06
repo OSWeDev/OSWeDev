@@ -16,7 +16,7 @@ export default class FavoritesFiltersVOManager {
      */
     public static async save_favorites_filters(favorites_filters: FavoritesFiltersVO): Promise<boolean> {
 
-        const res = await ModuleDAO.getInstance().insertOrUpdateVO(favorites_filters);
+        const res = await ModuleDAO.instance.insertOrUpdateVO(favorites_filters);
 
         return res?.id != null;
     }
@@ -30,7 +30,7 @@ export default class FavoritesFiltersVOManager {
      */
     public static async delete_favorites_filters(favorites_filters: FavoritesFiltersVO): Promise<boolean> {
 
-        const res = await ModuleDAO.getInstance().deleteVOs([favorites_filters]);
+        const res = await ModuleDAO.instance.deleteVOs([favorites_filters]);
 
         return res?.shift()?.id != null;
     }

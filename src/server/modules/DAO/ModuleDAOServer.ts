@@ -27,6 +27,8 @@ import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
 import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
@@ -35,8 +37,8 @@ import MatroidController from '../../../shared/modules/Matroid/MatroidController
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import Module from '../../../shared/modules/Module';
 import ModulesManager from '../../../shared/modules/ModulesManager';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
+import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
@@ -48,11 +50,12 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import StackContext from '../../StackContext';
+import { ExecAsServer, ExecAsServerParam } from '../../annotations/ExecAsServer';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -61,6 +64,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModuleTableDBService from '../ModuleTableDBService';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
@@ -76,10 +80,7 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
-import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
-import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
-import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
-import ParamsServerController from '../Params/ParamsServerController';
+import { IRequestStackContext } from '../../ServerExpressController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -88,7 +89,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.MODULE_NAME + ".add_segmented_known_databases";
 
-    private static instance: ModuleDAOServer = null;
+    public static instance: ModuleDAOServer = null;
 
     public check_foreign_keys: boolean = true;
 
@@ -96,7 +97,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test module constructor
     private constructor() {
-        super(ModuleDAO.getInstance().name);
+        super(ModuleDAO.instance.name);
         // setTimeout(() => {
         //     ThrottledQueryServerController.shift_select_queries();
         // }, 1);
@@ -108,6 +109,41 @@ export default class ModuleDAOServer extends ModuleServerBase {
             ModuleDAOServer.instance = new ModuleDAOServer();
         }
         return ModuleDAOServer.instance;
+    }
+
+    @ExecAsServer
+    private async _insertOrUpdateVO(vo: IDistantVOBase, @ExecAsServerParam exec_as_server: boolean = false): Promise<InsertOrDeleteQueryResult> {
+
+        if (!vo) {
+            return null;
+        }
+
+        if (!vo.id) {
+            const res = await this._insert_vos([vo], exec_as_server);
+            if (res && res.length) {
+                return res[0];
+            }
+        } else {
+
+            /**
+             * On doit traduire les valeurs des champs mais pas les field_ids au format api
+             */
+            // let table = ModuleTableController.module_tables_by_vo_type[vo._type];
+            // let fields = table.get_fields();
+            // for (let i in fields) {
+            //     let field = fields[i];
+
+            //     vo[field.field_name] = table.default_get_field_api_version(vo[field.field_name], field);
+            // }
+            vo = ModuleTableController.translate_vos_to_api(vo, false);
+
+            const res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
+            if (res && res.length) {
+                return res[0];
+            }
+        }
+
+        return null;
     }
 
     public get_all_ranges_from_segmented_table(moduleTable: ModuleTableVO): NumRange[] {
@@ -342,7 +378,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     public async late_configuration(is_generator: boolean) {
-        await ModuleDAO.getInstance().late_configuration(is_generator);
+        await ModuleDAO.instance.late_configuration(is_generator);
     }
 
     public async shift_select_queries(event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO): Promise<void> {
@@ -371,7 +407,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après modification.
                 //  Attention si un des output est false avant modification, on annule la modification
-                const res: boolean[] = await DAOServerController.pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo), exec_as_server);
+                // On exécute les triggers as_admin toujours
+                const res: boolean[] = await StackContext.exec_as_server(
+                    DAOServerController.pre_update_trigger_hook.trigger,
+                    DAOServerController.pre_update_trigger_hook,
+                    true,
+                    vo._type,
+                    new DAOUpdateVOHolder(pre_update_vo, vo),
+                    exec_as_server);
                 if (!BooleanHandler.AND(res, true)) {
                     StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_update_trigger_hook_rejection');
                     return null;
@@ -426,7 +469,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après modification.
                 //  Attention si un des output est false avant modification, on annule la modification
-                const res: boolean[] = await DAOServerController.pre_create_trigger_hook.trigger(vo._type, vo, exec_as_server);
+                // On exécute les triggers as_admin toujours
+                const res: boolean[] = await StackContext.exec_as_server(
+                    DAOServerController.pre_create_trigger_hook.trigger,
+                    DAOServerController.pre_create_trigger_hook,
+                    true,
+                    vo._type,
+                    vo,
+                    exec_as_server);
                 if (!BooleanHandler.AND(res, true)) {
                     StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_create_trigger_hook_rejection');
                     return null;
@@ -769,25 +819,25 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_selectUsersForCheckUnicity, this.selectUsersForCheckUnicity.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().selectUsersForCheckUnicity, this.selectUsersForCheckUnicity.bind(this));
 
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS, this.deleteVOs.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS_BY_IDS, this.deleteVOsByIds.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS_MULTICONNECTIONS, this.deleteVOsMulticonnections.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().deleteVOs, this.deleteVOs.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().deleteVOsByIds, this.deleteVOsByIds.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().deleteVOsMulticonnections, this.deleteVOsMulticonnections.bind(this));
 
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_INSERT_VOS, this.insert_vos.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS, this.insertOrUpdateVOs.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, this.insertOrUpdateVO.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().insert_vos, this.insert_vos.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().insertOrUpdateVOs, this.insertOrUpdateVOs.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().insertOrUpdateVO, this.insertOrUpdateVO.bind(this));
 
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_getVarImportsByMatroidParams, this.getVarImportsByMatroidParams.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS, this.filterVosByMatroids.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().getVarImportsByMatroidParams, this.getVarImportsByMatroidParams.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().filterVosByMatroids, this.filterVosByMatroids.bind(this));
 
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME, this.getNamedVoByName.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().getNamedVoByName, this.getNamedVoByName.bind(this));
 
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_GET_BASE_URL, this.getBaseUrl.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().getBaseUrl, this.getBaseUrl.bind(this));
 
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_truncate, this.truncate_api.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_delete_all_vos_triggers_ok, this.delete_all_vos_triggers_ok.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().truncate, this.truncate_api.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().delete_all_vos_triggers_ok, this.delete_all_vos_triggers_ok.bind(this));
     }
 
     public async preload_segmented_known_database(t: ModuleTableVO) {
@@ -938,7 +988,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
          *  car on ne peut pas les créer en parallèle. Du coup on les crée en amont si besoin
          */
         await this.confirm_segmented_tables_existence(vos);
-        return await this.insertOrUpdateVOs_as_server(vos, exec_as_server);
+        return this.insertOrUpdateVOs_as_server(vos, exec_as_server);
     }
 
     /**
@@ -946,7 +996,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     public async delete_all_vos_triggers_ok(api_type_id: string) {
 
-        await ModuleContextFilter.getInstance().delete_vos(query(api_type_id));
+        await ModuleContextFilter.instance.delete_vos(query(api_type_id));
     }
 
     /**
@@ -988,10 +1038,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     public async insertOrUpdateVOs_without_triggers(vos: IDistantVOBase[], max_connections_to_use: number = 0, exec_as_server: boolean = false): Promise<InsertOrDeleteQueryResult[]> {
         if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-            const uid: number = StackContext.get('UID');
-            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+
+            const can_use_context = !StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE);
+
+            if (can_use_context) {
+                const uid: number = StackContext.get('UID');
+                const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+                if (uid && CLIENT_TAB_ID) {
+                    ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+                }
             }
             return null;
         }
@@ -1285,12 +1340,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * @param exec_as_server équivalement de l'ancien IS_CLIENT: false. on ignore tous les contrôles de droits
      */
     public async insert_without_triggers_using_COPY(vos: IDistantVOBase[], segmented_value: number = null, exec_as_server: boolean = false): Promise<boolean> {
-        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-            const uid: number = StackContext.get('UID');
-            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
-            }
+        if (this.is_global_update_blocker()) {
             return false;
         }
 
@@ -1725,12 +1775,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     public async truncate(api_type_id: string, ranges: IRange[] = null) {
 
-        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-            const uid: number = StackContext.get('UID');
-            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
-            }
+        if (this.is_global_update_blocker()) {
             return null;
         }
 
@@ -1772,6 +1817,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         } catch (error) {
             ConsoleHandler.error(error);
+            const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+            if (!can_use_context) {
+                return;
+            }
             const uid: number = StackContext.get('UID');
             const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
             await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.truncate.error', true);
@@ -1880,9 +1929,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        const uid = await StackContext.get('UID');
-        if (uid) {
-            await ServerAnonymizationController.anonymise(moduleTable, res, uid, null);
+        const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+        if (can_use_context) {
+            const uid = await StackContext.get('UID');
+            if (uid) {
+                await ServerAnonymizationController.anonymise(moduleTable, res, uid, null);
+            }
         }
 
         return res;
@@ -1964,9 +2016,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        const uid = await StackContext.get('UID');
-        if (uid) {
-            await ServerAnonymizationController.anonymise(moduleTable, [vo], uid, null);
+        const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+
+        if (can_use_context) {
+            const uid = await StackContext.get('UID');
+            if (uid) {
+                await ServerAnonymizationController.anonymise(moduleTable, [vo], uid, null);
+            }
         }
 
         return vo;
@@ -1978,12 +2034,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * @param query_
      */
     public async query(query_: string = null, values: any = null): Promise<any> {
-        if (DAOServerController.GLOBAL_UPDATE_BLOCKER && !/^select /i.test(query_)) {
-            const uid: number = StackContext.get('UID');
-            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
-            }
+        if ((!/^select /i.test(query_)) && this.is_global_update_blocker()) {
             return null;
         }
 
@@ -2177,7 +2228,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async insertOrUpdateVO_as_server(vo: IDistantVOBase, exec_as_server: boolean = true): Promise<InsertOrDeleteQueryResult> {
 
-        return await this._insertOrUpdateVO(vo, exec_as_server);
+        return this._insertOrUpdateVO(vo, exec_as_server);
     }
 
     /**
@@ -2231,11 +2282,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async insertOrUpdateVOs_as_server<T extends IDistantVOBase>(vos: T[], exec_as_server: boolean = true): Promise<InsertOrDeleteQueryResult[]> {
 
-        return await this._insertOrUpdateVOs(vos, exec_as_server);
+        return this._insertOrUpdateVOs(vos, exec_as_server);
     }
 
     public async deleteVOs_as_server(vos: IDistantVOBase[], exec_as_server: boolean = true): Promise<InsertOrDeleteQueryResult[]> {
-        return await this._deleteVOs(vos, exec_as_server);
+        return this._deleteVOs(vos, exec_as_server);
     }
 
 
@@ -2307,7 +2358,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     private async insertOrUpdateVOs<T extends IDistantVOBase>(vos: T[]): Promise<InsertOrDeleteQueryResult[]> {
 
-        return await this._insertOrUpdateVOs(vos, false);
+        return this._insertOrUpdateVOs(vos, false);
     }
 
     // /**
@@ -2417,23 +2468,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
 
-        return await this._insertOrUpdateVO(vo, false);
+        return this._insertOrUpdateVO(vo, false);
     }
 
     private async deleteVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
-        return await this._deleteVOs(vos, false);
+        return this._deleteVOs(vos, false);
     }
 
     private async _deleteVOs(vos: IDistantVOBase[], exec_as_server: boolean = false): Promise<InsertOrDeleteQueryResult[]> {
         const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'in');
 
-        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-            const uid: number = StackContext.get('UID');
-            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
-            }
+        if (this.is_global_update_blocker()) {
             StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'global_update_blocker');
             return null;
         }
@@ -2491,7 +2537,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après suppression.
                 //  Attention si un des output est false avant suppression, on annule la suppression
-                const res: boolean[] = await DAOServerController.pre_delete_trigger_hook.trigger(vo._type, vo, exec_as_server);
+                // On exécute les triggers as_admin toujours
+                const res: boolean[] = await StackContext.exec_as_server(
+                    DAOServerController.pre_delete_trigger_hook.trigger,
+                    DAOServerController.pre_delete_trigger_hook,
+                    true,
+                    vo._type,
+                    vo,
+                    exec_as_server);
                 if (!BooleanHandler.AND(res, true)) {
                     StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'pre_delete_trigger_hook_rejection');
                     continue;
@@ -2526,7 +2579,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 if (deps_to_delete && deps_to_delete.length) {
-                    const dep_ires: InsertOrDeleteQueryResult[] = await ModuleDAOServer.getInstance().deleteVOs_as_server(deps_to_delete, exec_as_server);
+                    const dep_ires: InsertOrDeleteQueryResult[] = await ModuleDAOServer.instance.deleteVOs_as_server(deps_to_delete, exec_as_server);
 
                     if ((!dep_ires) || (dep_ires.length != deps_to_delete.length)) {
                         ConsoleHandler.error('FAILED DELETE DEPS :' + vo._type + ':' + vo.id + ':ABORT DELETION: DEPS_TYPES:' + DEBUG_deps_types_to_delete);
@@ -2566,7 +2619,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                 }
 
-                await DAOServerController.post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo, exec_as_server);
+                // On exécute les triggers as_admin toujours
+                await StackContext.exec_as_server(
+                    DAOServerController.post_delete_trigger_hook.trigger,
+                    DAOServerController.post_delete_trigger_hook,
+                    true,
+                    deleted_vo._type,
+                    deleted_vo,
+                    exec_as_server);
             }
             return value;
         });
@@ -2587,12 +2647,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private async deleteVOsByIds(API_TYPE_ID: string, ids: number[]): Promise<any[]> {
 
-        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-            const uid: number = StackContext.get('UID');
-            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
-            }
+        if (this.is_global_update_blocker()) {
             return null;
         }
 
@@ -2619,7 +2674,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
         vos = tmp_vos;
 
-        return await this.deleteVOs(vos);
+        return this.deleteVOs(vos);
     }
 
     /**
@@ -2633,7 +2688,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
         const hooks = DAOServerController.access_hooks[datatable.vo_type] && DAOServerController.access_hooks[datatable.vo_type][access_type] ? DAOServerController.access_hooks[datatable.vo_type][access_type] : [];
-        if (!StackContext.get('IS_CLIENT')) {
+        if (StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE) || !StackContext.get('IS_CLIENT')) {
             // Server
             return vo;
         }
@@ -2693,12 +2748,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
             // throw new Error('Not Implemented');
         }
 
-        return await query(API_TYPE_ID).filter_by_ids(ranges).exec_as_server().select_count();
+        return query(API_TYPE_ID).filter_by_ids(ranges).exec_as_server().select_count();
     }
 
     private async getNamedVoByName<U extends INamedVO>(API_TYPE_ID: string, name: string): Promise<U> {
 
-        return await query(API_TYPE_ID).filter_by_text_eq(field_names<INamedVO>().name, name, API_TYPE_ID, true).select_vo<U>();
+        return query(API_TYPE_ID).filter_by_text_eq(field_names<INamedVO>().name, name, API_TYPE_ID, true).select_vo<U>();
     }
 
     private async getVarImportsByMatroidParams<T extends IDistantVOBase>(
@@ -2745,9 +2800,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        const uid = await StackContext.get('UID');
-        if (uid) {
-            await ServerAnonymizationController.anonymise(datatable, res, uid, null);
+        const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+
+        if (can_use_context) {
+            const uid = await StackContext.get('UID');
+            if (uid) {
+                await ServerAnonymizationController.anonymise(datatable, res, uid, null);
+            }
         }
 
         return res;
@@ -2797,23 +2856,27 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        const uid = await StackContext.get('UID');
-        if (uid) {
-            await ServerAnonymizationController.anonymise(datatable, res, uid, null);
+        const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+
+        if (can_use_context) {
+            const uid = await StackContext.get('UID');
+            if (uid) {
+                await ServerAnonymizationController.anonymise(datatable, res, uid, null);
+            }
         }
 
         return res;
     }
 
     private async getVarImportsByMatroidParam<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
-        return await query(api_type_id)
+        return query(api_type_id)
             .filter_by_matroids_inclusion([matroid], true, api_type_id, fields_ids_mapper)
             .filter_by_num_eq(field_names<VarDataBaseVO>().value_type, VarDataBaseVO.VALUE_TYPE_IMPORT)
             .select_vos<T>();
     }
 
     private async filterVosByMatroid<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
-        return await query(api_type_id)
+        return query(api_type_id)
             .filter_by_matroids_inclusion([matroid], true, api_type_id, fields_ids_mapper)
             .select_vos<T>();
     }
@@ -2823,7 +2886,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      *  Version dédiée à l'api pour ne pas avoir le param exec_as_admin
      */
     private async insert_vos<T extends IDistantVOBase>(vos: T[]): Promise<InsertOrDeleteQueryResult[]> {
-        return await this._insert_vos(vos, false);
+        return this._insert_vos(vos, false);
     }
 
     /**
@@ -2835,12 +2898,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         const time_in = Dates.now_ms();
 
         StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'insert_vos', 'IN');
-        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-            const uid: number = StackContext.get('UID');
-            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
-            }
+        if (this.is_global_update_blocker()) {
             StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'insert_vos', 'GLOBAL_UPDATE_BLOCKER');
             return null;
         }
@@ -2978,11 +3036,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         try {
                             const table_name = reason.message.replace('duplicate key value violates unique constraint "', '').replace('_pkey"', '');
 
-                            await ModuleDAOServer.getInstance().query('SELECT setval(\'ref.' + table_name + '_id_seq\'::regclass, COALESCE((SELECT MAX(id)+1 FROM ref.' + table_name + '), 1), false);');
+                            await ModuleDAOServer.instance.query('SELECT setval(\'ref.' + table_name + '_id_seq\'::regclass, COALESCE((SELECT MAX(id)+1 FROM ref.' + table_name + '), 1), false);');
 
                             if (can_retry > 0) {
                                 ConsoleHandler.error('insert_vos : duplicate key value violates unique constraint : ' + reason.message + ' : ' + reason.stack + ' : On tente de réajuster la contrainte pkey : OK : On relance l\'insertion');
-                                results = await ModuleDAOServer.getInstance()._insert_vos(vos, exec_as_server, can_retry - 1);
+                                results = await ModuleDAOServer.instance._insert_vos(vos, exec_as_server, can_retry - 1);
                                 resolve(results);
                                 resolved = true;
                                 ConsoleHandler.error('insert_vos : duplicate key value violates unique constraint : ' + reason.message + ' : ' + reason.stack + ' : On tente de réajuster la contrainte pkey : OK : On relance l\'insertion : OK');
@@ -3034,7 +3092,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     vo.id = parseInt(results[i].id.toString());
 
                     try {
-                        await DAOServerController.post_create_trigger_hook.trigger(vo._type, vo, exec_as_server);
+                        // On exécute les triggers as_admin toujours
+                        await StackContext.exec_as_server(
+                            DAOServerController.post_create_trigger_hook.trigger,
+                            DAOServerController.post_create_trigger_hook,
+                            true,
+                            vo._type,
+                            vo,
+                            exec_as_server);
                     } catch (error) {
                         ConsoleHandler.error('post_create_trigger_hook :' + vo._type + ':' + vo.id + ':' + error);
                     }
@@ -3117,38 +3182,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
-    private async _insertOrUpdateVO(vo: IDistantVOBase, exec_as_server: boolean = false): Promise<InsertOrDeleteQueryResult> {
+    private is_global_update_blocker(): boolean {
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
 
-        if (!vo) {
-            return null;
+            const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+
+            if (can_use_context) {
+                const uid: number = StackContext.get('UID');
+                const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+                if (uid && CLIENT_TAB_ID) {
+                    ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+                }
+            }
+            return true;
         }
 
-        if (!vo.id) {
-            const res = await this._insert_vos([vo], exec_as_server);
-            if (res && res.length) {
-                return res[0];
-            }
-        } else {
-
-            /**
-             * On doit traduire les valeurs des champs mais pas les field_ids au format api
-             */
-            // let table = ModuleTableController.module_tables_by_vo_type[vo._type];
-            // let fields = table.get_fields();
-            // for (let i in fields) {
-            //     let field = fields[i];
-
-            //     vo[field.field_name] = table.default_get_field_api_version(vo[field.field_name], field);
-            // }
-            vo = ModuleTableController.translate_vos_to_api(vo, false);
-
-            const res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
-            if (res && res.length) {
-                return res[0];
-            }
-        }
-
-        return null;
+        return false;
     }
-
 }

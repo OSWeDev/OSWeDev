@@ -165,7 +165,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
             this.set_dashboard_navigation_history
         );
 
-        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+        const access_policy_name = ModuleDAO.instance.getAccessPolicyName(
             ModuleDAO.DAO_ACCESS_TYPE_READ,
             DashboardVO.API_TYPE_ID
         );

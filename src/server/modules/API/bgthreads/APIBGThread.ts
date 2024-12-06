@@ -1,3 +1,4 @@
+import ServerExpressController from '../../../ServerExpressController';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 
 /**
@@ -25,6 +26,8 @@ export default class APIBGThread implements IBGThread {
     public static getInstance() {
         if (!APIBGThread.instance) {
             APIBGThread.instance = new APIBGThread();
+            // On doit aussi instantier ServerExpressController pour que les tâches soient enregistrées
+            ServerExpressController.getInstance();
         }
         return APIBGThread.instance;
     }

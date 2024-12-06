@@ -3,7 +3,7 @@ import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleMaintenance from '../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ParamsServerController from '../Params/ParamsServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
@@ -11,19 +11,11 @@ import ModuleMaintenanceServer from './ModuleMaintenanceServer';
 
 export default class MaintenanceServerController {
 
-    public static TASK_NAME_set_planned_maintenance_vo = 'MaintenanceServerController.set_planned_maintenance_vo';
+    // public static TASK_NAME_set_planned_maintenance_vo = 'MaintenanceServerController.set_planned_maintenance_vo';
     public static TASK_NAME_handleTriggerPreC_MaintenanceVO = 'MaintenanceServerController.handleTriggerPreC_MaintenanceVO';
     public static TASK_NAME_end_maintenance = 'MaintenanceServerController.end_maintenance';
     public static TASK_NAME_start_maintenance = 'ModuleMaintenanceServer.start_maintenance';
     public static TASK_NAME_end_planned_maintenance = 'ModuleMaintenanceServer.end_planned_maintenance';
-
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!MaintenanceServerController.instance) {
-            MaintenanceServerController.instance = new MaintenanceServerController();
-        }
-        return MaintenanceServerController.instance;
-    }
 
     private static instance: MaintenanceServerController = null;
 
@@ -47,27 +39,9 @@ export default class MaintenanceServerController {
 
     protected constructor() {
         // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(MaintenanceServerController.TASK_NAME_set_planned_maintenance_vo, this.set_planned_maintenance_vo.bind(this));
+        // ForkedTasksController.register_task(MaintenanceServerController.TASK_NAME_set_planned_maintenance_vo, this.set_planned_maintenance_vo.bind(this));
     }
 
-    public async get_planned_maintenance_vo(): Promise<MaintenanceVO> {
-        if ((!this.planned_maintenance_cache_timeout) ||
-            ((Dates.now() - this.planned_maintenance_cache_timeout) > 30)) {
-            this.planned_maintenance = await ModuleMaintenanceServer.getInstance().get_planned_maintenance();
-            this.planned_maintenance_cache_timeout = Dates.now();
-        }
-
-        return this.planned_maintenance;
-    }
-
-    public async set_planned_maintenance_vo(maintenance: MaintenanceVO): Promise<void> {
-
-        if (!await ForkedTasksController.exec_self_on_main_process(MaintenanceServerController.TASK_NAME_set_planned_maintenance_vo, maintenance)) {
-            return;
-        }
-
-        this.planned_maintenance = maintenance;
-    }
 
     /**
      * WARN : Should only be used on the main process (express)
@@ -78,13 +52,21 @@ export default class MaintenanceServerController {
         return !!this.planned_maintenance;
     }
 
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!MaintenanceServerController.instance) {
+            MaintenanceServerController.instance = new MaintenanceServerController();
+        }
+        return MaintenanceServerController.instance;
+    }
+
     /**
      * WARN : only on main thread (express) since called only when on request
+     * DELETE ME Post suppression StackContext: Does not need StackContext
      * @param user_id
      */
+    @RunsOnMainThread
     public async inform_user_on_request(user_id: number): Promise<void> {
-
-        ForkedTasksController.assert_is_main_process();
 
         const planned_maintenance = await this.get_planned_maintenance_vo();
 
@@ -110,5 +92,25 @@ export default class MaintenanceServerController {
         }
 
         this.informed_users_tstzs[user_id] = Dates.now();
+    }
+
+    /**
+     * DELETE ME Post suppression StackContext : Does not need StackContext
+     */
+    @RunsOnMainThread
+    public async get_planned_maintenance_vo(): Promise<MaintenanceVO> {
+        if ((!this.planned_maintenance_cache_timeout) ||
+            ((Dates.now() - this.planned_maintenance_cache_timeout) > 30)) {
+            this.planned_maintenance = await ModuleMaintenanceServer.getInstance().get_planned_maintenance();
+            this.planned_maintenance_cache_timeout = Dates.now();
+        }
+
+        return this.planned_maintenance;
+    }
+
+    @RunsOnMainThread
+    public async set_planned_maintenance_vo(maintenance: MaintenanceVO): Promise<void> {
+
+        this.planned_maintenance = maintenance;
     }
 }

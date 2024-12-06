@@ -669,7 +669,7 @@ export default class FieldValueFilterWidgetManager {
 
                 has_segmented = true;
 
-                const count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(
+                const count_segmentations = await ModuleContextFilter.instance.count_valid_segmentations(
                     api_type_id,
                     context_query_with_discarded_field_paths,
                     ignore_self_filter

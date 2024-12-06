@@ -29,7 +29,7 @@ export default class SuiviCompetencesIndicateurCreateUpdateComponent extends Vue
 
     @Watch('vo', { immediate: true })
     private init_field_values() {
-        if (this.vo[this.field.module_table_field_id]) {
+        if (this.vo && this.vo[this.field.module_table_field_id]) {
             this.field_values = SuiviCompetencesIndicateurTableFieldTypeController.getInstance().get_value(this.vo);
         } else {
             this.field_values = null;

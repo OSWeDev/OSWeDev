@@ -43,7 +43,7 @@ export default class Patch20240930AddOseliaFunction_send_teams_messages implemen
             func.prepend_thread_vo = true;
             func.use_promise_pipeline = false;
             func.json_stringify_output = false;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(func);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(func);
 
             await this.create_params_description_if_not_exists(func);
         }
@@ -65,7 +65,7 @@ export default class Patch20240930AddOseliaFunction_send_teams_messages implemen
             func_warn.prepend_thread_vo = true;
             func_warn.use_promise_pipeline = false;
             func_warn.json_stringify_output = false;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(func_warn);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(func_warn);
 
             await this.create_params_description_if_not_exists(func_warn);
         }
@@ -87,7 +87,7 @@ export default class Patch20240930AddOseliaFunction_send_teams_messages implemen
             func_error.prepend_thread_vo = true;
             func_error.use_promise_pipeline = false;
             func_error.json_stringify_output = false;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(func_error);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(func_error);
 
             await this.create_params_description_if_not_exists(func_error);
         }
@@ -109,7 +109,7 @@ export default class Patch20240930AddOseliaFunction_send_teams_messages implemen
             func_success.prepend_thread_vo = true;
             func_success.use_promise_pipeline = false;
             func_success.json_stringify_output = false;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(func_success);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(func_success);
 
             await this.create_params_description_if_not_exists(func_success);
         }
@@ -125,7 +125,7 @@ export default class Patch20240930AddOseliaFunction_send_teams_messages implemen
         title_param.required = true;
         title_param.weight = 0;
         title_param.default_json_value = null;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(title_param);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(title_param);
 
         // content: string,
         const content_param: GPTAssistantAPIFunctionParamVO = new GPTAssistantAPIFunctionParamVO();
@@ -136,6 +136,6 @@ export default class Patch20240930AddOseliaFunction_send_teams_messages implemen
         content_param.required = true;
         content_param.weight = 1;
         content_param.default_json_value = null;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content_param);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content_param);
     }
 }

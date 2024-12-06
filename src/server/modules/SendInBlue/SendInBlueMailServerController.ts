@@ -241,12 +241,12 @@ export default class SendInBlueMailServerController {
             return null;
         }
 
-        let category = await ModuleDAO.getInstance().getNamedVoByName<MailCategoryVO>(MailCategoryVO.API_TYPE_ID, mail_category);
+        let category = await ModuleDAO.instance.getNamedVoByName<MailCategoryVO>(MailCategoryVO.API_TYPE_ID, mail_category);
 
         if (!category) {
             category = new MailCategoryVO();
             category.name = mail_category;
-            const res_cat = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(category);
+            const res_cat = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(category);
             if (!res_cat || !res_cat.id) {
                 ConsoleHandler.error('SendInBlueMailServerController.insert_new_mail:Failed:Impossible de créer la nouvelle catégorie de mail:' + mail_category + ':');
                 return null;
@@ -263,7 +263,7 @@ export default class SendInBlueMailServerController {
         mail.send_date = mail.last_up_date;
         mail.sent_by_id = StackContext.get('UID');
         mail.sent_to_id = await this.get_uid_if_exists(to_mail);
-        const res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(mail);
+        const res = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(mail);
         if ((!res) || (!res.id)) {
             ConsoleHandler.error('SendInBlueMailServerController.insert_new_mail:failed inserting new mail:' + JSON.stringify(mail) + ':');
             return null;
@@ -274,7 +274,7 @@ export default class SendInBlueMailServerController {
         first_event.event = MailEventVO.EVENT_Initie;
         first_event.event_date = Dates.now();
         first_event.mail_id = mail.id;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(first_event);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(first_event);
 
         return mail;
     }

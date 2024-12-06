@@ -1,11 +1,10 @@
-import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
+import { PostThrottleParam, PreThrottleParam, THROTTLED_METHOD_PARAM_TYPE } from '../../../shared/annotations/Throttle';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
@@ -15,23 +14,24 @@ import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeli
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
+import ThrottleAndExecAsServer from '../../annotations/ThrottleAndExecAsServer';
+import ThrottleExecAsServerRunsOnBgThread from '../../annotations/ThrottleExecAsServerRunsOnBgThread';
 import ConfigurationService from '../../env/ConfigurationService';
+import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
+import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-import ForkedTasksController from '../Fork/ForkedTasksController';
+import ParamsServerController from '../Params/ParamsServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import CurrentVarDAGHolder from './CurrentVarDAGHolder';
-import ModuleVarServer from './ModuleVarServer';
 import VarsBGThreadNameHolder from './VarsBGThreadNameHolder';
 import VarsCacheController from './VarsCacheController';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsClientsSubsCacheHolder from './bgthreads/processes/VarsClientsSubsCacheHolder';
 import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCacheManager';
-import ParamsServerController from '../Params/ParamsServerController';
 
 /**
  * On gère le buffer des mises à jour de vos en lien avec des vars pour invalider au plus vite les vars en cache en cas de modification d'un VO
@@ -45,12 +45,6 @@ export default class VarsDatasVoUpdateHandler {
     public static VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME = 'VarsDatasVoUpdateHandler.block_ordered_vos_cud';
     public static delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME = 'VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas';
 
-    public static TASK_NAME_has_vos_cud_or_intersectors: string = 'VarsDatasVoUpdateHandler.has_vos_cud_or_intersectors';
-    public static TASK_NAME_push_invalidators: string = 'VarsDatasVoUpdateHandler.push_invalidators';
-    public static TASK_NAME_register_vo_cud = 'VarsDatasVoUpdateHandler.register_vo_cud';
-    // public static TASK_NAME_filter_varsdatas_cache_by_matroids_intersection: string = 'VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_matroids_intersection';
-    // public static TASK_NAME_filter_varsdatas_cache_by_exact_matroids: string = 'VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_exact_matroids';
-
     /**
      * Multithreading notes :
      *  - There's only one bgthread doing all the computations, and separated from the other threads if the project decides to do so
@@ -58,8 +52,6 @@ export default class VarsDatasVoUpdateHandler {
      */
     public static ordered_vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = [];
     public static last_call_handled_something: boolean = false;
-
-    public static register_vo_cud = ThrottleHelper.declare_throttle_with_stackable_args(VarsDatasVoUpdateHandler.register_vo_cud_throttled.bind(this), 100, { leading: true, trailing: true });
 
     /**
      * La liste des invalidations en attente de traitement
@@ -69,19 +61,7 @@ export default class VarsDatasVoUpdateHandler {
 
     private static last_registration: number = null;
 
-    private static throttled_update_param = ThrottleHelper.declare_throttle_without_args(VarsDatasVoUpdateHandler.update_param.bind(this), 1000, { leading: false, trailing: true });
-    private static throttle_push_invalidators = ThrottleHelper.declare_throttle_with_stackable_args(VarsDatasVoUpdateHandler.throttled_push_invalidators.bind(this), 100, { leading: false, trailing: true });
-
-
     public static init() {
-        // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, VarsDatasVoUpdateHandler.register_vo_cud.bind(this));
-        // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(VarsDatasVoUpdateHandler.TASK_NAME_has_vos_cud_or_intersectors, VarsDatasVoUpdateHandler.has_vos_cud_or_intersectors.bind(this));
-        // ForkedTasksController.register_task(VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_matroids_intersection, VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_matroids_intersection.bind(this));
-        // ForkedTasksController.register_task(VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_exact_matroids, VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_exact_matroids.bind(this));
-        // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(VarsDatasVoUpdateHandler.TASK_NAME_push_invalidators, VarsDatasVoUpdateHandler.push_invalidators.bind(this));
     }
 
     // /**
@@ -127,33 +107,6 @@ export default class VarsDatasVoUpdateHandler {
     //         resolve();
     //     });
     // }
-
-    /**
-     * Demander une ou des invalidations
-     * @param invalidators
-     * @returns
-     */
-    public static async push_invalidators(invalidators: VarDataInvalidatorVO[]): Promise<string> {
-
-        if ((!invalidators) || (!invalidators.length)) {
-            return 'push_invalidators';
-        }
-
-        return new Promise(async (resolve, reject) => {
-
-            if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
-                reject,
-                VarsBGThreadNameHolder.bgthread_name,
-                VarsDatasVoUpdateHandler.TASK_NAME_push_invalidators,
-                resolve,
-                invalidators)) {
-                return;
-            }
-
-            VarsDatasVoUpdateHandler.throttle_push_invalidators(invalidators);
-            resolve("push_invalidators");
-        });
-    }
 
     /**
      * Objectif on bloque le ModuleDAO en modification, et on informe via notif quand on a à la fois bloqué les updates et vidé le cache de ce module
@@ -323,43 +276,11 @@ export default class VarsDatasVoUpdateHandler {
             await promise_pipeline.push(async () => {
                 const moduleTable = ModuleTableController.module_tables_by_vo_type[api_type_id];
                 const request = "DELETE FROM " + moduleTable.full_name + " WHERE _bdd_only_index in ('" + indexes.join("','") + "');";
-                await ModuleDAOServer.getInstance().query(request);
+                await ModuleDAOServer.instance.query(request);
             });
         }
 
         await promise_pipeline.end();
-    }
-
-    public static async has_vos_cud_or_intersectors(): Promise<boolean> {
-        return new Promise(async (resolve, reject) => {
-
-            if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
-                reject,
-                VarsBGThreadNameHolder.bgthread_name,
-                VarsDatasVoUpdateHandler.TASK_NAME_has_vos_cud_or_intersectors, resolve)) {
-                return;
-            }
-
-            resolve((VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0)) ||
-                (VarsDatasVoUpdateHandler.invalidators && (VarsDatasVoUpdateHandler.invalidators.length > 0)));
-        });
-    }
-
-    public static async update_param() {
-
-        // On flag, si c'est pas déjà le cas, le fait que des cuds sont en attente, ou pas
-        let new_tag_value = VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0);
-        let old_tag_value = await ParamsServerController.getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
-
-        if (new_tag_value == old_tag_value) {
-            return;
-        }
-
-        await ParamsServerController.setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, new_tag_value);
-
-        // await ParamsServerController.setParamValue(
-        //     VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME,
-        //     VarsDatasVoUpdateHandler.getJSONFrom_ordered_vos_cud());
     }
 
     /**
@@ -529,14 +450,6 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         return union_invalidators;
-    }
-
-    private static throttled_push_invalidators(invalidators: VarDataInvalidatorVO[]) {
-        if ((!invalidators) || (!invalidators.length)) {
-            return;
-        }
-
-        VarsDatasVoUpdateHandler.invalidators.push(...invalidators);
     }
 
     /**
@@ -779,7 +692,7 @@ export default class VarsDatasVoUpdateHandler {
 
         query_.filter_by_num_x_ranges(field_names<VarDataBaseVO>().value_type, valid_types);
 
-        return await query_.select_vos<VarDataBaseVO>();
+        return query_.select_vos<VarDataBaseVO>();
     }
 
 
@@ -806,7 +719,7 @@ export default class VarsDatasVoUpdateHandler {
     private static async delete_var_by_intersected_without_triggers(api_type_id: string, invalidator: VarDataInvalidatorVO) {
 
         const moduleTable = ModuleTableController.module_tables_by_vo_type[api_type_id];
-        let request = "DELETE FROM " + moduleTable.full_name + " WHERE " + ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(api_type_id, invalidator.var_data, null);
+        let request = "DELETE FROM " + moduleTable.full_name + " WHERE " + ModuleDAOServer.instance.getWhereClauseForFilterByMatroidIntersection(api_type_id, invalidator.var_data, null);
 
         const list_valid_value_types = [VarDataBaseVO.VALUE_TYPE_COMPUTED];
         if (invalidator.invalidate_denied) {
@@ -817,7 +730,7 @@ export default class VarsDatasVoUpdateHandler {
         }
         request += " AND " + field_names<VarDataBaseVO>().value_type + " IN (" + list_valid_value_types.join(',') + ");";
 
-        await ModuleDAOServer.getInstance().query(request);
+        await ModuleDAOServer.instance.query(request);
     }
 
     private static async delete_var_by_exact_without_triggers(api_type_id: string, invalidator: VarDataInvalidatorVO) {
@@ -834,7 +747,7 @@ export default class VarsDatasVoUpdateHandler {
         }
         request += " AND " + field_names<VarDataBaseVO>().value_type + " IN (" + list_valid_value_types.join(',') + ");";
 
-        await ModuleDAOServer.getInstance().query(request);
+        await ModuleDAOServer.instance.query(request);
     }
 
     /**
@@ -1028,11 +941,61 @@ export default class VarsDatasVoUpdateHandler {
         ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + ordered_vos_cud.length + ':vo_ids_by_api_type_id_for_log:' + JSON.stringify(vo_ids_by_api_type_id_for_log));
     }
 
-    private static async register_vo_cud_throttled(vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase>) {
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    public static async has_vos_cud_or_intersectors(): Promise<boolean> {
+        return (VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0)) ||
+            (VarsDatasVoUpdateHandler.invalidators && (VarsDatasVoUpdateHandler.invalidators.length > 0));
+    }
 
-        if (!await ForkedTasksController.exec_self_on_bgthread(VarsBGThreadNameHolder.bgthread_name, VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, vos_cud)) {
+    // @ThrottleExecAsServerRunsOnBgThread(
+    //     {
+    //         param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+    //         leading: true,
+    //         trailing: true,
+    //         throttle_ms: 100,
+    //     },
+    //     VarsBGThreadNameHolder.bgthread_name,
+    //     false
+    // )
+
+
+
+    /***
+     *
+     */
+    @ThrottleAndExecAsServer(
+        {
+            param_type: THROTTLED_METHOD_PARAM_TYPE.NONE,
+            throttle_ms: 1000,
+            leading: false,
+            trailing: true,
+        }
+    )
+    public static async throttled_update_param() {
+
+        // On flag, si c'est pas déjà le cas, le fait que des cuds sont en attente, ou pas
+        const new_tag_value = VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0);
+        const old_tag_value = await ParamsServerController.getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
+
+        if (new_tag_value == old_tag_value) {
             return;
         }
+
+        await ParamsServerController.setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, new_tag_value);
+    }
+
+    @ThrottleAndExecAsServer(
+        {
+            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+            leading: true,
+            trailing: true,
+            throttle_ms: 100,
+        }
+    )
+    public static async register_vo_cud(
+        @PreThrottleParam vo_cud: DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase | Array<DAOUpdateVOHolder<IDistantVOBase>> | IDistantVOBase[],
+        @PostThrottleParam vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = null,
+    ) {
 
         const block_ordered_vos_cud: boolean = await ParamsServerController.getParamValueAsBoolean(
             VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME,
@@ -1048,5 +1011,31 @@ export default class VarsDatasVoUpdateHandler {
         VarsDatasVoUpdateHandler.last_registration = Dates.now();
 
         VarsDatasVoUpdateHandler.throttled_update_param();
+    }
+
+    /**
+    * Demander une ou des invalidations
+    * @param invalidators
+    * @returns
+    */
+    @ThrottleExecAsServerRunsOnBgThread(
+        {
+            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+            throttle_ms: 100,
+            leading: false,
+            trailing: true,
+        },
+        VarsBGThreadNameHolder.bgthread_name,
+        false,
+    )
+    public static push_invalidators(
+        @PreThrottleParam invalidator: VarDataInvalidatorVO | VarDataInvalidatorVO[],
+        @PostThrottleParam invalidators: VarDataInvalidatorVO[] = null,
+    ) {
+        if ((!invalidators) || (!invalidators.length)) {
+            return;
+        }
+
+        VarsDatasVoUpdateHandler.invalidators.push(...invalidators);
     }
 }

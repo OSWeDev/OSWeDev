@@ -210,7 +210,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Copié dans le presse-papier !'
         }, 'copied_to_clipboard.___LABEL___'));
-        
+
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Supprimer TOUTES les données ? Les filtrages sont ignorés'
@@ -733,29 +733,29 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     public async getTranslatableText(text: string): Promise<TranslatableTextVO> {
-        return await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq(field_names<TranslatableTextVO>().code_text, text).select_vo<TranslatableTextVO>();
+        return query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq(field_names<TranslatableTextVO>().code_text, text).select_vo<TranslatableTextVO>();
     }
 
     public async getLang(text: string): Promise<LangVO> {
-        return await query(LangVO.API_TYPE_ID).filter_by_text_eq(field_names<LangVO>().code_lang, text).select_vo<LangVO>();
+        return query(LangVO.API_TYPE_ID).filter_by_text_eq(field_names<LangVO>().code_lang, text).select_vo<LangVO>();
     }
 
     public async getLangs(): Promise<LangVO[]> {
-        return await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
+        return query(LangVO.API_TYPE_ID).select_vos<LangVO>();
     }
 
     public async getAllTranslations(): Promise<TranslationVO[]> {
-        return await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
+        return query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
     }
 
     public async getTranslations(num: number): Promise<TranslationVO[]> {
-        return await query(TranslationVO.API_TYPE_ID)
+        return query(TranslationVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<TranslationVO>().lang_id, num)
             .select_vos<TranslationVO>();
     }
 
     public async getTranslation(lang_id: number, text_id: number): Promise<TranslationVO> {
-        return await query(TranslationVO.API_TYPE_ID).filter_by_id(lang_id, LangVO.API_TYPE_ID).filter_by_id(text_id, TranslatableTextVO.API_TYPE_ID).select_vo<TranslationVO>();
+        return query(TranslationVO.API_TYPE_ID).filter_by_id(lang_id, LangVO.API_TYPE_ID).filter_by_id(text_id, TranslatableTextVO.API_TYPE_ID).select_vo<TranslationVO>();
     }
 
     private async trigger_oncreate_lang(lang: LangVO) {
@@ -773,7 +773,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         if (!LANG_SELECTOR_PER_LANG_ACCESS) {
             return false;
         }
-        await ModuleDAO.getInstance().deleteVOs([LANG_SELECTOR_PER_LANG_ACCESS]);
+        await ModuleDAO.instance.deleteVOs([LANG_SELECTOR_PER_LANG_ACCESS]);
         return true;
     }
 
@@ -931,14 +931,14 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }
 
         code_text += DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-        return await this.t(code_text, lang_id);
+        return this.t(code_text, lang_id);
     }
 
     private async onPreCreateTranslatableTextVO(vo: TranslatableTextVO): Promise<boolean> {
         if ((!vo) || (!vo.code_text)) {
             return false;
         }
-        return await ModuleTranslationServer.getInstance().isCodeOk(vo.code_text);
+        return ModuleTranslationServer.getInstance().isCodeOk(vo.code_text);
     }
 
     private async onPreUpdateTranslatableTextVO(vo_update_handler: DAOUpdateVOHolder<TranslatableTextVO>): Promise<boolean> {
@@ -946,7 +946,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         if ((!vo_update_handler.post_update_vo) || (!vo_update_handler.post_update_vo.code_text)) {
             return false;
         }
-        return await ModuleTranslationServer.getInstance().isCodeOk(vo_update_handler.post_update_vo.code_text, vo_update_handler.post_update_vo.id);
+        return ModuleTranslationServer.getInstance().isCodeOk(vo_update_handler.post_update_vo.code_text, vo_update_handler.post_update_vo.id);
     }
 
     private async isCodeOk(code_text: string, self_id: number = null): Promise<boolean> {

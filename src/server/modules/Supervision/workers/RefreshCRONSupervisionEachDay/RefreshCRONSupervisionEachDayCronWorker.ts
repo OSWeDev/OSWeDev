@@ -37,7 +37,7 @@ export default class RefreshCRONSupervisionEachDayCronWorker implements ICronWor
                 const supervised_pdv = supervised_pdvs[i];
                 supervised_pdv.invalid = true;
             }
-            await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(supervised_pdvs);
+            await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(supervised_pdvs);
         } catch (error) {
             ConsoleHandler.error('Erreur lors du RefreshCRONSupervisionEachDayCronWorker:' + error + ':');
         }

@@ -85,6 +85,7 @@ import OseliaRunFunctionCallVO from '../../../shared/modules/Oselia/vos/OseliaRu
 import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
 import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
 import ParamsServerController from '../Params/ParamsServerController';
+import BGThreadServerController from '../BGThread/BGThreadServerController';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -241,6 +242,14 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         postUpdateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.reset_has_no_run_ready_to_handle_on_thread_on_u);
         postDeleteTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.reset_has_no_run_ready_to_handle_on_thread);
 
+        // On force le run des oselia_run dès qu'ils sont créés/modifiés/supprimés
+        postCreateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.asap_oselia_run_bgthread);
+        postUpdateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.asap_oselia_run_bgthread);
+        postDeleteTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.asap_oselia_run_bgthread);
+        postCreateTrigger.registerHandler(GPTAssistantAPIThreadVO.API_TYPE_ID, this, this.asap_oselia_run_bgthread);
+        postUpdateTrigger.registerHandler(GPTAssistantAPIThreadVO.API_TYPE_ID, this, this.asap_oselia_run_bgthread);
+        postDeleteTrigger.registerHandler(GPTAssistantAPIThreadVO.API_TYPE_ID, this, this.asap_oselia_run_bgthread);
+
         postUpdateTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, this, this.update_oselia_run_step_on_u_gpt_run);
 
         postUpdateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.update_parent_oselia_run_step_on_u_oselia_run);
@@ -315,7 +324,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     new_thread_message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
                     new_thread_message.user_id = thread_vo.user_id;
                     new_thread_message.assistant_id = thread_vo.current_default_assistant_id;
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_thread_message);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(new_thread_message);
 
                     const image_content = new GPTAssistantAPIThreadMessageContentVO();
                     image_content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE;
@@ -471,7 +480,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     const file_name = 'oselia_' + new_thread.gpt_thread_id + '.txt';
                     const text_file = new FileVO();
                     text_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
-                    text_file.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(text_file)).id;
+                    text_file.id = (await ModuleDAOServer.instance.insertOrUpdateVO_as_server(text_file)).id;
 
                     fs.writeFileSync(text_file.path, messages_contents, 'utf8');
                     GPTAssistantAPIServerController.ask_assistant(assistant.gpt_assistant_id, new_thread.gpt_thread_id, new_thread.thread_title, message, [text_file], null, true);
@@ -778,7 +787,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         oselia_run.rerun_new_initial_prompt = rerun_new_initial_prompt;
         oselia_run.rerun_reason = rerun_reason;
         oselia_run.rerun_name = rerun_name;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run);
         await OseliaRunServerController.update_oselia_run_state(oselia_run, OseliaRunVO.STATE_NEEDS_RERUN);
 
         return 'OK - Run refusé et demande de rerun effectuée';
@@ -945,10 +954,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 thread.thread_vo.needs_thread_title_build = false;
                 thread.thread_vo.thread_title_auto_build_locked = true;
                 thread.thread_vo.parent_thread_id = thread_vo.id;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread.thread_vo);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread.thread_vo);
             }
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_run_step);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(new_run_step);
 
             return 'OK - Tâche ajoutée';
         } catch (error) {
@@ -1006,7 +1015,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return 'ERREUR Technique: Thread parent non trouvé: réeesayer';
         }
 
-        return await this.get_cache_value(parent_thread, key);
+        return this.get_cache_value(parent_thread, key);
     }
 
     /**
@@ -1078,7 +1087,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
 
         cache.value = value;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cache);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(cache);
 
         return 'OK';
     }
@@ -1486,7 +1495,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 user.lang_id = referrer.new_user_default_lang_id;
 
                 try {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
                 } catch (error) {
                     ConsoleHandler.error('Error while creating user:' + error);
                     return null;
@@ -1512,7 +1521,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 link.referrer_user_uid = referrer_user_uid;
 
                 try {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(link);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(link);
                 } catch (error) {
                     ConsoleHandler.error('Error while creating link:' + error);
                     return null;
@@ -1521,7 +1530,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
             if ((!link.user_validated) && is_internal_behaviour) {
                 link.user_validated = true;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(link);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(link);
             }
 
             const new_ott = new OseliaUserReferrerOTTVO();
@@ -1530,7 +1539,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             new_ott.ott = OseliaUserReferrerOTTVO.generateSecretToken(32);
             new_ott.expires = Date.now() + (1000 * 60 * 60 * 24); // 1 hour
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_ott);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(new_ott);
 
             return new_ott.ott;
 
@@ -1575,7 +1584,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         user_referrer.user_validated = true;
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_referrer);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_referrer);
     }
 
     private async refuse_link(referrer_user_ott: string): Promise<void> {
@@ -1600,7 +1609,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             ConsoleHandler.warn('User referrer already validated:OTT:' + referrer_user_ott + ':' + uid + ' - deleting beacause of refusal');
         }
 
-        await ModuleDAOServer.getInstance().deleteVOs_as_server([user_referrer]);
+        await ModuleDAOServer.instance.deleteVOs_as_server([user_referrer]);
     }
 
     private async account_waiting_link_status(referrer_user_ott: string): Promise<'validated' | 'waiting' | 'none'> {
@@ -2116,7 +2125,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                             file_vo.file_access_policy_name = secured_access_name;
                             file_vo.is_secured = is_secured;
                             file_vo.path = local_path;
-                            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file_vo);
+                            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(file_vo);
 
                             // On push l'image à GPT
 
@@ -2138,7 +2147,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     }
 
     private async init_api_key_from_mdp_preu(vos: DAOUpdateVOHolder<ExternalAPIAuthentificationVO>): Promise<boolean> {
-        return await this.init_api_key_from_mdp(vos.post_update_vo);
+        return this.init_api_key_from_mdp(vos.post_update_vo);
     }
     private async init_api_key_from_mdp(vo: ExternalAPIAuthentificationVO): Promise<boolean> {
         if (vo.basic_login && vo.basic_password && !vo.api_key) {
@@ -2176,7 +2185,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return null;
         }
 
-        return await this.link_user_to_oselia_referrer_obj(
+        return this.link_user_to_oselia_referrer_obj(
             referrer,
             user.email,
             user.id.toString()
@@ -2215,7 +2224,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
 
         if (needs_update) {
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread);
         }
     }
 
@@ -2259,7 +2268,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
 
         thread.has_no_run_ready_to_handle = false;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread);
     }
 
     private async reset_has_no_run_ready_to_handle_on_thread_on_u(vo_holder: DAOUpdateVOHolder<OseliaRunVO>) {
@@ -2327,7 +2336,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 for (const i in current_level_next_runs) {
                     current_level_next_runs[i].weight++;
                 }
-                await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(current_level_next_runs);
+                await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(current_level_next_runs);
 
                 new_state = OseliaRunVO.STATE_RERUN_ASKED;
 
@@ -2356,7 +2365,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 rerun.start_date = Dates.now();
                 rerun.thread_id = run.thread_id;
                 rerun.rerun_of_run_id = run.id;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rerun);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(rerun);
                 break;
             case OseliaRunVO.STATE_SPLITTING:
 
@@ -2463,7 +2472,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
 
         if (needs_update) {
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run);
         }
 
         if (new_state != null) {
@@ -2524,10 +2533,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
             if (has_child_error) {
                 parent_run.error_msg = 'Some children runs ended with errors/expired/cancelled';
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(parent_run);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(parent_run);
                 OseliaRunServerController.update_oselia_run_state(parent_run, OseliaRunVO.STATE_ERROR);
             } else {
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(parent_run);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(parent_run);
                 OseliaRunServerController.update_oselia_run_state(parent_run, OseliaRunVO.STATE_WAIT_SPLITS_END_ENDED);
             }
         }
@@ -2642,7 +2651,11 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             oselia_run_function_call_vo.end_date = Dates.now();
             oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_ERROR;
             oselia_run_function_call_vo.error_msg = error;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
         }
+    }
+
+    private async asap_oselia_run_bgthread() {
+        await BGThreadServerController.force_run_asap_by_bgthread_name[OseliaRunBGThread.BGTHREAD_NAME]();
     }
 }

@@ -14,14 +14,6 @@ export interface IOnPageTranslationState {
 
 export default class OnPageTranslationStore implements IStoreModule<IOnPageTranslationState, OnPageTranslationContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): OnPageTranslationStore {
-        if (!OnPageTranslationStore.instance) {
-            OnPageTranslationStore.instance = new OnPageTranslationStore();
-        }
-        return OnPageTranslationStore.instance;
-    }
-
     private static instance: OnPageTranslationStore;
 
     public module_name: string;
@@ -87,9 +79,18 @@ export default class OnPageTranslationStore implements IStoreModule<IOnPageTrans
             clear: (context: OnPageTranslationContext) => context.commit(store_mutations_names(this).clear, null),
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): OnPageTranslationStore {
+        if (!OnPageTranslationStore.instance) {
+            OnPageTranslationStore.instance = new OnPageTranslationStore();
+        }
+        return OnPageTranslationStore.instance;
+    }
 }
 
 export const OnPageTranslationStore_ = OnPageTranslationStore.getInstance();
 
-export const ModuleOnPageTranslationGetter = namespace('OnPageTranslationStore', Getter);
-export const ModuleOnPageTranslationAction = namespace('OnPageTranslationStore', Action);
+const __namespace = namespace('OnPageTranslationStore');
+export const ModuleOnPageTranslationGetter = __namespace.Getter;
+export const ModuleOnPageTranslationAction = __namespace.Action;

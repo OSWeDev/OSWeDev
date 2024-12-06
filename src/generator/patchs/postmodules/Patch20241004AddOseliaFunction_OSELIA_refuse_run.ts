@@ -44,7 +44,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_refuse_run implements
             refuse_run_function.gpt_function_name = 'refuse_oselia_run';
             refuse_run_function.json_stringify_output = false;
             refuse_run_function.gpt_function_description = "Refuser l\'étape actuelle d\'un run Osélia et demande une correction";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(refuse_run_function);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(refuse_run_function);
         }
 
         //  * @param rerun_reason la raison du rerun - version longue
@@ -66,7 +66,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_refuse_run implements
             argument_rerun_reason.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_rerun_reason.not_in_function_params = false;
             argument_rerun_reason.weight = 0;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_rerun_reason);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_rerun_reason);
         }
 
         let argument_rerun_name = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -84,7 +84,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_refuse_run implements
             argument_rerun_name.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_rerun_name.not_in_function_params = false;
             argument_rerun_name.weight = 1;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_rerun_name);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_rerun_name);
         }
 
         let argument_rerun_new_initial_prompt = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -102,7 +102,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_refuse_run implements
             argument_rerun_new_initial_prompt.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_rerun_new_initial_prompt.not_in_function_params = false;
             argument_rerun_new_initial_prompt.weight = 2;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_rerun_new_initial_prompt);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_rerun_new_initial_prompt);
         }
     }
 }

@@ -251,7 +251,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
 
             found_vo.archived = true;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
     }
 
@@ -342,7 +342,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
             await FileServerController.getInstance().makeSureThisFolderExists(folder);
             FileServerController.getInstance().writeFile(filepath, file_content);
             vo_file.path = filepath;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo_file);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(vo_file);
             needs_update = true;
         }
 
@@ -377,7 +377,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
         }
 
         if (needs_update) {
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(gpt_file_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(gpt_file_vo);
         }
     }
 }

@@ -20,14 +20,6 @@ export interface IVarState {
 
 export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): VarStore {
-        if (!VarStore.instance) {
-            VarStore.instance = new VarStore();
-        }
-        return VarStore.instance;
-    }
-
     private static instance: VarStore;
 
     public module_name: string;
@@ -142,7 +134,16 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             setDescSelectedVarParam: (context: VarContext, desc_selected_var_param: string) => context.commit(store_mutations_names(this).setDescSelectedVarParam, desc_selected_var_param),
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): VarStore {
+        if (!VarStore.instance) {
+            VarStore.instance = new VarStore();
+        }
+        return VarStore.instance;
+    }
 }
 
-export const ModuleVarGetter = namespace('VarStore', Getter);
-export const ModuleVarAction = namespace('VarStore', Action);
+const __namespace = namespace('VarStore');
+export const ModuleVarGetter = __namespace.Getter;
+export const ModuleVarAction = __namespace.Action;

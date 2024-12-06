@@ -667,7 +667,7 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
         } catch (error) {
             ConsoleHandler.error(error);
         }
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
+        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
     }

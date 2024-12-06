@@ -44,7 +44,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_
             append_new_child_run_step_function.gpt_function_name = 'append_new_child_run_step';
             append_new_child_run_step_function.json_stringify_output = false;
             append_new_child_run_step_function.gpt_function_description = "Ajouter une étape enfant au run Osélia en cours pour découper le travail en sous-étapes";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(append_new_child_run_step_function);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(append_new_child_run_step_function);
         }
 
         //  * @param name le nom de la tâche
@@ -67,7 +67,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_
             argument_name.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_name.not_in_function_params = false;
             argument_name.weight = 0;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_name);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_name);
         }
 
         let argument_prompt = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -85,7 +85,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_
             argument_prompt.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_prompt.not_in_function_params = false;
             argument_prompt.weight = 1;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_prompt);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_prompt);
         }
 
         let argument_weight = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -103,7 +103,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_
             argument_weight.type = GPTAssistantAPIFunctionParamVO.TYPE_INTEGER;
             argument_weight.not_in_function_params = false;
             argument_weight.weight = 2;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_weight);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_weight);
         }
 
         let argument_use_splitter = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -122,7 +122,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_
             argument_use_splitter.not_in_function_params = false;
             argument_use_splitter.weight = 3;
             argument_use_splitter.default_json_value = JSON.stringify(false);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_use_splitter);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_use_splitter);
         }
 
         let argument_childrens_are_multithreaded = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -141,7 +141,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_
             argument_childrens_are_multithreaded.not_in_function_params = false;
             argument_childrens_are_multithreaded.weight = 4;
             argument_childrens_are_multithreaded.default_json_value = JSON.stringify(false);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_childrens_are_multithreaded);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_childrens_are_multithreaded);
         }
 
         let argument_use_validator = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -160,7 +160,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_
             argument_use_validator.not_in_function_params = false;
             argument_use_validator.weight = 5;
             argument_use_validator.default_json_value = JSON.stringify(false);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_use_validator);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_use_validator);
         }
 
         let argument_hide_outputs = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -179,7 +179,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_
             argument_hide_outputs.not_in_function_params = false;
             argument_hide_outputs.weight = 6;
             argument_hide_outputs.default_json_value = JSON.stringify(false);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_hide_outputs);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_hide_outputs);
         }
 
         let argument_in_a_separate_thread = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -198,7 +198,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_
             argument_in_a_separate_thread.not_in_function_params = false;
             argument_in_a_separate_thread.weight = 7;
             argument_in_a_separate_thread.default_json_value = JSON.stringify(false);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_in_a_separate_thread);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_in_a_separate_thread);
         }
 
         let argument_assistant_id = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -217,7 +217,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_
             argument_assistant_id.not_in_function_params = false;
             argument_assistant_id.weight = 8;
             argument_assistant_id.default_json_value = JSON.stringify(0);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_assistant_id);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_assistant_id);
         }
     }
 }

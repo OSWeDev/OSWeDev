@@ -233,7 +233,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
                 // Techniquement, en faisant cette modif avec le DAO ça fait lancer le trigger preupdate du doc et donc recalc le field... mais bon
                 //  on est en post update du file donc ça marche ...
                 doc.document_url = url;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(doc);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(doc);
             }
         }
     }
@@ -242,7 +242,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     private async get_ds_by_user_lang(): Promise<DocumentVO[]> {
         const main_query = query(DocumentVO.API_TYPE_ID);
         const user = await ModuleAccessPolicyServer.getSelfUser();
-        return await main_query
+        return main_query
             .filter_by_num_eq(field_names<DocumentTagLangVO>().lang_id, user.lang_id, DocumentLangVO.API_TYPE_ID)
             .add_filters([
                 ContextFilterVO.or([

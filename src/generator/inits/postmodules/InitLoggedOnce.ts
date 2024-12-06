@@ -46,6 +46,6 @@ export default class InitLoggedOnce implements IGeneratorWorker {
             }
         }
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(update_users);
+        await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(update_users);
     }
 }

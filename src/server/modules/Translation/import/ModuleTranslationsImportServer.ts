@@ -158,7 +158,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
                 if (overwrite && translation) {
                     translation.translated = data.translated;
                     promises.push((async () => {
-                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);
+                        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(translation);
                     })());
                     continue;
                 }
@@ -168,7 +168,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
                 translatable = new TranslatableTextVO();
 
                 translatable.code_text = data.code_text;
-                const insertRes: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translatable);
+                const insertRes: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(translatable);
 
                 if ((!insertRes) || (!insertRes.id)) {
                     ConsoleHandler.error('Erreur d\'insertion d\'un nouveau translatable en base :' + data.code_lang + ':' + data.code_text + ':' + data.translated + ':');
@@ -185,7 +185,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
             new_translation.text_id = translatable.id;
             new_translation.translated = data.translated;
             promises.push((async () => {
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_translation);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(new_translation);
             })());
         }
 

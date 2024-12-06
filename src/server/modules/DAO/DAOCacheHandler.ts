@@ -4,6 +4,31 @@ import ThreadHandler from "../../../shared/tools/ThreadHandler";
 
 export default class DAOCacheHandler {
 
+    private static instance: DAOCacheHandler = null;
+
+    /**
+     * Cache local - au thread - des DAO throttled queries
+     */
+    private static dao_cache: { [parameterized_full_query: string]: any } = {};
+    private static dao_cache_params: { [parameterized_full_query: string]: DAOCacheParamVO } = {};
+    /**
+     * --------------------------------
+     */
+
+    private cleaning_semaphore: boolean = false;
+
+    private constructor() {
+        ThreadHandler.set_interval(
+            'DAOCacheHandler.clean_cache',
+            async () => {
+                if (!this.cleaning_semaphore) {
+                    this.clean_cache();
+                }
+            },
+            10000,
+            'DAOCacheHandler.clean_cache',
+            true);
+    }
 
     /**
      * A appeler avant de faire un get_cache
@@ -56,26 +81,6 @@ export default class DAOCacheHandler {
         return DAOCacheHandler.instance;
     }
 
-    private static instance: DAOCacheHandler = null;
-
-    /**
-     * Cache local - au thread - des DAO throttled queries
-     */
-    private static dao_cache: { [parameterized_full_query: string]: any } = {};
-    private static dao_cache_params: { [parameterized_full_query: string]: DAOCacheParamVO } = {};
-    /**
-     * --------------------------------
-     */
-
-    private cleaning_semaphore: boolean = false;
-
-    private constructor() {
-        ThreadHandler.set_interval(async () => {
-            if (!this.cleaning_semaphore) {
-                this.clean_cache();
-            }
-        }, 10000, 'DAOCacheHandler.clean_cache', true);
-    }
 
     /**
      * Système de nettoyage du cache qui checke les timeouts

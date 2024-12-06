@@ -242,6 +242,7 @@ export default class VarDataBaseVO implements IMatroid {
          * Si on change le type de segmentation on adapte aussi le param
          */
         this.adapt_param_to_varconf_segmentations(res, field_segmentations);
+        res.rebuild_index();
         return res;
     }
 
@@ -450,6 +451,17 @@ export default class VarDataBaseVO implements IMatroid {
     }
 
     /**
+     * Sur un JSON stringify, on veut simplement forcer l'index
+     * @returns
+     */
+    public toJSON() {
+        this.rebuild_index();
+        this.index;
+        return this;
+    }
+
+
+    /**
      * on demande le rebuild au prochain accès au getter
      */
     public rebuild_index() {
@@ -556,4 +568,5 @@ export default class VarDataBaseVO implements IMatroid {
 
         return this._is_pixel;
     }
+
 }

@@ -44,7 +44,7 @@ export default class Patch20240930AddOseliaFunction_get_thread_text_content impl
         func.prepend_thread_vo = false;
         func.use_promise_pipeline = false;
         func.json_stringify_output = false;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(func);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(func);
 
         await this.create_params_description_if_not_exists(func);
     }
@@ -59,6 +59,6 @@ export default class Patch20240930AddOseliaFunction_get_thread_text_content impl
         thread_vo_id_param.required = true;
         thread_vo_id_param.weight = 0;
         thread_vo_id_param.default_json_value = null;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo_id_param);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo_id_param);
     }
 }

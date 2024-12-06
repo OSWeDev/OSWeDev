@@ -157,7 +157,7 @@ export default class GPTAssistantAPIServerSyncThreadsController {
                 await GPTAssistantAPIServerSyncThreadsController.assign_vo_from_gpt(vo, gpt_obj);
 
                 if (!is_trigger_pre_x) {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(vo);
                 }
             }
 
@@ -236,7 +236,7 @@ export default class GPTAssistantAPIServerSyncThreadsController {
                         }
 
                         thread_vo.archived = true;
-                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+                        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
                     }
 
                     return;
@@ -250,7 +250,7 @@ export default class GPTAssistantAPIServerSyncThreadsController {
                     }
 
                     await GPTAssistantAPIServerSyncThreadsController.assign_vo_from_gpt(thread_vo, thread_gpt);
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
                 }
 
                 // On synchronise les messages du thread

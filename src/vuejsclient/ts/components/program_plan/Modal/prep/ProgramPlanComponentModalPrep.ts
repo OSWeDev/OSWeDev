@@ -197,7 +197,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                 try {
 
                     self.selected_rdv.target_validation = self.rdv_confirmed;
-                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(self.selected_rdv);
+                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(self.selected_rdv);
                     if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                         throw new Error('Erreur serveur');
                     }
@@ -439,7 +439,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
                                 try {
 
-                                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(prep);
+                                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(prep);
                                     if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                                         throw new Error('Erreur serveur');
                                     }
@@ -517,7 +517,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
                                 try {
 
-                                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(prep);
+                                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(prep);
                                     if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id) || (insertOrDeleteQueryResult.id != prep.id)) {
                                         throw new Error('Erreur serveur');
                                     }
@@ -605,7 +605,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
                                 try {
 
-                                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([prep]);
+                                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.instance.deleteVOs([prep]);
                                     if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1) || (insertOrDeleteQueryResult[0].id != prep.id)) {
                                         throw new Error('Erreur serveur');
                                     }

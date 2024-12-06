@@ -251,7 +251,7 @@ export default class OseliaThreadTitleBuilderBGThread implements IBGThread {
                 thread.thread_title = response_content.content_type_text.value;
                 thread.needs_thread_title_build = false;
                 thread.thread_title_auto_build_locked = (words.length >= 100);
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread);
                 return;
             }
         }

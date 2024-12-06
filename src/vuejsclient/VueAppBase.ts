@@ -7,7 +7,7 @@ import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import { ColorPanel, ColorPicker } from 'one-colorpicker';
 import 'select2';
 import VCalendar from 'v-calendar';
-import 'v-calendar/lib/v-calendar.min.css';
+// import 'v-calendar/lib/v-calendar.min.css';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
 import VueCookies from 'vue-cookies-ts';
@@ -445,7 +445,7 @@ export default abstract class VueAppBase {
         Vue.use(Snotify);
         Vue.use(VueRouter);
         Vue.use(VueFlags, {
-            iconPath: '/client/public/img/flags/',
+            iconPath: '/public/client/img/flags/',
         });
 
         // Use v-calendar, v-date-picker & v-popover components

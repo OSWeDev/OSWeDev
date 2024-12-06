@@ -83,7 +83,7 @@ export default class OseliaSelectThreadComponent extends VueComponentBase {
     }
 
     private async open_thread_select() {
-        this.dashboard_threads_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_THREAD_DASHBOARD_ID_PARAM_NAME);
+        this.dashboard_threads_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_THREAD_DASHBOARD_ID_PARAM_NAME, null, 10000);
         const num_range: NumRange = NumRange.createNew(0, 1, true, true, 0);
         await this.listen_for_message(this.dashboard_threads_id, num_range);
     }

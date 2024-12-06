@@ -1,4 +1,4 @@
-import { Express } from 'express';
+import { Application, Express } from 'express';
 import { IDatabase } from 'pg-promise';
 import ModuleAPI from '../../shared/modules/API/ModuleAPI';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -246,7 +246,7 @@ export default abstract class ModuleServiceBase {
         this.db_ = db;
 
         db.$pool.options.max = ConfigurationService.node_configuration.max_pool;
-        db.$pool.options.idleTimeoutMillis = 120000;
+        db.$pool.options.idleTimeoutMillis = 1;
     }
 
     public async register_all_modules(is_generator: boolean = false) {
@@ -401,7 +401,7 @@ export default abstract class ModuleServiceBase {
                     continue;
                 }
 
-                await ModuleDAOServer.getInstance().preload_segmented_known_database(t);
+                await ModuleDAOServer.instance.preload_segmented_known_database(t);
             }
         }
     }
@@ -410,7 +410,7 @@ export default abstract class ModuleServiceBase {
      * FIXME : pour le moment on est obligé de tout faire dans l'ordre, impossible de paraléliser à ce niveau
      *  puisque les rôles typiquement créés d'un côté peuvent être utilisés de l'autre ...
      */
-    public async configure_server_modules(app: Express, is_generator: boolean = false) {
+    public async configure_server_modules(app: Application, is_generator: boolean = false) {
         for (const i in this.server_modules) {
             const server_module: ModuleServerBase = this.server_modules[i];
 
@@ -779,7 +779,7 @@ export default abstract class ModuleServiceBase {
             await this.db_.none(query, values);
         } catch (error) {
 
-            return await this.handle_errors(error, 'db_none', this.db_none, [query, values]);
+            return this.handle_errors(error, 'db_none', this.db_none, [query, values]);
         }
 
         const time_out = Dates.now_ms();
@@ -813,7 +813,7 @@ export default abstract class ModuleServiceBase {
                 // export query to txt file for debug
                 const fs = require('fs');
                 const path = require('path');
-                const filename = path.join(__dirname, 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
+                const filename = path.join(process.cwd(), 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
                 fs.writeFile(filename, query);
                 ConsoleHandler.error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.max_size_per_query + ') ' + query.substring(0, 1000) + '...');
 
@@ -825,7 +825,7 @@ export default abstract class ModuleServiceBase {
                 // export query to txt file for debug
                 const fs = require('fs');
                 const path = require('path');
-                const filename = path.join(__dirname, 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
+                const filename = path.join(process.cwd(), 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
                 fs.writeFile(filename, query);
                 ConsoleHandler.error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.max_union_all_per_query + ') ' + query.substring(0, 1000) + '...');
 
@@ -835,7 +835,7 @@ export default abstract class ModuleServiceBase {
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
         } catch (error) {
 
-            return await this.handle_errors(error, 'db_query', this.db_query, [query, values]);
+            return this.handle_errors(error, 'db_query', this.db_query, [query, values]);
         }
 
         const time_out = Dates.now_ms();
@@ -860,7 +860,7 @@ export default abstract class ModuleServiceBase {
         try {
             res = await this.db_.one(query, values);
         } catch (error) {
-            return await this.handle_errors(error, 'db_one', this.db_one, [query, values]);
+            return this.handle_errors(error, 'db_one', this.db_one, [query, values]);
         }
 
         const time_out = Dates.now_ms();
@@ -884,7 +884,7 @@ export default abstract class ModuleServiceBase {
         try {
             res = await this.db_.oneOrNone(query, values);
         } catch (error) {
-            return await this.handle_errors(error, 'db_oneOrNone', this.db_oneOrNone, [query, values]);
+            return this.handle_errors(error, 'db_oneOrNone', this.db_oneOrNone, [query, values]);
         }
 
         const time_out = Dates.now_ms();

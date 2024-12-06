@@ -1,3 +1,4 @@
+import { isMainThread } from 'worker_threads';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -15,7 +16,6 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
-import ForkServerController from '../Fork/ForkServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
@@ -123,7 +123,7 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
         postUpdateTrigger.registerHandler(AnonymizationUserConfVO.API_TYPE_ID, ServerAnonymizationController, ServerAnonymizationController.reload_conf);
         postDeleteTrigger.registerHandler(AnonymizationUserConfVO.API_TYPE_ID, ServerAnonymizationController, ServerAnonymizationController.reload_conf);
 
-        if (ForkServerController.is_main_process()) {
+        if (isMainThread) {
             await ServerAnonymizationController.reload_conf();
         }
     }
@@ -132,13 +132,13 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
         for (const i in ModuleTableController.module_tables_by_vo_type) {
             const moduletable = ModuleTableController.module_tables_by_vo_type[i];
 
-            // ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_READ, ServerAnonymizationController.anonymise.bind(ServerAnonymizationController));
+            // ModuleDAOServer.instance.registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_READ, ServerAnonymizationController.anonymise.bind(ServerAnonymizationController));
             //TODO FIXME à faire en fait aujourd'hui ce n'est pas fait
-            // ModuleDAOServer.getInstance().registerContextAccessHook(moduletable.vo_type, ServerAnonymizationController.anonymiseContextAccessHook.bind(ServerAnonymizationController));
+            // ModuleDAOServer.instance.registerContextAccessHook(moduletable.vo_type, ServerAnonymizationController.anonymiseContextAccessHook.bind(ServerAnonymizationController));
 
             // On doit refuser d'insérer/modifier des vos anonymisés
-            ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ServerAnonymizationController, ServerAnonymizationController.check_is_anonymise);
-            ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_DELETE, ServerAnonymizationController, ServerAnonymizationController.check_is_anonymise);
+            ModuleDAOServer.instance.registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ServerAnonymizationController, ServerAnonymizationController.check_is_anonymise);
+            ModuleDAOServer.instance.registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_DELETE, ServerAnonymizationController, ServerAnonymizationController.check_is_anonymise);
         }
     }
 }
