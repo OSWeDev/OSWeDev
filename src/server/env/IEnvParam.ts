@@ -120,7 +120,8 @@ export default interface IEnvParam {
     teams_message_max_size_auto_summarize?: boolean;
 
     block_teams_messages?: boolean;
-
+    unblock_realtime_api?: boolean;
+    
     express_secret: string;
     logo_path?: string;
 

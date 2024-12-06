@@ -27,14 +27,15 @@ export default class OseliaVueModule extends VueModuleBase {
 
     private get_route_oselia(): RouteConfig {
         return {
-            path: '/oselia/:thread_vo_id',
+            path: '/oselia/:thread_vo_id/',
             name: 'oselia',
             component: () => import('./oselia_db/OseliaDBComponent'),
             props: (route) => ({
-                thread_vo_id: parseInt(route.params.thread_vo_id)
+                thread_vo_id: parseInt(route.params.thread_vo_id),
             })
         };
     }
+
 
     private get_route_oselia_referrer_not_found(): RouteConfig {
         return {

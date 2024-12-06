@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Request, Response } from 'express';
-import fs, { createWriteStream } from "fs";
+import fs, { copyFileSync, createWriteStream } from "fs";
 import { ChatCompletion, ImagesResponse } from 'openai/resources';
 import { Thread } from 'openai/resources/beta/threads/threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
@@ -35,12 +35,10 @@ import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThr
 import OseliaUserReferrerOTTVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerOTTVO';
 import OseliaUserReferrerVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
-import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import ExternalAPIServerController from '../API/ExternalAPIServerController';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -62,14 +60,27 @@ import ModuleGPTServer from '../GPT/ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from '../GPT/sync/GPTAssistantAPIServerSyncAssistantsController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import PushDataServerController from '../PushData/PushDataServerController';
-import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import OseliaRunServerController from './OseliaRunServerController';
 import OseliaServerController from './OseliaServerController';
 import OseliaOldRunsResyncBGThread from './bgthreads/OseliaOldRunsResyncBGThread';
+import GPTAssistantAPIThreadMessageContentTextVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentTextVO';
+import PushDataServerController from '../PushData/PushDataServerController';
+import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
+import StackContext from '../../StackContext';
+import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
+import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO';
+import SocketWrapper from '../PushData/vos/SocketWrapper';
+import RangeHandler from '../../../shared/tools/RangeHandler';
+import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import OseliaRunBGThread from './bgthreads/OseliaRunBGThread';
 import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuilderBGThread';
+import EnvHandler from '../../../shared/tools/EnvHandler';
+import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
+import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
+import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
+import OseliaThreadRoleVO from '../../../shared/modules/Oselia/vos/OseliaThreadRoleVO';
+import ActionURLUserVO from '../../../shared/modules/ActionURL/vos/ActionURLUserVO';
 import OseliaRunFunctionCallVO from '../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
 import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
@@ -105,8 +116,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_accept_link, this.accept_link.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_refuse_link, this.refuse_link.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_account_waiting_link_status, this.account_waiting_link_status.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_send_join_request, this.send_join_request.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_set_screen_track, this.set_screen_track.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_get_screen_track, this.get_screen_track.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_create_thread, this.create_thread.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_replay_function_call, this.replay_function_call.bind(this));
     }
 
@@ -169,6 +182,21 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Nous allons vous demander l\'autorisation de capturer votre écran, veuillez accepter' },
             'oselia.screenshot.notify.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Demande envoyée' },
+            'oselia.join_request.notify.sent.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Demande acceptée' },
+            'oselia.join_request.notify.accept.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Demande refusée' },
+            'oselia.join_request.notify.deny.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Accepter' },
+            'oselia.join_request.accept.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Refuser' },
+            'oselia.join_request.deny.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Cache' },
@@ -303,7 +331,8 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     image_content.thread_message_id = new_thread_message.id;
                     image_content.content_type_image_file = new GPTAssistantAPIThreadMessageContentImageFileVO();
                     image_content.content_type_image_file.file_id = new_file_vo.id;
-                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(image_content);
+
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(image_content);
 
                     image_urls.push(' URL de téléchargement de l\'image dont le prompt est : [' + prompt.substring(0, 50) + ((prompt.length > 50) ? '...' : '') + '] : ' +
                         ConfigurationService.node_configuration.base_url + (new_file_vo.path.startsWith('./') ? new_file_vo.path.substring(2) : new_file_vo.path));
@@ -444,7 +473,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     }
 
                     const message = "Bonjour, analyse le fichier texte que je t'envoies, il contient le contenu d'une conversation entre un utilisateur et Osélia, tu dois analyser la conversation et synthétiser de façon concise les informations importantes.";
-                    const messages_contents: string = await this.get_thread_text_content(thread_vo.id);
+                    const messages_contents: string = await ModuleOseliaServer.getInstance().get_thread_text_content(thread_vo.id);
 
                     const new_thread = (await GPTAssistantAPIServerController.get_thread(null, null, assistant.id)).thread_vo;
 
@@ -675,6 +704,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         POLICY_SELECT_THREAD_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_SELECT_THREAD_ACCESS, DefaultTranslationVO.create_new({
             'fr-fr': 'Permission d\'accéder à n\'importe quel thread'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
     }
 
     public async open_oselia_db_from_action_url(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
@@ -1070,6 +1100,123 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         return ModuleOseliaServer.screen_track;
     }
 
+    private async create_thread(
+        req: Request,
+        res: Response) {
+
+        /**
+         * On commence par checker le referrer
+         */
+        const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaReferrerVO>().referrer_origin, ConfigurationService.node_configuration.base_url)
+            .exec_as_server()
+            .select_vo<OseliaReferrerVO>();
+
+        if (!referrer) {
+            ConsoleHandler.error('No internal "Self" referrer');
+            return;
+        }
+
+        const user = await query(UserVO.API_TYPE_ID)
+            .filter_by_id(StackContext.get('UID'))
+            .exec_as_server()
+            .select_vo<UserVO>();
+        if ((!user) || user.archived || user.blocked || user.invalidated) {
+            ConsoleHandler.error('User not valid:uid:' + user.id);
+
+            await this.send_hook_trigger_datas_to_referrer(
+                referrer,
+                'post',
+                referrer.trigger_hook_open_oselia_db_reject_url,
+                ['User not valid (archived, blocked or invalidated):' + user.id],
+                referrer.triggers_hook_external_api_authentication_id
+            );
+
+            return;
+        }
+
+        // ML: Pas sûr de quoi faire ici
+        // if (!user_referrer.user_validated) {
+        //     // L'utilisateur est lié, tout est ok, mais il n'a pas encore validé la liaison. On l'envoie sur une page de validation
+
+        //     /**
+        //      * TODO FIXME vérifier niveau sécu ce qu'on peut faire ou pas à ce niveau... un peu perplexe, mais pour le moment on va login auto
+        //      */
+        //     if (ModuleAccessPolicyServer.getLoggedUserId() != user.id) {
+        //         await ModuleAccessPolicyServer.getInstance().login(user.id);
+        //     }
+
+        //     return;
+        // }
+
+        /**
+         * On récupère le thread : on le crée si on reçoit null, et dans tous les cas on crée et on récupère le thread depuis OpenAI si on ne le connait pas encore
+         * Si un assistant est passé en param, on le force dans le thread
+         */
+        let openai_assistant_id = null;
+        let openai_thread_id = null;
+        if ((!openai_assistant_id) && referrer.default_assistant_id) {
+            const default_assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                .filter_by_id(referrer.default_assistant_id)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIAssistantVO>();
+
+            openai_assistant_id = default_assistant ? default_assistant.gpt_assistant_id : null;
+        }
+
+        const assistant_vo: GPTAssistantAPIAssistantVO =
+            openai_assistant_id ? await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(openai_assistant_id) : null;
+
+        const thread: { thread_gpt: Thread; thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(
+            user.id,
+            null,
+            assistant_vo ? assistant_vo.id : null,
+        );
+
+        /**
+         * Si le referrer n'est pas lié au thread, on le lie
+         * Si un referrer est déjà lié, et que ce n'est pas celui-ci, on renvoie une erreur
+         */
+        const current_referrer: OseliaReferrerVO =
+            await query(OseliaReferrerVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread.thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
+                .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
+                .exec_as_server()
+                .set_limit(1)
+                .select_vo<OseliaReferrerVO>();
+
+        if (current_referrer && (current_referrer.id != referrer.id)) {
+            ConsoleHandler.error('Thread already linked to another referrer:' + referrer.id + ':' + current_referrer.id);
+
+            await this.send_hook_trigger_datas_to_referrer(
+                referrer,
+                'post',
+                referrer.trigger_hook_open_oselia_db_reject_url,
+                ['Thread already linked to another referrer:openai_thread_id:' + openai_thread_id],
+                referrer.triggers_hook_external_api_authentication_id
+            );
+
+            return;
+        }
+
+        if (!current_referrer) {
+
+            const thread_referrer: OseliaThreadReferrerVO = new OseliaThreadReferrerVO();
+            thread_referrer.thread_id = thread.thread_vo.id;
+            thread_referrer.referrer_id = referrer.id;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_referrer);
+        }
+
+        /**
+         * TODO FIXME vérifier niveau sécu ce qu'on peut faire ou pas à ce niveau... un peu perplexe, mais pour le moment on va login auto
+         */
+        if (ModuleAccessPolicyServer.getLoggedUserId() != user.id) {
+            await ModuleAccessPolicyServer.getInstance().login(user.id);
+        }
+
+        return thread.thread_vo.id;
+    }
+
     private async open_oselia_db(
         referrer_user_ott: string,
         openai_thread_id: string,
@@ -1164,62 +1311,69 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
             openai_assistant_id = default_assistant ? default_assistant.gpt_assistant_id : null;
         }
+
+
         const assistant_vo: GPTAssistantAPIAssistantVO =
             openai_assistant_id ? await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(openai_assistant_id) : null;
-        const thread: { thread_gpt: Thread; thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(
-            user.id,
-            openai_thread_id,
-            assistant_vo ? assistant_vo.id : null,
-        );
 
-        /**
-         * Si le referrer n'est pas lié au thread, on le lie
-         * Si un referrer est déjà lié, et que ce n'est pas celui-ci, on renvoie une erreur
-         */
-        const current_referrer: OseliaReferrerVO =
-            await query(OseliaReferrerVO.API_TYPE_ID)
-                .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread.thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
-                .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
-                .exec_as_server()
-                .set_limit(1)
-                .select_vo<OseliaReferrerVO>();
-
-        if (current_referrer && (current_referrer.id != referrer.id)) {
-            ConsoleHandler.error('Thread already linked to another referrer:' + referrer.id + ':' + current_referrer.id);
-
-            await this.send_hook_trigger_datas_to_referrer(
-                referrer,
-                'post',
-                referrer.trigger_hook_open_oselia_db_reject_url,
-                ['Thread already linked to another referrer:openai_thread_id:' + openai_thread_id],
-                referrer.triggers_hook_external_api_authentication_id
+        if (openai_thread_id) {
+            const thread: { thread_gpt: Thread; thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(
+                user.id,
+                openai_thread_id,
+                assistant_vo ? assistant_vo.id : null,
             );
 
-            res.redirect(referrer.failed_open_oselia_db_target_url);
-            return;
+            /**
+             * Si le referrer n'est pas lié au thread, on le lie
+             * Si un referrer est déjà lié, et que ce n'est pas celui-ci, on renvoie une erreur
+             */
+            const current_referrer: OseliaReferrerVO =
+                await query(OseliaReferrerVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread.thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
+                    .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
+                    .exec_as_server()
+                    .set_limit(1)
+                    .select_vo<OseliaReferrerVO>();
+
+            if (current_referrer && (current_referrer.id != referrer.id)) {
+                ConsoleHandler.error('Thread already linked to another referrer:' + referrer.id + ':' + current_referrer.id);
+
+                await this.send_hook_trigger_datas_to_referrer(
+                    referrer,
+                    'post',
+                    referrer.trigger_hook_open_oselia_db_reject_url,
+                    ['Thread already linked to another referrer:openai_thread_id:' + openai_thread_id],
+                    referrer.triggers_hook_external_api_authentication_id
+                );
+
+                res.redirect(referrer.failed_open_oselia_db_target_url);
+                return;
+            }
+
+            if (!current_referrer) {
+
+                const thread_referrer: OseliaThreadReferrerVO = new OseliaThreadReferrerVO();
+                thread_referrer.thread_id = thread.thread_vo.id;
+                thread_referrer.referrer_id = referrer.id;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_referrer);
+            }
+
+            /**
+             * TODO FIXME vérifier niveau sécu ce qu'on peut faire ou pas à ce niveau... un peu perplexe, mais pour le moment on va login auto
+             */
+            if (ModuleAccessPolicyServer.getLoggedUserId() != user.id) {
+                await ModuleAccessPolicyServer.getInstance().login(user.id);
+            }
+
+            ModuleDAOServer.getInstance().deleteVOs_as_server([user_referrer_ott]);
+
+            /**
+             * Enfin, on redirige vers la page de discussion avec le paramètre qui va bien pour init le thread
+             */
+            res.redirect('/f/oselia/' + thread.thread_vo.id);
+        } else {
+            res.redirect('/f/oselia/' + '_' + '/');
         }
-
-        if (!current_referrer) {
-
-            const thread_referrer: OseliaThreadReferrerVO = new OseliaThreadReferrerVO();
-            thread_referrer.thread_id = thread.thread_vo.id;
-            thread_referrer.referrer_id = referrer.id;
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_referrer);
-        }
-
-        /**
-         * TODO FIXME vérifier niveau sécu ce qu'on peut faire ou pas à ce niveau... un peu perplexe, mais pour le moment on va login auto
-         */
-        if (ModuleAccessPolicyServer.getLoggedUserId() != user.id) {
-            await ModuleAccessPolicyServer.getInstance().login(user.id);
-        }
-
-        ModuleDAOServer.instance.deleteVOs_as_server([user_referrer_ott]);
-
-        /**
-         * Enfin, on redirige vers la page de discussion avec le paramètre qui va bien pour init le thread
-         */
-        res.redirect('/f/oselia/' + thread.thread_vo.id);
     }
 
     private async send_hook_trigger_datas_to_referrer(
@@ -1459,7 +1613,6 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     }
 
     private async account_waiting_link_status(referrer_user_ott: string): Promise<'validated' | 'waiting' | 'none'> {
-
         const uid = await ModuleAccessPolicyServer.getLoggedUserId();
         if (!uid) {
             ConsoleHandler.error('No user logged');
@@ -1476,6 +1629,212 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
 
         return (!user_referrer.user_validated) ? 'waiting' : 'validated';
+    }
+
+    private async send_join_request(asking_user_id: number, target_thread_id: number) {
+        ConsoleHandler.log('ModuleOseliaServer:send_join_request:Sending join request:asking_user_id:' + asking_user_id + ':target_thread_id:' + target_thread_id);
+        try {
+            const target_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                .filter_by_id(target_thread_id)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIThreadVO>();
+
+            const asking_user = await query(UserVO.API_TYPE_ID)
+                .filter_by_id(asking_user_id)
+                .exec_as_server()
+                .select_vo<UserVO>();
+            const asking_user_role: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq(field_names<UserRoleVO>().user_id, asking_user.id).exec_as_server().select_vos<UserRoleVO>();
+
+            const owner_user = await query(UserVO.API_TYPE_ID)
+                .filter_by_id(target_thread.user_id)
+                .exec_as_server()
+                .select_vo<UserVO>();
+
+            const target_thread_assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                .filter_by_id(target_thread.current_default_assistant_id)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIAssistantVO>();
+
+            if (await ModuleVersionedServer.getInstance().get_robot_user_id() == owner_user.id && !(asking_user_role.find((role) => role.role_id == AccessPolicyServerController.role_admin.id))) {
+                ConsoleHandler.log('ModuleOseliaServer:send_join_request:Owner of the thread is a robot');
+                return;
+            }
+            const socket_wrappers: SocketWrapper[] = PushDataServerController.getUserSockets(parseInt(owner_user.id.toString()));
+            for (const socket_wrapper of socket_wrappers) {
+                for (const room of socket_wrapper.socket.rooms) {
+                    try {
+                        JSON.parse(room);
+                    } catch (error) {
+                        continue;
+                    }
+                    if (JSON.parse(room)._type == 'gpt_assistant_thread' && JSON.parse(room).id == target_thread.id) {
+                        ConsoleHandler.log('ModuleOseliaServer:send_join_request:Owner of the thread is on the thread');
+
+                        const new_thread_message = new GPTAssistantAPIThreadMessageVO();
+                        new_thread_message.thread_id = target_thread.id;
+                        new_thread_message.date = Dates.now();
+                        new_thread_message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
+                        new_thread_message.assistant_id = target_thread.current_default_assistant_id;
+                        new_thread_message.user_id = owner_user.id;
+                        new_thread_message.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_thread_message)).id;
+
+                        const text_content = new GPTAssistantAPIThreadMessageContentVO();
+                        text_content.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+                        text_content.content_type_text.value = asking_user.name + " souhaite rejoindre la conversation";
+                        text_content.thread_message_id = new_thread_message.id;
+                        text_content.gpt_thread_message_id = new_thread_message.gpt_id;
+                        text_content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(text_content)
+
+                        const accept_action = new ActionURLVO();
+
+                        accept_action.action_name = 'Accepter';
+                        accept_action.action_code = ActionURLServerTools.get_unique_code_from_text(accept_action.action_name);
+                        accept_action.action_remaining_counter = 1; // infini
+                        accept_action.valid_ts_range = RangeHandler.createNew(TSRange.RANGE_TYPE, Dates.now(), Dates.add(Dates.now(), 60, TimeSegment.TYPE_DAY), true, true, TimeSegment.TYPE_DAY);
+
+                        accept_action.action_callback_function_name = reflect<ModuleOseliaServer>().accept_join_request;
+                        accept_action.action_callback_module_name = ModuleOseliaServer.getInstance().name;
+                        accept_action.params_json = JSON.stringify({ asking_user_id: asking_user.id, target_thread_id: target_thread.id, thread_message_id: new_thread_message.id });
+                        accept_action.button_bootstrap_type = ActionURLVO.BOOTSTRAP_BUTTON_TYPE_SUCCESS;
+                        accept_action.button_translatable_name = 'oselia.join_request.accept';
+                        accept_action.button_translatable_name_params_json = null;
+                        accept_action.button_fc_icon_classnames = ['fa-duotone', 'fa-badge-check'];
+                        accept_action.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(accept_action)).id;
+                        const accept_action_owner = new ActionURLUserVO();
+                        accept_action_owner.user_id = owner_user.id;
+                        accept_action_owner.action_id = accept_action.id;
+                        accept_action_owner.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(accept_action_owner)).id;
+
+                        const accept_action_user = new ActionURLUserVO();
+                        accept_action_user.user_id = asking_user_id;
+                        accept_action_user.action_id = accept_action.id;
+                        accept_action_user.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(accept_action_user)).id;
+
+
+                        const accept_button = new GPTAssistantAPIThreadMessageContentVO();
+                        accept_button.content_type_action_url_id = accept_action.id;
+                        accept_button.thread_message_id = new_thread_message.id;
+                        accept_button.type = GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL;
+                        accept_button.gpt_thread_message_id = new_thread_message.gpt_id;
+                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(accept_button)
+
+                        const deny_action = new ActionURLVO();
+
+                        deny_action.action_name = 'Refuser';
+                        deny_action.action_code = ActionURLServerTools.get_unique_code_from_text(deny_action.action_name);
+                        deny_action.action_remaining_counter = 1; // infini
+                        deny_action.valid_ts_range = RangeHandler.createNew(TSRange.RANGE_TYPE, Dates.now(), Dates.add(Dates.now(), 60, TimeSegment.TYPE_DAY), true, true, TimeSegment.TYPE_DAY);
+
+                        deny_action.action_callback_function_name = reflect<ModuleOseliaServer>().refuse_join_request;
+                        deny_action.action_callback_module_name = ModuleOseliaServer.getInstance().name;
+                        deny_action.params_json = JSON.stringify({ asking_user_id: asking_user.id, thread_message_id: new_thread_message.id });
+
+                        deny_action.button_bootstrap_type = ActionURLVO.BOOTSTRAP_BUTTON_TYPE_DANGER;
+                        deny_action.button_translatable_name = 'oselia.join_request.deny';
+                        deny_action.button_fc_icon_classnames = ['fa-duotone', 'fa-ban'];
+                        deny_action.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(deny_action)).id;
+
+                        const deny_action_owner = new ActionURLUserVO();
+                        deny_action_owner.user_id = owner_user.id;
+                        deny_action_owner.action_id = deny_action.id;
+                        deny_action_owner.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(deny_action_owner)).id;
+
+                        const deny_action_user = new ActionURLUserVO();
+                        deny_action_user.user_id = asking_user_id;
+                        deny_action_user.action_id = deny_action.id;
+                        deny_action_user.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(deny_action_user)).id;
+
+                        const deny_button = new GPTAssistantAPIThreadMessageContentVO();
+                        deny_button.content_type_action_url_id = deny_action.id;
+                        deny_button.thread_message_id = new_thread_message.id;
+                        deny_button.type = GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL;
+                        deny_button.gpt_thread_message_id = new_thread_message.gpt_id;
+                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(deny_button)
+
+                        await PushDataServerController.notifySimpleINFO(
+                            asking_user_id,
+                            StackContext.get('CLIENT_TAB_ID'),
+                            'oselia.join_request.notify.sent.___LABEL___'
+                        );
+                        ConsoleHandler.log('ModuleOseliaServer:send_join_request:Sent join request to the owner of the thread');
+                        return;
+                    }
+                }
+            }
+            ConsoleHandler.log('ModuleOseliaServer:send_join_request:Owner of the thread isn\'t on the thread');
+            // Il n'est pas sur le thread, il faut le contacter autrement
+            return;
+        } catch (error) {
+            ConsoleHandler.error('ModuleOseliaServer:send_join_request:Error while sending join request:' + error);
+        }
+    }
+
+
+    public async accept_join_request(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
+        if (!action_url.params_json) {
+            ConsoleHandler.error('Impossible de trouver la discussion Oselia pour l\'action URL: ' + action_url.action_name);
+            return ActionURLServerTools.create_error_cr(action_url, 'Impossible de trouver la discussion Oselia');
+        }
+        const asking_user_id = JSON.parse(action_url.params_json).asking_user_id;
+        const target_thread_id = JSON.parse(action_url.params_json).target_thread_id;
+        const target_thread_message_id = JSON.parse(action_url.params_json).thread_message_id;
+        if (!asking_user_id || !target_thread_id || !target_thread_message_id) {
+            ConsoleHandler.error('Impossible de trouver l\'utilisateur demandeur, ou le thread visé pour l\'action URL: ' + action_url.action_name);
+            return ActionURLServerTools.create_error_cr(action_url, 'Impossible d\'ajouter l\'utilisateur à la conversation Osélia');
+        }
+
+        ConsoleHandler.log('ModuleOseliaServer:accept_join_request:Accepting join request:asking_user_id:' + asking_user_id + ':target_thread_id:' + target_thread_id);
+        const thread_user_vo = new OseliaThreadUserVO();
+        thread_user_vo.thread_id = target_thread_id;
+        thread_user_vo.user_id = asking_user_id;
+        thread_user_vo.role_id = (await query(OseliaThreadRoleVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaThreadRoleVO>().translatable_name, ModuleOselia.ROLE_USER)
+            .exec_as_server()
+            .select_vo<OseliaThreadRoleVO>()).id; // User
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_user_vo);
+
+        await PushDataServerController.notifySimpleINFO(
+            asking_user_id,
+            StackContext.get('CLIENT_TAB_ID'),
+            'oselia.join_request.notify.accept.___LABEL___'
+        );
+        const current_message_action_urls: ActionURLVO[] = await query(ActionURLVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos();
+        for (let action_url of current_message_action_urls) {
+            if (action_url.params_json && JSON.parse(action_url.params_json).thread_message_id == target_thread_message_id) {
+                action_url.action_remaining_counter = 0;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_url);
+            }
+        }
+        return ActionURLServerTools.create_info_cr(action_url, 'Ajout dans la conversation Osélia');
+    }
+
+    public async refuse_join_request(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
+        const asking_user_id = JSON.parse(action_url.params_json).asking_user_id;
+        const target_thread_message_id = JSON.parse(action_url.params_json).thread_message_id;
+        if (!asking_user_id || !target_thread_message_id) {
+            ConsoleHandler.error('Impossible de trouver l\'utilisateur demandeur pour l\'action URL: ' + action_url.action_name);
+            return ActionURLServerTools.create_error_cr(action_url, 'Impossible de refuser l\'ajout à la conversation Osélia');
+        }
+
+        await PushDataServerController.notifySimpleINFO(
+            asking_user_id,
+            null,
+            'oselia.join_request.notify.deny.___LABEL___'
+        );
+
+        const current_message_action_urls: ActionURLVO[] = await query(ActionURLVO.API_TYPE_ID)
+            .filter_by_text_including(field_names<ActionURLVO>().params_json, 'thread_message_id: ' + target_thread_message_id.toString())
+            .exec_as_server()
+            .select_vos();
+        for (let action_url of current_message_action_urls) {
+            action_url.action_remaining_counter = 0;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_url);
+        }
+
+        return ActionURLServerTools.create_info_cr(action_url, 'Refus d\'ajout dans la discussion Oselia');
     }
 
     private async clear_referrers_triggers() {

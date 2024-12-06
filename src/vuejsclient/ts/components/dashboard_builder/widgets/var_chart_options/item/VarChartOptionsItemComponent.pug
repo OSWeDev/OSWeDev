@@ -96,6 +96,26 @@
                     v-model="border_width"
                     type="number"
                 )
+        .show_values 
+            .explication {{ label("var_chart_options_item_component.show_values") }}
+            .input_wrapper
+                    toggle-button(
+                        @change="switch_show_values" 
+                        :value="show_values" 
+                        :sync="true"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    )
+        template(v-if="show_values")
+            .explication {{ label('var_chart_options_item_component.datas_filter_options') }}
+            .filter_options
+                .filter_options_wrapper
+                    Widgetfilteroptionscomponent(
+                        :actual_additional_options="filter_additional_params"
+                        :actual_filter_type="filter_type"
+                        @update_additional_options="update_additional_options"
+                        @update_filter_type="update_filter_type"
+                    )
 
         template(v-if='fields_that_could_get_custom_filter && fields_that_could_get_custom_filter.length')
             .fields_that_could_get_custom_filter
@@ -114,6 +134,7 @@
 
         template(v-if='fields_that_could_get_scales_filter && fields_that_could_get_scales_filter.length')
             .fields_that_could_get_scales_filter
+                .field_label {{ label('var_chart_options_item_component.field_that_could_get_scales_filter') }}
                 .scale_filter 
                     multiselect(
                         :preselect-first="false"
@@ -135,3 +156,4 @@
 
                         name="fields_that_could_get_scales_filter_selector"
                     )
+

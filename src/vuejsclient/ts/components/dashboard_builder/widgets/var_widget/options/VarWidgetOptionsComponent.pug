@@ -68,5 +68,4 @@
             .fg_color_text
                 .explication {{ label("var_widget_options_component.fg_color_text") }}
                 color-picker(v-model="fg_color_text" @change='throttled_update_colors')
-
             .preview(:style='{background: bg_color, color: fg_color_value}') {{ t(title_name_code_text) }}

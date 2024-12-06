@@ -99,6 +99,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         };
 
     private dimension_custom_filter_segment_types_values: string[] = Object.values(this.dimension_custom_filter_segment_types);
+
     // TODO: Add translations
     private legend_positions: string[] = [
         'top',
@@ -578,7 +579,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             this.next_update_options = this.get_default_options();
         }
 
-        let dimension_vo_field_ref = new VOFieldRefVO();
+        const dimension_vo_field_ref = new VOFieldRefVO();
         dimension_vo_field_ref.api_type_id = api_type_id;
         dimension_vo_field_ref.field_id = field_id;
         dimension_vo_field_ref.weight = 0;
@@ -611,7 +612,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             this.next_update_options = this.get_default_options();
         }
 
-        let sort_dimension_by_vo_field_ref_label = new VOFieldRefVO();
+        const sort_dimension_by_vo_field_ref_label = new VOFieldRefVO();
         sort_dimension_by_vo_field_ref_label.api_type_id = api_type_id;
         sort_dimension_by_vo_field_ref_label.field_id = field_id;
         sort_dimension_by_vo_field_ref_label.weight = 0;
@@ -644,7 +645,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             this.next_update_options = this.get_default_options();
         }
 
-        let sort_dimension_by_vo_field_ref = new VOFieldRefVO();
+        const sort_dimension_by_vo_field_ref = new VOFieldRefVO();
         sort_dimension_by_vo_field_ref.api_type_id = api_type_id;
         sort_dimension_by_vo_field_ref.field_id = field_id;
         sort_dimension_by_vo_field_ref.weight = 0;

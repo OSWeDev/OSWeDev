@@ -1,4 +1,5 @@
 .OseliaDBComponent
     template(v-if='oselia_db_id')
-        .oselia_db_wrapper(:class='{"is_loading_oselia":!get_oselia_first_loading_done, "oselia_is_ready":get_oselia_first_loading_done}')
+        //- .oselia_db_wrapper(:class='{"is_loading_oselia":!get_oselia_first_loading_done, "oselia_is_ready":get_oselia_first_loading_done}')
+        .oselia_db_wrapper
             Dashboardviewercomponent(:dashboard_id='oselia_db_id')

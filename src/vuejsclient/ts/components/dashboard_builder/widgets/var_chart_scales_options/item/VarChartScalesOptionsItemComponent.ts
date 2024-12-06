@@ -58,6 +58,21 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
         return this.options_props.chart_id ? this.options_props.chart_id : Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
     }
 
+    get title_code_text(): string {
+        if (!this.options_props) {
+            return null;
+        }
+        return this.options_props.get_title_name_code_text(this.page_widget_id, this.chart_id);
+    }
+
+    @Watch('scale_color')
+    private async handle_scale_color_change() {
+        await this.throttled_emit_changes();
+    }
+    @Watch('selected_position')
+    private async handle_selected_position_change() {
+        await this.throttled_emit_changes();
+    }
 
     @Watch('options', { immediate: true, deep: true })
     private on_input_options_changed() {
@@ -65,7 +80,7 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
             return;
         }
 
-        this.options_props = this.options ? new VarChartScalesOptionsVO().from(this.options) : null
+        this.options_props = this.options ? new VarChartScalesOptionsVO().from(this.options) : null;
     }
 
     @Watch('options_props', { immediate: true, deep: true })
@@ -120,17 +135,6 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
         await this.throttled_emit_changes();
     }
 
-    get title_code_text(): string {
-        if (!this.options_props) {
-            return null;
-        }
-        return this.options_props.get_title_name_code_text(this.page_widget_id, this.chart_id);
-    }
-
-    @Watch('scale_color')
-    private async handle_scale_color_change() {
-        await this.throttled_emit_changes();
-    }
 
     /**
      * handle_scale_options_change
@@ -145,11 +149,6 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
                 await this.throttled_emit_changes();
             }
         }
-    }
-
-    @Watch('selected_position')
-    private async handle_selected_position_change() {
-        await this.throttled_emit_changes();
     }
 
     private async emit_change() {

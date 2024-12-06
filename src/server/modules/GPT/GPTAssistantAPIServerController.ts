@@ -34,6 +34,14 @@ import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
+import GPTAssistantAPIThreadMessageContentImageURLVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentImageURLVO';
+import { readFileSync } from 'fs';
+import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
+import OseliaThreadRoleVO from '../../../shared/modules/Oselia/vos/OseliaThreadRoleVO';
+import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
+import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
+import GPTRealtimeAPIConversationItemVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIConversationItemVO';
+import GPTRealtimeAPISessionVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO';
 import OseliaRunFunctionCallVO from '../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 
 export default class GPTAssistantAPIServerController {
@@ -460,6 +468,15 @@ export default class GPTAssistantAPIServerController {
         thread_vo.user_id = user_id ? user_id : await ModuleVersionedServer.getInstance().get_robot_user_id();
         thread_vo.current_default_assistant_id = current_default_assistant_id;
         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
+
+        // ML : Si on créer un thread, on doit aussi rajouter le créateur dans les user du thread et lui mettre le rôle propriétaire
+        const thread_user_vo = new OseliaThreadUserVO();
+        thread_user_vo.thread_id = thread_vo.id;
+        thread_user_vo.user_id = thread_vo.user_id;
+        thread_user_vo.role_id = (await query(OseliaThreadRoleVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaThreadRoleVO>().translatable_name, ModuleOselia.ROLE_OWNER)
+            .select_vo<OseliaThreadRoleVO>()).id; // Propriétaire
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_user_vo);
 
         return thread_vo;
     }
@@ -932,6 +949,44 @@ export default class GPTAssistantAPIServerController {
         return new_messages;
     }
 
+
+    // /**
+    //  * Demander un run d'un assistant suite à un nouveau message
+    //  * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
+    //  * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
+    //  * @param user_id contenu text du nouveau message
+    //  * @returns
+    //  */
+    // public static async connect_to_realtime_voice(
+    //     session_id: string,
+    //     conversation_id: string,
+    //     user_id: number): Promise<GPTRealtimeAPIConversationItemVO[]> {
+    //     try {
+    //         if(!session_id) {
+    //             // Création d'une nouvelle session
+    //             this.create_realtime_session();
+    //         }
+    //     } catch(error) {
+    //         ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: ' + error);
+    //     }
+    //     return;
+    // }
+
+    // private static async create_realtime_session(): Promise<GPTRealtimeAPISessionVO> {
+    //     try {
+    //         const session = new GPTRealtimeAPISessionVO();
+    //         session.object = "realtime.session";
+    //         session.model = "gpt-4o-realtime-preview-2024-10-01";
+    //         session.modalities = ["text", "voice"];
+    //         session.voice = "alloy";
+    //         session.instructions = "";
+    //         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(session);
+    //     } catch(error) {
+
+    //     }
+    //     return;
+    // }
+
     private static async resync_thread_messages(thread_vo: GPTAssistantAPIThreadVO) {
         try {
             const thread_gpt: Thread = (thread_vo.gpt_thread_id) ? await GPTAssistantAPIServerController.wrap_api_call(
@@ -964,6 +1019,7 @@ export default class GPTAssistantAPIServerController {
         hide_content: boolean = false
     ): Promise<GPTAssistantAPIThreadMessageVO> {
         let has_image_file: boolean = false;
+        let has_sound_file: boolean = false;
         let asking_message_vo: GPTAssistantAPIThreadMessageVO = null;
         const files_images: FileVO[] = [];
         if (new_msg_content_text || (new_msg_files && new_msg_files.length)) {

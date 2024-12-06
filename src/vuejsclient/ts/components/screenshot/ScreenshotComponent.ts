@@ -211,10 +211,10 @@ export default class ScreenshotComponent extends VueComponentBase {
     private async take_fullsize_screenshot() {
         try {
             // Capture de l'écran
-            let captureStream: MediaStream = (await navigator.mediaDevices as any).getDisplayMedia({ preferCurrentTab: true });
+            const captureStream = (await navigator.mediaDevices as any).getDisplayMedia({ preferCurrentTab: true });
             const track = captureStream.getVideoTracks()[0];
-            // let imageCapture = new ImageCapture(track);
-            const image_capture = new (window as any).ImageCapture(track);
+            const image_capture: ImageCapture = new ImageCapture(track);
+
             // Capture de l'image du flux vidéo
             const imageBitmap = await image_capture.grabFrame();
 
@@ -249,8 +249,7 @@ export default class ScreenshotComponent extends VueComponentBase {
                 document.getElementById("countdown").style.display = "flex";
                 await this.countdown(4);
                 document.getElementById("countdown").style.display = "none";
-                // const imageCapture = new ImageCapture(track);
-                const image_capture = new (window as any).ImageCapture(track);
+                const image_capture: ImageCapture = new ImageCapture(track);
                 // Capture de l'image du flux vidéo
                 const imageBitmap = await image_capture.grabFrame();
 

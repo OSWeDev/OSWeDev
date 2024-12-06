@@ -84,19 +84,19 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         ]
     ];
     private tmp_selected_color_palette: string = null;
-
+    private opened_prop_index: number[] = [];
     get var_names(): string[] {
 
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in VarsController.var_conf_by_name) {
-            let var_conf = VarsController.var_conf_by_name[i];
+        for (const i in VarsController.var_conf_by_name) {
+            const var_conf = VarsController.var_conf_by_name[i];
             res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
         }
 
         res.sort((a, b) => {
-            let a_ = a.split(' | ')[1];
-            let b_ = b.split(' | ')[1];
+            const a_ = a.split(' | ')[1];
+            const b_ = b.split(' | ')[1];
 
             if (a_ < b_) {
                 return -1;
@@ -109,7 +109,6 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         });
         return res;
     }
-
     @Watch('tmp_selected_color_palette')
     private onchange_tmp_selected_color_palette() {
         if (!this.options_props) {
@@ -122,8 +121,8 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
                     option_prop.color_palette = null;
                 }
             } else {
-                let selected_palette_index = this.color_palettes_labels.indexOf(this.tmp_selected_color_palette);
-                let new_palette = this.color_palettes[selected_palette_index];
+                const selected_palette_index = this.color_palettes_labels.indexOf(this.tmp_selected_color_palette);
+                const new_palette = this.color_palettes[selected_palette_index];
                 if (option_prop.color_palette != new_palette) {
                     option_prop.color_palette = new_palette;
                     option_prop.bg_color = null;
@@ -142,9 +141,28 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         }
 
         this.options_props = this.options;
+        if (this.opened_prop_index.length == 0) {
+            this.opened_prop_index = Array.from({ length: this.options_props.length }, (x, i) => i);
+        }
         this.use_palette = this.options_props.some(option_prop => option_prop.color_palette && option_prop.color_palette.length > 0);
         this.tmp_selected_color_palette = this.use_palette ? this.color_palettes_labels[this.searchIndexOfArray(this.options_props[0].color_palette, this.color_palettes)] : null;
 
+    }
+
+    private is_closed(index: number): boolean {
+        if (this.opened_prop_index.indexOf(index) == -1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private close_var_chart_options(index: number) {
+        if (!this.is_closed(index)) {
+            this.opened_prop_index.splice(this.opened_prop_index.indexOf(index),1);
+        } else {
+            this.opened_prop_index.push(index);
+        }
     }
 
     private searchIndexOfArray(target: any, source: any): number {

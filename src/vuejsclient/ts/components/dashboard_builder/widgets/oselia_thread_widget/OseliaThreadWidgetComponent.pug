@@ -6,7 +6,7 @@
 
     Oselialeftpanelcomponent(
         :class="{'opened': get_left_panel_open}"
-        :current_thread_id='current_thread_id'
+        :current_thread_id='current_thread_id ? current_thread_id : null'
     )
     
     .oselia_thread_widget_header 
@@ -131,9 +131,15 @@
                                                     img(:src="'/vuejsclient/public/img/xlsx.png'")
                                                 template(v-else-if="key == '.txt'")
                                                     img(:src="'/vuejsclient/public/img/txt.png'")
+                                                template(v-else-if="key == '.mp3'")
+                                                    audio(preload="auto", autobuffer, controls)
+                                                        source(:src="'/' + value.path")
                         .thread_message_input_textarea
                             textarea(v-model='new_message_text' rows="1" @keydown="handle_new_message_text_keydown" ref='new_message_textarea_ref')
                         .thread_message_input_buttons
+                            template(v-if="use_realtime_voice")
+                                .thread_message_input_voice 
+                                    button.fa-solid.fa-microphone(v-on:click='start_voice_record')
                             .thread_message_input_button.thread_message_input_file_system
                                 button.fa-solid.fa-files(v-on:click='open_file_system_upload')
                             .thread_message_input_button.thread_message_input_file
@@ -169,8 +175,63 @@
                                 button.btn.btn-primary(v-on:click='send_message()' :disabled='assistant_is_busy || !new_message_text')
                                     i.fa-duotone.fa-paper-plane
                                     | {{ label('oselia_thread_widget_component.send_message') }}
-
+        
         template(v-else)
-            .no_access.bg-warning
-                i.fa-duotone.fa-user-lock.fa-beat-fade(style='--fa-animation-iteration-count: 3')
-                | {{ label('oselia_thread_widget_component.no_access') }}
+            template(v-if='is_creating_thread')
+                template(v-if='is_loading_thread')
+                    .is_loading_thread
+                        i.fa-duotone.fa-spinner-third.fa-spin
+                template(v-else)
+                    .thread_container(ref='thread_container' :class="is_dragging ? 'blur' : '' ")  
+                        .thread_message_input
+                            template(v-if="thread_files.length > 0")
+                                .thread_files
+                                    template(v-for="(item, index) in thread_files")
+                                        template(v-for="(value, key) in item")
+                                            template(v-if="value.path")
+                                                .thread_file
+                                                    button.fa-solid.fa-xmark(v-on:click='remove_file(index)')
+                                                    template(v-if="key == '.png' || key == '.jpg' || key == '.jpeg' || key == '.gif' || key == '.webp'")
+                                                        img(:src="'/' + value.path")
+                                                    template(v-else-if="key == '.pdf'")
+                                                        img(:src="'/vuejsclient/public/img/pdf.png'")
+                                                    template(v-else-if="key == '.csv'")
+                                                        img(:src="'/vuejsclient/public/img/csv.png'")
+                                                    template(v-else-if="key == '.xlsx'")
+                                                        img(:src="'/vuejsclient/public/img/xlsx.png'")
+                                                    template(v-else-if="key == '.txt'")
+                                                        img(:src="'/vuejsclient/public/img/txt.png'")
+                                                    template(v-else-if="key == '.mp3'")
+                                                        audio(preload="auto", autobuffer, controls)
+                                                            source(:src="'/' + value.path")
+                            .thread_message_input_textarea
+                                textarea(v-model='new_message_text' rows="1" @keydown="handle_new_message_text_keydown" ref='new_message_textarea_ref')
+                            .thread_message_input_buttons
+                                template(v-if="use_realtime_voice")
+                                    .thread_message_input_voice 
+                                        button.fa-solid.fa-microphone(v-on:click='start_voice_record')
+                                .thread_message_input_file_system
+                                    button.fa-solid.fa-files(v-on:click='open_file_system_upload')
+                                .thread_message_input_file
+                                    button.fa-solid.fa-paperclip(v-on:click='open_file_upload')
+                                .thread_message_input_image
+                                    button.fa-solid.fa-images(v-on:click='open_image_upload')
+                                    template(v-if="enable_image_upload_menu")
+                                        .image_upload_menu
+                                            .image_upload_menu_item(v-on:click='upload_image')
+                                                i.fa-duotone.fa-upload
+                                                | {{ label('oselia_thread_widget_component.image_upload_menu_item.upload') }}
+                                            .image_upload_menu_item(v-on:click='open_link_image')
+                                                i.fa-duotone.fa-images
+                                                | {{ label('oselia_thread_widget_component.image_upload_menu_item.link') }}
+                                .thread_message_expand
+                                    button.fa-solid.fa-up-right-and-down-left-from-center(v-on:click='expand_window')
+                                    
+                            .thread_message_input_send
+                                button.btn.btn-primary(v-on:click='send_create_thread_message()' :disabled='assistant_is_busy || !new_message_text')
+                                    i.fa-duotone.fa-paper-plane
+                                    | {{ label('oselia_thread_widget_component.send_message') }}
+                    //- .no_access.bg-warning
+                    //-     i.fa-duotone.fa-user-lock.fa-beat-fade(style='--fa-animation-iteration-count: 3')
+                    //-     | {{ label('oselia_thread_widget_component.no_access') }}
+            

@@ -237,19 +237,6 @@
                             v-model="max_dataset_values"
                             v-tooltip="label('var_mixed_charts_widget_options_component.max_dataset_values.tooltip')"
                         )
-
-        .options_separator_lvl2
-
-        .var_charts_options 
-            .input_wrapper
-                Varchartsoptionscomponent(
-                    @on_change="handle_var_charts_options_change"
-                    :get_var_name_code_text="this.widget_options.get_var_name_code_text"
-                    :page_widget_id="page_widget.id"
-                    :options="var_charts_options"
-                    :fields_that_could_get_scales_filter="fields_that_could_get_scales_filter"
-                )
-
         .options_separator_lvl2 {{ label('var_mixed_charts_widget_options_component.scale_options_x') }}
         .show_scale_y
             .input_label {{ label('var_mixed_charts_widget_options_component.show_scale_x') }}
@@ -282,3 +269,15 @@
                 :page_widget_id="page_widget.id"
                 :options="fields_that_could_get_scales_filter"
             )
+        .options_separator_lvl2
+        
+        .var_charts_options 
+            .input_wrapper
+                Varchartsoptionscomponent(
+                    @on_change="handle_var_charts_options_change"
+                    :get_var_name_code_text="this.widget_options.get_var_name_code_text"
+                    :page_widget_id="page_widget.id"
+                    :options="var_charts_options"
+                    :fields_that_could_get_scales_filter="fields_that_could_get_scales_filter"
+                )
+            

@@ -390,9 +390,8 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
     }
 
-    private destroyed() {
-
-        VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
+    private async destroyed() {
+        await VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
     }
 
     private get_filtered_value(var_data: VarDataValueResVO) {

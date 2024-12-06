@@ -415,6 +415,7 @@ export default class VarRadarChart extends VueComponentBase {
         return this.filter.apply(null, params);
     }
 
+    
     private render_chart_js() {
 
         if (!this.chart_data) {

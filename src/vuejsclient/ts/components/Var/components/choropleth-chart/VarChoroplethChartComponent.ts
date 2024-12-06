@@ -1,7 +1,5 @@
 import Chart from "chart.js/auto";
 import * as helpers from "chart.js/helpers";
-import { ChoroplethController, ColorScale, GeoFeature, ProjectionScale } from 'chartjs-chart-geo';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { debounce } from 'lodash';
 import { Chart as VueChart } from 'vue-chartjs';
 import { Component, Prop, Watch } from 'vue-property-decorator';
@@ -17,6 +15,8 @@ import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
 import { _adapters, CategoryScale, LinearScale, LogarithmicScale, RadialLinearScale, TimeScale } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { ChoroplethController, GeoFeature, ColorScale, ProjectionScale, topojson } from 'chartjs-chart-geo';
 @Component({
     template: require('./VarChoroplethChartComponent.pug'),
     components: {
@@ -245,7 +245,7 @@ export default class VarChoroplethChartComponent extends VueComponentBase {
     }
 
     @Watch('var_params', { immediate: true })
-    private onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
+    private async onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
 
         // On doit vérifier qu'ils sont bien différents
         if (VarsController.isSameParamArray(new_var_params, old_var_params)) {
@@ -253,13 +253,11 @@ export default class VarChoroplethChartComponent extends VueComponentBase {
         }
 
         if (old_var_params && old_var_params.length) {
-            console.log('unregister');
-            VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
         }
 
         if (new_var_params && new_var_params.length) {
-            console.log('register');
-            VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
         }
 
         // this.set_datasets();
@@ -268,7 +266,7 @@ export default class VarChoroplethChartComponent extends VueComponentBase {
     }
 
     @Watch('var_dataset_descriptor')
-    private onchange_descriptors(new_var_dataset_descriptor: VarChoroplethDataSetDescriptor, old_var_dataset_descriptor: VarChoroplethDataSetDescriptor) {
+    private async onchange_descriptors(new_var_dataset_descriptor: VarChoroplethDataSetDescriptor, old_var_dataset_descriptor: VarChoroplethDataSetDescriptor) {
 
         // On doit vérifier qu'ils sont bien différents
         new_var_dataset_descriptor = new_var_dataset_descriptor ? new_var_dataset_descriptor : null;
@@ -285,10 +283,10 @@ export default class VarChoroplethChartComponent extends VueComponentBase {
 
         // sur chaque dimension
         if ((!!old_var_dataset_descriptor) && (this.var_params) && this.var_params.length) {
-            VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
         }
         if ((!!new_var_dataset_descriptor) && (this.var_params) && this.var_params.length) {
-            VarsClientController.getInstance().registerParams(this.var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().registerParams(this.var_params, this.varUpdateCallbacks);
         }
 
         // this.onchange_all_data_loaded();
@@ -393,7 +391,6 @@ export default class VarChoroplethChartComponent extends VueComponentBase {
     }
 
     private destroyed() {
-
         VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
     }
 

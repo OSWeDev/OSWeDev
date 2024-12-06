@@ -183,19 +183,21 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
         for (const content of this.thread_message_contents) {
             if (this.thread_message.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT) {
-                if (content.content_type_text.value && content.content_type_text.value.length > 0) {
-                    if (content.content_type_text.value.includes("<certitude")) {
-                        for (let i = content.content_type_text.value.indexOf('<certitude'); i < content.content_type_text.value.length; i++) {
-                            if (content.content_type_text.value[i] === ">") {
-                                let certitude = (content.content_type_text.value.substring(content.content_type_text.value.indexOf('<certitude'), i + 1));
-                                certitude = certitude.substring(certitude.indexOf(':') + 1, certitude.indexOf('>'));
-                                this.oselia_certitude = parseInt(certitude);
+                if (content.content_type_text) {
+                    if (content.content_type_text.value && content.content_type_text.value.length > 0) {
+                        if (content.content_type_text.value.includes("<certitude")) {
+                            for (let i = content.content_type_text.value.indexOf('<certitude'); i < content.content_type_text.value.length; i++) {
+                                if (content.content_type_text.value[i] === ">") {
+                                    let certitude = (content.content_type_text.value.substring(content.content_type_text.value.indexOf('<certitude'), i + 1));
+                                    certitude = certitude.substring(certitude.indexOf(':') + 1, certitude.indexOf('>'));
+                                    this.oselia_certitude = parseInt(certitude);
 
-                                content.content_type_text.value = content.content_type_text.value.replace(content.content_type_text.value.substring(content.content_type_text.value.indexOf('<certitude'), i + 1), "");
-                                break;
+                                    content.content_type_text.value = content.content_type_text.value.replace(content.content_type_text.value.substring(content.content_type_text.value.indexOf('<certitude'), i + 1), "");
+                                    break;
+                                }
                             }
+                            event.preventDefault();
                         }
-                        event.preventDefault();
                     }
                 }
 

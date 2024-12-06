@@ -15,9 +15,7 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
 
     public static TITLE_CODE_PREFIX: string = "VarMixedChartWidgetOptions.title.";
 
-
     public constructor(
-
         /**
          * Paramètres du widget
          */
@@ -82,7 +80,7 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         if (page_widget.json_options) {
-            let options = JSON.parse(page_widget.json_options) as VarMixedChartWidgetOptionsVO;
+            const options = JSON.parse(page_widget.json_options) as VarMixedChartWidgetOptionsVO;
             if (options && options.has_dimension && options.dimension_is_vo_field_ref && options.dimension_vo_field_ref) {
                 return {
                     [options.dimension_vo_field_ref.api_type_id]: {
@@ -93,6 +91,7 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
         }
         return {};
     }
+
 
     public static createDefault() {
         return new VarMixedChartWidgetOptionsVO(
@@ -199,9 +198,9 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
     }
 
     public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
-        let res: { [exportable_code_text: string]: string } = {};
+        const res: { [exportable_code_text: string]: string } = {};
 
-        let placeholder_name_code_text: string = this.get_title_name_code_text(page_widget_id);
+        const placeholder_name_code_text: string = this.get_title_name_code_text(page_widget_id);
         if (placeholder_name_code_text) {
 
             res[placeholder_name_code_text] =
