@@ -39,6 +39,6 @@ export default class Patch20211214ChangeVarTooltipTrads implements IGeneratorWor
         }
 
         translation.translated = "<li>Import ou saisie le <b>{formatted_date}</b><br><i>{value}</i></li>";
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(translation);
     }
 }

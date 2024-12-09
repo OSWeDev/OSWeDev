@@ -360,7 +360,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
         }
 
         this.var_conf.show_help_tooltip = !this.var_conf.show_help_tooltip;
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.var_conf);
+        await ModuleDAO.instance.insertOrUpdateVO(this.var_conf);
     }
 
     private async var_datas_updater() {

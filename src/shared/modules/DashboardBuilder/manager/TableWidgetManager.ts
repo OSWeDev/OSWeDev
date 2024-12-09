@@ -885,7 +885,7 @@ export default class TableWidgetManager {
         return new_active_field_filters;
     }
 
-    public static register_component(component: ComponentDatatableFieldVO<any, any>, cb: (vo) => Promise<any> = null) {
+    public static register_component(component: ComponentDatatableFieldVO<any, any>, cb: (data: any, active_field_filters: FieldFiltersVO, dashboard_api_type_ids: string[], column: TableColumnDescVO) => Promise<any> = null) {
         if (!this.components_by_crud_api_type_id[component.vo_type_id]) {
             this.components_by_crud_api_type_id[component.vo_type_id] = [];
         }

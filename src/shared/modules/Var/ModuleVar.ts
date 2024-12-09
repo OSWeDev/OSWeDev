@@ -1,9 +1,10 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ConsoleHandler from '../../tools/ConsoleHandler';
-import { field_names } from '../../tools/ObjectHandler';
+import { field_names, reflect } from '../../tools/ObjectHandler';
 import { all_promises } from '../../tools/PromiseTools';
 import RangeHandler from '../../tools/RangeHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
+import APIDefinition from '../API/vos/APIDefinition';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
@@ -65,7 +66,6 @@ export default class ModuleVar extends Module {
     public static APINAME_configureVarCache: string = 'configureVarCache';
 
     public static APINAME_get_var_id_by_names: string = 'get_var_id_by_names';
-    public static APINAME_register_params: string = 'register_params';
     public static APINAME_update_params_registration: string = 'update_params_registration';
     public static APINAME_unregister_params: string = 'unregister_params';
 
@@ -103,7 +103,9 @@ export default class ModuleVar extends Module {
     public getParamDependencies: (param: VarDataBaseVO) => Promise<{ [dep_id: string]: VarDataBaseVO }> = APIControllerWrapper.sah(ModuleVar.APINAME_getParamDependencies);
     public getVarParamDatas: (param: VarDataBaseVO) => Promise<{ [ds_name: string]: string }> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamDatas);
     public getAggregatedVarDatas: (param: VarDataBaseVO) => Promise<{ [var_data_index: string]: VarDataBaseVO }> = APIControllerWrapper.sah(ModuleVar.APINAME_getAggregatedVarDatas);
-    public register_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_register_params);
+    public register_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleVar>().register_params, (params: VarDataBaseVO[]) => {
+        return params.filter((e) => e.index != null);
+    });
     public update_params_registration: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_update_params_registration);
     public unregister_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_unregister_params);
     public get_var_id_by_names: () => Promise<VarConfIds> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_id_by_names);
@@ -188,11 +190,13 @@ export default class ModuleVar extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<APISimpleVOsParamVO, void>(
             ModuleVar.POLICY_FO_ACCESS,
-            ModuleVar.APINAME_register_params,
+            this.name,
+            reflect<ModuleVar>().register_params,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
-            APISimpleVOsParamVOStatic
+            APISimpleVOsParamVOStatic,
+            APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
         APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
             ModuleVar.POLICY_FO_ACCESS,
@@ -205,7 +209,8 @@ export default class ModuleVar extends Module {
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_unregister_params,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
-            APISimpleVOsParamVOStatic
+            APISimpleVOsParamVOStatic,
+            APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<StringParamVO, { [dep_name: string]: string }>(
@@ -728,6 +733,8 @@ export default class ModuleVar extends Module {
                     break;
             }
         }
+
+        var_param.rebuild_index();
 
         return refuse_param ? null : var_param;
     }

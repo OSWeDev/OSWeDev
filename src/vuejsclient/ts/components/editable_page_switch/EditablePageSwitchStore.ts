@@ -16,14 +16,6 @@ export interface IEditablePageSwitchState {
 
 export default class EditablePageSwitchStore implements IStoreModule<IEditablePageSwitchState, EditablePageSwitchContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): EditablePageSwitchStore {
-        if (!EditablePageSwitchStore.instance) {
-            EditablePageSwitchStore.instance = new EditablePageSwitchStore();
-        }
-        return EditablePageSwitchStore.instance;
-    }
-
     private static instance: EditablePageSwitchStore;
 
     public module_name: string;
@@ -71,7 +63,16 @@ export default class EditablePageSwitchStore implements IStoreModule<IEditablePa
             add_saving_handlers: (context: EditablePageSwitchContext, saving_handlers: Array<() => Promise<boolean>>) => context.commit(store_mutations_names(this).add_saving_handlers, saving_handlers),
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): EditablePageSwitchStore {
+        if (!EditablePageSwitchStore.instance) {
+            EditablePageSwitchStore.instance = new EditablePageSwitchStore();
+        }
+        return EditablePageSwitchStore.instance;
+    }
 }
 
-export const ModuleEditablePageSwitchGetter = namespace('EditablePageSwitchStore', Getter);
-export const ModuleEditablePageSwitchAction = namespace('EditablePageSwitchStore', Action);
+const __namespace = namespace('EditablePageSwitchStore');
+export const ModuleEditablePageSwitchGetter = __namespace.Getter;
+export const ModuleEditablePageSwitchAction = __namespace.Action;

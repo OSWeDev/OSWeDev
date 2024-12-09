@@ -296,8 +296,16 @@ initializeCheckPoint
 Supprimer le premier paramètre. Les champs sont déclarés directement lors de l'instanciation donc inutile de les transmettre ensuite aux fonctions qui n'agissent pas sur ces champs, mais en ajoute et déclare la table
 
 === Identifier les fichiers nécessitant un import de ModuleTableController / ModuleTableFieldController / field_names
+=== Sans paramètres
+FROM : 
+'import ModuleTableVO from '
+TO :
+'import ModuleTableController from 'oswedev/dist/shared/modules/DAO/ModuleTableController';
+import ModuleTableVO from '
+
 Faire une recherche exacte sur "ModuleTableController" et pour chaque fichier s'assurer dans les résultats que la première ligne de résultat pour le fichier est "import ModuleTableController ..."
 Sinon il manque un import dans ce fichier.
+
 
 === Continuer de modifier les query
 Vérifier aussi les querys / requêtes en dur pour éliminer les noms de champs en format texte et tout passer en field_names<YYYVO>().XXX :

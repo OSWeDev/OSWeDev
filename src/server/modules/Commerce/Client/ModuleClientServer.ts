@@ -32,7 +32,7 @@ export default class ModuleClientServer extends ModuleServerBase {
     }
 
     public async getInformationsClientUser(num: number): Promise<InformationsVO> {
-        return await ModuleDAOServer.getInstance().selectOne<InformationsVO>(
+        return ModuleDAOServer.instance.selectOne<InformationsVO>(
             InformationsVO.API_TYPE_ID,
             ' JOIN ' + ModuleTableController.module_tables_by_vo_type[ClientVO.API_TYPE_ID].full_name + ' c on c.informations_id = t.id ' +
             ' WHERE c.user_id = $1', [num]
@@ -44,7 +44,7 @@ export default class ModuleClientServer extends ModuleServerBase {
             return null;
         }
 
-        return await query(ClientVO.API_TYPE_ID).filter_by_num_eq(field_names<ClientVO>().user_id, num).select_vos<ClientVO>();
+        return query(ClientVO.API_TYPE_ID).filter_by_num_eq(field_names<ClientVO>().user_id, num).select_vos<ClientVO>();
     }
 
     public async getFirstClientByUser(user: UserVO): Promise<ClientVO> {
@@ -52,7 +52,7 @@ export default class ModuleClientServer extends ModuleServerBase {
             return null;
         }
 
-        return await this.getFirstClientByUserId(user.id);
+        return this.getFirstClientByUserId(user.id);
     }
 
     public async getFirstClientByUserId(uid: number): Promise<ClientVO> {

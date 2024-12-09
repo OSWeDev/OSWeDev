@@ -604,7 +604,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackOnce(cb.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
         });
 
-        let res = await ModuleDAO.getInstance().insertOrUpdateVO(clone);
+        let res = await ModuleDAO.instance.insertOrUpdateVO(clone);
         if ((!res) || (!res.id)) {
             ConsoleHandler.warn('Echec onchangevo insertOrUpdateVO : On tente de récupérer la data en base, si elle existe on met à jour...');
             const bdddata: VarDataBaseVO = await query(clone._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, clone.index).select_vo<VarDataBaseVO>();
@@ -617,7 +617,7 @@ export default class VarDataRefComponent extends VueComponentBase {
                 bdddata.value_type = clone.value_type;
                 bdddata.value = clone.value;
                 bdddata.value_ts = clone.value_ts;
-                res = await ModuleDAO.getInstance().insertOrUpdateVO(bdddata);
+                res = await ModuleDAO.instance.insertOrUpdateVO(bdddata);
                 if ((!res) || (!res.id)) {
                     ConsoleHandler.error('...la mise à jour a échouée');
                     return;

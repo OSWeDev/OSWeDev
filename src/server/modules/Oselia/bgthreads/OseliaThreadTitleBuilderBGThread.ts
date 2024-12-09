@@ -8,7 +8,6 @@ import GPTAssistantAPIThreadMessageContentVO from '../../../../shared/modules/GP
 import GPTAssistantAPIThreadMessageVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -16,7 +15,6 @@ import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import GPTAssistantAPIServerController from '../../GPT/GPTAssistantAPIServerController';
-import GPTAssistantAPIServerSyncThreadMessagesController from '../../GPT/sync/GPTAssistantAPIServerSyncThreadMessagesController';
 
 export default class OseliaThreadTitleBuilderBGThread implements IBGThread {
 
@@ -26,9 +24,6 @@ export default class OseliaThreadTitleBuilderBGThread implements IBGThread {
     public MAX_timeout: number = 3000;
     public MIN_timeout: number = 1000;
 
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
     private constructor() {
     }
 
@@ -256,7 +251,7 @@ export default class OseliaThreadTitleBuilderBGThread implements IBGThread {
                 thread.thread_title = response_content.content_type_text.value;
                 thread.needs_thread_title_build = false;
                 thread.thread_title_auto_build_locked = (words.length >= 100);
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread);
                 return;
             }
         }

@@ -160,15 +160,15 @@ export default class CRUD<T extends IDistantVOBase> {
 
     public static get_dt_field(field: ModuleTableFieldVO): DatatableField<any, any> {
         let dt_field: DatatableField<any, any> = null;
-        let table = ModuleTableController.module_tables_by_vo_type[field.module_table_vo_type];
-        let foreign_table = ModuleTableController.module_tables_by_vo_type[field.foreign_ref_vo_type];
+        const table = ModuleTableController.module_tables_by_vo_type[field.module_table_vo_type];
+        const foreign_table = ModuleTableController.module_tables_by_vo_type[field.foreign_ref_vo_type];
 
         if (field.foreign_ref_vo_type) {
 
             let dt_fields: Array<DatatableField<any, any>> = [
                 ComputedDatatableFieldVO.createNew(
                     field.field_id + '__target_label',
-                    ModuleDAO.getInstance().get_compute_function_uid(field.foreign_ref_vo_type)
+                    ModuleDAO.instance.get_compute_function_uid(field.foreign_ref_vo_type)
                 )
             ];
 
@@ -198,7 +198,7 @@ export default class CRUD<T extends IDistantVOBase> {
                         );
                     }
 
-                    let label_function = ModuleTableController.table_label_function_by_vo_type[field.foreign_ref_vo_type];
+                    const label_function = ModuleTableController.table_label_function_by_vo_type[field.foreign_ref_vo_type];
                     if (label_function) {
                         dt_field = ManyToManyReferenceDatatableFieldVO.createNew(
                             field.field_id,
@@ -207,7 +207,7 @@ export default class CRUD<T extends IDistantVOBase> {
                             [
                                 ComputedDatatableFieldVO.createNew(
                                     field.foreign_ref_vo_type + '__' + field.field_id + '__target_label',
-                                    ModuleDAO.getInstance().get_compute_function_uid(field.foreign_ref_vo_type)
+                                    ModuleDAO.instance.get_compute_function_uid(field.foreign_ref_vo_type)
                                 )
                             ]);
                     }
@@ -220,11 +220,10 @@ export default class CRUD<T extends IDistantVOBase> {
                 }
             }
         } else {
-            dt_field = SimpleDatatableFieldVO.createNew(field.field_id)
-                ;
+            dt_field = SimpleDatatableFieldVO.createNew(field.field_id);
 
             switch (field.field_type) {
-                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_refrange_array: {
                     if (!foreign_table) {
                         return dt_field;
                     }
@@ -232,7 +231,7 @@ export default class CRUD<T extends IDistantVOBase> {
                     const dt_fields: Array<DatatableField<any, any>> = [
                         ComputedDatatableFieldVO.createNew(
                             field.field_id + '__target_label',
-                            ModuleDAO.getInstance().get_compute_function_uid(field.foreign_ref_vo_type)
+                            ModuleDAO.instance.get_compute_function_uid(field.foreign_ref_vo_type)
                         )
                     ];
 
@@ -242,6 +241,7 @@ export default class CRUD<T extends IDistantVOBase> {
                         dt_fields
                     );
                     break;
+                }
 
                 default:
 
@@ -262,7 +262,7 @@ export default class CRUD<T extends IDistantVOBase> {
         for (const i in manyToManyModuleTables) {
             const otherModuleTable: ModuleTableVO = manyToManyModuleTables[i];
 
-            if ((!otherModuleTable.module_name) || (!ModulesManager.getInstance().getModuleByNameAndRole(otherModuleTable.module_name, Module.SharedModuleRoleName).actif)) {
+            if ((!otherModuleTable.module_name) || (!ModulesManager.getModuleByNameAndRole(otherModuleTable.module_name, Module.SharedModuleRoleName).actif)) {
                 continue;
             }
 
@@ -297,14 +297,14 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
-                let table = ModuleTableController.module_tables_by_vo_type[field.module_table_vo_type];
+                const table = ModuleTableController.module_tables_by_vo_type[field.module_table_vo_type];
 
                 if (except_table_names && (except_table_names.indexOf(table.name) >= 0)) {
                     continue;
                 }
 
                 const otherField: ModuleTableFieldVO = VOsTypesManager.getManyToManyOtherField(table, field);
-                let foreign_table = ModuleTableController.module_tables_by_vo_type[otherField.foreign_ref_vo_type];
+                const foreign_table = ModuleTableController.module_tables_by_vo_type[otherField.foreign_ref_vo_type];
 
                 if ((!otherField) || (!foreign_table)) {
                     continue;
@@ -322,7 +322,7 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
-                let label_function = ModuleTableController.table_label_function_by_vo_type[otherField.foreign_ref_vo_type];
+                const label_function = ModuleTableController.table_label_function_by_vo_type[otherField.foreign_ref_vo_type];
                 if (label_function) {
                     crud.readDatatable.pushField(ManyToManyReferenceDatatableFieldVO.createNew(
                         table.full_name + '_' + field.field_id,
@@ -331,7 +331,7 @@ export default class CRUD<T extends IDistantVOBase> {
                         [
                             ComputedDatatableFieldVO.createNew(
                                 otherField.foreign_ref_vo_type + '__' + field.field_id + '__target_label',
-                                ModuleDAO.getInstance().get_compute_function_uid(otherField.foreign_ref_vo_type)
+                                ModuleDAO.instance.get_compute_function_uid(otherField.foreign_ref_vo_type)
                             )
                         ]));
                     continue;
@@ -349,7 +349,7 @@ export default class CRUD<T extends IDistantVOBase> {
         for (const i in ModuleTableController.module_tables_by_vo_type) {
             const otherModuleTable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[i];
 
-            if ((!otherModuleTable.module_name) || (!ModulesManager.getInstance().getModuleByNameAndRole(otherModuleTable.module_name, Module.SharedModuleRoleName).actif)) {
+            if ((!otherModuleTable.module_name) || (!ModulesManager.getModuleByNameAndRole(otherModuleTable.module_name, Module.SharedModuleRoleName).actif)) {
                 continue;
             }
 
@@ -392,7 +392,7 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
-                let table = ModuleTableController.module_tables_by_vo_type[field.module_table_vo_type];
+                const table = ModuleTableController.module_tables_by_vo_type[field.module_table_vo_type];
                 if (table.default_label_field) {
                     crud.readDatatable.pushField(OneToManyReferenceDatatableFieldVO.createNew(
                         table.full_name + '_' + field.field_id,
@@ -405,7 +405,7 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
-                let label_function = ModuleTableController.table_label_function_by_vo_type[field.module_table_vo_type];
+                const label_function = ModuleTableController.table_label_function_by_vo_type[field.module_table_vo_type];
                 if (label_function) {
                     crud.readDatatable.pushField(OneToManyReferenceDatatableFieldVO.createNew(
                         table.full_name + '_' + field.field_id,
@@ -414,7 +414,7 @@ export default class CRUD<T extends IDistantVOBase> {
                         [
                             ComputedDatatableFieldVO.createNew(
                                 field.field_id + '__target_label',
-                                ModuleDAO.getInstance().get_compute_function_uid(table.vo_type)
+                                ModuleDAO.instance.get_compute_function_uid(table.vo_type)
                             )
                         ]));
                     continue;

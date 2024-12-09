@@ -178,7 +178,6 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
     public static async push_assistant_to_openai(vo: GPTAssistantAPIAssistantVO, is_trigger_pre_x: boolean = true): Promise<Assistant> {
         try {
-
             if (!vo) {
                 throw new Error('No assistant_vo provided');
             }
@@ -282,7 +281,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 await GPTAssistantAPIServerSyncAssistantsController.assign_vo_from_gpt(vo, gpt_obj);
 
                 if (!is_trigger_pre_x) {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(vo);
                 }
             }
 
@@ -361,7 +360,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
                     await GPTAssistantAPIServerSyncAssistantsController.assign_vo_from_gpt(found_vo, assistant);
 
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
                 }
 
                 /**
@@ -393,7 +392,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
             found_vo.archived = true;
             to_update.push(found_vo);
         }
-        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(to_update);
+        await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(to_update);
     }
 
     public static async tool_resources_from_openai_api(data: AssistantCreateParams.ToolResources): Promise<GPTAssistantAPIToolResourcesVO> {
@@ -584,7 +583,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
             found_vo.archived = true;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
     }
 
@@ -628,7 +627,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
             // found_vo.prepend_thread_vo
             found_vo.archived = false;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
 
         // Là on a vérifié l'existence de la fonction globalement, mais pas le lien avec l'assistant
@@ -642,7 +641,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 ConsoleHandler.log('sync_assistant_function: Updating assistant function in Osélia : ' + tool.name + ' for assistant ' + assistant_vo.nom);
             }
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(assistant_function_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(assistant_function_vo);
         }
 
         // On synchronise les paramètres de la fonction
@@ -725,7 +724,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 found_vo.archived = false;
                 found_vo.default_json_value = from_openai.default_json_value;
 
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
             }
         }
 
@@ -748,12 +747,11 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
             found_vo.archived = true;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
     }
 
     private static async get_all_assistants(): Promise<Assistant[]> {
-
         let res: Assistant[] = [];
 
         let assistants_page: AssistantsPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.assistants.list, ModuleGPTServer.openai.beta.assistants);

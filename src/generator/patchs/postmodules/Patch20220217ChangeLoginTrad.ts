@@ -40,6 +40,6 @@ export default class Patch20220217ChangeLoginTrad implements IGeneratorWorker {
         }
 
         translation.translated = "Login";
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(translation);
     }
 }

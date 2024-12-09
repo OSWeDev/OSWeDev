@@ -26,7 +26,7 @@ export default class SharedFiltersVOManager {
         access_type = access_type ?? ModuleDAO.DAO_ACCESS_TYPE_READ;
 
         // Check access
-        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+        const access_policy_name = ModuleDAO.instance.getAccessPolicyName(
             access_type,
             SharedFiltersVO.API_TYPE_ID
         );
@@ -223,7 +223,7 @@ export default class SharedFiltersVOManager {
          */
         shared_filters = await SharedFiltersVOManager.filter_false_shared_filters(shared_filters);
 
-        const res = await ModuleDAO.getInstance().insertOrUpdateVO(
+        const res = await ModuleDAO.instance.insertOrUpdateVO(
             shared_filters
         );
 
@@ -241,7 +241,7 @@ export default class SharedFiltersVOManager {
      */
     public static async delete_shared_filters(shared_filters: SharedFiltersVO): Promise<boolean> {
 
-        const res = await ModuleDAO.getInstance().deleteVOs(
+        const res = await ModuleDAO.instance.deleteVOs(
             [shared_filters]
         );
 

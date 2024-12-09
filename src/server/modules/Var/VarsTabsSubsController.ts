@@ -1,11 +1,12 @@
+import { PostThrottleParam, PreThrottleParam, THROTTLED_METHOD_PARAM_TYPE } from '../../../shared/annotations/Throttle';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import ThrottleExecAsServerRunsOnMainThread from '../../annotations/ThrottleExecAsServerRunsOnMainThread';
 import ConfigurationService from '../../env/ConfigurationService';
-import ForkedTasksController from '../Fork/ForkedTasksController';
+import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
+import ParamsServerController from '../Params/ParamsServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SocketWrapper from '../PushData/vos/SocketWrapper';
 import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCacheManager';
@@ -13,19 +14,12 @@ import NotifVardatasParam from './notifs/NotifVardatasParam';
 
 export default class VarsTabsSubsController {
 
-    public static TASK_NAME_notify_vardatas: string = 'VarsTabsSubsController.notify_vardatas';
-    public static TASK_NAME_get_subs_indexs: string = 'VarsTabsSubsController.get_subs_indexs';
+    // public static TASK_NAME_notify_vardatas: string = 'VarsTabsSubsController.notify_vardatas';
+    // public static TASK_NAME_get_subs_indexs: string = 'VarsTabsSubsController.get_subs_indexs';
 
 
     public static PARAM_NAME_SUBS_CLEAN_THROTTLE: string = 'VarsTabsSubsController.SUBS_CLEAN_THROTTLE';
     public static PARAM_NAME_SUBS_CLEAN_DELAY: string = 'VarsTabsSubsController.SUBS_CLEAN_DELAY';
-
-    /**
-     * Multithreading notes :
-     *  - any data or action in this controller needs to be done on the main thread
-     */
-    public static notify_vardatas = ThrottleHelper.declare_throttle_with_stackable_args(
-        this.notify_vardatas_throttled.bind(this), 100, { leading: true, trailing: true });
 
     /**
      * Les client_tab_ids abonnés à chaque var_index
@@ -37,41 +31,54 @@ export default class VarsTabsSubsController {
 
     public static init() {
         // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(VarsTabsSubsController.TASK_NAME_notify_vardatas, this.notify_vardatas.bind(this));
+        // ForkedTasksController.register_task(VarsTabsSubsController.TASK_NAME_notify_vardatas, this.notify_vardatas.bind(this));
         // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(VarsTabsSubsController.TASK_NAME_get_subs_indexs, this.get_subs_indexs.bind(this));
+        // ForkedTasksController.register_task(VarsTabsSubsController.TASK_NAME_get_subs_indexs, this.get_subs_indexs.bind(this));
     }
 
+    @RunsOnMainThread
     public static async get_subs_indexs(force_update: boolean = false): Promise<string[]> {
 
-        const self = this;
+        if (ConfigurationService.node_configuration.debug_vars) {
+            ConsoleHandler.log('get_subs_index:IN:clean_old_subs:IN');
+        }
 
-        return new Promise(async (resolve, reject) => {
+        await this.clean_old_subs(force_update);
 
-            if (!await ForkedTasksController.exec_self_on_main_process_and_return_value(
-                reject, VarsTabsSubsController.TASK_NAME_get_subs_indexs, resolve, force_update)) {
-                return;
-            }
+        if (ConfigurationService.node_configuration.debug_vars) {
+            ConsoleHandler.log('get_subs_index:IN:clean_old_subs:OUT');
+        }
 
-            if (ConfigurationService.node_configuration.debug_vars) {
-                ConsoleHandler.log('get_subs_index:IN:clean_old_subs:IN');
-            }
+        return Object.keys(this._tabs_subs);
 
-            await self.clean_old_subs(force_update);
+        // const self = this;
 
-            if (ConfigurationService.node_configuration.debug_vars) {
-                ConsoleHandler.log('get_subs_index:IN:clean_old_subs:OUT');
-            }
+        // return new Promise(async (resolve, reject) => {
 
-            resolve(Object.keys(self._tabs_subs));
-        });
+        //     if (!await ForkedTasksController.exec_self_on_main_process_and_return_value(
+        //         reject, VarsTabsSubsController.TASK_NAME_get_subs_indexs, resolve, force_update)) {
+        //         return;
+        //     }
+
+        //     if (ConfigurationService.node_configuration.debug_vars) {
+        //         ConsoleHandler.log('get_subs_index:IN:clean_old_subs:IN');
+        //     }
+
+        //     await self.clean_old_subs(force_update);
+
+        //     if (ConfigurationService.node_configuration.debug_vars) {
+        //         ConsoleHandler.log('get_subs_index:IN:clean_old_subs:OUT');
+        //     }
+
+        //     resolve(Object.keys(self._tabs_subs));
+        // });
     }
 
     /**
      * WARN : Only on main thread (express).
      */
+    @RunsOnMainThread
     public static register_sub(user_id: number, client_tab_id: string, param_indexs: string[]) {
-        ForkedTasksController.assert_is_main_process();
 
         user_id = ((user_id == null) ? 0 : user_id);
 
@@ -112,8 +119,8 @@ export default class VarsTabsSubsController {
     /**
      * WARN : Only on main thread (express).
      */
+    @RunsOnMainThread
     public static unregister_sub(user_id: number, client_tab_id: string, param_indexs: string[]) {
-        ForkedTasksController.assert_is_main_process();
 
         user_id = ((user_id == null) ? 0 : user_id);
 
@@ -172,11 +179,16 @@ export default class VarsTabsSubsController {
      * @param var_datas Tableau ou map (sur index) des vars datas
      * @param is_computing true indique au client de ne pas prendre en compte les valeurs envoyées uniquement le fait q'un calcul est en cours
      */
-    public static async notify_vardatas_throttled(params: NotifVardatasParam[]): Promise<boolean> {
-
-        if (!await ForkedTasksController.exec_self_on_main_process(VarsTabsSubsController.TASK_NAME_notify_vardatas, params)) {
-            return false;
-        }
+    @ThrottleExecAsServerRunsOnMainThread({
+        param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+        throttle_ms: 100,
+        leading: true,
+        trailing: true,
+    })
+    public static async notify_vardatas(
+        @PreThrottleParam pre_param: NotifVardatasParam | NotifVardatasParam[],
+        @PostThrottleParam params: NotifVardatasParam[] = null,
+    ): Promise<boolean> {
 
         await this.clean_old_subs();
 
@@ -332,11 +344,12 @@ export default class VarsTabsSubsController {
     /**
      * On nettoie les subs qui sont trop anciens, mais on ne fait le checke qu'une fois toutes les X minutes max
      */
+    @RunsOnMainThread
     private static async clean_old_subs(force_update: boolean = false) {
 
         const now = Dates.now();
-        const SUBS_CLEAN_DELAY = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_DELAY, 600, 180000);
-        const SUBS_CLEAN_THROTTLE = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_THROTTLE, 1800, 180000);
+        const SUBS_CLEAN_DELAY = await ParamsServerController.getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_DELAY, 600, 180000);
+        const SUBS_CLEAN_THROTTLE = await ParamsServerController.getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_THROTTLE, 1800, 180000);
 
         if ((!force_update) && (now - this.last_subs_clean) < SUBS_CLEAN_THROTTLE) {
             return;

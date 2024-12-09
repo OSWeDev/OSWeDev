@@ -13,22 +13,18 @@ import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import SupervisionServerController from '../SupervisionServerController';
 import ISupervisedItemServerController from '../interfaces/ISupervisedItemServerController';
+import ParamsServerController from '../../Params/ParamsServerController';
 
 export default class SupervisionBGThread implements IBGThread {
 
     public static MAX_timeout_PARAM_NAME: string = 'SupervisionBGThread.MAX_timeout';
     public static MIN_timeout_PARAM_NAME: string = 'SupervisionBGThread.MIN_timeout';
 
-
     private static instance: SupervisionBGThread = null;
 
     public current_timeout: number = 1000;
     public MAX_timeout: number = 5000;
     public MIN_timeout: number = 100;
-
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
 
     private loaded_param: boolean = false;
 
@@ -64,8 +60,8 @@ export default class SupervisionBGThread implements IBGThread {
             if (!this.loaded_param) {
                 this.loaded_param = true;
 
-                this.MAX_timeout = await ModuleParams.getInstance().getParamValueAsInt(SupervisionBGThread.MAX_timeout_PARAM_NAME, 5000, 180000);
-                this.MIN_timeout = await ModuleParams.getInstance().getParamValueAsInt(SupervisionBGThread.MIN_timeout_PARAM_NAME, 100, 180000);
+                this.MAX_timeout = await ParamsServerController.getParamValueAsInt(SupervisionBGThread.MAX_timeout_PARAM_NAME, 5000, 180000);
+                this.MIN_timeout = await ParamsServerController.getParamValueAsInt(SupervisionBGThread.MIN_timeout_PARAM_NAME, 100, 180000);
             }
 
             const registered_api_types = SupervisionController.getInstance().registered_controllers;

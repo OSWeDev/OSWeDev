@@ -11,14 +11,6 @@ export interface IFeedbackState {
 
 export default class FeedbackStore implements IStoreModule<IFeedbackState, FeedbackContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): FeedbackStore {
-        if (!FeedbackStore.instance) {
-            FeedbackStore.instance = new FeedbackStore();
-        }
-        return FeedbackStore.instance;
-    }
-
     private static instance: FeedbackStore;
 
     public module_name: string;
@@ -48,7 +40,16 @@ export default class FeedbackStore implements IStoreModule<IFeedbackState, Feedb
             set_hidden: (context: FeedbackContext, hidden: boolean) => context.commit(store_mutations_names(this).set_hidden, hidden),
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): FeedbackStore {
+        if (!FeedbackStore.instance) {
+            FeedbackStore.instance = new FeedbackStore();
+        }
+        return FeedbackStore.instance;
+    }
 }
 
-export const ModuleFeedbackGetter = namespace('FeedbackStore', Getter);
-export const ModuleFeedbackAction = namespace('FeedbackStore', Action);
+const __namespace = namespace('FeedbackStore');
+export const ModuleFeedbackGetter = __namespace.Getter;
+export const ModuleFeedbackAction = __namespace.Action;

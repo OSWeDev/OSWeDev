@@ -1,4 +1,4 @@
-import { Express } from 'express';
+import { Application, Express } from 'express';
 import { IDatabase } from 'pg-promise';
 import ModuleAPI from '../../shared/modules/API/ModuleAPI';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -137,6 +137,13 @@ import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
+import ParamsManager from '../../shared/modules/Params/ParamsManager';
+import ModuleLogger from '../../shared/modules/Logger/ModuleLogger';
+import ModuleLoggerServer from './Logger/ModuleLoggerServer';
+import ModuleAzureConnect from '../../shared/modules/AzureConnect/ModuleAzureConnect';
+import ModuleAzureConnectServer from './AzureConnect/ModuleAzureConnectServer';
+import ModuleEventifyServer from './Eventify/ModuleEventifyServer';
+import ModuleEventify from '../../shared/modules/Eventify/ModuleEventify';
 
 export default abstract class ModuleServiceBase {
 
@@ -239,7 +246,7 @@ export default abstract class ModuleServiceBase {
         this.db_ = db;
 
         db.$pool.options.max = ConfigurationService.node_configuration.max_pool;
-        db.$pool.options.idleTimeoutMillis = 120000;
+        db.$pool.options.idleTimeoutMillis = 1;
     }
 
     public async register_all_modules(is_generator: boolean = false) {
@@ -279,7 +286,7 @@ export default abstract class ModuleServiceBase {
         } else {
 
             if (ConfigurationService.node_configuration.debug_start_server) {
-                ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:START');
+                ConsoleHandler.debug('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:START');
             }
             for (const i in this.registered_modules) {
                 const registered_module = this.registered_modules[i];
@@ -287,26 +294,43 @@ export default abstract class ModuleServiceBase {
                 await PreloadedModuleServerController.load_or_create_module_is_actif(registered_module);
             }
             if (ConfigurationService.node_configuration.debug_start_server) {
-                ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
+                ConsoleHandler.debug('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
             }
         }
-
-        // On lance la configuration des modules, et avant on configure les apis des modules server
+        // On configure les apis des modules server
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:START');
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:configure_server_modules_apis:START');
         }
-        await this.configure_server_modules_apis();
+        this.configure_server_modules_apis();
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:END');
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:configure_server_modules_apis:END');
+        }
+
+        // On lance le preload des params des modules
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.debug('ParamsManager:reloadPreloadParams:START');
+        }
+        await ParamsManager.reloadPreloadParams();
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.debug('ParamsManager:reloadPreloadParams:END');
+        }
+
+        // On lance la configuration des modules
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:configure_server_modules_init:START');
+        }
+        await this.configure_server_modules_init();
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:configure_server_modules_init:END');
         }
 
         // On charge le cache des tables segmentées. On cherche à être exhaustifs pour le coup
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:START');
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:START');
         }
         await this.preload_segmented_known_databases();
         if (ConfigurationService.node_configuration.debug_start_server) {
-            ConsoleHandler.log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:END');
+            ConsoleHandler.debug('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:END');
         }
 
         // A mon avis c'est de la merde ça... on charge où la vérif des params, le hook install, ... ?
@@ -342,12 +366,21 @@ export default abstract class ModuleServiceBase {
         }
     }
 
-    public async configure_server_modules_apis() {
+    public configure_server_modules_apis() {
         for (const i in this.server_modules) {
             const server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
                 server_module.registerServerApiHandlers();
+            }
+        }
+    }
+
+    public async configure_server_modules_init() {
+        for (const i in this.server_modules) {
+            const server_module: ModuleServerBase = this.server_modules[i];
+
+            if (server_module.actif) {
                 await server_module.configure();
             }
         }
@@ -368,7 +401,7 @@ export default abstract class ModuleServiceBase {
                     continue;
                 }
 
-                await ModuleDAOServer.getInstance().preload_segmented_known_database(t);
+                await ModuleDAOServer.instance.preload_segmented_known_database(t);
             }
         }
     }
@@ -377,12 +410,12 @@ export default abstract class ModuleServiceBase {
      * FIXME : pour le moment on est obligé de tout faire dans l'ordre, impossible de paraléliser à ce niveau
      *  puisque les rôles typiquement créés d'un côté peuvent être utilisés de l'autre ...
      */
-    public async configure_server_modules(app: Express, is_generator: boolean = false) {
+    public async configure_server_modules(app: Application, is_generator: boolean = false) {
         for (const i in this.server_modules) {
             const server_module: ModuleServerBase = this.server_modules[i];
 
             if (ConfigurationService.node_configuration.debug_start_server) {
-                ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':START');
+                ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':START');
             }
 
             if (server_module.actif) {
@@ -394,26 +427,26 @@ export default abstract class ModuleServiceBase {
                 ]);
 
                 if (ConfigurationService.node_configuration.debug_start_server) {
-                    ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerCrons');
+                    ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':registerCrons');
                 }
 
                 server_module.registerCrons();
 
                 if (ConfigurationService.node_configuration.debug_start_server) {
-                    ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerAccessHooks');
+                    ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':registerAccessHooks');
                 }
                 server_module.registerAccessHooks();
 
                 if (app) {
                     if (ConfigurationService.node_configuration.debug_start_server) {
-                        ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerExpressApis');
+                        ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':registerExpressApis');
                     }
                     server_module.registerExpressApis(app);
                 }
             }
 
             if (ConfigurationService.node_configuration.debug_start_server) {
-                ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':END');
+                ConsoleHandler.debug('configure_server_modules:server_module:' + server_module.name + ':END');
             }
         }
     }
@@ -510,18 +543,35 @@ export default abstract class ModuleServiceBase {
     }
 
     private async install_modules() {
+
+        const queries_to_try_after_creation: string[] = [];
         for (const i in this.registered_modules) {
             const registered_module = this.registered_modules[i];
 
             try {
                 await ModuleDBService.getInstance().module_install(
-                    registered_module
+                    registered_module,
+                    queries_to_try_after_creation,
                 );
             } catch (e) {
                 console.error(
                     "Erreur lors de l'installation du module \"" +
                     registered_module.name +
                     '".'
+                );
+                console.log(e);
+                process.exit(0);
+            }
+        }
+
+        for (const i in queries_to_try_after_creation) {
+            const query = queries_to_try_after_creation[i];
+            try {
+                ConsoleHandler.log('Executing query after modules installation : ' + query);
+                await this.db_.none(query);
+            } catch (e) {
+                console.error(
+                    "Erreur lors de l'exécution de la requête après l'installation des modules."
                 );
                 console.log(e);
                 process.exit(0);
@@ -577,6 +627,7 @@ export default abstract class ModuleServiceBase {
             ModuleBGThread.getInstance(),
             ModuleParams.getInstance(),
             ModuleAnonymization.getInstance(),
+            ModuleLogger.getInstance(),
         ];
     }
 
@@ -645,6 +696,9 @@ export default abstract class ModuleServiceBase {
             ModuleAzureMemoryCheck.getInstance(),
             ModuleOselia.getInstance(),
             ModuleSuiviCompetences.getInstance(),
+            ModuleLogger.getInstance(),
+            ModuleAzureConnect.getInstance(),
+            ModuleEventify.getInstance(),
         ];
     }
 
@@ -711,6 +765,9 @@ export default abstract class ModuleServiceBase {
             ModuleAzureMemoryCheckServer.getInstance(),
             ModuleOseliaServer.getInstance(),
             ModuleSuiviCompetencesServer.getInstance(),
+            ModuleLoggerServer.getInstance(),
+            ModuleAzureConnectServer.getInstance(),
+            ModuleEventifyServer.getInstance(),
         ];
     }
 
@@ -722,7 +779,7 @@ export default abstract class ModuleServiceBase {
             await this.db_.none(query, values);
         } catch (error) {
 
-            return await this.handle_errors(error, 'db_none', this.db_none, [query, values]);
+            return this.handle_errors(error, 'db_none', this.db_none, [query, values]);
         }
 
         const time_out = Dates.now_ms();
@@ -756,7 +813,7 @@ export default abstract class ModuleServiceBase {
                 // export query to txt file for debug
                 const fs = require('fs');
                 const path = require('path');
-                const filename = path.join(__dirname, 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
+                const filename = path.join(process.cwd(), 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
                 fs.writeFile(filename, query);
                 ConsoleHandler.error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.max_size_per_query + ') ' + query.substring(0, 1000) + '...');
 
@@ -768,7 +825,7 @@ export default abstract class ModuleServiceBase {
                 // export query to txt file for debug
                 const fs = require('fs');
                 const path = require('path');
-                const filename = path.join(__dirname, 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
+                const filename = path.join(process.cwd(), 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
                 fs.writeFile(filename, query);
                 ConsoleHandler.error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.max_union_all_per_query + ') ' + query.substring(0, 1000) + '...');
 
@@ -778,7 +835,7 @@ export default abstract class ModuleServiceBase {
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
         } catch (error) {
 
-            return await this.handle_errors(error, 'db_query', this.db_query, [query, values]);
+            return this.handle_errors(error, 'db_query', this.db_query, [query, values]);
         }
 
         const time_out = Dates.now_ms();
@@ -803,7 +860,7 @@ export default abstract class ModuleServiceBase {
         try {
             res = await this.db_.one(query, values);
         } catch (error) {
-            return await this.handle_errors(error, 'db_one', this.db_one, [query, values]);
+            return this.handle_errors(error, 'db_one', this.db_one, [query, values]);
         }
 
         const time_out = Dates.now_ms();
@@ -827,7 +884,7 @@ export default abstract class ModuleServiceBase {
         try {
             res = await this.db_.oneOrNone(query, values);
         } catch (error) {
-            return await this.handle_errors(error, 'db_oneOrNone', this.db_oneOrNone, [query, values]);
+            return this.handle_errors(error, 'db_oneOrNone', this.db_oneOrNone, [query, values]);
         }
 
         const time_out = Dates.now_ms();

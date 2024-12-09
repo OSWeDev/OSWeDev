@@ -60,26 +60,6 @@ export default class VarsProcessDagCleaner extends VarsProcessBase {
         return true;
     }
 
-    // protected check_dag() {
-    //     for (let i in CurrentVarDAGHolder.current_vardag.nodes) {
-
-    //         let node = CurrentVarDAGHolder.current_vardag.nodes[i];
-
-    //         if (!node.outgoing_deps) {
-    //             continue;
-    //         }
-
-    //         for (let j in node.outgoing_deps) {
-    //             let outgoing_dep = node.outgoing_deps[j];
-
-    //             if (!(outgoing_dep.outgoing_node as VarDAGNode).var_dag) {
-    //                 ConsoleHandler.error('VarsProcessDagCleaner: ' + node.var_data.index + ' ' + node.var_data.value + ' has outgoing to ' + (outgoing_dep.outgoing_node as VarDAGNode).var_data.index + ' ' + (outgoing_dep.outgoing_node as VarDAGNode).var_data.value + ' but outgoing_node has no var_dag');
-    //                 throw new Error('DELETE ME');
-    //             }
-    //         }
-    //     }
-    // }
-
     protected worker_sync(node: VarDAGNode): boolean {
         return false;
     }

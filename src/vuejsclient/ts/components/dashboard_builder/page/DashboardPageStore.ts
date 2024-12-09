@@ -415,5 +415,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 export const DashboardPageStoreInstance = DashboardPageStore.getInstance();
 
-export const ModuleDashboardPageGetter = namespace('DashboardPageStore', Getter);
-export const ModuleDashboardPageAction = namespace('DashboardPageStore', Action);
+const __namespace = namespace('DashboardPageStore');
+export const ModuleDashboardPageGetter = __namespace.Getter;
+export const ModuleDashboardPageAction = __namespace.Action;

@@ -1120,7 +1120,7 @@ export default class DataImportComponent extends DataImportComponentBase {
         }
 
         this.import_historics[this.selected_segment.index][api_type_id].state = ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT;
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.import_historics[this.selected_segment.index][api_type_id]);
+        await ModuleDAO.instance.insertOrUpdateVO(this.import_historics[this.selected_segment.index][api_type_id]);
 
         this.storeData(this.import_historics[this.selected_segment.index][api_type_id]);
     }
@@ -1135,7 +1135,7 @@ export default class DataImportComponent extends DataImportComponentBase {
         }
 
         this.import_historics[this.selected_segment.index][api_type_id].state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.import_historics[this.selected_segment.index][api_type_id]);
+        await ModuleDAO.instance.insertOrUpdateVO(this.import_historics[this.selected_segment.index][api_type_id]);
 
         this.storeData(this.import_historics[this.selected_segment.index][api_type_id]);
     }
@@ -1228,7 +1228,7 @@ export default class DataImportComponent extends DataImportComponentBase {
             importHistoric.user_id = (VueAppController.getInstance().data_user) ? VueAppController.getInstance().data_user.id : null;
 
             importHistorics.push(importHistoric);
-            const res = await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+            const res = await ModuleDAO.instance.insertOrUpdateVO(importHistoric);
             importHistoric.id = res.id;
 
             this.storeData(importHistoric);

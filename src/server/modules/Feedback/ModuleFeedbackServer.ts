@@ -49,6 +49,7 @@ import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerControl
 import ModuleGPTServer from '../GPT/ModuleGPTServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
 import ModuleTrelloAPIServer from '../TrelloAPI/ModuleTrelloAPIServer';
@@ -316,17 +317,17 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 return null;
             }
 
-            const FEEDBACK_TRELLO_LIST_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_LIST_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_LIST_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_LIST_ID_PARAM_NAME);
             if (!FEEDBACK_TRELLO_LIST_ID) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_TRELLO_LIST_ID");
                 throw new Error('Le module FEEDBACK nécessite la configuration du paramètre FEEDBACK_TRELLO_LIST_ID qui indique le code du tableau Trello à utiliser (cf URL d\'une card de la liste +.json => idList)');
             }
 
-            const FEEDBACK_TRELLO_POSSIBLE_BUG_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_BUG_ID_PARAM_NAME);
-            const FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID_PARAM_NAME);
-            const FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID_PARAM_NAME);
-            const FEEDBACK_TRELLO_NOT_SET_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_NOT_SET_ID_PARAM_NAME);
-            const FEEDBACK_TRELLO_RAPPELER_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_RAPPELER_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_POSSIBLE_BUG_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_BUG_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_NOT_SET_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_NOT_SET_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_RAPPELER_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_RAPPELER_ID_PARAM_NAME);
             if ((!FEEDBACK_TRELLO_POSSIBLE_BUG_ID) || (!FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID) || (!FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID) || (!FEEDBACK_TRELLO_NOT_SET_ID)) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_TRELLO_POSSIBLE_BUG_ID");
                 throw new Error('Le module FEEDBACK nécessite la configuration des paramètres FEEDBACK_TRELLO_POSSIBLE_BUG_ID,FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID,FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID,FEEDBACK_TRELLO_NOT_SET_ID qui indiquent les codes des marqueurs Trello à utiliser (cf URL d\'une card de la liste +.json => labels:id)');
@@ -348,7 +349,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             }
 
             // Puis créer le feedback en base
-            const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
+            const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(feedback);
             if ((!res) || (!res.id)) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_CREATED");
                 throw new Error('Failed feedback creation');
@@ -440,7 +441,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                     'Impossible de créer la carte Trello pour le feedback ' + feedback.id + ' : ' + feedback.title);
             }
 
-            const ires: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
+            const ires: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(feedback);
             if ((!ires) || (!ires.id)) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_INSERTING_FEEDBACK");
                 throw new Error('Failed feedback creation');
@@ -474,10 +475,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     // private async handle_feedback_gpt_to_teams(feedback: FeedbackVO, uid: number, user_infos: string, feedback_infos: string, routes: string, console_logs_errors: string
     //     // , api_logs: string
     // ) {
-    //     const FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
+    //     const FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ParamsServerController.getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
     //     if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
 
-    //         // const gpt_assistant_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.FEEDBACK_ASSISTANT_ID);
+    //         // const gpt_assistant_id = await ParamsServerController.getParamValueAsInt(ModuleFeedbackServer.FEEDBACK_ASSISTANT_ID);
 
     //         // if (!gpt_assistant_id) {
     //         //     ConsoleHandler.error('handle_feedback_gpt_to_teams: Le paramètre ' + ModuleFeedbackServer.FEEDBACK_ASSISTANT_ID + ' doit être renseigné pour envoyer les réponses GPT aux équipes');
@@ -517,7 +518,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     //             ' - console_logs_errors : ' + console_logs_errors
     //             // ' - api_logs : ' + api_logs
     //         ));
-    //         const TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
+    //         const TEAMS_WEBHOOK: string = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
     //         if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
     //             const teamsWebhookContent = new TeamsWebhookContentVO();
     //             const body = [];
@@ -550,7 +551,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     //             const feedback_Column = new TeamsWebhookContentColumnSetVO().set_columns([new TeamsWebhookContentColumnVO().set_items([new TeamsWebhookContentTextBlockVO().set_text(gtp_4_brief.content).set_size('small')])]).set_style('emphasis');
     //             body.push(feedback_Column);
     //             // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
-    //             const dashboard_feedback_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID_PARAM_NAME);
+    //             const dashboard_feedback_id = await ParamsServerController.getParamValueAsInt(ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID_PARAM_NAME);
     //             if ((!!feedback.id) && !!dashboard_feedback_id) {
     //                 actions.push(new TeamsWebhookContentActionOpenUrlVO().set_url(ConfigurationService.node_configuration.base_url + 'admin#/dashboard/view/' + dashboard_feedback_id).set_title('Consulter'));
     //             }
@@ -583,7 +584,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     // }
 
     // private async api_logs_to_string(feedback: FeedbackVO): Promise<string> {
-    //     let FEEDBACK_TRELLO_API_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_API_LOG_LIMIT_PARAM_NAME);
+    //     let FEEDBACK_TRELLO_API_LOG_LIMIT: string = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_API_LOG_LIMIT_PARAM_NAME);
     //     let API_LOG_LIMIT: number = FEEDBACK_TRELLO_API_LOG_LIMIT ? parseInt(FEEDBACK_TRELLO_API_LOG_LIMIT.toString()) : 100;
 
     //     let apis_log: LightWeightSendableRequestVO[] = parse(feedback.apis_log_json);
@@ -628,7 +629,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     // }
 
     private async console_logs_to_string(feedback: FeedbackVO): Promise<string> {
-        const FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT_PARAM_NAME);
+        const FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT: string = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT_PARAM_NAME);
         const CONSOLE_LOG_LIMIT: number = FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT ? parseInt(FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT.toString()) : 100;
         let limited: boolean = false;
 
@@ -649,7 +650,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async routes_to_string(feedback: FeedbackVO): Promise<string> {
-        const FEEDBACK_TRELLO_ROUTE_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_ROUTE_LIMIT_PARAM_NAME);
+        const FEEDBACK_TRELLO_ROUTE_LIMIT: string = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_ROUTE_LIMIT_PARAM_NAME);
         let ROUTE_LIMIT: number = FEEDBACK_TRELLO_ROUTE_LIMIT ? parseInt(FEEDBACK_TRELLO_ROUTE_LIMIT.toString()) : 100;
         const envParam: EnvParam = ConfigurationService.node_configuration;
 

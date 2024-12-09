@@ -1,11 +1,9 @@
 /* istanbul ignore file: no usefull tests to build => more interested in understanding why this is still needed ? */
 
 import i18next from 'i18next';
-import i18nextMiddleware from 'i18next-express-middleware';
-import { LanguageDetector } from 'i18next-express-middleware';
-import EnvParam from './env/EnvParam';
+import i18nextMiddleware, { LanguageDetector } from 'i18next-express-middleware';
 import ConfigurationService from './env/ConfigurationService';
-import ForkedTasksController from './modules/Fork/ForkedTasksController';
+import EnvParam from './env/EnvParam';
 
 export default class I18nextInit {
 
@@ -22,8 +20,6 @@ export default class I18nextInit {
     public i18nextMiddleware = null;
 
     private constructor(ALL_LOCALES) {
-
-        // ForkedTasksController.assert_is_main_process();
 
         const envParam: EnvParam = ConfigurationService.node_configuration;
 

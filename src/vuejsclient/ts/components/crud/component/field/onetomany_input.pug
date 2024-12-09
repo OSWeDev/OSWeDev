@@ -10,27 +10,75 @@
         router-link.btn.btn-sm.btn-success(:to="getCRUDCreateLink(field.targetModuleTable.vo_type)" target='_blank')
             i.fa-duotone.fa-plus-circle
 
-    multiselect(
-        v-model="field_value",
-        :custom-label="field.voIdToHumanReadable",
-        :options="select_options",
-        :placeholder="t(placeholder_string)",
-        :loading="isLoadingOptions",
-        autocomplete="off"
-        :id="field.datatable_field_uid",
-        :searchable="searchable",
-        :internal-search="false",
-        :allow-empty="!field.is_required",
-        :preselect-first="false",
-        :disabled="is_readonly",
-        @search-change="asyncLoadOptions",
-        @input="onChangeField",
-        :multiple="true"
-        :close-on-select="false"
+    template(v-if='field.can_use_async_load_options')
+        multiselect(
+            v-if='can_insert_or_update_target_first_loading_ok'
+                
+            v-model="async_load_options_field_value",
+            label="label"
+            :options="filter_visible_options",
+            :placeholder="t(placeholder_string)",
+            :multiple="true"
+            :close-on-select="false"
+            autocomplete="off"
+            :internal-search="false",
+            :searchable="true",
+            :preselect-first="false",
+            :hide-selected="true"
+            
+            :id="field.datatable_field_uid",
+            :allow-empty="!field.is_required",
+            :disabled="is_readonly",
 
-        :select-label='label("multiselect.selectLabel")'
-        :select-group-label='label("multiselect.selectGroupLabel")'
-        :selected-label='label("multiselect.selectedLabel")'
-        :deselect-label='label("multiselect.deselectLabel")'
-        :deselect-group-label='label("multiselect.deselectGroupLabel")'
-    )
+
+            @input="onChangeField",
+            :loading="isLoadingOptions",
+            
+            track-by="id",
+
+            :select-label='label("multiselect.selectLabel")'
+            :select-group-label='label("multiselect.selectGroupLabel")'
+            :selected-label='label("multiselect.selectedLabel")'
+            :deselect-label='label("multiselect.deselectLabel")'
+            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+
+            @search-change="query_update_visible_options"
+        )
+
+            span(slot="noOptions") -
+
+            template(slot="option", slot-scope="props")
+                span.option__title {{ props.option.label }}
+
+            template(slot="tag", slot-scope="props")
+                .pill_wrapper.bg-success
+                    span.option__tag {{ props.option.label }}
+                    i.fa-solid.fa-square-x(@click='props.remove(props.option)')
+
+            //- ??? track-by="text_uid"
+
+    template(v-else)
+        multiselect(
+            v-model="field_value",
+            :custom-label="field.voIdToHumanReadable",
+            :options="select_options",
+            :placeholder="t(placeholder_string)",
+            :loading="isLoadingOptions",
+            autocomplete="off"
+            :id="field.datatable_field_uid",
+            :searchable="searchable",
+            :internal-search="false",
+            :allow-empty="!field.is_required",
+            :preselect-first="false",
+            :disabled="is_readonly",
+            @search-change="asyncLoadOptions",
+            @input="onChangeField",
+            :multiple="true"
+            :close-on-select="false"
+
+            :select-label='label("multiselect.selectLabel")'
+            :select-group-label='label("multiselect.selectGroupLabel")'
+            :selected-label='label("multiselect.selectedLabel")'
+            :deselect-label='label("multiselect.deselectLabel")'
+            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+        )

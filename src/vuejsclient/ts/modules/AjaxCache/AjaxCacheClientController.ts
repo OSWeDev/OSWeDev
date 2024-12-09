@@ -15,6 +15,7 @@ import EnvHandler from '../../../../shared/tools/EnvHandler';
 import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../../shared/tools/ThreadHandler';
+import PushDataVueModule from '../PushData/PushDataVueModule';
 
 /**
  * Refonte du AjaxCacheClientController :
@@ -297,6 +298,14 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             }
             self.addCallback(cache, resolve_stats_wrapper, reject_stats_wrapper);
 
+            if (!navigator.onLine) {
+                const same_version_app: boolean = await PushDataVueModule.getInstance().wait_navigator_online();
+
+                if (!same_version_app) {
+                    return;
+                }
+            }
+
             // const $ = await import('jquery');
             if ($.ajax) {
                 await $.ajax(options)
@@ -544,7 +553,12 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
             // Choix du pool de requête
             if (!request_barrel_num_from_request_uid[request_uid]) {
-                request_barrel_num++;
+
+                // On passe au suivant si on a déjà utilisé plus de 10 requetes dans ce barrel
+                const slot = wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]];
+                if (slot && (slot.length >= 10)) {
+                    request_barrel_num++;
+                }
 
                 if (request_barrel_num >= nb_requests) {
                     request_barrel_num = 0;
@@ -764,6 +778,14 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             case RequestResponseCacheVO.API_TYPE_GET:
 
                 // const $ = await import('jquery');
+
+                if (!navigator.onLine) {
+                    const same_version_app: boolean = await PushDataVueModule.getInstance().wait_navigator_online();
+
+                    if (!same_version_app) {
+                        return;
+                    }
+                }
 
                 if ($.ajaxSetup) {
                     $.ajaxSetup({

@@ -11,7 +11,7 @@ import { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import ThrottlePipelineHelper from '../../../shared/tools/ThrottlePipelineHelper';
+import ThrottlePipelineHelper from '../../../shared/tools/ThrottlePipeline/ThrottlePipelineHelper';
 import ConfigurationService from '../../env/ConfigurationService';
 import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import ForkedTasksController from '../Fork/ForkedTasksController';
@@ -64,7 +64,7 @@ export default class VarsDatasProxy {
                     this_not_found_indexes[var_data_indexes[i]] = true;
                 }
 
-                const bdd_res: T[] = await query(api_type_id).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, var_data_indexes).select_vos<T>();
+                const bdd_res: T[] = await query(api_type_id).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, var_data_indexes).exec_as_server().select_vos<T>();
 
                 for (const i in bdd_res) {
                     const var_data = bdd_res[i];
@@ -170,9 +170,26 @@ export default class VarsDatasProxy {
         }
 
         const params_indexes_by_api_type_id: { [api_type_id: string]: string[] } = {};
+        const found: { [index: string]: T } = {};
 
         for (const i in params_indexes) {
             const params_index = params_indexes[i];
+
+            // Petit contrôle de cohérence suite pb en prod
+            if ((!params_index) || (params_index.indexOf('null') >= 0)) {
+
+                if (!params_index) {
+                    ConsoleHandler.error('VarsDatasProxy._get_var_datas_or_ask_to_bgthread: params_index null: ' + params_index + ' - là on peut rien faire à part tenter d\'ignorer la demande ...');
+                    continue;
+                }
+
+                ConsoleHandler.error('VarsDatasProxy._get_var_datas_or_ask_to_bgthread: params_index contains null: ' + params_index + ' - On crée une fausse notif pour éviter de bloquer le système');
+                found[params_index] = VarDataBaseVO.from_index(params_index) as T;
+                found[params_index].value_ts = Dates.now();
+                found[params_index].value = 0;
+                found[params_index].value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
+                continue;
+            }
 
             const var_conf = VarsController.var_conf_by_id[MatroidIndexHandler.get_var_id_from_normalized_vardata(params_index)];
 
@@ -183,11 +200,10 @@ export default class VarsDatasProxy {
             params_indexes_by_api_type_id[var_conf.var_data_vo_type].push(params_index);
         }
 
-        const found: { [index: string]: T } = {};
         const not_found_indexes: string[] = [];
         await VarsDatasProxy.get_exact_params_from_bdd(params_indexes_by_api_type_id, found, not_found_indexes);
-
         const vars_to_notify: { [index: string]: T } = found;
+
         if (not_found_indexes.length) {
             const vars_to_notify_from_tree: T[] = await VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification(not_found_indexes);
 
@@ -212,6 +228,7 @@ export default class VarsDatasProxy {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                false,
                 reject,
                 VarsBGThreadNameHolder.bgthread_name,
                 VarsDatasProxy.TASK_NAME_add_to_tree_and_return_datas_that_need_notification,

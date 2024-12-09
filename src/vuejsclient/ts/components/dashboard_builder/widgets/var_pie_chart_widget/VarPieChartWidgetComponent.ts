@@ -31,7 +31,8 @@ import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsControl
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import './VarPieChartWidgetComponent.scss';
-import VarPieChartWidgetOptions from './options/VarPieChartWidgetOptions';
+import VarPieChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
+import Filters from '../../../../../../shared/tools/Filters';
 
 @Component({
     template: require('./VarPieChartWidgetComponent.pug')
@@ -92,7 +93,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        if (this.widget_options.filter_type == 'none') {
+        if (this.widget_options.filter_type == Filters.FILTER_TYPE_none) {
             return null;
         }
         return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;
@@ -398,11 +399,11 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let options: VarPieChartWidgetOptions = null;
+        let options: VarPieChartWidgetOptionsVO = null;
         try {
             if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as VarPieChartWidgetOptions;
-                options = options ? new VarPieChartWidgetOptions(
+                options = JSON.parse(this.page_widget.json_options) as VarPieChartWidgetOptionsVO;
+                options = options ? new VarPieChartWidgetOptionsVO(
                     options.bg_color,
                     options.legend_display,
                     options.label_display,
@@ -442,7 +443,9 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     options.bg_color_2,
                     options.border_color_2,
                     options.border_width_2,
-                    options.max_is_sum_of_var_1_and_2) : null;
+                    options.max_is_sum_of_var_1_and_2,
+                    options.hide_filter,
+                ) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);

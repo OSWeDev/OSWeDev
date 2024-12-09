@@ -44,7 +44,7 @@ export default class Patch20240619DeclareFunctionOseliaGenerateImages implements
             fonction_generate_images.prepend_thread_vo = true;
             fonction_generate_images.gpt_function_name = reflect<ModuleOseliaServer>().generate_images;
             fonction_generate_images.gpt_function_description = "Cette fonction te permet de demander la génération d'une ou plusieurs images à l'API openai.images.generate. Les images résultantes sont affichées automatiquement à l'utilisateur avec lequel tu es en conversation. Attention avec le model dall-e-3 tu ne dois pas utiliser de taille < 1024.";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(fonction_generate_images);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(fonction_generate_images);
 
 
             const argument_target_id = new GPTAssistantAPIFunctionParamVO();
@@ -57,7 +57,7 @@ export default class Patch20240619DeclareFunctionOseliaGenerateImages implements
             argument_target_id.string_enum = ["dall-e-2", "dall-e-3"];
             argument_target_id.weight = 1;
             argument_target_id.default_json_value = '"dall-e-3"';
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_target_id);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_target_id);
             const argument_degre_certitude = new GPTAssistantAPIFunctionParamVO();
             argument_degre_certitude.archived = false;
             argument_degre_certitude.function_id = fonction_generate_images.id;
@@ -66,7 +66,7 @@ export default class Patch20240619DeclareFunctionOseliaGenerateImages implements
             argument_degre_certitude.required = true;
             argument_degre_certitude.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_degre_certitude.weight = 2;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_degre_certitude);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_degre_certitude);
             const argument_size = new GPTAssistantAPIFunctionParamVO();
             argument_size.archived = false;
             argument_size.function_id = fonction_generate_images.id;
@@ -77,7 +77,7 @@ export default class Patch20240619DeclareFunctionOseliaGenerateImages implements
             argument_size.weight = 3;
             argument_size.string_enum = ["256x256", "512x512", "1024x1024", "1024x1792", "1792x1024"];
             argument_size.default_json_value = '"1024x1024"';
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_size);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_size);
             const argument_n = new GPTAssistantAPIFunctionParamVO();
             argument_n.archived = false;
             argument_n.function_id = fonction_generate_images.id;
@@ -88,7 +88,7 @@ export default class Patch20240619DeclareFunctionOseliaGenerateImages implements
             argument_n.number_enum = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // On limite à 10 pour ne pas surcharger l'API
             argument_n.weight = 4;
             argument_n.default_json_value = "1";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_n);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_n);
         }
     }
 }

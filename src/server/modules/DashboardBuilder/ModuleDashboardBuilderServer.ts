@@ -238,6 +238,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options des dimensions'
         }, 'var_radar_chart_widget_options_component.separator.datas_dimension_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Multi dataset'
+        }, 'var_radar_chart_widget_options_component.separator.multiple_dataset.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Multi dataset'
+        }, 'var_mixed_charts_widget_options_component.separator.multiple_dataset.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
@@ -326,6 +332,28 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser la somme des deux variables comme valeur max ?'
         }, 'var_radar_chart_widget_options_component.max_is_sum_of_var_1_and_2.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Sélectionner le champ permettant de faire du multi dataset (plusieurs radars superposés)'
+        }, 'var_radar_chart_widget_options_component.multiple_dataset_vo_field_ref.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Maximum de radars superposés'
+        }, 'var_radar_chart_widget_options_component.max_dataset_values.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Nombre maximum de radars superposés'
+        }, 'var_radar_chart_widget_options_component.max_dataset_values.tooltip.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Sélectionner le champ permettant de faire du multi dataset (plusieurs graphiques superposés)'
+        }, 'var_mixed_charts_widget_options_component.multiple_dataset_vo_field_ref.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Maximum de graphiques superposés'
+        }, 'var_mixed_charts_widget_options_component.max_dataset_values.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Nombre maximum de graphiques superposés'
+        }, 'var_mixed_charts_widget_options_component.max_dataset_values.tooltip.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du graphique'
@@ -556,9 +584,24 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_chart_options_item_component.border_width.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Afficher les valeurs'
+        }, 'var_chart_options_item_component.show_values.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Filtrer les valeurs'
+        }, 'var_chart_options_item_component.datas_filter_options.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Supprimer la variable du graphique'
         }, 'var_charts_options_component.remove_var_chart_options_button.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Ouvrir'
+        }, 'var_charts_options_component.open_var_chart_options'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Fermer'
+        }, 'var_charts_options_component.close_var_chart_options'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options des ordonnées'
@@ -589,6 +632,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_chart_scales_options_item.fill.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Type de l\'ordonnée'
+        }, 'var_chart_scales_options_item.scale_options.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Afficher le titre'
         }, 'var_chart_scales_options_item.show_scale_title.___LABEL___'));
 
@@ -617,8 +664,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_chart_scales_options_component.separator.datas_filter_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Filtre personnalisé'
+            'fr-fr': 'Ordonnée du graphique'
         }, 'var_chart_options_item_component.field_that_could_get_custom_filter.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Filtre personnalisé'
+        }, 'var_chart_options_item_component.field_that_could_get_scales_filter.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Année'
@@ -3549,6 +3600,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Préréglage de la palette" },
             'var_charts_options_component.use_palette.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Masquer le filtre" },
+            'var_mixed_charts_widget_options_component.hide_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Masquer le filtre" },
+            'var_radar_chart_widget_options_component.hide_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Masquer le filtre" },
+            'var_pie_chart_widget_options_component.hide_filter.___LABEL___'
+        ));
 
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
@@ -3622,7 +3685,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        const query_res = await ModuleDAOServer.getInstance().query('SELECT max(weight) as max_weight from ' + ModuleTableController.module_tables_by_vo_type[DashboardVO.API_TYPE_ID].full_name);
+        const query_res = await ModuleDAOServer.instance.query('SELECT max(weight) as max_weight from ' + ModuleTableController.module_tables_by_vo_type[DashboardVO.API_TYPE_ID].full_name);
         let max_weight = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_weight'] != 'undefined') && (query_res[0]['max_weight'] !== null)) ? query_res[0]['max_weight'] : null;
         max_weight = max_weight ? parseInt(max_weight.toString()) : null;
         if (!max_weight) {
@@ -3649,7 +3712,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        const query_res = await ModuleDAOServer.getInstance().query('SELECT max(weight) as max_weight from ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name);
+        const query_res = await ModuleDAOServer.instance.query('SELECT max(weight) as max_weight from ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name);
         let max_weight = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_weight'] != 'undefined') && (query_res[0]['max_weight'] !== null)) ? query_res[0]['max_weight'] : null;
         max_weight = max_weight ? parseInt(max_weight.toString()) : null;
         if (!max_weight) {
@@ -3665,7 +3728,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        const query_res = await ModuleDAOServer.getInstance().query('SELECT max(i) as max_i from ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name);
+        const query_res = await ModuleDAOServer.instance.query('SELECT max(i) as max_i from ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name);
         let max_i = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_i'] != 'undefined') && (query_res[0]['max_i'] !== null)) ? query_res[0]['max_i'] : null;
         max_i = max_i ? parseInt(max_i.toString()) : null;
         if (!max_i) {

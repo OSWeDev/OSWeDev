@@ -39,6 +39,6 @@ export default class ImportLogger {
         log.message = (format ? format.import_uid + '::' : '') + message;
         log.api_type_id = historique.api_type_id;
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(log);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(log);
     }
 }

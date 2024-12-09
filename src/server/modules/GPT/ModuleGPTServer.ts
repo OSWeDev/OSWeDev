@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources';
+import { isMainThread } from 'worker_threads';
 import APIControllerWrapper from "../../../shared/modules/API/APIControllerWrapper";
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -24,7 +25,6 @@ import GPTAssistantAPIVectorStoreFileVO from '../../../shared/modules/GPT/vos/GP
 import GPTAssistantAPIVectorStoreVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIVectorStoreVO';
 import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -39,9 +39,9 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
-import ForkServerController from '../Fork/ForkServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import GPTAssistantAPIServerController from './GPTAssistantAPIServerController';
 import AssistantVoTypeDescription from './functions/get_vo_type_description/AssistantVoTypeDescription';
@@ -56,18 +56,14 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
-import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
-import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import GPTRealtimeAPIConversationItemVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIConversationItemVO';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -126,7 +122,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         user_id: number,
         hide_content: boolean,
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
-        return await GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, thread_title, content, files, user_id, hide_content);
+        return GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, thread_title, content, files, user_id, hide_content);
     }
 
     // /**
@@ -148,7 +144,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         thread_vo: GPTAssistantAPIThreadVO,
         api_type_id: string,
     ): Promise<AssistantVoTypeDescription> {
-        return await GPTAssistantAPIFunctionGetVoTypeDescriptionController.run_action(thread_vo, api_type_id);
+        return GPTAssistantAPIFunctionGetVoTypeDescriptionController.run_action(thread_vo, api_type_id);
     }
 
     // istanbul ignore next: cannot test configure
@@ -356,7 +352,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         // On va juste arrêter tous les runs encore en cours au démarrage de l'application pour le moment, jusqu'à ce qu'on ait un système de reprise
         // TODO FIXME : mettre en place un système de reprise
 
-        if (!ForkServerController.is_main_process) {
+        if (!isMainThread) {
             // On évite de le faire sur tous les processus
             return;
         }
@@ -382,7 +378,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
                     oselia_is_running: false,
                 });
         }
-        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(runs);
+        await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(runs);
 
         const promises = [];
         for (const i in runs) {
@@ -519,7 +515,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
      */
     public async generate_response(conversation: GPTCompletionAPIConversationVO, newPrompt: GPTCompletionAPIMessageVO): Promise<GPTCompletionAPIMessageVO> {
         try {
-            const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4-turbo-preview", 60000);
+            const modelId = await ParamsServerController.getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4-turbo-preview", 60000);
 
             if (!conversation || !newPrompt) {
                 throw new Error("Invalid conversation or prompt");
@@ -573,8 +569,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
             }
 
             return await GPTAssistantAPIServerController.wrap_api_call(
-                ModuleGPTServer.openai.chat.completions.create,
-                ModuleGPTServer.openai.chat.completions,
+                ModuleGPTServer?.openai?.chat?.completions?.create,
+                ModuleGPTServer?.openai?.chat?.completions,
                 {
                     model: modelId,
                     messages: currentMessages as ChatCompletionMessageParam[],
@@ -582,24 +578,28 @@ export default class ModuleGPTServer extends ModuleServerBase {
         } catch (err) {
             ConsoleHandler.error(err);
         }
+
+        return null;
     }
 
     private async api_response_handler(conversation: GPTCompletionAPIConversationVO, result: any): Promise<GPTCompletionAPIMessageVO> {
         try {
-            const responseText = result.choices.shift().message.content;
-            const responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
+            let responseText = result?.choices?.length ? result.choices.shift().message.content : null;
+            let responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
             responseMessage.date = Dates.now();
             responseMessage.content = responseText;
             responseMessage.role_type = GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
             responseMessage.conversation_id = conversation.id;
 
             // Add the assistant's response to the conversation
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(responseMessage);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(responseMessage);
 
             return responseMessage;
         } catch (err) {
             ConsoleHandler.error(err);
         }
+
+        return null;
     }
 
     private pre_create_trigger_handler_for_ThreadMessageVO(vo: GPTAssistantAPIThreadMessageVO): boolean {

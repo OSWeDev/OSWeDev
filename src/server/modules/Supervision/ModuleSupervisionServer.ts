@@ -35,6 +35,7 @@ import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ParamsServerController from '../Params/ParamsServerController';
 import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import SupervisionBGThread from './bgthreads/SupervisionBGThread';
@@ -163,6 +164,27 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             'fr-fr': 'Warning prise en compte'
         }, 'supervision.legend.STATE_WARN_READ.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Rafraîchir l'affichage"
+        }, 'supervised_item_controls.desc_btn.reload.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Forcer le recalcul de la sonde"
+        }, 'supervised_item_controls.desc_btn.invalidate.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Sortir de la pause"
+        }, 'supervised_item_controls.desc_btn.switch_paused_turn_off.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Mettre en pause"
+        }, 'supervised_item_controls.desc_btn.switch_paused_turn_on.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Indiquer comme non lu"
+        }, 'supervised_item_controls.desc_btn.switch_read_turn_off.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Indiquer comme lu"
+        }, 'supervised_item_controls.desc_btn.switch_read_turn_on.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Etat lu non disponible"
+        }, 'supervised_item_controls.desc_btn.switch_read_disabled.___LABEL___'));
 
         /**
          * On gère l'historique des valeurs
@@ -304,7 +326,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             }
             historique._type = SupervisionController.getInstance().getSupHistVoType(vo_update_handler.post_update_vo._type);
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(historique);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(historique);
         }
 
         return true;
@@ -329,8 +351,8 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     private async on_new_unread_error(supervised_item: ISupervisedItem) {
-        const group_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_GROUPID_PARAM_NAME);
-        const channel_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_CHANNELID_PARAM_NAME);
+        const group_id: string = await ParamsServerController.getParamValueAsString(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_GROUPID_PARAM_NAME);
+        const channel_id: string = await ParamsServerController.getParamValueAsString(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_CHANNELID_PARAM_NAME);
 
         if ((!group_id) || (!channel_id)) {
             ConsoleHandler.error('ModuleSuperVisionServer.on_new_unread_error: missing group_id or channel_id:' + ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_GROUPID_PARAM_NAME + ' / ' + ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_CHANNELID_PARAM_NAME);
@@ -355,7 +377,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         const actions = [];
         const title_Text = new TeamsWebhookContentTextBlockVO().set_text((ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + 'Supervision - Nouvelle ERREUR');
         body.push(title_Text);
-        const error_Image = new TeamsWebhookContentImageVO().set_url(ConfigurationService.node_configuration.base_url + "vuejsclient/public/img/error.png").set_size('medium');
+        const error_Image = new TeamsWebhookContentImageVO().set_url(ConfigurationService.node_configuration.base_url + "public/vuejsclient/img/error.png").set_size('medium');
         body.push(error_Image);
         const error_Column = new TeamsWebhookContentColumnSetVO().set_columns([new TeamsWebhookContentColumnVO().set_items([new TeamsWebhookContentTextBlockVO().set_text('ERREUR : [' + supervised_item.name + '](\"' + ConfigurationService.node_configuration.base_url + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\")')])]).set_style('emphasis');
         body.push(error_Column);
@@ -376,8 +398,8 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     private async on_back_to_normal(supervised_item: ISupervisedItem) {
-        const group_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_GROUPID_PARAM_NAME);
-        const channel_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_CHANNELID_PARAM_NAME);
+        const group_id: string = await ParamsServerController.getParamValueAsString(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_GROUPID_PARAM_NAME);
+        const channel_id: string = await ParamsServerController.getParamValueAsString(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_CHANNELID_PARAM_NAME);
 
         if ((!group_id) || (!channel_id)) {
             ConsoleHandler.error('ModuleSuperVisionServer.on_back_to_normal: missing group_id or channel_id:' + ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_GROUPID_PARAM_NAME + ' / ' + ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_CHANNELID_PARAM_NAME);
@@ -402,7 +424,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         const actions = [];
         const title_Text = new TeamsWebhookContentTextBlockVO().set_text((ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + 'Supervision - Retour a la normale');
         body.push(title_Text);
-        const ok_Image = new TeamsWebhookContentImageVO().set_url(ConfigurationService.node_configuration.base_url + "vuejsclient/public/img/ok.png").set_size('medium');
+        const ok_Image = new TeamsWebhookContentImageVO().set_url(ConfigurationService.node_configuration.base_url + "public/vuejsclient/img/ok.png").set_size('medium');
         body.push(ok_Image);
         const ok_Column = new TeamsWebhookContentColumnSetVO().set_columns([new TeamsWebhookContentColumnVO().set_items([new TeamsWebhookContentTextBlockVO().set_text('Retour a la normale : [' + supervised_item.name + '](\"' + ConfigurationService.node_configuration.base_url + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\")')])]).set_style('emphasis');
         body.push(ok_Column);
@@ -441,6 +463,6 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             return null;
         }
 
-        await SupervisionServerController.getInstance().registered_controllers[api_type_id].work_one(await ModuleDAO.getInstance().getNamedVoByName(api_type_id, name));
+        await SupervisionServerController.getInstance().registered_controllers[api_type_id].work_one(await ModuleDAO.instance.getNamedVoByName(api_type_id, name));
     }
 }

@@ -1,4 +1,4 @@
-import { EventObjectInput, View } from 'fullcalendar';
+import { EventInput, ViewApi } from 'fullcalendar';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
@@ -17,10 +17,6 @@ import ContextQueryVO from '../../../../../dist/shared/modules/ContextFilter/vos
 import { field_names } from '../../../../shared/tools/ObjectHandler';
 
 export default abstract class ProgramPlanControllerBase {
-
-    public static getInstance(name: string) {
-        return ProgramPlanControllerBase.controller_by_name[name];
-    }
 
     protected static controller_by_name: { [name: string]: ProgramPlanControllerBase } = {};
 
@@ -62,14 +58,16 @@ export default abstract class ProgramPlanControllerBase {
         ProgramPlanControllerBase.controller_by_name[name] = this;
     }
 
-    public abstract event_overlap_hook(stillEvent, movingEvent): boolean;
-
     get shared_module(): Module {
-        return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
+        return ModulesManager.getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
     }
 
     get programplan_shared_module(): ModuleProgramPlanBase {
         return this.shared_module as ModuleProgramPlanBase;
+    }
+
+    public static getInstance(name: string) {
+        return ProgramPlanControllerBase.controller_by_name[name];
     }
 
     /**
@@ -92,7 +90,7 @@ export default abstract class ProgramPlanControllerBase {
      *       state: rdv.state
      *   }
      */
-    public populateCalendarEvent(event: EventObjectInput) {
+    public populateCalendarEvent(event: EventInput) {
     }
 
     /**
@@ -100,7 +98,7 @@ export default abstract class ProgramPlanControllerBase {
      * @param event droppable item infos
      * @param elt jquery elt
      */
-    public populateDroppableItem(event: EventObjectInput, elt) {
+    public populateDroppableItem(event: EventInput, elt) {
     }
 
     /**
@@ -110,9 +108,9 @@ export default abstract class ProgramPlanControllerBase {
      * @param view
      */
     public onFCEventRender(
-        event: EventObjectInput,
+        event: EventInput,
         element,
-        view: View) {
+        view: ViewApi) {
 
         const getRdvsByIds: { [id: number]: IPlanRDV } = VueAppBase.instance_.vueInstance.$store.getters['ProgramPlanStore/getRdvsByIds'];
 
@@ -259,11 +257,6 @@ export default abstract class ProgramPlanControllerBase {
         return true;
     }
 
-    /**
-     * Renvoie une instance de RDV
-     */
-    public abstract getRDVNewInstance(): IPlanRDV;
-
     public async component_hook_onAsyncLoading(
         getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } },
         storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void
@@ -298,4 +291,11 @@ export default abstract class ProgramPlanControllerBase {
     public component_target_context_query_fiter_hook(): ContextQueryVO {
         return null;
     }
+
+    /**
+     * Renvoie une instance de RDV
+     */
+    public abstract getRDVNewInstance(): IPlanRDV;
+
+    public abstract event_overlap_hook(stillEvent, movingEvent): boolean;
 }

@@ -488,7 +488,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
      */
     private async add_item_to_read(item: ISupervisedItem) {
         item.state = SupervisionController.STATE_ERROR_READ;
-        await ModuleDAO.getInstance().insertOrUpdateVO(item);
+        await ModuleDAO.instance.insertOrUpdateVO(item);
         this.debounced_on_change_show();
         console.log(item);
     }
@@ -498,7 +498,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
      */
     private async add_item_to_unread(item: ISupervisedItem) {
         item.state = SupervisionController.STATE_ERROR;
-        await ModuleDAO.getInstance().insertOrUpdateVO(item);
+        await ModuleDAO.instance.insertOrUpdateVO(item);
         this.debounced_on_change_show();
         console.log(item);
     }

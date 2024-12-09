@@ -1,7 +1,7 @@
 import ModuleTableController from '../modules/DAO/ModuleTableController';
-import ModuleTableVO from '../modules/DAO/vos/ModuleTableVO';
 import NumRange from '../modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../modules/IDistantVOBase';
+import IIsServerField from '../modules/IIsServerField';
 import ConsoleHandler from './ConsoleHandler';
 import RangeHandler from './RangeHandler';
 
@@ -35,6 +35,63 @@ export const reflect: <T>(obj?: T) => { [P in keyof T]?: P } = <T>(obj?: T): { [
 };
 
 export default class ObjectHandler {
+
+    /**
+     * On prend le contenu du message, et on applique les prototypes des objets qui ont été perdus lors du passage par le message
+     * @param msg
+     */
+    public static reapply_prototypes<T extends unknown | unknown[]>(e: T, from_api_client: boolean = false): T {
+
+        if (Array.isArray(e)) {
+            return e.map((e) => this.reapply_prototypes(e)) as T;
+        }
+
+        if (!e) {
+            return e;
+        }
+
+        if (typeof e != 'object') {
+            return e;
+        }
+
+        // Pas un vo
+        if (!e['_type']) {
+            for (const i in e) {
+                e[i] = this.reapply_prototypes(e[i]);
+            }
+            return e;
+        }
+
+        if (!ModuleTableController.vo_constructor_by_vo_type[e['_type']]) {
+            throw new Error('No constructor for vo type ' + e['_type'] + ' in ModuleTableController.vo_constructor_by_vo_type. This comes probably from a pb in the priority of declaration of the modules, or you are loading data without activation of the corresponding module.');
+        }
+
+        /// Si from_api_client, le field is_server est forcé à FALSE quand on vient du client
+        if (from_api_client && e[reflect<IIsServerField>().is_server]) {
+            e[reflect<IIsServerField>().is_server] = false;
+        }
+
+        const res = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[e['_type']](), e);
+
+        for (const i in res) {
+            if (res[i] && (typeof res[i] == 'object') || Array.isArray(res[i])) {
+                res[i] = this.reapply_prototypes(res[i]);
+            }
+        }
+
+        // Cas des matroids dont on doit forcer le is_pixel et index
+        if ((res['is_pixel'] != null) && (res['is_pixel'] != e['_is_pixel'])) {
+            res['is_pixel'] = e['_is_pixel'];
+            res['_is_pixel'] = e['_is_pixel'];
+        }
+
+        if ((res['index'] != null) && (e['_index'] != null) && (res['index'] != e['_index'])) {
+            res['index'] = e['_index'];
+            res['_index'] = e['_index'];
+        }
+
+        return res;
+    }
 
     public static try_get_json(e: any): any {
         try {
@@ -249,7 +306,18 @@ export default class ObjectHandler {
         return ObjectHandler.instance;
     }
 
-    public static are_equal(a: any, b: any): boolean {
+    public static are_equal(a: any, b: any, ignore_fields: string[] = null): boolean {
+        if (ignore_fields && ignore_fields.length) {
+            const fields_filter = {};
+            for (const i in ignore_fields) {
+                fields_filter[ignore_fields[i]] = undefined;
+            }
+
+            a = Object.assign({}, a, fields_filter);
+            b = Object.assign({}, b, fields_filter);
+
+            return JSON.stringify(a) == JSON.stringify(b);
+        }
         return JSON.stringify(a) == JSON.stringify(b);
     }
 

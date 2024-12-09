@@ -45,7 +45,7 @@ export default class Patch20241016AddOseliaFunction_OSELIA_get_assistant impleme
             get_assistant_function.gpt_function_name = 'get_assistant';
             get_assistant_function.json_stringify_output = false;
             get_assistant_function.gpt_function_description = "Charger un assistant depuis son nom";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(get_assistant_function);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(get_assistant_function);
         }
 
         let argument_assistant_name = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -63,7 +63,7 @@ export default class Patch20241016AddOseliaFunction_OSELIA_get_assistant impleme
             argument_assistant_name.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_assistant_name.not_in_function_params = false;
             argument_assistant_name.weight = 0;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_assistant_name);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_assistant_name);
         }
     }
 }

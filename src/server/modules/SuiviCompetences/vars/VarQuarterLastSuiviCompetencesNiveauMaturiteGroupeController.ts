@@ -85,7 +85,7 @@ export default class VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeControlle
                     true,
                     true,
                     TimeSegment.TYPE_DAY
-                )],
+                )]
             );
         }, TimeSegment.TYPE_QUARTER);
 

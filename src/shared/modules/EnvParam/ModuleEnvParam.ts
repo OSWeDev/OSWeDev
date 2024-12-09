@@ -138,6 +138,8 @@ export default class ModuleEnvParam extends Module {
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_reruns_of_oselia, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug reruns of Oselia', true, true, false);
 
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_playwright_controller, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug Playwright controller', true, true, false);
+
         // DEBUG_SLOW_QUERIES_MS_LIMIT ?: number;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_slow_queries_ms_limit, ModuleTableFieldVO.FIELD_TYPE_int, 'Debug slow queries ms limit', false);
         // DEBUG_SLOW_QUERIES ?: boolean;
@@ -158,6 +160,8 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_vars_processes, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug vars processes', true);
         // DEBUG_VARS_INVALIDATION ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_vars_invalidation, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug vars invalidation', true);
+        // debug_vars_invalidation_param_intersector ?: boolean;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_vars_invalidation_param_intersector, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug vars invalidation param intersector', true);
         // DEBUG_VARS_CURRENT_TREE ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_vars_current_tree, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug vars current tree', true);
         // DEBUG_VARS_DB_PARAM_BUILDER ?: boolean;
@@ -172,6 +176,8 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_exports, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug exports', true);
         // DEBUG_DELETEVOS ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_deletevos, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug deletevos', true);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().throw_on_incompatible_stack_context, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Throw on incompatible stack context', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_incompatible_stack_context, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate incompatible stack context', true, true, false);
         // DEBUG_THROTTLED_SELECT ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_throttled_select, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug throttled select', true);
         // DEBUG_SELECT_DATATABLE_ROWS_query_res ?: boolean;

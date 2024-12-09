@@ -1,3 +1,4 @@
+import APIControllerWrapper from '../APIControllerWrapper';
 import IAPIParamTranslator from '../interfaces/IAPIParamTranslator';
 import IAPIParamTranslatorStatic from '../interfaces/IAPIParamTranslatorStatic';
 import APIDefinition from './APIDefinition';
@@ -18,5 +19,24 @@ export default class GetAPIDefinition<T, U> extends APIDefinition<T, U> {
         public param_translator: IAPIParamTranslatorStatic<T> = null,
         public api_return_type: number = 0) {
         super(access_policy_name, APIDefinition.API_TYPE_GET, api_name, API_TYPES_IDS_involved, param_translator, api_return_type);
+    }
+
+
+    /**
+     *
+     * @param api_name UID de l'api attention à l'unicité intermodules
+     * @param API_TYPES_IDS_involved Le tableau des API_TYPE_IDs concernés par l'API
+     * @param param_translator Objet qui gère la traduction pour les apis
+     * @param SERVER_HANDLER NE REMPLIR QUE SI ON REGISTER COTE SERVEUR.
+     */
+    public static new<T, U>(
+        access_policy_name: string,
+        module_name: string,
+        function_name: string,
+        API_TYPES_IDS_involved: (string[]) | ((value: IAPIParamTranslator<T> | T) => string[]),
+        param_translator: IAPIParamTranslatorStatic<T> = null,
+        api_return_type: number = APIDefinition.API_RETURN_TYPE_JSON
+    ): GetAPIDefinition<T, U> {
+        return new GetAPIDefinition<T, U>(access_policy_name, APIControllerWrapper.get_api_name_from_module_function(module_name, function_name), API_TYPES_IDS_involved, param_translator, api_return_type);
     }
 }

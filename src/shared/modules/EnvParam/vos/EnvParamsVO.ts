@@ -49,6 +49,9 @@ export default class EnvParamsVO implements IDistantVOBase {
     // NODE_VERBOSE: boolean;
     public node_verbose: boolean;
 
+    public throw_on_incompatible_stack_context: boolean;
+    public activate_incompatible_stack_context: boolean;
+
     // ACTIVATE_LONG_JOHN: boolean;
     public activate_long_john: boolean;
 
@@ -86,6 +89,8 @@ export default class EnvParamsVO implements IDistantVOBase {
     // MUTE__NO_SORT_BY_BUT_QUERY_LIMIT?: boolean;
     public mute__no_sort_by_but_query_limit: boolean;
 
+    public debug_playwright_controller: boolean;
+
     // DEBUG_SLOW_QUERIES_MS_LIMIT?: number;
     public debug_slow_queries_ms_limit: number;
 
@@ -115,6 +120,9 @@ export default class EnvParamsVO implements IDistantVOBase {
 
     // DEBUG_VARS_INVALIDATION?: boolean;
     public debug_vars_invalidation: boolean;
+
+    // debug_vars_invalidation_param_intersector?: boolean;
+    public debug_vars_invalidation_param_intersector: boolean;
 
     // DEBUG_VARS_CURRENT_TREE?: boolean;
     public debug_vars_current_tree: boolean;

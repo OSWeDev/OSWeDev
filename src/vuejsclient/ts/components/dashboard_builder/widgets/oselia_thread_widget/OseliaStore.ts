@@ -71,5 +71,6 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
     }
 }
 
-export const ModuleOseliaGetter = namespace('OseliaStore', Getter);
-export const ModuleOseliaAction = namespace('OseliaStore', Action);
+const __namespace = namespace('OseliaStore');
+export const ModuleOseliaGetter = __namespace.Getter;
+export const ModuleOseliaAction = __namespace.Action;

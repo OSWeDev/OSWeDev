@@ -18,6 +18,9 @@ export default class VarMixedChartDataSetDescriptor extends VarDataSetDescriptor
     public borderColor: string[] = [];
     public borderWidth: number[] = [];
     public gradients: boolean[] = [];
+    public filters_types: string = '';
+    public filters_additional_params: string = '';
+    public activate_datalabels: boolean = false;
 
     public constructor(
         public var_name: string,
@@ -52,6 +55,24 @@ export default class VarMixedChartDataSetDescriptor extends VarDataSetDescriptor
 
     public set_borderwidths(borderWidth: number[]): VarMixedChartDataSetDescriptor {
         this.borderWidth = borderWidth;
+
+        return this;
+    }
+
+    public set_filters_type(filter_type: string): VarMixedChartDataSetDescriptor {
+        this.filters_types = filter_type;
+
+        return this;
+    }
+
+    public set_filters_additional_params(filter_additional_params: string): VarMixedChartDataSetDescriptor {
+        this.filters_additional_params = filter_additional_params;
+
+        return this;
+    }
+
+    public set_activate_datalabels(activate_datalabels: boolean): VarMixedChartDataSetDescriptor {
+        this.activate_datalabels = activate_datalabels;
 
         return this;
     }

@@ -58,6 +58,7 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "import EnvHandler from 'oswedev/dist/shared/tools/EnvHandler';\n";
         fileContent += "import APIControllerWrapper from 'oswedev/dist/shared/modules/API/APIControllerWrapper';\n";
         fileContent += "import ModuleTableController from 'oswedev/dist/shared/modules/DAO/ModuleTableController';\n";
+        fileContent += "import ParamsManager from 'oswedev/dist/shared/modules/Params/ParamsManager';\n";
 
         if (target != 'Test') {
             fileContent += "import ClientAPIController from 'oswedev/dist/vuejsclient/ts/modules/API/ClientAPIController';\n";
@@ -99,6 +100,7 @@ export default class ModulesClientInitializationDatasGenerator {
         if (target != 'Test') {
             fileContent += "    await AjaxCacheClientController.getInstance().getCSRFToken();\n";
         }
+        fileContent += '    await ParamsManager.reloadPreloadParams();\n';
         fileContent += "    let promises = [];\n";
 
         fileContent += this.generateModulesCode(this.generateModuleAsyncInitialisation, target);
@@ -122,8 +124,8 @@ export default class ModulesClientInitializationDatasGenerator {
                 break;
             case 'Test':
                 // modules =[];
-                // for (let i in ModulesManager.getInstance().modules_by_name){
-                //     module.push(ModulesManager.getInstance().modules_by_name[i].getModuleComponentByRole(Module.SharedModuleRoleName));
+                // for (let i in ModulesManager.modules_by_name){
+                //     module.push(ModulesManager.modules_by_name[i].getModuleComponentByRole(Module.SharedModuleRoleName));
                 // }
                 modules = ModuleServiceBase.getInstance().sharedModules;
                 break;

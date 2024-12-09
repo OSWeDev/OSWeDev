@@ -4,15 +4,17 @@
         "module": "CommonJS",
         "lib": [
             "es2020",
+            "es6",
             "dom",
             "ESNext"
         ],
         "moduleResolution": "node",
         "esModuleInterop": true,
-        "experimentalDecorators": true,
         "skipLibCheck": true,
         "types": [
             "w3c-image-capture"
-        ]
+        ],
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
     }
 }

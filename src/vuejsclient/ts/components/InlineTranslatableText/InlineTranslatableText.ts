@@ -8,6 +8,121 @@ import './InlineTranslatableText.scss';
 import TranslatableTextController from "./TranslatableTextController";
 import { ModuleTranslatableTextAction, ModuleTranslatableTextGetter } from './TranslatableTextStore';
 
+// import { createDecorator } from 'vue-class-component';
+// import { applyMetadata } from 'vue-property-decorator/lib/helpers/metadata';
+
+// const MyProp = (options = {}) => {
+//     return function (target: any, key: string) {
+//         applyMetadata(options, target, key);
+
+//         // Use createDecorator to inject Vue-specific logic
+//         createDecorator((componentOptions, k) => {
+//             // Define the property as a getter and setter
+//             if (!componentOptions.computed) componentOptions.computed = {};
+
+//             // Wrap the property to bind to Vue instance
+//             componentOptions.computed[k] = {
+//                 get(this: any) {
+//                     // 'this' is the Vue instance at runtime
+//                     return this[`__${k}`];
+//                 },
+//                 set(this: any, value: any) {
+//                     this[`__${k}`] = value;
+//                 },
+//             };
+
+//             // Register the property in props if needed
+//             (componentOptions.props || (componentOptions.props = {}))[k] = options;
+//         })(target, key);
+//     };
+// };
+
+// /**
+//  * decorator of a prop
+//  * @param  options the options for the prop
+//  * @return PropertyDecorator | void
+//  */
+// const MyProp = (options) => {
+//     if (options === void 0) { options = {}; }
+//     return function (a, key) {
+//         const target = self;
+//         applyMetadata(options, target, key);
+//         createDecorator(function (componentOptions, k) {
+//             (componentOptions.props || (componentOptions.props = {}))[k] = options;
+//         })(target, key);
+//     };
+// };
+
+// function createPropProxyDecorator(originalDecorator: (...args: any[]) => any) {
+//     return function (options?: any): PropertyDecorator {
+//         return function (target: object, propertyKey: string | symbol, descriptor?: PropertyDescriptor) {
+//             // Appelle le décorateur d'origine avec la configuration utilisateur et les arguments TS
+//             originalDecorator(options)(target, propertyKey, descriptor);
+//         };
+//     };
+// }
+
+// function createPropProxyDecorator(factory) {
+//     return function (...args: any[]) {
+//         let target: any, key: string | symbol | undefined, index: number | undefined;
+
+//         if (args.length === 3) {
+//             // Old decorator parameters: (target, key, index)
+//             [target, key, index] = args;
+//         } else if (args.length === 2 && typeof args[1] === 'object' && 'kind' in args[1]) {
+//             // New decorator parameters (TypeScript 5+): (value, context)
+//             const [value, context] = args;
+//             key = context.name;
+//             index = undefined;
+
+//             if (context.kind === 'field' || context.kind === 'method') {
+//                 // For instance members, target is the prototype
+//                 target = context.static ? value : value.prototype;
+//             } else if (context.kind === 'class') {
+//                 target = value;
+//             } else {
+//                 target = undefined;
+//             }
+//         } else {
+//             // Unsupported decorator parameters
+//             throw new Error('Unsupported decorator parameters');
+//         }
+
+//         const Ctor = typeof target === 'function' ? target : target?.constructor;
+
+//         if (!Ctor) {
+//             throw new Error('Unable to determine constructor for decorator');
+//         }
+
+//         if (!Ctor.__decorators__) {
+//             Ctor.__decorators__ = [];
+//         }
+
+//         if (typeof index !== 'number') {
+//             index = undefined;
+//         }
+
+//         Ctor.__decorators__.push(function (options: any) {
+//             return factory(options, key, index);
+//         });
+
+//         return undefined;
+//     };
+// }
+
+// // Crée un décorateur `@Prop` compatible
+// const MyProp = createPropProxyDecorator(Prop);
+
+// class test_decorator {
+//     @MyProp({ default: null })
+//     public code_text_TEST_public: string;
+
+//     @MyProp({ default: null })
+//     private code_text_TEST_private: string;
+// }
+
+// const test_i = new test_decorator();
+
 @Component({
     template: require('./InlineTranslatableText.pug')
 })
@@ -34,8 +149,9 @@ export default class InlineTranslatableText extends VueComponentBase {
     @ModuleTranslatableTextAction
     public set_initializing: (initializing: boolean) => void;
 
+    // @MyProp({ default: null })
     @Prop({ default: null })
-    private code_text: string;
+    public code_text: string;
 
     @Prop({ default: false })
     private is_editable: boolean;

@@ -52,7 +52,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_action imp
             function_TRELLO_trello_get_action.gpt_function_name = 'trello_get_action';
             function_TRELLO_trello_get_action.json_stringify_output = true;
             function_TRELLO_trello_get_action.gpt_function_description = "Get an Action";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(function_TRELLO_trello_get_action);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(function_TRELLO_trello_get_action);
         }
 
         let argument_id = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -70,7 +70,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_action imp
             argument_id.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_id.not_in_function_params = true;
             argument_id.weight = 0;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_id);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_id);
         }
     }
 }

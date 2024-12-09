@@ -79,7 +79,7 @@ export default class MaxGraphMapper {
             const fields = ModuleTableController.module_tables_by_vo_type[api_type_id].get_fields();
             graphvoref.values_to_exclude = fields.map((field) => field.field_id);
 
-            const insert_res = await ModuleDAO.getInstance().insertOrUpdateVO(graphvoref);
+            const insert_res = await ModuleDAO.instance.insertOrUpdateVO(graphvoref);
             if ((!insert_res) || (!insert_res.id)) {
                 ConsoleHandler.error('Impossible de créer le graphvoref pour le type: ' + api_type_id);
                 throw new Error('Impossible de créer le graphvoref pour le type: ' + api_type_id);
@@ -369,7 +369,7 @@ export default class MaxGraphMapper {
         db_cell.y = selected_cell.geometry.y;
         db_cell.width = selected_cell.geometry.width;
         db_cell.height = selected_cell.geometry.height;
-        await ModuleDAO.getInstance().insertOrUpdateVO(db_cell);
+        await ModuleDAO.instance.insertOrUpdateVO(db_cell);
     }
 
     /**

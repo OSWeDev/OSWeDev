@@ -95,7 +95,7 @@ export default class EditablePageController {
 
                     edit_info.vo[edit_info.field.module_table_field_id] = edit_info.field_value;
 
-                    const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(edit_info.vo);
+                    const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(edit_info.vo);
 
                     if ((!!res) && (!!res.id)) {
                         edit_info.vo.id = res.id;
@@ -112,7 +112,7 @@ export default class EditablePageController {
             } else {
 
                 try {
-                    const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(edit_info.vo);
+                    const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(edit_info.vo);
 
                     if ((!!res) && (!!res.id)) {
                         edit_info.vo.id = res.id;

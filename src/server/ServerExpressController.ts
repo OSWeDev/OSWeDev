@@ -1,11 +1,22 @@
 /* istanbul ignore file: only one method, and not willing to test it right now*/
 
 import { Request } from 'express';
-import IServerUserSession from '../shared/modules/AccessPolicy/vos/IServerUserSession';
 import UserAPIVO from '../shared/modules/AccessPolicy/vos/UserAPIVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
 import { field_names } from '../shared/tools/ObjectHandler';
+import { RunsOnBgThread } from './modules/BGThread/annotations/RunsOnBGThread';
+
+export interface IRequestStackContext {
+    IS_CLIENT: boolean;
+    REFERER: string;
+    UID: number;
+    SESSION_ID: string;
+    SID: string;
+    CLIENT_TAB_ID: string;
+    CONTEXT_INCOMPATIBLE?: boolean; // Dans le cas où un fonctionnement est incompatible avec le contexte, on peut le désactiver et on indique pourquoi
+    CONTEXT_INCOMPATIBLE_REASON?: string; // Dans le cas où un fonctionnement est incompatible avec le contexte, on peut le désactiver et on indique pourquoi
+}
 
 export default class ServerExpressController {
 
@@ -21,56 +32,64 @@ export default class ServerExpressController {
         return ServerExpressController.instance;
     }
 
+    /**
+     * INFO : Nom du BGTHREAD en dur pour des pbs de dépendances circulaires
+     * et on peut lancer en local si le bgthread est pas encore dispo
+     * @param api_key
+     * @returns
+     */
+    @RunsOnBgThread('APIBGThread', true)
+    private async get_user_by_api_key(api_key: string): Promise<UserVO> {
+        return query(UserVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<UserAPIVO>().api_key, api_key, UserAPIVO.API_TYPE_ID)
+            .exec_as_server()
+            .set_max_age_ms(1000)
+            .select_vo<UserVO>();
+    }
+
     public async getStackContextFromReq(
         req: Request,
-        session: IServerUserSession,
-        filter_for_execution_on_bgthread: boolean = false
-    ) {
+        session_id: string,
+        sid: string,
+        uid: number,
+    ): Promise<IRequestStackContext> {
 
         const apiKey = req.headers['x-api-key'] as string;
+        const client_tab_id = req.headers.client_tab_id as string;
+        const referrer = req.headers.referer as string;
 
         if (!apiKey) {
             return {
                 IS_CLIENT: true,
-                REFERER: req.headers.referer,
-                UID: session ? session.uid : null,
-                SID: session ? session.sid : null,
-                SESSION: filter_for_execution_on_bgthread ? null : session,
-                CLIENT_TAB_ID: req.headers.client_tab_id,
-                SELF_USER: (session.user_vo && session.user_vo.id) ?
-                    // On rafraîchi souvent l'info, mais pas dans la milliseconde non plus...
-                    await query(UserVO.API_TYPE_ID).filter_by_id(session.user_vo.id).set_max_age_ms(1000).exec_as_server().select_vo<UserVO>() :
-                    null,
+                REFERER: referrer,
+                UID: uid,
+                SESSION_ID: session_id,
+                SID: sid,
+                CLIENT_TAB_ID: client_tab_id,
             };
         }
 
         // Vérifier la clé d'API ici. Exemple :
-        const exist_user_vo: UserVO = await query(UserVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<UserAPIVO>().api_key, apiKey, UserAPIVO.API_TYPE_ID)
-            .exec_as_server()
-            .set_max_age_ms(1000)
-            .select_vo<UserVO>();
+        const exist_user_vo: UserVO = await this.get_user_by_api_key(apiKey);
 
         if (!exist_user_vo) {
             return {
                 IS_CLIENT: true,
-                REFERER: req.headers.referer,
+                REFERER: referrer,
                 UID: null,
-                SID: session ? session.sid : null,
-                SESSION: filter_for_execution_on_bgthread ? null : session,
-                CLIENT_TAB_ID: null,
-                SELF_USER: null
+                SID: sid,
+                CLIENT_TAB_ID: client_tab_id,
+                SESSION_ID: session_id,
             };
         }
 
         return {
             IS_CLIENT: true,
-            REFERER: req.headers.referer,
+            REFERER: referrer,
             UID: exist_user_vo.id,
-            SID: session ? session.sid : null,
-            SESSION: filter_for_execution_on_bgthread ? null : session,
-            CLIENT_TAB_ID: null,
-            SELF_USER: exist_user_vo
+            SID: sid,
+            CLIENT_TAB_ID: client_tab_id,
+            SESSION_ID: session_id,
         };
     }
 }

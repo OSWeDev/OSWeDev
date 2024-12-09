@@ -675,13 +675,15 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
         for (const i in this.advanced_ref_field_filters) {
             const advanced_filter: AdvancedRefFieldFilter = this.advanced_ref_field_filters[i];
 
-            tmp_context_filter = this.get_advanced_ref_field_filter(
-                tmp_context_filter,
-                advanced_filter,
-                field,
-                this.vo_field_ref,
-                previous_filter
-            );
+            if (field) {
+                tmp_context_filter = this.get_advanced_ref_field_filter(
+                    tmp_context_filter,
+                    advanced_filter,
+                    field,
+                    this.vo_field_ref,
+                    previous_filter
+                );
+            }
         }
 
         if (tmp_context_filter) {
@@ -981,7 +983,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
                 this.other_ref_api_type_id :
                 this.vo_field_ref.api_type_id;
 
-            const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+            const access_policy_name = ModuleDAO.instance.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
             const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
 
             if (!has_access) {
@@ -1045,7 +1047,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
                 );
             }
 
-            tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
+            tmp = await ModuleContextFilter.instance.select_filter_visible_options(
                 context_query,
                 this.actual_query,
             );
@@ -1063,7 +1065,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
 
                     const field_ref_api_type_id = field_ref.api_type_id;
 
-                    const field_ref_access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+                    const field_ref_access_policy_name = ModuleDAO.instance.getAccessPolicyName(
                         ModuleDAO.DAO_ACCESS_TYPE_READ,
                         field_ref_api_type_id
                     );
@@ -1085,7 +1087,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
 
                     FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_field_ref, this.get_discarded_field_paths);
 
-                    const tmp_field_ref: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                    const tmp_field_ref: DataFilterOption[] = await ModuleContextFilter.instance.select_filter_visible_options(
                         query_field_ref,
                         this.actual_query,
                     );
@@ -1158,7 +1160,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
 
                         const field_ref_api_type_id = this.vo_field_ref_lvl2.api_type_id;
 
-                        const field_ref_access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+                        const field_ref_access_policy_name = ModuleDAO.instance.getAccessPolicyName(
                             ModuleDAO.DAO_ACCESS_TYPE_READ,
                             field_ref_api_type_id
                         );
@@ -1183,7 +1185,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
                             this.get_discarded_field_paths
                         );
 
-                        const tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                        const tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.instance.select_filter_visible_options(
                             context_query_lvl2,
                             this.actual_query
                         );

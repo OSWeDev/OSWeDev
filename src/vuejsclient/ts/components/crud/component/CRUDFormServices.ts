@@ -25,28 +25,22 @@ import CRUDComponentManager from '../CRUDComponentManager';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 import { SnotifyToast } from 'vue-snotify';
+import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 
 export default class CRUDFormServices {
 
-    // Pour éviter de mettre 15 snotifys pour un seul formulaire par exemple
     public static update_ok_snotify_toast: SnotifyToast = null;
+    // Pour éviter de mettre 15 snotifys pour un seul formulaire par exemple
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!CRUDFormServices._instance) {
-            CRUDFormServices._instance = new CRUDFormServices();
-        }
-
-        return CRUDFormServices._instance;
-    }
-
-    private static _instance: CRUDFormServices = null;
-
-    public auto_updates_waiting: {
+    public static auto_updates_waiting: {
         [CRUDComp_UID: number]: boolean
     } = {};
+    public static dao_store_loaded_by_crud_api_type_id: {
+        [crud_api_type_id: string]: boolean
+    } = {};
 
-    public has_auto_updates_waiting() {
+    public static has_auto_updates_waiting() {
         for (const i in this.auto_updates_waiting) {
             if (this.auto_updates_waiting[i]) {
                 return true;
@@ -55,7 +49,43 @@ export default class CRUDFormServices {
         return false;
     }
 
-    public loadDatasFromDatatable(
+    public static async load_datas(
+        crud: CRUD<any>,
+        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
+        api_types_involved_to_invalidate: string[] = [],
+        hook_init_post_reload: () => Promise<void> = null,
+        force_reload: boolean = false
+    ): Promise<string[]> {
+
+        if (!crud) {
+            return [];
+        }
+
+        if (!force_reload && this.dao_store_loaded_by_crud_api_type_id[crud.api_type_id]) {
+            return [];
+        }
+
+        this.dao_store_loaded_by_crud_api_type_id[crud.api_type_id] = true;
+
+        if (api_types_involved_to_invalidate && api_types_involved_to_invalidate.length) {
+            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved(api_types_involved_to_invalidate);
+        }
+
+        const res: string[] = [];
+
+        /**
+         * On ne veut pas charger par défaut (sauf ref reflective dans un champ de l'objet) tous les vos du type du vo modifié
+         */
+        await all_promises(CRUDFormServices.loadDatasFromDatatable(crud.updateDatatable, res, storeDatas, true));
+
+        if (hook_init_post_reload) {
+            await hook_init_post_reload();
+        }
+
+        return res;
+    }
+
+    public static loadDatasFromDatatable(
         datatable: Datatable<IDistantVOBase>,
         api_types_involved: string[],
         storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
@@ -82,6 +112,10 @@ export default class CRUDFormServices {
             for (const i in datatable.fields) {
                 const field = datatable.fields[i];
 
+                if (field.can_use_async_load_options) {
+                    continue;
+                }
+
                 res = res.concat(this.loadDatasFromDatatableField(field, api_types_involved, storeDatas));
             }
         }
@@ -89,13 +123,13 @@ export default class CRUDFormServices {
         return res;
     }
 
-    public loadDatasFromDatatableField(
+    public static loadDatasFromDatatableField(
         load_from_datatable_field: DatatableField<any, any>,
         api_types_involved: string[],
         storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
     ): Array<Promise<any>> {
         let res: Array<Promise<any>> = [];
-        const self = this;
+        // const self = this;
 
         if (load_from_datatable_field.type == DatatableField.SIMPLE_FIELD_TYPE) {
             return res;
@@ -146,7 +180,7 @@ export default class CRUDFormServices {
         return res;
     }
 
-    public async getNewVO(
+    public static async getNewVO(
         crud: CRUD<any>,
         vo_init: IDistantVOBase,
         onChangeVO: (vo: IDistantVOBase) => void): Promise<IDistantVOBase> {
@@ -202,7 +236,7 @@ export default class CRUDFormServices {
         return newVO;
     }
 
-    public dataToIHM(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): IDistantVOBase {
+    public static dataToIHM(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): IDistantVOBase {
 
         const res = Object.assign({}, vo);
 
@@ -285,7 +319,7 @@ export default class CRUDFormServices {
         return res;
     }
 
-    public IHMToData(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): IDistantVOBase {
+    public static IHMToData(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): IDistantVOBase {
 
         const res = Object.assign({}, vo);
 
@@ -353,7 +387,7 @@ export default class CRUDFormServices {
      * Méthode qui prend tous les champs ManyToMany de la table et met à jour les tables intermédiaires si besoin
      * @param vo
      */
-    public async updateOneToMany(
+    public static async updateOneToMany(
         datatable_vo: IDistantVOBase, datatable: Datatable<IDistantVOBase>, db_vo: IDistantVOBase,
         getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } },
         updateData: (vo: IDistantVOBase) => void,
@@ -429,7 +463,7 @@ export default class CRUDFormServices {
 
                 if (need_update_links.length > 0) {
 
-                    await ModuleDAO.getInstance().insertOrUpdateVOs(need_update_links);
+                    await ModuleDAO.instance.insertOrUpdateVOs(need_update_links);
                     for (const linki in need_update_links) {
 
                         updateData(need_update_links[linki]);
@@ -446,7 +480,7 @@ export default class CRUDFormServices {
      * Méthode qui prend tous les champs ManyToMany de la table et met à jour les tables intermédiaires si besoin
      * @param vo
      */
-    public async updateManyToMany(
+    public static async updateManyToMany(
         datatable_vo: IDistantVOBase, datatable: Datatable<IDistantVOBase>, db_vo: IDistantVOBase,
         removeData: (infos: { API_TYPE_ID: string, id: number }) => void,
         storeData: (vo: IDistantVOBase) => void, component: VueComponentBase,
@@ -501,7 +535,7 @@ export default class CRUDFormServices {
                 if (need_add_links.length > 0) {
                     for (const linki in need_add_links) {
 
-                        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(need_add_links[linki]);
+                        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(need_add_links[linki]);
                         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                             component.snotify.error(component.label('crud.create.errors.many_to_many_failure'));
                             continue;
@@ -511,7 +545,7 @@ export default class CRUDFormServices {
                     }
                 }
                 if (need_delete_links.length > 0) {
-                    await ModuleDAO.getInstance().deleteVOs(need_delete_links);
+                    await ModuleDAO.instance.deleteVOs(need_delete_links);
                     for (const linki in need_delete_links) {
                         removeData({
                             API_TYPE_ID: field.interModuleTable.vo_type,
@@ -525,7 +559,7 @@ export default class CRUDFormServices {
         }
     }
 
-    public checkForm(
+    public static checkForm(
         vo: IDistantVOBase, datatable: Datatable<IDistantVOBase>,
         clear_alerts: () => void, register_alerts: (alerts: Alert[]) => void): boolean {
 
@@ -570,9 +604,9 @@ export default class CRUDFormServices {
      * @param field
      * @param fileVo
      */
-    public async uploadedFile(
+    public static async uploadedFile(
         vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO | ImageVO,
-        api_type_id: string, editableVO: IDistantVOBase, updateData: (vo: IDistantVOBase) => void,
+        api_type_id: string, editableVO: IDistantVOBase, updateData: (vo_upd: IDistantVOBase) => void,
         component: VueComponentBase) {
         if ((!fileVo) || (!fileVo.id)) {
             return;
@@ -586,7 +620,7 @@ export default class CRUDFormServices {
                     editableVO[field.datatable_field_uid] = fileVo[field.datatable_field_uid];
                     fileVo[field.datatable_field_uid] = tmp;
 
-                    await ModuleDAO.getInstance().insertOrUpdateVOs([editableVO, fileVo]);
+                    await ModuleDAO.instance.insertOrUpdateVOs([editableVO, fileVo]);
                     updateData(editableVO);
                     updateData(fileVo);
                 }
@@ -596,7 +630,7 @@ export default class CRUDFormServices {
                 if (vo) {
                     editableVO[field.datatable_field_uid] = fileVo.path;
 
-                    await ModuleDAO.getInstance().insertOrUpdateVO(editableVO);
+                    await ModuleDAO.instance.insertOrUpdateVO(editableVO);
                     updateData(editableVO);
                     updateData(fileVo);
                 }

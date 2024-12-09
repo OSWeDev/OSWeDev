@@ -3,6 +3,8 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import SendInBlueVO from '../../../shared/modules/SendInBlue/vos/SendInBlueVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ModuleRequestServer from '../Request/ModuleRequestServer';
 
 
 export default class SendInBlueServerController {
@@ -41,14 +43,20 @@ export default class SendInBlueServerController {
             return null;
         }
 
-        return ModuleRequest.getInstance().sendRequestFromApp(
-            method,
-            this.param.host,
-            SendInBlueServerController.VERSION_API + path,
-            posts,
-            await this.getHeadersRequest(),
-            true
-        );
+        try {
+
+            return ModuleRequestServer.getInstance().sendRequestFromApp(
+                method,
+                this.param.host,
+                SendInBlueServerController.VERSION_API + path,
+                posts,
+                await this.getHeadersRequest(),
+                true
+            );
+        } catch (error) {
+            ConsoleHandler.error('SendInBlueServerController:sendRequestFromApp:error:' + error + ":method:" + method + ":path:" + path + ":posts:" + JSON.stringify(posts));
+            return null;
+        }
     }
 
     public async getReplyTo(): Promise<SendInBlueMailVO> {

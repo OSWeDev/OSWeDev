@@ -52,7 +52,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             function_TRELLO_trello_update_card.gpt_function_name = 'trello_update_card';
             function_TRELLO_trello_update_card.json_stringify_output = true;
             function_TRELLO_trello_update_card.gpt_function_description = "Update a Card";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(function_TRELLO_trello_update_card);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(function_TRELLO_trello_update_card);
         }
 
         let argument_id = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -70,7 +70,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_id.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_id.not_in_function_params = true;
             argument_id.weight = 0;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_id);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_id);
         }
 
         let argument_name = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -88,7 +88,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_name.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_name.not_in_function_params = false;
             argument_name.weight = 1;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_name);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_name);
         }
 
         let argument_desc = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -106,7 +106,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_desc.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_desc.not_in_function_params = false;
             argument_desc.weight = 2;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_desc);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_desc);
         }
 
         let argument_pos = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -126,7 +126,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_pos.weight = 3;
             argument_pos.default_json_value = '"top"';
         }
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_pos);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_pos);
 
         let argument_due = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'due')
@@ -143,7 +143,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_due.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_due.not_in_function_params = false;
             argument_due.weight = 4;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_due);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_due);
         }
 
         let argument_idList = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -161,7 +161,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_idList.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_idList.not_in_function_params = false;
             argument_idList.weight = 5;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_idList);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_idList);
         }
 
         let argument_idMembers = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -179,7 +179,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_idMembers.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_idMembers.not_in_function_params = false;
             argument_idMembers.weight = 6;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_idMembers);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_idMembers);
         }
 
         let argument_idLabels = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -197,7 +197,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_idLabels.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_idLabels.not_in_function_params = false;
             argument_idLabels.weight = 7;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_idLabels);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_idLabels);
         }
 
         let argument_closed = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -215,7 +215,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_closed.type = GPTAssistantAPIFunctionParamVO.TYPE_BOOLEAN;
             argument_closed.not_in_function_params = false;
             argument_closed.weight = 8;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_closed);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_closed);
         }
 
 
@@ -234,7 +234,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_address.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_address.not_in_function_params = false;
             argument_address.weight = 12;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_address);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_address);
         }
 
         let argument_coordinates = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -252,7 +252,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_coordinates.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_coordinates.not_in_function_params = false;
             argument_coordinates.weight = 13;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_coordinates);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_coordinates);
         }
 
         let argument_locationName = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -270,7 +270,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_locationName.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_locationName.not_in_function_params = false;
             argument_locationName.weight = 14;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_locationName);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_locationName);
         }
     }
 }

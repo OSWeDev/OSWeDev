@@ -48,7 +48,7 @@ export default class OseliaController {
             // Retourner le canvas
             return canvas;
         } catch (error) {
-            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :" + JSON.stringify(error));
             return null;
         }
     }
@@ -75,12 +75,12 @@ export default class OseliaController {
 
             const new_file = new FileVO();
             new_file.path = ModuleFile.FILES_ROOT + 'upload/' + fileName;
-            const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
+            const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
             new_file.id = resnew_file.id;
 
             return { imgData, new_file, fileName };
         } catch (error) {
-            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :" + JSON.stringify(error));
         }
     }
 }

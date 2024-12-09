@@ -29,8 +29,9 @@ import VueComponentBase from '../../../VueComponentBase';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import SupervisionItemModalComponent from './supervision_item_modal/SupervisionItemModalComponent';
 import './SupervisionWidgetComponent.scss';
-import { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
+import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -170,7 +171,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     private async handle_throttled_update_visible_options(args: any[]): Promise<void> {
         const options = Array.isArray(args) && args.length > 0 ? args.shift() : null;
 
-        return await this.update_visible_options();
+        return this.update_visible_options();
     }
 
     /**
@@ -273,8 +274,8 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     }
 
     private async refresh() {
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_vos));
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_count));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_vos)));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_count)));
         this.throttled_update_visible_options();
     }
 
@@ -338,7 +339,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         }
 
         if (tosave.length) {
-            await ModuleDAO.getInstance().insertOrUpdateVOs(tosave);
+            await ModuleDAO.instance.insertOrUpdateVOs(tosave);
             await this.refresh();
         }
     }
@@ -370,7 +371,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         }
 
         if (tosave.length) {
-            await ModuleDAO.getInstance().insertOrUpdateVOs(tosave);
+            await ModuleDAO.instance.insertOrUpdateVOs(tosave);
             await this.refresh();
         }
     }

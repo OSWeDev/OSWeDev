@@ -13,14 +13,6 @@ export interface IDocumentState {
 
 export default class DocumentStore implements IStoreModule<IDocumentState, DocumentContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): DocumentStore {
-        if (!DocumentStore.instance) {
-            DocumentStore.instance = new DocumentStore();
-        }
-        return DocumentStore.instance;
-    }
-
     private static instance: DocumentStore;
 
     public module_name: string;
@@ -59,7 +51,16 @@ export default class DocumentStore implements IStoreModule<IDocumentState, Docum
             set_has_docs_route_name: (context: DocumentContext, has_docs_route_name: { [route_name: string]: boolean }) => context.commit(store_mutations_names(this).set_has_docs_route_name, has_docs_route_name),
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): DocumentStore {
+        if (!DocumentStore.instance) {
+            DocumentStore.instance = new DocumentStore();
+        }
+        return DocumentStore.instance;
+    }
 }
 
-export const ModuleDocumentGetter = namespace('DocumentStore', Getter);
-export const ModuleDocumentAction = namespace('DocumentStore', Action);
+const __namespace = namespace('DocumentStore');
+export const ModuleDocumentGetter = __namespace.Getter;
+export const ModuleDocumentAction = __namespace.Action;

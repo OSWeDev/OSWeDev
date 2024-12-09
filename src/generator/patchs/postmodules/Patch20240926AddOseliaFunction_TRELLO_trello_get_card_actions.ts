@@ -52,7 +52,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actio
             function_TRELLO_trello_get_card_actions.gpt_function_name = 'trello_get_card_actions';
             function_TRELLO_trello_get_card_actions.json_stringify_output = true;
             function_TRELLO_trello_get_card_actions.gpt_function_description = "Get all of the actions of a Card";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(function_TRELLO_trello_get_card_actions);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(function_TRELLO_trello_get_card_actions);
         }
 
         let argument_id = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -70,7 +70,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actio
             argument_id.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_id.not_in_function_params = true;
             argument_id.weight = 0;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_id);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_id);
         }
 
         let argument_filter = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -89,7 +89,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actio
             argument_filter.not_in_function_params = false;
             argument_filter.weight = 1;
         }
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_filter);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_filter);
 
         let argument_page = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'page')
@@ -108,6 +108,6 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actio
             argument_page.weight = 2;
             argument_page.default_json_value = JSON.stringify(0);
         }
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_page);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_page);
     }
 }

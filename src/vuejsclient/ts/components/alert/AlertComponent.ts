@@ -15,6 +15,8 @@ import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 })
 export default class AlertComponent extends VueComponentBase {
 
+    private static VPOP_UID: number = 0;
+
     @ModuleAlertGetter
     private get_alerts: { [path: string]: Alert[] };
 
@@ -49,48 +51,19 @@ export default class AlertComponent extends VueComponentBase {
     @Prop({ default: true })
     private show_popover: boolean;
 
-    @Prop({ default: true })
+    @Prop({ default: false })
     private is_in_list: boolean;
 
-    @Prop({ default: true })
+    @Prop({ default: null })
     private title_translatable_code: string;
 
-    @Prop({ default: true })
+    @Prop({ default: () => ({}) })
     private title_translation_params: { [param_name: string]: any };
 
     private throttle_update = ThrottleHelper.declare_throttle_without_args(this.update, 100);
+    private v_pop_id: string = 'AlertComponent__' + (AlertComponent.VPOP_UID++).toString();
 
-    @Watch('path')
-    public on_change_path() {
-        this.throttle_update();
-    }
 
-    public update() {
-        if (!this.path) {
-            return;
-        }
-        if (this.is_in_list) {
-            if (this.title_translatable_code) {
-                this.set_title({ alert_path: this.path, translatable_code: this.title_translatable_code, translation_params: this.title_translation_params });
-            }
-            // TODO ajouter l'alerte dans le store store
-            this.register_path_in_alerts_list(this.path);
-        }
-    }
-
-    public mounted() {
-        this.throttle_update();
-    }
-
-    public beforeDestroy() {
-        if (!this.path) {
-            return;
-        }
-        if (this.is_in_list) {
-            // TODO supprimer l'alerte du store
-            this.unregister_path_in_alerts_list(this.path);
-        }
-    }
 
     get tooltip_visibility(): string {
         return this.toggle_visible_on_click ? 'focus' : 'hover';
@@ -150,5 +123,37 @@ export default class AlertComponent extends VueComponentBase {
 
     get has_alerts(): boolean {
         return this.alerts && this.alerts.length > 0;
+    }
+
+    @Watch('path')
+    public on_change_path() {
+        this.throttle_update();
+    }
+
+    public update() {
+        if (!this.path) {
+            return;
+        }
+        if (this.is_in_list) {
+            if (this.title_translatable_code) {
+                this.set_title({ alert_path: this.path, translatable_code: this.title_translatable_code, translation_params: this.title_translation_params });
+            }
+            // TODO ajouter l'alerte dans le store store
+            this.register_path_in_alerts_list(this.path);
+        }
+    }
+
+    public mounted() {
+        this.throttle_update();
+    }
+
+    public beforeDestroy() {
+        if (!this.path) {
+            return;
+        }
+        if (this.is_in_list) {
+            // TODO supprimer l'alerte du store
+            this.unregister_path_in_alerts_list(this.path);
+        }
     }
 }

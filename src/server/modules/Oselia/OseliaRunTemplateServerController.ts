@@ -36,7 +36,7 @@ export default class OseliaRunTemplateServerController {
             }
 
             if (!thread_vo) {
-                const thread: { thread_gpt; thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread();
+                const thread: { thread_gpt; thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(null, null, template.oselia_thread_default_assistant_id);
                 thread_vo = thread.thread_vo;
             }
             await OseliaServerController.link_thread_to_referrer(thread_vo, referrer);
@@ -52,12 +52,21 @@ export default class OseliaRunTemplateServerController {
             const oselia_run = new OseliaRunVO();
             oselia_run.thread_title = await TemplateHandlerServer.apply_template(template.thread_title, user.lang_id, false, initial_prompt_parameters); // Comme on veut ouvrir au public, on peut pas accéder aux envs params
 
-            if (thread_vo.needs_thread_title_build) {
+            if (!thread_vo.thread_title_auto_build_locked) {
                 thread_vo.thread_title = oselia_run.thread_title;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+                thread_vo.thread_title_auto_build_locked = true;
+                thread_vo.needs_thread_title_build = false;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
             }
 
+            oselia_run.run_type = template.run_type;
+            oselia_run.for_each_array_cache_key = template.for_each_array_cache_key;
+            oselia_run.for_each_element_cache_key = template.for_each_element_cache_key;
+            oselia_run.for_each_element_run_template_id = template.for_each_element_run_template_id;
+            oselia_run.for_each_index_cache_key = template.for_each_index_cache_key;
+
             oselia_run.assistant_id = template.assistant_id;
+            oselia_run.oselia_thread_default_assistant_id = template.oselia_thread_default_assistant_id;
             oselia_run.childrens_are_multithreaded = template.childrens_are_multithreaded;
             oselia_run.hide_outputs = template.hide_outputs;
             oselia_run.hide_prompt = template.hide_prompt;
@@ -121,7 +130,7 @@ export default class OseliaRunTemplateServerController {
             oselia_run.user_id = user.id;
             oselia_run.weight = template.weight;
             oselia_run.referrer_id = referrer.id;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run);
 
             /**
              * On doit créer les sous tâches aussi

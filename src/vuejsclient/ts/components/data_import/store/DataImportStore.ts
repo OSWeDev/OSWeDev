@@ -23,14 +23,6 @@ export interface IDataImportState {
 
 export default class DataImportStore implements IStoreModule<IDataImportState, DataImportContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): DataImportStore {
-        if (!DataImportStore.instance) {
-            DataImportStore.instance = new DataImportStore();
-        }
-        return DataImportStore.instance;
-    }
-
     private static instance: DataImportStore;
 
     public module_name: string;
@@ -185,9 +177,18 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
             setOptionsValidator: (context: DataImportContext, options_validator: (options: any) => boolean) => context.commit(store_mutations_names(this).setOptionsValidator, options_validator),
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): DataImportStore {
+        if (!DataImportStore.instance) {
+            DataImportStore.instance = new DataImportStore();
+        }
+        return DataImportStore.instance;
+    }
 }
 
 export const DataImportStoreInstance = DataImportStore.getInstance();
 
-export const ModuleDataImportGetter = namespace('DataImportStore', Getter);
-export const ModuleDataImportAction = namespace('DataImportStore', Action);
+const __namespace = namespace('DataImportStore');
+export const ModuleDataImportGetter = __namespace.Getter;
+export const ModuleDataImportAction = __namespace.Action;

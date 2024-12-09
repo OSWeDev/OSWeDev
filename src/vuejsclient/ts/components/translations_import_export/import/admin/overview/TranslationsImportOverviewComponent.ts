@@ -30,6 +30,22 @@ export default class TranslationsImportOverviewComponent extends VueComponentBas
 
     private exportable_data: any[] = [];
 
+    get exportable_columns(): string[] {
+        return [
+            'code_lang',
+            'code_text',
+            'translated'
+        ];
+    }
+
+    get columns_labels(): any {
+        return {
+            code_lang: 'code_lang',
+            code_text: 'code_text',
+            translated: 'translated'
+        };
+    }
+
     private async export_translations() {
 
         await this.set_exportable_data();
@@ -38,7 +54,10 @@ export default class TranslationsImportOverviewComponent extends VueComponentBas
             this.exportable_data,
             this.exportable_columns,
             this.columns_labels,
-            ImportTranslation.API_TYPE_ID);
+            ImportTranslation.API_TYPE_ID,
+            null,
+            null
+        );
     }
 
     private async set_exportable_data() {
@@ -57,21 +76,5 @@ export default class TranslationsImportOverviewComponent extends VueComponentBas
             data.translated = translation.translated;
             this.exportable_data.push(data);
         }
-    }
-
-    get exportable_columns(): string[] {
-        return [
-            'code_lang',
-            'code_text',
-            'translated'
-        ];
-    }
-
-    get columns_labels(): any {
-        return {
-            code_lang: 'code_lang',
-            code_text: 'code_text',
-            translated: 'translated'
-        };
     }
 }

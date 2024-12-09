@@ -1,4 +1,4 @@
-import CodeMirror from 'vue-codemirror6';
+// import CodeMirror from 'vue-codemirror6';
 import Component from 'vue-class-component';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import './AccessPolicyCompareAndPatchComponent.scss';
@@ -13,7 +13,7 @@ import { all_promises } from '../../../../../shared/tools/PromiseTools';
 @Component({
     template: require('./AccessPolicyCompareAndPatchComponent.pug'),
     components: {
-        CodeMirror,
+        // CodeMirror,
     }
 })
 export default class AccessPolicyCompareAndPatchComponent extends VueComponentBase {

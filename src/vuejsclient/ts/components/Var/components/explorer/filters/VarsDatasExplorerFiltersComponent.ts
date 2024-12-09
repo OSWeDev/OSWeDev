@@ -449,6 +449,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
                 }
             }
 
+            param.rebuild_index();
             res.push(param);
         }
 

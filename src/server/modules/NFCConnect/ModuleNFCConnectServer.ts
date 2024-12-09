@@ -228,7 +228,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
             return false;
         }
 
-        return await ModuleAccessPolicyServer.getInstance().login(tag_user.user_id);
+        return ModuleAccessPolicyServer.getInstance().login(tag_user.user_id);
     }
 
     /**
@@ -273,7 +273,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
             tag = new NFCTagVO();
             tag.activated = true;
             tag.name = serial_number;
-            insertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(tag);
+            insertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(tag);
             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
 
                 ConsoleHandler.error("Impossible de créer le nouveau tag. Abandon.");
@@ -296,7 +296,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         const add_tag_user = new NFCTagUserVO();
         add_tag_user.nfc_tag_id = tag.id;
         add_tag_user.user_id = user_id;
-        insertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(add_tag_user);
+        insertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(add_tag_user);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
 
             ConsoleHandler.error("Impossible de créer le nouveau tag user. Abandon.");

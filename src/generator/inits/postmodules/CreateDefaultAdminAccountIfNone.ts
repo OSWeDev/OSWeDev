@@ -81,7 +81,7 @@ export default class CreateDefaultAdminAccountIfNone implements IGeneratorWorker
         user.password = user_name + '$';
         user.email = email;
 
-        const res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
+        const res: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
         if ((!res) || (!res.id)) {
             throw new Error('Echec de création du compte admin par défaut');
         }
@@ -104,6 +104,6 @@ export default class CreateDefaultAdminAccountIfNone implements IGeneratorWorker
         userrole.role_id = role.id;
         userrole.user_id = user.id;
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(userrole);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(userrole);
     }
 }

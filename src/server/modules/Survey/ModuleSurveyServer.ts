@@ -177,7 +177,7 @@ export default class ModuleSurveyServer extends ModuleServerBase {
             }
 
             // Puis créer le survey en base
-            const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(survey);
+            const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(survey);
             if ((!res) || (!res.id)) {
                 throw new Error('Failed survey creation');
             }

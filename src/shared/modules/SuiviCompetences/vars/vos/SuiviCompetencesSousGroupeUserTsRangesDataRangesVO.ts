@@ -14,7 +14,7 @@ export default class SuiviCompetencesSousGroupeUserTsRangesDataRangesVO extends 
         suivi_comp_sous_groupe_id_ranges: NumRange[],
         suivi_comp_grille_id_ranges: NumRange[],
         user_id_ranges: NumRange[],
-        ts_ranges: NumRange[],
+        ts_ranges: TSRange[],
     ): T {
 
         if (

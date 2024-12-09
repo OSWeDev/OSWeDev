@@ -3,10 +3,11 @@ import 'bootstrap';
 import $ from 'jquery';
 import moment from 'moment';
 
+import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import { ColorPanel, ColorPicker } from 'one-colorpicker';
 import 'select2';
 import VCalendar from 'v-calendar';
-import 'v-calendar/lib/v-calendar.min.css';
+// import 'v-calendar/lib/v-calendar.min.css';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
 import VueCookies from 'vue-cookies-ts';
@@ -25,7 +26,6 @@ import Snotify from 'vue-snotify';
 import { ClientTable } from "vue-tables-2";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
-import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import ModuleAccessPolicy from "../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import ModuleTableController from "../shared/modules/DAO/ModuleTableController";
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
@@ -92,6 +92,7 @@ export default abstract class VueAppBase {
     public async runApp() {
 
         ConsoleHandler.init();
+        ModulesManager.initialize();
 
         // Chargement des données des modules.
         await this.initializeModulesDatas();
@@ -127,12 +128,12 @@ export default abstract class VueAppBase {
             DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[type] = null,
         );
 
-        const modules_by_name = ModulesManager.getInstance().modules_by_name;
+        const modules_by_name = ModulesManager.modules_by_name;
 
         // On commence par demander tous les droits d'accès des modules
         promises = [];
         for (const module_name in modules_by_name) {
-            const module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
+            const module_: VueModuleBase = ModulesManager.getModuleByNameAndRole(
                 module_name,
                 VueModuleBase.IVueModuleRoleName,
             ) as VueModuleBase;
@@ -161,7 +162,7 @@ export default abstract class VueAppBase {
 
         // On lance les initializeAsync des modules Vue
         for (const module_name in modules_by_name) {
-            const module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
+            const module_: VueModuleBase = ModulesManager.getModuleByNameAndRole(
                 module_name,
                 VueModuleBase.IVueModuleRoleName,
             ) as VueModuleBase;
@@ -276,7 +277,7 @@ export default abstract class VueAppBase {
         //}
 
         let routerRoutes: RouteConfig[] = [];
-        const moduleWrappersByName: { [key: string]: ModuleWrapper } = ModulesManager.getInstance().getModuleWrappersByName();
+        const moduleWrappersByName: { [key: string]: ModuleWrapper } = ModulesManager.getModuleWrappersByName();
 
         for (const i in moduleWrappersByName) {
             const moduleWrapper: ModuleWrapper = moduleWrappersByName[i];
@@ -363,7 +364,14 @@ export default abstract class VueAppBase {
 
         VueAppController.getInstance().initGoogleAnalytics(code_google_analytics);
 
-        this.vueRouter.beforeEach((route, redirect, next) => {
+        this.vueRouter.beforeEach(async (route, redirect, next) => {
+            if (!navigator.onLine) {
+                const same_version_app: boolean = await PushDataVueModule.getInstance().wait_navigator_online();
+
+                if (!same_version_app) {
+                    return;
+                }
+            }
 
             time_in_router = Dates.now_ms();
             if (route.name) {
@@ -437,7 +445,7 @@ export default abstract class VueAppBase {
         Vue.use(Snotify);
         Vue.use(VueRouter);
         Vue.use(VueFlags, {
-            iconPath: '/client/public/img/flags/',
+            iconPath: '/public/client/img/flags/',
         });
 
         // Use v-calendar, v-date-picker & v-popover components

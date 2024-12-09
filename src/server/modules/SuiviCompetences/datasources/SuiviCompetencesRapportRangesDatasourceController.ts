@@ -21,7 +21,7 @@ export default class SuiviCompetencesRapportRangesDatasourceController extends D
 
     public async get_data(param: SuiviCompetencesRapportItemDataRangesVO): Promise<SuiviCompetencesRapportVO[]> {
 
-        return await query(SuiviCompetencesRapportVO.API_TYPE_ID)
+        return query(SuiviCompetencesRapportVO.API_TYPE_ID)
             .filter_by_ids(param.suivi_comp_rapport_id_ranges)
             .filter_by_date_x_ranges(field_names<SuiviCompetencesRapportVO>().date, param.ts_ranges)
             .set_sort(new SortByVO(SuiviCompetencesRapportVO.API_TYPE_ID, field_names<SuiviCompetencesRapportVO>().date, false))

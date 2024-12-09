@@ -13,14 +13,6 @@ export interface IDroppableVosState {
 
 export default class DroppableVosStore implements IStoreModule<IDroppableVosState, DroppableVosContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): DroppableVosStore {
-        if (!DroppableVosStore.instance) {
-            DroppableVosStore.instance = new DroppableVosStore();
-        }
-        return DroppableVosStore.instance;
-    }
-
     private static instance: DroppableVosStore;
 
     public module_name: string;
@@ -72,11 +64,20 @@ export default class DroppableVosStore implements IStoreModule<IDroppableVosStat
             switch_selected_field: (context: DroppableVosContext, api_type_id: string) => context.commit(store_mutations_names(this).switch_selected_field, api_type_id),
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): DroppableVosStore {
+        if (!DroppableVosStore.instance) {
+            DroppableVosStore.instance = new DroppableVosStore();
+        }
+        return DroppableVosStore.instance;
+    }
 }
 
 export const DroppableVosStoreInstance = DroppableVosStore.getInstance();
 
 const { commit, read, dispatch } =
     getStoreAccessors<IDroppableVosState, any>("DroppableVosStore"); // We pass namespace here, if we make the module namespaced: true.
-export const ModuleDroppableVosGetter = namespace('DroppableVosStore', Getter);
-export const ModuleDroppableVosAction = namespace('DroppableVosStore', Action);
+const __namespace = namespace('DroppableVosStore');
+export const ModuleDroppableVosGetter = __namespace.Getter;
+export const ModuleDroppableVosAction = __namespace.Action;

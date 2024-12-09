@@ -1533,7 +1533,7 @@ export default class DatatableComponent extends VueComponentBase {
 
                                 if (vo) {
                                     vo.archived = true;
-                                    res = await ModuleDAO.getInstance().insertOrUpdateVO(vo);
+                                    res = await ModuleDAO.instance.insertOrUpdateVO(vo);
                                 }
 
                                 if (!res?.id) {

@@ -52,7 +52,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of
             function_TRELLO_trello_get_members_of_a_board.gpt_function_name = 'trello_get_members_of_a_board';
             function_TRELLO_trello_get_members_of_a_board.json_stringify_output = true;
             function_TRELLO_trello_get_members_of_a_board.gpt_function_description = "Get the Members for a board";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(function_TRELLO_trello_get_members_of_a_board);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(function_TRELLO_trello_get_members_of_a_board);
         }
 
         let argument_id = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -70,7 +70,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of
             argument_id.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_id.not_in_function_params = true;
             argument_id.weight = 0;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_id);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_id);
         }
     }
 }

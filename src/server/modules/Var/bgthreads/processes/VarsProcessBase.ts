@@ -41,11 +41,7 @@ export default abstract class VarsProcessBase {
 
     public async work(): Promise<void> {
 
-        // // // On initialise le fait qu'on est pas en train d'attendre une invalidation
-        // VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = false;
-
         const promise_pipeline = this.as_batch ? null : new PromisePipeline(ConfigurationService.node_configuration.max_varsprocessdeploydeps, 'VarsProcessBase.' + this.name, true);
-        let waiting_for_invalidation_time_in = null;
 
         if (ConfigurationService.node_configuration.debug_vars_processes) {
             ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:IN');
@@ -60,48 +56,16 @@ export default abstract class VarsProcessBase {
 
             let did_something = false;
 
-            // Particularité on doit s'enregistrer sur le main thread pour dire qu'on est en vie puisque le bgthread lui est plus vraiment adapté pour le faire
-            BGThreadServerController.register_alive_on_main_thread(VarsBGThreadNameHolder.bgthread_name);
+            // // Particularité on doit s'enregistrer sur le main thread pour dire qu'on est en vie puisque le bgthread lui est plus vraiment adapté pour le faire
+            // BGThreadServerController.register_alive_on_main_thread({ [VarsBGThreadNameHolder.bgthread_name]: true });
 
             const valid_nodes: { [node_name: string]: VarDAGNode } = this.waiting_valid_nodes ? this.waiting_valid_nodes : this.get_valid_nodes();
             this.waiting_valid_nodes = null;
 
-            // // Si on a des noeuds, et en particulier des noeuds clients, on ne doit pas faire d'invalidation sans avoir traité les noeuds clients
-            // // let has_client_nodes = false;
-            // let has_node = false;
-            // for (let i in valid_nodes) {
-            //     let node = valid_nodes[i];
-
-            //     if (!node) {
-            //         continue;
-            //     }
-
-            //     has_node = true;
-            //     break;
-
-            //     // if (node.is_client_sub) {
-            //     //     has_client_nodes = true;
-            //     //     break;
-            //     // }
-            // }
-
-            // // if (!has_client_nodes) {
-            // if (!has_node) {
-            // if ((!this.has_nodes_to_process_in_current_tree) && ((!promise_pipeline) || (!promise_pipeline.has_running_or_waiting_promises))) {
-
-            //     // On checke une invalidation en attente
-            //     const updated_waiting_for_invalidation_time_in = await this.handle_invalidations(promise_pipeline, waiting_for_invalidation_time_in);
-            //     if (updated_waiting_for_invalidation_time_in) {
-
-            //         if (ConfigurationService.node_configuration.debug_vars_processes) {
-            //             ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_invalidations:updated_waiting_for_invalidation_time_in:' + updated_waiting_for_invalidation_time_in);
-            //         }
-            //         waiting_for_invalidation_time_in = updated_waiting_for_invalidation_time_in;
-            //         continue;
-            //     }
-            // }
-
             if (valid_nodes && Object.keys(valid_nodes).length) {
+                // Si on a des nodes dans l'arbre, on va regarder si le process n'est pas bloqué
+                CurrentVarDAGHolder.check_current_vardag_throttler();
+
                 if (!this.as_batch) {
                     did_something = await this.handle_individual_worker(promise_pipeline, valid_nodes);
                 } else {
@@ -131,45 +95,6 @@ export default abstract class VarsProcessBase {
             }
         }
     }
-
-    // private async handle_invalidations(promise_pipeline: PromisePipeline, waiting_for_invalidation_time_in: number): Promise<number> {
-
-    //     // On checke une invalidation en attente
-    //     if (VarsComputationHole.waiting_for_computation_hole) {
-    //         if (!VarsComputationHole.processes_waiting_for_computation_hole_end[this.name]) {
-
-    //             if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-    //                 ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_invalidations:waiting_for_invalidation_time_in:IN');
-    //             }
-
-    //             if ((!!this.MAX_Workers) && (!this.as_batch)) {
-
-    //                 const pipeline_end_wait_for_invalidation_time_in = Dates.now_ms();
-    //                 // On doit attendre la fin du pipeline, pour indiquer qu'on est prêt à faire l'invalidation
-    //                 await promise_pipeline.end();
-
-    //                 StatsController.register_stat_DUREE('VarsProcessBase', this.name, "pipeline_end_wait_for_invalidation", Dates.now_ms() - pipeline_end_wait_for_invalidation_time_in);
-    //             }
-
-    //             waiting_for_invalidation_time_in = Dates.now_ms();
-    //             VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = true;
-    //         }
-    //         await ThreadHandler.sleep(this.thread_sleep, this.name);
-    //         return waiting_for_invalidation_time_in;
-    //     }
-
-    //     // // si on était en attente et que l'invalidation vient de se terminer, on indique qu'on reprend le travail
-    //     // if (VarsComputationHole.processes_waiting_for_computation_hole_end[this.name]) {
-    //     //     VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = false;
-    //     //     StatsController.register_stat_DUREE('VarsProcessBase', this.name, "waiting_for_invalidation", Dates.now_ms() - waiting_for_invalidation_time_in);
-
-    //     //     if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-    //     //         ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_invalidations:waiting_for_invalidation_time_in:OUT');
-    //     //     }
-    //     // }
-
-    //     return null;
-    // }
 
     private async handle_individual_worker(promise_pipeline: PromisePipeline, valid_nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
         const self = this;

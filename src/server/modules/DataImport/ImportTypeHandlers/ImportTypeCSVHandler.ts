@@ -316,11 +316,11 @@ export default class ImportTypeCSVHandler {
                             self.pause();
 
                             if (dataImportFormat.use_multiple_connections) {
-                                await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(batch_datas);
+                                await ModuleDAOServer.instance.insertOrUpdateVOsMulticonnections(batch_datas);
                                 batch_datas = [];
                                 self.resume();
                             } else {
-                                await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(batch_datas);
+                                await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(batch_datas);
                                 batch_datas = [];
                                 self.resume();
                             }
@@ -333,11 +333,11 @@ export default class ImportTypeCSVHandler {
                     if (batch_datas && batch_datas.length) {
 
                         if (dataImportFormat.use_multiple_connections) {
-                            await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(batch_datas);
+                            await ModuleDAOServer.instance.insertOrUpdateVOsMulticonnections(batch_datas);
                             resolve(!closed);
                             batch_datas = [];
                         } else {
-                            await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(batch_datas);
+                            await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(batch_datas);
                             resolve(!closed);
                             batch_datas = [];
                         }

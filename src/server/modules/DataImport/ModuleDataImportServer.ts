@@ -522,19 +522,19 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     public async getDataImportHistorics(num: number): Promise<DataImportHistoricVO[]> {
-        return await query(DataImportHistoricVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportHistoricVO>().data_import_format_id, num).set_limit(50).select_vos<DataImportHistoricVO>();
+        return query(DataImportHistoricVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportHistoricVO>().data_import_format_id, num).set_limit(50).select_vos<DataImportHistoricVO>();
     }
 
     public async getDataImportHistoric(num: number): Promise<DataImportHistoricVO> {
-        return await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(num).select_vo<DataImportHistoricVO>();
+        return query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(num).select_vo<DataImportHistoricVO>();
     }
 
     public async getDataImportLogs(num: number): Promise<DataImportLogVO[]> {
-        return await query(DataImportLogVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportLogVO>().data_import_format_id, num).set_limit(50).select_vos<DataImportLogVO>();
+        return query(DataImportLogVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportLogVO>().data_import_format_id, num).set_limit(50).select_vos<DataImportLogVO>();
     }
 
     public async getDataImportFiles(): Promise<DataImportFormatVO[]> {
-        return await query(DataImportFormatVO.API_TYPE_ID).select_vos<DataImportFormatVO>();
+        return query(DataImportFormatVO.API_TYPE_ID).select_vos<DataImportFormatVO>();
     }
 
     /**
@@ -550,11 +550,11 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     public async getImportFormatsForApiTypeId(API_TYPE_ID: string): Promise<DataImportFormatVO[]> {
-        return await query(DataImportFormatVO.API_TYPE_ID).filter_by_text_eq(field_names<DataImportFormatVO>().api_type_id, API_TYPE_ID).select_vos<DataImportFormatVO>();
+        return query(DataImportFormatVO.API_TYPE_ID).filter_by_text_eq(field_names<DataImportFormatVO>().api_type_id, API_TYPE_ID).select_vos<DataImportFormatVO>();
     }
 
     public async getDataImportColumnsFromFormatId(num: number): Promise<DataImportColumnVO[]> {
-        return await query(DataImportColumnVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportColumnVO>().data_import_format_id, num).select_vos<DataImportColumnVO>();
+        return query(DataImportColumnVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportColumnVO>().data_import_format_id, num).select_vos<DataImportColumnVO>();
     }
 
     /**
@@ -574,7 +574,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         // On commence par nettoyer la table, quelle que soit l'issue
         const raw_api_type_id = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(importHistoric.api_type_id);
         if (!importHistoric.use_fast_track) {
-            await ModuleDAOServer.getInstance().truncate(raw_api_type_id);
+            await ModuleDAOServer.instance.truncate(raw_api_type_id);
         }
 
         // 1
@@ -638,7 +638,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 continue;
             }
 
-            const postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
+            const postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
             if (!postTraitementModule) {
                 if (!importHistoric.use_fast_track) {
                     await ImportLogger.getInstance().log(importHistoric, format, "Impossible de retrouver le module pour tester le format", DataImportLogVO.LOG_LEVEL_ERROR);
@@ -698,7 +698,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 }
 
                 if (error_logs.length > 0) {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(error_logs);
+                    await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(error_logs);
                 }
             }
 
@@ -761,12 +761,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         const format_ = formats_by_ids[importHistoric.data_import_format_id];
         if ((!format_.batch_import) && (!importHistoric.use_fast_track)) {
             if (format_.use_multiple_connections) {
-                await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(all_formats_datas[importHistoric.data_import_format_id], null, true);
-                // await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
+                await ModuleDAOServer.instance.insert_without_triggers_using_COPY(all_formats_datas[importHistoric.data_import_format_id], null, true);
+                // await ModuleDAOServer.instance.insertOrUpdateVOsMulticonnections(
                 //     all_formats_datas[importHistoric.data_import_format_id]);
                 // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2))*/100000);
             } else {
-                await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(all_formats_datas[importHistoric.data_import_format_id]);
+                await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(all_formats_datas[importHistoric.data_import_format_id]);
             }
         }
 
@@ -912,7 +912,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
              * Si le module de posttraitement propose un hook pour remplacer le chargement par batch par défaut, on l'utilise
              */
             const postTreatementModuleVO: ModuleVO = await query(ModuleVO.API_TYPE_ID).filter_by_id(format.post_exec_module_id).select_vo<ModuleVO>();
-            const postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
+            const postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
 
             let validated_imported_datas: IImportedData[] = null;
             if (postTraitementModule.hook_get_batch_mode_batch_datas) {
@@ -935,12 +935,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 }
 
                 if (format.use_multiple_connections) {
-                    await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas, null, true);
-                    // await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
+                    await ModuleDAOServer.instance.insert_without_triggers_using_COPY(validated_imported_datas, null, true);
+                    // await ModuleDAOServer.instance.insertOrUpdateVOsMulticonnections(
                     //     validated_imported_datas);
                     // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2))*/100000);
                 } else {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
+                    await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(validated_imported_datas);
                 }
 
                 return false;
@@ -952,12 +952,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 }
 
                 if (format.use_multiple_connections) {
-                    await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas, null, true);
-                    // await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
+                    await ModuleDAOServer.instance.insert_without_triggers_using_COPY(validated_imported_datas, null, true);
+                    // await ModuleDAOServer.instance.insertOrUpdateVOsMulticonnections(
                     //     validated_imported_datas);
                     // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2))*/100000);
                 } else {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
+                    await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(validated_imported_datas);
                 }
             }
         }
@@ -1005,12 +1005,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 }
 
                 if (format.use_multiple_connections) {
-                    await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas, null, true);
-                    // await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
+                    await ModuleDAOServer.instance.insert_without_triggers_using_COPY(validated_imported_datas, null, true);
+                    // await ModuleDAOServer.instance.insertOrUpdateVOsMulticonnections(
                     //     validated_imported_datas);
                     // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2))*/100000);
                 } else {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
+                    await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(validated_imported_datas);
                 }
 
                 return true;
@@ -1021,19 +1021,19 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 }
 
                 if (format.use_multiple_connections) {
-                    await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas, null, true);
-                    // await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
+                    await ModuleDAOServer.instance.insert_without_triggers_using_COPY(validated_imported_datas, null, true);
+                    // await ModuleDAOServer.instance.insertOrUpdateVOsMulticonnections(
                     //     validated_imported_datas);
                     // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2))*/100000);
                 } else {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
+                    await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(validated_imported_datas);
                 }
             }
 
             return false;
         }
 
-        return await this.posttreat_batch(importHistoric, format, validated_imported_datas);
+        return this.posttreat_batch(importHistoric, format, validated_imported_datas);
     }
 
     public async posttreat_batch(importHistoric: DataImportHistoricVO, format: DataImportFormatVO, validated_imported_datas: IImportedData[]): Promise<boolean> {
@@ -1050,7 +1050,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         //  2 - Post-traiter les données
         // PostTraitement des données avec les hooks pour générer les questions et intégrer ce qui peut l'être
-        const postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
+        const postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
         try {
             if (!await postTraitementModule.hook_merge_imported_datas_in_database(validated_imported_datas, importHistoric, format)) {
                 return false;
@@ -1065,7 +1065,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     public async updateImportHistoric(importHistoric: DataImportHistoricVO) {
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(importHistoric);
         await PushDataServerController.notifyDAOGetVoById(importHistoric.user_id, null, DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
     }
 
@@ -1131,12 +1131,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             .set_sort(new SortByVO(raw_api_type_id, field_names<IImportedData>().imported_line_number, true))
             .set_limit(batch_size, 0);
 
-        return await ModuleContextFilterServer.getInstance().select_vos(query_);
+        return ModuleContextFilterServer.instance.select_vos(query_);
     }
 
     private async setImportHistoricUID(importHistoric: DataImportHistoricVO): Promise<void> {
         importHistoric.historic_uid = importHistoric.id.toString();
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(importHistoric);
     }
 
     private async handleImportFormatCreate(format: DataImportFormatVO): Promise<void> {
@@ -1168,7 +1168,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         if (importHistoric.reimport_of_dih_id) {
             const reimport_of_dih: DataImportHistoricVO = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(importHistoric.reimport_of_dih_id).select_vo<DataImportHistoricVO>();
             reimport_of_dih.status_of_last_reimport = importHistoric.state;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(reimport_of_dih);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(reimport_of_dih);
         }
 
         return true;
@@ -1181,7 +1181,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         if (importHistoric.reimport_of_dih_id) {
             const reimport_of_dih: DataImportHistoricVO = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(importHistoric.reimport_of_dih_id).select_vo<DataImportHistoricVO>();
             reimport_of_dih.status_of_last_reimport = importHistoric.state;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(reimport_of_dih);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(reimport_of_dih);
         }
 
         return true;
@@ -1191,12 +1191,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         const res: FormattedDatasStats = new FormattedDatasStats();
         res.format_id = data_import_format_id;
-        let query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(1) a FROM ' + moduletable.full_name + ' WHERE importation_state!=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
+        let query_res = await ModuleDAOServer.instance.query('SELECT COUNT(1) a FROM ' + moduletable.full_name + ' WHERE importation_state!=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
         res.nb_row_unvalidated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
-        query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(1) a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
+        query_res = await ModuleDAOServer.instance.query('SELECT COUNT(1) a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
         res.nb_row_validated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
         const fields = moduletable.get_fields().map((field: ModuleTableFieldVO) => field.field_name).join(') + COUNT(');
-        query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(' + fields + ') a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
+        query_res = await ModuleDAOServer.instance.query('SELECT COUNT(' + fields + ') a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
         res.nb_fields_validated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
 
         return res;
@@ -1231,7 +1231,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     private async reimportdih(dih: DataImportHistoricVO): Promise<void> {
         dih.status_before_reimport = dih.state;
         dih.state = ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dih);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(dih);
 
     }
 
@@ -1242,7 +1242,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             switch (importHistoric.import_type) {
                 case DataImportHistoricVO.IMPORT_TYPE_REPLACE:
 
-                    await ModuleDAOServer.getInstance().truncate(format.api_type_id);
+                    await ModuleDAOServer.instance.truncate(format.api_type_id);
 
                     // a priori on a juste à virer les ids et modifier les _type, on peut insérer dans le vo cible
                     const insertable_datas: IImportedData[] = [];
@@ -1254,9 +1254,9 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     }
 
                     if (format.use_multiple_connections) {
-                        await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(insertable_datas, null, true);
+                        await ModuleDAOServer.instance.insert_without_triggers_using_COPY(insertable_datas, null, true);
                     } else {
-                        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(insertable_datas);
+                        await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(insertable_datas);
                     }
 
                     break;
@@ -1272,9 +1272,9 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         if (!importHistoric.use_fast_track) {
             if (format.use_multiple_connections) {
-                await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas, null, true);
+                await ModuleDAOServer.instance.insert_without_triggers_using_COPY(validated_imported_datas, null, true);
             } else {
-                await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
+                await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(validated_imported_datas);
             }
         }
     }
@@ -1422,7 +1422,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
              */
             this.check_text_fields(ordered_vo, ordered_vos_by_type_and_initial_id);
             ordered_vo.id = new_id;
-            const insert_res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(ordered_vo);
+            const insert_res: InsertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(ordered_vo);
             if ((!insert_res) || (!insert_res.id) || (new_id && (new_id != insert_res.id))) {
                 throw new Error('Failed insert');
             }

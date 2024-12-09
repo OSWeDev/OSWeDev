@@ -161,6 +161,9 @@ Namespace.prototype.runAndReturn = function runAndReturn(fn) {
 //         });
 // };
 
+/**
+ * @deprecated
+ */
 Namespace.prototype.runPromise = async function runPromise(fn) {
     const context = this.createContext();
     this.enter(context);

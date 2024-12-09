@@ -1,9 +1,12 @@
+import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import GPTAssistantAPIAssistantVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIThreadVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
+import OseliaReferrerVO from '../../../../shared/modules/Oselia/vos/OseliaReferrerVO';
+import OseliaRunTemplateVO from '../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
 import OseliaRunVO from '../../../../shared/modules/Oselia/vos/OseliaRunVO';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
@@ -12,10 +15,16 @@ import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePip
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import GPTAssistantAPIServerController from '../../GPT/GPTAssistantAPIServerController';
+import ModuleOseliaServer from '../ModuleOseliaServer';
 import OseliaRunServerController from '../OseliaRunServerController';
+import OseliaRunTemplateServerController from '../OseliaRunTemplateServerController';
+import OseliaServerController from '../OseliaServerController';
 import OseliaRunBGThreadException from './OseliaRunBGThreadException';
 
 export default class OseliaRunBGThread implements IBGThread {
+
+    public static BGTHREAD_NAME: string = 'OseliaRunBGThread';
 
     /**
      * Les états qu'on peut faire avancer. ça n'empêche pas de créer des bgthreads ou cron pour corriger des blocages d'état et faire de la reprise sur erreur par ailleurs
@@ -62,13 +71,9 @@ export default class OseliaRunBGThread implements IBGThread {
 
     private static instance: OseliaRunBGThread = null;
 
-    public current_timeout: number = 10;
-    public MAX_timeout: number = 100;
+    public current_timeout: number = 10000;
+    public MAX_timeout: number = 100000;
     public MIN_timeout: number = 10;
-
-    public semaphore: boolean = false;
-    public run_asap: boolean = false;
-    public last_run_unix: number = null;
 
     private currently_running_thread_ids: { [thread_id: number]: number } = {};
 
@@ -78,7 +83,7 @@ export default class OseliaRunBGThread implements IBGThread {
     }
 
     get name(): string {
-        return "OseliaRunBGThread";
+        return OseliaRunBGThread.BGTHREAD_NAME;
     }
 
     // istanbul ignore next: nothing to test : getInstance
@@ -190,7 +195,7 @@ export default class OseliaRunBGThread implements IBGThread {
         if (!next_handleable_run) {
             // Si on a pas de prochain run à traiter, on met à jour le thread et on sort
             thread.has_no_run_ready_to_handle = true;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread);
             return;
         }
 
@@ -199,6 +204,13 @@ export default class OseliaRunBGThread implements IBGThread {
          */
         if (next_handleable_run.thread_id != thread.id) {
             thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID).filter_by_id(next_handleable_run.thread_id).exec_as_server().select_vo<GPTAssistantAPIThreadVO>();
+            assistant =
+                next_handleable_run.assistant_id ?
+                    await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                        .filter_by_id(next_handleable_run.assistant_id)
+                        .exec_as_server()
+                        .select_vo<GPTAssistantAPIAssistantVO>() :
+                    null;
         }
 
         switch (next_handleable_run.state) {
@@ -219,7 +231,7 @@ export default class OseliaRunBGThread implements IBGThread {
                 throw new Error('OseliaRunBGThread.handle_next_thread_run: next_handleable_run.state not handled: ' + next_handleable_run.state);
         }
 
-        // await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(next_handleable_run);
+        // await ModuleDAOServer.instance.insertOrUpdateVO_as_server(next_handleable_run);
     }
 
     /**
@@ -325,8 +337,134 @@ export default class OseliaRunBGThread implements IBGThread {
             return;
         } else {
 
-            await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_RUNNING);
-            await OseliaRunServerController.run_run(run, thread, assistant);
+            await this.handle_run(run, thread, assistant);
+        }
+    }
+
+    /**
+     * On gère vraiment le run en lui même
+     */
+    private async handle_run(
+        run: OseliaRunVO,
+        thread: GPTAssistantAPIThreadVO,
+        assistant: GPTAssistantAPIAssistantVO,
+    ) {
+
+        switch (run.run_type) {
+
+            case OseliaRunVO.RUN_TYPE_FOREACH_IN_SEPARATED_THREADS:
+
+                await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_RUNNING);
+
+                if (!run.for_each_array_cache_key) {
+                    run.error_msg = 'OseliaRunBGThread.handle_run: foreach run without for_each_array_cache_key';
+                    await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
+                    return;
+                }
+
+                if (!run.for_each_element_run_template_id) {
+                    run.error_msg = 'OseliaRunBGThread.handle_run: foreach run without for_each_element_run_template_id';
+                    await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
+                    return;
+                }
+
+                const element_run_template = await query(OseliaRunTemplateVO.API_TYPE_ID)
+                    .filter_by_id(run.for_each_element_run_template_id)
+                    .exec_as_server()
+                    .select_vo<OseliaRunTemplateVO>();
+
+                if (!element_run_template) {
+                    run.error_msg = 'OseliaRunBGThread.handle_run: foreach run without for_each_element_run_template';
+                    await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
+                    return;
+                }
+
+                // On charge le tableau / la map depuis le cache
+                const map_or_array = await ModuleOseliaServer.getInstance().get_cache_value(thread, run.for_each_array_cache_key);
+
+                if (!map_or_array) {
+                    run.error_msg = 'OseliaRunBGThread.handle_run: foreach map_or_array not found in cache: ' + run.for_each_array_cache_key;
+                    await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
+                    return;
+                }
+
+                if (!run.for_each_parent_thread_id_cache_key) {
+                    run.error_msg = 'OseliaRunBGThread.handle_run: foreach run without for_each_parent_thread_id_cache_key';
+                    await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
+                    return;
+                }
+
+                try {
+
+                    const user = await query(UserVO.API_TYPE_ID)
+                        .filter_by_id(run.user_id)
+                        .exec_as_server()
+                        .select_vo<UserVO>();
+
+                    const parsed = JSON.parse(map_or_array);
+
+                    const referrers = await query(OseliaReferrerVO.API_TYPE_ID)
+                        .filter_by_id(thread.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
+                        .exec_as_server()
+                        .select_vos<OseliaReferrerVO>();
+
+                    let has_splitts: boolean = false;
+
+                    for (const i in parsed) {
+                        const element = parsed[i];
+
+                        const child_thread = await GPTAssistantAPIServerController.get_thread(run.user_id, null, element_run_template.oselia_thread_default_assistant_id);
+                        if (referrers && (referrers.length > 0)) {
+                            for (const referrer of referrers) {
+                                await OseliaServerController.link_thread_to_referrer(child_thread.thread_vo, referrer);
+                            }
+                        }
+
+                        child_thread.thread_vo.thread_title = (thread.thread_title ? '[SUB] ' + thread.thread_title + ' : ' : '[SUB] ') + 'foreach ' + run.for_each_array_cache_key + ' : ' + i + ' : ' + element;
+                        child_thread.thread_vo.needs_thread_title_build = false;
+                        child_thread.thread_vo.thread_title_auto_build_locked = true;
+                        child_thread.thread_vo.parent_thread_id = thread.id;
+                        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(child_thread.thread_vo);
+
+                        await OseliaRunTemplateServerController.create_run_from_template(
+                            element_run_template,
+                            {
+                                [run.for_each_index_cache_key]: i,
+                                [run.for_each_element_cache_key]: element,
+                                [run.for_each_parent_thread_id_cache_key]: thread.id,
+                            },
+                            {
+                                [run.for_each_index_cache_key]: i,
+                                [run.for_each_element_cache_key]: element,
+                                [run.for_each_parent_thread_id_cache_key]: thread.id,
+                            },
+                            referrers ? referrers[0] : null,
+                            child_thread.thread_vo,
+                            user,
+                            run.id,
+                        );
+                        has_splitts = true;
+                    }
+
+                    if (has_splitts) {
+                        await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_WAITING_SPLITS_END);
+                        return;
+                    } else {
+                        await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_DONE);
+                        return;
+                    }
+
+                } catch (error) {
+                    run.error_msg = 'OseliaRunBGThread.handle_run: foreach error: ' + error;
+                    await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
+                    return;
+                }
+
+            case OseliaRunVO.RUN_TYPE_ASSISTANT:
+            default:
+                await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_RUNNING);
+                await OseliaRunServerController.run_run(run, thread, assistant);
+                break;
         }
     }
 

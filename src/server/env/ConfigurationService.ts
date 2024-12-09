@@ -9,6 +9,7 @@ export default class ConfigurationService {
     /**
      * Local thread cache -----
      */
+    public static ignore_table_db_formats_updates: boolean;
     public static nodeInstall: boolean;
     public static nodeInstallFullSegments: boolean;
 
@@ -24,7 +25,7 @@ export default class ConfigurationService {
     /**
      * Local thread cache -----
      */
-    private static nodeEnv: string;
+    public static nodeEnv: string;
     private static STATIC_ENV_PARAMS: { [env: string]: IEnvParam };
     /**
      * ----- Local thread cache
@@ -42,6 +43,7 @@ export default class ConfigurationService {
     public static init() {
         ConfigurationService.nodeEnv = process.env.NODE_ENV || 'DEV';
         ConfigurationService.nodeInstall = (process.env.NODE_INSTALL == 'true');
+        ConfigurationService.ignore_table_db_formats_updates = (process.env.IGNORE_DB_FORMATS_UPDATES == 'true');
         ConfigurationService.nodeInstallFullSegments = (process.env.NODE_INSTALL_FULL_SEGMENTS == 'true');
     }
 }

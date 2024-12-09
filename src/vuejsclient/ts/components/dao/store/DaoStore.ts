@@ -23,15 +23,6 @@ const callWatchers = async (watchers: DaoStoreTypeWatcherDefinition[]) => {
 
 export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): DAOStore {
-        if (!DAOStore.instance) {
-            DAOStore.instance = new DAOStore();
-        }
-
-        return DAOStore.instance;
-    }
-
     private static instance: DAOStore;
 
     public module_name: string;
@@ -202,11 +193,21 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
             updateData: (context: DAOContext, vo: IDistantVOBase) => context.commit(store_mutations_names(this).updateData, vo),
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): DAOStore {
+        if (!DAOStore.instance) {
+            DAOStore.instance = new DAOStore();
+        }
+
+        return DAOStore.instance;
+    }
 }
 
 const { commit, read, dispatch } =
     getStoreAccessors<IDAOState, any>("DAOStore"); // We pass namespace here, if we make the module namespaced: true.
-export const ModuleDAOGetter = namespace('DAOStore', Getter);
-export const ModuleDAOAction = namespace('DAOStore', Action);
+const __namespace = namespace('DAOStore');
+export const ModuleDAOGetter = __namespace.Getter;
+export const ModuleDAOAction = __namespace.Action;
 
 export const getStoredDatas = read(DAOStore.getInstance().getters.getStoredDatas as GetterHandler<IDAOState, any, any>);

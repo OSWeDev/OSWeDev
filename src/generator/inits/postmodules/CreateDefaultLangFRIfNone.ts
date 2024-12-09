@@ -54,7 +54,7 @@ export default class CreateDefaultLangFRIfNone implements IGeneratorWorker {
 
             lang.code_lang = code_lang;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(lang);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(lang);
         } catch (error) {
             console.error(error);
         }

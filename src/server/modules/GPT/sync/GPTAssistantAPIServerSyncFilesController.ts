@@ -251,7 +251,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
 
             found_vo.archived = true;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
     }
 
@@ -308,6 +308,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
     }
 
     private static async retrieve_file_from_openai(gpt_file_id: string): Promise<void> {
+
         let gpt_file_vo: GPTAssistantAPIFileVO = await query(GPTAssistantAPIFileVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<GPTAssistantAPIFileVO>().gpt_file_id, gpt_file_id)
             .exec_as_server()
@@ -341,7 +342,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
             await FileServerController.getInstance().makeSureThisFolderExists(folder);
             FileServerController.getInstance().writeFile(filepath, file_content);
             vo_file.path = filepath;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo_file);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(vo_file);
             needs_update = true;
         }
 
@@ -376,7 +377,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
         }
 
         if (needs_update) {
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(gpt_file_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(gpt_file_vo);
         }
     }
 }

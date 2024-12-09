@@ -142,7 +142,7 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
                 GPTAssistantAPIServerSyncVectorStoresController.assign_vo_from_gpt(vo, gpt_obj);
 
                 if (!is_trigger_pre_x) {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(vo);
                 }
             }
 
@@ -214,7 +214,7 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
 
                 GPTAssistantAPIServerSyncVectorStoresController.assign_vo_from_gpt(found_vo, vector_store);
 
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
             }
 
             // On synchron les fichiers du vector store
@@ -240,7 +240,7 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
 
             found_vo.archived = true;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(found_vo);
         }
 
         // On synchro les batchs de fichiers même si on peut pas vraiment les mettre à jour

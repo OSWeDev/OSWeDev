@@ -1,6 +1,8 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
+import VueJsonPretty from 'vue-json-pretty';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -12,13 +14,21 @@ import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/v
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import ModuleFile from '../../../../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../../../../shared/modules/GPT/ModuleGPT';
 import GPTAssistantAPIAssistantVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIFunctionVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
 import GPTAssistantAPIThreadMessageVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
+import ModuleOselia from '../../../../../../shared/modules/Oselia/ModuleOselia';
+import OseliaRunFunctionCallVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
+import OseliaRunVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunVO';
+import OseliaThreadCacheVO from '../../../../../../shared/modules/Oselia/vos/OseliaThreadCacheVO';
+import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
@@ -31,24 +41,13 @@ import DatatableComponentField from '../../../datatable/component/fields/Datatab
 import MailIDEventsComponent from '../../../mail_id_events/MailIDEventsComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
+import OseliaRunArboComponent from './OseliaRunArbo/OseliaRunArboComponent';
 import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
 import './OseliaThreadWidgetComponent.scss';
 import OseliaLeftPanelComponent from './OseliaLeftPanel/OseliaLeftPanelComponent';
 import ConfigurationService from '../../../../../../server/env/ConfigurationService';
-import EnvHandler from '../../../../../../shared/tools/EnvHandler';
-import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
-import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
-import ModuleOselia from '../../../../../../shared/modules/Oselia/ModuleOselia';
-import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
 import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
-import RoleVO from '../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
-import OseliaReferrerVO from '../../../../../../shared/modules/Oselia/vos/OseliaReferrerVO';
-import OseliaUserReferrerVO from '../../../../../../shared/modules/Oselia/vos/OseliaUserReferrerVO';
-import OseliaUserReferrerOTTVO from '../../../../../../shared/modules/Oselia/vos/OseliaUserReferrerOTTVO';
-import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
-import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import OseliaRunVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunVO';
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
     components: {
@@ -58,9 +57,14 @@ import OseliaRunVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunVO
         Mailideventscomponent: MailIDEventsComponent,
         Oseliathreadmessagecomponent: OseliaThreadMessageComponent,
         Oselialeftpanelcomponent: OseliaLeftPanelComponent,
+        VueJsonPretty,
+        Oseliarunarbocomponent: OseliaRunArboComponent,
     }
 })
 export default class OseliaThreadWidgetComponent extends VueComponentBase {
+
+    @ModuleDashboardPageAction
+    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
 
     @ModuleOseliaGetter
     private get_show_hidden_messages: boolean;
@@ -113,6 +117,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     @ModuleOseliaAction
     private set_oselia_first_loading_done: (oselia_first_loading_done: boolean) => void;
 
+    public thread_cached_datas: OseliaThreadCacheVO[] = [];
+    public sub_threads: GPTAssistantAPIThreadVO[] = [];
+    public function_calls: OseliaRunFunctionCallVO[] = [];
+
     public thread_messages: GPTAssistantAPIThreadMessageVO[] = [];
     public thread: GPTAssistantAPIThreadVO = null;
     public oselia_runs: OseliaRunVO[] = [];
@@ -142,11 +150,18 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private use_realtime_voice: boolean = false;
     private has_access_to_debug: boolean = false;
 
+    private expand_thread_cached_datas: boolean = false;
+    private expand_sub_threads: boolean = false;
+    private expand_function_calls: boolean = false;
+    private expand_oselia_runs: boolean = false;
+
+    private functions_by_id: { [id: number]: GPTAssistantAPIFunctionVO } = {};
+
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
 
     get role_assistant_avatar_url() {
-        return '/vuejsclient/public/img/avatars/oselia.png';
+        return '/public/vuejsclient/img/avatars/oselia.png';
     }
 
     get file_system_url() {
@@ -204,6 +219,14 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
     }
 
+    private select_thread_id(thread_id: number) {
+        this.set_active_field_filter({
+            vo_type: GPTAssistantAPIThreadVO.API_TYPE_ID,
+            field_id: field_names<GPTAssistantAPIThreadVO>().id,
+            active_field_filter: filter(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().id).by_num_eq(thread_id)
+        });
+    }
+
     private async beforeDestroy() {
         await this.unregister_all_vo_event_callbacks();
     }
@@ -222,6 +245,11 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.frame = parent.document.getElementById('OseliaContainer');
 
         this.has_access_to_debug = await ModuleAccessPolicy.getInstance().testAccess(ModuleOselia.POLICY_BO_ACCESS);
+
+        if (this.has_access_to_debug) {
+            const functions = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID).select_vos<GPTAssistantAPIFunctionVO>();
+            this.functions_by_id = VOsTypesManager.vosArray_to_vosByIds(functions);
+        }
 
         window.addEventListener('paste', e => {
             if (e.clipboardData.files.length > 0) {
@@ -250,6 +278,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         if (!this.page_widget) {
 
             this.thread_messages = [];
+            this.thread_cached_datas = [];
+            this.sub_threads = [];
+            this.function_calls = [];
             this.oselia_runs = [];
             this.assistant = null;
             this.is_loading_thread = false;
@@ -323,7 +354,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.enable_file_system_menu = !this.enable_file_system_menu;
         this.enable_image_upload_menu = false;
         this.enable_link_image_menu = false;
-        this.dashboard_export_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_EXPORT_DASHBOARD_ID_PARAM_NAME);
+        this.dashboard_export_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_EXPORT_DASHBOARD_ID_PARAM_NAME, null, 10000);
         const num_range: NumRange = NumRange.createNew(0, 10, true, true, 0);
         await this.listen_for_message(this.dashboard_export_id, num_range);
     }
@@ -430,7 +461,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 // Upload via insert or update
                 const new_file = new FileVO();
                 new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
-                const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
+                const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
                 new_file.id = resnew_file.id;
                 this.thread_files.push({ ['.' + file.name.split('.').pop()]: new_file });
             });
@@ -527,6 +558,27 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             [filter(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().thread_id).by_num_eq(this.thread.id)]
         );
 
+        // On récupère les sub threads
+        await this.register_vo_updates_on_list(
+            GPTAssistantAPIThreadVO.API_TYPE_ID,
+            reflect<this>().sub_threads,
+            [filter(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().parent_thread_id).by_num_eq(this.thread.id)]
+        );
+
+        // On récupère les appels de fonctions
+        await this.register_vo_updates_on_list(
+            OseliaRunFunctionCallVO.API_TYPE_ID,
+            reflect<this>().function_calls,
+            [filter(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().thread_id).by_num_eq(this.thread.id)]
+        );
+
+        // On récupère les données du cache du thread
+        await this.register_vo_updates_on_list(
+            OseliaThreadCacheVO.API_TYPE_ID,
+            reflect<this>().thread_cached_datas,
+            [filter(OseliaThreadCacheVO.API_TYPE_ID, field_names<OseliaThreadCacheVO>().thread_id).by_num_eq(this.thread.id)]
+        );
+
         // On récupère les contenus des runs
         await this.register_vo_updates_on_list(
             OseliaRunVO.API_TYPE_ID,
@@ -538,6 +590,31 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             this.scroll_to_bottom();
         });
 
+    }
+
+    private try_parse_json(json: string): any {
+        if (!json) {
+            return {};
+        }
+
+        if (typeof json !== 'string') {
+            return json;
+        }
+
+        if (!(json.startsWith('{') && json.endsWith('}'))) {
+            return json;
+        }
+
+        try {
+            return JSON.parse(json);
+        } catch (error) {
+            //
+        }
+        return json;
+    }
+
+    private async replay_from_id(function_call_id: number) {
+        await ModuleOselia.getInstance().replay_function_call(function_call_id);
     }
 
     private thread_message_updated() {

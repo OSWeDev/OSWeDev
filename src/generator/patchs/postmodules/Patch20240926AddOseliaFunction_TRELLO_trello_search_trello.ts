@@ -52,7 +52,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_search_trello 
             function_TRELLO_trello_search_trello.gpt_function_name = 'trello_search_trello';
             function_TRELLO_trello_search_trello.json_stringify_output = true;
             function_TRELLO_trello_search_trello.gpt_function_description = "Find what you're looking for in Trello";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(function_TRELLO_trello_search_trello);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(function_TRELLO_trello_search_trello);
         }
 
         let argument_query = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -70,7 +70,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_search_trello 
             argument_query.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_query.not_in_function_params = true;
             argument_query.weight = 0;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_query);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_query);
         }
 
         let argument_idBoards = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -88,7 +88,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_search_trello 
             argument_idBoards.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_idBoards.not_in_function_params = false;
             argument_idBoards.weight = 1;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_idBoards);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_idBoards);
         }
 
         let argument_idOrganizations = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -106,7 +106,7 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_search_trello 
             argument_idOrganizations.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_idOrganizations.not_in_function_params = false;
             argument_idOrganizations.weight = 2;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_idOrganizations);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_idOrganizations);
         }
 
         let argument_idCards = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
@@ -125,6 +125,6 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_search_trello 
         }
         argument_idCards.not_in_function_params = false;
         argument_idCards.weight = 3;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_idCards);
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument_idCards);
     }
 }
