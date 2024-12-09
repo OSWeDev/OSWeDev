@@ -1,8 +1,15 @@
-import VarDAGNode from '../../../modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
+import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
+import VarDAGNode from '../../../modules/Var/vos/VarDAGNode';
 import DataSourcesController from './DataSourcesController';
 
 export default abstract class DataSourceControllerBase {
+
+    /**
+     * Si on peut charger les datas en batch/groupes de nodes
+     * par défaut false
+     */
+    public can_load_batch: boolean = false;
 
     protected constructor(
         /**
@@ -20,6 +27,19 @@ export default abstract class DataSourceControllerBase {
 
     public registerDataSource() {
         DataSourcesController.registerDataSource(this);
+    }
+
+    /**
+     * Stratégie de chargement des données en fonction des var_datas contenu dans les nodes en mode batch
+     * Par définition les noeuds ont été testés avant pour vérifier que ce ne sont pas des nodes de type pixel avec un card > 1
+     * @param nodes
+     */
+    public async load_nodes_data_using_pipeline(nodes_by_index: { [index: string]: VarDAGNode }, pipeline: PromisePipeline): Promise<void> {
+
+        // Par défaut, ça consiste simplement à appeler load_node_data sur chaque node
+        for (const i in nodes_by_index) {
+            await pipeline.push(async () => this.load_node_data(nodes_by_index[i]));
+        }
     }
 
     /**
