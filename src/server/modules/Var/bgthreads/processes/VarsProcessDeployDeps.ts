@@ -73,7 +73,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
             // On charge les caches pour ces noeuds
             //  et on récupère les nouveaux vars_datas à insérer dans l'arbre
             await promise_pipeline.push(async () => {
-                const node_does_not_need_deployment: boolean = await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(node);
+                const node_does_not_need_deployment: boolean = await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(node, true);
 
                 if (node_does_not_need_deployment) {
                     if (ConfigurationService.node_configuration.debug_vars) {
@@ -166,43 +166,46 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
     }
 
     protected worker_sync(node: VarDAGNode): boolean {
-        return false;
+
+        throw new Error('not implemented');
+        // return false;
     }
 
     protected async worker_async(node: VarDAGNode): Promise<boolean> {
 
-        if (ConfigurationService.node_configuration.debug_vars) {
-            ConsoleHandler.log('VarsProcessDeployDeps:START: ' + node.var_data.index + ' ' + node.var_data.value);
-        }
+        throw new Error('not implemented');
+        // if (ConfigurationService.node_configuration.debug_vars) {
+        //     ConsoleHandler.log('VarsProcessDeployDeps:START: ' + node.var_data.index + ' ' + node.var_data.value);
+        // }
 
-        /**
-         * Si on a une value valide, c'est qu'on a pas besoin de déployer les deps
-         */
-        if (VarsServerController.has_valid_value(node.var_data)) {
-            if (ConfigurationService.node_configuration.debug_vars) {
-                ConsoleHandler.log('VarsProcessDeployDeps:END - has_valid_value: ' + node.var_data.index + ' ' + node.var_data.value);
-            }
-            return true;
-        }
+        // /**
+        //  * Si on a une value valide, c'est qu'on a pas besoin de déployer les deps
+        //  */
+        // if (VarsServerController.has_valid_value(node.var_data)) {
+        //     if (ConfigurationService.node_configuration.debug_vars) {
+        //         ConsoleHandler.log('VarsProcessDeployDeps:END - has_valid_value: ' + node.var_data.index + ' ' + node.var_data.value);
+        //     }
+        //     return true;
+        // }
 
-        // Petit contrôle de cohérence suite pb en prod
-        if ((!node.var_data.index) || (node.var_data.index.indexOf('null') > -1)) {
+        // // Petit contrôle de cohérence suite pb en prod
+        // if ((!node.var_data.index) || (node.var_data.index.indexOf('null') > -1)) {
 
-            ConsoleHandler.error('VarsProcessDeployDeps.worker_async: node.var_data.index null or contains null: ' + node.var_data.index + ' - On crée une fausse valeur pour éviter de bloquer le système');
-            node.var_data.value_ts = Dates.now();
-            node.var_data.value = 0;
-            node.var_data.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
-            return true;
-        }
+        //     ConsoleHandler.error('VarsProcessDeployDeps.worker_async: node.var_data.index null or contains null: ' + node.var_data.index + ' - On crée une fausse valeur pour éviter de bloquer le système');
+        //     node.var_data.value_ts = Dates.now();
+        //     node.var_data.value = 0;
+        //     node.var_data.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
+        //     return true;
+        // }
 
-        // On charge les caches pour ces noeuds
-        //  et on récupère les nouveaux vars_datas à insérer dans l'arbre
-        await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(node);
+        // // On charge les caches pour ces noeuds
+        // //  et on récupère les nouveaux vars_datas à insérer dans l'arbre
+        // await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(node);
 
-        if (ConfigurationService.node_configuration.debug_vars) {
-            ConsoleHandler.log('VarsProcessDeployDeps:END: ' + node.var_data.index + ' ' + node.var_data.value);
-        }
+        // if (ConfigurationService.node_configuration.debug_vars) {
+        //     ConsoleHandler.log('VarsProcessDeployDeps:END: ' + node.var_data.index + ' ' + node.var_data.value);
+        // }
 
-        return true;
+        // return true;
     }
 }

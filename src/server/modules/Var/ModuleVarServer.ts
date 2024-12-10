@@ -83,8 +83,8 @@ import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarsClientsSubsCacheHolder from './bgthreads/processes/VarsClientsSubsCacheHolder';
 import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCacheManager';
 import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
+import VarsProcessLoadDatas from './bgthreads/processes/VarsProcessLoadDatas';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
-import DataSourcesController from './datasource/DataSourcesController';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
 
 export default class ModuleVarServer extends ModuleServerBase {
@@ -1265,7 +1265,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             const predeps = var_controller.getDataSourcesPredepsDependencies();
             if (predeps && predeps.length) {
-                await DataSourcesController.load_node_datas(predeps, varDAGNode);
+                await VarsProcessLoadDatas.load_nodes_datas({ [varDAGNode.var_data.index]: varDAGNode }, true);
+                // await DataSourcesController.load_node_datas(predeps, varDAGNode);
             }
 
             // TEMP DEBUG JFE :
@@ -1370,18 +1371,11 @@ export default class ModuleVarServer extends ModuleServerBase {
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
             CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
 
+            await VarsProcessLoadDatas.load_nodes_datas({ [varDAGNode.var_data.index]: varDAGNode }, true);
+
             for (const i in datasources_deps) {
                 const datasource_dep = datasources_deps[i];
 
-                if (!CurrentBatchDSCacheHolder.current_batch_ds_cache[datasource_dep.name]) {
-                    CurrentBatchDSCacheHolder.current_batch_ds_cache[datasource_dep.name] = {};
-                }
-
-                if (!CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[datasource_dep.name]) {
-                    CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[datasource_dep.name] = {};
-                }
-
-                await datasource_dep.load_node_data(varDAGNode);
                 const data = varDAGNode.datasources[datasource_dep.name];
 
                 let data_jsoned: string = null;

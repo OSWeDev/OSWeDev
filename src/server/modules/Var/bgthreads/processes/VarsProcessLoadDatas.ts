@@ -106,37 +106,37 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
     }
 
     protected worker_sync(node: VarDAGNode): boolean {
-        return false;
+        throw new Error('not implemented');
     }
 
     protected async worker_async(node: VarDAGNode): Promise<boolean> {
+        throw new Error('not implemented');
+        // const controller = VarsServerController.getVarControllerById(node.var_data.var_id);
 
-        const controller = VarsServerController.getVarControllerById(node.var_data.var_id);
+        // const dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
 
-        const dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
+        // if ((!dss) || (!dss.length)) {
+        //     return true;
+        // }
 
-        if ((!dss) || (!dss.length)) {
-            return true;
-        }
+        // // TODO FIXME JNE DELETE when proven unuseful ==>
+        // // On ne doit surtout pas charger des datas sources sur des vars de type pixel mais qui n'en sont pas (card > 1)
+        // if (controller.varConf.pixel_activated) {
+        //     const prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
 
-        // TODO FIXME JNE DELETE when proven unuseful ==>
-        // On ne doit surtout pas charger des datas sources sur des vars de type pixel mais qui n'en sont pas (card > 1)
-        if (controller.varConf.pixel_activated) {
-            const prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
-
-            if (prod_cardinaux != 1) {
-                return true;
-            }
-        }
-        // <==
+        //     if (prod_cardinaux != 1) {
+        //         return true;
+        //     }
+        // }
+        // // <==
 
 
-        await DataSourcesController.load_node_datas(dss, node);
+        // await DataSourcesController.load_node_datas(dss, node);
 
-        if (ConfigurationService.node_configuration.debug_vars) {
-            ConsoleHandler.log('loaded_node_datas:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type]);
-        }
+        // if (ConfigurationService.node_configuration.debug_vars) {
+        //     ConsoleHandler.log('loaded_node_datas:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type]);
+        // }
 
-        return true;
+        // return true;
     }
 }
