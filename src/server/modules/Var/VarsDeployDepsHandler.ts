@@ -23,6 +23,77 @@ import ThreadHandler from "../../../shared/tools/ThreadHandler";
 
 export default class VarsDeployDepsHandler {
 
+    public static async handle_deploy_deps(
+        node: VarDAGNode,
+        deps: { [index: string]: VarDataBaseVO }) {
+
+        const time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_deploy_deps', 'IN');
+        const deps_as_array = Object.values(deps);
+        StatsController.register_stat_QUANTITE('VarsDeployDepsHandler', 'handle_deploy_deps', 'deps', deps_as_array ? deps_as_array.length : 0);
+        const deps_ids_as_array = Object.keys(deps);
+
+        let start_time = Dates.now();
+        const real_start_time = start_time;
+
+        const promises = [];
+        for (const deps_i in deps_as_array) {
+
+            if ((!node.var_dag) || (!node.var_dag.nodes[node.var_data.index])) {
+                return;
+            }
+
+            const actual_time = Dates.now();
+
+            if (actual_time > (start_time + 60)) {
+                start_time = actual_time;
+                ConsoleHandler.warn('handle_deploy_deps:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+            }
+
+            const dep = deps_as_array[deps_i];
+            const dep_id = deps_ids_as_array[deps_i];
+
+            if (node.var_dag.nodes[dep.index]) {
+
+                if (ConfigurationService.node_configuration.debug_vars) {
+                    ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':already in tree, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
+                }
+
+                // Si on ne peut pas ajouter le lien, on doit attendre
+                while (!node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index])) {
+                    ConsoleHandler.throttle_log('handle_deploy_deps:dep already in tree:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
+                    await ThreadHandler.sleep(1, 'handle_deploy_deps:dep already in tree:add dep failed, waiting');
+                }
+                continue;
+            }
+
+            promises.push((async () => {
+
+                const dep_node = await VarDAGNode.getInstance(node.var_dag, dep, false/*, true*/);
+                if (!dep_node) {
+                    return;
+                }
+
+                // dep_node.is_client_sub_dep = dep_node.is_client_sub_dep || node.is_client_sub || node.is_client_sub_dep;
+                // dep_node.is_server_sub_dep = dep_node.is_server_sub_dep || node.is_server_sub || node.is_server_sub_dep;
+
+                if (ConfigurationService.node_configuration.debug_vars) {
+                    ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':new node, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
+                }
+
+                // Si on ne peut pas ajouter le lien, on doit attendre
+                while (!node.addOutgoingDep(dep_id, dep_node)) {
+                    ConsoleHandler.throttle_log('handle_deploy_deps:dep new node:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
+                    await ThreadHandler.sleep(1, 'handle_deploy_deps:dep new node:add dep failed, waiting');
+                }
+            })());
+        }
+
+        await all_promises(promises);
+
+        StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'handle_deploy_deps', 'OUT', Dates.now_ms() - time_in);
+    }
+
     /**
      *  - On entame en vérifiant qu'on a testé le cas des imports parcellaires :
      *      - Si on a des imports, on split et on relance le déploiement sur les nouveaux noeuds restants à calculer
@@ -52,11 +123,12 @@ export default class VarsDeployDepsHandler {
      * ATTENTION FIXME : limit_to_aggregated_datas on doit faire très attention à ne pas créer des noeuds bizarres dans l'arbre du bgthread des vars
      *  juste pour afficher des deps dans la description... normalement les demandes clients arrivent pas sur ce thread, mais avec cette refonte
      *  il va falloir être vigilent sur l'impact sur cette option
+     * @returns {Promise<boolean>} true si tout a été fait sur le noeud, false si on doit charger les ds predeps encore et déployer les deps (donc on a passé le param limit_to_aggregated_datas, et on a pas résolu avec les données aggrégées)
      */
     public static async load_caches_and_imports_on_var_to_deploy(
         node: VarDAGNode,
         limit_to_aggregated_datas: boolean = false
-    ) {
+    ): Promise<boolean> {
 
         const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'IN');
@@ -515,76 +587,5 @@ export default class VarsDeployDepsHandler {
         StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT', Dates.now_ms() - time_in);
 
         return res;
-    }
-
-    private static async handle_deploy_deps(
-        node: VarDAGNode,
-        deps: { [index: string]: VarDataBaseVO }) {
-
-        const time_in = Dates.now_ms();
-        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_deploy_deps', 'IN');
-        const deps_as_array = Object.values(deps);
-        StatsController.register_stat_QUANTITE('VarsDeployDepsHandler', 'handle_deploy_deps', 'deps', deps_as_array ? deps_as_array.length : 0);
-        const deps_ids_as_array = Object.keys(deps);
-
-        let start_time = Dates.now();
-        const real_start_time = start_time;
-
-        const promises = [];
-        for (const deps_i in deps_as_array) {
-
-            if ((!node.var_dag) || (!node.var_dag.nodes[node.var_data.index])) {
-                return;
-            }
-
-            const actual_time = Dates.now();
-
-            if (actual_time > (start_time + 60)) {
-                start_time = actual_time;
-                ConsoleHandler.warn('handle_deploy_deps:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
-            }
-
-            const dep = deps_as_array[deps_i];
-            const dep_id = deps_ids_as_array[deps_i];
-
-            if (node.var_dag.nodes[dep.index]) {
-
-                if (ConfigurationService.node_configuration.debug_vars) {
-                    ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':already in tree, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
-                }
-
-                // Si on ne peut pas ajouter le lien, on doit attendre
-                while (!node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index])) {
-                    ConsoleHandler.throttle_log('handle_deploy_deps:dep already in tree:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
-                    await ThreadHandler.sleep(1, 'handle_deploy_deps:dep already in tree:add dep failed, waiting');
-                }
-                continue;
-            }
-
-            promises.push((async () => {
-
-                const dep_node = await VarDAGNode.getInstance(node.var_dag, dep, false/*, true*/);
-                if (!dep_node) {
-                    return;
-                }
-
-                // dep_node.is_client_sub_dep = dep_node.is_client_sub_dep || node.is_client_sub || node.is_client_sub_dep;
-                // dep_node.is_server_sub_dep = dep_node.is_server_sub_dep || node.is_server_sub || node.is_server_sub_dep;
-
-                if (ConfigurationService.node_configuration.debug_vars) {
-                    ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':new node, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
-                }
-
-                // Si on ne peut pas ajouter le lien, on doit attendre
-                while (!node.addOutgoingDep(dep_id, dep_node)) {
-                    ConsoleHandler.throttle_log('handle_deploy_deps:dep new node:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
-                    await ThreadHandler.sleep(1, 'handle_deploy_deps:dep new node:add dep failed, waiting');
-                }
-            })());
-        }
-
-        await all_promises(promises);
-
-        StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'handle_deploy_deps', 'OUT', Dates.now_ms() - time_in);
     }
 }

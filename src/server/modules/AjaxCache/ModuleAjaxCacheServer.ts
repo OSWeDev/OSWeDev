@@ -59,7 +59,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
-    public async requests_wrapper(requests: LightWeightSendableRequestVO[], response: Response, req: Request): Promise<RequestsWrapperResult> {
+    public async requests_wrapper(requests: LightWeightSendableRequestVO[], req: Request): Promise<RequestsWrapperResult> {
 
         const res: RequestsWrapperResult = new RequestsWrapperResult();
         res.requests_results = {};

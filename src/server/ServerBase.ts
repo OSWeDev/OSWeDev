@@ -1198,7 +1198,7 @@ export default abstract class ServerBase {
 
                 // old session - on check qu'on doit pas invalider
                 if ((!session.last_check_session_validity) ||
-                    (Dates.now() >= session.last_check_session_validity + 10)) {
+                    (Dates.now() >= session.last_check_session_validity + 60)) {
 
                     session.last_check_session_validity = Dates.now();
 
@@ -1220,8 +1220,10 @@ export default abstract class ServerBase {
                 (Dates.now() >= (session.last_check_blocked_or_expired + 60))) {
 
                 session.last_check_blocked_or_expired = Dates.now();
+                session.save(() => { });
+
                 // On doit vérifier que le compte est ni bloqué ni expiré
-                const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
+                const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().set_max_age_ms(60000).select_vo<UserVO>();
 
                 if ((!user) || user.blocked || user.invalidated) {
 
@@ -1263,7 +1265,7 @@ export default abstract class ServerBase {
             const uid: number = session.uid;
 
             // On doit vérifier que le compte est ni bloqué ni expiré
-            const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
+            const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().set_max_age_ms(60000).select_vo<UserVO>();
             if ((!user) || user.blocked || user.invalidated) {
 
                 await ConsoleHandler.warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));

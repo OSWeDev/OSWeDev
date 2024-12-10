@@ -176,8 +176,8 @@ export default class ExpressDBSessionsServerController extends Store {
                     cache_sess_obj,
                     [
                         reflect<IServerUserSession>().id, // On ne compare pas l'id car celui issu de la bdd ou préparé pour ne peut pas avoir le même
-                        reflect<IServerUserSession>().last_check_blocked_or_expired,
-                        reflect<IServerUserSession>().last_check_session_validity,
+                        // reflect<IServerUserSession>().last_check_blocked_or_expired, // Si on met pas à jour les dates de check, on check tout le temps....
+                        // reflect<IServerUserSession>().last_check_session_validity, // Si on met pas à jour les dates de check, on check tout le temps....
                         reflect<IServerUserSession>().last_load_date_unix,
                         reflect<IServerUserSession>().regenerate, // On ne compare pas les fonctions
                         reflect<IServerUserSession>().reload, // On ne compare pas les fonctions

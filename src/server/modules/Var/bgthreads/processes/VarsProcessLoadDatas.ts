@@ -18,15 +18,7 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
         super('VarsProcessLoadDatas', VarDAGNode.TAG_2_DEPLOYED, VarDAGNode.TAG_3_DATA_LOADING, VarDAGNode.TAG_3_DATA_LOADED, 2, true, ConfigurationService.node_configuration.max_varsprocessloaddatas);
     }
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!VarsProcessLoadDatas.instance) {
-            VarsProcessLoadDatas.instance = new VarsProcessLoadDatas();
-        }
-        return VarsProcessLoadDatas.instance;
-    }
-
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
+    public static async load_nodes_datas(nodes: { [node_name: string]: VarDAGNode }, predep: boolean = false): Promise<boolean> {
 
         /**
          * Le plan c'est :
@@ -40,7 +32,7 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
             const node = nodes[i];
 
             const controller = VarsServerController.registered_vars_controller_by_var_id[node.var_data.var_id];
-            const dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
+            const dss: DataSourceControllerBase[] = predep ? controller.getDataSourcesPredepsDependencies() : controller.getDataSourcesDependencies();
 
             if ((!dss) || (!dss.length)) {
                 continue;
@@ -59,6 +51,12 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
 
             for (const j in dss) {
                 const ds = dss[j];
+
+                // Si le datasource a déjà été chargé sur ce noeud, on ne le recharge pas
+                if (!!node.datasources[ds.name]) {
+                    continue;
+                }
+
                 if (!nodes_by_datasource[ds.name]) {
                     nodes_by_datasource[ds.name] = {};
                 }
@@ -91,6 +89,20 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
         await promise_pipeline.end();
 
         return true;
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!VarsProcessLoadDatas.instance) {
+            VarsProcessLoadDatas.instance = new VarsProcessLoadDatas();
+        }
+        return VarsProcessLoadDatas.instance;
+    }
+
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
+
+        // On charge les datas (pas predeps) de tous les nodes
+        return VarsProcessLoadDatas.load_nodes_datas(nodes, false);
     }
 
     protected worker_sync(node: VarDAGNode): boolean {

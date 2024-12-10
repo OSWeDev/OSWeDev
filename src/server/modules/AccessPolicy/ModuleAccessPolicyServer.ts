@@ -65,6 +65,7 @@ import UserRecapture from './UserRecapture/UserRecapture';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import APIBGThread from '../API/bgthreads/APIBGThread';
 import { IRequestStackContext } from '../../ServerExpressController';
+import CachedQueryHandler from '../../../shared/tools/cache/CachedQueryHandler';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -91,8 +92,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     /**
-     *
-     * @deprecated se base sur le StackContext et on veut supprimer ce module
      */
     public static getLoggedUserId(): number {
 
@@ -122,8 +121,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     /**
-     * On ajoute un cache au sein de la session pour éviter de faire des requêtes inutiles
-     * @deprecated se base sur le StackContext et on veut supprimer ce module
+     * Cette méthode n'a pas vocation à renvoyer une donnée extremmement fraiche sur le user, mais simplement un user qui est en cache et relativement frais
      */
     public static async getSelfUser(): Promise<UserVO> {
 
@@ -135,7 +133,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        return query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_server().select_vo<UserVO>();
+        return query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_server().set_max_age_ms(10000).select_vo<UserVO>(); // On veut pas faire 1000 requêtes par seconde, on peut utiliser une data de compte de quelques secondes sans que ce soit un drame a priori
     }
 
     public static async getMyLang(): Promise<LangVO> {
@@ -144,7 +142,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if (!user) {
             return null;
         }
-        return query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
+        return query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).set_max_age_ms(10000).select_vo<LangVO>(); // On veut pas faire 1000 requêtes par seconde, on peut utiliser une data de compte de quelques secondes sans que ce soit un drame a priori
     }
 
     /**
