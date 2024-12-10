@@ -324,7 +324,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
         await import("chartjs-plugin-datalabels");
     }
-    
+
     /**
      * Si on a pas encore rendered le chart, on checke les datas. Dès que les datas sont là, on render.
      *  Pendant ce temps on bloque le sémaphore

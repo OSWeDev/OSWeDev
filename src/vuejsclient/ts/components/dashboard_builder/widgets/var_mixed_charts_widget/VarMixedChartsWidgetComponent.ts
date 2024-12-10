@@ -239,20 +239,16 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let res = {};
+        const res = {};
 
         for (const j in this.datasets) {
             const dataset = this.datasets[j];
-
-            for (const i in this.widget_options.var_chart_scales_options) {
+            for (let i = 0; i < this.widget_options.var_charts_options.length; i++) {
                 const var_chart_option: VarChartOptionsVO = this.widget_options.var_charts_options[i];
-
                 if (var_chart_option.selected_filter_id == undefined) {
                     return;
                 }
-
                 const current_scale = new VarChartScalesOptionsVO().from(this.widget_options.var_chart_scales_options.find((scale) => scale.chart_id == var_chart_option.selected_filter_id));
-
                 const var_chart_id_dataset = var_chart_option.chart_id + '_' + dataset;
 
                 if (res[var_chart_id_dataset] == undefined) {

@@ -597,11 +597,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Ouvrir'
-        }, 'var_charts_options_component.open_var_chart_options'));
+        }, 'var_charts_options_component.open_var_chart_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Fermer'
-        }, 'var_charts_options_component.close_var_chart_options'));
+        }, 'var_charts_options_component.close_var_chart_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options des ordonnées'
