@@ -6,7 +6,6 @@ import ModuleLogger from '../modules/Logger/ModuleLogger';
 import LogVO from '../modules/Logger/vos/LogVO';
 import ModulesManager from '../modules/ModulesManager';
 import ParamsManager from '../modules/Params/ParamsManager';
-import { reflect } from './ObjectHandler';
 import ThrottleHelper from './ThrottleHelper';
 import ILoggerHandler from './interfaces/ILoggerHandler';
 
@@ -63,6 +62,8 @@ export default class ConsoleHandler {
 
     public static logger_handler: ILoggerHandler = null;
 
+    public static thread_name: string = null;
+
     private static old_console_log: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_warn: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_error: (message?: any, ...optionalParams: any[]) => void = null;
@@ -75,11 +76,13 @@ export default class ConsoleHandler {
     private static throttled_logs_counter: { [log: string]: number } = {};
     private static throttled_add_logs_client: LogVO[] = [];
 
-    public static init() {
+    public static init(thread_name: string) {
 
         if (ConsoleHandler.old_console_log) {
             return;
         }
+
+        ConsoleHandler.thread_name = thread_name;
 
         // DO NOT DELETE : USED to debug Promises when there are multiple resolves =>
         // (global as any).Promise = MonitoredPromise;
@@ -222,7 +225,7 @@ export default class ConsoleHandler {
                     break;
             }
 
-            ConsoleHandler['old_console_' + log_type_str]('[' + log_type_str.toUpperCase() + ' ' + this.get_formatted_timestamp(log.date) + '] ' + log.msg, ...log.params);
+            ConsoleHandler['old_console_' + log_type_str]('[' + log_type_str.toUpperCase() + ' ' + this.get_formatted_timestamp(log.date) + '] (' + ConsoleHandler.thread_name + ') ' + log.msg, ...log.params);
         }
 
         // On ne log pas les logs du generator en BDD, sinon ça plante car tout n'est pas initialisé

@@ -91,7 +91,7 @@ export default abstract class VueAppBase {
 
     public async runApp() {
 
-        ConsoleHandler.init();
+        ConsoleHandler.init('client');
         ModulesManager.initialize();
 
         // Chargement des données des modules.

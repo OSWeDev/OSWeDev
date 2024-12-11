@@ -127,7 +127,7 @@ export default abstract class ServerBase {
         DBDisconnectionManager.instance = new DBDisconnectionServerHandler();
         EventsController.hook_stack_incompatible = ConfigurationService.node_configuration.activate_incompatible_stack_context ? StackContext.context_incompatible : null;
 
-        ConsoleHandler.init();
+        ConsoleHandler.init('main');
         FileLoggerHandler.getInstance().prepare().then(() => {
             ConsoleHandler.logger_handler = FileLoggerHandler.getInstance();
             ConsoleHandler.log("Main Process starting");

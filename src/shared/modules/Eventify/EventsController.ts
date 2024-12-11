@@ -48,7 +48,15 @@ export default class EventsController {
 
             // Si le listener est pas throttled, on le lance
             if (!listener.throttled) {
-                EventsController.call_listener(listener, event);
+
+                if (!listener.unlimited_calls) {
+                    listener.remaining_calls--;
+                    if (listener.remaining_calls <= 0) {
+                        delete EventsController.registered_listeners[event.name][listener.name];
+                    }
+                }
+
+                setTimeout(EventsController.call_listener, 0, listener, event);
                 continue;
             }
 
@@ -58,7 +66,15 @@ export default class EventsController {
              *  Si on est pas en cooldown, on lance le cb
              */
             if ((!listener.cb_is_running) && (!listener.cb_is_cooling_down)) {
-                EventsController.call_listener(listener, event);
+
+                if (!listener.unlimited_calls) {
+                    listener.remaining_calls--;
+                    if (listener.remaining_calls <= 0) {
+                        delete EventsController.registered_listeners[event.name][listener.name];
+                    }
+                }
+
+                setTimeout(EventsController.call_listener, 0, listener, event);
                 continue;
             }
 
@@ -75,7 +91,15 @@ export default class EventsController {
                     }
                     clearTimeout(listener.cooling_down_timeout);
                     listener.cb_is_cooling_down = false;
-                    EventsController.call_listener(listener, event);
+
+                    if (!listener.unlimited_calls) {
+                        listener.remaining_calls--;
+                        if (listener.remaining_calls <= 0) {
+                            delete EventsController.registered_listeners[event.name][listener.name];
+                        }
+                    }
+
+                    setTimeout(EventsController.call_listener, 0, listener, event);
                     continue;
                 }
                 listener.run_as_soon_as_possible = true;
@@ -131,13 +155,6 @@ export default class EventsController {
     }
 
     private static async call_listener(listener: EventifyEventListenerInstanceVO, event: EventifyEventInstanceVO): Promise<void> {
-
-        if (!listener.unlimited_calls) {
-            listener.remaining_calls--;
-            if (listener.remaining_calls <= 0) {
-                delete EventsController.registered_listeners[event.name][listener.name];
-            }
-        }
 
         try {
             do {

@@ -32,7 +32,7 @@ import ConfigurationService from '../../../src/server/env/ConfigurationService';
 //     expect(VarsImportsHandler.getInstance().load_imports_and_split_nodes(var_data_A, var_data_B)).toStrictEqual(1);
 // });
 
-ConsoleHandler.init();
+ConsoleHandler.init('test');
 ConfigurationService.setEnvParams({});
 ConfigurationService.IS_UNIT_TEST_MODE = true;
 

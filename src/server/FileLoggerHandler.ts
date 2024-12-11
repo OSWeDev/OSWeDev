@@ -82,7 +82,7 @@ export default class FileLoggerHandler implements ILoggerHandler {
 
     private log_to_file() {
         const logs_by_log_type_id: { [log_type_id: number]: LogVO[] } = {};
-        const logs: LogVO[] = cloneDeep(this.log_to_file_cache);
+        const logs: LogVO[] = this.log_to_file_cache;
         this.log_to_file_cache = [];
 
         for (const i in logs) {

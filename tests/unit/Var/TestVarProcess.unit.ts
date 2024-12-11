@@ -21,7 +21,7 @@ import FakeTriangularValidDataHandler from './fakes/vars_triangular_dag/FakeTria
 import FakeTriangularVarsInit from './fakes/vars_triangular_dag/FakeTriangularVarsInit';
 import ThreadHandler from '../../../src/shared/tools/ThreadHandler';
 
-ConsoleHandler.init();
+ConsoleHandler.init('test');
 ConfigurationService.setEnvParams({});
 ConfigurationService.IS_UNIT_TEST_MODE = true;
 

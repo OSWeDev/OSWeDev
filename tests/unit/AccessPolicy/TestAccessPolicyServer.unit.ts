@@ -13,7 +13,7 @@ import RoleVO from '../../../src/shared/modules/AccessPolicy/vos/RoleVO';
 import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
 
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
-ConsoleHandler.init();
+ConsoleHandler.init('test');
 
 test('AccessPolicyServer: test check access - denied by default to all but admin', () => {
     APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();

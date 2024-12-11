@@ -8,7 +8,7 @@ import SortByVO from '../../../src/shared/modules/ContextFilter/vos/SortByVO';
 import { field_names } from "../../../src/shared/tools/ObjectHandler";
 
 let instance: ContextQueryServerController;
-ConsoleHandler.init();
+ConsoleHandler.init('test');
 
 test('check_filters_arbo_ET: should do nothing when filter type is not TYPE_FILTER_AND', () => {
     instance = ContextQueryServerController;

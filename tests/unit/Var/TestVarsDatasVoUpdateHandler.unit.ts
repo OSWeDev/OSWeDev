@@ -17,7 +17,7 @@ import FakeEmpDistantHandler from './fakes/FakeEmpDistantHandler';
 import FakeVarsInit from './fakes/FakeVarsInit';
 import FakeCyclicalDataHandler from './fakes/cyclical/FakeCyclicalDataHandler';
 
-ConsoleHandler.init();
+ConsoleHandler.init('test');
 ConfigurationService.setEnvParams({});
 ConfigurationService.IS_UNIT_TEST_MODE = true;
 

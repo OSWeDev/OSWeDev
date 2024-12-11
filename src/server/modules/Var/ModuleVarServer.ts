@@ -1371,7 +1371,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
             CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
 
-            await VarsProcessLoadDatas.load_nodes_datas({ [varDAGNode.var_data.index]: varDAGNode }, true);
+            await VarsProcessLoadDatas.load_nodes_datas({ [varDAGNode.var_data.index]: varDAGNode }, false);
 
             for (const i in datasources_deps) {
                 const datasource_dep = datasources_deps[i];

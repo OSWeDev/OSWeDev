@@ -1,5 +1,5 @@
 import pg_promise, { IDatabase } from 'pg-promise';
-import { parentPort, workerData } from 'worker_threads';
+import { parentPort, threadId, workerData } from 'worker_threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import EventsController from '../../../shared/modules/Eventify/EventsController';
 import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
@@ -68,7 +68,7 @@ export default abstract class ForkedProcessWrapperBase {
         DBDisconnectionManager.instance = new DBDisconnectionServerHandler();
         EventsController.hook_stack_incompatible = ConfigurationService.node_configuration.activate_incompatible_stack_context ? StackContext.context_incompatible : null;
 
-        ConsoleHandler.init();
+        ConsoleHandler.init('thread ' + threadId);
         FileLoggerHandler.getInstance().prepare().then(() => {
             ConsoleHandler.logger_handler = FileLoggerHandler.getInstance();
             ConsoleHandler.log("Forked Process starting");

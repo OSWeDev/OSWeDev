@@ -19,7 +19,7 @@ import ConfigurationService from '../../../src/server/env/ConfigurationService';
 import { field_names } from "../../../src/shared/tools/ObjectHandler";
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
-ConsoleHandler.init();
+ConsoleHandler.init('test');
 ContextFilterTestsTools.getInstance().declare_modultables();
 ConfigurationService.setEnvParams({});
 
@@ -195,7 +195,7 @@ test('ContextQueryServer: test .build_select_query - RoleVO => AnonymizationFiel
  */
 test('ContextQueryServer: test .build_select_query AND OR combinaison', async () => {
 
-    const context_query: ContextQueryVO = query(UserVO.API_TYPE_ID)    
+    const context_query: ContextQueryVO = query(UserVO.API_TYPE_ID)
         .field(field_names<UserVO>().firstname)
         .field(field_names<UserVO>().lastname)
         .add_filters([

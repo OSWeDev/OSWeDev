@@ -15,7 +15,7 @@ import FakeEmpDayDataHandler from '../Var/fakes/FakeEmpDayDataHandler';
 import FakeDataVO from '../Var/fakes/vos/FakeDataVO';
 import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
 
-ConsoleHandler.init();
+ConsoleHandler.init('test');
 
 FakeEmpDayDataHandler.initializeFakeEmpDayDataVO();
 

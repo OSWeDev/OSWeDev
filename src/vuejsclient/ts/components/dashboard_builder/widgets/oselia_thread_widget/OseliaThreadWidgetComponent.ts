@@ -63,9 +63,6 @@ import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRo
 })
 export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
-    @ModuleDashboardPageAction
-    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
-
     @ModuleOseliaGetter
     private get_show_hidden_messages: boolean;
     @ModuleOseliaAction
@@ -505,8 +502,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private async get_files_system(): Promise<FileVO[]> {
         let files = await query(FileVO.API_TYPE_ID)
             .set_limit(10)
-            .select_vos<FileVO>().then((files) => {
-                return files;
+            .select_vos<FileVO>().then((files_) => {
+                return files_;
             });
         return [];
     }

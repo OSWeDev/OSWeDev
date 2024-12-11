@@ -311,7 +311,7 @@ export default abstract class GeneratorBase {
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
         PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.debug_promise_pipeline_worker_stats;
 
-        ConsoleHandler.init();
+        ConsoleHandler.init('generator');
         FileLoggerHandler.getInstance().prepare().then(() => {
             ConsoleHandler.logger_handler = FileLoggerHandler.getInstance();
             ConsoleHandler.log("Generator starting");
