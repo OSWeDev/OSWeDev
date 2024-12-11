@@ -226,6 +226,9 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": "Délais"
         }, 'suivi_competences_widget_component.delais.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            "fr-fr": "Bilan M-1"
+        }, 'suivi_competences_widget_component.bilan_precedent.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
 
         await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations(true);
     }

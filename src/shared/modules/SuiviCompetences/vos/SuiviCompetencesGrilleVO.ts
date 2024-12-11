@@ -21,6 +21,8 @@ export default class SuiviCompetencesGrilleVO implements IVersionedVO {
     public show_column_rapport_cible: boolean;
     public show_column_rapport_delais: boolean;
     public show_column_rapport_indicateur: boolean;
+    public show_column_name: boolean;
+    public show_column_bilan_precedent: boolean;
     public show_commentaire_1: boolean;
     public show_commentaire_2: boolean;
     public show_prochain_suivi: boolean;

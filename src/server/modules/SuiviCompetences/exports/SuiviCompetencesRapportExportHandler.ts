@@ -134,6 +134,7 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
                             data['commentaires_' + rapport_id] = item_rapport.etat_des_lieux;
                             data['cible_' + rapport_id] = item_rapport.cible;
                             data['delais_' + rapport_id] = item_rapport.delais;
+                            data['bilan_precedent_' + rapport_id] = item_rapport.bilan_precedent;
                             data['plan_action_' + rapport_id] = item_rapport.plan_action;
 
                             if (item_rapport_indicateur) {
@@ -154,6 +155,7 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
         let show_column_rapport_etat_des_lieux: boolean = false;
         let show_column_rapport_cible: boolean = false;
         let show_column_rapport_delais: boolean = false;
+        let show_column_rapport_bilan_precedent: boolean = false;
         let show_column_rapport_indicateur: boolean = false;
 
         for (let i in rapport_by_ids) {
@@ -175,6 +177,9 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
             if (grille.show_column_rapport_delais) {
                 show_column_rapport_delais = true;
             }
+            if (grille.show_column_bilan_precedent) {
+                show_column_rapport_bilan_precedent = true;
+            }
             if (grille.show_column_rapport_indicateur) {
                 show_column_rapport_indicateur = true;
             }
@@ -186,6 +191,7 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
             show_column_rapport_etat_des_lieux,
             show_column_rapport_cible,
             show_column_rapport_delais,
+            show_column_rapport_bilan_precedent,
             show_column_rapport_indicateur,
         );
 
@@ -211,6 +217,7 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
             res['commentaires_' + rapport_id] = "Commentaires";
             res['cible_' + rapport_id] = "Cible";
             res['delais_' + rapport_id] = "Delais";
+            res['bilan_precedent_' + rapport_id] = "Bilan précédent";
             res['plan_action_' + rapport_id] = "Plan d'action";
         });
 
@@ -223,6 +230,7 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
         show_column_rapport_etat_des_lieux: boolean,
         show_column_rapport_cible: boolean,
         show_column_rapport_delais: boolean,
+        show_column_rapport_bilan_precedent: boolean,
         show_column_rapport_indicateur: boolean,
     ) {
         let res: string[] = [
@@ -250,6 +258,9 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
             }
             if (show_column_rapport_delais) {
                 res.push('delais_' + rapport_id);
+            }
+            if (show_column_rapport_bilan_precedent) {
+                res.push('bilan_precedent_' + rapport_id);
             }
         });
 

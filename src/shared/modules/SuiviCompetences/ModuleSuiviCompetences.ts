@@ -186,6 +186,8 @@ export default class ModuleSuiviCompetences extends Module {
             ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_column_rapport_etat_des_lieux, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher colonne rapport : etat des lieux', true, true, true),
             ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_column_rapport_cible, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher colonne rapport : cible', true, true, true),
             ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_column_rapport_delais, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher colonne rapport : delais', true, true, true),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_column_name, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher colonne : Nom', false, true, true),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_column_bilan_precedent, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher colonne : Bilan précédent', false, true, false),
             ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_column_rapport_indicateur, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher colonne rapport : indicateur', true, true, true),
             ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_commentaire_1, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher champ : commentaire 1', true, true, true),
             ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_commentaire_2, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher champ : commentaire 2', true, true, true),
@@ -239,6 +241,7 @@ export default class ModuleSuiviCompetences extends Module {
             ModuleTableFieldController.create_new(SuiviCompetencesItemRapportVO.API_TYPE_ID, field_names<SuiviCompetencesItemRapportVO>().etat_des_lieux, ModuleTableFieldVO.FIELD_TYPE_html, "Etat des lieux"),
             ModuleTableFieldController.create_new(SuiviCompetencesItemRapportVO.API_TYPE_ID, field_names<SuiviCompetencesItemRapportVO>().cible, ModuleTableFieldVO.FIELD_TYPE_html, "Cible"),
             ModuleTableFieldController.create_new(SuiviCompetencesItemRapportVO.API_TYPE_ID, field_names<SuiviCompetencesItemRapportVO>().delais, ModuleTableFieldVO.FIELD_TYPE_html, "Délais"),
+            ModuleTableFieldController.create_new(SuiviCompetencesItemRapportVO.API_TYPE_ID, field_names<SuiviCompetencesItemRapportVO>().bilan_precedent, ModuleTableFieldVO.FIELD_TYPE_html, "bilan précédent"),
             ModuleTableFieldController.create_new(SuiviCompetencesItemRapportVO.API_TYPE_ID, field_names<SuiviCompetencesItemRapportVO>().indicateur, ModuleTableFieldVO.FIELD_TYPE_int, "Indicateur"),
         ];
 
