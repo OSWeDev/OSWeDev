@@ -181,7 +181,7 @@ export default class VarsTabsSubsController {
      */
     @ThrottleExecAsServerRunsOnMainThread({
         param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
-        throttle_ms: 100,
+        throttle_ms: 50,
         leading: true,
         trailing: true,
     })

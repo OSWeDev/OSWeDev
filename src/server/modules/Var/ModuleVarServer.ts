@@ -576,8 +576,8 @@ export default class ModuleVarServer extends ModuleServerBase {
             if (vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
 
                 // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
-                await VarsTabsSubsController.notify_vardatas([new NotifVardatasParam([vo])]);
-                await VarsServerCallBackSubsController.notify_vardatas([vo]);
+                VarsTabsSubsController.notify_vardatas([new NotifVardatasParam([vo])]);
+                VarsServerCallBackSubsController.notify_vardatas([vo]);
 
                 await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
             }
@@ -628,8 +628,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                 ((vo_update_handler.post_update_vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (vo_update_handler.post_update_vo.value != vo_update_handler.pre_update_vo.value))) {
 
                 // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
-                await VarsTabsSubsController.notify_vardatas([new NotifVardatasParam([vo_update_handler.post_update_vo])]);
-                await VarsServerCallBackSubsController.notify_vardatas([vo_update_handler.post_update_vo]);
+                VarsTabsSubsController.notify_vardatas([new NotifVardatasParam([vo_update_handler.post_update_vo])]);
+                VarsServerCallBackSubsController.notify_vardatas([vo_update_handler.post_update_vo]);
 
                 await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo_update_handler.post_update_vo]);
             }

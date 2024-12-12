@@ -21,10 +21,13 @@ export default function ThrottleExecAsServerRunsOnMainThread(
         // Appliquer d'abord RunsOnMainThread
         const descriptorAterRunsOnMainThread = RunsOnMainThread(target, propertyKey, descriptorAterThrottle);
 
-        // Mais on doit aussi throttle le RunsOnBgThread pour pas patater le bgthread
-        const descriptorAterSecondThrottle = Throttle(throttleOptions)(target, propertyKey, descriptorAterRunsOnMainThread);
+        // Alors on a un souci si on throttle avant et après le changement de thread, dans le cas où on change pas de thread, c'est donc le même throttle qu'on utilise et ça part en boucle infinie
+        // Donc en l'état osef le deuxième throttle, on le vire
+        // // Mais on doit aussi throttle le RunsOnBgThread pour pas patater le bgthread
+        // const descriptorAterSecondThrottle = Throttle(throttleOptions)(target, propertyKey, descriptorAterRunsOnMainThread);
 
-        // Retourner le descriptor final
-        return descriptorAterSecondThrottle;
+        // // Retourner le descriptor final
+        // return descriptorAterSecondThrottle;
+        return descriptorAterRunsOnMainThread;
     };
 }

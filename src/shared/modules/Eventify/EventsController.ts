@@ -56,7 +56,7 @@ export default class EventsController {
                     }
                 }
 
-                setTimeout(EventsController.call_listener, 0, listener, event);
+                EventsController.call_listener(listener, event);
                 continue;
             }
 
@@ -74,7 +74,7 @@ export default class EventsController {
                     }
                 }
 
-                setTimeout(EventsController.call_listener, 0, listener, event);
+                EventsController.call_listener(listener, event);
                 continue;
             }
 
@@ -99,7 +99,7 @@ export default class EventsController {
                         }
                     }
 
-                    setTimeout(EventsController.call_listener, 0, listener, event);
+                    EventsController.call_listener(listener, event);
                     continue;
                 }
                 listener.run_as_soon_as_possible = true;

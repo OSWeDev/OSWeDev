@@ -242,7 +242,7 @@ export default class VarsServerCallBackSubsController {
                 if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                     ConsoleHandler.log("get_vars_datas:notify_vardatas:IN:" + nb_params);
                 }
-                await VarsServerCallBackSubsController.notify_vardatas(notifyable_vars);
+                VarsServerCallBackSubsController.notify_vardatas(notifyable_vars);
                 if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                     ConsoleHandler.log("get_vars_datas:notify_vardatas:OUT:" + nb_params);
                 }

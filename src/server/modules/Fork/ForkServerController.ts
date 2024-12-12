@@ -178,7 +178,7 @@ export default class ForkServerController {
 
         forked.worker.on('message', async (msg: IForkMessage) => {
             msg = ForkMessageController.reapply_prototypes_on_msg(msg);
-            await ForkMessageController.message_handler(msg, forked.worker);
+            return ForkMessageController.message_handler(msg, forked.worker);
         });
     }
 

@@ -1,24 +1,19 @@
-import ContextQueryVO, { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
+import ContextQueryVO from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ParameterizedQueryWrapperField from "../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField";
-import EventifyEventConfVO from "../../../shared/modules/Eventify/vos/EventifyEventConfVO";
+import EventsController from "../../../shared/modules/Eventify/EventsController";
 import EventifyEventInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventInstanceVO";
-import EventifyEventListenerConfVO from "../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO";
-import EventifyEventListenerInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../../../shared/modules/Stats/StatsController";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
-import ObjectHandler, { field_names, reflect } from "../../../shared/tools/ObjectHandler";
 import PromisePipeline from "../../../shared/tools/PromisePipeline/PromisePipeline";
 import { all_promises } from "../../../shared/tools/PromiseTools";
 import ThreadHandler from "../../../shared/tools/ThreadHandler";
 import ThrottleHelper from "../../../shared/tools/ThrottleHelper";
 import ConfigurationService from "../../env/ConfigurationService";
 import AzureMemoryCheckServerController from "../AzureMemoryCheck/AzureMemoryCheckServerController";
-import EventsController from "../../../shared/modules/Eventify/EventsController";
 import ModuleServiceBase from "../ModuleServiceBase";
 import DAOCacheHandler from "./DAOCacheHandler";
 import LogDBPerfServerController from "./LogDBPerfServerController";
-import ModuleDAOServer from "./ModuleDAOServer";
 import ThrottledSelectQueryParam from "./vos/ThrottledSelectQueryParam";
 
 export default class ThrottledQueryServerController {
@@ -37,6 +32,8 @@ export default class ThrottledQueryServerController {
      */
     // private static LISTENER_push_throttled_select_query_params_by_fields_labels_CONF: EventifyEventListenerConfVO = null;
     // private static LISTENER_push_throttled_select_query_params_by_fields_labels_INSTANCE: EventifyEventListenerInstanceVO = null;
+
+    private static promise_pipeline: PromisePipeline = null;
 
     /**
      * Les params du throttled_select_query
@@ -100,7 +97,6 @@ export default class ThrottledQueryServerController {
             }
         });
     }
-
     /**
      * Cb de l'event de push des queries, throttled
      */
@@ -118,12 +114,13 @@ export default class ThrottledQueryServerController {
             await ThreadHandler.sleep(100, "ModuleDAOServer:shift_select_queries:dao_server_coef == 0");
         }
 
-        let fields_labels: string = ObjectHandler.getFirstAttributeName(ThrottledQueryServerController.throttled_select_query_params_by_fields_labels);
+        const throttled_select_query_params_by_fields_labels = ThrottledQueryServerController.throttled_select_query_params_by_fields_labels;
+        ThrottledQueryServerController.throttled_select_query_params_by_fields_labels = {};
 
-        while (!!fields_labels) {
+        for (const fields_labels in throttled_select_query_params_by_fields_labels) {
 
-            const same_field_labels_params: ThrottledSelectQueryParam[] = ThrottledQueryServerController.throttled_select_query_params_by_fields_labels[fields_labels];
-            delete ThrottledQueryServerController.throttled_select_query_params_by_fields_labels[fields_labels];
+            const same_field_labels_params: ThrottledSelectQueryParam[] = throttled_select_query_params_by_fields_labels[fields_labels];
+            delete throttled_select_query_params_by_fields_labels[fields_labels];
 
             // "dedoublonned" - JNE Copyright 2023
             const dedoublonned_same_field_labels_params_by_group_id: { [group_id: number]: { [query_index: number]: ThrottledSelectQueryParam } } = {};
@@ -195,17 +192,122 @@ export default class ThrottledQueryServerController {
                 }
             }
 
-            await ThrottledQueryServerController.handle_groups_queries(
+            ThrottledQueryServerController.handle_groups_queries(
                 dedoublonned_same_field_labels_params_by_group_id,
                 request_by_group_id,
                 freeze_check_passed_and_refused,
                 force_freeze,
                 // promise_pipeline
             );
-
-            fields_labels = ObjectHandler.getFirstAttributeName(ThrottledQueryServerController.throttled_select_query_params_by_fields_labels);
         }
     }
+
+
+    // /**
+    //  * Cb de l'event de push des queries, throttled
+    //  */
+    // public static async shift_select_queries(): Promise<void> {
+
+    //     // const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool, 'ThrottledQueryServerController.shift_select_queries', true);
+    //     const force_freeze: { [parameterized_full_query: string]: boolean } = {};
+    //     const freeze_check_passed_and_refused: { [parameterized_full_query: string]: boolean } = {};
+    //     const MAX_NB_AUTO_UNION_IN_SELECT = ConfigurationService.node_configuration.max_nb_auto_union_in_select;
+
+    //     // On doit temporiser si on est sur un coef 0 lié à la charge mémoire de la BDD
+    //     while (AzureMemoryCheckServerController.dao_server_coef == 0) {
+    //         ConsoleHandler.log('ModuleDAOServer:shift_select_queries:AzureMemoryCheckServerController.dao_server_coef-0');
+    //         ThrottledQueryServerController.throttled_shift_select_queries_log_dao_server_coef_0();
+    //         await ThreadHandler.sleep(100, "ModuleDAOServer:shift_select_queries:dao_server_coef == 0");
+    //     }
+
+    //     let fields_labels: string = ObjectHandler.getFirstAttributeName(ThrottledQueryServerController.throttled_select_query_params_by_fields_labels);
+
+    //     while (!!fields_labels) {
+
+    //         const same_field_labels_params: ThrottledSelectQueryParam[] = ThrottledQueryServerController.throttled_select_query_params_by_fields_labels[fields_labels];
+    //         delete ThrottledQueryServerController.throttled_select_query_params_by_fields_labels[fields_labels];
+
+    //         // "dedoublonned" - JNE Copyright 2023
+    //         const dedoublonned_same_field_labels_params_by_group_id: { [group_id: number]: { [query_index: number]: ThrottledSelectQueryParam } } = {};
+
+    //         if (ConfigurationService.node_configuration.debug_throttled_select) {
+    //             ConsoleHandler.log('shift_select_queries:pushing param');
+    //         }
+
+    //         let group_id = 0;
+    //         let nb_union_in_current_group_id = 0;
+    //         const request_by_group_id: { [group_id: number]: string } = {};
+    //         for (const i in same_field_labels_params) {
+    //             const same_field_labels_param = same_field_labels_params[i];
+
+    //             same_field_labels_param.register_unstack_stats();
+
+    //             const doublon_promise = ThrottledQueryServerController.dedoublonnage(same_field_labels_param, force_freeze, freeze_check_passed_and_refused);
+    //             if (doublon_promise) {
+    //                 continue;
+    //             }
+
+    //             /**
+    //              * On veut limiter à X le nombre de requêtes regroupées, pour pas lancer une requete de 50 unions, mais plutôt 10 requetes de 5 unions par exemple
+    //              */
+    //             if (nb_union_in_current_group_id >= MAX_NB_AUTO_UNION_IN_SELECT) {
+    //                 group_id++;
+    //                 nb_union_in_current_group_id = 0;
+    //             }
+
+    //             /**
+    //              * On ajoute la gestion du cache ici
+    //              */
+    //             if (same_field_labels_param.context_query && same_field_labels_param.context_query.max_age_ms && DAOCacheHandler.has_cache(same_field_labels_param.parameterized_full_query, same_field_labels_param.context_query.max_age_ms)) {
+    //                 ThrottledQueryServerController.handle_load_from_cache(same_field_labels_param)();
+    //                 continue;
+    //             }
+    //             StatsController.register_stat_COMPTEUR('ModuleDAO', 'shift_select_queries', 'not_from_cache');
+
+    //             const current_promise = new Promise(async (resolve, reject) => {
+    //                 ThrottledQueryServerController.current_promise_resolvers[same_field_labels_param.index] = resolve;
+    //             });
+
+    //             ThrottledQueryServerController.current_select_query_promises[same_field_labels_param.parameterized_full_query] = current_promise;
+
+
+    //             if (!/^\(?select /i.test(same_field_labels_param.parameterized_full_query)) {
+    //                 ConsoleHandler.error('Only select queries are allowed in shift_select_queries:' + same_field_labels_param.parameterized_full_query);
+    //                 continue;
+    //             }
+
+    //             nb_union_in_current_group_id++;
+
+    //             if (!dedoublonned_same_field_labels_params_by_group_id[group_id]) {
+    //                 dedoublonned_same_field_labels_params_by_group_id[group_id] = {};
+    //                 request_by_group_id[group_id] = null;
+    //             }
+    //             dedoublonned_same_field_labels_params_by_group_id[group_id][same_field_labels_param.index] = same_field_labels_param;
+
+    //             /**
+    //              * On doit faire l'union
+    //              */
+    //             const this_request = "(SELECT " + same_field_labels_param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" +
+    //                 same_field_labels_param.parameterized_full_query + ") ___throttled_select_query___query)";
+
+    //             if (request_by_group_id[group_id]) {
+    //                 request_by_group_id[group_id] += " UNION ALL " + this_request;
+    //             } else {
+    //                 request_by_group_id[group_id] = this_request;
+    //             }
+    //         }
+
+    //         await ThrottledQueryServerController.handle_groups_queries(
+    //             dedoublonned_same_field_labels_params_by_group_id,
+    //             request_by_group_id,
+    //             freeze_check_passed_and_refused,
+    //             force_freeze,
+    //             // promise_pipeline
+    //         );
+
+    //         fields_labels = ObjectHandler.getFirstAttributeName(ThrottledQueryServerController.throttled_select_query_params_by_fields_labels);
+    //     }
+    // }
 
     private static async handle_groups_queries(
         dedoublonned_same_field_labels_params_by_group_id: { [group_id: number]: { [query_index: number]: ThrottledSelectQueryParam } },
@@ -216,6 +318,10 @@ export default class ThrottledQueryServerController {
     ) {
         const self = this;
         // const old_promise_pipeline_max_concurrent_promises = promise_pipeline.max_concurrent_promises;
+
+        if (!ThrottledQueryServerController.promise_pipeline) {
+            ThrottledQueryServerController.promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool, 'ThrottledQueryServerController.handle_groups_queries', true);
+        }
 
         for (const group_id_s in request_by_group_id) {
             const gr_id = parseInt(group_id_s);
@@ -246,13 +352,15 @@ export default class ThrottledQueryServerController {
             // );
             // });
 
-            self.do_select_query(
-                request,
-                null,
-                dedoublonned_same_field_labels_params,
-                freeze_check_passed_and_refused,
-                force_freeze
-            );
+            await ThrottledQueryServerController.promise_pipeline.push(async () => {
+                await self.do_select_query(
+                    request,
+                    null,
+                    dedoublonned_same_field_labels_params,
+                    freeze_check_passed_and_refused,
+                    force_freeze
+                );
+            });
         }
 
         // promise_pipeline.max_concurrent_promises = old_promise_pipeline_max_concurrent_promises;

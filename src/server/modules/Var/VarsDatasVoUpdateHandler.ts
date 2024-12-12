@@ -15,7 +15,6 @@ import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import StackContext from '../../StackContext';
-import ThrottleAndExecAsServer from '../../annotations/ThrottleAndExecAsServer';
 import ThrottleExecAsServerRunsOnBgThread from '../../annotations/ThrottleExecAsServerRunsOnBgThread';
 import ConfigurationService from '../../env/ConfigurationService';
 import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
@@ -108,74 +107,7 @@ export default class VarsDatasVoUpdateHandler {
     //     });
     // }
 
-    /**
-     * Objectif on bloque le ModuleDAO en modification, et on informe via notif quand on a à la fois bloqué les updates et vidé le cache de ce module
-     */
-    public static async force_empty_vars_datas_vo_update_cache() {
 
-        DAOServerController.GLOBAL_UPDATE_BLOCKER = true;
-        let max_sleeps = 100;
-
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-
-            if ((!VarsDatasVoUpdateHandler.ordered_vos_cud) ||
-                (!VarsDatasVoUpdateHandler.ordered_vos_cud.length)) {
-
-                const uid: number = StackContext.get('UID');
-                const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-                if (uid) {
-                    await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'force_empty_vars_datas_vo_update_cache.done', true);
-                }
-                ConsoleHandler.warn("Cache des modifications de VO vidé. Prêt pour le redémarrage");
-                return;
-            }
-            await ThreadHandler.sleep(5000, 'VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache');
-            max_sleeps--;
-            if (max_sleeps <= 0) {
-                throw new Error('Unable to force_empty_vars_datas_vo_update_cache');
-            }
-        }
-    }
-
-    /**
-     * On passe en param le nombre max de cud qu'on veut gérer, et on dépile en FIFO
-     * @returns true si on a des invalidations trop récentes et qu'on veut donc éviter de calculer des vars
-     */
-    public static async handle_buffer(ordered_vos_cud: Array<IDistantVOBase | DAOUpdateVOHolder<IDistantVOBase>>): Promise<{ [invalidator_id: string]: VarDataInvalidatorVO }> {
-
-        VarsDatasVoUpdateHandler.last_call_handled_something = false;
-
-        if ((!ordered_vos_cud) || (!ordered_vos_cud.length)) {
-            VarsDatasVoUpdateHandler.throttled_update_param();
-            return null;
-        }
-
-        VarsDatasVoUpdateHandler.last_call_handled_something = true;
-
-        const vo_types: string[] = [];
-        const vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
-        const vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = {};
-
-        VarsDatasVoUpdateHandler.prepare_updates(ordered_vos_cud, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
-
-        const intersectors_by_index: { [index: string]: VarDataBaseVO } = await VarsDatasVoUpdateHandler.init_leaf_intersectors(vo_types, vos_update_buffer, vos_create_or_delete_buffer);
-        const leaf_invalidators_by_index: { [conf_id: string]: VarDataInvalidatorVO } = {};
-
-        for (const i in intersectors_by_index) {
-            const intersector = intersectors_by_index[i];
-
-            const invalidator = VarDataInvalidatorVO.create_new(intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false);
-            const conf_id = VarsController.get_validator_config_id(invalidator);
-            leaf_invalidators_by_index[conf_id] = invalidator;
-        }
-
-        // On met à jour le param en base pour refléter les modifs qui restent en attente de traitement
-        VarsDatasVoUpdateHandler.throttled_update_param();
-
-        // Si on continue d'invalider des Vos on attend sagement avant de relancer les calculs
-        return leaf_invalidators_by_index;
-    }
 
     /**
      * Objectif : Déployer les invalidateurs, pour permettre d'avoir une liste complète d'intersecteurs niveau par niveau
@@ -282,361 +214,6 @@ export default class VarsDatasVoUpdateHandler {
 
         await promise_pipeline.end();
     }
-
-    /**
-     * On doit faire une union sur les intersecteurs, mais ni sur les inclusions ni sur les exacts
-     * Pour le moment on implémente pas les inclusions, qui n'ont pas une utilité évidente (on a pas d'interface pour faire ça pour le moment a priori en plus)
-     */
-    public static async handle_invalidators(deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO }) {
-
-        let invalidators = Object.values(deployed_invalidators);
-
-        if (!invalidators || !invalidators.length) {
-            return;
-        }
-        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:IN:' + invalidators.length);
-
-        // On fait l'union
-        invalidators = this.union_invalidators(invalidators);
-        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-            ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:UNION:' + invalidators.length);
-        }
-
-        /**
-         * En // invalider en DB et dans l'arbre
-         * Puis réinsérer dans l'arbre : les registers (clients et serveurs) + les vars pixel never delete qui ont été invalidées en db
-         */
-        const invalidated_pixels_never_delete: VarDataBaseVO[] = [];
-        const promise_pipeline: PromisePipeline = new PromisePipeline(ConfigurationService.node_configuration.max_vars_invalidators, 'VarsDatasVoUpdateHandler.handle_invalidators');
-
-        for (const i in invalidators) {
-            const invalidator = invalidators[i];
-
-            await promise_pipeline.push(async () => {
-                const this_invalidated_pixels_never_delete = await this.apply_invalidator_in_db(invalidator);
-                if (this_invalidated_pixels_never_delete && this_invalidated_pixels_never_delete.length) {
-                    invalidated_pixels_never_delete.push(...this_invalidated_pixels_never_delete);
-
-                    if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                        this_invalidated_pixels_never_delete.forEach((pixel_never_delete) => {
-                            ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:this_invalidated_pixels_never_delete:' + pixel_never_delete.index + ':by:');
-                            invalidator.console_log();
-                        });
-                    }
-                }
-            });
-
-            // Attention on ne doit pas unlink en //, sinon il faut semaphore comme le getInstance()
-            this.apply_invalidator_in_tree(invalidator);
-        }
-
-        await promise_pipeline.end();
-
-        const all_vardagnode_promises = [];
-
-        // On réinsère les vars pixel never delete qui ont été invalidées en db
-        if (invalidated_pixels_never_delete && invalidated_pixels_never_delete.length) {
-            for (const i in invalidated_pixels_never_delete) {
-                const invalidated_pixel_never_delete = invalidated_pixels_never_delete[i];
-
-                all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(invalidated_pixel_never_delete.index), true/*, true*/));
-            }
-        }
-
-        // On réinsère les registers (clients et serveurs)
-        await VarsClientsSubsCacheManager.update_clients_subs_indexes_cache(true);
-        // Server
-        const subs: string[] = Object.keys(VarsServerCallBackSubsController.cb_subs);
-        // Clients
-        subs.push(...Object.keys(VarsClientsSubsCacheHolder.clients_subs_indexes_cache));
-
-        for (const j in subs) {
-
-            const index = subs[j];
-
-            // On peut pas réinsérer tous les éléments registered, il faut qu'on réinsère uniquement ceux qui sont concernés par l'invalidation
-            const registered_var = VarDataBaseVO.from_index(index);
-
-            if (!registered_var) {
-                continue;
-            }
-
-            let invalidated = false;
-            for (const i in invalidators) {
-                const invalidator = invalidators[i];
-
-                switch (invalidator.invalidator_type) {
-                    case VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED:
-                        if (!MatroidController.matroid_intersects_matroid(registered_var, invalidator.var_data)) {
-                            continue;
-                        }
-                        break;
-                    case VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT:
-                        if (registered_var.index != invalidator.var_data.index) {
-                            continue;
-                        }
-                        break;
-                }
-
-                if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                    ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:SUBInvalidated:' + index + ':by:');
-                    invalidator.console_log();
-                }
-
-                invalidated = true;
-            }
-
-            if (!invalidated) {
-                continue;
-            }
-
-            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:REINSERT:' + index);
-            }
-            // Attention : bien forcer de recharger de la base puisque la version qu'on a ici est issue d'un cache local, pas de la base à date
-            all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false/*, true*/));
-        }
-
-        await all_promises(all_vardagnode_promises);
-
-        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:OUT:' + invalidators.length);
-    }
-
-    /**
-     * Pour l'union des invalidators, on peut union à condition d'avoir :
-     *  - un var_id identique
-     *  - une conf de types de var_data à supprimer identiques (donc denied / imports identiques)
-     *
-     * !! à ce stade on considère que le propagate est commun à tous ces invalidators
-     */
-    private static union_invalidators(invalidators: VarDataInvalidatorVO[]): VarDataInvalidatorVO[] {
-        const union_invalidators: VarDataInvalidatorVO[] = [];
-
-        /**
-         * On commence par regrouper par confs de types de var_data à supprimer
-         */
-        const invalidators_by_conf: { [conf_id: string]: VarDataInvalidatorVO[] } = {};
-
-        for (const i in invalidators) {
-            const invalidator = invalidators[i];
-
-            const conf_id = VarsController.get_validator_config_id(invalidator, false);
-            if (!invalidators_by_conf[conf_id]) {
-                invalidators_by_conf[conf_id] = [];
-            }
-            invalidators_by_conf[conf_id].push(invalidator);
-        }
-
-        for (const conf_id in invalidators_by_conf) {
-            const this_conf_invalidators = invalidators_by_conf[conf_id];
-
-            if (this_conf_invalidators.length == 1) {
-                union_invalidators.push(this_conf_invalidators[0]);
-                continue;
-            }
-
-            /**
-             * L'union est faite en sélectionnant le premier invalidator, et en union les var_datas.
-             *  Le reste de la conf est sensé être identique par définition donc ça devrait marcher.
-             */
-            const kept_invalidator = this_conf_invalidators[0];
-            const union_var_datas = MatroidController.union(this_conf_invalidators.map((invalidator) => invalidator.var_data));
-
-            for (const i in union_var_datas) {
-                const union_var_data = union_var_datas[i];
-                const union_invalidator = VarDataInvalidatorVO.create_new(union_var_data, kept_invalidator.invalidator_type, kept_invalidator.propagate_to_parents, kept_invalidator.invalidate_denied, kept_invalidator.invalidate_imports);
-                union_invalidators.push(union_invalidator);
-            }
-        }
-
-        return union_invalidators;
-    }
-
-    /**
-     * On supprime les noeuds qui correspondent à l'invalidator
-     * @param invalidator
-     * @returns
-     */
-    private static apply_invalidator_in_tree(invalidator: VarDataInvalidatorVO) {
-        const invalid_nodes: VarDAGNode[] = this.filter_varsdatas_cache_by_invalidator(invalidator);
-
-        if (!invalid_nodes) {
-            return;
-        }
-
-        for (const i in invalid_nodes) {
-            const node = invalid_nodes[i];
-
-            if (!node) {
-                continue;
-            }
-            if (!node.var_dag) {
-                continue;
-            }
-
-            // Sauf que normalement à ce stade la liste des invalideurs est appliquées, et elle est déjà déployées sur l'arbre de deps.
-            // Donc là c'est un doublon
-            // /**
-            //  * On doit tout invalider vers le haut aussi
-            //  */
-            // let list_nodes = [];
-            // DAGController.visit_bottom_up_from_node(node, async (n: VarDAGNode) => {
-            //     list_nodes.push(n);
-            // });
-
-            // for (let j in list_nodes) {
-
-            //     list_nodes[j].unlinkFromDAG(true);
-            //     if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-            //         ConsoleHandler.log('VarsDatasVoUpdateHandler.apply_invalidator_in_tree:UNLINKED:' + list_nodes[j].var_data.index);
-            //     }
-            // }
-            node.unlinkFromDAG(true);
-            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                ConsoleHandler.log('VarsDatasVoUpdateHandler.apply_invalidator_in_tree:UNLINKED:' + node.var_data.index + ':by:');
-                invalidator.console_log();
-            }
-        }
-    }
-
-    /**
-     * Doit être lancé depuis le thread des vars
-     */
-    private static filter_varsdatas_cache_by_invalidator(invalidator: VarDataInvalidatorVO): VarDAGNode[] {
-
-        if (!invalidator) {
-            return null;
-        }
-
-        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-            ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:' + invalidator.var_data.index + ':');
-        }
-
-        if (invalidator.invalidator_type == VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT) {
-
-            const node: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[invalidator.var_data.index];
-
-            if (!node) {
-                if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                    ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:EXACT:' + invalidator.var_data.index + ': NOT FOUND');
-                }
-
-                return null;
-            }
-
-            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:EXACT:' + invalidator.var_data.index +
-                    ':!!node:' + !!node + ':!!node.var_data:' + !!node.var_data + ':value_type:' + node.var_data.value_type +
-                    ':invalidate_denied:' + invalidator.invalidate_denied + ':invalidate_imports:' + invalidator.invalidate_imports);
-            }
-
-            if ((node.var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) && (!invalidator.invalidate_denied)) {
-                return null;
-            }
-
-            if ((node.var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (!invalidator.invalidate_imports)) {
-                return null;
-            }
-
-            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:EXACT:' + invalidator.var_data.index + ': INVALIDATED');
-            }
-
-            return [node];
-        }
-
-        const res: VarDAGNode[] = [];
-
-
-        for (const i in CurrentVarDAGHolder.current_vardag.nodes) {
-            const node: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[i];
-
-            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:INTERSECTED:' + invalidator.var_data.index +
-                    ':!!node:' + !!node + ':!!node.var_data:' + !!node.var_data + ':value_type:' + node.var_data.value_type +
-                    ':node_index:' + node.var_data.index + ':node_var_id:' + node.var_data.var_id + ':invalidator_var_id:' + invalidator.var_data.var_id +
-                    ':invalidate_denied:' + invalidator.invalidate_denied + ':invalidate_imports:' + invalidator.invalidate_imports);
-            }
-
-            if (node.var_data._type != invalidator.var_data._type) {
-                continue;
-            }
-
-            if (node.var_data.var_id != invalidator.var_data.var_id) {
-                continue;
-            }
-
-            if ((node.var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) && (!invalidator.invalidate_denied)) {
-                continue;
-            }
-
-            if ((node.var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (!invalidator.invalidate_imports)) {
-                continue;
-            }
-
-            if ((invalidator.invalidator_type == VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED) && !MatroidController.matroid_intersects_matroid(node.var_data, invalidator.var_data)) {
-                continue;
-            }
-
-            if (invalidator.invalidator_type == VarDataInvalidatorVO.INVALIDATOR_TYPE_INCLUDED_OR_EXACT) {
-                throw new Error('Not Implemented');
-            }
-
-            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:INTERSECTED:' + invalidator.var_data.index +
-                    ':node_index:' + node.var_data.index + ': INVALIDATED');
-            }
-
-            res.push(node);
-        }
-
-        return res;
-    }
-
-    // /**
-    //  * Se lance sur le thread des vars
-    //  */
-    // private static filter_varsdatas_cache_by_exact_matroids(
-    //     matroids: VarDataBaseVO[]): Promise<VarDataBaseVO[]> {
-
-    //     return new Promise(async (resolve, reject) => {
-
-    //         let thrower = (error) => {
-    //             //TODO fixme do something to inform user
-    //             ConsoleHandler.error('failed filter_varsdatas_cache_by_exact_matroids' + error);
-    //             resolve([]);
-    //         };
-
-    //         if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
-    //             thrower,
-    //             VarsBGThreadNameHolder.bgthread_name,
-    //             VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_exact_matroids,
-    //             resolve,
-    //             matroids)) {
-    //             return;
-    //         }
-
-    //         let res: VarDataBaseVO[] = [];
-
-    //         for (let i in matroids) {
-    //             let param = VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_exact_matroid(matroids[i]);
-    //             if (!!param) {
-    //                 res.push(param);
-    //             }
-    //         }
-
-    //         resolve(res);
-    //     });
-    // }
-
-    // /**
-    //  * Doit être lancé depuis le thread des vars
-    //  */
-    // private static filter_varsdatas_cache_by_exact_matroid(matroid: VarDataBaseVO): VarDataBaseVO {
-    //     let wrapper = VarsDatasProxy.vars_datas_buffer_wrapped_indexes[matroid.index];
-
-    //     return wrapper ? wrapper.var_data : null;
-    // }
 
     /**
      * On supprime les noeuds qui correspondent à l'invalidator en DB
@@ -879,12 +456,530 @@ export default class VarsDatasVoUpdateHandler {
     }
 
     /**
+     * Pour l'union des invalidators, on peut union à condition d'avoir :
+     *  - un var_id identique
+     *  - une conf de types de var_data à supprimer identiques (donc denied / imports identiques)
+     *
+     * !! à ce stade on considère que le propagate est commun à tous ces invalidators
+     */
+    private static union_invalidators(invalidators: VarDataInvalidatorVO[]): VarDataInvalidatorVO[] {
+        const union_invalidators: VarDataInvalidatorVO[] = [];
+
+        /**
+         * On commence par regrouper par confs de types de var_data à supprimer
+         */
+        const invalidators_by_conf: { [conf_id: string]: VarDataInvalidatorVO[] } = {};
+
+        for (const i in invalidators) {
+            const invalidator = invalidators[i];
+
+            const conf_id = VarsController.get_validator_config_id(invalidator, false);
+            if (!invalidators_by_conf[conf_id]) {
+                invalidators_by_conf[conf_id] = [];
+            }
+            invalidators_by_conf[conf_id].push(invalidator);
+        }
+
+        for (const conf_id in invalidators_by_conf) {
+            const this_conf_invalidators = invalidators_by_conf[conf_id];
+
+            if (this_conf_invalidators.length == 1) {
+                union_invalidators.push(this_conf_invalidators[0]);
+                continue;
+            }
+
+            /**
+             * L'union est faite en sélectionnant le premier invalidator, et en union les var_datas.
+             *  Le reste de la conf est sensé être identique par définition donc ça devrait marcher.
+             */
+            const kept_invalidator = this_conf_invalidators[0];
+            const union_var_datas = MatroidController.union(this_conf_invalidators.map((invalidator) => invalidator.var_data));
+
+            for (const i in union_var_datas) {
+                const union_var_data = union_var_datas[i];
+                const union_invalidator = VarDataInvalidatorVO.create_new(union_var_data, kept_invalidator.invalidator_type, kept_invalidator.propagate_to_parents, kept_invalidator.invalidate_denied, kept_invalidator.invalidate_imports);
+                union_invalidators.push(union_invalidator);
+            }
+        }
+
+        return union_invalidators;
+    }
+
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    public static async has_vos_cud_or_intersectors(): Promise<boolean> {
+        return (VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0)) ||
+            (VarsDatasVoUpdateHandler.invalidators && (VarsDatasVoUpdateHandler.invalidators.length > 0));
+    }
+
+    /**
+     * Objectif on bloque le ModuleDAO en modification, et on informe via notif quand on a à la fois bloqué les updates et vidé le cache de ce module
+     */
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    public static async force_empty_vars_datas_vo_update_cache() {
+
+        DAOServerController.GLOBAL_UPDATE_BLOCKER = true;
+        let max_sleeps = 100;
+
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+
+            if ((!VarsDatasVoUpdateHandler.ordered_vos_cud) ||
+                (!VarsDatasVoUpdateHandler.ordered_vos_cud.length)) {
+
+                const uid: number = StackContext.get('UID');
+                const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+                if (uid) {
+                    await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'force_empty_vars_datas_vo_update_cache.done', true);
+                }
+                ConsoleHandler.warn("Cache des modifications de VO vidé. Prêt pour le redémarrage");
+                return;
+            }
+            await ThreadHandler.sleep(5000, 'VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache');
+            max_sleeps--;
+            if (max_sleeps <= 0) {
+                throw new Error('Unable to force_empty_vars_datas_vo_update_cache');
+            }
+        }
+    }
+
+    /***
+     *
+     */
+    @ThrottleExecAsServerRunsOnBgThread(
+        {
+            param_type: THROTTLED_METHOD_PARAM_TYPE.NONE,
+            throttle_ms: 1000,
+            leading: false,
+            trailing: true,
+        },
+        VarsBGThreadNameHolder.bgthread_name,
+    )
+    public static async throttled_update_param() {
+
+        // On flag, si c'est pas déjà le cas, le fait que des cuds sont en attente, ou pas
+        const new_tag_value = VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0);
+        const old_tag_value = await ParamsServerController.getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
+
+        if (new_tag_value == old_tag_value) {
+            return;
+        }
+
+        await ParamsServerController.setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, new_tag_value);
+    }
+
+    @ThrottleExecAsServerRunsOnBgThread(
+        {
+            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+            leading: true,
+            trailing: true,
+            throttle_ms: 20,
+        },
+        VarsBGThreadNameHolder.bgthread_name,
+    )
+    public static async register_vo_cud(
+        @PreThrottleParam vo_cud: DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase | Array<DAOUpdateVOHolder<IDistantVOBase>> | IDistantVOBase[],
+        @PostThrottleParam vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = null,
+    ) {
+
+        const block_ordered_vos_cud: boolean = await ParamsServerController.getParamValueAsBoolean(
+            VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME,
+            false,
+            5000, // 5 sec
+        );
+
+        if (block_ordered_vos_cud) {
+            return;
+        }
+
+        VarsDatasVoUpdateHandler.ordered_vos_cud = VarsDatasVoUpdateHandler.ordered_vos_cud.concat(vos_cud);
+        VarsDatasVoUpdateHandler.last_registration = Dates.now();
+
+        VarsDatasVoUpdateHandler.throttled_update_param();
+    }
+
+    /**
+    * Demander une ou des invalidations
+    * @param invalidators
+    * @returns
+    */
+    @ThrottleExecAsServerRunsOnBgThread(
+        {
+            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+            throttle_ms: 20,
+            leading: false,
+            trailing: true,
+        },
+        VarsBGThreadNameHolder.bgthread_name,
+        false,
+    )
+    public static push_invalidators(
+        @PreThrottleParam invalidator: VarDataInvalidatorVO | VarDataInvalidatorVO[],
+        @PostThrottleParam invalidators: VarDataInvalidatorVO[] = null,
+    ) {
+        if ((!invalidators) || (!invalidators.length)) {
+            return;
+        }
+
+        VarsDatasVoUpdateHandler.invalidators.push(...invalidators);
+    }
+
+    /**
+     * On passe en param le nombre max de cud qu'on veut gérer, et on dépile en FIFO
+     * @returns true si on a des invalidations trop récentes et qu'on veut donc éviter de calculer des vars
+     */
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    public static async handle_buffer(ordered_vos_cud: Array<IDistantVOBase | DAOUpdateVOHolder<IDistantVOBase>>): Promise<{ [invalidator_id: string]: VarDataInvalidatorVO }> {
+
+        VarsDatasVoUpdateHandler.last_call_handled_something = false;
+
+        if ((!ordered_vos_cud) || (!ordered_vos_cud.length)) {
+            VarsDatasVoUpdateHandler.throttled_update_param();
+            return null;
+        }
+
+        VarsDatasVoUpdateHandler.last_call_handled_something = true;
+
+        const vo_types: string[] = [];
+        const vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
+        const vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = {};
+
+        VarsDatasVoUpdateHandler.prepare_updates(ordered_vos_cud, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
+
+        const intersectors_by_index: { [index: string]: VarDataBaseVO } = await VarsDatasVoUpdateHandler.init_leaf_intersectors(vo_types, vos_update_buffer, vos_create_or_delete_buffer);
+        const leaf_invalidators_by_index: { [conf_id: string]: VarDataInvalidatorVO } = {};
+
+        for (const i in intersectors_by_index) {
+            const intersector = intersectors_by_index[i];
+
+            const invalidator = VarDataInvalidatorVO.create_new(intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false);
+            const conf_id = VarsController.get_validator_config_id(invalidator);
+            leaf_invalidators_by_index[conf_id] = invalidator;
+        }
+
+        // On met à jour le param en base pour refléter les modifs qui restent en attente de traitement
+        VarsDatasVoUpdateHandler.throttled_update_param();
+
+        // Si on continue d'invalider des Vos on attend sagement avant de relancer les calculs
+        return leaf_invalidators_by_index;
+    }
+
+    /**
+     * On doit faire une union sur les intersecteurs, mais ni sur les inclusions ni sur les exacts
+     * Pour le moment on implémente pas les inclusions, qui n'ont pas une utilité évidente (on a pas d'interface pour faire ça pour le moment a priori en plus)
+     */
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    public static async handle_invalidators(deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO }) {
+
+        let invalidators = Object.values(deployed_invalidators);
+
+        if (!invalidators || !invalidators.length) {
+            return;
+        }
+        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:IN:' + invalidators.length);
+
+        // On fait l'union
+        invalidators = this.union_invalidators(invalidators);
+        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+            ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:UNION:' + invalidators.length);
+        }
+
+        /**
+         * En // invalider en DB et dans l'arbre
+         * Puis réinsérer dans l'arbre : les registers (clients et serveurs) + les vars pixel never delete qui ont été invalidées en db
+         */
+        const invalidated_pixels_never_delete: VarDataBaseVO[] = [];
+        const promise_pipeline: PromisePipeline = new PromisePipeline(ConfigurationService.node_configuration.max_vars_invalidators, 'VarsDatasVoUpdateHandler.handle_invalidators');
+
+        for (const i in invalidators) {
+            const invalidator = invalidators[i];
+
+            await promise_pipeline.push(async () => {
+                const this_invalidated_pixels_never_delete = await this.apply_invalidator_in_db(invalidator);
+                if (this_invalidated_pixels_never_delete && this_invalidated_pixels_never_delete.length) {
+                    invalidated_pixels_never_delete.push(...this_invalidated_pixels_never_delete);
+
+                    if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                        this_invalidated_pixels_never_delete.forEach((pixel_never_delete) => {
+                            ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:this_invalidated_pixels_never_delete:' + pixel_never_delete.index + ':by:');
+                            invalidator.console_log();
+                        });
+                    }
+                }
+            });
+
+            // Attention on ne doit pas unlink en //, sinon il faut semaphore comme le getInstance()
+            this.apply_invalidator_in_tree(invalidator);
+        }
+
+        await promise_pipeline.end();
+
+        const all_vardagnode_promises = [];
+
+        // On réinsère les vars pixel never delete qui ont été invalidées en db
+        if (invalidated_pixels_never_delete && invalidated_pixels_never_delete.length) {
+            for (const i in invalidated_pixels_never_delete) {
+                const invalidated_pixel_never_delete = invalidated_pixels_never_delete[i];
+
+                all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(invalidated_pixel_never_delete.index), true/*, true*/));
+            }
+        }
+
+        // On réinsère les registers (clients et serveurs)
+        await VarsClientsSubsCacheManager.update_clients_subs_indexes_cache(true);
+        // Server
+        const subs: string[] = Object.keys(VarsServerCallBackSubsController.cb_subs);
+        // Clients
+        subs.push(...Object.keys(VarsClientsSubsCacheHolder.clients_subs_indexes_cache));
+
+        for (const j in subs) {
+
+            const index = subs[j];
+
+            // On peut pas réinsérer tous les éléments registered, il faut qu'on réinsère uniquement ceux qui sont concernés par l'invalidation
+            const registered_var = VarDataBaseVO.from_index(index);
+
+            if (!registered_var) {
+                continue;
+            }
+
+            let invalidated = false;
+            for (const i in invalidators) {
+                const invalidator = invalidators[i];
+
+                switch (invalidator.invalidator_type) {
+                    case VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED:
+                        if (!MatroidController.matroid_intersects_matroid(registered_var, invalidator.var_data)) {
+                            continue;
+                        }
+                        break;
+                    case VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT:
+                        if (registered_var.index != invalidator.var_data.index) {
+                            continue;
+                        }
+                        break;
+                }
+
+                if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                    ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:SUBInvalidated:' + index + ':by:');
+                    invalidator.console_log();
+                }
+
+                invalidated = true;
+            }
+
+            if (!invalidated) {
+                continue;
+            }
+
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:REINSERT:' + index);
+            }
+            // Attention : bien forcer de recharger de la base puisque la version qu'on a ici est issue d'un cache local, pas de la base à date
+            all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false/*, true*/));
+        }
+
+        await all_promises(all_vardagnode_promises);
+
+        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:OUT:' + invalidators.length);
+    }
+
+    /**
+     * On supprime les noeuds qui correspondent à l'invalidator
+     * @param invalidator
+     * @returns
+     */
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    private static apply_invalidator_in_tree(invalidator: VarDataInvalidatorVO) {
+        const invalid_nodes: VarDAGNode[] = this.filter_varsdatas_cache_by_invalidator(invalidator);
+
+        if (!invalid_nodes) {
+            return;
+        }
+
+        for (const i in invalid_nodes) {
+            const node = invalid_nodes[i];
+
+            if (!node) {
+                continue;
+            }
+            if (!node.var_dag) {
+                continue;
+            }
+
+            // Sauf que normalement à ce stade la liste des invalideurs est appliquées, et elle est déjà déployées sur l'arbre de deps.
+            // Donc là c'est un doublon
+            // /**
+            //  * On doit tout invalider vers le haut aussi
+            //  */
+            // let list_nodes = [];
+            // DAGController.visit_bottom_up_from_node(node, async (n: VarDAGNode) => {
+            //     list_nodes.push(n);
+            // });
+
+            // for (let j in list_nodes) {
+
+            //     list_nodes[j].unlinkFromDAG(true);
+            //     if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+            //         ConsoleHandler.log('VarsDatasVoUpdateHandler.apply_invalidator_in_tree:UNLINKED:' + list_nodes[j].var_data.index);
+            //     }
+            // }
+            node.unlinkFromDAG(true);
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler.apply_invalidator_in_tree:UNLINKED:' + node.var_data.index + ':by:');
+                invalidator.console_log();
+            }
+        }
+    }
+
+    /**
+     * Doit être lancé depuis le thread des vars
+     */
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    private static filter_varsdatas_cache_by_invalidator(invalidator: VarDataInvalidatorVO): VarDAGNode[] {
+
+        if (!invalidator) {
+            return null;
+        }
+
+        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+            ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:' + invalidator.var_data.index + ':');
+        }
+
+        if (invalidator.invalidator_type == VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT) {
+
+            const node: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[invalidator.var_data.index];
+
+            if (!node) {
+                if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                    ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:EXACT:' + invalidator.var_data.index + ': NOT FOUND');
+                }
+
+                return null;
+            }
+
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:EXACT:' + invalidator.var_data.index +
+                    ':!!node:' + !!node + ':!!node.var_data:' + !!node.var_data + ':value_type:' + node.var_data.value_type +
+                    ':invalidate_denied:' + invalidator.invalidate_denied + ':invalidate_imports:' + invalidator.invalidate_imports);
+            }
+
+            if ((node.var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) && (!invalidator.invalidate_denied)) {
+                return null;
+            }
+
+            if ((node.var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (!invalidator.invalidate_imports)) {
+                return null;
+            }
+
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:EXACT:' + invalidator.var_data.index + ': INVALIDATED');
+            }
+
+            return [node];
+        }
+
+        const res: VarDAGNode[] = [];
+
+
+        for (const i in CurrentVarDAGHolder.current_vardag.nodes) {
+            const node: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[i];
+
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:INTERSECTED:' + invalidator.var_data.index +
+                    ':!!node:' + !!node + ':!!node.var_data:' + !!node.var_data + ':value_type:' + node.var_data.value_type +
+                    ':node_index:' + node.var_data.index + ':node_var_id:' + node.var_data.var_id + ':invalidator_var_id:' + invalidator.var_data.var_id +
+                    ':invalidate_denied:' + invalidator.invalidate_denied + ':invalidate_imports:' + invalidator.invalidate_imports);
+            }
+
+            if (node.var_data._type != invalidator.var_data._type) {
+                continue;
+            }
+
+            if (node.var_data.var_id != invalidator.var_data.var_id) {
+                continue;
+            }
+
+            if ((node.var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) && (!invalidator.invalidate_denied)) {
+                continue;
+            }
+
+            if ((node.var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (!invalidator.invalidate_imports)) {
+                continue;
+            }
+
+            if ((invalidator.invalidator_type == VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED) && !MatroidController.matroid_intersects_matroid(node.var_data, invalidator.var_data)) {
+                continue;
+            }
+
+            if (invalidator.invalidator_type == VarDataInvalidatorVO.INVALIDATOR_TYPE_INCLUDED_OR_EXACT) {
+                throw new Error('Not Implemented');
+            }
+
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:INTERSECTED:' + invalidator.var_data.index +
+                    ':node_index:' + node.var_data.index + ': INVALIDATED');
+            }
+
+            res.push(node);
+        }
+
+        return res;
+    }
+
+    // /**
+    //  * Se lance sur le thread des vars
+    //  */
+    // private static filter_varsdatas_cache_by_exact_matroids(
+    //     matroids: VarDataBaseVO[]): Promise<VarDataBaseVO[]> {
+
+    //     return new Promise(async (resolve, reject) => {
+
+    //         let thrower = (error) => {
+    //             //TODO fixme do something to inform user
+    //             ConsoleHandler.error('failed filter_varsdatas_cache_by_exact_matroids' + error);
+    //             resolve([]);
+    //         };
+
+    //         if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+    //             thrower,
+    //             VarsBGThreadNameHolder.bgthread_name,
+    //             VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_exact_matroids,
+    //             resolve,
+    //             matroids)) {
+    //             return;
+    //         }
+
+    //         let res: VarDataBaseVO[] = [];
+
+    //         for (let i in matroids) {
+    //             let param = VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_exact_matroid(matroids[i]);
+    //             if (!!param) {
+    //                 res.push(param);
+    //             }
+    //         }
+
+    //         resolve(res);
+    //     });
+    // }
+
+    // /**
+    //  * Doit être lancé depuis le thread des vars
+    //  */
+    // private static filter_varsdatas_cache_by_exact_matroid(matroid: VarDataBaseVO): VarDataBaseVO {
+    //     let wrapper = VarsDatasProxy.vars_datas_buffer_wrapped_indexes[matroid.index];
+
+    //     return wrapper ? wrapper.var_data : null;
+    // }
+
+
+    /**
      * Préparation du batch d'invalidation des vars suite à des CUD de vos
      * @param vos_update_buffer les updates par type à remplir
      * @param vos_create_or_delete_buffer les creates / deletes par type à remplir
      * @param vo_types la liste des vo_types à remplir
      * @returns 0 si on a géré limit éléments dans le buffer, != 0 sinon (et donc le buffer est vide)
      */
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
     private static prepare_updates(
         ordered_vos_cud: Array<IDistantVOBase | DAOUpdateVOHolder<IDistantVOBase>>,
         vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> },
@@ -941,12 +1036,6 @@ export default class VarsDatasVoUpdateHandler {
         ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + ordered_vos_cud.length + ':vo_ids_by_api_type_id_for_log:' + JSON.stringify(vo_ids_by_api_type_id_for_log));
     }
 
-    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
-    public static async has_vos_cud_or_intersectors(): Promise<boolean> {
-        return (VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0)) ||
-            (VarsDatasVoUpdateHandler.invalidators && (VarsDatasVoUpdateHandler.invalidators.length > 0));
-    }
-
     // @ThrottleExecAsServerRunsOnBgThread(
     //     {
     //         param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
@@ -958,84 +1047,4 @@ export default class VarsDatasVoUpdateHandler {
     //     false
     // )
 
-
-
-    /***
-     *
-     */
-    @ThrottleAndExecAsServer(
-        {
-            param_type: THROTTLED_METHOD_PARAM_TYPE.NONE,
-            throttle_ms: 1000,
-            leading: false,
-            trailing: true,
-        }
-    )
-    public static async throttled_update_param() {
-
-        // On flag, si c'est pas déjà le cas, le fait que des cuds sont en attente, ou pas
-        const new_tag_value = VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0);
-        const old_tag_value = await ParamsServerController.getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
-
-        if (new_tag_value == old_tag_value) {
-            return;
-        }
-
-        await ParamsServerController.setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, new_tag_value);
-    }
-
-    @ThrottleAndExecAsServer(
-        {
-            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
-            leading: true,
-            trailing: true,
-            throttle_ms: 100,
-        }
-    )
-    public static async register_vo_cud(
-        @PreThrottleParam vo_cud: DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase | Array<DAOUpdateVOHolder<IDistantVOBase>> | IDistantVOBase[],
-        @PostThrottleParam vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = null,
-    ) {
-
-        const block_ordered_vos_cud: boolean = await ParamsServerController.getParamValueAsBoolean(
-            VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME,
-            false,
-            5000, // 5 sec
-        );
-
-        if (block_ordered_vos_cud) {
-            return;
-        }
-
-        VarsDatasVoUpdateHandler.ordered_vos_cud = VarsDatasVoUpdateHandler.ordered_vos_cud.concat(vos_cud);
-        VarsDatasVoUpdateHandler.last_registration = Dates.now();
-
-        VarsDatasVoUpdateHandler.throttled_update_param();
-    }
-
-    /**
-    * Demander une ou des invalidations
-    * @param invalidators
-    * @returns
-    */
-    @ThrottleExecAsServerRunsOnBgThread(
-        {
-            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
-            throttle_ms: 100,
-            leading: false,
-            trailing: true,
-        },
-        VarsBGThreadNameHolder.bgthread_name,
-        false,
-    )
-    public static push_invalidators(
-        @PreThrottleParam invalidator: VarDataInvalidatorVO | VarDataInvalidatorVO[],
-        @PostThrottleParam invalidators: VarDataInvalidatorVO[] = null,
-    ) {
-        if ((!invalidators) || (!invalidators.length)) {
-            return;
-        }
-
-        VarsDatasVoUpdateHandler.invalidators.push(...invalidators);
-    }
 }

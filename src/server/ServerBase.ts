@@ -1,5 +1,4 @@
 import child_process from 'child_process';
-import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import csrf from 'csurf';
 import express, { Application, NextFunction, Request, Response } from 'express';

@@ -48,7 +48,7 @@ export default class VarsProcessNotifyStart extends VarsProcessBase {
         }
 
         // Les notifs arrivent dans le désordre, on désactive pour tester
-        await VarsTabsSubsController.notify_vardatas(notifVardatasParams);
+        VarsTabsSubsController.notify_vardatas(notifVardatasParams);
         return true;
     }
 }
