@@ -315,7 +315,8 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                         .set_type(var_chart_options.type)
                         .set_filters_type(var_chart_options.filter_type)
                         .set_filters_additional_params(var_chart_options.filter_additional_params)
-                        .set_activate_datalabels(var_chart_options.show_values);
+                        .set_activate_datalabels(var_chart_options.show_values)
+                        .set_show_zeros(var_chart_options.show_zeros);
                 }
             }
 
@@ -422,7 +423,8 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     .set_type(var_chart_options.type)
                     .set_filters_type(var_chart_options.filter_type)
                     .set_filters_additional_params(var_chart_options.filter_additional_params)
-                    .set_activate_datalabels(var_chart_options.show_values);
+                    .set_activate_datalabels(var_chart_options.show_values)
+                    .set_show_zeros(var_chart_options.show_zeros);
             }
         }
 
@@ -1115,10 +1117,12 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         } else {
             charts_var_params_by_dimension = await this.get_charts_var_params_by_dimension_when_dimension_is_custom_filter(custom_filters);
         }
-        if (!this.isValid) {
-            this.snotify.error(this.t(this.ERROR_MESSAGE));
-            return;
-        }
+
+        // Désactivé suite au retour de MDE sur le fait que c'est insupportable / pas nécessaire
+        // if (!this.isValid) {
+        //     this.snotify.error(this.t(this.ERROR_MESSAGE));
+        //     return;
+        // }
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
             return;

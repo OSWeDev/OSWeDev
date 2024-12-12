@@ -588,6 +588,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_chart_options_item_component.show_values.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Afficher les 0'
+        }, 'var_chart_options_item_component.show_zeros.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Filtrer les valeurs'
         }, 'var_chart_options_item_component.datas_filter_options.___LABEL___'));
 
@@ -668,7 +672,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_chart_options_item_component.field_that_could_get_custom_filter.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Filtre personnalisé'
+            'fr-fr': 'Ordonnée du graphique'
         }, 'var_chart_options_item_component.field_that_could_get_scales_filter.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({

@@ -519,6 +519,9 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
         const filter = current_var.filters_types ? this.const_filters[current_var.filters_types].read : undefined;
         const filter_additional_params = current_var.filters_additional_params ? ObjectHandler.try_get_json(current_var.filters_additional_params) : undefined;
+        if (current_var.show_zeros == false && value == 0) {
+            return '';
+        }
         if (filter != undefined) {
             if (filter) {
                 return filter.apply(this, [value].concat(filter_additional_params));

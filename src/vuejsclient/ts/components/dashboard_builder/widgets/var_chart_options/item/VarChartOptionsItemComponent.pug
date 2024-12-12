@@ -107,6 +107,16 @@
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     )
         template(v-if="show_values")
+            .show_zeros 
+                .explication {{ label("var_chart_options_item_component.show_zeros") }}
+                .input_wrapper
+                        toggle-button(
+                            @change="switch_show_zeros" 
+                            :value="show_zeros" 
+                            :sync="true"
+                            :width="60"
+                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        )
             .explication {{ label('var_chart_options_item_component.datas_filter_options') }}
             .filter_options
                 .filter_options_wrapper
