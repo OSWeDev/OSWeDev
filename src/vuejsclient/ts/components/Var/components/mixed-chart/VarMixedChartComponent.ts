@@ -417,7 +417,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
         for (const chart_id in this.charts_var_params) {
 
             const data: IChartDataset = this.get_chart_dataset_by_chart_id(chart_id);
-            if (data != null) {
+            if (data != null && data.data.length > 0) {
                 datasets[chart_id] = data;
             }
         }
@@ -454,9 +454,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
         for (const var_key in chart_var_params) {
             const var_param: VarDataBaseVO = chart_var_params[var_key];
-
             data.push(chart_var_datas[var_param.id].value);
-
             if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.backgroundColor[var_key]) {
                 backgroundColor.push(chart_var_dataset_descriptor.backgroundColor[var_key]);
             } else if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.backgroundColor[0]) {

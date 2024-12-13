@@ -49,6 +49,8 @@ export default class VarPieChartComponent extends VueComponentBase {
     @Prop({ default: null })
     public filter_additional_params: any[];
 
+    private has_data_to_display: boolean = true;
+
     private singleton_waiting_to_be_rendered: boolean = false;
     private rendered: boolean = false;
 
@@ -221,6 +223,9 @@ export default class VarPieChartComponent extends VueComponentBase {
             } else {
                 res.push(this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
             }
+        }
+        if (this.datasets.length == 1 && this.datasets[0].data.every(value => value === 0)) {
+            this.has_data_to_display = false;
         }
         return res;
     }
