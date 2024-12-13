@@ -39,7 +39,7 @@ export default abstract class VarsProcessBase {
 
     public async work(): Promise<void> {
 
-        const promise_pipeline = this.as_batch ? null : new PromisePipeline(this.MAX_Workers, 'VarsProcessBase.' + this.name, true);
+        const promise_pipeline = (this.as_batch || !this.MAX_Workers) ? null : new PromisePipeline(this.MAX_Workers, 'VarsProcessBase.' + this.name, true);
 
         if (ConfigurationService.node_configuration.debug_vars_processes) {
             ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:IN');

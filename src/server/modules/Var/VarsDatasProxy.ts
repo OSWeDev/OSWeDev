@@ -31,7 +31,6 @@ export default class VarsDatasProxy {
 
     public static PARAM_NAME_filter_var_datas_by_index_size_limit = 'VarsDatasProxy.filter_var_datas_by_index_size_limit';
 
-    private static get_var_data_or_ask_to_bgthread_promise_pipeline: PromisePipeline = null;
     private static get_var_data_or_ask_to_bgthread: <T extends VarDataBaseVO>(throttle_index: string, param_index: string) => Promise<T> = ThrottlePipelineHelper.declare_throttled_pipeline(
         'VarsDatasProxy.get_var_data_or_ask_to_bgthread',
         this._get_var_datas_or_ask_to_bgthread.bind(this), 10, 500, 20
@@ -282,9 +281,8 @@ export default class VarsDatasProxy {
                 }
             }
 
-            if (!VarsDatasProxy.get_var_data_or_ask_to_bgthread_promise_pipeline) {
-                VarsDatasProxy.get_var_data_or_ask_to_bgthread_promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification');
-            }
+            const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
+            const promise_pipeline = PromisePipeline.get_semaphore_pipeline('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification', max);
 
             for (const j in call_instances) {
 
@@ -301,7 +299,7 @@ export default class VarsDatasProxy {
                         // On //ise et on indique qu'on doit refaire un check en base, pour être sûr de ne pas avoir de données en base qui ne sont pas dans l'arbre
                         //  En fait ya un vrai point de conf ici / perf : est-ce qu'on impose de toujours rechecker en base ou pas ? si non on risque de refaire des calculs parfois en double, qui sont couteux
                         //  si oui on charge la base pour rien souvent
-                        this_call_instance_promises.push((await VarsDatasProxy.get_var_data_or_ask_to_bgthread_promise_pipeline.push(async () => {
+                        this_call_instance_promises.push((await promise_pipeline.push(async () => {
                             const node: VarDAGNode = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false);
 
                             if ((!node) || (!node.var_data)) {

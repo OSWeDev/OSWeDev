@@ -127,9 +127,8 @@ export default class VarsDatasVoUpdateHandler {
         // TODO FIXME pour booster ce passage, au lieu d'attendre toutes les promises de la boucle, on veut en fait attendre le plus rapide entre un event sur un push de actual_invalidators, et la fin de toutes les promises. Comme ça on peut rapidement reprendre l'empilage de promises
         //  sans attendre de tout résoudre.
         let is_looking_for_more_resolver = null;
+        const promise_pipeline = PromisePipeline.get_semaphore_pipeline('VarsDatasVoUpdateHandler.handle_intersectors', ConfigurationService.node_configuration.max_pool);
         while (ObjectHandler.hasAtLeastOneAttribute(actual_invalidators)) {
-
-            const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool, 'VarsDatasVoUpdateHandler.handle_intersectors');
 
             while (ObjectHandler.hasAtLeastOneAttribute(actual_invalidators)) {
                 const invalidator_id = ObjectHandler.getFirstAttributeName(actual_invalidators);

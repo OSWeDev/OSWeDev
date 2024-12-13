@@ -13,6 +13,8 @@ export default class PromisePipeline {
 
     public static DEBUG_PROMISE_PIPELINE_WORKER_STATS: boolean = false;
 
+    private static promise_pipeline_semaphores_by_stat_name: { [stat_name: string]: PromisePipeline } = {};
+
     private static all_promise_pipelines_by_uid: { [uid: number]: PromisePipeline } = {};
     private static GLOBAL_UID: number = 0;
 
@@ -36,7 +38,7 @@ export default class PromisePipeline {
     public constructor(
         public max_concurrent_promises: number = 1,
         public stat_name: string = null,
-        public stat_worker: boolean = false
+        public stat_worker: boolean = false,
     ) {
         this.uid = PromisePipeline.GLOBAL_UID++;
 
@@ -57,6 +59,26 @@ export default class PromisePipeline {
 
     get has_running_or_waiting_promises(): boolean {
         return (this.nb_running_promises > 0) || (Object.keys(this.all_waiting_and_running_promises_by_cb_uid).length > 0);
+    }
+
+    /**
+     * The stat_name is used to recover an existing pipeline of this stat_name, and the max_concurrent_promises is ignored (it will use the existing pipeline max_concurrent_promises)
+     * @param stat_name
+     * @param max_concurrent_promises
+     * @param stat_worker
+     */
+    public static get_semaphore_pipeline(
+        stat_name: string,
+        max_concurrent_promises: number = 1,
+        stat_worker: boolean = false,
+    ): PromisePipeline {
+
+        if (!PromisePipeline.promise_pipeline_semaphores_by_stat_name[stat_name]) {
+            const this_pipeline = new PromisePipeline(max_concurrent_promises, stat_name, stat_worker);
+            PromisePipeline.promise_pipeline_semaphores_by_stat_name[stat_name] = this_pipeline;
+        }
+
+        return PromisePipeline.promise_pipeline_semaphores_by_stat_name[stat_name];
     }
 
     private static stat_all_promise_pipelines() {

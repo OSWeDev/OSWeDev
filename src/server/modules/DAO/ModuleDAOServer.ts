@@ -2250,7 +2250,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         const res: T[] = [];
 
         const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
-        const promise_pipeline = new PromisePipeline(max, 'ModuleDAOServer.filterByForeignKeys');
+        const promise_pipeline = PromisePipeline.get_semaphore_pipeline('ModuleDAOServer.filterByForeignKeys', max);
+        const promises = [];
 
         for (const i in vos) {
             const vo = vos[i];
@@ -2264,16 +2265,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 continue;
             }
 
-            await promise_pipeline.push(async () => {
+            promises.push((await promise_pipeline.push(async () => {
                 const refuse: boolean = await this.refuseVOByForeignKeys(vo);
 
                 if (!refuse) {
                     res.push(vo);
                 }
-            });
+            }))());
         }
 
-        await promise_pipeline.end();
+        await all_promises(promises);
 
         StatsController.register_stat_QUANTITE('ModuleDAOServer', 'filterByForeignKeys', '-', vos.length);
         StatsController.register_stat_DUREE('ModuleDAOServer', 'filterByForeignKeys', '-', Dates.now_ms() - time_in);
