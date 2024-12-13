@@ -1,6 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import RangeHandler from '../../tools/RangeHandler';
 import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import IRange from '../DataRender/interfaces/IRange';
@@ -169,7 +170,7 @@ export default class MatroidController {
         }
 
         const matroid_fields: ModuleTableFieldVO[] = [];
-        const mt_fields = moduleTable.get_fields();
+        const mt_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
         for (const i in mt_fields) {
             const field = mt_fields[i];
 

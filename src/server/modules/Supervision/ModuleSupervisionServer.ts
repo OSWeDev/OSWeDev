@@ -7,6 +7,7 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
@@ -271,7 +272,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             }
 
             if (has_new_value) {
-                const moduletablefields = ModuleTableController.module_tables_by_vo_type[vo_update_handler.post_update_vo._type].get_fields();
+                const moduletablefields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_update_handler.post_update_vo._type];
                 for (const i in moduletablefields) {
                     const moduletablefield = moduletablefields[i];
 
@@ -318,7 +319,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
              */
             const historique: ISupervisedItem = new ModuleTableController.vo_constructor_by_vo_type[vo_update_handler.post_update_vo._type]() as ISupervisedItem;
 
-            const moduletablefields = ModuleTableController.module_tables_by_vo_type[vo_update_handler.post_update_vo._type].get_fields();
+            const moduletablefields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_update_handler.post_update_vo._type];
             for (const i in moduletablefields) {
                 const moduletablefield = moduletablefields[i];
 

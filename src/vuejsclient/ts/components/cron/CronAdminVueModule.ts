@@ -8,14 +8,6 @@ import MenuController from '../menu/MenuController';
 
 export default class CronAdminVueModule extends VueModuleBase {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): CronAdminVueModule {
-        if (!CronAdminVueModule.instance) {
-            CronAdminVueModule.instance = new CronAdminVueModule();
-        }
-
-        return CronAdminVueModule.instance;
-    }
 
     private static instance: CronAdminVueModule = null;
 
@@ -25,6 +17,15 @@ export default class CronAdminVueModule extends VueModuleBase {
         this.policies_needed = [
             ModuleCron.POLICY_BO_ACCESS
         ];
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): CronAdminVueModule {
+        if (!CronAdminVueModule.instance) {
+            CronAdminVueModule.instance = new CronAdminVueModule();
+        }
+
+        return CronAdminVueModule.instance;
     }
 
     public async initializeAsync() {

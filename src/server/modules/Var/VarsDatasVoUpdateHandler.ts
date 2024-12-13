@@ -124,6 +124,9 @@ export default class VarsDatasVoUpdateHandler {
             actual_invalidators[VarsController.get_validator_config_id(invalidator)] = invalidator;
         }
 
+        // TODO FIXME pour booster ce passage, au lieu d'attendre toutes les promises de la boucle, on veut en fait attendre le plus rapide entre un event sur un push de actual_invalidators, et la fin de toutes les promises. Comme ça on peut rapidement reprendre l'empilage de promises
+        //  sans attendre de tout résoudre.
+        let is_looking_for_more_resolver = null;
         while (ObjectHandler.hasAtLeastOneAttribute(actual_invalidators)) {
 
             const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool, 'VarsDatasVoUpdateHandler.handle_intersectors');
@@ -138,38 +141,54 @@ export default class VarsDatasVoUpdateHandler {
                     continue;
                 }
 
-                await promise_pipeline.push(async () => {
-                    const intersectors = await VarsCacheController.get_deps_intersectors(actual_invalidator.var_data);
+                const intersectors = await VarsCacheController.get_deps_intersectors(actual_invalidator.var_data, promise_pipeline);
 
-                    if (!intersectors) {
+                if (!intersectors) {
+                    return;
+                }
+
+                const intersectors_array = Object.values(intersectors);
+
+                if (!intersectors_array || !intersectors_array.length) {
+                    return;
+                }
+
+                intersectors_array.map((intersector) => {
+                    const new_invalidator = VarDataInvalidatorVO.create_new(intersector, actual_invalidator.invalidator_type, actual_invalidator.propagate_to_parents, actual_invalidator.invalidate_denied, actual_invalidator.invalidate_imports);
+                    const new_invalidator_id = VarsController.get_validator_config_id(new_invalidator);
+
+                    if (deployed_invalidators[new_invalidator_id]) {
                         return;
                     }
 
-                    const intersectors_array = Object.values(intersectors);
-
-                    if (!intersectors_array || !intersectors_array.length) {
-                        return;
+                    if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                        ConsoleHandler.log('VarsDatasVoUpdateHandler.deploy_invalidators:DEPLOYING:' + new_invalidator_id + ':by:' + invalidator_id);
+                        new_invalidator.console_log();
+                        actual_invalidator.console_log();
                     }
+                    actual_invalidators[new_invalidator_id] = new_invalidator;
 
-                    intersectors_array.map((intersector) => {
-                        const new_invalidator = VarDataInvalidatorVO.create_new(intersector, actual_invalidator.invalidator_type, actual_invalidator.propagate_to_parents, actual_invalidator.invalidate_denied, actual_invalidator.invalidate_imports);
-                        const new_invalidator_id = VarsController.get_validator_config_id(new_invalidator);
-
-                        if (deployed_invalidators[new_invalidator_id]) {
-                            return;
-                        }
-
-                        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                            ConsoleHandler.log('VarsDatasVoUpdateHandler.deploy_invalidators:DEPLOYING:' + new_invalidator_id + ':by:' + invalidator_id);
-                            new_invalidator.console_log();
-                            actual_invalidator.console_log();
-                        }
-                        actual_invalidators[new_invalidator_id] = new_invalidator;
-                    });
+                    if (is_looking_for_more_resolver) {
+                        is_looking_for_more_resolver();
+                    }
                 });
             }
 
-            await promise_pipeline.end();
+            /**
+             * Subtilité pour les perfs :
+             *  La version simple : on await promise_pipeline.end(); et donc après on checke si on a des nouveaux invalidators à traiter
+             *  La version opti : on race entre le await promise_pipeline.end(); et un event sur actual_invalidators lancé par le push d'un nouveau invalidateur, qu'on gère en resolvant une promise qu'on init ici
+             */
+            let has_new_invalidator_resolver = null;
+            const has_new_invalidator = new Promise((resolve) => {
+                has_new_invalidator_resolver = resolve;
+            });
+            is_looking_for_more_resolver = has_new_invalidator_resolver;
+
+            await Promise.race([
+                promise_pipeline.end(),
+                has_new_invalidator,
+            ]);
         }
 
         return deployed_invalidators;

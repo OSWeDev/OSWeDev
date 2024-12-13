@@ -18,18 +18,19 @@ import ParamsServerController from '../../../Params/ParamsServerController';
 
 export default class VarsProcessUpdateDB extends VarsProcessBase {
 
+
+    private static instance: VarsProcessUpdateDB = null;
+
+    private constructor() {
+        super('VarsProcessUpdateDB', VarDAGNode.TAG_5_NOTIFIED_END, VarDAGNode.TAG_6_UPDATING_IN_DB, VarDAGNode.TAG_6_UPDATED_IN_DB, 2, true, ConfigurationService.node_configuration.max_varsprocessupdatedb);
+    }
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!VarsProcessUpdateDB.instance) {
             VarsProcessUpdateDB.instance = new VarsProcessUpdateDB();
         }
         return VarsProcessUpdateDB.instance;
-    }
-
-    private static instance: VarsProcessUpdateDB = null;
-
-    private constructor() {
-        super('VarsProcessUpdateDB', VarDAGNode.TAG_5_NOTIFIED_END, VarDAGNode.TAG_6_UPDATING_IN_DB, VarDAGNode.TAG_6_UPDATED_IN_DB, 2, true);
     }
 
     protected worker_sync(node: VarDAGNode): boolean {

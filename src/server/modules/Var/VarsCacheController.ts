@@ -2,6 +2,9 @@ import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarsServerController from './VarsServerController';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
+import { all_promises } from '../../../shared/tools/PromiseTools';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 
 /**
  * On se fixe 3 stratégies de cache :
@@ -12,11 +15,11 @@ import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
  */
 export default class VarsCacheController {
 
-    public static async get_deps_intersectors(intersector: VarDataBaseVO): Promise<{ [index: string]: VarDataBaseVO }> {
+    public static async get_deps_intersectors(intersector: VarDataBaseVO, promise_pipeline: PromisePipeline): Promise<{ [index: string]: VarDataBaseVO }> {
         const res: { [index: string]: VarDataBaseVO } = {};
 
         const node = VarsServerController.varcontrollers_dag.nodes[intersector.var_id];
-
+        const this_call_promises = [];
         for (const j in node.incoming_deps) {
             const deps = node.incoming_deps[j];
 
@@ -25,12 +28,17 @@ export default class VarsCacheController {
 
                 const controller = (dep.incoming_node as VarCtrlDAGNode).var_controller;
 
-                const tmp = await controller.get_invalid_params_intersectors_from_dep_stats_wrapper(dep.dep_name, [intersector]);
-                if (tmp && tmp.length) {
-                    tmp.forEach((e) => res[e.index] = e);
-                }
+                this_call_promises.push((await promise_pipeline.push(async () => {
+                    const tmp = StatsController.ACTIVATED ?
+                        await controller.get_invalid_params_intersectors_from_dep_stats_wrapper(dep.dep_name, [intersector]) :
+                        await controller.get_invalid_params_intersectors_from_dep(dep.dep_name, [intersector]);
+                    if (tmp && tmp.length) {
+                        tmp.forEach((e) => res[e.index] = e);
+                    }
+                }))());
             }
         }
+        await all_promises(this_call_promises);
 
         return res;
     }

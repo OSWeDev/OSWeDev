@@ -786,7 +786,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 datas.push(vo);
             }
         }
-        const fields = modultable.get_fields();
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[modultable.vo_type];
         for (const i in fields) {
             const field = fields[i];
             ordered_column_list.push(field.field_id);
@@ -1315,7 +1315,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         const res = {};
-        const fields = module_table.get_fields();
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[module_table.vo_type];
 
         if (!fields) {
             return cloneDeep(e);

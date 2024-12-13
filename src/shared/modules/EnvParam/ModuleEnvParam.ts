@@ -125,6 +125,11 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_varsprocessdeploydeps, ModuleTableFieldVO.FIELD_TYPE_int, 'Max VarsProcess DeployDeps', false);
         // MAX_VarsProcessLoadDatas ?: number;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_varsprocessloaddatas, ModuleTableFieldVO.FIELD_TYPE_int, 'Max VarsProcess LoadDatas', false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_varsprocessdagcleaner, ModuleTableFieldVO.FIELD_TYPE_int, 'Max VarsProcess DagCleaner', false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_varsprocessnotifyend, ModuleTableFieldVO.FIELD_TYPE_int, 'Max VarsProcess NotifyEnd', false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_varsprocessnotifystart, ModuleTableFieldVO.FIELD_TYPE_int, 'Max VarsProcess NotifyStart', false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_varsprocessupdatedb, ModuleTableFieldVO.FIELD_TYPE_int, 'Max VarsProcess UpdateDB', false);
+
         // MAX_Vars_invalidators ?: number;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_vars_invalidators, ModuleTableFieldVO.FIELD_TYPE_int, 'Max Vars invalidators', false);
 

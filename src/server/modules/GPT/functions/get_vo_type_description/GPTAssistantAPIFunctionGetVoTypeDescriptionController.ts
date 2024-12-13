@@ -1,5 +1,6 @@
 import { query } from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleTableController from "../../../../../shared/modules/DAO/ModuleTableController";
+import ModuleTableFieldController from "../../../../../shared/modules/DAO/ModuleTableFieldController";
 import GPTAssistantAPIFunctionParamVO from "../../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO";
 import GPTAssistantAPIFunctionVO from "../../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO";
 import GPTAssistantAPIThreadVO from "../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO";
@@ -51,7 +52,7 @@ export default class GPTAssistantAPIFunctionGetVoTypeDescriptionController {
         res.description = module_table.description;
 
         const fields: AssistantVoFieldDescription[] = [];
-        const module_table_fields = module_table.get_fields();
+        const module_table_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[module_table.vo_type];
 
         // On ajoute l'id et le _type :
         const field_desc_id = new AssistantVoFieldDescription();

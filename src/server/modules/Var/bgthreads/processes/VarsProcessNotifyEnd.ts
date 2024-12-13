@@ -9,18 +9,19 @@ import VarsProcessBase from './VarsProcessBase';
 
 export default class VarsProcessNotifyEnd extends VarsProcessBase {
 
+
+    private static instance: VarsProcessNotifyEnd = null;
+
+    private constructor() {
+        super('VarsProcessNotifyEnd', VarDAGNode.TAG_4_COMPUTED, VarDAGNode.TAG_5_NOTIFYING_END, VarDAGNode.TAG_5_NOTIFIED_END, 2, true, ConfigurationService.node_configuration.max_varsprocessnotifyend);
+    }
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!VarsProcessNotifyEnd.instance) {
             VarsProcessNotifyEnd.instance = new VarsProcessNotifyEnd();
         }
         return VarsProcessNotifyEnd.instance;
-    }
-
-    private static instance: VarsProcessNotifyEnd = null;
-
-    private constructor() {
-        super('VarsProcessNotifyEnd', VarDAGNode.TAG_4_COMPUTED, VarDAGNode.TAG_5_NOTIFYING_END, VarDAGNode.TAG_5_NOTIFIED_END, 2, true);
     }
 
     protected worker_sync(node: VarDAGNode): boolean {

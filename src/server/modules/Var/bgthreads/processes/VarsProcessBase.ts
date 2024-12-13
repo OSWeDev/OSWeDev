@@ -39,7 +39,7 @@ export default abstract class VarsProcessBase {
 
     public async work(): Promise<void> {
 
-        const promise_pipeline = this.as_batch ? null : new PromisePipeline(ConfigurationService.node_configuration.max_varsprocessdeploydeps, 'VarsProcessBase.' + this.name, true);
+        const promise_pipeline = this.as_batch ? null : new PromisePipeline(this.MAX_Workers, 'VarsProcessBase.' + this.name, true);
 
         if (ConfigurationService.node_configuration.debug_vars_processes) {
             ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:IN');
@@ -226,6 +226,7 @@ export default abstract class VarsProcessBase {
         }
 
         const valid_nodes: { [node_name: string]: VarDAGNode } = {};
+        let nb_nodes = 0;
 
         for (const i in nodes) {
             const node = nodes[i];
@@ -255,6 +256,15 @@ export default abstract class VarsProcessBase {
             // On remove_tag après le add_tag sinon si on a déjà tag une étape >, on peut plus tagger < à current_step
             node.remove_tag(this.TAG_IN_NAME);
             valid_nodes[node.var_data.index] = node;
+
+            // if (this.as_batch) {
+            //     nb_nodes++;
+
+            //     if (nb_nodes >= this.MAX_Workers) {
+            //         // Dans le cas d'un batch on limite le nombre de nodes à traiter pour pas tout bloquer le temps de résoudre l'ensemble
+            //         break;
+            //     }
+            // }
         }
 
         if (ConfigurationService.node_configuration.debug_vars_processes) {

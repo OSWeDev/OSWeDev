@@ -24,7 +24,12 @@ export default interface IEnvParam {
 
     max_varsprocessdeploydeps?: number;
     max_varsprocessloaddatas?: number;
+    max_varsprocessdagcleaner?: number;
     max_vars_invalidators?: number;
+    max_varsprocessnotifyend?: number;
+    max_varsprocessnotifystart?: number;
+    max_varsprocessupdatedb?: number;
+
 
     max_size_per_query?: number;
     max_union_all_per_query?: number;

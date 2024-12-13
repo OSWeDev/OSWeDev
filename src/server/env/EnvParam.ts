@@ -30,7 +30,11 @@ export default class EnvParam implements IEnvParam {
 
     public max_varsprocessdeploydeps?: number = 100;
     public max_varsprocessloaddatas?: number = 100;
+    public max_varsprocessdagcleaner?: number = 1000;
     public max_vars_invalidators?: number = 200;
+    public max_varsprocessnotifyend?: number = 100;
+    public max_varsprocessnotifystart?: number = 100;
+    public max_varsprocessupdatedb?: number = 100;
 
     public max_size_per_query?: number = 10000000;
     public max_union_all_per_query?: number = 1000;

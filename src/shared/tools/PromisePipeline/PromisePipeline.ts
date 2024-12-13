@@ -9,6 +9,7 @@ import ThreadHandler from "../ThreadHandler";
 
 export default class PromisePipeline {
 
+    public static EMPTY_PIPELINE_EVENT_NAME_PREFIX: string = 'PromisePipeline.empty_pipeline.';
 
     public static DEBUG_PROMISE_PIPELINE_WORKER_STATS: boolean = false;
 
@@ -22,8 +23,6 @@ export default class PromisePipeline {
     private nb_running_promises: number = 0;
     private all_waiting_and_running_promises_by_cb_uid: { [cb_uid: number]: Promise<any> } = {};
     // private all_running_promises_by_cb_uid: Array<Promise<any>> = [];
-
-    private end_promise_resolve: (reason?: string) => void | PromiseLike<string> = null;
 
     private waiting_for_race_resolver: (reason?: string) => void | PromiseLike<string> = null;
 
@@ -203,26 +202,21 @@ export default class PromisePipeline {
             ConsoleHandler.log('PromisePipeline.end():START:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
-        if (this.nb_running_promises === 0) {
+        while (this.nb_running_promises > 0) {
             if (EnvHandler.debug_promise_pipeline) {
-                ConsoleHandler.log('PromisePipeline.end():END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
+                ConsoleHandler.log('PromisePipeline.end():WAIT:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
-            return;
+
+            // Promise resolever declaration that
+            // will be called when all promises are finished
+            let next_empty_resolver = null;
+            const wait_for_end = new Promise<string>((resolve, reject) => {
+                next_empty_resolver = resolve;
+            });
+            EventsController.on_next_event(PromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid, next_empty_resolver);
+
+            await wait_for_end;
         }
-
-        if (EnvHandler.debug_promise_pipeline) {
-            ConsoleHandler.log('PromisePipeline.end():WAIT:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
-        }
-
-        const self = this;
-
-        // Promise resolever declaration that
-        // will be called when all promises are finished
-        const wait_for_end = new Promise<string>((resolve, reject) => {
-            self.end_promise_resolve = resolve;
-        });
-
-        await wait_for_end;
 
         delete PromisePipeline.all_promise_pipelines_by_uid[this.uid];
 
@@ -270,15 +264,13 @@ export default class PromisePipeline {
             StatsController.register_stat_COMPTEUR('PromisePipeline', this.stat_name, 'OUT', 1);
         }
 
-        if ((this.nb_running_promises === 0) && this.end_promise_resolve) {
+        if (this.nb_running_promises === 0) {
 
             if (EnvHandler.debug_promise_pipeline) {
                 ConsoleHandler.log('PromisePipeline.do_cb():END PROMISE:' + this.uid + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
-            const end_promise = this.end_promise_resolve;
-            this.end_promise_resolve = null;
-            await end_promise("PromisePipeline.do_cb");
+            EventsController.emit_event(EventifyEventInstanceVO.new_event(PromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid));
         }
     }
 }

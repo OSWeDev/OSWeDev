@@ -10,6 +10,7 @@ import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
+import SemaphoreHandler, { ISemaphoreHandlerCallInstance } from '../../../shared/tools/SemaphoreHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottlePipelineHelper from '../../../shared/tools/ThrottlePipeline/ThrottlePipelineHelper';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -30,6 +31,7 @@ export default class VarsDatasProxy {
 
     public static PARAM_NAME_filter_var_datas_by_index_size_limit = 'VarsDatasProxy.filter_var_datas_by_index_size_limit';
 
+    private static get_var_data_or_ask_to_bgthread_promise_pipeline: PromisePipeline = null;
     private static get_var_data_or_ask_to_bgthread: <T extends VarDataBaseVO>(throttle_index: string, param_index: string) => Promise<T> = ThrottlePipelineHelper.declare_throttled_pipeline(
         'VarsDatasProxy.get_var_data_or_ask_to_bgthread',
         this._get_var_datas_or_ask_to_bgthread.bind(this), 10, 500, 20
@@ -134,8 +136,8 @@ export default class VarsDatasProxy {
                                     result.push(var_data);
                                     return;
                                 }
-                            } catch (error) {
-                                ConsoleHandler.warn('VarsDatasProxy.get_var_datas_or_ask_to_bgthread: timeout for index: ' + params_index + ' error: ' + error + ' retries: ' + retries);
+                            } catch (error_) {
+                                ConsoleHandler.warn('VarsDatasProxy.get_var_datas_or_ask_to_bgthread: timeout for index: ' + params_index + ' error: ' + error_ + ' retries: ' + retries);
                             }
                         }
 
@@ -244,7 +246,23 @@ export default class VarsDatasProxy {
             let hole_wait = Dates.now_ms();
             let log_wait = Dates.now_ms();
             const start_wait = Dates.now();
+
+            // on défini cet instance d'appel, et si on se met en attente, on n'en garde qu'une seule via un sémaphore
+            const this_call_instance: ISemaphoreHandlerCallInstance<string[]> = {
+                params: indexs,
+                resolve: resolve as any,
+                reject: reject as any,
+            };
+            let call_instances: ISemaphoreHandlerCallInstance<string[]>[] = [this_call_instance];
+
             while (VarsComputationHole.waiting_for_computation_hole) {
+
+                // Si on rentre en attente, on prend le sémaphore si il es dispo, et sinon on donne la main à celui qui a pris le sémaphore en lui passant les paramètres et la promise à résoudre pour résoudre aussi cet appel
+                call_instances = SemaphoreHandler.get_call_instances<string[]>('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole', this_call_instance);
+                if (!call_instances) {
+                    return null;
+                }
+
                 await ThreadHandler.sleep(1, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole');
 
                 // Toutes les secondes, on indique qu'on est en attente pour essayer de sortir du hole
@@ -264,33 +282,51 @@ export default class VarsDatasProxy {
                 }
             }
 
-            const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification');
-            for (const i in indexs) {
-                const index = indexs[i];
-
-                // On //ise et on indique qu'on doit refaire un check en base, pour être sûr de ne pas avoir de données en base qui ne sont pas dans l'arbre
-                //  En fait ya un vrai point de conf ici / perf : est-ce qu'on impose de toujours rechecker en base ou pas ? si non on risque de refaire des calculs parfois en double, qui sont couteux
-                //  si oui on charge la base pour rien souvent
-                await promise_pipeline.push((async () => {
-                    const node: VarDAGNode = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false);
-
-                    if ((!node) || (!node.var_data)) {
-                        ConsoleHandler.error('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification: node ou node.var_data null pour index: ' + index);
-                        return;
-                    }
-
-                    // Si le noeud est déjà en cours de notif ou déjà notifié, on doit notifier manuellement à cette étape
-                    // Car le noeud pourrait ne pas être notifié sinon
-                    // Si le noeud est déjà notifiable, on peut le notifier aussi pour gagner du temps
-                    // Or tous les noeuds node.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_5_NOTIFYING_END] sont is_notifiable
-                    if (node.is_notifiable) {
-                        vars_to_notify.push(node.var_data as T);
-                    }
-                }));
+            if (!VarsDatasProxy.get_var_data_or_ask_to_bgthread_promise_pipeline) {
+                VarsDatasProxy.get_var_data_or_ask_to_bgthread_promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification');
             }
 
-            await promise_pipeline.end();
-            resolve(vars_to_notify);
+            for (const j in call_instances) {
+
+                const call_instance = call_instances[j];
+
+                // On stocke les promises de cette itération pour les attendre toutes avant de résoudre la promise de l'appel
+                const this_call_instance_promises = [];
+
+                try {
+
+                    for (const i in call_instance.params) {
+                        const index = call_instance.params[i];
+
+                        // On //ise et on indique qu'on doit refaire un check en base, pour être sûr de ne pas avoir de données en base qui ne sont pas dans l'arbre
+                        //  En fait ya un vrai point de conf ici / perf : est-ce qu'on impose de toujours rechecker en base ou pas ? si non on risque de refaire des calculs parfois en double, qui sont couteux
+                        //  si oui on charge la base pour rien souvent
+                        this_call_instance_promises.push((await VarsDatasProxy.get_var_data_or_ask_to_bgthread_promise_pipeline.push(async () => {
+                            const node: VarDAGNode = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false);
+
+                            if ((!node) || (!node.var_data)) {
+                                ConsoleHandler.error('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification: node ou node.var_data null pour index: ' + index);
+                                return;
+                            }
+
+                            // Si le noeud est déjà en cours de notif ou déjà notifié, on doit notifier manuellement à cette étape
+                            // Car le noeud pourrait ne pas être notifié sinon
+                            // Si le noeud est déjà notifiable, on peut le notifier aussi pour gagner du temps
+                            // Or tous les noeuds node.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_5_NOTIFYING_END] sont is_notifiable
+                            if (node.is_notifiable) {
+                                vars_to_notify.push(node.var_data as T);
+                            }
+                        }))());
+                    }
+
+                    await all_promises(this_call_instance_promises);
+                    call_instance.resolve(vars_to_notify);
+                } catch (error) {
+
+                    ConsoleHandler.error('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification: error: ' + error);
+                    call_instance.reject(error);
+                }
+            }
         });
     }
 }

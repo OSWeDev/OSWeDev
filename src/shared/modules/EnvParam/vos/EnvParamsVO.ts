@@ -76,6 +76,12 @@ export default class EnvParamsVO implements IDistantVOBase {
     // MAX_VarsProcessLoadDatas?: number;
     public max_varsprocessloaddatas: number;
 
+    public max_varsprocessdagcleaner: number;
+
+    public max_varsprocessnotifyend: number;
+    public max_varsprocessnotifystart: number;
+    public max_varsprocessupdatedb: number;
+
     // MAX_Vars_invalidators?: number;
     public max_vars_invalidators: number;
 

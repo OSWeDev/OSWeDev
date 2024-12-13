@@ -1,5 +1,6 @@
 import ParameterizedQueryWrapperField from '../../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField';
 import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../../shared/modules/DAO/ModuleTableFieldController';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
 import DAGNodeBase from '../../../../shared/modules/Var/graph/dagbase/DAGNodeBase';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -246,7 +247,7 @@ export default class VarDAGNode extends DAGNodeBase {
         //     throw new Error('VarDAGNode.load_from_db_if_exists :: index not valid');
         // }
 
-        const base_moduletable_fields = table.get_fields();
+        const base_moduletable_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[table.vo_type];
         const parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[] = [];
 
         let fields: string = 't.id';

@@ -1,6 +1,7 @@
 import INamedVO from '../../../interfaces/INamedVO';
 import ObjectHandler from '../../../tools/ObjectHandler';
 import ModuleTableController from '../../DAO/ModuleTableController';
+import ModuleTableFieldController from '../../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
 import Dates from '../../FormatDatesNombres/Dates/Dates';
@@ -28,7 +29,7 @@ export default class VOsTypesManager {
                     continue;
                 }
 
-                const fields = table.get_fields();
+                const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[table.vo_type];
                 for (const j in fields) {
                     const field = fields[j];
 
@@ -82,8 +83,9 @@ export default class VOsTypesManager {
         let manyToOne1: string = null;
         let field_num: number = 0;
         let isManyToMany: boolean = false;
-        for (const j in moduleTable.get_fields()) {
-            const field: ModuleTableFieldVO = moduleTable.get_fields()[j];
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
+        for (const j in fields) {
+            const field: ModuleTableFieldVO = fields[j];
 
             // On ignore les 2 fields de service
             if (field.field_name == "id") {
@@ -162,7 +164,7 @@ export default class VOsTypesManager {
 
         const res: ModuleTableFieldVO[] = [];
         const table = ModuleTableController.module_tables_by_vo_type[api_type_id];
-        const fields = table.get_fields();
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[table.vo_type];
 
         for (const j in fields) {
             const field: ModuleTableFieldVO = fields[j];
@@ -191,8 +193,9 @@ export default class VOsTypesManager {
 
     public static getManyToManyOtherField(manyToManyModuleTable: ModuleTableVO, firstField: ModuleTableFieldVO): ModuleTableFieldVO {
 
-        for (const j in manyToManyModuleTable.get_fields()) {
-            const field: ModuleTableFieldVO = manyToManyModuleTable.get_fields()[j];
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[manyToManyModuleTable.vo_type];
+        for (const j in fields) {
+            const field: ModuleTableFieldVO = fields[j];
 
             // On ignore les 2 fields de service
             if (field.field_name == "id") {
@@ -230,8 +233,8 @@ export default class VOsTypesManager {
         new_fields: ModuleTableFieldVO[],
         deleted_fields: ModuleTableFieldVO[]) {
 
-        const src_fields = ObjectHandler.mapByStringFieldFromArray(type_src.get_fields(), 'field_id');
-        const dest_fields = ObjectHandler.mapByStringFieldFromArray(type_dest.get_fields(), 'field_id');
+        const src_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[type_src.vo_type];
+        const dest_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[type_dest.vo_type];
         for (const i in src_fields) {
             const src_field = src_fields[i];
 

@@ -90,14 +90,13 @@ export default class VarsProcessInvalidator {
             ConsoleHandler.log('VarsProcessInvalidator:has_vos_cud_or_intersectors');
         }
 
+        const max_invalidators = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_invalidators_param_name, 500, 30000);
+        const max_ordered_vos_cud = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_ordered_vos_cud_param_name, 200, 30000);
         await VarsComputationHole.exec_in_computation_hole(async () => {
 
             if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:IN');
             }
-
-            const max_invalidators = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_invalidators_param_name, 500, 30000);
-            const max_ordered_vos_cud = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_ordered_vos_cud_param_name, 200, 30000);
 
             if (await this.check_if_needs_to_invalidate_all_vars(max_invalidators, max_ordered_vos_cud)) {
                 await ModuleVarServer.getInstance().force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole();

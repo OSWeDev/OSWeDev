@@ -422,7 +422,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             const setters = [];
-            const fields = moduleTable.get_fields();
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
             for (const i in fields) {
                 const field: ModuleTableFieldVO = fields[i];
 
@@ -485,8 +485,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             const tableFields = [];
             const placeHolders = [];
-            for (const f in moduleTable.get_fields()) {
-                const field: ModuleTableFieldVO = moduleTable.get_fields()[f];
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
+            for (const f in fields) {
+                const field: ModuleTableFieldVO = fields[f];
 
                 if (typeof vo[field.field_name] == "undefined") {
                     if (!field.has_default || !field.field_default_value) {
@@ -1194,8 +1195,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     const vo_values = [];
 
-                    for (const f in moduleTable.get_fields()) {
-                        const field: ModuleTableFieldVO = moduleTable.get_fields()[f];
+                    for (const f in fields) {
+                        const field: ModuleTableFieldVO = fields[f];
 
                         let fieldValue = vo[field.field_name];
 
@@ -1456,7 +1457,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         const tableFields: string[] = [];
-        const fields = moduleTable.get_fields();
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
 
         for (const i in fields) {
             const field: ModuleTableFieldVO = fields[i];
@@ -1869,7 +1870,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let request: string = null;
 
             let fields_select: string = 't.id';
-            const fields = moduleTable.get_fields();
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
             for (const i in fields) {
                 const field = fields[i];
 
@@ -2302,7 +2303,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return true;
         }
 
-        const fields = moduleTable.get_fields();
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
         let refuse: boolean = false;
         const promises = [];
 
@@ -2706,8 +2707,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         if (vo && !DAOServerController.checkAccessSync(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
             // a priori on a accès en list labels, mais pas en read. Donc on va filtrer tous les champs, sauf le label et id et _type
-            for (const i in datatable.get_fields()) {
-                const field: ModuleTableFieldVO = datatable.get_fields()[i];
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[datatable.vo_type];
+            for (const i in fields) {
+                const field: ModuleTableFieldVO = fields[i];
 
                 if (datatable.default_label_field &&
                     (field.field_name == datatable.default_label_field.field_name)) {

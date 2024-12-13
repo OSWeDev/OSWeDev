@@ -8,6 +8,7 @@ import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 import ModuleDAO from '../ModuleDAO';
 import ModuleTableController from '../ModuleTableController';
+import ModuleTableFieldController from '../ModuleTableFieldController';
 import ComputedDatatableFieldVO from './datatable/ComputedDatatableFieldVO';
 import Datatable from './datatable/Datatable';
 import DatatableField from './datatable/DatatableField';
@@ -110,7 +111,7 @@ export default class CRUD<T extends IDistantVOBase> {
         const readDatatable: Datatable<T> = new Datatable(API_TYPE_ID);
         const crud: CRUD<T> = new CRUD(readDatatable);
         const moduleTable = ModuleTableController.module_tables_by_vo_type[API_TYPE_ID];
-        const fields = moduleTable.get_fields();
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
 
         for (const i in fields) {
             const field: ModuleTableFieldVO = fields[i];
@@ -274,8 +275,9 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
-            for (const j in otherModuleTable.get_fields()) {
-                const field: ModuleTableFieldVO = otherModuleTable.get_fields()[j];
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[otherModuleTable.vo_type];
+            for (const j in fields) {
+                const field: ModuleTableFieldVO = fields[j];
 
                 if (!field.is_visible_datatable) {
                     continue;
@@ -365,8 +367,9 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
-            for (const j in otherModuleTable.get_fields()) {
-                const field: ModuleTableFieldVO = otherModuleTable.get_fields()[j];
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[otherModuleTable.vo_type];
+            for (const j in fields) {
+                const field: ModuleTableFieldVO = fields[j];
 
                 if (!field.is_visible_datatable) {
                     continue;

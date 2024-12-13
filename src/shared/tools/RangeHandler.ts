@@ -1406,7 +1406,10 @@ export default class RangeHandler {
         const chopped = a.chopped_items ? a.chopped_items.concat(b.chopped_items) : b.chopped_items;
         const remaining = a.remaining_items ? a.remaining_items.concat(b.remaining_items) : b.remaining_items;
 
-        return new RangesCutResult(chopped, remaining);
+        return new RangesCutResult(
+            chopped ? chopped.filter((i) => !!i) : null,
+            remaining ? remaining.filter((i) => !!i) : null,
+        );
     }
 
     /**

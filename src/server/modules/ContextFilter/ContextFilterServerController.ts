@@ -2943,6 +2943,7 @@ export default class ContextFilterServerController {
                         ConsoleHandler.error('ERROR : tsrange null on field_name ' + field_name
                             + ' :: param_tsranges : ' + JSON.stringify(context_filter.param_tsranges)
                             + ' : contextQuery : ' + JSON.stringify(context_query));
+                        return;
                     }
 
                     where_clause_date_intersects = (where_clause_date_intersects ? where_clause_date_intersects + ' OR ' : '');

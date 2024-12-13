@@ -1,5 +1,5 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import ModuleEnvParam from '../../../shared/modules/EnvParam/ModuleEnvParam';
 import EnvParamsVO from '../../../shared/modules/EnvParam/vos/EnvParamsVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -81,7 +81,7 @@ export default class ModuleEnvParamServer extends ModuleServerBase {
     public async get_env_params(): Promise<EnvParamsVO> {
         const res: EnvParamsVO = new EnvParamsVO();
 
-        const fields = ModuleTableController.module_tables_by_vo_type[EnvParamsVO.API_TYPE_ID].get_fields();
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[EnvParamsVO.API_TYPE_ID];
         for (const i in fields) {
             const field = fields[i];
             res[field.field_id] = ConfigurationService.node_configuration[field.field_id];
