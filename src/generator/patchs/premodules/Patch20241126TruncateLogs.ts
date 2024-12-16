@@ -23,26 +23,12 @@ export default class Patch20241126TruncateLogs implements IGeneratorWorker {
     }
 
     public async work(db: IDatabase<any>) {
-        try {
-
-            await db.query(`DO $$
-                DECLARE
-                    table_record RECORD;
-                BEGIN
-                    FOR table_record IN
-                        SELECT tablename
-                        FROM pg_tables
-                        WHERE schemaname = 'module_logger_logger_log'
-                    LOOP
-                        EXECUTE 'TRUNCATE TABLE '
-                            || quote_ident(table_record.tablename)
-                            || ' CASCADE';
-                    END LOOP;
-                END;
-                $$;
-            `);
-        } catch (error) {
-            ConsoleHandler.log('Possible que la table n\'existe pas encore, pas grave');
+        for (let i = 0; i < 5; i++) {
+            try {
+                await db.query('TRUNCATE TABLE module_logger_logger_log.module_logger_logger_log_' + i + ' CASCADE');
+            } catch (error) {
+                ConsoleHandler.log('Possible que la table n\'existe pas encore, pas grave');
+            }
         }
     }
 }
