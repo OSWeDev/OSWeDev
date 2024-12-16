@@ -1,4 +1,5 @@
 import EventsController from "../../../../shared/modules/Eventify/EventsController";
+import ModulesManager from "../../../../shared/modules/ModulesManager";
 import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
 import BGThreadNotAliveError from "../../Fork/errors/BGThreadNotAliveError";
 import RegisteredForkedTasksController from "../../Fork/RegisteredForkedTasksController";
@@ -21,6 +22,12 @@ export default class RunsOnBgThreadDataController {
  */
 export function RunsOnBgThread(bgthread: string, defaults_to_this_thread: boolean = false) {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+
+        if (ModulesManager.isGenerator) {
+            // Sur le générateur on n'a qu'un seul thread dans tous les cas
+            return descriptor;
+        }
+
         const originalMethod = descriptor.value;
 
         //TODO register the method as a task on the main thread, with a UID based on the method name and the class name
@@ -38,6 +45,12 @@ export function RunsOnBgThread(bgthread: string, defaults_to_this_thread: boolea
                 // Execute the method on the right process
                 return new Promise(async (resolve, reject) => {
                     try {
+
+                        if (!RunsOnBgThreadDataController.exec_self_on_bgthread_and_return_value_method) {
+                            // On ne peut pas renvoyer sur un bgthread si on n'en a pas
+                            // Exécuter la tâche ici
+                            return resolve(await originalMethod.apply(this, args));
+                        }
 
                         if (!await RunsOnBgThreadDataController.exec_self_on_bgthread_and_return_value_method(
                             defaults_to_this_thread,

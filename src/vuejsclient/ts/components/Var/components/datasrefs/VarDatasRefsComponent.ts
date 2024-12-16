@@ -225,12 +225,6 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             return;
         }
 
-        //vvvvvv! DEBUG DELETE ME !vvvvvv
-        if (var_params[1] && var_params[1].index && var_params[1].index.startsWith('4W|') && var_params[1].index.endsWith('|1&3|P5@A;&PR:qo')) {
-            ConsoleHandler.warn('VarDatasRefsComponent:register:' + var_params[1].index);
-        }
-        //^^^^^^! DEBUG DELETE ME !^^^^^^
-
         // De manière générale, si on est destroyed, on ne fait rien
         if (this.been_destroyed) {
             this.semaphore_register = false;
@@ -260,12 +254,6 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             this.semaphore_unregister = false;
             return;
         }
-
-        //vvvvvv! DEBUG DELETE ME !vvvvvv
-        if (currently_registered_params[1] && currently_registered_params[1].index && currently_registered_params[1].index.startsWith('4W|') && currently_registered_params[1].index.endsWith('|1&3|P5@A;&PR:qo')) {
-            ConsoleHandler.warn('VarDatasRefsComponent:unregister:' + currently_registered_params[1].index);
-        }
-        //^^^^^^! DEBUG DELETE ME !^^^^^^
 
         VarsClientController.getInstance().unRegisterParams(currently_registered_params, this.varUpdateCallbacks);
         this.var_datas = null;

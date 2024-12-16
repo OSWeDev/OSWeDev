@@ -134,6 +134,7 @@ import Patch20241010CreateLogType from './patchs/postmodules/Patch20241010Create
 import Patch20241030SuiviCompetencesGroupeShortName from './patchs/postmodules/Patch20241030SuiviCompetencesGroupeShortName';
 import Patch20241119DeleteSessions from './patchs/premodules/Patch20241119DeleteSessions';
 import Patch20241023AddOseliaFunction_azure_get_last_unread_email from './patchs/postmodules/Patch20241023AddOseliaFunction_azure_get_last_unread_email';
+import Patch20241216LowerDefaultDBLogTypeToWARN from './patchs/postmodules/Patch20241216LowerDefaultDBLogTypeToWARN';
 // import Patch20241129PreCreateEventsConfs from './patchs/premodules/Patch20241129PreCreateEventsConfs';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
@@ -298,6 +299,8 @@ export default abstract class GeneratorBase {
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
 
             Patch20241023AddOseliaFunction_azure_get_last_unread_email.getInstance(),
+
+            Patch20241216LowerDefaultDBLogTypeToWARN.getInstance(),
         ];
     }
 

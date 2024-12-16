@@ -1,7 +1,7 @@
 
 
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import EventsController from '../../../shared/modules/Eventify/EventsController';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -10,11 +10,10 @@ import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
-import SemaphoreHandler, { ISemaphoreHandlerCallInstance } from '../../../shared/tools/SemaphoreHandler';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottlePipelineHelper from '../../../shared/tools/ThrottlePipeline/ThrottlePipelineHelper';
 import ConfigurationService from '../../env/ConfigurationService';
 import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
+import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import CurrentVarDAGHolder from './CurrentVarDAGHolder';
 import VarsBGThreadNameHolder from './VarsBGThreadNameHolder';
@@ -27,7 +26,7 @@ import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
  */
 export default class VarsDatasProxy {
 
-    public static TASK_NAME_add_to_tree_and_return_datas_that_need_notification = 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification';
+    // public static TASK_NAME_add_to_tree_and_return_datas_that_need_notification = 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification';
 
     public static PARAM_NAME_filter_var_datas_by_index_size_limit = 'VarsDatasProxy.filter_var_datas_by_index_size_limit';
 
@@ -44,7 +43,7 @@ export default class VarsDatasProxy {
 
     public static init() {
         // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(VarsDatasProxy.TASK_NAME_add_to_tree_and_return_datas_that_need_notification, VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification.bind(this));
+        // ForkedTasksController.register_task(VarsDatasProxy.TASK_NAME_add_to_tree_and_return_datas_that_need_notification, VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification.bind(this));
     }
 
     public static async get_exact_params_from_bdd<T extends VarDataBaseVO>(
@@ -223,108 +222,61 @@ export default class VarsDatasProxy {
      * @param indexs
      * @returns
      */
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
     private static async add_to_tree_and_return_datas_that_need_notification<T extends VarDataBaseVO>(indexs: string[]): Promise<T[]> {
-        const vars_to_notify: T[] = [];
 
-        return new Promise(async (resolve, reject) => {
+        if (VarsComputationHole.waiting_for_computation_hole) {
+            let hole_resolver = null;
+            const promise = new Promise(async (resolve, reject) => {
+                hole_resolver = resolve;
+            });
 
-            if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
-                false,
-                reject,
-                VarsBGThreadNameHolder.bgthread_name,
-                VarsDatasProxy.TASK_NAME_add_to_tree_and_return_datas_that_need_notification,
-                resolve,
-                indexs)) {
+            EventsController.on_next_event(VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME, () => {
+                hole_resolver(null);
+            });
 
-                return null;
-            }
+            await promise;
+        }
 
-            /**
-             * Si on est en attente d'un computation_hole, on patiente avant d'empiler ces nouvelles demandes
-             */
-            let hole_wait = Dates.now_ms();
-            let log_wait = Dates.now_ms();
-            const start_wait = Dates.now();
+        const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
+        const promise_pipeline = PromisePipeline.get_semaphore_pipeline('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification', max);
 
-            // on défini cet instance d'appel, et si on se met en attente, on n'en garde qu'une seule via un sémaphore
-            const this_call_instance: ISemaphoreHandlerCallInstance<string[]> = {
-                params: indexs,
-                resolve: resolve as any,
-                reject: reject as any,
-            };
-            let call_instances: ISemaphoreHandlerCallInstance<string[]>[] = [this_call_instance];
+        // On stocke les promises de cette itération pour les attendre toutes avant de résoudre la promise de l'appel
+        const this_call_instance_promises = [];
 
-            while (VarsComputationHole.waiting_for_computation_hole) {
+        try {
 
-                // Si on rentre en attente, on prend le sémaphore si il es dispo, et sinon on donne la main à celui qui a pris le sémaphore en lui passant les paramètres et la promise à résoudre pour résoudre aussi cet appel
-                call_instances = SemaphoreHandler.get_call_instances<string[]>('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole', this_call_instance);
-                if (!call_instances) {
-                    return null;
-                }
+            const vars_to_notify: T[] = [];
+            for (const i in indexs) {
+                const index = indexs[i];
 
-                await ThreadHandler.sleep(1, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole');
+                // On //ise et on indique qu'on doit refaire un check en base, pour être sûr de ne pas avoir de données en base qui ne sont pas dans l'arbre
+                //  En fait ya un vrai point de conf ici / perf : est-ce qu'on impose de toujours rechecker en base ou pas ? si non on risque de refaire des calculs parfois en double, qui sont couteux
+                //  si oui on charge la base pour rien souvent
+                this_call_instance_promises.push((await promise_pipeline.push(async () => {
+                    const node: VarDAGNode = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false);
 
-                // Toutes les secondes, on indique qu'on est en attente pour essayer de sortir du hole
-                if ((Dates.now_ms() - hole_wait) > 1000) {
-                    VarsComputationHole.ask_for_hole_termination = true;
-                    hole_wait = Dates.now_ms();
-                }
-
-                if (ConfigurationService.node_configuration.debug_vars) {
-                    ConsoleHandler.throttle_log('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole');
-                }
-
-                // On log toutes les 5 secondes
-                if ((Dates.now_ms() - log_wait) > 5000) {
-                    ConsoleHandler.log('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole - ' + Dates.format_segment(start_wait, TimeSegment.TYPE_SECOND) + ' - Indexes: ' + indexs.join(' && '));
-                    log_wait = Dates.now_ms();
-                }
-            }
-
-            const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
-            const promise_pipeline = PromisePipeline.get_semaphore_pipeline('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification', max);
-
-            for (const j in call_instances) {
-
-                const call_instance = call_instances[j];
-
-                // On stocke les promises de cette itération pour les attendre toutes avant de résoudre la promise de l'appel
-                const this_call_instance_promises = [];
-
-                try {
-
-                    for (const i in call_instance.params) {
-                        const index = call_instance.params[i];
-
-                        // On //ise et on indique qu'on doit refaire un check en base, pour être sûr de ne pas avoir de données en base qui ne sont pas dans l'arbre
-                        //  En fait ya un vrai point de conf ici / perf : est-ce qu'on impose de toujours rechecker en base ou pas ? si non on risque de refaire des calculs parfois en double, qui sont couteux
-                        //  si oui on charge la base pour rien souvent
-                        this_call_instance_promises.push((await promise_pipeline.push(async () => {
-                            const node: VarDAGNode = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false);
-
-                            if ((!node) || (!node.var_data)) {
-                                ConsoleHandler.error('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification: node ou node.var_data null pour index: ' + index);
-                                return;
-                            }
-
-                            // Si le noeud est déjà en cours de notif ou déjà notifié, on doit notifier manuellement à cette étape
-                            // Car le noeud pourrait ne pas être notifié sinon
-                            // Si le noeud est déjà notifiable, on peut le notifier aussi pour gagner du temps
-                            // Or tous les noeuds node.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_5_NOTIFYING_END] sont is_notifiable
-                            if (node.is_notifiable) {
-                                vars_to_notify.push(node.var_data as T);
-                            }
-                        }))());
+                    if ((!node) || (!node.var_data)) {
+                        ConsoleHandler.error('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification: node ou node.var_data null pour index: ' + index);
+                        return;
                     }
 
-                    await all_promises(this_call_instance_promises);
-                    call_instance.resolve(vars_to_notify);
-                } catch (error) {
-
-                    ConsoleHandler.error('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification: error: ' + error);
-                    call_instance.reject(error);
-                }
+                    // Si le noeud est déjà en cours de notif ou déjà notifié, on doit notifier manuellement à cette étape
+                    // Car le noeud pourrait ne pas être notifié sinon
+                    // Si le noeud est déjà notifiable, on peut le notifier aussi pour gagner du temps
+                    // Or tous les noeuds node.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_5_NOTIFYING_END] sont is_notifiable
+                    if (node.is_notifiable) {
+                        vars_to_notify.push(node.var_data as T);
+                    }
+                }))());
             }
-        });
+
+            await all_promises(this_call_instance_promises);
+            return vars_to_notify;
+        } catch (error) {
+
+            ConsoleHandler.error('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification: error: ' + error);
+            throw error;
+        }
     }
 }

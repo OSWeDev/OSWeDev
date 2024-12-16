@@ -299,6 +299,8 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_vars_notifs, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug Vars Notifs', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().log_login_redirects, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Log Login Redirects', true, true, false);
 
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_async_hook_for_promise_watch, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activer async hook pour promise watch', true, true, false);
+
         ModuleTableController.create_new(this.name, EnvParamsVO, null, 'Static Env Params');
     }
 }

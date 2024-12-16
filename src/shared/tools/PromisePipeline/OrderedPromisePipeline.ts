@@ -1,3 +1,5 @@
+import EventsController from "../../modules/Eventify/EventsController";
+import EventifyEventInstanceVO from "../../modules/Eventify/vos/EventifyEventInstanceVO";
 import Dates from "../../modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../../modules/Stats/StatsController";
 import ConsoleHandler from "../ConsoleHandler";
@@ -14,6 +16,7 @@ import PromisePipeline from "./PromisePipeline";
  */
 export default class OrderedPromisePipeline {
 
+    public static EMPTY_PIPELINE_EVENT_NAME_PREFIX: string = 'OrderedPromisePipeline.empty_pipeline.';
     private static all_ordered_promise_pipelines_by_uid: { [uid: number]: OrderedPromisePipeline } = {};
 
     private static GLOBAL_UID: number = 0;
@@ -32,10 +35,6 @@ export default class OrderedPromisePipeline {
 
     private all_waiting_and_running_promises_by_cb1_uid: { [cb1_uid: number]: Promise<any> } = {};
     // private all_running_promises_by_cb1_uid: Array<Promise<any>> = [];
-
-    private end_promise_resolve: (reason?: string) => void | PromiseLike<string> = null;
-
-    private waiting_for_race_resolver: (reason?: string) => void | PromiseLike<string> = null;
 
     /**
      * Pipeline de promesses, qui permet de limiter le nombre de promesses en parallèle, mais d'en ajouter
@@ -60,6 +59,10 @@ export default class OrderedPromisePipeline {
                 'OrderedPromisePipeline.stat_worker',
                 true);
         }
+    }
+
+    get free_slot_event_name(): string {
+        return 'OrderedPromisePipeline.free_slot_event_' + this.uid;
     }
 
     private static stat_all_ordered_promise_pipelines() {
@@ -127,9 +130,13 @@ export default class OrderedPromisePipeline {
 
             const time_in = Dates.now_ms();
 
+            let resolve_promise = null;
             const waiting_for_race_promise = new Promise((resolve, reject) => {
-                this.waiting_for_race_resolver = resolve;
+                resolve_promise = resolve;
             });
+
+            EventsController.on_next_event(this.free_slot_event_name, resolve_promise);
+
             await waiting_for_race_promise;
 
             // We have a pb with race, it invokes multipleResolve, which is a perf pb : https://github.com/nodejs/node/issues/24321
@@ -179,15 +186,15 @@ export default class OrderedPromisePipeline {
             ConsoleHandler.log('OrderedPromisePipeline.end():WAIT:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
-        const self = this;
-
-        // Promise resolever declaration that
-        // will be called when all promises are finished
-        const wait_for_end = new Promise<string>((resolve, reject) => {
-            self.end_promise_resolve = resolve;
+        let resolve_promise = null;
+        const waiting_for_race_promise = new Promise((resolve, reject) => {
+            resolve_promise = resolve;
         });
 
-        await wait_for_end;
+        EventsController.on_next_event(OrderedPromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid, resolve_promise);
+
+        await waiting_for_race_promise;
+
         // On libère la mémoire
         delete OrderedPromisePipeline.all_ordered_promise_pipelines_by_uid[this.uid];
 
@@ -265,16 +272,11 @@ export default class OrderedPromisePipeline {
 
             if (freed_a_slot) {
                 // Since we freed on or more slots, we can check if we can run another promise
-                if (this.waiting_for_race_resolver) {
-                    const resolver = this.waiting_for_race_resolver;
-                    delete this.waiting_for_race_resolver;
-                    await resolver("OrderedPromisePipeline.do_cb1");
-                }
-                if ((this.nb_running_promises === 0) && this.end_promise_resolve) {
+                EventsController.emit_event(EventifyEventInstanceVO.new_event(this.free_slot_event_name));
 
-                    const end_promise = this.end_promise_resolve;
-                    this.end_promise_resolve = null;
-                    await end_promise("OrderedPromisePipeline.do_cb2");
+                if (this.nb_running_promises === 0) {
+
+                    EventsController.emit_event(EventifyEventInstanceVO.new_event(OrderedPromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid));
                 }
             }
         } while (this.unstack_cb2s_needs_to_retry);

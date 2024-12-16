@@ -85,6 +85,7 @@ export default class EnvParamsVO implements IDistantVOBase {
     // MAX_Vars_invalidators?: number;
     public max_vars_invalidators: number;
 
+    public activate_async_hook_for_promise_watch: boolean;
 
     // MAX_SIZE_PER_QUERY?: number;
     public max_size_per_query: number;

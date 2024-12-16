@@ -725,13 +725,6 @@ export default class VarDataRefComponent extends VueComponentBase {
             return;
         }
 
-
-        //vvvvvv! DEBUG DELETE ME !vvvvvv
-        if (var_param && var_param.index && var_param.index.startsWith('4W|') && var_param.index.endsWith('|1&3|P5@A;&PR:qo')) {
-            ConsoleHandler.warn('VarDataRefComponent:register:' + var_param.index);
-        }
-        //^^^^^^! DEBUG DELETE ME !^^^^^^
-
         // De manière générale, si on est destroyed, on ne fait rien
         if (this.been_destroyed) {
             this.semaphore_register = false;
@@ -778,12 +771,6 @@ export default class VarDataRefComponent extends VueComponentBase {
         const currently_registered_param = this.currently_registered_param;
         this.currently_registered_param = null;
 
-        //vvvvvv! DEBUG DELETE ME !vvvvvv
-        if (currently_registered_param && currently_registered_param.index && currently_registered_param.index.startsWith('4W|') && currently_registered_param.index.endsWith('|1&3|P5@A;&PR:qo')) {
-            ConsoleHandler.warn('VarDataRefComponent:unregister:' + currently_registered_param.index);
-        }
-        //^^^^^^! DEBUG DELETE ME !^^^^^^
-
         VarsClientController.getInstance().unRegisterParams(
             [currently_registered_param],
             this.varUpdateCallbacks
@@ -829,12 +816,6 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     private set_is_being_updated() {
-
-        //vvvvvv! DEBUG DELETE ME !vvvvvv
-        if (this.var_param && this.var_data && this.var_param.index && this.var_param.index.startsWith('4W|') && this.var_param.index.endsWith('|1&3|P5@A;&PR:qo')) {
-            ConsoleHandler.log('set_is_being_updated:' + this.var_param.index + ':' + this.var_data.value + ':' + this.var_data.value_ts + ':' + this.var_data.value_type + ':' + this.var_data.is_computing);
-        }
-        //^^^^^^! DEBUG DELETE ME !^^^^^^
 
         this.is_being_updated = (!this.var_data) || (typeof this.var_data.value === 'undefined') || (this.var_data.is_computing);
     }

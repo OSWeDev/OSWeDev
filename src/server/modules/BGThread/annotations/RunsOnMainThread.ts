@@ -1,4 +1,5 @@
 import { isMainThread } from "worker_threads";
+import ModulesManager from "../../../../shared/modules/ModulesManager";
 import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
 import RegisteredForkedTasksController from "../../Fork/RegisteredForkedTasksController";
 
@@ -12,6 +13,12 @@ export default class RunsOnMainThreadDataController {
  * Optimized : if the method is called from the main thread, it will be executed directly and the annotation will be removed so that the method is executed directly next time
  */
 export function RunsOnMainThread(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+
+    if (ModulesManager.isGenerator) {
+        // Sur le générateur on n'a qu'un seul thread dans tous les cas
+        return descriptor;
+    }
+
     const originalMethod = descriptor.value;
 
     //TODO register the method as a task on the main thread, with a UID based on the method name and the class name
@@ -27,7 +34,6 @@ export function RunsOnMainThread(target: any, propertyKey: string, descriptor: P
             // Not on main process: execute the method on the main process
             return new Promise(async (resolve, reject) => {
                 try {
-
                     await RunsOnMainThreadDataController.exec_self_on_main_process_and_return_value_method(
                         reject,
                         task_UID, // Using the method name as the task UID

@@ -144,4 +144,6 @@ export default interface IEnvParam {
     silent_no_sort_by_but_query_limit?: boolean;
 
     log_login_redirects?: boolean;
+
+    activate_async_hook_for_promise_watch?: boolean;
 }

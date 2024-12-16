@@ -33,6 +33,7 @@ import ForkedTasksController from './ForkedTasksController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
 import StackContextWrapper from '../../../shared/tools/StackContextWrapper';
+import AsyncHookPromiseWatchController from '../Stats/AsyncHookPromiseWatchController';
 
 export default abstract class ForkedProcessWrapperBase {
 
@@ -164,6 +165,8 @@ export default abstract class ForkedProcessWrapperBase {
 
         // Derniers chargements
         await this.modulesService.late_server_modules_configurations(false);
+
+        AsyncHookPromiseWatchController.init();
 
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');

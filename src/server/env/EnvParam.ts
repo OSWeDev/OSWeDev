@@ -32,8 +32,8 @@ export default class EnvParam implements IEnvParam {
     public max_varsprocessloaddatas?: number = 100;
     public max_varsprocessdagcleaner?: number = 1000;
     public max_vars_invalidators?: number = 200;
-    public max_varsprocessnotifyend?: number = 100;
-    public max_varsprocessnotifystart?: number = 100;
+    public max_varsprocessnotifyend?: number = 1000;
+    public max_varsprocessnotifystart?: number = 1000;
     public max_varsprocessupdatedb?: number = 100;
 
     public max_size_per_query?: number = 10000000;
@@ -168,4 +168,6 @@ export default class EnvParam implements IEnvParam {
     public silent_no_sort_by_but_query_limit?: boolean = true;
 
     public log_login_redirects?: boolean = false;
+
+    public activate_async_hook_for_promise_watch?: boolean = false;
 }

@@ -232,6 +232,8 @@ export default class ParamsServerController {
             ParamsServerController.throttled_param_cache_lastupdate_ms[text] = Dates.now_ms();
             ParamsServerController.throttled_param_cache_value[text] = res;
 
+            delete ParamsServerController.semaphore_param[text];
+
             resolve(res);
         });
         return ParamsServerController.semaphore_param[text];

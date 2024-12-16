@@ -33,7 +33,7 @@ export default class Patch20241010CreateLogType implements IGeneratorWorker {
         );
         await ModuleParams.getInstance().setParamValueAsNumber(
             ModuleLogger.PARAM_LOGGER_LOG_TYPE_SERVER_MAX,
-            await ModuleParams.getInstance().getParamValueAsInt(ModuleLogger.PARAM_LOGGER_LOG_TYPE_DEBUG, null, null)
+            await ModuleParams.getInstance().getParamValueAsInt(ModuleLogger.PARAM_LOGGER_LOG_TYPE_WARN, null, null)
         );
     }
 

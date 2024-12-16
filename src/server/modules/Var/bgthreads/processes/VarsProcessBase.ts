@@ -17,8 +17,8 @@ export default abstract class VarsProcessBase {
     protected waiting_valid_nodes: { [node_name: string]: VarDAGNode } = null;
 
     protected thread_sleep_coef: number = 1;
-    protected thread_sleep_max_coef: number = 10;
-    protected thread_sleep_evol_coef: number = 1.1;
+    protected thread_sleep_max_coef: number = 100;
+    protected thread_sleep_evol_coef: number = 1.5;
 
     /**
      * Si on a 0 workers, on ne fait pas de traitement en parallèle on part du principe que le traitement est synchrone (donc sans await, sans pipeline, ...)

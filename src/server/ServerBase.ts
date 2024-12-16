@@ -9,7 +9,7 @@ import fs from 'fs';
 import helmet from 'helmet';
 import path from 'path';
 import pg from 'pg';
-import pg_promise, { IDatabase } from 'pg-promise';
+import pg_promise, { IDatabase, IEventContext, IResultExt, ITaskContext } from 'pg-promise';
 import socketIO from 'socket.io';
 import winston from 'winston';
 import winston_daily_rotate_file from 'winston-daily-rotate-file';
@@ -72,6 +72,7 @@ import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 import APIDefinition from '../shared/modules/API/vos/APIDefinition';
 import expressStaticGzip from 'express-static-gzip';
 import StackContextWrapper from '../shared/tools/StackContextWrapper';
+import AsyncHookPromiseWatchController from './modules/Stats/AsyncHookPromiseWatchController';
 
 export default abstract class ServerBase {
 
@@ -218,12 +219,39 @@ export default abstract class ServerBase {
         const pgp: pg_promise.IMain = pg_promise({
             async connect(e: { client: IClient, dc: any, useCount: number }) {
                 StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'connect');
+
+                // /**
+                //  * FIXME : JNE DELETE : only for debug
+                //  */
+                // e.client['__connectStart'] = Dates.now_ms();
+                // /**
+                //  * ! FIXME : JNE DELETE : only for debug
+                //  */
+
             },
             async disconnect(e: { client: IClient, dc: any }) {
                 StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'disconnect');
+
+                // const totalConnTime = Dates.now_ms() - e.client['__connectStart'];
+                // console.log('DISCONNECT EVENT: durée depuis l’obtention de la connexion =', totalConnTime, 'ms');
             },
-            async query(e) {
+            async query(e: IEventContext<IClient>) {
                 StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'query');
+
+                // /**
+                //  * FIXME : JNE DELETE : only for debug
+                //  */
+                // if (!e.ctx) {
+                //     e.ctx = {} as ITaskContext;
+                // }
+                // e.ctx['queryStart'] = Dates.now_ms();
+                // /**
+                //  * ! FIXME : JNE DELETE : only for debug
+                //  */
+            },
+            async receive(e: { data: any[], result: IResultExt | void, ctx: IEventContext<C> }) {
+                // const queryTime = e.ctx['queryStart'] ? Dates.now_ms() - e.ctx['queryStart'] : 'N/A';
+                // console.log('RECEIVE EVENT: durée exécution côté serveur = ' + queryTime + 'ms, rows = ' + e.data.length);
             },
             async error(err, e) {
                 StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'error');
@@ -508,6 +536,8 @@ export default abstract class ServerBase {
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:late_server_modules_configurations:END');
         }
+
+        AsyncHookPromiseWatchController.init();
 
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');

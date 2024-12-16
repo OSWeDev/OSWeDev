@@ -1,3 +1,5 @@
+import EventsController from '../../../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
@@ -8,6 +10,8 @@ import CurrentVarDAGHolder from '../../CurrentVarDAGHolder';
 export default class VarsComputationHole {
 
     public static TASK_NAME_exec_in_computation_hole = 'Var.exec_in_computation_hole';
+
+    public static waiting_for_computation_hole_RELEASED_EVENT_NAME: string = 'VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME';
 
     /**
      * Quand on veut invalider, le process d'invalidation doit indiquer qu'il attend un espace pour invalider (waiting_for_invalidation = true),
@@ -84,7 +88,7 @@ export default class VarsComputationHole {
 
             if (VarsComputationHole.redo_in_a_hole_semaphore && VarsComputationHole.current_cbs_stack.length) {
 
-                VarsComputationHole.waiting_for_computation_hole = false;
+                VarsComputationHole.release_waiting_for_hole();
 
                 if (asked_for_hole_termination) {
                     // On marque une pause plus longue si on a demandé explicitement une pause
@@ -96,7 +100,17 @@ export default class VarsComputationHole {
         } while (VarsComputationHole.redo_in_a_hole_semaphore && VarsComputationHole.current_cbs_stack.length);
         VarsComputationHole.redo_in_a_hole_semaphore = false;
 
+        VarsComputationHole.release_waiting_for_hole();
+    }
+
+    private static release_waiting_for_hole() {
+
+        if (!VarsComputationHole.waiting_for_computation_hole) {
+            return;
+        }
+
         VarsComputationHole.waiting_for_computation_hole = false;
+        EventsController.emit_event(EventifyEventInstanceVO.new_event(VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME));
     }
 
     private static async wrap_handle_hole(): Promise<boolean> {

@@ -23,7 +23,7 @@ import ParamsServerController from './ParamsServerController';
 export default class ModuleParamsServer extends ModuleServerBase {
 
     public static TASK_NAME_delete_params_cache = 'ModuleAccessPolicyServer.delete_params_cache';
-    private static instance: ModuleParamsServer = null;
+    public static instance: ModuleParamsServer = null;
 
     // istanbul ignore next: cannot test module constructor
     private constructor() {
