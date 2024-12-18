@@ -100,6 +100,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
             CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
+            CurrentBatchDSCacheHolder.semaphore_event_listener_promise = {};
             CurrentVarDAGHolder.current_vardag = new VarDAG();
 
             // On initialise ce qui a besoin de l'être
@@ -119,7 +120,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             VarsProcessDagCleaner.getInstance().work();
 
             // L'invalidation
-            VarsProcessInvalidator.getInstance().work();
+            // VarsProcessInvalidator.getInstance().work();
+            VarsProcessInvalidator.getInstance();
 
         } catch (error) {
             ConsoleHandler.error('VarsdatasComputerBGThread.work error : ' + error);

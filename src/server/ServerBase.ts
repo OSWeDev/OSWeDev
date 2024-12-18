@@ -217,42 +217,45 @@ export default abstract class ServerBase {
         // this.jwtSecret = 'This is the jwt secret for the rest part';
 
         const pgp: pg_promise.IMain = pg_promise({
-            async connect(e: { client: IClient, dc: any, useCount: number }) {
-                StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'connect');
+            connect: StatsController.ACTIVATED ?
+                async (e: { client: IClient, dc: any, useCount: number }) => {
+                    StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'connect');
 
-                // /**
-                //  * FIXME : JNE DELETE : only for debug
-                //  */
-                // e.client['__connectStart'] = Dates.now_ms();
-                // /**
-                //  * ! FIXME : JNE DELETE : only for debug
-                //  */
+                    // /**
+                    //  * FIXME : JNE DELETE : only for debug
+                    //  */
+                    // e.client['__connectStart'] = Dates.now_ms();
+                    // /**
+                    //  * ! FIXME : JNE DELETE : only for debug
+                    //  */
 
-            },
-            async disconnect(e: { client: IClient, dc: any }) {
-                StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'disconnect');
+                } : undefined,
+            disconnect: StatsController.ACTIVATED ?
+                async (e: { client: IClient, dc: any }) => {
+                    StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'disconnect');
 
-                // const totalConnTime = Dates.now_ms() - e.client['__connectStart'];
-                // console.log('DISCONNECT EVENT: durée depuis l’obtention de la connexion =', totalConnTime, 'ms');
-            },
-            async query(e: IEventContext<IClient>) {
-                StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'query');
+                    // const totalConnTime = Dates.now_ms() - e.client['__connectStart'];
+                    // console.log('DISCONNECT EVENT: durée depuis l’obtention de la connexion =', totalConnTime, 'ms');
+                } : undefined,
+            query: StatsController.ACTIVATED ?
+                async (e: IEventContext<IClient>) => {
+                    StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'query');
 
-                // /**
-                //  * FIXME : JNE DELETE : only for debug
-                //  */
-                // if (!e.ctx) {
-                //     e.ctx = {} as ITaskContext;
-                // }
-                // e.ctx['queryStart'] = Dates.now_ms();
-                // /**
-                //  * ! FIXME : JNE DELETE : only for debug
-                //  */
-            },
-            async receive(e: { data: any[], result: IResultExt | void, ctx: IEventContext<C> }) {
-                // const queryTime = e.ctx['queryStart'] ? Dates.now_ms() - e.ctx['queryStart'] : 'N/A';
-                // console.log('RECEIVE EVENT: durée exécution côté serveur = ' + queryTime + 'ms, rows = ' + e.data.length);
-            },
+                    // /**
+                    //  * FIXME : JNE DELETE : only for debug
+                    //  */
+                    // if (!e.ctx) {
+                    //     e.ctx = {} as ITaskContext;
+                    // }
+                    // e.ctx['queryStart'] = Dates.now_ms();
+                    // /**
+                    //  * ! FIXME : JNE DELETE : only for debug
+                    //  */
+                } : undefined,
+            // async receive(e: { data: any[], result: IResultExt | void, ctx: IEventContext<IClient> }) {
+            // const queryTime = e.ctx['queryStart'] ? Dates.now_ms() - e.ctx['queryStart'] : 'N/A';
+            // console.log('RECEIVE EVENT: durée exécution côté serveur = ' + queryTime + 'ms, rows = ' + e.data.length);
+            // },
             async error(err, e) {
                 StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'error');
                 ConsoleHandler.error(

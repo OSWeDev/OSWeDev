@@ -150,6 +150,8 @@ export default class SupervisionController {
                 public id: number;
                 public _type: string;
             });
+            ModuleTableController.vo_constructor_proto_by_vo_type[vo_type] = Object.getPrototypeOf(new ModuleTableController.vo_constructor_by_vo_type[vo_type]());
+
             const newTable: ModuleTableVO = ModuleTableController.create_new(moduleTable.module_name, ModuleTableController.vo_constructor_by_vo_type[vo_type], null, vo_type);
             newTable.set_bdd_ref(database, moduleTable.name);
             newTable.set_inherit_rights_from_vo_type(moduleTable.vo_type);

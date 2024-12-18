@@ -1,21 +1,28 @@
-import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
-import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import PromisePipeline from '../../../../../shared/tools/PromisePipeline/PromisePipeline';
 import ConfigurationService from '../../../../env/ConfigurationService';
+import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
+import CurrentBatchDSCacheHolder from '../../CurrentBatchDSCacheHolder';
 import PixelVarDataController from '../../PixelVarDataController';
 import VarsServerController from '../../VarsServerController';
 import DataSourceControllerBase from '../../datasource/DataSourceControllerBase';
 import DataSourcesController from '../../datasource/DataSourcesController';
 import VarsProcessBase from './VarsProcessBase';
-import PromisePipeline from '../../../../../shared/tools/PromisePipeline/PromisePipeline';
-import CurrentBatchDSCacheHolder from '../../CurrentBatchDSCacheHolder';
 
 export default class VarsProcessLoadDatas extends VarsProcessBase {
 
     private static instance: VarsProcessLoadDatas = null;
 
     private constructor() {
-        super('VarsProcessLoadDatas', VarDAGNode.TAG_2_DEPLOYED, VarDAGNode.TAG_3_DATA_LOADING, VarDAGNode.TAG_3_DATA_LOADED, 2, true, ConfigurationService.node_configuration.max_varsprocessloaddatas);
+        super(
+            'VarsProcessLoadDatas',
+            VarDAGNode.TAG_2_DEPLOYED,
+            VarDAGNode.TAG_3_DATA_LOADING,
+            VarDAGNode.TAG_3_DATA_LOADED,
+            // 2,
+            true,
+            ConfigurationService.node_configuration.max_varsprocessloaddatas,
+        );
     }
 
     public static async load_nodes_datas(nodes: { [node_name: string]: VarDAGNode }, predep: boolean = false): Promise<boolean> {
@@ -99,17 +106,17 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
         return VarsProcessLoadDatas.instance;
     }
 
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
 
         // On charge les datas (pas predeps) de tous les nodes
         return VarsProcessLoadDatas.load_nodes_datas(nodes, false);
     }
 
-    protected worker_sync(node: VarDAGNode): boolean {
+    protected worker_sync(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): boolean {
         throw new Error('not implemented');
     }
 
-    protected async worker_async(node: VarDAGNode): Promise<boolean> {
+    protected async worker_async(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
         throw new Error('not implemented');
         // const controller = VarsServerController.getVarControllerById(node.var_data.var_id);
 

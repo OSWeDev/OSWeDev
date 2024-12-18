@@ -25,7 +25,9 @@ export default class VarsDeployDepsHandler {
 
     public static async handle_deploy_deps(
         node: VarDAGNode,
-        deps: { [index: string]: VarDataBaseVO }) {
+        deps: { [index: string]: VarDataBaseVO },
+        nodes_to_unlock: VarDAGNode[],
+    ) {
 
         const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_deploy_deps', 'IN');
@@ -69,10 +71,22 @@ export default class VarsDeployDepsHandler {
 
             promises.push((async () => {
 
-                const dep_node = await VarDAGNode.getInstance(node.var_dag, dep, false/*, true*/);
-                if (!dep_node) {
+                let dep_node = null;
+                let remaining_tries = 3;
+
+                do {
+                    dep_node = await VarDAGNode.getInstance(node.var_dag, dep, false/*, true*/);
+
+                    // On peut ne pas avoir de var_dag si le noeud a été supprimé/détaché de l'arbre entre temps.
+                    remaining_tries--;
+                } while (remaining_tries && ((!dep_node) || (!dep_node.var_dag)));
+
+                if (!dep_node || !dep_node.var_dag) {
+                    ConsoleHandler.error('handle_deploy_deps:dep:' + dep.index + ':no dep_node or no var_dag after 3 tries');
                     return;
                 }
+
+                nodes_to_unlock.push(dep_node);
 
                 // dep_node.is_client_sub_dep = dep_node.is_client_sub_dep || node.is_client_sub || node.is_client_sub_dep;
                 // dep_node.is_server_sub_dep = dep_node.is_server_sub_dep || node.is_server_sub || node.is_server_sub_dep;
@@ -127,7 +141,8 @@ export default class VarsDeployDepsHandler {
      */
     public static async load_caches_and_imports_on_var_to_deploy(
         node: VarDAGNode,
-        limit_to_aggregated_datas: boolean = false
+        limit_to_aggregated_datas: boolean = false,
+        nodes_to_unlock: VarDAGNode[],
     ): Promise<boolean> {
 
         const time_in = Dates.now_ms();
@@ -150,7 +165,7 @@ export default class VarsDeployDepsHandler {
              *  si on a des données parcellaires par définition on doit quand même déployer les deps
              */
 
-            await VarsImportsHandler.getInstance().load_imports_and_split_nodes(node);
+            await VarsImportsHandler.getInstance().load_imports_and_split_nodes(node, nodes_to_unlock);
 
             if (VarsServerController.has_valid_value(node.var_data)) {
 
@@ -173,7 +188,7 @@ export default class VarsDeployDepsHandler {
          */
         if (varconf.pixel_activated) {
 
-            if (await VarsDeployDepsHandler.handle_pixellisation(node, varconf, limit_to_aggregated_datas, DEBUG_VARS)) {
+            if (await VarsDeployDepsHandler.handle_pixellisation(node, varconf, limit_to_aggregated_datas, DEBUG_VARS, nodes_to_unlock)) {
                 StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_handle_pixellisation');
                 StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_handle_pixellisation', Dates.now_ms() - time_in);
                 return;
@@ -186,13 +201,13 @@ export default class VarsDeployDepsHandler {
             return;
         }
 
-        const deps: { [index: string]: VarDataBaseVO } = await VarsDeployDepsHandler.get_node_deps(node);
+        const deps: { [index: string]: VarDataBaseVO } = await VarsDeployDepsHandler.get_node_deps(node, nodes_to_unlock);
 
         if (DEBUG_VARS) {
             ConsoleHandler.log('deploy_deps:' + node.var_data.index + ':handle_deploy_deps:IN:');
         }
         if (deps) {
-            await VarsDeployDepsHandler.handle_deploy_deps(node, deps);
+            await VarsDeployDepsHandler.handle_deploy_deps(node, deps, nodes_to_unlock);
         }
         if (DEBUG_VARS) {
             ConsoleHandler.log('deploy_deps:' + node.var_data.index + ':handle_deploy_deps:OUT:');
@@ -207,7 +222,13 @@ export default class VarsDeployDepsHandler {
      * sinon, on fait la fameuse requête de count + aggrégat et suivant que le count correspond bien au produit des cardinaux des dimensions
      *  pixellisées, on découpe en pixel, ou pas. (En chargeant du coup la liste des pixels)
      */
-    private static async handle_pixellisation(node: VarDAGNode, varconf: VarConfVO, limit_to_aggregated_datas: boolean, DEBUG_VARS: boolean): Promise<boolean> {
+    private static async handle_pixellisation(
+        node: VarDAGNode,
+        varconf: VarConfVO,
+        limit_to_aggregated_datas: boolean,
+        DEBUG_VARS: boolean,
+        nodes_to_unlock: VarDAGNode[],
+    ): Promise<boolean> {
 
         const prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
 
@@ -331,9 +352,9 @@ export default class VarsDeployDepsHandler {
         const can_not_use_known_pixels = (varconf.aggregator == VarConfVO.AVG_AGGREGATOR);
 
         if (can_not_use_known_pixels) {
-            await this.do_not_use_known_pixels(node, varconf, pixellised_fields_by_id, pixel_cache, prod_cardinaux, DEBUG_VARS);
+            await this.do_not_use_known_pixels(node, varconf, pixellised_fields_by_id, pixel_cache, prod_cardinaux, DEBUG_VARS, nodes_to_unlock);
         } else {
-            await this.use_known_pixels(node, varconf, pixellised_fields_by_id, pixel_cache, prod_cardinaux, DEBUG_VARS);
+            await this.use_known_pixels(node, varconf, pixellised_fields_by_id, pixel_cache, prod_cardinaux, DEBUG_VARS, nodes_to_unlock);
         }
 
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_pixellisation', 'OUT_PIXELED');
@@ -346,7 +367,8 @@ export default class VarsDeployDepsHandler {
         pixellised_fields_by_id: { [param_field_name: string]: VarPixelFieldConfVO },
         pixel_cache: { counter: number, aggregated_value: number },
         prod_cardinaux: number,
-        DEBUG_VARS: boolean
+        DEBUG_VARS: boolean,
+        nodes_to_unlock: VarDAGNode[],
     ) {
 
         const aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
@@ -365,7 +387,9 @@ export default class VarsDeployDepsHandler {
         const promises = [];
         for (const depi in aggregated_datas) {
             const aggregated_data = aggregated_datas[depi];
-            promises.push(VarDAGNode.getInstance(node.var_dag, aggregated_data, false/*, true*/));
+            promises.push((async () => {
+                nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, aggregated_data, false/*, true*/));
+            })());
         }
         await all_promises(promises);
 
@@ -383,7 +407,8 @@ export default class VarsDeployDepsHandler {
         pixellised_fields_by_id: { [param_field_name: string]: VarPixelFieldConfVO },
         pixel_cache: { counter: number, aggregated_value: number },
         prod_cardinaux: number,
-        DEBUG_VARS: boolean
+        DEBUG_VARS: boolean,
+        nodes_to_unlock: VarDAGNode[],
     ) {
 
         const known_pixels_query = query(varconf.var_data_vo_type);
@@ -456,7 +481,9 @@ export default class VarsDeployDepsHandler {
         const promises = [];
         for (const depi in aggregated_datas) {
             const aggregated_data = aggregated_datas[depi];
-            promises.push(VarDAGNode.getInstance(node.var_dag, aggregated_data, true/*, true*/));
+            promises.push((async () => {
+                nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, aggregated_data, true/*, true*/));
+            })());
         }
         await all_promises(promises);
 
@@ -539,7 +566,10 @@ export default class VarsDeployDepsHandler {
      *      - Chargement des ds predeps du noeud
      *      - Chargement des deps
      */
-    private static async get_node_deps(node: VarDAGNode): Promise<{ [dep_id: string]: VarDataBaseVO }> {
+    private static async get_node_deps(
+        node: VarDAGNode,
+        nodes_to_unlock: VarDAGNode[],
+    ): Promise<{ [dep_id: string]: VarDataBaseVO }> {
 
         const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'IN');
@@ -553,7 +583,9 @@ export default class VarsDeployDepsHandler {
                 const data = node.aggregated_datas[i];
                 aggregated_deps['AGG_' + (index++)] = data;
 
-                promises.push(VarDAGNode.getInstance(node.var_dag, data, true/*, true*/));
+                promises.push((async () => {
+                    nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, data, true/*, true*/));
+                })());
             }
             await all_promises(promises);
 

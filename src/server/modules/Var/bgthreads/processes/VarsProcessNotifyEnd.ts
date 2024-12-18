@@ -13,7 +13,15 @@ export default class VarsProcessNotifyEnd extends VarsProcessBase {
     private static instance: VarsProcessNotifyEnd = null;
 
     private constructor() {
-        super('VarsProcessNotifyEnd', VarDAGNode.TAG_4_COMPUTED, VarDAGNode.TAG_5_NOTIFYING_END, VarDAGNode.TAG_5_NOTIFIED_END, 2, true, ConfigurationService.node_configuration.max_varsprocessnotifyend);
+        super(
+            'VarsProcessNotifyEnd',
+            VarDAGNode.TAG_4_COMPUTED,
+            VarDAGNode.TAG_5_NOTIFYING_END,
+            VarDAGNode.TAG_5_NOTIFIED_END,
+            // 2,
+            true,
+            ConfigurationService.node_configuration.max_varsprocessnotifyend,
+        );
     }
 
     // istanbul ignore next: nothing to test : getInstance
@@ -24,14 +32,14 @@ export default class VarsProcessNotifyEnd extends VarsProcessBase {
         return VarsProcessNotifyEnd.instance;
     }
 
-    protected worker_sync(node: VarDAGNode): boolean {
+    protected worker_sync(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): boolean {
         return false;
     }
-    protected async worker_async(node: VarDAGNode): Promise<boolean> {
+    protected async worker_async(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
         return false;
     }
 
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
 
         const notifVardatasParams: NotifVardatasParam[] = [];
         const vardatas: VarDataBaseVO[] = [];

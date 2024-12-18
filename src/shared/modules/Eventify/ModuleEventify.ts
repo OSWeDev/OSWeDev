@@ -68,6 +68,8 @@ export default class ModuleEventify extends Module {
         ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().remaining_calls, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb max d\'appels restants', true, true, 0);
         ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().unlimited_calls, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Appels illimités', true, true, true);
 
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().debounce_leading, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debounce leading call', true, true, true);
+
         ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().throttled, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Throttled', true, true, false);
         // ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().throttle_first_call, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Throttle first call', true, true, false);
         // ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().throttle_last_call, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Throttle last call', true, true, true);

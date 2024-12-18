@@ -305,7 +305,8 @@ export default class ModuleTableFieldController {
                             if (translated_vos_from_api && translated_vos_from_api._type) {
                                 trans_ = translated_vos_from_api;
                             } else {
-                                trans_ = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[elt_type](), translated_vos_from_api);
+                                // trans_ = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[elt_type](), translated_vos_from_api);
+                                trans_ = Object.create(ModuleTableController.vo_constructor_proto_by_vo_type[elt_type], Object.getOwnPropertyDescriptors(translated_vos_from_api));
                             }
                         }
                     }

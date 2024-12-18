@@ -2,7 +2,8 @@ import { PostThrottleParam, PreThrottleParam, THROTTLED_METHOD_PARAM_TYPE } from
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import EventsController from '../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import VarsController from '../../../shared/modules/Var/VarsController';
@@ -31,6 +32,7 @@ import VarsServerCallBackSubsController from './VarsServerCallBackSubsController
 import VarsServerController from './VarsServerController';
 import VarsClientsSubsCacheHolder from './bgthreads/processes/VarsClientsSubsCacheHolder';
 import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCacheManager';
+import VarsProcessInvalidator from './bgthreads/processes/VarsProcessInvalidator';
 
 /**
  * On gère le buffer des mises à jour de vos en lien avec des vars pour invalider au plus vite les vars en cache en cas de modification d'un VO
@@ -58,7 +60,7 @@ export default class VarsDatasVoUpdateHandler {
     public static invalidators: VarDataInvalidatorVO[] = [];
 
 
-    private static last_registration: number = null;
+    // private static last_registration: number = null;
 
     public static init() {
     }
@@ -128,49 +130,55 @@ export default class VarsDatasVoUpdateHandler {
         //  sans attendre de tout résoudre.
         let is_looking_for_more_resolver = null;
         const promise_pipeline = PromisePipeline.get_semaphore_pipeline('VarsDatasVoUpdateHandler.handle_intersectors', ConfigurationService.node_configuration.max_pool);
+        // On charge tout en // et on compte sur le promise pipeline pour limiter un peu la charge dans get_deps_intersectors
+        const promises = [];
+
         while (ObjectHandler.hasAtLeastOneAttribute(actual_invalidators)) {
 
             while (ObjectHandler.hasAtLeastOneAttribute(actual_invalidators)) {
-                const invalidator_id = ObjectHandler.getFirstAttributeName(actual_invalidators);
-                const actual_invalidator = actual_invalidators[invalidator_id];
-                delete actual_invalidators[invalidator_id];
 
-                deployed_invalidators[invalidator_id] = actual_invalidator;
-                if (!actual_invalidator.propagate_to_parents) {
-                    continue;
-                }
+                promises.push((async () => {
+                    const invalidator_id = ObjectHandler.getFirstAttributeName(actual_invalidators);
+                    const actual_invalidator = actual_invalidators[invalidator_id];
+                    delete actual_invalidators[invalidator_id];
 
-                const intersectors = await VarsCacheController.get_deps_intersectors(actual_invalidator.var_data, promise_pipeline);
-
-                if (!intersectors) {
-                    return;
-                }
-
-                const intersectors_array = Object.values(intersectors);
-
-                if (!intersectors_array || !intersectors_array.length) {
-                    return;
-                }
-
-                intersectors_array.map((intersector) => {
-                    const new_invalidator = VarDataInvalidatorVO.create_new(intersector, actual_invalidator.invalidator_type, actual_invalidator.propagate_to_parents, actual_invalidator.invalidate_denied, actual_invalidator.invalidate_imports);
-                    const new_invalidator_id = VarsController.get_validator_config_id(new_invalidator);
-
-                    if (deployed_invalidators[new_invalidator_id]) {
+                    deployed_invalidators[invalidator_id] = actual_invalidator;
+                    if (!actual_invalidator.propagate_to_parents) {
                         return;
                     }
 
-                    if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                        ConsoleHandler.log('VarsDatasVoUpdateHandler.deploy_invalidators:DEPLOYING:' + new_invalidator_id + ':by:' + invalidator_id);
-                        new_invalidator.console_log();
-                        actual_invalidator.console_log();
-                    }
-                    actual_invalidators[new_invalidator_id] = new_invalidator;
+                    const intersectors = await VarsCacheController.get_deps_intersectors(actual_invalidator.var_data, promise_pipeline);
 
-                    if (is_looking_for_more_resolver) {
-                        is_looking_for_more_resolver();
+                    if (!intersectors) {
+                        return;
                     }
-                });
+
+                    const intersectors_array = Object.values(intersectors);
+
+                    if (!intersectors_array || !intersectors_array.length) {
+                        return;
+                    }
+
+                    intersectors_array.map((intersector) => {
+                        const new_invalidator = VarDataInvalidatorVO.create_new(intersector, actual_invalidator.invalidator_type, actual_invalidator.propagate_to_parents, actual_invalidator.invalidate_denied, actual_invalidator.invalidate_imports);
+                        const new_invalidator_id = VarsController.get_validator_config_id(new_invalidator);
+
+                        if (deployed_invalidators[new_invalidator_id]) {
+                            return;
+                        }
+
+                        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                            ConsoleHandler.log('VarsDatasVoUpdateHandler.deploy_invalidators:DEPLOYING:' + new_invalidator_id + ':by:' + invalidator_id);
+                            new_invalidator.console_log();
+                            actual_invalidator.console_log();
+                        }
+                        actual_invalidators[new_invalidator_id] = new_invalidator;
+
+                        if (is_looking_for_more_resolver) {
+                            is_looking_for_more_resolver();
+                        }
+                    });
+                })());
             }
 
             /**
@@ -185,7 +193,7 @@ export default class VarsDatasVoUpdateHandler {
             is_looking_for_more_resolver = has_new_invalidator_resolver;
 
             await Promise.race([
-                promise_pipeline.end(),
+                all_promises(promises),
                 has_new_invalidator,
             ]);
         }
@@ -325,7 +333,7 @@ export default class VarsDatasVoUpdateHandler {
         }
         request += " AND " + field_names<VarDataBaseVO>().value_type + " IN (" + list_valid_value_types.join(',') + ");";
 
-        await ModuleDAOServer.instance.query(request);
+        return ModuleDAOServer.instance.query(request);
     }
 
     private static async delete_var_by_exact_without_triggers(api_type_id: string, invalidator: VarDataInvalidatorVO) {
@@ -609,8 +617,14 @@ export default class VarsDatasVoUpdateHandler {
             return;
         }
 
+        if ((!vos_cud) || (!vos_cud.length)) {
+            return;
+        }
+
         VarsDatasVoUpdateHandler.ordered_vos_cud = VarsDatasVoUpdateHandler.ordered_vos_cud.concat(vos_cud);
-        VarsDatasVoUpdateHandler.last_registration = Dates.now();
+        // VarsDatasVoUpdateHandler.last_registration = Dates.now();
+
+        EventsController.emit_event(EventifyEventInstanceVO.new_event(VarsProcessInvalidator.WORK_EVENT_NAME));
 
         VarsDatasVoUpdateHandler.throttled_update_param();
     }
@@ -639,6 +653,8 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         VarsDatasVoUpdateHandler.invalidators.push(...invalidators);
+
+        EventsController.emit_event(EventifyEventInstanceVO.new_event(VarsProcessInvalidator.WORK_EVENT_NAME));
     }
 
     /**
@@ -731,6 +747,7 @@ export default class VarsDatasVoUpdateHandler {
 
         await promise_pipeline.end();
 
+        const nodes_to_unlock: VarDAGNode[] = [];
         const all_vardagnode_promises = [];
 
         // On réinsère les vars pixel never delete qui ont été invalidées en db
@@ -738,7 +755,9 @@ export default class VarsDatasVoUpdateHandler {
             for (const i in invalidated_pixels_never_delete) {
                 const invalidated_pixel_never_delete = invalidated_pixels_never_delete[i];
 
-                all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(invalidated_pixel_never_delete.index), true/*, true*/));
+                all_vardagnode_promises.push((async () => {
+                    nodes_to_unlock.push(await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(invalidated_pixel_never_delete.index), true/*, true*/));
+                })());
             }
         }
 
@@ -793,10 +812,14 @@ export default class VarsDatasVoUpdateHandler {
                 ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:REINSERT:' + index);
             }
             // Attention : bien forcer de recharger de la base puisque la version qu'on a ici est issue d'un cache local, pas de la base à date
-            all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false/*, true*/));
+            all_vardagnode_promises.push((async () => {
+                nodes_to_unlock.push(await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false/*, true*/));
+            })());
         }
 
         await all_promises(all_vardagnode_promises);
+
+        VarDAGNode.unlock_nodes(nodes_to_unlock);
 
         ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:OUT:' + invalidators.length);
     }

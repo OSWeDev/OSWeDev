@@ -22,7 +22,15 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
     private static instance: VarsProcessUpdateDB = null;
 
     private constructor() {
-        super('VarsProcessUpdateDB', VarDAGNode.TAG_5_NOTIFIED_END, VarDAGNode.TAG_6_UPDATING_IN_DB, VarDAGNode.TAG_6_UPDATED_IN_DB, 2, true, ConfigurationService.node_configuration.max_varsprocessupdatedb);
+        super(
+            'VarsProcessUpdateDB',
+            VarDAGNode.TAG_5_NOTIFIED_END,
+            VarDAGNode.TAG_6_UPDATING_IN_DB,
+            VarDAGNode.TAG_6_UPDATED_IN_DB,
+            // 2,
+            true,
+            ConfigurationService.node_configuration.max_varsprocessupdatedb,
+        );
     }
 
     // istanbul ignore next: nothing to test : getInstance
@@ -33,14 +41,14 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
         return VarsProcessUpdateDB.instance;
     }
 
-    protected worker_sync(node: VarDAGNode): boolean {
+    protected worker_sync(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): boolean {
         return false;
     }
-    protected async worker_async(node: VarDAGNode): Promise<boolean> {
+    protected async worker_async(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
         return false;
     }
 
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
 
         let nodes_by_type_and_index: { [type: string]: { [index: string]: VarDAGNode } } = {};
         let printed_tree: boolean = false;

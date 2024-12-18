@@ -23,11 +23,12 @@ export default class VarsComputationHole {
     public static waiting_for_computation_hole: boolean = false;
     // public static processes_waiting_for_computation_hole_end: { [process_name: string]: boolean } = {};
     public static currently_in_a_hole_semaphore: boolean = false;
+    public static events_to_emit_post_hole: { [event_name: string]: boolean } = {};
     public static redo_in_a_hole_semaphore: boolean = false;
 
     public static ask_for_hole_termination: boolean = false;
 
-    private static current_cbs_stack: Array<() => {}> = [];
+    private static current_cbs_stack: Array<() => any> = [];
     private static currently_waiting_for_hole_semaphore: boolean = false;
 
     protected constructor() { }
@@ -46,7 +47,7 @@ export default class VarsComputationHole {
      * Et enfin on remet tout le monde en route
      * ATTENTION : Ne doit être appelé que sur le thread de computation des vars
      */
-    public static async exec_in_computation_hole(cb: () => {}): Promise<boolean> {
+    public static async exec_in_computation_hole(cb: () => any): Promise<boolean> {
 
         return new Promise(async (resolve, reject) => {
 
@@ -111,6 +112,14 @@ export default class VarsComputationHole {
 
         VarsComputationHole.waiting_for_computation_hole = false;
         EventsController.emit_event(EventifyEventInstanceVO.new_event(VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME));
+
+
+        /**
+         * On ajoute le déclenchement des events à la fin de l'execution du cb
+         */
+        for (const event_name in VarsComputationHole.events_to_emit_post_hole) {
+            EventsController.emit_event(EventifyEventInstanceVO.new_event(event_name));
+        }
     }
 
     private static async wrap_handle_hole(): Promise<boolean> {

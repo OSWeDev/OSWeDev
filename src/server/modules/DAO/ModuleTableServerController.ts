@@ -46,7 +46,8 @@ export default class ModuleTableServerController {
             delete e[field_name];
         }
 
-        const res: T = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[moduleTable.vo_type](), e as T);
+        // const res: T = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[moduleTable.vo_type](), e as T);
+        const res = Object.create(ModuleTableController.vo_constructor_proto_by_vo_type[moduleTable.vo_type], Object.getOwnPropertyDescriptors(e));
         res.id = ConversionHandler.forceNumber(e.id);
 
         const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[e._type];

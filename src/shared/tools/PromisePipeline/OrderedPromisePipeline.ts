@@ -130,14 +130,7 @@ export default class OrderedPromisePipeline {
 
             const time_in = Dates.now_ms();
 
-            let resolve_promise = null;
-            const waiting_for_race_promise = new Promise((resolve, reject) => {
-                resolve_promise = resolve;
-            });
-
-            EventsController.on_next_event(this.free_slot_event_name, resolve_promise);
-
-            await waiting_for_race_promise;
+            await EventsController.await_next_event(this.free_slot_event_name);
 
             // We have a pb with race, it invokes multipleResolve, which is a perf pb : https://github.com/nodejs/node/issues/24321
             // // Wait for a free slot, handle the fastest finished promise
@@ -186,14 +179,7 @@ export default class OrderedPromisePipeline {
             ConsoleHandler.log('OrderedPromisePipeline.end():WAIT:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
-        let resolve_promise = null;
-        const waiting_for_race_promise = new Promise((resolve, reject) => {
-            resolve_promise = resolve;
-        });
-
-        EventsController.on_next_event(OrderedPromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid, resolve_promise);
-
-        await waiting_for_race_promise;
+        await EventsController.await_next_event(OrderedPromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid);
 
         // On libère la mémoire
         delete OrderedPromisePipeline.all_ordered_promise_pipelines_by_uid[this.uid];

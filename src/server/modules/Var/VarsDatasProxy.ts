@@ -14,7 +14,6 @@ import ThrottlePipelineHelper from '../../../shared/tools/ThrottlePipeline/Throt
 import ConfigurationService from '../../env/ConfigurationService';
 import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
-import ForkedTasksController from '../Fork/ForkedTasksController';
 import CurrentVarDAGHolder from './CurrentVarDAGHolder';
 import VarsBGThreadNameHolder from './VarsBGThreadNameHolder';
 import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
@@ -226,16 +225,7 @@ export default class VarsDatasProxy {
     private static async add_to_tree_and_return_datas_that_need_notification<T extends VarDataBaseVO>(indexs: string[]): Promise<T[]> {
 
         if (VarsComputationHole.waiting_for_computation_hole) {
-            let hole_resolver = null;
-            const promise = new Promise(async (resolve, reject) => {
-                hole_resolver = resolve;
-            });
-
-            EventsController.on_next_event(VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME, () => {
-                hole_resolver(null);
-            });
-
-            await promise;
+            await EventsController.await_next_event(VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME);
         }
 
         const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
@@ -260,6 +250,9 @@ export default class VarsDatasProxy {
                         ConsoleHandler.error('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification: node ou node.var_data null pour index: ' + index);
                         return;
                     }
+
+                    // on unlock le node pour qu'il puisse faire sa vie
+                    node.unlock();
 
                     // Si le noeud est déjà en cours de notif ou déjà notifié, on doit notifier manuellement à cette étape
                     // Car le noeud pourrait ne pas être notifié sinon

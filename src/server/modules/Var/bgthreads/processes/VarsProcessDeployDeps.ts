@@ -18,7 +18,15 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
     private static instance: VarsProcessDeployDeps = null;
 
     private constructor() {
-        super('VarsProcessDeployDeps', VarDAGNode.TAG_1_NOTIFIED_START, VarDAGNode.TAG_2_DEPLOYING, VarDAGNode.TAG_2_DEPLOYED, 2, true, ConfigurationService.node_configuration.max_varsprocessdeploydeps);
+        super(
+            'VarsProcessDeployDeps',
+            VarDAGNode.TAG_1_NOTIFIED_START,
+            VarDAGNode.TAG_2_DEPLOYING,
+            VarDAGNode.TAG_2_DEPLOYED,
+            // 2,
+            true,
+            ConfigurationService.node_configuration.max_varsprocessdeploydeps,
+        );
     }
 
     // istanbul ignore next: nothing to test : getInstance
@@ -29,7 +37,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
         return VarsProcessDeployDeps.instance;
     }
 
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
 
         const nodes_to_handle: { [node_name: string]: VarDAGNode } = {};
         const nodes_deps_to_deploy: { [node_name: string]: { [dep_id: string]: VarDataBaseVO } } = {};
@@ -73,7 +81,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
             // On charge les caches pour ces noeuds
             //  et on récupère les nouveaux vars_datas à insérer dans l'arbre
             await promise_pipeline.push(async () => {
-                const node_does_not_need_deployment: boolean = await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(node, true);
+                const node_does_not_need_deployment: boolean = await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(node, true, nodes_to_unlock);
 
                 if (node_does_not_need_deployment) {
                     if (ConfigurationService.node_configuration.debug_vars) {
@@ -95,7 +103,9 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
                         const data = node.aggregated_datas[aggregated_data_index];
                         aggregated_deps['AGG_' + (index++)] = data;
 
-                        promises.push(VarDAGNode.getInstance(node.var_dag, data, true/*, true*/));
+                        promises.push((async () => {
+                            nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, data, true/*, true*/));
+                        })());
                     }
                     await all_promises(promises);
 
@@ -119,6 +129,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
             if (ConfigurationService.node_configuration.debug_vars) {
                 ConsoleHandler.log('VarsProcessDeployDeps:END: nothing to deploy');
             }
+
             return true;
         }
 
@@ -150,7 +161,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
             if (ConfigurationService.node_configuration.debug_vars) {
                 ConsoleHandler.log('VarsProcessDeployDeps:handle_deploy_deps:IN:' + node.var_data.index);
             }
-            await promise_pipeline.push(async () => VarsDeployDepsHandler.handle_deploy_deps(node, deps));
+            await promise_pipeline.push(async () => VarsDeployDepsHandler.handle_deploy_deps(node, deps, nodes_to_unlock));
             if (ConfigurationService.node_configuration.debug_vars) {
                 ConsoleHandler.log('VarsProcessDeployDeps:handle_deploy_deps:OUT:' + node.var_data.index);
             }
@@ -165,13 +176,13 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
         return true;
     }
 
-    protected worker_sync(node: VarDAGNode): boolean {
+    protected worker_sync(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): boolean {
 
         throw new Error('not implemented');
         // return false;
     }
 
-    protected async worker_async(node: VarDAGNode): Promise<boolean> {
+    protected async worker_async(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
 
         throw new Error('not implemented');
         // if (ConfigurationService.node_configuration.debug_vars) {

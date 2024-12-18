@@ -84,6 +84,7 @@ export default class EventsController {
             if (listener.run_as_soon_as_possible_event_conf_id && event.event_conf_id &&
                 (listener.run_as_soon_as_possible_event_conf_id == event.event_conf_id)) {
 
+                listener.run_as_soon_as_possible = true;
                 if (listener.cb_is_cooling_down) {
 
                     if (!listener.cooling_down_timeout) {
@@ -102,7 +103,6 @@ export default class EventsController {
                     EventsController.call_listener(listener, event);
                     continue;
                 }
-                listener.run_as_soon_as_possible = true;
             }
 
             listener.throttle_triggered_event_during_cb = true;
@@ -136,6 +136,21 @@ export default class EventsController {
     }
 
     /**
+     * Méthode de simplification pour await le prochain déclenchement d'un event via une promise
+     * @param event_name
+     */
+    public static await_next_event(event_name: string): Promise<unknown> {
+
+        let resolve_promise = null;
+        const waiting_for_event_promise = new Promise((resolve, reject) => {
+            resolve_promise = resolve;
+        });
+
+        EventsController.on_next_event(event_name, resolve_promise);
+        return waiting_for_event_promise;
+    }
+
+    /**
      * Méthode de simplification pour écouter un évènement côté shared sans avoir à passer par les DAOs (ce qui n'empêche pas d'avoir une conf DAO par ailleurs, mais on ne link pas ici)
      * A chaque fois, en illimité, throttled, avec cooldown
      * @param event_name
@@ -145,18 +160,31 @@ export default class EventsController {
         event_name: string,
         cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown,
         cooldown_ms: number = 0,
+        debounce_leading = true,
     ): void {
         const listener: EventifyEventListenerInstanceVO = EventifyEventListenerInstanceVO.new_listener(event_name, cb);
         listener.remaining_calls = 0;
         listener.unlimited_calls = true;
         listener.throttled = true;
         listener.cooldown_ms = cooldown_ms;
+        listener.debounce_leading = debounce_leading;
         EventsController.register_event_listener(listener);
     }
 
     private static async call_listener(listener: EventifyEventListenerInstanceVO, event: EventifyEventInstanceVO): Promise<void> {
 
         try {
+
+            if (listener.throttled && listener.debounce_leading && (!listener.run_as_soon_as_possible)) {
+
+                // Si on debounce le leading, on doit immédiatement faire le await du cooldown, tout en prenant le sémaphore du run
+
+                listener.cb_is_cooling_down = true;
+                listener.cooling_down_timeout = await ThreadHandler.sleep(listener.cooldown_ms, 'EventsController.call_listener.cooldown_ms');
+                listener.cb_is_cooling_down = false;
+            }
+            listener.run_as_soon_as_possible = false;
+
             do {
 
                 if (listener.throttle_triggered_event_during_cb) {

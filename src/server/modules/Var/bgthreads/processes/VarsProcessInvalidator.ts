@@ -1,14 +1,13 @@
-import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
+import EventsController from '../../../../../shared/modules/Eventify/EventsController';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import VarDataInvalidatorVO from '../../../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
-import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../../../DAO/vos/DAOUpdateVOHolder';
-import ModuleParamsServer from '../../../Params/ModuleParamsServer';
 import ParamsServerController from '../../../Params/ParamsServerController';
 import CurrentBatchDSCacheHolder from '../../CurrentBatchDSCacheHolder';
 import ModuleVarServer from '../../ModuleVarServer';
@@ -18,6 +17,12 @@ import VarsdatasComputerBGThread from '../VarsdatasComputerBGThread';
 import VarsComputationHole from './VarsComputationHole';
 
 export default class VarsProcessInvalidator {
+
+    /**
+     * Pour lancer le process d'invalidation dès qu'on pousse des éléments dans le ordered_vos_cud ou les invalidators
+     */
+    public static WORK_EVENT_NAME: string = 'VarsProcessInvalidator.WORK_EVENT_NAME';
+
     public static WARN_MAX_EXECUTION_TIME_SECOND: number = 60;
     public static ALERT_MAX_EXECUTION_TIME_SECOND: number = 120;
 
@@ -29,16 +34,25 @@ export default class VarsProcessInvalidator {
     private static max_ordered_vos_cud_param_name: string = 'VarsProcessInvalidator.max_ordered_vos_cud';
     private static max_invalidators_param_name: string = 'VarsProcessInvalidator.max_invalidators';
 
+    private loaded_params: boolean = false;
+
     private last_clear_datasources_cache: number = null;
-    private last_registration: number = null;
+    // private last_registration: number = null;
 
     private ten_last_intersectors_invalidations_duration_ms: number[] = [];
     private ten_last_vocuds_invalidations_duration_ms: number[] = [];
 
     protected constructor(
         protected name: string = 'VarsProcessInvalidator',
-        protected thread_sleep: number = 1000
-    ) { } // Le push invalidator est fait toutes les secondes de toutes manières
+        // protected thread_sleep: number = 1000
+    ) {
+
+        EventsController.on_every_event_throttle_cb(
+            VarsProcessInvalidator.WORK_EVENT_NAME,
+            this.handle_batch_worker.bind(this),
+            10
+        );
+    } // Le push invalidator est fait toutes les secondes de toutes manières
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -49,36 +63,41 @@ export default class VarsProcessInvalidator {
     }
 
 
-    public async work(): Promise<void> {
-        VarsProcessInvalidator.WARN_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_WARN_MAX_EXECUTION_TIME_SECOND, 60, null);
-        VarsProcessInvalidator.ALERT_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_ALERT_MAX_EXECUTION_TIME_SECOND, 120, null);
+    // public async work(): Promise<void> {
 
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-            this.last_registration = Dates.now();
+    //     // eslint-disable-next-line no-constant-condition
+    //     while (true) {
+    //         this.last_registration = Dates.now();
 
-            let did_something = false;
+    //         let did_something = false;
 
-            did_something = await this.handle_batch_worker();
+    //         did_something = await this.handle_batch_worker();
 
-            if (!did_something) {
-                await ThreadHandler.sleep(this.thread_sleep, this.name);
-            } else {
-                // On va quand même attendre un peu pour laisser le temps aux autres process de push des vars par exemple
-                await ThreadHandler.sleep(10, this.name);
-            }
-        }
-    }
+    //         if (!did_something) {
+    //             await ThreadHandler.sleep(this.thread_sleep, this.name);
+    //         } else {
+    //             // On va quand même attendre un peu pour laisser le temps aux autres process de push des vars par exemple
+    //             await ThreadHandler.sleep(10, this.name);
+    //         }
+    //     }
+    // }
 
-    /**
-     * Permet de calculer le délai (en secondes) de la dernière exécution
-     * @returns le délai en secondes
-     */
-    public get_last_registration_delay(): number {
-        return Dates.diff(Dates.now(), this.last_registration, TimeSegment.TYPE_SECOND);
-    }
+    // /**
+    //  * Permet de calculer le délai (en secondes) de la dernière exécution
+    //  * @returns le délai en secondes
+    //  */
+    // public get_last_registration_delay(): number {
+    //     return Dates.diff(Dates.now(), this.last_registration, TimeSegment.TYPE_SECOND);
+    // }
 
     private async handle_batch_worker(): Promise<boolean> {
+
+        if (!this.loaded_params) {
+            this.loaded_params = true;
+
+            VarsProcessInvalidator.WARN_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_WARN_MAX_EXECUTION_TIME_SECOND, 60, null);
+            VarsProcessInvalidator.ALERT_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_ALERT_MAX_EXECUTION_TIME_SECOND, 120, null);
+        }
 
         // La première étape c'est voir si on a des invalidations à faire
         // et si oui, demander à tout le monde de se mettre en pause, les faire, remettre tout le monde en route
@@ -90,15 +109,34 @@ export default class VarsProcessInvalidator {
             ConsoleHandler.log('VarsProcessInvalidator:has_vos_cud_or_intersectors');
         }
 
-        const max_invalidators = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_invalidators_param_name, 500, 30000);
-        const max_ordered_vos_cud = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_ordered_vos_cud_param_name, 200, 30000);
+        let max_invalidators = 500;
+        let max_ordered_vos_cud = 200;
+        let timeout_ms_invalidation = 60000;
+        let timeout_ms_log = 3000;
+
+        await all_promises([(async () => {
+            max_invalidators = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_invalidators_param_name, 500, 30000);
+        })(), (async () => {
+            max_ordered_vos_cud = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_ordered_vos_cud_param_name, 200, 30000);
+        })(), (async () => {
+            timeout_ms_invalidation = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_invalidation_param_name, 60000, 30000);
+        })(), (async () => {
+            timeout_ms_log = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_log_param_name, 3000, 30000);
+        })(),
+        ]);
+
         await VarsComputationHole.exec_in_computation_hole(async () => {
 
             if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:IN');
             }
 
-            if (await this.check_if_needs_to_invalidate_all_vars(max_invalidators, max_ordered_vos_cud)) {
+            if (this.check_if_needs_to_invalidate_all_vars(
+                max_invalidators,
+                max_ordered_vos_cud,
+                timeout_ms_invalidation,
+                timeout_ms_log,
+            )) {
                 await ModuleVarServer.getInstance().force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole();
                 return;
             }
@@ -222,6 +260,7 @@ export default class VarsProcessInvalidator {
             this.last_clear_datasources_cache = Dates.now();
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
             CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
+            CurrentBatchDSCacheHolder.semaphore_event_listener_promise = {};
             return;
         }
 
@@ -255,10 +294,12 @@ export default class VarsProcessInvalidator {
         }
     }
 
-    private async check_if_needs_to_invalidate_all_vars(
+    private check_if_needs_to_invalidate_all_vars(
         max_invalidators: number,
         max_ordered_vos_cud: number,
-    ): Promise<boolean> {
+        timeout_ms_invalidation: number,
+        timeout_ms_log: number,
+    ): boolean {
 
         /**
          * Si on a plus de 10 rounds d'invalidations max, on peut commencer à estimer le temps que ça prendra de tout dépiler
@@ -283,9 +324,6 @@ export default class VarsProcessInvalidator {
             Math.floor(VarsDatasVoUpdateHandler.invalidators.length / max_invalidators) * ten_last_intersectors_invalidations_duration_mean +
             Math.floor(VarsDatasVoUpdateHandler.ordered_vos_cud.length / max_ordered_vos_cud) * ten_last_vocuds_invalidations_duration_mean;
         if (!!intersectors_invalidations_duration_remaining_estimation) {
-            const timeout_ms_invalidation = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_invalidation_param_name, 60000, 30000);
-            const timeout_ms_log = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_log_param_name, 3000, 30000);
-
             if (intersectors_invalidations_duration_remaining_estimation >= timeout_ms_log) {
                 ConsoleHandler.log('VarsProcessInvalidator:check_if_needs_to_invalidate_all_vars:intersectors_invalidations_duration_remaining_estimation:LOG:' + intersectors_invalidations_duration_remaining_estimation + 'ms (log >= ' + timeout_ms_log + 'ms, invalidation >= ' + timeout_ms_invalidation + 'ms)');
             }

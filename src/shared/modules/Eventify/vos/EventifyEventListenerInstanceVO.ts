@@ -84,18 +84,12 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
      */
     public last_triggered_event_during_cb: EventifyEventInstanceVO;
 
-    // /**
-    //  * Dans le cadre d'un throttling, est-ce qu'on appel le cb dès le premier event, ou on applique le cooldown d'abord
-    //  *  A priori par défaut false
-    //  * Celà dit, si on a un cooldown de 0, ça revient au même
-    //  */
-    // public throttle_first_call: boolean;
-
-    // /**
-    //  * Dans le cadre d'un throttling, est-ce qu'on appel le cb après le dernier event si celui-ci a eu lieu pendant le dernier cb (ou dans le cooldown après le dernier cb)
-    //  *  A priori par défaut true
-    //  */
-    // public throttle_last_call: boolean;
+    /**
+     * Dans le cadre d'un throttling, est-ce qu'on appel le cb dès le premier event, ou on applique le cooldown d'abord
+     *  A priori par défaut false
+     * Celà dit, si on a un cooldown de 0, ça revient au même
+     */
+    public debounce_leading: boolean;
 
     /**
      * Module qui contient le callback

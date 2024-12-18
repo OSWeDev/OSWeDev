@@ -961,6 +961,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         CurrentVarDAGHolder.current_vardag = new VarDAG();
         CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
+        CurrentBatchDSCacheHolder.semaphore_event_listener_promise = {};
+        CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
 
         ConsoleHandler.warn('ModuleVarServer:force_delete_all_cache_except_imported_data:re_register_all_subs');
 
@@ -1263,6 +1265,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                 return null;
             }
 
+            varDAGNode.unlock();
+
             const predeps = var_controller.getDataSourcesPredepsDependencies();
             if (predeps && predeps.length) {
                 await VarsProcessLoadDatas.load_nodes_datas({ [varDAGNode.var_data.index]: varDAGNode }, true);
@@ -1294,9 +1298,14 @@ export default class ModuleVarServer extends ModuleServerBase {
                 return null;
             }
 
+            const nodes_to_unlock: VarDAGNode[] = [node];
+
             await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(
                 node,
-                true);
+                true,
+                nodes_to_unlock);
+
+            VarDAGNode.unlock_nodes(nodes_to_unlock);
 
             return node.aggregated_datas ? node.aggregated_datas : {};
         }, false);
@@ -1367,9 +1376,12 @@ export default class ModuleVarServer extends ModuleServerBase {
                 return null;
             }
 
+            varDAGNode.unlock();
+
             // On doit vider le cache des datasources, sinon on recharge pas les datas en vrai
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
             CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
+            CurrentBatchDSCacheHolder.semaphore_event_listener_promise = {};
 
             await VarsProcessLoadDatas.load_nodes_datas({ [varDAGNode.var_data.index]: varDAGNode }, false);
 
@@ -1850,6 +1862,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         subs.push(...Object.keys(VarsClientsSubsCacheHolder.clients_subs_indexes_cache));
 
         const all_vardagnode_promises: Array<Promise<any>> = [];
+        const nodes_to_unlock: VarDAGNode[] = [];
         for (const j in subs) {
 
             const index = subs[j];
@@ -1859,9 +1872,13 @@ export default class ModuleVarServer extends ModuleServerBase {
             }
 
             // on vient de supprimer => ok mais les imports ???
-            all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false/*, has_deleted_all_cache_right_before_and_in_same_hole*/));
+            all_vardagnode_promises.push((async () => {
+                nodes_to_unlock.push(await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false));
+            })());
         }
 
         await all_promises(all_vardagnode_promises);
+
+        VarDAGNode.unlock_nodes(nodes_to_unlock);
     }
 }

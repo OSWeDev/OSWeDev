@@ -171,14 +171,8 @@ export default class PromisePipeline {
             }
 
             const time_in = Dates.now_ms();
-            let resolve_promise = null;
-            const waiting_for_race_promise = new Promise((resolve, reject) => {
-                resolve_promise = resolve;
-            });
 
-            EventsController.on_next_event(this.free_slot_event_name, resolve_promise);
-
-            await waiting_for_race_promise;
+            await EventsController.await_next_event(this.free_slot_event_name);
 
             // We have a pb with race, it invokes multipleResolve, which is a perf pb : https://github.com/nodejs/node/issues/24321
             // // Wait for a free slot, handle the fastest finished promise
@@ -232,13 +226,7 @@ export default class PromisePipeline {
 
             // Promise resolever declaration that
             // will be called when all promises are finished
-            let next_empty_resolver = null;
-            const wait_for_end = new Promise<string>((resolve, reject) => {
-                next_empty_resolver = resolve;
-            });
-            EventsController.on_next_event(PromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid, next_empty_resolver);
-
-            await wait_for_end;
+            await EventsController.await_next_event(PromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid);
         }
 
         delete PromisePipeline.all_promise_pipelines_by_uid[this.uid];
