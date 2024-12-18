@@ -31,6 +31,8 @@ export default abstract class StoreModuleBase<StoreModuleState, StoreModuleConte
                 Object.keys(state).forEach((key) => {
                     const value = (state as any)[key];
 
+                    delete (state as any)[key];
+
                     if (Array.isArray(value)) {
                         // Si la propriété est un tableau, on réinitialise à []
                         (state as any)[key] = [];
