@@ -1,5 +1,6 @@
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../../../shared/tools/PromisePipeline/PromisePipeline';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import CurrentBatchDSCacheHolder from '../../CurrentBatchDSCacheHolder';
@@ -60,7 +61,7 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
                 const ds = dss[j];
 
                 // Si le datasource a déjà été chargé sur ce noeud, on ne le recharge pas
-                if (!!node.datasources[ds.name]) {
+                if (typeof node.datasources[ds.name] !== 'undefined') {
                     continue;
                 }
 
@@ -71,9 +72,10 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
             }
         }
 
-        const promise_pipeline = new PromisePipeline(
-            ConfigurationService.node_configuration.max_varsprocessloaddatas,
-            'VarsProcessLoadDatas:worker_async_batch');
+        const promise_pipeline = PromisePipeline.get_semaphore_pipeline(
+            'VarsProcessLoadDatas:load_nodes_datas',
+            ConfigurationService.node_configuration.max_varsprocessloaddatas);
+        const promises = [];
         for (const datasource_name in nodes_by_datasource) {
             const datasource = DataSourcesController.registeredDataSourcesController[datasource_name];
 
@@ -90,9 +92,10 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
                 CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[datasource_name] = {};
             }
 
-            await datasource.load_nodes_data_using_pipeline(nodes_by_datasource[datasource_name], promise_pipeline);
+            promises.push(datasource.load_nodes_data_using_pipeline(nodes_by_datasource[datasource_name], promise_pipeline));
         }
 
+        await all_promises(promises);
         await promise_pipeline.end();
 
         return true;

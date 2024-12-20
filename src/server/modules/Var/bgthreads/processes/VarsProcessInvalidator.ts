@@ -34,7 +34,10 @@ export default class VarsProcessInvalidator {
     private static max_ordered_vos_cud_param_name: string = 'VarsProcessInvalidator.max_ordered_vos_cud';
     private static max_invalidators_param_name: string = 'VarsProcessInvalidator.max_invalidators';
 
-    private loaded_params: boolean = false;
+    private static max_invalidators: number = 500;
+    private static max_ordered_vos_cud: number = 200;
+    private static timeout_ms_invalidation: number = 60000;
+    private static timeout_ms_log: number = 3000;
 
     private last_clear_datasources_cache: number = null;
     // private last_registration: number = null;
@@ -92,13 +95,6 @@ export default class VarsProcessInvalidator {
 
     private async handle_batch_worker(): Promise<boolean> {
 
-        if (!this.loaded_params) {
-            this.loaded_params = true;
-
-            VarsProcessInvalidator.WARN_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_WARN_MAX_EXECUTION_TIME_SECOND, 60, null);
-            VarsProcessInvalidator.ALERT_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_ALERT_MAX_EXECUTION_TIME_SECOND, 120, null);
-        }
-
         // La première étape c'est voir si on a des invalidations à faire
         // et si oui, demander à tout le monde de se mettre en pause, les faire, remettre tout le monde en route
         if (!await VarsDatasVoUpdateHandler.has_vos_cud_or_intersectors()) {
@@ -109,21 +105,8 @@ export default class VarsProcessInvalidator {
             ConsoleHandler.log('VarsProcessInvalidator:has_vos_cud_or_intersectors');
         }
 
-        let max_invalidators = 500;
-        let max_ordered_vos_cud = 200;
-        let timeout_ms_invalidation = 60000;
-        let timeout_ms_log = 3000;
-
-        await all_promises([(async () => {
-            max_invalidators = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_invalidators_param_name, 500, 30000);
-        })(), (async () => {
-            max_ordered_vos_cud = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_ordered_vos_cud_param_name, 200, 30000);
-        })(), (async () => {
-            timeout_ms_invalidation = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_invalidation_param_name, 60000, 30000);
-        })(), (async () => {
-            timeout_ms_log = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_log_param_name, 3000, 30000);
-        })(),
-        ]);
+        // On met à jour les paramètres mais sans attendre le résultat, juste si on a besoin de mettre à jour on met à jour pour le prochain appel
+        this.update_params();
 
         await VarsComputationHole.exec_in_computation_hole(async () => {
 
@@ -131,12 +114,7 @@ export default class VarsProcessInvalidator {
                 ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:IN');
             }
 
-            if (this.check_if_needs_to_invalidate_all_vars(
-                max_invalidators,
-                max_ordered_vos_cud,
-                timeout_ms_invalidation,
-                timeout_ms_log,
-            )) {
+            if (this.check_if_needs_to_invalidate_all_vars()) {
                 await ModuleVarServer.getInstance().force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole();
                 return;
             }
@@ -159,13 +137,13 @@ export default class VarsProcessInvalidator {
             // VarsDatasVoUpdateHandler.invalidators = [];
 
             // On déploie les intersecteurs pour les demandes liées à des vars invalidées
-            const invalidators = (VarsDatasVoUpdateHandler.invalidators && VarsDatasVoUpdateHandler.invalidators.length) ? VarsDatasVoUpdateHandler.invalidators.splice(0, max_invalidators).filter((e) => !!e) : [];
+            const invalidators = (VarsDatasVoUpdateHandler.invalidators && VarsDatasVoUpdateHandler.invalidators.length) ? VarsDatasVoUpdateHandler.invalidators.splice(0, VarsProcessInvalidator.max_invalidators).filter((e) => !!e) : [];
 
             let has_first_invalidator = false;
             if (invalidators.length) {
-                ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb invalidators:' + invalidators.length + '/' + max_invalidators + ' max - (' + VarsDatasVoUpdateHandler.invalidators.length + ' restants)');
+                ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb invalidators:' + invalidators.length + '/' + VarsProcessInvalidator.max_invalidators + ' max - (' + VarsDatasVoUpdateHandler.invalidators.length + ' restants)');
                 handles_invalidators = true;
-                has_max_invalidators = (invalidators.length == max_invalidators);
+                has_max_invalidators = (invalidators.length == VarsProcessInvalidator.max_invalidators);
             }
 
             if (ConfigurationService.node_configuration.debug_vars_invalidation) {
@@ -178,12 +156,12 @@ export default class VarsProcessInvalidator {
 
             if (VarsDatasVoUpdateHandler && VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) {
 
-                const ordered_vos_cud = (VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) ? VarsDatasVoUpdateHandler.ordered_vos_cud.splice(0, max_ordered_vos_cud).filter((e) => !!e) : [];
+                const ordered_vos_cud = (VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) ? VarsDatasVoUpdateHandler.ordered_vos_cud.splice(0, VarsProcessInvalidator.max_ordered_vos_cud).filter((e) => !!e) : [];
 
                 if (ordered_vos_cud.length) {
-                    ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb ordered_vos_cud:' + ordered_vos_cud.length + '/' + max_ordered_vos_cud + ' max - (' + VarsDatasVoUpdateHandler.ordered_vos_cud.length + ' restants)');
+                    ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb ordered_vos_cud:' + ordered_vos_cud.length + '/' + VarsProcessInvalidator.max_ordered_vos_cud + ' max - (' + VarsDatasVoUpdateHandler.ordered_vos_cud.length + ' restants)');
                     handles_vocuds = true;
-                    has_max_vocuds = (ordered_vos_cud.length == max_ordered_vos_cud);
+                    has_max_vocuds = (ordered_vos_cud.length == VarsProcessInvalidator.max_ordered_vos_cud);
                 }
 
                 /**
@@ -245,6 +223,29 @@ export default class VarsProcessInvalidator {
         return true;
     }
 
+    private async update_params() {
+        await all_promises([
+            (async () => {
+                VarsProcessInvalidator.max_invalidators = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_invalidators_param_name, 500, 120000);
+            })(),
+            (async () => {
+                VarsProcessInvalidator.max_ordered_vos_cud = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_ordered_vos_cud_param_name, 200, 120000);
+            })(),
+            (async () => {
+                VarsProcessInvalidator.timeout_ms_invalidation = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_invalidation_param_name, 60000, 120000);
+            })(),
+            (async () => {
+                VarsProcessInvalidator.timeout_ms_log = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_log_param_name, 3000, 120000);
+            })(),
+            (async () => {
+                VarsProcessInvalidator.WARN_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_WARN_MAX_EXECUTION_TIME_SECOND, 60, 120000);
+            })(),
+            (async () => {
+                VarsProcessInvalidator.ALERT_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_ALERT_MAX_EXECUTION_TIME_SECOND, 120, 120000);
+            })(),
+        ]);
+    }
+
     /**
      * On invalide le cache des datasources de la manère la plus opti possible. Pour le moment :
      *  - on se met un timer pour vider tout le cache régulièrement
@@ -294,12 +295,7 @@ export default class VarsProcessInvalidator {
         }
     }
 
-    private check_if_needs_to_invalidate_all_vars(
-        max_invalidators: number,
-        max_ordered_vos_cud: number,
-        timeout_ms_invalidation: number,
-        timeout_ms_log: number,
-    ): boolean {
+    private check_if_needs_to_invalidate_all_vars(): boolean {
 
         /**
          * Si on a plus de 10 rounds d'invalidations max, on peut commencer à estimer le temps que ça prendra de tout dépiler
@@ -321,17 +317,17 @@ export default class VarsProcessInvalidator {
             ten_last_vocuds_invalidations_duration_mean /= 10;
         }
         const intersectors_invalidations_duration_remaining_estimation =
-            Math.floor(VarsDatasVoUpdateHandler.invalidators.length / max_invalidators) * ten_last_intersectors_invalidations_duration_mean +
-            Math.floor(VarsDatasVoUpdateHandler.ordered_vos_cud.length / max_ordered_vos_cud) * ten_last_vocuds_invalidations_duration_mean;
+            Math.floor(VarsDatasVoUpdateHandler.invalidators.length / VarsProcessInvalidator.max_invalidators) * ten_last_intersectors_invalidations_duration_mean +
+            Math.floor(VarsDatasVoUpdateHandler.ordered_vos_cud.length / VarsProcessInvalidator.max_ordered_vos_cud) * ten_last_vocuds_invalidations_duration_mean;
         if (!!intersectors_invalidations_duration_remaining_estimation) {
-            if (intersectors_invalidations_duration_remaining_estimation >= timeout_ms_log) {
-                ConsoleHandler.log('VarsProcessInvalidator:check_if_needs_to_invalidate_all_vars:intersectors_invalidations_duration_remaining_estimation:LOG:' + intersectors_invalidations_duration_remaining_estimation + 'ms (log >= ' + timeout_ms_log + 'ms, invalidation >= ' + timeout_ms_invalidation + 'ms)');
+            if (intersectors_invalidations_duration_remaining_estimation >= VarsProcessInvalidator.timeout_ms_log) {
+                ConsoleHandler.log('VarsProcessInvalidator:check_if_needs_to_invalidate_all_vars:intersectors_invalidations_duration_remaining_estimation:LOG:' + intersectors_invalidations_duration_remaining_estimation + 'ms (log >= ' + VarsProcessInvalidator.timeout_ms_log + 'ms, invalidation >= ' + VarsProcessInvalidator.timeout_ms_invalidation + 'ms)');
             }
 
-            if (intersectors_invalidations_duration_remaining_estimation >= timeout_ms_invalidation) {
-                ConsoleHandler.warn('VarsProcessInvalidator:check_if_needs_to_invalidate_all_vars:intersectors_invalidations_duration_remaining_estimation:INVALIDATION:' + intersectors_invalidations_duration_remaining_estimation + 'ms (invalidation >= ' + timeout_ms_invalidation + 'ms) :détails:' +
-                    ':nb invalidators:' + VarsDatasVoUpdateHandler.invalidators.length + '/' + max_invalidators + 'max invalidators - mean ' + ten_last_intersectors_invalidations_duration_mean + 'ms par pack = ' + Math.floor(VarsDatasVoUpdateHandler.invalidators.length / max_invalidators) * ten_last_intersectors_invalidations_duration_mean + 'ms total invalidation time' +
-                    ':nb ordered_vos_cud:' + VarsDatasVoUpdateHandler.ordered_vos_cud.length + '/' + max_ordered_vos_cud + 'max ordered_vos_cud - mean ' + ten_last_vocuds_invalidations_duration_mean + 'ms par pack = ' + Math.floor(VarsDatasVoUpdateHandler.ordered_vos_cud.length / max_ordered_vos_cud) * ten_last_vocuds_invalidations_duration_mean + 'ms total invalidation time');
+            if (intersectors_invalidations_duration_remaining_estimation >= VarsProcessInvalidator.timeout_ms_invalidation) {
+                ConsoleHandler.warn('VarsProcessInvalidator:check_if_needs_to_invalidate_all_vars:intersectors_invalidations_duration_remaining_estimation:INVALIDATION:' + intersectors_invalidations_duration_remaining_estimation + 'ms (invalidation >= ' + VarsProcessInvalidator.timeout_ms_invalidation + 'ms) :détails:' +
+                    ':nb invalidators:' + VarsDatasVoUpdateHandler.invalidators.length + '/' + VarsProcessInvalidator.max_invalidators + 'max invalidators - mean ' + ten_last_intersectors_invalidations_duration_mean + 'ms par pack = ' + Math.floor(VarsDatasVoUpdateHandler.invalidators.length / VarsProcessInvalidator.max_invalidators) * ten_last_intersectors_invalidations_duration_mean + 'ms total invalidation time' +
+                    ':nb ordered_vos_cud:' + VarsDatasVoUpdateHandler.ordered_vos_cud.length + '/' + VarsProcessInvalidator.max_ordered_vos_cud + 'max ordered_vos_cud - mean ' + ten_last_vocuds_invalidations_duration_mean + 'ms par pack = ' + Math.floor(VarsDatasVoUpdateHandler.ordered_vos_cud.length / VarsProcessInvalidator.max_ordered_vos_cud) * ten_last_vocuds_invalidations_duration_mean + 'ms total invalidation time');
                 return true;
             }
         }

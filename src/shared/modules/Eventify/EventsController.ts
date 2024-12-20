@@ -160,7 +160,7 @@ export default class EventsController {
         event_name: string,
         cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown,
         cooldown_ms: number = 0,
-        debounce_leading = true,
+        debounce_leading = false,
     ): void {
         const listener: EventifyEventListenerInstanceVO = EventifyEventListenerInstanceVO.new_listener(event_name, cb);
         listener.remaining_calls = 0;

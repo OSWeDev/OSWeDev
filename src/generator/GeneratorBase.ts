@@ -102,7 +102,7 @@ import Patch20240515RunStatusToEnum from './patchs/premodules/Patch20240515RunSt
 import Patch20240521ChangeFormatDbAssistants from './patchs/premodules/Patch20240521ChangeFormatDbAssistants';
 import Patch20240530AddUniqNameMailCategory from './patchs/premodules/Patch20240530AddUniqNameMailCategory';
 import Patch20240827DeleteVersionedAssistantsWithoutInstructions from './patchs/premodules/Patch20240827DeleteVersionedAssistantsWithoutInstructions';
-import Patch20241126TruncateLogs from './patchs/premodules/Patch20241126TruncateLogs';
+import Patch20241126TruncateLogsUpdated20122024 from './patchs/premodules/Patch20241126TruncateLogsUpdated20122024';
 import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20240926PreInitOseliaThreadRoles from './patchs/postmodules/Patch20240926PreInitOseliaThreadRoles';
@@ -229,7 +229,7 @@ export default abstract class GeneratorBase {
             Patch20240827DeleteVersionedAssistantsWithoutInstructions.getInstance(),
             Patch20241107SwitchParamsUrlsPublics.getInstance(),
             Patch20241119DeleteSessions.getInstance(),
-            Patch20241126TruncateLogs.getInstance(),
+            Patch20241126TruncateLogsUpdated20122024.getInstance(),
             // Patch20241129PreCreateEventsConfs.getInstance(),
         ];
 

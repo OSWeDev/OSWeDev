@@ -54,6 +54,8 @@ export default class VarsDatasVoUpdateHandler {
     public static ordered_vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = [];
     public static last_call_handled_something: boolean = false;
 
+    public static block_ordered_vos_cud: boolean = false;
+
     /**
      * La liste des invalidations en attente de traitement
      */
@@ -584,7 +586,21 @@ export default class VarsDatasVoUpdateHandler {
 
         // On flag, si c'est pas déjà le cas, le fait que des cuds sont en attente, ou pas
         const new_tag_value = VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0);
-        const old_tag_value = await ParamsServerController.getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
+        let old_tag_value = null;
+
+        await all_promises([
+            (async () => {
+                old_tag_value = await ParamsServerController.getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
+            })(),
+            (async () => {
+                // On en profite aussi pour mettre à jour régulièrement le param de blocage
+                VarsDatasVoUpdateHandler.block_ordered_vos_cud = await ParamsServerController.getParamValueAsBoolean(
+                    VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME,
+                    false,
+                    10000, // 10 sec
+                );
+            })(),
+        ]);
 
         if (new_tag_value == old_tag_value) {
             return;
@@ -607,13 +623,8 @@ export default class VarsDatasVoUpdateHandler {
         @PostThrottleParam vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = null,
     ) {
 
-        const block_ordered_vos_cud: boolean = await ParamsServerController.getParamValueAsBoolean(
-            VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME,
-            false,
-            5000, // 5 sec
-        );
 
-        if (block_ordered_vos_cud) {
+        if (VarsDatasVoUpdateHandler.block_ordered_vos_cud) {
             return;
         }
 
