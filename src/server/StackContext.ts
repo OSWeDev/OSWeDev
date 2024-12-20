@@ -91,15 +91,15 @@ export default class StackContext {
      */
     public static async runPromise<T extends Array<unknown>, U>(scope_overloads: Partial<IRequestStackContext>, callback: (...params: T) => U | Promise<U>, this_arg: unknown, ...params: T): Promise<U> {
 
-        /**
-         * FIXME DELETE ME DEBUG ONLY JNE
-         */
-        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
-            ConsoleHandler.log('StackContext.runPromise:IN:' + JSON.stringify(StackContext.get_active_context()) + ':' + JSON.stringify(scope_overloads));
-        }
-        /**
-         * FIXME DELETE ME DEBUG ONLY JNE
-         */
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+        // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        //     ConsoleHandler.log('StackContext.runPromise:IN:' + JSON.stringify(StackContext.get_active_context()) + ':' + JSON.stringify(scope_overloads));
+        // }
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
 
 
         let result = null;
@@ -126,15 +126,15 @@ export default class StackContext {
             }
         });
 
-        /**
-         * FIXME DELETE ME DEBUG ONLY JNE
-         */
-        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
-            ConsoleHandler.log('StackContext.runPromise:OUT:' + JSON.stringify(StackContext.get_active_context()) + ':' + JSON.stringify(scope_overloads));
-        }
-        /**
-         * FIXME DELETE ME DEBUG ONLY JNE
-         */
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+        // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        //     ConsoleHandler.log('StackContext.runPromise:OUT:' + JSON.stringify(StackContext.get_active_context()) + ':' + JSON.stringify(scope_overloads));
+        // }
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
 
         return result;
     }

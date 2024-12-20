@@ -61,33 +61,33 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
-    /**
-     * FIXME DELETE ME DEBUG ONLY JNE
-     */
-    private static requests_wrapper_uid: number = 0;
-    /**
-     * !FIXME DELETE ME DEBUG ONLY JNE
-     */
+    // /**
+    //  * FIXME DELETE ME DEBUG ONLY JNE
+    //  */
+    // private static requests_wrapper_uid: number = 0;
+    // /**
+    //  * !FIXME DELETE ME DEBUG ONLY JNE
+    //  */
 
 
     public async requests_wrapper(requests: LightWeightSendableRequestVO[], req: Request): Promise<RequestsWrapperResult> {
 
-        /**
-         * FIXME DELETE ME DEBUG ONLY JNE
-         */
-        const uid = ModuleAjaxCacheServer.requests_wrapper_uid++;
-        let puid = 0;
-        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
-            StackContext['set']('REQUEST_WRAPPER_UID', uid);
-        }
-        ConsoleHandler.log('requests_wrapper:IN:' + uid + ':' + JSON.stringify(StackContext.get_active_context()));
-        /**
-         * FIXME DELETE ME DEBUG ONLY JNE
-         */
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+        // const uid = ModuleAjaxCacheServer.requests_wrapper_uid++;
+        // let puid = 0;
+        // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        //     StackContext['set']('REQUEST_WRAPPER_UID', uid);
+        // }
+        // ConsoleHandler.log('requests_wrapper:IN:' + uid + ':' + JSON.stringify(StackContext.get_active_context()));
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
 
-        /**
-         * ! FIXME DELETE ME DEBUG ONLY JNE
-         */
+        // /**
+        //  * ! FIXME DELETE ME DEBUG ONLY JNE
+        //  */
 
         const res: RequestsWrapperResult = new RequestsWrapperResult();
         res.requests_results = {};
@@ -104,17 +104,17 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
             await promise_pipeline.push(async () => {
 
-                /**
-                 * FIXME DELETE ME DEBUG ONLY JNE
-                 */
-                const this_puid = puid++;
-                if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
-                    StackContext['set']('REQUEST_WRAPPER_PUID', this_puid);
-                }
-                ConsoleHandler.log('requests_wrapper:promise_pipeline:IN:' + uid + ':' + this_puid + ':' + wrapped_request.url + ':' + JSON.stringify(StackContext.get_active_context()));
-                /**
-                 * ! FIXME DELETE ME DEBUG ONLY JNE
-                 */
+                // /**
+                //  * FIXME DELETE ME DEBUG ONLY JNE
+                //  */
+                // const this_puid = puid++;
+                // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+                //     StackContext['set']('REQUEST_WRAPPER_PUID', this_puid);
+                // }
+                // ConsoleHandler.log('requests_wrapper:promise_pipeline:IN:' + uid + ':' + this_puid + ':' + wrapped_request.url + ':' + JSON.stringify(StackContext.get_active_context()));
+                // /**
+                //  * ! FIXME DELETE ME DEBUG ONLY JNE
+                //  */
 
                 let apiDefinition: APIDefinition<any, any> = null;
 
@@ -177,13 +177,13 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                     res.requests_results[wrapped_request.index] = null;
                 }
 
-                /**
-                 * FIXME DELETE ME DEBUG ONLY JNE
-                 */
-                ConsoleHandler.log('requests_wrapper:promise_pipeline:OUT:' + uid + ':' + this_puid + ':' + wrapped_request.url + ':' + JSON.stringify(StackContext.get_active_context()));
-                /**
-                 * ! FIXME DELETE ME DEBUG ONLY JNE
-                 */
+                // /**
+                //  * FIXME DELETE ME DEBUG ONLY JNE
+                //  */
+                // ConsoleHandler.log('requests_wrapper:promise_pipeline:OUT:' + uid + ':' + this_puid + ':' + wrapped_request.url + ':' + JSON.stringify(StackContext.get_active_context()));
+                // /**
+                //  * ! FIXME DELETE ME DEBUG ONLY JNE
+                //  */
 
             });
 
@@ -191,13 +191,13 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
         await promise_pipeline.end();
 
-        /**
-         * FIXME DELETE ME DEBUG ONLY JNE
-         */
-        ConsoleHandler.log('requests_wrapper:OUT:' + uid + ':' + JSON.stringify(StackContext.get_active_context()));
-        /**
-         * ! FIXME DELETE ME DEBUG ONLY JNE
-         */
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+        // ConsoleHandler.log('requests_wrapper:OUT:' + uid + ':' + JSON.stringify(StackContext.get_active_context()));
+        // /**
+        //  * ! FIXME DELETE ME DEBUG ONLY JNE
+        //  */
 
         return res;
     }
