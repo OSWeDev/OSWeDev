@@ -6,6 +6,7 @@ import { ExecAsServer } from "./ExecAsServer";
 export default function ThrottleExecAsServerRunsOnBgThread(
     throttleOptions: ThrottleOptions,
     bgthread: string,
+    instanceGetter: () => any,
     defaults_to_this_thread: boolean = false
 ) {
     return function (
@@ -21,7 +22,7 @@ export default function ThrottleExecAsServerRunsOnBgThread(
         const descriptorAterThrottle = Throttle(throttleOptions)(target, propertyKey, descriptorAfterExecAsServer);
 
         // Appliquer d'abord RunsOnBgThread
-        const descriptorAterRunsOnBgThread = RunsOnBgThread(bgthread, defaults_to_this_thread)(target, propertyKey, descriptorAterThrottle);
+        const descriptorAterRunsOnBgThread = RunsOnBgThread(bgthread, instanceGetter, defaults_to_this_thread)(target, propertyKey, descriptorAterThrottle);
 
         // Alors on a un souci si on throttle avant et après le changement de thread, dans le cas où on change pas de thread, c'est donc le même throttle qu'on utilise et ça part en boucle infinie
         // Donc en l'état osef le deuxième throttle, on le vire

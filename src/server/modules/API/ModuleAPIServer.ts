@@ -57,7 +57,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
      * @param returnvalue
      * @returns
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAPIServer.getInstance)
     private async try_send_notif_result(
         notif_result_uid: number,
         notif_result_tab_id: string,
@@ -117,7 +117,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
      * @param res
      * @returns
      */
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name, true)
+    @RunsOnBgThread(APIBGThread.BGTHREAD_name, ModuleAPIServer.getInstance, true)
     private async exec_api<T, U>(
         api_name: string,
         session_id: string,

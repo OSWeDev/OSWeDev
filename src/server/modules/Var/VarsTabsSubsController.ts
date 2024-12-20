@@ -36,7 +36,7 @@ export default class VarsTabsSubsController {
         // ForkedTasksController.register_task(VarsTabsSubsController.TASK_NAME_get_subs_indexs, this.get_subs_indexs.bind(this));
     }
 
-    @RunsOnMainThread
+    @RunsOnMainThread(null)
     public static async get_subs_indexs(force_update: boolean = false): Promise<string[]> {
 
         if (ConfigurationService.node_configuration.debug_vars) {
@@ -77,7 +77,7 @@ export default class VarsTabsSubsController {
     /**
      * WARN : Only on main thread (express).
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(null)
     public static register_sub(user_id: number, client_tab_id: string, param_indexs: string[]) {
 
         user_id = ((user_id == null) ? 0 : user_id);
@@ -119,7 +119,7 @@ export default class VarsTabsSubsController {
     /**
      * WARN : Only on main thread (express).
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(null)
     public static unregister_sub(user_id: number, client_tab_id: string, param_indexs: string[]) {
 
         user_id = ((user_id == null) ? 0 : user_id);
@@ -179,12 +179,15 @@ export default class VarsTabsSubsController {
      * @param var_datas Tableau ou map (sur index) des vars datas
      * @param is_computing true indique au client de ne pas prendre en compte les valeurs envoyées uniquement le fait q'un calcul est en cours
      */
-    @ThrottleExecAsServerRunsOnMainThread({
-        param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
-        throttle_ms: 50,
-        leading: true,
-        trailing: true,
-    })
+    @ThrottleExecAsServerRunsOnMainThread(
+        {
+            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+            throttle_ms: 50,
+            leading: true,
+            trailing: true,
+        },
+        null, // static
+    )
     public static async notify_vardatas(
         @PreThrottleParam pre_param: NotifVardatasParam | NotifVardatasParam[],
         @PostThrottleParam params: NotifVardatasParam[] = null,
@@ -344,7 +347,7 @@ export default class VarsTabsSubsController {
     /**
      * On nettoie les subs qui sont trop anciens, mais on ne fait le checke qu'une fois toutes les X minutes max
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(null)
     private static async clean_old_subs(force_update: boolean = false) {
 
         const now = Dates.now();

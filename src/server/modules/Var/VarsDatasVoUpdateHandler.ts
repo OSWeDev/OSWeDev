@@ -533,7 +533,7 @@ export default class VarsDatasVoUpdateHandler {
         return union_invalidators;
     }
 
-    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, null)//static
     public static async has_vos_cud_or_intersectors(): Promise<boolean> {
         return (VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0)) ||
             (VarsDatasVoUpdateHandler.invalidators && (VarsDatasVoUpdateHandler.invalidators.length > 0));
@@ -542,7 +542,7 @@ export default class VarsDatasVoUpdateHandler {
     /**
      * Objectif on bloque le ModuleDAO en modification, et on informe via notif quand on a à la fois bloqué les updates et vidé le cache de ce module
      */
-    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, null)//static
     public static async force_empty_vars_datas_vo_update_cache() {
 
         DAOServerController.GLOBAL_UPDATE_BLOCKER = true;
@@ -581,6 +581,7 @@ export default class VarsDatasVoUpdateHandler {
             trailing: true,
         },
         VarsBGThreadNameHolder.bgthread_name,
+        null, // static
     )
     public static async throttled_update_param() {
 
@@ -617,6 +618,7 @@ export default class VarsDatasVoUpdateHandler {
             throttle_ms: 20,
         },
         VarsBGThreadNameHolder.bgthread_name,
+        null, // static
     )
     public static async register_vo_cud(
         @PreThrottleParam vo_cud: DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase | Array<DAOUpdateVOHolder<IDistantVOBase>> | IDistantVOBase[],
@@ -653,6 +655,7 @@ export default class VarsDatasVoUpdateHandler {
             trailing: true,
         },
         VarsBGThreadNameHolder.bgthread_name,
+        null, // static
         false,
     )
     public static push_invalidators(
@@ -672,7 +675,7 @@ export default class VarsDatasVoUpdateHandler {
      * On passe en param le nombre max de cud qu'on veut gérer, et on dépile en FIFO
      * @returns true si on a des invalidations trop récentes et qu'on veut donc éviter de calculer des vars
      */
-    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, null)//static
     public static async handle_buffer(ordered_vos_cud: Array<IDistantVOBase | DAOUpdateVOHolder<IDistantVOBase>>): Promise<{ [invalidator_id: string]: VarDataInvalidatorVO }> {
 
         VarsDatasVoUpdateHandler.last_call_handled_something = false;
@@ -712,7 +715,7 @@ export default class VarsDatasVoUpdateHandler {
      * On doit faire une union sur les intersecteurs, mais ni sur les inclusions ni sur les exacts
      * Pour le moment on implémente pas les inclusions, qui n'ont pas une utilité évidente (on a pas d'interface pour faire ça pour le moment a priori en plus)
      */
-    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, null)//static
     public static async handle_invalidators(deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO }) {
 
         let invalidators = Object.values(deployed_invalidators);
@@ -840,7 +843,7 @@ export default class VarsDatasVoUpdateHandler {
      * @param invalidator
      * @returns
      */
-    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, null)//static
     private static apply_invalidator_in_tree(invalidator: VarDataInvalidatorVO) {
         const invalid_nodes: VarDAGNode[] = this.filter_varsdatas_cache_by_invalidator(invalidator);
 
@@ -886,7 +889,7 @@ export default class VarsDatasVoUpdateHandler {
     /**
      * Doit être lancé depuis le thread des vars
      */
-    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, null)//static
     private static filter_varsdatas_cache_by_invalidator(invalidator: VarDataInvalidatorVO): VarDAGNode[] {
 
         if (!invalidator) {
@@ -1031,7 +1034,7 @@ export default class VarsDatasVoUpdateHandler {
      * @param vo_types la liste des vo_types à remplir
      * @returns 0 si on a géré limit éléments dans le buffer, != 0 sinon (et donc le buffer est vide)
      */
-    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, null)//static
     private static prepare_updates(
         ordered_vos_cud: Array<IDistantVOBase | DAOUpdateVOHolder<IDistantVOBase>>,
         vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> },

@@ -49,9 +49,9 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
     }
 
     public async trigger(conditions: Conditions, params: Params, exec_as_server: boolean = false): Promise<Out[]> {
-        const noconditionHandlers: [(params: Params, exec_as_server?: boolean) => Promise<Out>] = this.registered_handlers[TriggerHook.NO_CONDITION_UID];
+        const noconditionHandlers: [(_params: Params, _exec_as_server?: boolean) => Promise<Out>] = this.registered_handlers[TriggerHook.NO_CONDITION_UID];
         const conditionUID: string = this.getConditionUID_from_Conditions(conditions);
-        const conditionalHandlers: [(params: Params, exec_as_server?: boolean) => Promise<Out>] = conditionUID ? this.registered_handlers[conditionUID] : null;
+        const conditionalHandlers: [(_params: Params, _exec_as_server?: boolean) => Promise<Out>] = conditionUID ? this.registered_handlers[conditionUID] : null;
 
         const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('TriggerHook', this.trigger_type_UID, conditionUID);

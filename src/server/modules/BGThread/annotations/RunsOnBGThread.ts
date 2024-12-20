@@ -20,7 +20,7 @@ export default class RunsOnBgThreadDataController {
  * Decorator indicating and handling that the method should be executed on a bgthread
  * Optimized : if the method is called from the right thread, it will be executed directly and the annotation will be removed so that the method is executed directly next time
  */
-export function RunsOnBgThread(bgthread: string, defaults_to_this_thread: boolean = false) {
+export function RunsOnBgThread(bgthread: string, instanceGetter: () => any, defaults_to_this_thread: boolean = false) {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
 
         if (ModulesManager.isGenerator) {
@@ -35,7 +35,16 @@ export function RunsOnBgThread(bgthread: string, defaults_to_this_thread: boolea
 
         EventsController.on_next_event(EVENT_NAME_ForkServerController_ready, () => {
             if (BGThreadServerDataManager.valid_bgthreads_names[bgthread]) { // on the bg right bgthread
-                RegisteredForkedTasksController.register_task(task_UID, originalMethod.bind(target));
+                RegisteredForkedTasksController.register_task(task_UID,
+                    instanceGetter ? (...args: any[]) => {
+                        /**
+                         * On utilise une méthode intermédiaire pour binder le this une fois l'instance dispo, ce qui n'est pas le cas lors de l'application de l'annotation sur le prototype
+                         *  et on en profite pour modifier le register_task pour qu'il prenne la méthode bindée à l'avenir
+                         */
+                        const boundMethod = originalMethod.bind(instanceGetter());
+                        RegisteredForkedTasksController.register_task(task_UID, boundMethod);
+                        return boundMethod.apply(instanceGetter(), args);
+                    } : originalMethod.bind(target));
             }
         });
 

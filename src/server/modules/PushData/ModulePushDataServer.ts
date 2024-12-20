@@ -54,9 +54,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         return ModulePushDataServer.instance;
     }
 
-
-
-    @RunsOnMainThread
+    @RunsOnMainThread(ModulePushDataServer.getInstance)
     private join_io_room(room_vo_fields: string[]) {
 
         if ((!room_vo_fields) || (!room_vo_fields.length) || (room_vo_fields.length % 2 == 1)) {
@@ -110,7 +108,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         }
     }
 
-    @RunsOnMainThread
+    @RunsOnMainThread(ModulePushDataServer.getInstance)
     private leave_io_room(room_vo_fields: string[]) {
 
         if ((!room_vo_fields) || (!room_vo_fields.length) || (room_vo_fields.length % 2 == 1)) {

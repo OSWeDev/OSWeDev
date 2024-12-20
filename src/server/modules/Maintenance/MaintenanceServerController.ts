@@ -65,7 +65,7 @@ export default class MaintenanceServerController {
      * DELETE ME Post suppression StackContext: Does not need StackContext
      * @param user_id
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(MaintenanceServerController.getInstance)
     public async inform_user_on_request(user_id: number): Promise<void> {
 
         const planned_maintenance = await this.get_planned_maintenance_vo();
@@ -97,7 +97,7 @@ export default class MaintenanceServerController {
     /**
      * DELETE ME Post suppression StackContext : Does not need StackContext
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(MaintenanceServerController.getInstance)
     public async get_planned_maintenance_vo(): Promise<MaintenanceVO> {
         if ((!this.planned_maintenance_cache_timeout) ||
             ((Dates.now() - this.planned_maintenance_cache_timeout) > 30)) {
@@ -108,7 +108,7 @@ export default class MaintenanceServerController {
         return this.planned_maintenance;
     }
 
-    @RunsOnMainThread
+    @RunsOnMainThread(MaintenanceServerController.getInstance)
     public async set_planned_maintenance_vo(maintenance: MaintenanceVO): Promise<void> {
 
         this.planned_maintenance = maintenance;

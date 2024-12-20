@@ -221,7 +221,7 @@ export default class VarsDatasProxy {
      * @param indexs
      * @returns
      */
-    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name)
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, null) // static
     private static async add_to_tree_and_return_datas_that_need_notification<T extends VarDataBaseVO>(indexs: string[]): Promise<T[]> {
 
         if (VarsComputationHole.waiting_for_computation_hole) {
