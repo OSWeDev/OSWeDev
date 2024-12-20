@@ -178,6 +178,7 @@ export default class VarsDatasVoUpdateHandler {
 
                         if (is_looking_for_more_resolver) {
                             is_looking_for_more_resolver();
+                            is_looking_for_more_resolver = null;
                         }
                     });
                 })());
