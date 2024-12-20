@@ -4,22 +4,22 @@ import { IDatabase } from 'pg-promise';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
-export default class Patch20241126TruncateLogsUpdated20122024 implements IGeneratorWorker {
+export default class Patch20122024TruncateLogsUpdated implements IGeneratorWorker {
 
-    private static instance: Patch20241126TruncateLogsUpdated20122024 = null;
+    private static instance: Patch20122024TruncateLogsUpdated = null;
 
     private constructor() { }
 
     get uid(): string {
-        return 'Patch20241126TruncateLogsUpdated20122024';
+        return 'Patch20122024TruncateLogsUpdated';
     }
 
     // istanbul ignore next: nothing to test
-    public static getInstance(): Patch20241126TruncateLogsUpdated20122024 {
-        if (!Patch20241126TruncateLogsUpdated20122024.instance) {
-            Patch20241126TruncateLogsUpdated20122024.instance = new Patch20241126TruncateLogsUpdated20122024();
+    public static getInstance(): Patch20122024TruncateLogsUpdated {
+        if (!Patch20122024TruncateLogsUpdated.instance) {
+            Patch20122024TruncateLogsUpdated.instance = new Patch20122024TruncateLogsUpdated();
         }
-        return Patch20241126TruncateLogsUpdated20122024.instance;
+        return Patch20122024TruncateLogsUpdated.instance;
     }
 
     public async work(db: IDatabase<any>) {
