@@ -19,6 +19,10 @@ import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
  */
 export default class SupervisionTypeWidgetManager {
 
+    private static instance: SupervisionTypeWidgetManager;
+
+    public categories_by_name: { [name: string]: SupervisedCategoryVO } = null;
+
     /**
      * load_supervision_api_type_ids_by_dashboard
      * - This method is responsible for loading the supervision api type ids by the given dashboard
@@ -216,8 +220,4 @@ export default class SupervisionTypeWidgetManager {
 
         return SupervisionTypeWidgetManager.instance;
     }
-
-    private static instance: SupervisionTypeWidgetManager;
-
-    public categories_by_name: { [name: string]: SupervisedCategoryVO } = null;
 }

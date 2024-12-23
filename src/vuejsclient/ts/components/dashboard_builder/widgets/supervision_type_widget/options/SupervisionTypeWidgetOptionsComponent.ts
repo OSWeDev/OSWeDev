@@ -45,6 +45,28 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
     private supervision_api_type_ids: string[] = [];
     private supervision_select_options: string[] = [];
 
+    get widget_options(): SupervisionTypeWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: SupervisionTypeWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as SupervisionTypeWidgetOptions;
+                options = options ? new SupervisionTypeWidgetOptions().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    get default_supervision_api_type_ids(): string[] {
+        return this.widget_options?.supervision_api_type_ids ?? [];
+    }
+
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
 
@@ -100,27 +122,5 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
         const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
         const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
-    }
-
-    get widget_options(): SupervisionTypeWidgetOptions {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: SupervisionTypeWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as SupervisionTypeWidgetOptions;
-                options = options ? new SupervisionTypeWidgetOptions().from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
-    }
-
-    get default_supervision_api_type_ids(): string[] {
-        return this.widget_options?.supervision_api_type_ids ?? [];
     }
 }

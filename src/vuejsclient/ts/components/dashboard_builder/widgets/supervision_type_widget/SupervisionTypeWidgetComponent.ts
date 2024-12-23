@@ -44,8 +44,48 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private available_api_type_ids: string[] = [];
     private categories_by_name: { [name: string]: SupervisedCategoryVO } = {};
 
-    private async mounted() {
-        await this.load_all_supervised_categories();
+    get title_name_code_text() {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    /**
+     * Supervision Api Type Ids
+     * - Used to filter the supervision items (sondes) from each datatable
+     *
+     * @returns {string[]}
+     */
+    get supervision_api_type_ids(): string[] {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        // TODO:
+        return this.widget_options.supervision_api_type_ids;
+    }
+
+    get widget_options() {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: SupervisionTypeWidgetOptionsVO = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as SupervisionTypeWidgetOptionsVO;
+                options = options ? new SupervisionTypeWidgetOptionsVO(
+                    options.supervision_api_type_ids
+                ) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
     }
 
     @Watch('selected_api_type_id')
@@ -98,6 +138,10 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         this.available_api_type_ids = data.items;
     }
 
+    private async mounted() {
+        await this.load_all_supervised_categories();
+    }
+
     /**
      * Load all supervised categories
      * @returns {Promise<void>}
@@ -116,49 +160,5 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
     private is_all_selected(): boolean {
         return !this.selected_api_type_id;
-    }
-
-    get title_name_code_text() {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    /**
-     * Supervision Api Type Ids
-     * - Used to filter the supervision items (sondes) from each datatable
-     *
-     * @returns {string[]}
-     */
-    get supervision_api_type_ids(): string[] {
-
-        if (!this.widget_options) {
-            return null;
-        }
-
-        // TODO:
-        return this.widget_options.supervision_api_type_ids;
-    }
-
-    get widget_options() {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: SupervisionTypeWidgetOptionsVO = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as SupervisionTypeWidgetOptionsVO;
-                options = options ? new SupervisionTypeWidgetOptionsVO(
-                    options.supervision_api_type_ids
-                ) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 }
