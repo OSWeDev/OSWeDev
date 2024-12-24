@@ -5,7 +5,6 @@ import String2ParamVO, { String2ParamVOStatic } from '../API/vos/apis/String2Par
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import SupervisedCRONController from './SupervisedCRONController';
@@ -25,14 +24,6 @@ export default class ModuleSupervision extends Module {
     public static APINAME_execute_manually: string = 'execute_manually';
     public static APINAME_refresh_one_manually: string = 'refresh_one_manually';
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleSupervision {
-        if (!ModuleSupervision.instance) {
-            ModuleSupervision.instance = new ModuleSupervision();
-        }
-        return ModuleSupervision.instance;
-    }
-
     private static instance: ModuleSupervision = null;
 
     public execute_manually: (api_type_id: string) => void = APIControllerWrapper.sah(ModuleSupervision.APINAME_execute_manually);
@@ -43,6 +34,15 @@ export default class ModuleSupervision extends Module {
         super("supervision", ModuleSupervision.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleSupervision {
+        if (!ModuleSupervision.instance) {
+            ModuleSupervision.instance = new ModuleSupervision();
+        }
+        return ModuleSupervision.instance;
+    }
+
 
     public registerApis() {
         APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(

@@ -12,15 +12,6 @@ import './supervision_crud.scss';
 
 export default class SupervisionAdminVueModule extends VueModuleBase {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): SupervisionAdminVueModule {
-        if (!SupervisionAdminVueModule.instance) {
-            SupervisionAdminVueModule.instance = new SupervisionAdminVueModule();
-        }
-
-        return SupervisionAdminVueModule.instance;
-    }
-
     private static instance: SupervisionAdminVueModule = null;
 
     public enabled_categories_by_key: { [key: string]: string[] } = {};
@@ -34,6 +25,15 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
         this.policies_needed = [
             ModuleSupervision.POLICY_BO_ACCESS
         ];
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): SupervisionAdminVueModule {
+        if (!SupervisionAdminVueModule.instance) {
+            SupervisionAdminVueModule.instance = new SupervisionAdminVueModule();
+        }
+
+        return SupervisionAdminVueModule.instance;
     }
 
     public async initializeAsync() {

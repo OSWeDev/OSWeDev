@@ -23,6 +23,22 @@ import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
  */
 export default class SupervisionWidgetManager {
 
+    private static instance: SupervisionWidgetManager;
+
+    public is_item_accepted: { [dashboard_id: number]: (supervised_item: ISupervisedItem) => boolean } = {};
+    public allowed_api_type_ids: string[] = [];
+
+    protected constructor() { }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): SupervisionWidgetManager {
+        if (!SupervisionWidgetManager.instance) {
+            SupervisionWidgetManager.instance = new SupervisionWidgetManager();
+        }
+
+        return SupervisionWidgetManager.instance;
+    }
+
     /**
      * Find supervision probs by api type ids
      *  - The aim of this function is to load the supervision probs for the given api_type_ids
@@ -117,17 +133,6 @@ export default class SupervisionWidgetManager {
             pagination,
         );
     }
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): SupervisionWidgetManager {
-        if (!SupervisionWidgetManager.instance) {
-            SupervisionWidgetManager.instance = new SupervisionWidgetManager();
-        }
-
-        return SupervisionWidgetManager.instance;
-    }
-
-    private static instance: SupervisionWidgetManager;
 
     /**
      * should_check_api_type_ids_access
@@ -302,11 +307,6 @@ export default class SupervisionWidgetManager {
 
         return { items, total_count };
     }
-
-    public is_item_accepted: { [dashboard_id: number]: (supervised_item: ISupervisedItem) => boolean } = {};
-    public allowed_api_type_ids: string[] = [];
-
-    protected constructor() { }
 
     /**
      * permet de définir une fonction de test pour filtrer les Items affichées dans le dashboard de la supervision

@@ -53,14 +53,6 @@ export default class SupervisionController {
         [SupervisionController.STATE_UNKOWN]: 'supervision.STATE_UNKOWN',
     };
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): SupervisionController {
-        if (!SupervisionController.instance) {
-            SupervisionController.instance = new SupervisionController();
-        }
-        return SupervisionController.instance;
-    }
-
     private static instance: SupervisionController = null;
 
     /** les sondes enregistrées */
@@ -72,6 +64,15 @@ export default class SupervisionController {
     get registered_controllers(): { [api_type_id: string]: ISupervisedItemController<any> } {
         return this.registered_api_type_by_ids;
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): SupervisionController {
+        if (!SupervisionController.instance) {
+            SupervisionController.instance = new SupervisionController();
+        }
+        return SupervisionController.instance;
+    }
+
 
     public getSupHistVoType(api_type_id: string): string {
         return SupervisionController.SUP_HIST_TABLE_PREFIX + api_type_id;
@@ -91,6 +92,7 @@ export default class SupervisionController {
         const category_id_field = ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie').set_many_to_one_target_moduletable_name(
             SupervisedCategoryVO.API_TYPE_ID
         );
+
 
         // rajoute les champs des sondes/controllers dans la moduletable
         ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().last_update, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de dernière mise à jour', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
@@ -150,6 +152,7 @@ export default class SupervisionController {
                 public id: number;
                 public _type: string;
             });
+
             const newTable: ModuleTableVO = ModuleTableController.create_new(moduleTable.module_name, ModuleTableController.vo_constructor_by_vo_type[vo_type], null, vo_type);
             newTable.set_bdd_ref(database, moduleTable.name);
             newTable.set_inherit_rights_from_vo_type(moduleTable.vo_type);

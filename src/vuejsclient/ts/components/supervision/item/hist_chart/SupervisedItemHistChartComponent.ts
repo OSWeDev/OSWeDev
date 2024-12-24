@@ -9,7 +9,7 @@ import ISupervisedItem from '../../../../../../shared/modules/Supervision/interf
 import ISupervisedItemGraphSegmentation from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemGraphSegmentation';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../../../VueComponentBase';
-import { _adapters, CategoryScale, LinearScale, LogarithmicScale, RadialLinearScale, TimeScale } from 'chart.js';
+import { /*_adapters, */CategoryScale, LinearScale, LogarithmicScale, RadialLinearScale, TimeScale } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 @Component({
@@ -43,29 +43,6 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
 
     private debounced_rerender = debounce(this.rerender, 500);
 
-    public async created() {
-        let chart = Chart;
-        chart.register(ChartDataLabels, CategoryScale, LinearScale, LogarithmicScale, TimeScale, RadialLinearScale);
-        window['Chart'] = chart;
-        Chart['helpers'] = helpers;
-
-        await import("chart.js-plugin-labels-dv");
-    }
-
-    private mounted() {
-        this.debounced_rerender();
-    }
-
-    @Watch('graph_segmentation')
-    @Watch('historiques')
-    private onchanges() {
-        this.debounced_rerender();
-    }
-
-    private rerender() {
-        this['renderChart'](this.chart_data, this.chart_options);
-    }
-
     get chart_data() {
         return {
             labels: this.labels,
@@ -74,10 +51,6 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
                 label: this.label(this.label_translatable_code),
             }]
         };
-    }
-
-    private getRandomInt() {
-        return Math.floor(Math.random() * (50 - 5 + 1)) + 5;
     }
 
     get chart_options() {
@@ -89,26 +62,6 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
             },
             this.options ? this.options : {}
         );
-    }
-
-    private get_filtered_value(last_value: number) {
-
-        // On peut pas avoir des valeurs null pour les graphs, on change en 0
-        if (last_value == null) {
-            return 0;
-        }
-
-        if (!this.filter) {
-            return last_value;
-        }
-
-        let params = [last_value];
-
-        if (this.filter_additional_params) {
-            params = params.concat(this.filter_additional_params);
-        }
-
-        return this.filter.apply(null, params);
     }
 
     get labels(): string[] {
@@ -176,4 +129,52 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
 
         return res;
     }
+
+    @Watch('graph_segmentation')
+    @Watch('historiques')
+    private onchanges() {
+        this.debounced_rerender();
+    }
+
+    public async created() {
+        let chart = Chart;
+        chart.register(ChartDataLabels, CategoryScale, LinearScale, LogarithmicScale, TimeScale, RadialLinearScale);
+        window['Chart'] = chart;
+        Chart['helpers'] = helpers;
+
+        await import("chart.js-plugin-labels-dv");
+    }
+
+    private mounted() {
+        this.debounced_rerender();
+    }
+
+    private rerender() {
+        this['renderChart'](this.chart_data, this.chart_options);
+    }
+
+    private getRandomInt() {
+        return Math.floor(Math.random() * (50 - 5 + 1)) + 5;
+    }
+
+    private get_filtered_value(last_value: number) {
+
+        // On peut pas avoir des valeurs null pour les graphs, on change en 0
+        if (last_value == null) {
+            return 0;
+        }
+
+        if (!this.filter) {
+            return last_value;
+        }
+
+        let params = [last_value];
+
+        if (this.filter_additional_params) {
+            params = params.concat(this.filter_additional_params);
+        }
+
+        return this.filter.apply(null, params);
+    }
+
 }
