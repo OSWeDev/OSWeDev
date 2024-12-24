@@ -25,23 +25,23 @@
                     :deselect-label='label("multiselect.deselectLabel")'
                     :deselect-group-label='label("multiselect.deselectGroupLabel")'
                 )
-        //- .field_order_by_categories
-        //-     .input_label {{ label('supervision_type_widget_component.order_by_categories') }}
-        //-     .input_wrapper
-        //-         toggle-button(
-        //-             @change="switch_order_by_categories"
-        //-             :value="order_by_categories"
-        //-             :sync="false"
-        //-             :width="60"
-        //-             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-        //-         )
-        //- .field_show_counter
-        //-     .input_label {{ label('supervision_type_widget_component.show_counter') }}
-        //-     .input_wrapper
-        //-         toggle-button(
-        //-             @change="switch_show_counter"
-        //-             :value="show_counter"
-        //-             :sync="false"
-        //-             :width="60"
-        //-             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-        //-         )
+        .field_order_by_categories
+            .input_label {{ label('supervision_type_widget_component.order_by_categories') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_order_by_categories"
+                    :value="order_by_categories"
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
+        .field_show_counter
+            .input_label {{ label('supervision_type_widget_component.show_counter') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_show_counter"
+                    :value="show_counter"
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )

@@ -89,10 +89,14 @@ export default class ModuleSupervision extends Module {
 
     private initializeSuperviseProbeVO() {
         const sup_item_api_type_id_field = ModuleTableFieldController.create_new(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().sup_item_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, "api_type_id d'item de supervision", true).unique();
+        const category_id_field = ModuleTableFieldController.create_new(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie').set_many_to_one_target_moduletable_name(
+            SupervisedCategoryVO.API_TYPE_ID
+        );
 
         const fields = [
             sup_item_api_type_id_field,
             ModuleTableFieldController.create_new(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().notify, ModuleTableFieldVO.FIELD_TYPE_boolean, "Notification", true, true, false),
+            category_id_field,
         ];
         const datatable = ModuleTableController.create_new(this.name, SupervisedProbeVO, sup_item_api_type_id_field, "Supervision - Sonde");
     }

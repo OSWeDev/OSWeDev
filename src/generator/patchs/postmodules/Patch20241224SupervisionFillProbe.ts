@@ -4,10 +4,10 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IGeneratorWorker from '../../IGeneratorWorker';
 import ModuleSupervision from '../../../shared/modules/Supervision/ModuleSupervision';
 import SupervisionController from '../../../shared/modules/Supervision/SupervisionController';
-import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import SupervisedProbeVO from '../../../shared/modules/Supervision/vos/SupervisedProbeVO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 
 export default class Patch20241224SupervisionFillProbe implements IGeneratorWorker {
 
@@ -45,22 +45,27 @@ export default class Patch20241224SupervisionFillProbe implements IGeneratorWork
         for (const api_type in registered_api_types) {
             // console.log(this.uid + ' START apis_type ' + api_type);
 
-            let probe: SupervisedProbeVO = probes_by_sup_item_api_type_id[api_type];
+            // on récupère un item pour récupérér la categorie
+            const item: ISupervisedItem = await query(api_type)
+                .set_limit(1)
+                .select_vo<ISupervisedItem>();
 
-            if (!probe) {
-                probe = new SupervisedProbeVO();
-                probe.sup_item_api_type_id = api_type;
-                // probe.description = ...
-                const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(probe);
+            const probe: SupervisedProbeVO = probes_by_sup_item_api_type_id[api_type]
+                ? probes_by_sup_item_api_type_id[api_type]
+                : new SupervisedProbeVO();
 
-                if (!res) {
-                    ConsoleHandler.error(this.uid + ' Impossible de créer la sonde pour le api_type ' + api_type);
-                    continue;
-                } else {
-                    console.log(this.uid + ' OK créations la sonde pour le api_type ' + api_type);
-                }
-                probe.id = res.id;
+            probe.sup_item_api_type_id = api_type;
+            probe.category_id = item?.category_id;
+
+            const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(probe);
+
+            if (!res) {
+                ConsoleHandler.error(this.uid + ' Impossible de créer la sonde pour le api_type ' + api_type);
+                continue;
+            } else {
+                console.log(this.uid + ' OK créations la sonde pour le api_type ' + api_type);
             }
+            probe.id = res.id;
 
             // const updates: ISupervisedItem[] = [];
             // // 1. Récupérer tous les items d’un type particulier

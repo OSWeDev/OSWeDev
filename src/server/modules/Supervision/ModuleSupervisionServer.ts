@@ -335,6 +335,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
     private async onpreC_SUP_ITEM(supervised_item: ISupervisedItem): Promise<boolean> {
 
+        // Dirty JFE : je ne sais pas comment automatiser ou forcer ceci autrement
         // si la sonde (necessaire au fonctionnement du compteur d'item par status) n'existe pas encore on la cree
         let probe: SupervisedProbeVO = await query(SupervisedProbeVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<SupervisedProbeVO>().sup_item_api_type_id, supervised_item._type)
@@ -342,6 +343,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         if (!probe) {
             probe = new SupervisedProbeVO();
             probe.sup_item_api_type_id = supervised_item._type;
+            probe.category_id = supervised_item.category_id;
             await ModuleDAO.getInstance().insertOrUpdateVO(probe);
         }
 

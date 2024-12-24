@@ -7,11 +7,13 @@ import ContextQueryVO, { query } from '../../ContextFilter/vos/ContextQueryVO';
 import SupervisionController from '../../Supervision/SupervisionController';
 import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
 import FieldFiltersVO from "../vos/FieldFiltersVO";
-import ObjectHandler from "../../../tools/ObjectHandler";
+import ObjectHandler, { field_names } from "../../../tools/ObjectHandler";
 import DashboardVO from "../vos/DashboardVO";
 import ModuleDAO from '../../DAO/ModuleDAO';
 import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
 import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
+import SupervisedProbeVO from "../../Supervision/vos/SupervisedProbeVO";
+import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 
 /**
  * @class SupervisionTypeWidgetManager
@@ -21,7 +23,7 @@ export default class SupervisionTypeWidgetManager {
 
     private static instance: SupervisionTypeWidgetManager;
 
-    public categories_by_name: { [name: string]: SupervisedCategoryVO } = null;
+    // public categories_by_name: { [name: string]: SupervisedCategoryVO } = null;
 
     /**
      * load_supervision_api_type_ids_by_dashboard
@@ -59,7 +61,7 @@ export default class SupervisionTypeWidgetManager {
         widget_options: SupervisionTypeWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
         options?: {
-            categories_by_name?: { [name: string]: SupervisedCategoryVO },
+            categories_by_id?: { [id: number]: SupervisedCategoryVO },
             refresh?: boolean,
         }
     ): Promise<{ items: string[], total_count: number }> {
@@ -69,14 +71,14 @@ export default class SupervisionTypeWidgetManager {
         const supervision_category_active_field_filters = active_field_filters && active_field_filters[SupervisedCategoryVO.API_TYPE_ID];
         const context_query_by_api_type_id: { [api_type_id: string]: ContextQueryVO } = {};
 
-        let categories_by_name: { [name: string]: SupervisedCategoryVO } = options?.categories_by_name ?? null;
+        let categories_by_id: { [id: number]: SupervisedCategoryVO } = options?.categories_by_id ?? null;
         let category_selections: SupervisedCategoryVO[] = null;
 
         // Supervision api type ids that have been registered in widget_options
         const supervision_api_type_ids: string[] = widget_options.supervision_api_type_ids;
 
-        if (!categories_by_name) {
-            categories_by_name = await SupervisionTypeWidgetManager.find_all_supervised_categories_by_name();
+        if (!categories_by_id) {
+            categories_by_id = await SupervisionTypeWidgetManager.find_all_supervised_categories_by_name();
         }
 
         const registered_supervision_api_type_ids: string[] = [];
@@ -115,7 +117,7 @@ export default class SupervisionTypeWidgetManager {
 
             // Get each category from the textarray
             category_selections = filter.param_textarray?.map((category_name: string) => {
-                return categories_by_name[category_name];
+                return categories_by_id[category_name];
             });
         }
 
@@ -197,19 +199,36 @@ export default class SupervisionTypeWidgetManager {
     }
 
     public static async find_all_supervised_categories_by_name(): Promise<{ [category_name: string]: SupervisedCategoryVO }> {
-        const self = SupervisionTypeWidgetManager.getInstance();
+        // const self = SupervisionTypeWidgetManager.getInstance();
 
         const sup_categories: SupervisedCategoryVO[] = await query(SupervisedCategoryVO.API_TYPE_ID)
             .select_vos<SupervisedCategoryVO>();
 
-        const categories_by_name = ObjectHandler.map_array_by_object_field_value(
-            sup_categories,
-            'name'
-        );
+        // const categories_by_name = ObjectHandler.map_array_by_object_field_value(
+        //     sup_categories,
+        //     'name'
+        // );
+        const categories_by_name = VOsTypesManager.vosArray_to_vosByIds(sup_categories);
 
-        self.categories_by_name = categories_by_name;
+        // self.categories_by_name = categories_by_name;
 
         return categories_by_name;
+    }
+
+    public static async find_all_supervised_probes_by_sup_api_type_ids(): Promise<{ [sup_api_type_id: string]: SupervisedProbeVO }> {
+        // const self = SupervisionTypeWidgetManager.getInstance();
+
+        const sup_probes: SupervisedProbeVO[] = await query(SupervisedProbeVO.API_TYPE_ID)
+            .select_vos<SupervisedProbeVO>();
+
+        const probes_by_sup_api_type_ids = ObjectHandler.map_array_by_object_field_value(
+            sup_probes,
+            field_names<SupervisedProbeVO>().sup_item_api_type_id
+        );
+
+        // self.probes_by_sup_api_type_ids = probes_by_sup_api_type_ids;
+
+        return probes_by_sup_api_type_ids;
     }
 
     // istanbul ignore next: nothing to test

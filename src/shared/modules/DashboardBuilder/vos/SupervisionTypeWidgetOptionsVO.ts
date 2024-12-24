@@ -12,7 +12,18 @@ export default class SupervisionTypeWidgetOptionsVO extends AbstractVO {
     public static FIELD_ID_INDICATOR: string = 'id';
 
     public constructor(
-        public supervision_api_type_ids?: string[], // Used to filter the supervision items (sondes) from each datatable
+        /**
+         * Used to filter the supervision items (sondes) from each datatable
+         */
+        public supervision_api_type_ids?: string[],
+        /**
+         * if true, the supervision items (sondes) will be ordered by categories
+         */
+        public order_by_categories?: boolean,
+        /***
+         *  if true, the supervision items (sondes) will display a counter
+         */
+        public show_counter?: boolean,
     ) {
         super();
     }

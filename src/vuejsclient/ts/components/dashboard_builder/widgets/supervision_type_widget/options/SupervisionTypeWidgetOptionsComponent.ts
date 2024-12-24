@@ -67,6 +67,24 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
         return this.widget_options?.supervision_api_type_ids ?? [];
     }
 
+    get order_by_categories(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.order_by_categories;
+    }
+
+    get show_counter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.show_counter;
+    }
+
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
 
@@ -104,7 +122,7 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
     }
 
     private get_default_options(): SupervisionTypeWidgetOptionsVO {
-        return new SupervisionTypeWidgetOptionsVO([]);
+        return new SupervisionTypeWidgetOptionsVO(this.default_supervision_api_type_ids, this.order_by_categories, this.show_counter);
     }
 
     private async update_options() {
@@ -124,5 +142,29 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
         // const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         const get_selected_fields = WidgetOptionsVOManager.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
+    }
+
+    private async switch_order_by_categories() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.order_by_categories = !this.next_update_options.order_by_categories;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_show_counter() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.show_counter = !this.next_update_options.show_counter;
+
+        await this.throttled_update_options();
     }
 }

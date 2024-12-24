@@ -12,6 +12,7 @@ import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/Tr
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import VueComponentBase from '../../../VueComponentBase';
 import './SupervisionTypeWidgetComponent.scss';
+import SupervisedProbeVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeVO';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
@@ -42,7 +43,10 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
     private selected_api_type_id: string = null;
     private available_api_type_ids: string[] = [];
-    private categories_by_name: { [name: string]: SupervisedCategoryVO } = {};
+    private available_api_type_ids_by_cat_ids: { [cat_id: string]: string[] } = {};
+    // private categories_by_name: { [name: string]: SupervisedCategoryVO } = {};
+    private categories_by_id: { [id: number]: SupervisedCategoryVO } = {};
+    private probes_by_sup_api_type_ids: { [sup_api_type_id: string]: SupervisedProbeVO } = {};
 
     get title_name_code_text() {
         if (!this.widget_options) {
@@ -55,7 +59,6 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     /**
      * Supervision Api Type Ids
      * - Used to filter the supervision items (sondes) from each datatable
-     *
      * @returns {string[]}
      */
     get supervision_api_type_ids(): string[] {
@@ -66,6 +69,31 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
         // TODO:
         return this.widget_options.supervision_api_type_ids;
+    }
+    /**
+     * if true, the supervision items (sondes) will be ordered by categories
+     * @returns {string[]}
+     */
+    get order_by_categories(): boolean {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.order_by_categories;
+    }
+
+    /**
+     *  if true, the supervision items (sondes) will display a counter
+     * @returns {string[]}
+     */
+    get show_counter(): boolean {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.show_counter;
     }
 
     get widget_options() {
@@ -78,7 +106,9 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as SupervisionTypeWidgetOptionsVO;
                 options = options ? new SupervisionTypeWidgetOptionsVO(
-                    options.supervision_api_type_ids
+                    options.supervision_api_type_ids,
+                    options.order_by_categories,
+                    options.show_counter
                 ) : null;
             }
         } catch (error) {
@@ -103,6 +133,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private async onchange_available_api_type_ids() {
         if (this.selected_api_type_id && this.available_api_type_ids?.indexOf(this.selected_api_type_id) == -1) {
             this.selected_api_type_id = null;
+            this.available_api_type_ids_by_cat_ids = {};
         }
     }
 
@@ -131,15 +162,33 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             this.widget_options,
             this.get_active_field_filters,
             {
-                categories_by_name: this.categories_by_name
+                categories_by_id: this.categories_by_id
             }
         );
 
+        const new_available_api_type_ids_by_cat_ids: { [cat_id: string]: string[] } = {};
+        if (this.order_by_categories && !!this.probes_by_sup_api_type_ids) {
+            for (const i in data.items) {
+                const sup_api_type_id = data.items[i];
+
+                if (!!this.probes_by_sup_api_type_ids[sup_api_type_id]) {
+                    const cat_id = this.probes_by_sup_api_type_ids[sup_api_type_id].category_id;
+
+                    if (!new_available_api_type_ids_by_cat_ids[cat_id]) {
+                        new_available_api_type_ids_by_cat_ids[cat_id] = [];
+                    }
+                    new_available_api_type_ids_by_cat_ids[cat_id].push(sup_api_type_id);
+                }
+            }
+        }
+
         this.available_api_type_ids = data.items;
+        this.available_api_type_ids_by_cat_ids = new_available_api_type_ids_by_cat_ids;
     }
 
     private async mounted() {
         await this.load_all_supervised_categories();
+        await this.load_all_supervised_probes();
     }
 
     /**
@@ -147,7 +196,15 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
      * @returns {Promise<void>}
      */
     private async load_all_supervised_categories(): Promise<void> {
-        this.categories_by_name = await SupervisionTypeWidgetManager.find_all_supervised_categories_by_name();
+        this.categories_by_id = await SupervisionTypeWidgetManager.find_all_supervised_categories_by_name();
+    }
+
+    /**
+     * Load all supervised probes
+     * @returns {Promise<void>}
+     */
+    private async load_all_supervised_probes(): Promise<void> {
+        this.probes_by_sup_api_type_ids = await SupervisionTypeWidgetManager.find_all_supervised_probes_by_sup_api_type_ids();
     }
 
     private handle_select_api_type_id(api_type_id: string) {
