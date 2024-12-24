@@ -108,6 +108,7 @@ import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
 import Patch20241010CreateLogType from './patchs/postmodules/Patch20241010CreateLogType';
 import Patch20241030SuiviCompetencesGroupeShortName from './patchs/postmodules/Patch20241030SuiviCompetencesGroupeShortName';
+import Patch20241224SupervisionFillProbe from './patchs/postmodules/Patch20241224SupervisionFillProbe';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -234,6 +235,7 @@ export default abstract class GeneratorBase {
             Patch20240906DeleteOldAssistantObjDBLinks.getInstance(),
             Patch20241010CreateLogType.getInstance(),
             Patch20241030SuiviCompetencesGroupeShortName.getInstance(),
+            Patch20241224SupervisionFillProbe.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }

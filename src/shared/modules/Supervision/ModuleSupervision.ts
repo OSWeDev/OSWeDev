@@ -12,6 +12,7 @@ import SupervisionController from './SupervisionController';
 import SupervisedCategoryVO from './vos/SupervisedCategoryVO';
 import SupervisedCRONVO from './vos/SupervisedCRONVO';
 import ModuleTableController from '../DAO/ModuleTableController';
+import SupervisedProbeVO from './vos/SupervisedProbeVO';
 
 export default class ModuleSupervision extends Module {
 
@@ -62,6 +63,7 @@ export default class ModuleSupervision extends Module {
     public initialize() {
         this.initializeSupervisedCategoryVO();
         this.initializeSupervisedCRONVO();
+        this.initializeSuperviseProbeVO();
     }
 
     private initializeSupervisedCategoryVO() {
@@ -83,5 +85,15 @@ export default class ModuleSupervision extends Module {
         SupervisionController.getInstance().registerModuleTable(
             ModuleTableController.create_new(this.name, SupervisedCRONVO, null, "Supervision - CRON"),
             SupervisedCRONController.getInstance());
+    }
+
+    private initializeSuperviseProbeVO() {
+        const sup_item_api_type_id_field = ModuleTableFieldController.create_new(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().sup_item_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, "api_type_id d'item de supervision", true).unique();
+
+        const fields = [
+            sup_item_api_type_id_field,
+            ModuleTableFieldController.create_new(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().notify, ModuleTableFieldVO.FIELD_TYPE_boolean, "Notification", true, true, false),
+        ];
+        const datatable = ModuleTableController.create_new(this.name, SupervisedProbeVO, sup_item_api_type_id_field, "Supervision - Sonde");
     }
 }

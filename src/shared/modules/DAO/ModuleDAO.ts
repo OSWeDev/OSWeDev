@@ -3,7 +3,6 @@ import INamedVO from '../../interfaces/INamedVO';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import APIDefinition from '../API/vos/APIDefinition';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';

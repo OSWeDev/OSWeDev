@@ -14,6 +14,7 @@ import ISupervisedItemURL from '../../../shared/modules/Supervision/interfaces/I
 import ModuleSupervision from '../../../shared/modules/Supervision/ModuleSupervision';
 import SupervisionController from '../../../shared/modules/Supervision/SupervisionController';
 import SupervisedCategoryVO from '../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
+import SupervisedProbeVO from '../../../shared/modules/Supervision/vos/SupervisedProbeVO';
 import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO';
 import TeamsWebhookContentAdaptiveCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAdaptiveCardVO';
 import TeamsWebhookContentAttachmentsVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAttachmentsVO';
@@ -25,6 +26,7 @@ import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWeb
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -332,6 +334,17 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     private async onpreC_SUP_ITEM(supervised_item: ISupervisedItem): Promise<boolean> {
+
+        // si la sonde (necessaire au fonctionnement du compteur d'item par status) n'existe pas encore on la cree
+        let probe: SupervisedProbeVO = await query(SupervisedProbeVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<SupervisedProbeVO>().sup_item_api_type_id, supervised_item._type)
+            .select_vo<SupervisedProbeVO>();
+        if (!probe) {
+            probe = new SupervisedProbeVO();
+            probe.sup_item_api_type_id = supervised_item._type;
+            await ModuleDAO.getInstance().insertOrUpdateVO(probe);
+        }
+
         supervised_item.creation_date = Dates.now();
         if (supervised_item.state == null) {
             supervised_item.state = SupervisionController.STATE_UNKOWN;

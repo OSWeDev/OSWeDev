@@ -92,7 +92,9 @@ export default class SupervisionController {
         const category_id_field = ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie').set_many_to_one_target_moduletable_name(
             SupervisedCategoryVO.API_TYPE_ID
         );
-
+        // const probe_id_field = ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().probe_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Sonde').set_many_to_one_target_moduletable_name(
+        //     SupervisedProbeVO.API_TYPE_ID
+        // );
 
         // rajoute les champs des sondes/controllers dans la moduletable
         ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().last_update, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de dernière mise à jour', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
@@ -105,6 +107,7 @@ export default class SupervisionController {
         ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().state_before_pause, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat - avant pause', true, true, SupervisionController.STATE_UNKOWN).setEnumValues(SupervisionController.STATE_LABELS).setEnumColorValues(SupervisionController.STATE_COLORS);
         ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().invalid, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Invalide', false, true, false);
         category_id_field;
+        // probe_id_field;
         moduleTable.default_label_field = name;
 
         // On copie les champs, pour la table à créer automatiquement :

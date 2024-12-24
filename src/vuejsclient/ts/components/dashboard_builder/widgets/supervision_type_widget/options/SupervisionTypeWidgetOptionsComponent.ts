@@ -12,9 +12,9 @@ import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTra
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
-import SupervisionTypeWidgetOptions from './SupervisionTypeWidgetOptions';
 import './SupervisionTypeWidgetOptionsComponent.scss';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
+import SupervisionTypeWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/SupervisionTypeWidgetOptionsVO';
 
 @Component({
     template: require('./SupervisionTypeWidgetOptionsComponent.pug'),
@@ -39,22 +39,22 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
-    private next_update_options: SupervisionTypeWidgetOptions = null;
+    private next_update_options: SupervisionTypeWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     private supervision_api_type_ids: string[] = [];
     private supervision_select_options: string[] = [];
 
-    get widget_options(): SupervisionTypeWidgetOptions {
+    get widget_options(): SupervisionTypeWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
 
-        let options: SupervisionTypeWidgetOptions = null;
+        let options: SupervisionTypeWidgetOptionsVO = null;
         try {
             if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as SupervisionTypeWidgetOptions;
-                options = options ? new SupervisionTypeWidgetOptions().from(options) : null;
+                options = JSON.parse(this.page_widget.json_options) as SupervisionTypeWidgetOptionsVO;
+                options = options ? new SupervisionTypeWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -103,8 +103,8 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
         return this.label('supervision_widget_component.' + api_type_id);
     }
 
-    private get_default_options(): SupervisionTypeWidgetOptions {
-        return new SupervisionTypeWidgetOptions([]);
+    private get_default_options(): SupervisionTypeWidgetOptionsVO {
+        return new SupervisionTypeWidgetOptionsVO([]);
     }
 
     private async update_options() {
@@ -119,8 +119,10 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        // const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        const name = VOsTypesManager.vosArray_to_vosByIds(WidgetOptionsVOManager.getInstance().sorted_widgets_types)[this.page_widget.widget_id].name;
+        // const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const get_selected_fields = WidgetOptionsVOManager.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 }
