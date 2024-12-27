@@ -580,7 +580,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
                         // Si on est sur du multi dataset, on peut avoir des datasets sans données
                         if ((dimension_value !== '[NULL]') && (datasets.length == 1)) {
                             // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
-                            this.snotify.error(this.t('var_line_chart_widget.error.no_data'));
+                            // this.snotify.error(this.t('var_line_chart_widget.error.no_data'));
                             ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
                             return;
                         } else {

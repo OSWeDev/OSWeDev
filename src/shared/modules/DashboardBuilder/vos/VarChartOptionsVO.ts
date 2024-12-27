@@ -20,6 +20,7 @@ export default class VarChartOptionsVO extends AbstractVO {
         public border_width?: number,
         public has_gradient?: boolean,
         public show_values?: boolean,
+        public show_zeros?: boolean,
         public filter_type?: string,
         public color_palette?: string[],
         public filter_additional_params?: string,

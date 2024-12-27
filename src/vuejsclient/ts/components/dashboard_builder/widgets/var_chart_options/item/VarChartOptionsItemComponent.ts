@@ -65,6 +65,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     private border_width: number = null;
     private has_gradient: boolean = false;
     private show_values: boolean = false;
+    private show_zeros: boolean = true;
     private filter_type: string = '';
     private filter_additional_params: string = '';
     private graphe_types: string[] = [
@@ -261,6 +262,11 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         await this.throttled_emit_changes();
     }
 
+    private async switch_show_zeros() {
+        this.show_zeros = !this.show_zeros;
+        await this.throttled_emit_changes();
+    }
+
     private async update_additional_options(additional_options: string) {
         this.filter_additional_params = additional_options;
         await this.throttled_emit_changes();
@@ -298,6 +304,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         this.options_props.custom_filter_names = this.custom_filter_names;
         this.options_props.has_gradient = this.has_gradient;
         this.options_props.show_values = this.show_values;
+        this.options_props.show_zeros = this.show_zeros;
         this.options_props.filter_additional_params = this.filter_additional_params;
         this.options_props.filter_type = this.filter_type;
         this.options_props.selected_filter_id = this.selected_filter_id;

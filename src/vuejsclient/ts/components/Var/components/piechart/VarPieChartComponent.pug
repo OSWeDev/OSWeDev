@@ -1,6 +1,12 @@
-piechart(
-    ref="piechart"
-    v-if="current_chart_data && current_chart_options && current_chart_plugins"
-    :data="current_chart_data"
-    :options="current_chart_options"
-)
+.piechart
+    template(v-if="has_data_to_display")
+        piechart(
+            ref="piechart"
+            v-if="current_chart_data && current_chart_options && current_chart_plugins"
+            :data="current_chart_data"
+            :options="current_chart_options"
+        )
+    template(v-else)
+        .no_data_to_display 
+            i.fa-sharp.fa-solid.fa-magnifying-glass {{ label('var_chart.no_data_to_display') }}
+            
