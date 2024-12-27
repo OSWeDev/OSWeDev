@@ -4,22 +4,42 @@
         template(v-if="order_by_categories")
             template(v-for="cat in categories_by_id")
                 template(v-if="!!available_api_type_ids_by_cat_ids[cat.id]")
-                    p.category_label {{ "cat.name" }}
+                    p.category_label {{ cat.name }}
 
                     template(v-for="api_type_id in available_api_type_ids_by_cat_ids[cat.id]")
-                        .btn.btn-info.button_opacity.mr-1.mb-1(
-                            @click="handle_select_api_type_id(api_type_id)"
-                            :class="{'active': selected_api_type_id == api_type_id}"
-                        ) {{ label('supervision_widget_component.' + api_type_id) }}
+                        template(v-if="show_counter")
+                            //- var-data(
+                            //-     v-var-directive="get_var_param_directive(probe_error_param[api_type_id])",
+                            //-     :var_param="probe_error_param[api_type_id]",
+                            //-     :filter='const_filters.percent.read',
+                            //-     :filter_additional_params='[]',
+                            //- )
+                            template(v-for="state in all_states")
+                                var-data.sup_cnt.btn.btn-sm.mr-1(
+                                    v-var-directive="get_var_param_directive(api_type_id, state)",
+                                    :var_param="probe_param_by_sup_api_type_id[api_type_id][state]",
+                                    :class="'STATE_' + state"
+                                )
+                            p {{ label('supervision_widget_component.' + api_type_id)}}
+
+
+                        template(v-else)
+                            .btn.btn-info.button_opacity.mr-1.mb-1(
+                                @click="handle_select_api_type_id(api_type_id)"
+                                :class="{'active': selected_api_type_id == api_type_id}"
+                            ) {{ label('supervision_widget_component.' + api_type_id) }}
 
         template(v-else)
-            template
-                .btn.btn-info.button_opacity.mr-1.mb-1(
-                    @click="handle_select_api_type_id(null)"
-                    :class="{'active': is_all_selected()}"
-                ) {{ label('supervision_widget_component.all') }}
-            template(v-for="api_type_id in available_api_type_ids")
-                .btn.btn-info.button_opacity.mr-1.mb-1(
-                    @click="handle_select_api_type_id(api_type_id)"
-                    :class="{'active': selected_api_type_id == api_type_id}"
-                ) {{ label('supervision_widget_component.' + api_type_id) }}
+            template(v-if="show_counter")
+
+            template(v-else)
+                template
+                    .btn.btn-info.button_opacity.mr-1.mb-1(
+                        @click="handle_select_api_type_id(null)"
+                        :class="{'active': is_all_selected()}"
+                    ) {{ label('supervision_widget_component.all') }}
+                template(v-for="api_type_id in available_api_type_ids")
+                    .btn.btn-info.button_opacity.mr-1.mb-1(
+                        @click="handle_select_api_type_id(api_type_id)"
+                        :class="{'active': selected_api_type_id == api_type_id}"
+                    ) {{ label('supervision_widget_component.' + api_type_id) }}

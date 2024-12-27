@@ -7,6 +7,7 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
@@ -43,6 +44,7 @@ import SupervisionBGThread from './bgthreads/SupervisionBGThread';
 import SupervisedCRONServerController from './cron_supervision/SupervisedCRONServerController';
 import SupervisionCronWorkersHandler from './SupervisionCronWorkersHandler';
 import SupervisionServerController from './SupervisionServerController';
+import VarNbSupervisedItemByProbeStateController from './vars/VarNbSupervisedItemByProbeStateController';
 
 export default class ModuleSupervisionServer extends ModuleServerBase {
 
@@ -198,6 +200,8 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             preCreateTrigger.registerHandler(vo_type, this, this.onpreC_SUP_ITEM);
         }
 
+        await this.configure_vars();
+
         SupervisedCRONServerController.getInstance();
     }
 
@@ -335,16 +339,28 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
     private async onpreC_SUP_ITEM(supervised_item: ISupervisedItem): Promise<boolean> {
 
-        // Dirty JFE : je ne sais pas comment automatiser ou forcer ceci autrement
-        // si la sonde (necessaire au fonctionnement du compteur d'item par status) n'existe pas encore on la cree
-        let probe: SupervisedProbeVO = await query(SupervisedProbeVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<SupervisedProbeVO>().sup_item_api_type_id, supervised_item._type)
-            .select_vo<SupervisedProbeVO>();
-        if (!probe) {
-            probe = new SupervisedProbeVO();
-            probe.sup_item_api_type_id = supervised_item._type;
-            probe.category_id = supervised_item.category_id;
-            await ModuleDAO.getInstance().insertOrUpdateVO(probe);
+        if (!supervised_item.probe_id) {
+            // Dirty JFE : je ne sais pas comment automatiser ou forcer ceci autrement
+            // si la sonde (necessaire au fonctionnement du compteur d'item par status) n'existe pas encore on la cree
+            let probe: SupervisedProbeVO = await query(SupervisedProbeVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<SupervisedProbeVO>().sup_item_api_type_id, supervised_item._type)
+                .select_vo<SupervisedProbeVO>();
+
+            if (!probe) {
+                probe = new SupervisedProbeVO();
+                probe.sup_item_api_type_id = supervised_item._type;
+                probe.category_id = supervised_item.category_id;
+                const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(probe);
+
+                if (!res) {
+                    ConsoleHandler.error(' Impossible de créer la sonde pour le type ' + supervised_item._type);
+                }
+                probe.id = res.id;
+            }
+
+            if (!!probe?.id && supervised_item.probe_id != probe.id) {
+                supervised_item.probe_id = probe.id;
+            }
         }
 
         supervised_item.creation_date = Dates.now();
@@ -478,5 +494,9 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         }
 
         await SupervisionServerController.getInstance().registered_controllers[api_type_id].work_one(await ModuleDAO.getInstance().getNamedVoByName(api_type_id, name));
+    }
+
+    private async configure_vars() {
+        await VarNbSupervisedItemByProbeStateController.getInstance().initialize();
     }
 }

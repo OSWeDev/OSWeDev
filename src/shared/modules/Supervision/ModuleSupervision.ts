@@ -13,6 +13,9 @@ import SupervisedCategoryVO from './vos/SupervisedCategoryVO';
 import SupervisedCRONVO from './vos/SupervisedCRONVO';
 import ModuleTableController from '../DAO/ModuleTableController';
 import SupervisedProbeVO from './vos/SupervisedProbeVO';
+import SupervisionProbeStateDataRangesVO from './vars/vos/SupervisionProbeStateDataRangesVO';
+import NumSegment from '../DataRender/vos/NumSegment';
+import VarsInitController from '../Var/VarsInitController';
 
 export default class ModuleSupervision extends Module {
 
@@ -64,6 +67,8 @@ export default class ModuleSupervision extends Module {
         this.initializeSupervisedCategoryVO();
         this.initializeSupervisedCRONVO();
         this.initializeSuperviseProbeVO();
+
+        this.initializeSupervisionProbeStateDataRangesVO();
     }
 
     private initializeSupervisedCategoryVO() {
@@ -99,5 +104,17 @@ export default class ModuleSupervision extends Module {
             category_id_field,
         ];
         const datatable = ModuleTableController.create_new(this.name, SupervisedProbeVO, sup_item_api_type_id_field, "Supervision - Sonde");
+    }
+
+    private initializeSupervisionProbeStateDataRangesVO() {
+
+        const probe_id_ranges = ModuleTableFieldController.create_new(SupervisionProbeStateDataRangesVO.API_TYPE_ID, field_names<SupervisionProbeStateDataRangesVO>().probe_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'sondes', true).set_segmentation_type(NumSegment.TYPE_INT);
+        const datatable_fields = [
+            probe_id_ranges,
+            ModuleTableFieldController.create_new(SupervisionProbeStateDataRangesVO.API_TYPE_ID, field_names<SupervisionProbeStateDataRangesVO>().state_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'état (0 à 6)', true).set_segmentation_type(NumSegment.TYPE_INT)
+        ];
+
+        VarsInitController.getInstance().register_var_data(SupervisionProbeStateDataRangesVO.API_TYPE_ID, SupervisionProbeStateDataRangesVO, this);
+        probe_id_ranges.set_many_to_one_target_moduletable_name(SupervisedProbeVO.API_TYPE_ID);
     }
 }

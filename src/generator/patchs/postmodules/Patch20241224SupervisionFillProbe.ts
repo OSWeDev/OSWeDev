@@ -41,64 +41,70 @@ export default class Patch20241224SupervisionFillProbe implements IGeneratorWork
         }
 
         const registered_api_types = SupervisionController.getInstance().registered_controllers;
+        const already_upd_probes_by_sup_item_api_type_id: { [sup_item_api_type_id: string]: boolean } = {};
 
         for (const api_type in registered_api_types) {
-            // console.log(this.uid + ' START apis_type ' + api_type);
+            console.log(this.uid + ' START apis_type ' + api_type);
 
-            // on récupère un item pour récupérér la categorie
-            const item: ISupervisedItem = await query(api_type)
-                .set_limit(1)
-                .select_vo<ISupervisedItem>();
+            // // on récupère un item pour récupérér la categorie
+            // const item: ISupervisedItem = await query(api_type)
+            //     .set_limit(1)
+            //     .select_vo<ISupervisedItem>();
 
-            const probe: SupervisedProbeVO = probes_by_sup_item_api_type_id[api_type]
-                ? probes_by_sup_item_api_type_id[api_type]
-                : new SupervisedProbeVO();
+            // const probe: SupervisedProbeVO = probes_by_sup_item_api_type_id[api_type]
+            //     ? probes_by_sup_item_api_type_id[api_type]
+            //     : new SupervisedProbeVO();
 
-            probe.sup_item_api_type_id = api_type;
-            probe.category_id = item?.category_id;
+            // probe.sup_item_api_type_id = api_type;
+            // probe.category_id = item?.category_id;
 
-            const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(probe);
+            // const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(probe);
 
-            if (!res) {
-                ConsoleHandler.error(this.uid + ' Impossible de créer la sonde pour le api_type ' + api_type);
-                continue;
-            } else {
-                console.log(this.uid + ' OK créations la sonde pour le api_type ' + api_type);
-            }
-            probe.id = res.id;
+            // if (!res) {
+            //     ConsoleHandler.error(this.uid + ' Impossible de créer la sonde pour le api_type ' + api_type);
+            //     continue;
+            // } else {
+            //     console.log(this.uid + ' OK créations la sonde pour le api_type ' + api_type);
+            // }
+            // probe.id = res.id;
 
-            // const updates: ISupervisedItem[] = [];
-            // // 1. Récupérer tous les items d’un type particulier
-            // const items: ISupervisedItem[] = await query(api_type).select_vos<ISupervisedItem>();
+
+
+            const updates: ISupervisedItem[] = [];
+            // 1. Récupérer tous les items d’un type particulier
+            const items: ISupervisedItem[] = await query(api_type).select_vos<ISupervisedItem>();
 
             // 2. Pour chaque item, on crée ou on retrouve la sonde associée
-            // for (const item of items) {
-            // let probe: SupervisedProbeVO = probes_by_sup_item_api_type_id[item._type];
+            for (const item of items) {
+                const probe: SupervisedProbeVO = probes_by_sup_item_api_type_id[api_type]
+                    ? probes_by_sup_item_api_type_id[api_type]
+                    : new SupervisedProbeVO();
 
-            // if (!probe) {
-            //     probe = new SupervisedProbeVO();
-            //     probe.sup_item_api_type_id = api_type;
-            //     // probe.description = ...
-            //     const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(probe);
+                if (!already_upd_probes_by_sup_item_api_type_id[api_type]) {
+                    probe.sup_item_api_type_id = api_type;
+                    probe.category_id = item?.category_id;
 
-            //     if (!res) {
-            //         ConsoleHandler.error(this.uid + ' Impossible de créer la sonde pour le type ' + api_type);
-            //         continue;
-            //     }
-            //     probe.id = res.id;
-            // }
+                    const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(probe);
 
-            // // 3. Mettre à jour le champ probe_id sur l’item
-            // item.probe_id = probe.id;
-            // updates.push(item);
-            // }
+                    if (!res) {
+                        ConsoleHandler.error(this.uid + ' Impossible de créer la sonde pour le type ' + api_type);
+                        continue;
+                    }
+                    already_upd_probes_by_sup_item_api_type_id[api_type] = true;
+                    probe.id = res.id;
+                }
 
-            // if (!!updates.length) {
-            //     console.log(this.uid + ' WIP api_type ' + api_type + ' ' + updates.length + ' items to update');
-            //     await ModuleDAO.getInstance().insertOrUpdateVOs(updates);
-            //     console.log(this.uid + ' WIP api_type ' + api_type + ' ' + updates.length + ' items updated');
-            // }
-            // console.log(this.uid + ' END api_type ' + api_type);
+                // 3. Mettre à jour le champ probe_id sur l’item
+                item.probe_id = probe.id;
+                updates.push(item);
+            }
+
+            if (!!updates.length) {
+                console.log(this.uid + ' WIP api_type ' + api_type + ' ' + updates.length + ' items to update');
+                await ModuleDAO.getInstance().insertOrUpdateVOs(updates);
+                console.log(this.uid + ' WIP api_type ' + api_type + ' ' + updates.length + ' items updated');
+            }
+            console.log(this.uid + ' END api_type ' + api_type);
         }
 
         console.log(this.uid + ' END all api_type ');

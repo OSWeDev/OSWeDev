@@ -7,4 +7,51 @@
             opacity: 1;
         }
     }
+
+    .sup_cnt.btn.btn-sm {
+        font-size: larger;
+        font-weight: bold;
+        color: white;
+        min-width: 4rem;
+        max-width: 4rem;
+        max-height: 1.5rem;
+        padding: 0;
+        line-height: 1.4;
+
+        opacity: 0.4;
+
+        &:hover,
+        &.active,
+        &.opacity_1 {
+            opacity: 1;
+        }
+
+        &.STATE_0 {
+            background-color: red;
+        }
+
+        &.STATE_1 {
+            background-color: orangered;
+        }
+
+        &.STATE_2 {
+            background-color: orange;
+        }
+
+        &.STATE_3 {
+            background-color: #ffd400;
+        }
+
+        &.STATE_4 {
+            background-color: green;
+        }
+
+        &.STATE_5 {
+            background-color: blue;
+        }
+
+        &.STATE_6 {
+            background-color: grey;
+        }
+    }
 }

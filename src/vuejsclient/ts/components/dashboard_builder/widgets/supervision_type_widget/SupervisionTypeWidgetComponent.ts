@@ -13,10 +13,17 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page
 import VueComponentBase from '../../../VueComponentBase';
 import './SupervisionTypeWidgetComponent.scss';
 import SupervisedProbeVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeVO';
+import IVarDirectiveParams from '../../../Var/directives/vars-directive/IVarsDirectiveParams';
+import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import SupervisionProbeStateDataRangesVO from "../../../../../../shared/modules/Supervision/vars/vos/SupervisionProbeStateDataRangesVO";
+import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
+import SupervisionVarsNamesHolder from "../../../../../../shared/modules/Supervision/vars/SupervisionVarsNamesHolder";
+import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
+import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
-    components: {}
+    components: {},
 })
 export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
@@ -47,6 +54,26 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     // private categories_by_name: { [name: string]: SupervisedCategoryVO } = {};
     private categories_by_id: { [id: number]: SupervisedCategoryVO } = {};
     private probes_by_sup_api_type_ids: { [sup_api_type_id: string]: SupervisedProbeVO } = {};
+
+    private probe_param_by_sup_api_type_id: { [sup_api_type_id: string]: { [state: number]: SupervisionProbeStateDataRangesVO } } = {};
+    private probe_param_by_cat: { [cat_id: string]: { [state: number]: SupervisionProbeStateDataRangesVO } } = {};
+
+    private all_states: number[] = [
+        SupervisionController.STATE_ERROR,
+        SupervisionController.STATE_ERROR_READ,
+        SupervisionController.STATE_WARN,
+        SupervisionController.STATE_WARN_READ,
+        SupervisionController.STATE_OK,
+        SupervisionController.STATE_PAUSED,
+        // SupervisionController.STATE_UNKOWN
+    ];
+    private state_error = SupervisionController.STATE_ERROR;
+    private state_error_read = SupervisionController.STATE_ERROR_READ;
+    private state_warn = SupervisionController.STATE_WARN;
+    private state_warn_read = SupervisionController.STATE_WARN_READ;
+    private state_ok = SupervisionController.STATE_OK;
+    private state_paused = SupervisionController.STATE_PAUSED;
+    private state_unkown = SupervisionController.STATE_UNKOWN;
 
     get title_name_code_text() {
         if (!this.widget_options) {
@@ -118,6 +145,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         return options;
     }
 
+
     @Watch('selected_api_type_id')
     private onchange_selected_api_type_id() {
 
@@ -167,20 +195,62 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         );
 
         const new_available_api_type_ids_by_cat_ids: { [cat_id: string]: string[] } = {};
-        if (this.order_by_categories && !!this.probes_by_sup_api_type_ids) {
+        const probe_param_by_sup_api_type_id: { [sup_api_type_id: string]: { [state: number]: SupervisionProbeStateDataRangesVO } } = {};
+        const probe_ids_by_cat: { [cat_id: string]: number[] } = {};
+
+        if ((this.order_by_categories || this.show_counter) && !!this.probes_by_sup_api_type_ids) {
             for (const i in data.items) {
                 const sup_api_type_id = data.items[i];
+                const probe: SupervisedProbeVO = this.probes_by_sup_api_type_ids[sup_api_type_id];
 
-                if (!!this.probes_by_sup_api_type_ids[sup_api_type_id]) {
-                    const cat_id = this.probes_by_sup_api_type_ids[sup_api_type_id].category_id;
+                if (!probe) {
+                    continue;
+                }
 
-                    if (!new_available_api_type_ids_by_cat_ids[cat_id]) {
-                        new_available_api_type_ids_by_cat_ids[cat_id] = [];
-                    }
-                    new_available_api_type_ids_by_cat_ids[cat_id].push(sup_api_type_id);
+                if (!new_available_api_type_ids_by_cat_ids[probe.category_id]) {
+                    new_available_api_type_ids_by_cat_ids[probe.category_id] = [];
+                }
+                new_available_api_type_ids_by_cat_ids[probe.category_id].push(sup_api_type_id);
+
+                if (!this.show_counter) {
+                    continue;
+                }
+
+                if (!probe_ids_by_cat[probe.category_id]) {
+                    probe_ids_by_cat[probe.category_id] = [];
+                }
+                probe_ids_by_cat[probe.category_id].push(probe.id);
+
+                if (!probe_param_by_sup_api_type_id[sup_api_type_id]) {
+                    probe_param_by_sup_api_type_id[sup_api_type_id] = {};
+                }
+
+                for (const si in this.all_states) {
+                    probe_param_by_sup_api_type_id[sup_api_type_id][si] = SupervisionProbeStateDataRangesVO.createNew<SupervisionProbeStateDataRangesVO>(
+                        SupervisionVarsNamesHolder.VarNbSupervisedItemByProbeStateController_VAR_NAME,
+                        false,
+                        [RangeHandler.create_single_elt_NumRange(probe.id, NumSegment.TYPE_INT)],
+                        [RangeHandler.create_single_elt_NumRange(parseInt(si), NumSegment.TYPE_INT)]
+                    );
                 }
             }
         }
+
+        const probe_param_by_cat: { [cat_id: string]: { [state: number]: SupervisionProbeStateDataRangesVO } } = {};
+        for (const pi in probe_ids_by_cat) {
+            probe_param_by_cat[pi] = {};
+            for (const si in this.all_states) {
+                probe_param_by_cat[pi][si] = SupervisionProbeStateDataRangesVO.createNew<SupervisionProbeStateDataRangesVO>(
+                    SupervisionVarsNamesHolder.VarNbSupervisedItemByProbeStateController_VAR_NAME,
+                    false,
+                    RangeHandler.create_multiple_NumRange_from_ids(probe_ids_by_cat[pi], NumSegment.TYPE_INT),
+                    [RangeHandler.create_single_elt_NumRange(parseInt(si), NumSegment.TYPE_INT)]
+                );
+            }
+        }
+
+        this.probe_param_by_sup_api_type_id = probe_param_by_sup_api_type_id;
+        this.probe_param_by_cat = probe_param_by_cat;
 
         this.available_api_type_ids = data.items;
         this.available_api_type_ids_by_cat_ids = new_available_api_type_ids_by_cat_ids;
@@ -217,5 +287,60 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
     private is_all_selected(): boolean {
         return !this.selected_api_type_id;
+    }
+
+
+    private get_var_param_directive(api_type_id: string, state: number): IVarDirectiveParams {
+        const var_param: SupervisionProbeStateDataRangesVO = this.probe_param_by_sup_api_type_id[api_type_id]?.[state];
+
+        if (!var_param) {
+            return null;
+        }
+
+        // on set la class button_opacity_1
+        // si state 0 | 1 | 2 | 3 et valeur != 0
+        // si state 4 | 5 jamais
+
+        // on set la couleur selon le state
+        const res: IVarDirectiveParams = {
+            var_param: var_param,
+            on_every_update: (varData: VarDataBaseVO, el, binding, vnode) => {
+                const value: number = (!!varData) ? (varData as VarDataBaseVO).value : 0;
+
+                if (value > 0) {
+                    if (state == 0 || state == 1 || state == 2 || state == 3) {
+                        el.className += ' opacity_1';
+                    }
+
+                    if (value > 500) {
+                        // do something
+                        // on pourrait changer le nbr pour ">500"
+                    }
+                } else {
+                    this.removeClassName('opacity_1', el);
+                }
+            },
+            already_register: true,
+        };
+
+        return res;
+    }
+
+    private removeClassName(className: string, el) {
+        if (!el.className) {
+            return;
+        }
+
+        const classes = el.className.split(' ');
+        let res = null;
+        for (const i in classes) {
+
+            if (classes[i] == className) {
+                continue;
+            }
+
+            res = (res ? res + ' ' + classes[i] : classes[i]);
+        }
+        el.className = (res ? res : '');
     }
 }
