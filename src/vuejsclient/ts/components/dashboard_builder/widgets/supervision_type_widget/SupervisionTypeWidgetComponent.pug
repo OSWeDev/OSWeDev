@@ -20,13 +20,15 @@
                             p.probe_label {{ label('supervision_widget_component.' + api_type_id)}}
                             template(v-if="!!probe_param_by_sup_api_type_id && !!probe_param_by_sup_api_type_id[api_type_id]")
                                 template(v-for="state in all_states")
-                                    var-data.sup_cnt.btn.btn-sm.mr-1(
-                                        :v-if="!!probe_param_by_sup_api_type_id[api_type_id][state]",
-                                        v-var-directive="get_var_param_directive(state, api_type_id, null)",
-                                        :var_param="probe_param_by_sup_api_type_id[api_type_id][state]",
-                                        :class="'STATE_' + state"
+                                    .sup_cnt.btn.btn-sm.mr-1(
                                         @click="handle_select_api_type_id_and_state(api_type_id, state)"
+                                        :class="get_class_css(api_type_id, state)"
                                     )
+                                        var-data(
+                                            :v-if="!!probe_param_by_sup_api_type_id[api_type_id][state]",
+                                            v-var-directive="get_var_param_directive(state, api_type_id)",
+                                            :var_param="probe_param_by_sup_api_type_id[api_type_id][state]",
+                                        )
 
                         template(v-else)
                             .btn.btn-info.button_opacity.mr-1.mb-1(
@@ -41,13 +43,15 @@
                     p.probe_label {{ label('supervision_widget_component.' + api_type_id)}}
                     template(v-if="!!probe_param_by_sup_api_type_id && !!probe_param_by_sup_api_type_id[api_type_id]")
                         template(v-for="state in all_states")
-                            var-data.sup_cnt.btn.btn-sm.mr-1(
-                                :v-if="!!probe_param_by_sup_api_type_id[api_type_id][state]",
-                                v-var-directive="get_var_param_directive(state, api_type_id, null)",
-                                :var_param="probe_param_by_sup_api_type_id[api_type_id][state]",
-                                :class="'STATE_' + state"
+                            .sup_cnt.btn.btn-sm.mr-1(
                                 @click="handle_select_api_type_id_and_state(api_type_id, state)"
+                                :class="'STATE_' + state"
                             )
+                                var-data(
+                                    :v-if="!!probe_param_by_sup_api_type_id[api_type_id][state]",
+                                    v-var-directive="get_var_param_directive(state, api_type_id)",
+                                    :var_param="probe_param_by_sup_api_type_id[api_type_id][state]",
+                                )
 
             template(v-else)
                 template

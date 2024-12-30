@@ -22,6 +22,8 @@ import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegme
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ObjectHandler, { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
@@ -36,7 +38,10 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private get_active_field_filters: FieldFiltersVO;
 
     @ModuleDashboardPageAction
-    private set_active_field_filters: FieldFiltersVO;
+    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
+
+    @ModuleDashboardPageAction
+    private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
     @ModuleDashboardPageAction
     private set_active_api_type_ids: (active_api_type_ids: string[]) => void;
@@ -60,8 +65,9 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     // private categories_by_id: { [id: number]: SupervisedCategoryVO } = {};
     private probes_by_sup_api_type_ids: { [sup_api_type_id: string]: SupervisedProbeVO } = {};
 
+    private opacity_by_sup_api_type_id: { [sup_api_type_id: string]: { [state: number]: boolean } } = {};
     private probe_param_by_sup_api_type_id: { [sup_api_type_id: string]: { [state: number]: SupervisionProbeStateDataRangesVO } } = {};
-    private probe_param_by_cat: { [cat_id: string]: { [state: number]: SupervisionProbeStateDataRangesVO } } = {};
+    // private probe_param_by_cat: { [cat_id: string]: { [state: number]: SupervisionProbeStateDataRangesVO } } = {};
 
     private all_states: number[] = [
         SupervisionController.STATE_ERROR,
@@ -72,13 +78,14 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         SupervisionController.STATE_PAUSED,
         // SupervisionController.STATE_UNKOWN
     ];
-    private state_error = SupervisionController.STATE_ERROR;
-    private state_error_read = SupervisionController.STATE_ERROR_READ;
-    private state_warn = SupervisionController.STATE_WARN;
-    private state_warn_read = SupervisionController.STATE_WARN_READ;
-    private state_ok = SupervisionController.STATE_OK;
-    private state_paused = SupervisionController.STATE_PAUSED;
-    private state_unkown = SupervisionController.STATE_UNKOWN;
+    // private state_error = SupervisionController.STATE_ERROR;
+    // private state_error_read = SupervisionController.STATE_ERROR_READ;
+    // private state_warn = SupervisionController.STATE_WARN;
+    // private state_warn_read = SupervisionController.STATE_WARN_READ;
+    // private state_ok = SupervisionController.STATE_OK;
+    // private state_paused = SupervisionController.STATE_PAUSED;
+    // private state_unkown = SupervisionController.STATE_UNKOWN;
+    private selectedApitypeState: string = null;
 
     get title_name_code_text() {
         if (!this.widget_options) {
@@ -159,25 +166,68 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             return;
         }
 
+        if (this.selected_state !== null) {
+            if (!!this.available_api_type_ids?.length && (this.selected_state !== null)) {
+                for (const i in this.available_api_type_ids) {
+                    if (this.available_api_type_ids[i] == this.selected_api_type_id) {
+                        continue;
+                    }
+
+                    console.debug('onchange_selected_api_type_id remove_active_field_filter ' + this.selected_state + ' ' + this.available_api_type_ids[i]);
+                    this.remove_active_field_filter({
+                        field_id: field_names<ISupervisedItem>().state,
+                        vo_type: this.available_api_type_ids[i],
+                    });
+                }
+            }
+            console.debug('onchange_selected_api_type_id set_active_field_filter ' + this.selected_state + ' ' + this.selected_api_type_id);
+            this.set_active_field_filter({
+                field_id: field_names<ISupervisedItem>().state,
+                vo_type: this.selected_api_type_id,
+                active_field_filter: filter(this.selected_api_type_id, field_names<ISupervisedItem>().state).by_num_eq(this.selected_state)
+            });
+        }
         this.set_active_api_type_ids([this.selected_api_type_id]);
     }
 
     @Watch('selected_state')
     private onchange_selected_state() {
 
-        console.log('onchange_selected_state' + this.selected_state);
-        // if (!this.selected_state || !this.selected_api_type_id) {
-        //     this.set_active_field_filters([]);
-        //     return;
-        // }
+        console.log('onchange_selected_state ' + this.selected_state);
 
-        // // export default class FieldFiltersVO {
-        // //     [api_type_id: string]: { [field_id: string]: ContextFilterVO }
-        // // }
-        // // get_active_field_filters
-        // // set_active_field_filters
-        // // selected_state
-        // this.set_active_api_type_ids([this.selected_api_type_id]);
+        if (this.selected_state === null) {
+            if (!!this.available_api_type_ids?.length) {
+                for (const i in this.available_api_type_ids) {
+                    console.debug('onchange_selected_state remove_active_field_filter ' + this.selected_state + ' ' + this.available_api_type_ids[i]);
+                    this.remove_active_field_filter({
+                        field_id: field_names<ISupervisedItem>().state,
+                        vo_type: this.available_api_type_ids[i],
+                    });
+                }
+            }
+            return;
+        }
+
+        if (!!this.available_api_type_ids?.length && (this.selected_api_type_id !== null)) {
+            for (const i in this.available_api_type_ids) {
+                if (this.available_api_type_ids[i] == this.selected_api_type_id) {
+                    continue;
+                }
+
+                console.debug('onchange_selected_api_type_id remove_active_field_filter ' + this.selected_state + ' ' + this.available_api_type_ids[i]);
+                this.remove_active_field_filter({
+                    field_id: field_names<ISupervisedItem>().state,
+                    vo_type: this.available_api_type_ids[i],
+                });
+            }
+        }
+
+        console.debug('onchange_selected_state set_active_field_filter ' + this.selected_state + ' ' + this.selected_api_type_id);
+        this.set_active_field_filter({
+            field_id: field_names<ISupervisedItem>().state,
+            vo_type: this.selected_api_type_id,
+            active_field_filter: filter(this.selected_api_type_id, field_names<ISupervisedItem>().state).by_num_eq(this.selected_state)
+        });
     }
 
     @Watch("available_api_type_ids")
@@ -272,23 +322,23 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         }
 
 
-        const probe_param_by_cat: { [cat_id: string]: { [state: number]: SupervisionProbeStateDataRangesVO } } = {};
-        if (!!this.show_counter) {
-            for (const pi in probe_ids_by_cat) {
-                probe_param_by_cat[pi] = {};
-                for (const si in this.all_states) {
-                    probe_param_by_cat[pi][si] = SupervisionProbeStateDataRangesVO.createNew<SupervisionProbeStateDataRangesVO>(
-                        SupervisionVarsNamesHolder.VarNbSupervisedItemByProbeStateController_VAR_NAME,
-                        false,
-                        RangeHandler.create_multiple_NumRange_from_ids(probe_ids_by_cat[pi], NumSegment.TYPE_INT),
-                        [RangeHandler.create_single_elt_NumRange(parseInt(si), NumSegment.TYPE_INT)]
-                    );
-                }
-            }
-        }
+        // const probe_param_by_cat: { [cat_id: string]: { [state: number]: SupervisionProbeStateDataRangesVO } } = {};
+        // if (!!this.show_counter) {
+        //     for (const pi in probe_ids_by_cat) {
+        //         probe_param_by_cat[pi] = {};
+        //         for (const si in this.all_states) {
+        //             probe_param_by_cat[pi][si] = SupervisionProbeStateDataRangesVO.createNew<SupervisionProbeStateDataRangesVO>(
+        //                 SupervisionVarsNamesHolder.VarNbSupervisedItemByProbeStateController_VAR_NAME,
+        //                 false,
+        //                 RangeHandler.create_multiple_NumRange_from_ids(probe_ids_by_cat[pi], NumSegment.TYPE_INT),
+        //                 [RangeHandler.create_single_elt_NumRange(parseInt(si), NumSegment.TYPE_INT)]
+        //             );
+        //         }
+        //     }
+        // }
 
         this.probe_param_by_sup_api_type_id = probe_param_by_sup_api_type_id;
-        this.probe_param_by_cat = probe_param_by_cat;
+        // this.probe_param_by_cat = probe_param_by_cat;
 
         this.available_api_type_ids = data.items;
         this.available_api_type_ids_by_cat_ids = new_available_api_type_ids_by_cat_ids;
@@ -339,11 +389,15 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     }
 
 
-    private get_var_param_directive(state: number, api_type_id: string, cat_id: number): IVarDirectiveParams {
+    private get_var_param_directive(state: number, api_type_id: string /*, cat_id: number*/): IVarDirectiveParams {
 
         const var_param: SupervisionProbeStateDataRangesVO = !!api_type_id
             ? this.probe_param_by_sup_api_type_id[api_type_id]?.[state]
-            : this.probe_param_by_cat[cat_id]?.[state];
+            : null;
+
+        // const var_param: SupervisionProbeStateDataRangesVO = !!api_type_id
+        //     ? this.probe_param_by_sup_api_type_id[api_type_id]?.[state]
+        //     : this.probe_param_by_cat[cat_id]?.[state];
 
         if (!var_param) {
             return null;
@@ -361,15 +415,22 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
                 if (value > 0) {
                     if (state == 0 || state == 1 || state == 2 || state == 3) {
-                        el.className += ' opacity_1';
+                        if (!this.opacity_by_sup_api_type_id[api_type_id]) {
+                            this.opacity_by_sup_api_type_id[api_type_id] = {};
+                        }
+                        this.opacity_by_sup_api_type_id[api_type_id][state] = true;
+                        // el.parentElement.className += ' opacity_1';
                     }
 
-                    if (value > 500) {
-                        // do something
-                        // on pourrait changer le nbr pour ">500"
-                    }
+                    // if (value > 500) {
+                    //     // do something
+                    //     // on pourrait changer le nbr pour ">500"
+                    // }
                 } else {
-                    this.removeClassName('opacity_1', el);
+                    if (!!this.opacity_by_sup_api_type_id[api_type_id]) {
+                        this.opacity_by_sup_api_type_id[api_type_id][state] = false;
+                    }
+                    // this.removeClassName('opacity_1', el.parentElement);
                 }
             },
             already_register: true,
@@ -379,18 +440,30 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     }
 
     private handle_select_api_type_id_and_state(api_type_id: string, state: number) {
-        console.log('handle_select_api_type_id_and_state' + state);
+        console.log('handle_select_api_type_id_and_state ' + state + ' ' + api_type_id);
 
-        if (this.selected_api_type_id === api_type_id) {
+        if (this.selected_api_type_id === api_type_id && this.selected_state === state) {
             this.selected_api_type_id = null;
-        } else {
-            this.selected_api_type_id = api_type_id;
-        }
-
-        if (this.selected_state === state) {
             this.selected_state = null;
+            this.selectedApitypeState = null;
         } else {
+            this.selectedApitypeState = api_type_id + '_' + state;
+            this.selected_api_type_id = api_type_id;
             this.selected_state = state;
         }
+    }
+
+    private get_class_css(api_type_id: string, state: number): any {
+        const res: string[] = [];
+        res.push('STATE_' + state);
+
+        if (this.selectedApitypeState == api_type_id + '_' + state) {
+            res.push('selected');
+        }
+
+        if (this.opacity_by_sup_api_type_id[api_type_id]?.[state]) {
+            res.push('opacity_1');
+        }
+        return res.join(' ');
     }
 }

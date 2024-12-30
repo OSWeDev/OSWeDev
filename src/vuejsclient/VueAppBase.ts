@@ -487,7 +487,6 @@ export default abstract class VueAppBase {
         Vue.component('Tsrangescomponent', () => import('./ts/components/ranges/tsranges/TSRangesComponent'));
         Vue.component('Hourrangecomponent', () => import('./ts/components/ranges/hourrange/HourRangeComponent'));
         Vue.component('Hourrangescomponent', () => import('./ts/components/ranges/hourranges/HourRangesComponent'));
-        Vue.component('SupervisedItemComponent', SupervisedItemComponent);
 
         Vue.directive('var-directive', VarDirective.getInstance());
         Vue.directive('vars-directive', VarsDirective.getInstance());

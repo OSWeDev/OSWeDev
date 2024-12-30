@@ -40,8 +40,12 @@
         }
 
         &:hover,
-        &.active {
+        &.active &.selected {
             box-shadow: 3px 3px 3px -2px #888
+        }
+
+        &.selected {
+            border: 2px solid #888;
         }
 
         &.STATE_0 {
