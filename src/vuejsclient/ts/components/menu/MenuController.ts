@@ -7,15 +7,6 @@ import { all_promises } from '../../../../shared/tools/PromiseTools';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 
 export default class MenuController {
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): MenuController {
-        if (!MenuController.instance) {
-            MenuController.instance = new MenuController();
-        }
-        return MenuController.instance;
-    }
-
     private static instance: MenuController;
 
     public menus_by_app_names: { [app_name: string]: MenuElementVO[] } = {};
@@ -29,29 +20,43 @@ export default class MenuController {
     public callback_reload_menus = null;
 
     public has_loaded_menus: boolean = false;
+    public loading_menus_promise: Promise<void> = null;
+
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): MenuController {
+        if (!MenuController.instance) {
+            MenuController.instance = new MenuController();
+        }
+        return MenuController.instance;
+    }
 
     public async reload_from_db() {
         this.has_loaded_menus = true;
-        this.reload(await query(MenuElementVO.API_TYPE_ID).select_vos<MenuElementVO>());
+        this.loading_menus_promise = new Promise(async (resolve, reject) => {
+            this.reload(await query(MenuElementVO.API_TYPE_ID).select_vos<MenuElementVO>());
 
-        this.access_by_name = {};
-        for (const i in this.menus_by_ids) {
-            const menu = this.menus_by_ids[i];
+            this.access_by_name = {};
+            for (const i in this.menus_by_ids) {
+                const menu = this.menus_by_ids[i];
 
-            if (!menu.access_policy_name) {
-                continue;
+                if (!menu.access_policy_name) {
+                    continue;
+                }
+                this.access_by_name[menu.access_policy_name] = null;
             }
-            this.access_by_name[menu.access_policy_name] = null;
-        }
 
-        const promises = [];
-        for (const policy_name in this.access_by_name) {
+            const promises = [];
+            for (const policy_name in this.access_by_name) {
 
-            promises.push((async () => {
-                this.access_by_name[policy_name] = await ModuleAccessPolicy.getInstance().testAccess(policy_name);
-            })());
-        }
-        await all_promises(promises);
+                promises.push((async () => {
+                    this.access_by_name[policy_name] = await ModuleAccessPolicy.getInstance().testAccess(policy_name);
+                })());
+            }
+            await all_promises(promises);
+            resolve();
+        });
+        return this.loading_menus_promise;
     }
 
     /**
@@ -62,6 +67,12 @@ export default class MenuController {
     public async declare_menu_element(elt: MenuElementVO): Promise<MenuElementVO> {
         if (!elt) {
             return;
+        }
+
+        if (!this.has_loaded_menus) {
+            await this.reload_from_db();
+        } else {
+            await this.loading_menus_promise;
         }
 
         if (!this.menus_by_name[elt.name]) {

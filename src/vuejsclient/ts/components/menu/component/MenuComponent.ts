@@ -1,7 +1,5 @@
-import { indexOf } from 'lodash';
 import { Component, Prop } from 'vue-property-decorator';
 import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
-import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import VueComponentBase from '../../VueComponentBase';
 import MenuController from '../MenuController';
 import './MenuComponent.scss';
@@ -41,6 +39,7 @@ export default class MenuComponent extends VueComponentBase {
         if (!MenuController.getInstance().has_loaded_menus) {
             await MenuController.getInstance().reload_from_db();
         } else {
+            await MenuController.getInstance().loading_menus_promise;
             this.callback_reload_menus();
         }
     }

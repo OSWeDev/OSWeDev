@@ -10,12 +10,12 @@ import ModuleTranslation from '../../../../../shared/modules/Translation/ModuleT
 import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
 import { ModuleTranslatableTextAction } from '../../InlineTranslatableText/TranslatableTextStore';
 import MenuController from '../../menu/MenuController';
 import MenuOrganizerComponent from '../../menu/organizer/MenuOrganizerComponent';
 import VueComponentBase from '../../VueComponentBase';
 import './DashboardMenuConfComponent.scss';
-import { field_names } from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DashboardMenuConfComponent.pug'),
@@ -49,6 +49,8 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
 
         if (!MenuController.getInstance().has_loaded_menus) {
             await MenuController.getInstance().reload_from_db();
+        } else {
+            await MenuController.getInstance().loading_menus_promise;
         }
 
         this.menu_app = {};
