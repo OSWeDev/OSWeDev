@@ -77,6 +77,7 @@ export default class ModuleSupervision extends Module {
         const fields = [
             name_field,
             ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().notify, ModuleTableFieldVO.FIELD_TYPE_boolean, "Notification", true, true, false),
+            ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', false),
         ];
 
         const datatable = ModuleTableController.create_new(this.name, SupervisedCategoryVO, name_field, "Supervision - Catégorie");
@@ -102,6 +103,7 @@ export default class ModuleSupervision extends Module {
             sup_item_api_type_id_field,
             ModuleTableFieldController.create_new(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().notify, ModuleTableFieldVO.FIELD_TYPE_boolean, "Notification", true, true, false),
             category_id_field,
+            ModuleTableFieldController.create_new(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', false),
         ];
         const datatable = ModuleTableController.create_new(this.name, SupervisedProbeVO, sup_item_api_type_id_field, "Supervision - Sonde");
     }

@@ -116,7 +116,7 @@ export default class VarNbSupervisedItemByProbeStateController extends VarServer
                 if (!items_by_probe_and_state[probe_id][state_id]?.length) {
                     return;
                 }
-                res = items_by_probe_and_state[probe_id][state_id].length;
+                res += items_by_probe_and_state[probe_id][state_id].length;
             });
         });
 

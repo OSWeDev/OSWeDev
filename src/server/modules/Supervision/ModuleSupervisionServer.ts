@@ -188,6 +188,12 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Etat lu non disponible"
         }, 'supervised_item_controls.desc_btn.switch_read_disabled.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Ordonner par catégorie"
+        }, 'supervision_type_widget_component.order_by_categories.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Afficher les compteurs d'état"
+        }, 'supervision_type_widget_component.show_counter.___LABEL___'));
 
         /**
          * On gère l'historique des valeurs

@@ -8,6 +8,7 @@ import SupervisedProbeVO from '../../../shared/modules/Supervision/vos/Supervise
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
+import SupervisedCategoryVO from '../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 
 export default class Patch20241224SupervisionFillProbe implements IGeneratorWorker {
 
@@ -30,6 +31,17 @@ export default class Patch20241224SupervisionFillProbe implements IGeneratorWork
             return;
         }
 
+        // on preset les poids des category de supervision arbitrairemeznt par ordre de création
+        const cats: SupervisedCategoryVO[] = await query(SupervisedCategoryVO.API_TYPE_ID).select_vos<SupervisedCategoryVO>();
+        for (const i in cats) {
+            const cat = cats[i];
+            cat.weight = parseInt(i);
+        }
+        if (!!cats.length) {
+            console.log(this.uid + ' WIP set weight on SupervisedCategoryVO ' + cats.length + ' categorie to update');
+            await ModuleDAO.getInstance().insertOrUpdateVOs(cats);
+        }
+
         // on récupère toutes les sondes (à ce stade on est sensé en avoir aucune)
         const probes: SupervisedProbeVO[] = await query(SupervisedProbeVO.API_TYPE_ID).select_vos<SupervisedProbeVO>();
 
@@ -42,33 +54,10 @@ export default class Patch20241224SupervisionFillProbe implements IGeneratorWork
 
         const registered_api_types = SupervisionController.getInstance().registered_controllers;
         const already_upd_probes_by_sup_item_api_type_id: { [sup_item_api_type_id: string]: boolean } = {};
+        const probes_weight_by_cat_id: { [cat_id: number]: number } = {};
 
         for (const api_type in registered_api_types) {
             console.log(this.uid + ' START apis_type ' + api_type);
-
-            // // on récupère un item pour récupérér la categorie
-            // const item: ISupervisedItem = await query(api_type)
-            //     .set_limit(1)
-            //     .select_vo<ISupervisedItem>();
-
-            // const probe: SupervisedProbeVO = probes_by_sup_item_api_type_id[api_type]
-            //     ? probes_by_sup_item_api_type_id[api_type]
-            //     : new SupervisedProbeVO();
-
-            // probe.sup_item_api_type_id = api_type;
-            // probe.category_id = item?.category_id;
-
-            // const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(probe);
-
-            // if (!res) {
-            //     ConsoleHandler.error(this.uid + ' Impossible de créer la sonde pour le api_type ' + api_type);
-            //     continue;
-            // } else {
-            //     console.log(this.uid + ' OK créations la sonde pour le api_type ' + api_type);
-            // }
-            // probe.id = res.id;
-
-
 
             const updates: ISupervisedItem[] = [];
             // 1. Récupérer tous les items d’un type particulier
@@ -84,6 +73,12 @@ export default class Patch20241224SupervisionFillProbe implements IGeneratorWork
                     probe.sup_item_api_type_id = api_type;
                     probe.category_id = item?.category_id;
 
+                    if (!probes_weight_by_cat_id[probe.category_id]) {
+                        probes_weight_by_cat_id[probe.category_id] = 0;
+                    }
+                    probes_weight_by_cat_id[probe.category_id] += 1;
+                    probe.weight = probes_weight_by_cat_id[probe.category_id];
+
                     const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(probe);
 
                     if (!res) {
@@ -92,6 +87,7 @@ export default class Patch20241224SupervisionFillProbe implements IGeneratorWork
                     }
                     already_upd_probes_by_sup_item_api_type_id[api_type] = true;
                     probe.id = res.id;
+                    probes_by_sup_item_api_type_id[api_type] = probe;
                 }
 
                 // 3. Mettre à jour le champ probe_id sur l’item
