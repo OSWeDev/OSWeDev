@@ -82,13 +82,6 @@ export default abstract class VueAppController {
             self.base_url = await ModuleDAO.instance.getBaseUrl();
         })());
 
-        if (this.app_name !== VueAppController.APP_NAME_LOGIN) {
-            promises.push((async () => {
-                await MenuController.getInstance().reload_from_db();
-            })());
-        }
-
-
         promises.push((async () => {
             self.data_user_roles = await ModuleAccessPolicy.getInstance().getMyRoles();
         })());

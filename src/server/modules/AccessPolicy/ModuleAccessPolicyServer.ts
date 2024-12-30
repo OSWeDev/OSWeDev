@@ -318,14 +318,21 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 });
             }
 
+            let session_is_saved_resolver = null;
+            const session_is_saved = new Promise((accept) => {
+                session_is_saved_resolver = accept;
+            });
+
             session.uid = user.id;
             session.user_vo = user;
             session.save((error) => {
                 if (error) {
                     ConsoleHandler.error('ModuleAccessPolicyServer.login_session:session.save:' + error);
                 }
+                session_is_saved_resolver();
             });
 
+            await session_is_saved;
             await PushDataServerController.registerSession(session);
 
             // On stocke le log de connexion en base

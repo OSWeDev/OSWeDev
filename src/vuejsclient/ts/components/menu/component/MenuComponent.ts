@@ -12,10 +12,7 @@ import './MenuComponent.scss';
 })
 export default class MenuComponent extends VueComponentBase {
 
-    // On triche un peu mais il est sensé n'y avoir qu'un menu....
-    public static getInstance(): MenuComponent {
-        return MenuComponent.instance;
-    }
+
     private static instance: MenuComponent;
 
     @Prop()
@@ -34,9 +31,18 @@ export default class MenuComponent extends VueComponentBase {
         MenuComponent.instance = this;
     }
 
-    public mounted() {
+    // On triche un peu mais il est sensé n'y avoir qu'un menu....
+    public static getInstance(): MenuComponent {
+        return MenuComponent.instance;
+    }
+    public async mounted() {
+
         MenuController.getInstance().callback_reload_menus = this.callback_reload_menus;
-        this.callback_reload_menus();
+        if (!MenuController.getInstance().has_loaded_menus) {
+            await MenuController.getInstance().reload_from_db();
+        } else {
+            this.callback_reload_menus();
+        }
     }
 
     private callback_reload_menus() {

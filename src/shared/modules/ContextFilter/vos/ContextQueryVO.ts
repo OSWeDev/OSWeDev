@@ -1068,6 +1068,16 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      */
     public add_filters(filters: ContextFilterVO[]): ContextQueryVO {
 
+        if (!filters) {
+            return this;
+        }
+
+        filters = filters.filter((f) => !!f);
+
+        if (!filters.length) {
+            return this;
+        }
+
         if (!this.filters) {
             this.filters = [];
         }

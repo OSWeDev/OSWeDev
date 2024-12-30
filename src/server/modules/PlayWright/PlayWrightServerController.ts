@@ -161,7 +161,7 @@ export default abstract class PlayWrightServerController {
             await ModuleAccessPolicyServer.getInstance().addRoleToUser(test_user.id, rôle_admin.id);
         } else {
             if (ConfigurationService.node_configuration.debug_playwright_controller) {
-                ConsoleHandler.log('PlayWrightServerController: test_user found, updating its password');
+                ConsoleHandler.log('PlayWrightServerController: test_user found');
             }
 
             // dans tous les cas on reset le mot de passe si c'est pas encore fait depuis le démarrage
@@ -182,7 +182,7 @@ export default abstract class PlayWrightServerController {
         }
 
         if (ConfigurationService.node_configuration.debug_playwright_controller) {
-            ConsoleHandler.log('PlayWrightServerController: logging in test_user.id: ' + test_user.id);
+            ConsoleHandler.log('PlayWrightServerController: logging in test_user.id: ' + test_user.id + ' with sid: ' + (req.session as IServerUserSession)?.sid);
         }
         await ModuleAccessPolicyServer.getInstance().login_sid(test_user.id, (req.session as IServerUserSession)?.sid);
     }

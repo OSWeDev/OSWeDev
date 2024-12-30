@@ -364,7 +364,12 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
     }
 
     private static chain_cond(filters: ContextFilterVO[], type: number): ContextFilterVO {
-        if ((!filters) || (!filters.length)) {
+        if (!filters) {
+            return null;
+        }
+
+        filters = filters.filter((filter) => filter != null);
+        if (!filters.length) {
             return null;
         }
 

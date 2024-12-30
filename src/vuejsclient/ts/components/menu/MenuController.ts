@@ -28,7 +28,10 @@ export default class MenuController {
 
     public callback_reload_menus = null;
 
+    public has_loaded_menus: boolean = false;
+
     public async reload_from_db() {
+        this.has_loaded_menus = true;
         this.reload(await query(MenuElementVO.API_TYPE_ID).select_vos<MenuElementVO>());
 
         this.access_by_name = {};

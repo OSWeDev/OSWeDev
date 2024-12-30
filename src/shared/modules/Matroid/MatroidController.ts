@@ -566,9 +566,9 @@ export default class MatroidController {
         const moduletable_from = ModuleTableController.module_tables_by_vo_type[from._type];
         const moduletable_to = ModuleTableController.module_tables_by_vo_type[_type];
 
-        // const res: U = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[_type]() as U, static_fields);
+        const res: U = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[_type]() as U, static_fields);
         static_fields = static_fields ? static_fields : {};
-        const res: U = Object.create(ModuleTableController.vo_constructor_proto_by_vo_type[_type], Object.getOwnPropertyDescriptors(static_fields));
+        // TEST AB FAIT PEU OU PAS D'INTERET const res: U = Object.create(ModuleTableController.vo_constructor_proto_by_vo_type[_type], Object.getOwnPropertyDescriptors(static_fields));
         res._type = _type;
 
         // Compatibilité avec les vars

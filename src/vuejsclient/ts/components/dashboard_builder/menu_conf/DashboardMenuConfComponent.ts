@@ -47,6 +47,10 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
             return;
         }
 
+        if (!MenuController.getInstance().has_loaded_menus) {
+            await MenuController.getInstance().reload_from_db();
+        }
+
         this.menu_app = {};
         this.app_names = Object.keys(MenuController.getInstance().menus_by_app_names);
         for (const i in this.app_names) {
