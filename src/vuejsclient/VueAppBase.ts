@@ -59,6 +59,7 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
+import SupervisedItemComponent from "./ts/components/supervision/item/SupervisedItemComponent";
 
 // const loadComponent = async (component) => {
 //     try {
@@ -486,6 +487,7 @@ export default abstract class VueAppBase {
         Vue.component('Tsrangescomponent', () => import('./ts/components/ranges/tsranges/TSRangesComponent'));
         Vue.component('Hourrangecomponent', () => import('./ts/components/ranges/hourrange/HourRangeComponent'));
         Vue.component('Hourrangescomponent', () => import('./ts/components/ranges/hourranges/HourRangesComponent'));
+        Vue.component('SupervisedItemComponent', SupervisedItemComponent);
 
         Vue.directive('var-directive', VarDirective.getInstance());
         Vue.directive('vars-directive', VarsDirective.getInstance());

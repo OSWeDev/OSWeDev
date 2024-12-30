@@ -240,7 +240,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
     }
 
     private open_url(url: string) {
-        window.open(url, "supervision");
+        window.open(url + "?sup_item_id=" + this.supervised_item_id, "supervision");
     }
 
     private toggle_show_hide_graph() {
