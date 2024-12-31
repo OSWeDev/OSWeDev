@@ -13,7 +13,7 @@ export default class APIBGThread implements IBGThread {
     public MAX_timeout: number = 300000;
     public MIN_timeout: number = 60000;
 
-    public exec_in_dedicated_thread: boolean = true;
+    public exec_in_dedicated_thread: boolean = false;
 
     private constructor() {
     }
