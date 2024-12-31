@@ -25,7 +25,18 @@ export default class OseliaUserReferrerOTTVO implements IDistantVOBase, IVersion
     public version_edit_author_id: number;
     public version_edit_timestamp: number;
 
-    public static generateSecretToken(length: number): string {
-        return randomBytes(length).toString('hex');
+    public static async generateSecretToken(length: number): Promise<string> {
+
+        return new Promise((resolve, reject) => {
+
+            randomBytes(length, (err, buffer) => {
+
+                if (err) {
+                    return reject(err);
+                }
+
+                return resolve(buffer.toString('hex'));
+            });
+        });
     }
 }

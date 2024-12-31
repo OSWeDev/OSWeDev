@@ -1,5 +1,6 @@
 import child_process from 'child_process';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 import csrf from 'csurf';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import createLocaleMiddleware from 'express-locale';
@@ -317,6 +318,22 @@ export default abstract class ServerBase {
         this.app = express();
         this.app.disable('x-powered-by'); // On ne veut pas communiquer la techno utilisée
 
+        if (this.envParam.compress) {
+            const shouldCompress = function (req, res) {
+                if (req.headers['x-no-compression']) {
+                    // don't compress responses with this request header
+                    return false;
+                }
+
+                // fallback to standard filter function
+                return compression.filter(req, res);
+            };
+            this.app.use(compression({
+                filter: shouldCompress,
+                threshold: 1024, // Taille min avant compression
+            }));
+        }
+
         // On déclare le middleware session
         this.session = expressSession({
             secret: ConfigurationService.node_configuration.express_secret,
@@ -455,20 +472,6 @@ export default abstract class ServerBase {
             },
         };
         this.apply_middlewares(middlewares_by_urls_and_methd);
-
-        // // TODO opti pré-compression des fichiers statiques
-        // if (this.envParam.compress) {
-        //     const shouldCompress = function (req, res) {
-        //         if (req.headers['x-no-compression']) {
-        //             // don't compress responses with this request header
-        //             return false;
-        //         }
-
-        //         // fallback to standard filter function
-        //         return compression.filter(req, res);
-        //     };
-        //     this.app.use(compression({ filter: shouldCompress }));
-        // }
 
 
         if (ConfigurationService.node_configuration.activate_long_john) {

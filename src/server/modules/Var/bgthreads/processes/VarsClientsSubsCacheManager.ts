@@ -1,8 +1,8 @@
+import { PostThrottleParam, PreThrottleParam, THROTTLED_METHOD_PARAM_TYPE } from "../../../../../shared/annotations/Throttle";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
 import SemaphoreHandler from "../../../../../shared/tools/SemaphoreHandler";
 import ThreadHandler from "../../../../../shared/tools/ThreadHandler";
-import ThrottleHelper from "../../../../../shared/tools/ThrottleHelper";
-import ForkedTasksController from "../../../Fork/ForkedTasksController";
+import ThrottleExecAsServerRunsOnBgThread from "../../../../annotations/ThrottleExecAsServerRunsOnBgThread";
 import VarsBGThreadNameHolder from "../../VarsBGThreadNameHolder";
 import VarsTabsSubsController from "../../VarsTabsSubsController";
 import VarsClientsSubsCacheHolder from "./VarsClientsSubsCacheHolder";
@@ -19,9 +19,6 @@ import VarsClientsSubsCacheHolder from "./VarsClientsSubsCacheHolder";
  */
 export default class VarsClientsSubsCacheManager {
 
-    public static TASK_NAME_throttled_add_new_subs: string = 'throttled_add_new_subs';
-    public static TASK_NAME_throttled_remove_subs: string = 'throttled_remove_subs';
-
     public static init() {
         ThreadHandler.set_interval(
             'VarsClientsSubsCacheManager.update_clients_subs_indexes_cache',
@@ -29,11 +26,6 @@ export default class VarsClientsSubsCacheManager {
             30000,
             'VarsClientsSubsCacheManager.update_clients_subs_indexes_cache',
             false);
-
-        // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(VarsClientsSubsCacheManager.TASK_NAME_throttled_add_new_subs, VarsClientsSubsCacheManager.throttled_add_new_subs);
-        // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(VarsClientsSubsCacheManager.TASK_NAME_throttled_remove_subs, VarsClientsSubsCacheManager.throttled_remove_subs);
     }
 
     public static add_new_sub(var_index: string) {
@@ -63,38 +55,30 @@ export default class VarsClientsSubsCacheManager {
             }, true);
     }
 
-    private static throttle_add_new_subs = ThrottleHelper.declare_throttle_with_stackable_args(VarsClientsSubsCacheManager.throttled_add_new_subs.bind(VarsClientsSubsCacheManager), 1);
-    private static throttle_remove_subs = ThrottleHelper.declare_throttle_with_stackable_args(VarsClientsSubsCacheManager.throttled_remove_subs.bind(VarsClientsSubsCacheManager), 1);
-
-    /* istanbul ignore next */
-    private static async throttled_add_new_subs(var_indexs: string[]): Promise<void> {
-
-        if (!await ForkedTasksController.exec_self_on_bgthread(
-            VarsBGThreadNameHolder.bgthread_name,
-            VarsClientsSubsCacheManager.TASK_NAME_throttled_add_new_subs, var_indexs)) {
-            return;
-        }
-
-        VarsClientsSubsCacheManager.throttled_add_new_subs_on_bg_thread(var_indexs);
-    }
-    private static throttled_add_new_subs_on_bg_thread(var_indexs: string[]) {
+    @ThrottleExecAsServerRunsOnBgThread(
+        {
+            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+            throttle_ms: 10,
+        },
+        VarsBGThreadNameHolder.bgthread_name,
+        null, // static
+    )
+    public static throttle_add_new_subs(@PreThrottleParam pre_var_indexs: string | string[], @PostThrottleParam var_indexs: string[] = null) {
         for (const i in var_indexs) {
             VarsClientsSubsCacheHolder.clients_subs_indexes_cache[var_indexs[i]] = true;
         }
     }
 
-    /* istanbul ignore next */
-    private static async throttled_remove_subs(var_indexs: string[]): Promise<void> {
+    @ThrottleExecAsServerRunsOnBgThread(
+        {
+            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+            throttle_ms: 10,
+        },
+        VarsBGThreadNameHolder.bgthread_name,
+        null, // static
+    )
+    public static async throttle_remove_subs(@PreThrottleParam pre_var_indexs: string | string[], @PostThrottleParam var_indexs: string[] = null): Promise<void> {
 
-        if (!await ForkedTasksController.exec_self_on_bgthread(
-            VarsBGThreadNameHolder.bgthread_name,
-            VarsClientsSubsCacheManager.TASK_NAME_throttled_remove_subs, var_indexs)) {
-            return;
-        }
-
-        VarsClientsSubsCacheManager.throttled_remove_subs_on_bg_thread(var_indexs);
-    }
-    private static throttled_remove_subs_on_bg_thread(var_indexs: string[]) {
         for (const i in var_indexs) {
             delete VarsClientsSubsCacheHolder.clients_subs_indexes_cache[var_indexs[i]];
         }
