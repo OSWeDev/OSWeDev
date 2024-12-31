@@ -1,7 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
-import ISupervisedItemController from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
 import VueComponentBase from '../../../VueComponentBase';
 import SupervisedItemComponent from '../../item/SupervisedItemComponent';

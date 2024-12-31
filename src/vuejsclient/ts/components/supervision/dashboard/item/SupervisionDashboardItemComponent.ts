@@ -30,6 +30,9 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     private noclick: boolean;
 
     @Prop({ default: false })
+    private nameabove: boolean;
+
+    @Prop({ default: false })
     private coche: boolean;
 
     private state_classname: string = 'STATE_UNKNOWN';
@@ -186,6 +189,14 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
 
     private item_selected() {
         this.$emit('item_selected', this.item);
+    }
+
+    private get_name_above(): string {
+        // découpage arbitraire : retour à la ligne à chaque occurence : ' - '
+        const name: string = this.item.name;
+        const name_parts: string[] = name.split(' - ');
+
+        return name_parts.join('<br/>');
     }
 
 }

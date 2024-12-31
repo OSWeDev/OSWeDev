@@ -194,6 +194,9 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Afficher les compteurs d'état"
         }, 'supervision_type_widget_component.show_counter.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Supervision selectionnée"
+        }, 'supervision.item_drag_panel.title.___LABEL___'));
 
         /**
          * On gère l'historique des valeurs

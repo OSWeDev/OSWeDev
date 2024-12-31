@@ -1,5 +1,9 @@
 .supervision_dashboard_item_wrapper {
 
+    .supervision_dashboard_item_name.nameabove {
+        margin: 1rem 0;
+    }
+
     .checkbox_supervised_item_read {
         display: inline-block;
         vertical-align: middle;

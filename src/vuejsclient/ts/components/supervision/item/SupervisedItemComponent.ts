@@ -34,6 +34,9 @@ export default class SupervisedItemComponent extends VueComponentBase {
     @Prop()
     private supervised_item_vo_type: string;
 
+    @Prop({ default: false })
+    private embed: boolean;
+
     private show_graph: boolean = false;
     private supervised_item: ISupervisedItem = null;
     private debounced_load_supervised_item = debounce(this.load_supervised_item, 200);
@@ -95,6 +98,10 @@ export default class SupervisedItemComponent extends VueComponentBase {
 
     get supervised_item_graph_segmentation(): ISupervisedItemGraphSegmentation[] {
         return this.supervised_item ? this.supervised_item_client_controller.get_graph_segmentation(this.supervised_item) : null;
+    }
+
+    get get_css_supervised_item_graph(): string {
+        return this.embed ? 'col-sm-12 mb-2' : 'col-sm-7 col-sm-offset-2 mx-auto mb-2';
     }
 
     @Watch('supervised_item')
@@ -240,7 +247,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
     }
 
     private open_url(url: string) {
-        window.open(url + "?sup_item_id=" + this.supervised_item_id, "supervision");
+        window.open(url + "?sup_item_id=" + this.supervised_item_id + "&type=" + this.supervised_item_vo_type, "supervision");
     }
 
     private toggle_show_hide_graph() {

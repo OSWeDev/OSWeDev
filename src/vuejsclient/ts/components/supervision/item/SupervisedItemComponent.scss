@@ -1,5 +1,9 @@
 .supervised_item {
 
+    &.embedded {
+        margin-top: 1rem;
+    }
+
     .supervised_item_url {
 
         button {
