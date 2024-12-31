@@ -11,7 +11,7 @@ export default class Dates {
      * @returns timestamp in secs
      */
     public static from_date(date: Date): number {
-        return Math.floor(date.getTime() / 1000);
+        return date ? Math.floor(date.getTime() / 1000) : 0;
     }
 
     /**
