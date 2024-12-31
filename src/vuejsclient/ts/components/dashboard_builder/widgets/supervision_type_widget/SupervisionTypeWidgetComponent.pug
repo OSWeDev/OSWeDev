@@ -22,7 +22,7 @@
                                 template(v-for="state in all_states")
                                     .sup_cnt.btn.btn-sm.mr-1(
                                         @click="handle_select_api_type_id_and_state(api_type_id, state)"
-                                        :class="get_class_css(api_type_id, state)"
+                                        :class="['STATE_' + state, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
                                     )
                                         var-data(
                                             :v-if="!!probe_param_by_sup_api_type_id[api_type_id][state]",
@@ -45,7 +45,7 @@
                         template(v-for="state in all_states")
                             .sup_cnt.btn.btn-sm.mr-1(
                                 @click="handle_select_api_type_id_and_state(api_type_id, state)"
-                                :class="'STATE_' + state"
+                                :class="['STATE_' + state, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
                             )
                                 var-data(
                                     :v-if="!!probe_param_by_sup_api_type_id[api_type_id][state]",

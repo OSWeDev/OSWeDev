@@ -59,7 +59,6 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
-import SupervisedItemComponent from "./ts/components/supervision/item/SupervisedItemComponent";
 
 // const loadComponent = async (component) => {
 //     try {

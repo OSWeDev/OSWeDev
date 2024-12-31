@@ -1,4 +1,5 @@
 import ContextQueryVO, { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
+import SupervisionController from "../../../../shared/modules/Supervision/SupervisionController";
 import ISupervisedItem from "../../../../shared/modules/Supervision/interfaces/ISupervisedItem";
 import SupervisionProbeStateDataRangesVO from "../../../../shared/modules/Supervision/vars/vos/SupervisionProbeStateDataRangesVO";
 import SupervisedProbeVO from "../../../../shared/modules/Supervision/vos/SupervisedProbeVO";
@@ -16,7 +17,7 @@ export default class SupervisedItemProbeStateRangesDatasourceController extends 
         if (!SupervisedItemProbeStateRangesDatasourceController.instance) {
             SupervisedItemProbeStateRangesDatasourceController.instance = new SupervisedItemProbeStateRangesDatasourceController(
                 'SupervisedItemProbeStateRangesDatasourceController',
-                [SupervisionProbeStateDataRangesVO.API_TYPE_ID],
+                Object.keys(SupervisionController.getInstance().registered_controllers),
                 { 'fr-fr': 'item de supervision par sonde et état' });
         }
         return SupervisedItemProbeStateRangesDatasourceController.instance;

@@ -60,14 +60,13 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
     private available_api_type_ids: string[] = [];
     private available_api_type_ids_by_cat_ids: { [cat_id: string]: string[] } = {};
-    // private categories_by_name: { [name: string]: SupervisedCategoryVO } = {};
+
     private categories_ordered: SupervisedCategoryVO[] = [];
-    // private categories_by_id: { [id: number]: SupervisedCategoryVO } = {};
     private probes_by_sup_api_type_ids: { [sup_api_type_id: string]: SupervisedProbeVO } = {};
 
-    private opacity_by_sup_api_type_id: { [sup_api_type_id: string]: { [state: number]: boolean } } = {};
     private probe_param_by_sup_api_type_id: { [sup_api_type_id: string]: { [state: number]: SupervisionProbeStateDataRangesVO } } = {};
     // private probe_param_by_cat: { [cat_id: string]: { [state: number]: SupervisionProbeStateDataRangesVO } } = {};
+    private opacityApitypeState: { [sup_api_type_id_state: string]: boolean } = {};
 
     private all_states: number[] = [
         SupervisionController.STATE_ERROR,
@@ -78,13 +77,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         SupervisionController.STATE_PAUSED,
         // SupervisionController.STATE_UNKOWN
     ];
-    // private state_error = SupervisionController.STATE_ERROR;
-    // private state_error_read = SupervisionController.STATE_ERROR_READ;
-    // private state_warn = SupervisionController.STATE_WARN;
-    // private state_warn_read = SupervisionController.STATE_WARN_READ;
-    // private state_ok = SupervisionController.STATE_OK;
-    // private state_paused = SupervisionController.STATE_PAUSED;
-    // private state_unkown = SupervisionController.STATE_UNKOWN;
+
     private selectedApitypeState: string = null;
 
     get title_name_code_text() {
@@ -106,9 +99,9 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        // TODO:
         return this.widget_options.supervision_api_type_ids;
     }
+
     /**
      * if true, the supervision items (sondes) will be ordered by categories
      * @returns {string[]}
@@ -391,13 +384,12 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
     private get_var_param_directive(state: number, api_type_id: string /*, cat_id: number*/): IVarDirectiveParams {
 
-        const var_param: SupervisionProbeStateDataRangesVO = !!api_type_id
-            ? this.probe_param_by_sup_api_type_id[api_type_id]?.[state]
-            : null;
-
         // const var_param: SupervisionProbeStateDataRangesVO = !!api_type_id
         //     ? this.probe_param_by_sup_api_type_id[api_type_id]?.[state]
         //     : this.probe_param_by_cat[cat_id]?.[state];
+        const var_param: SupervisionProbeStateDataRangesVO = !!api_type_id
+            ? this.probe_param_by_sup_api_type_id[api_type_id]?.[state]
+            : null;
 
         if (!var_param) {
             return null;
@@ -415,11 +407,8 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
                 if (value > 0) {
                     if (state == 0 || state == 1 || state == 2 || state == 3) {
-                        if (!this.opacity_by_sup_api_type_id[api_type_id]) {
-                            this.opacity_by_sup_api_type_id[api_type_id] = {};
-                        }
-                        this.opacity_by_sup_api_type_id[api_type_id][state] = true;
-                        // el.parentElement.className += ' opacity_1';
+                        this.opacityApitypeState[api_type_id + '_' + state] = true;
+                        el.parentElement.className += ' opacity_1';
                     }
 
                     // if (value > 500) {
@@ -427,10 +416,8 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
                     //     // on pourrait changer le nbr pour ">500"
                     // }
                 } else {
-                    if (!!this.opacity_by_sup_api_type_id[api_type_id]) {
-                        this.opacity_by_sup_api_type_id[api_type_id][state] = false;
-                    }
-                    // this.removeClassName('opacity_1', el.parentElement);
+                    this.opacityApitypeState[api_type_id + '_' + state] = false;
+                    this.removeClassName('opacity_1', el.parentElement);
                 }
             },
             already_register: true,
@@ -451,19 +438,5 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             this.selected_api_type_id = api_type_id;
             this.selected_state = state;
         }
-    }
-
-    private get_class_css(api_type_id: string, state: number): any {
-        const res: string[] = [];
-        res.push('STATE_' + state);
-
-        if (this.selectedApitypeState == api_type_id + '_' + state) {
-            res.push('selected');
-        }
-
-        if (this.opacity_by_sup_api_type_id[api_type_id]?.[state]) {
-            res.push('opacity_1');
-        }
-        return res.join(' ');
     }
 }
