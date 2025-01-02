@@ -12,13 +12,19 @@
 
         .btn-sm.fa {
             margin: 0.4rem 0 0 0;
+
+        }
+
+        .btn-sm.fa::before {
+            margin: 0;
         }
     }
 
     .probe_label {
         padding: 0 0 0 0.3rem;
         margin: 0.4rem 0 -0.1rem 1rem;
-        font-size: 1rem;
+        // font-size: 1rem; // ; ok si html 14px
+        font-size: 14px;
         border-left: 1px solid #888;
     }
 
@@ -34,10 +40,16 @@
     .sup_cnt.btn.btn-sm {
         font-weight: bold;
         color: white;
-        max-height: 1.1rem;
+        // min-height: 1.1rem; ok si html 14px
+        // max-height: 1.1rem; ok si html 14px
+        min-height: 16px;
+        max-height: 16px;
         padding: 0;
-        line-height: 0.9rem;
-        width: 15.5%;
+        width: 15%;
+        // line-height: 0.9rem; ok si html 14px
+        line-height: 14px;
+        // font-size: 0.9rem; ok si html 14px
+        font-size: 14px;
 
         opacity: 0.25;
 
@@ -94,6 +106,8 @@
 
         .sup_cnt.btn.btn-sm {
             background-color: white;
+            min-height: 18px;
+            max-height: 18px;
 
             &.STATE_0 {
                 color: red;
