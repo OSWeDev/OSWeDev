@@ -6,35 +6,59 @@
             template(v-for="cat in categories_ordered")
                 template(v-if="!!available_api_type_ids_by_cat_ids[cat.id]")
 
-                    p.category_label {{ cat.name }}
-                    //- template(v-if="show_counter")
-                    //-     template(v-for="state in all_states")
-                    //-         var-data.sup_cnt.btn.btn-sm.mr-1(
-                    //-             v-var-directive="get_var_param_directive(state, null, cat.id)",
-                    //-             :var_param="probe_param_by_cat[cat.id][state]",
-                    //-             :class="'STATE_' + state"
-                    //-         )
+                    //- Titre / bouton d'accordéon
+                    .accordion-panel-heading(
+                        :id="'heading_cat_' + cat.id"
+                        :aria-expanded="isPanelOpenCat[cat.id] ? 'true' : 'false'"
+                        :aria-controls="'collapse_cat_' + cat.id"
+                        @click="togglePanelCat(cat.id)"
+                    )
+                        .category_label
+                            p {{ cat.name }}
+                            //- Icone up/down, etc. selon isPanelOpenCat[cat.id]
+                            i.btn-sm.btn-secondary.pull-right.ml-1(:class="isPanelOpenCat[cat.id] ? 'fa fa-solid fa-chevron-down' : 'fa fa-solid fa-chevron-up'")
 
-                    template(v-for="api_type_id in available_api_type_ids_by_cat_ids[cat.id]")
-                        template(v-if="show_counter")
-                            p.probe_label {{ label('supervision_widget_component.' + api_type_id)}}
-                            template(v-if="!!probe_param_by_sup_api_type_id && !!probe_param_by_sup_api_type_id[api_type_id]")
+                        //- Compteur de la categorie affcihé si le panel est fermé
+                        template(v-if="show_counter && !isPanelOpenCat[cat.id]")
+                            div
                                 template(v-for="state in all_states")
                                     .sup_cnt.btn.btn-sm.mr-1(
-                                        @click="handle_select_api_type_id_and_state(api_type_id, state)"
-                                        :class="['STATE_' + state, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
+                                        :class="['STATE_' + state, { opacity_1:opacityApitypeState[cat.id + '_' + state]}]"
                                     )
                                         var-data(
-                                            :v-if="!!probe_param_by_sup_api_type_id[api_type_id][state]",
-                                            v-var-directive="get_var_param_directive(state, api_type_id)",
-                                            :var_param="probe_param_by_sup_api_type_id[api_type_id][state]",
+                                            :v-if="!!probe_param_by_cat[cat.id][state]",
+                                            v-var-directive="get_var_param_directive(state, null, cat.id)",
+                                            :var_param="probe_param_by_cat[cat.id][state]",
                                         )
 
-                        template(v-else)
-                            .btn.btn-info.button_opacity.mr-1.mb-1(
-                                @click="handle_select_api_type_id(api_type_id)"
-                                :class="{'active': selected_api_type_id == api_type_id}"
-                            ) {{ label('supervision_widget_component.' + api_type_id) }}
+                    //- Contenu pliable
+                    .accordion-panel-collapse.collapse(
+                        :id="'collapse_cat_' + cat.id"
+                        role="tabpanel"
+                        :aria-labelledby="'heading_cat_' + cat.id"
+                        :class="{ show: isPanelOpenCat[cat.id] }"
+                    )
+                        .accordion-panel-body
+                            template(v-for="api_type_id in available_api_type_ids_by_cat_ids[cat.id]")
+                                template(v-if="show_counter")
+                                    p.probe_label {{ label('supervision_widget_component.' + api_type_id)}}
+                                    template(v-if="!!probe_param_by_sup_api_type_id && !!probe_param_by_sup_api_type_id[api_type_id]")
+                                        template(v-for="state in all_states")
+                                            .sup_cnt.btn.btn-sm.mr-1(
+                                                @click="handle_select_api_type_id_and_state(state, api_type_id, null)"
+                                                :class="['STATE_' + state, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
+                                            )
+                                                var-data(
+                                                    :v-if="!!probe_param_by_sup_api_type_id[api_type_id][state]",
+                                                    v-var-directive="get_var_param_directive(state, api_type_id, null)",
+                                                    :var_param="probe_param_by_sup_api_type_id[api_type_id][state]",
+                                                )
+
+                                template(v-else)
+                                    .btn.btn-info.button_opacity.mr-1.mb-1(
+                                        @click="handle_select_api_type_id(api_type_id)"
+                                        :class="{'active': selected_api_type_id == api_type_id}"
+                                    ) {{ label('supervision_widget_component.' + api_type_id) }}
 
         //- endOf if (order_by_categories)
         template(v-else)
@@ -44,12 +68,12 @@
                     template(v-if="!!probe_param_by_sup_api_type_id && !!probe_param_by_sup_api_type_id[api_type_id]")
                         template(v-for="state in all_states")
                             .sup_cnt.btn.btn-sm.mr-1(
-                                @click="handle_select_api_type_id_and_state(api_type_id, state)"
+                                @click="handle_select_api_type_id_and_state(state, api_type_id, null)"
                                 :class="['STATE_' + state, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
                             )
                                 var-data(
                                     :v-if="!!probe_param_by_sup_api_type_id[api_type_id][state]",
-                                    v-var-directive="get_var_param_directive(state, api_type_id)",
+                                    v-var-directive="get_var_param_directive(state, api_type_id, null)",
                                     :var_param="probe_param_by_sup_api_type_id[api_type_id][state]",
                                 )
 
