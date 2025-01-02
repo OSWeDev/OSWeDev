@@ -13,6 +13,10 @@ import { Route } from 'vue-router/types/router';
     }
 })
 
+/**
+ * affiche l'item responsable de l'ouverture de l’onglet "supervision" sur ce même onglet
+ * à appeler sur le vue_main de l'application, sous réserve de droits d’accès
+ */
 export default class SupervisionItemDragPanelComponent extends VueComponentBase {
     private sup_item_id: number = null;
     private sup_api_type_id: string = null;
@@ -34,8 +38,8 @@ export default class SupervisionItemDragPanelComponent extends VueComponentBase 
         const supItemId = route.query.sup_item_id;
         const type = route.query.type;
 
-        this.sup_item_id = supItemId ? parseInt(supItemId) : null;
-        this.sup_api_type_id = type ? type : null;
+        this.sup_item_id = supItemId ? parseInt(supItemId) : this.sup_item_id;
+        this.sup_api_type_id = type ? type : this.sup_api_type_id;
     }
 
 }
