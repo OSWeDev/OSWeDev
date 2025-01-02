@@ -1,15 +1,16 @@
 import VueFlags from "@growthbunker/vueflags";
 import 'bootstrap';
 import moment from 'moment';
+// import $ from 'jquery';
 
 import $ from 'jquery';
-// Expose jQuery globalement
-(window as any).jQuery = $;
-(window as any).$ = $;
-
 import 'jquery-ui';
+import 'jquery-contextmenu/dist/jquery.contextMenu.min.css'; // Optionnel : CSS du plugin
 import 'jquery-contextmenu';
-import 'jquery-contextmenu/dist/jquery.contextMenu.min.css';
+
+// Expose globalement jQuery pour qu'il soit accessible partout
+(window as any).$ = $;
+(window as any).jQuery = $;
 
 import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import { ColorPanel, ColorPicker } from 'one-colorpicker';

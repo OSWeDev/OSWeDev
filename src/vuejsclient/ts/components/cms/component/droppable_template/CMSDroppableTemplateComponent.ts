@@ -1,3 +1,4 @@
+import 'jquery-ui';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import TemplateComponentVO from '../../../../../../shared/modules/CMS/vos/TemplateComponentVO';
@@ -27,7 +28,7 @@ export default class CMSDroppableTemplateComponent extends VueComponentBase {
         $(this.$el).data('template_component', this.template_component);
 
         // make the event draggable using jQuery UI
-        $(this.$el)['draggable']({
+        $(this.$el).draggable({
             zIndex: 10000,
             revertDuration: 0, //  original position after the drag
             opacity: 0.7,

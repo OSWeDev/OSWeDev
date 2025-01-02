@@ -1,3 +1,5 @@
+import 'jquery-contextmenu';
+import 'jquery-contextmenu/dist/jquery.contextMenu.min.css';
 import { cloneDeep, debounce, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
@@ -1892,7 +1894,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
          * On ajoute le contextmenu
          */
         SemaphoreHandler.do_only_once("TableWidgetKanbanComponent.contextmenu", async () => {
-            $['contextMenu']({
+            $.contextMenu({
                 selector: ".card.kanban_row",
                 items: this.contextmenu_items
             });
