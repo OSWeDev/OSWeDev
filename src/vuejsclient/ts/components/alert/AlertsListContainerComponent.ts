@@ -35,7 +35,7 @@ export default class AlertsListContainerComponent extends VueComponentBase {
     private desc_code_trad: string;
 
     private mounted(): void {
-        // $(this.$refs.alerts_list_header).draggable();
+        // $(this.$refs.alerts_list_header)['draggable']();
         // let offset = $(this.$el).parent().parent().offset();
         // $(this.$refs.alerts_list_component).css({
         //     top: offset.top - $(window).scrollTop() + 34,

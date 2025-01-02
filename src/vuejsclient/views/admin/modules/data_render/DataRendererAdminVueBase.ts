@@ -49,7 +49,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
             const formData = new FormData();
             formData.append('render_time_segments_json', JSON.stringify(TimeSegmentHandler.getAllDataTimeSegments(this.segment_start_date.getTime() / 1000, this.segment_end_date.getTime() / 1000, this.time_segment_type)));
 
-            const $ = await import('jquery');
+            // TODO : TEST ME : théoriquement on a accès à jquery partout const $ = await import('jquery');
             await $.ajax({
                 url: '/modules/ModuleDataRender/renderData/' + this.renderer_name,
                 method: "POST",

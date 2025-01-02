@@ -1,4 +1,3 @@
-
 import moment from "moment";
 import screenfull from "screenfull";
 import { Vue } from "vue-property-decorator";

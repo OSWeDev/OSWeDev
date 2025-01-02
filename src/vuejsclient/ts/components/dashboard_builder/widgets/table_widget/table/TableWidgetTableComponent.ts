@@ -1,5 +1,3 @@
-import 'jquery-contextmenu';
-import 'jquery-contextmenu/dist/jquery.contextMenu.min.css';
 
 import { cloneDeep, debounce, isEqual } from 'lodash';
 import slug from 'slug';

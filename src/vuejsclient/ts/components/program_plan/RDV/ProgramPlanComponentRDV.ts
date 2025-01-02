@@ -1,4 +1,3 @@
-import 'jqueryui';
 import { Component, Prop } from 'vue-property-decorator';
 import ModuleProgramPlanBase from '../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import VueComponentBase from '../../VueComponentBase';
@@ -50,7 +49,7 @@ export default class ProgramPlanComponentRDV extends VueComponentBase {
         $(this.$el).data('event', event);
 
         // make the event draggable using jQuery UI
-        $(this.$el).draggable({
+        $(this.$el)['draggable']({
             cursor: "pointer",
             zIndex: 10000,
             revert: true, // will cause the event to go back to its
