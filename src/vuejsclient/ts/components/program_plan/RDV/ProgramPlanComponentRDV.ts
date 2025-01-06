@@ -1,4 +1,5 @@
-import 'jqueryui';
+import 'jquery-ui';
+import 'jquery-ui/ui/widgets/draggable';
 import { Component, Prop } from 'vue-property-decorator';
 import ModuleProgramPlanBase from '../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import VueComponentBase from '../../VueComponentBase';

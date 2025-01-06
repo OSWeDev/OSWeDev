@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.34.15",
+    "version": "0.34.16",
     "description": "",
     "repository": {
         "type": "git",
@@ -81,7 +81,7 @@
         "jimp": "0.22.12",
         "jquery": "3.7.1",
         "jquery-contextmenu": "2.1.0",
-        "jqueryui": "1.11.1",
+        "jquery-ui": "1.14.1",
         "lodash": "4.17.21",
         "longjohn": "0.2.12",
         "mathjs": "10.6.4",
