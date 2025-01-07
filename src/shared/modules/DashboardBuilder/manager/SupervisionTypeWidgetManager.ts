@@ -13,6 +13,11 @@ import ModuleDAO from '../../DAO/ModuleDAO';
 import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
 import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
 import SupervisedProbeVO from "../../Supervision/vos/SupervisedProbeVO";
+import UserVO from "../../AccessPolicy/vos/UserVO";
+import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
+import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import FieldFiltersVOManager from "./FieldFiltersVOManager";
+import ISupervisedItem from "../../Supervision/interfaces/ISupervisedItem";
 
 /**
  * @class SupervisionTypeWidgetManager
@@ -227,6 +232,92 @@ export default class SupervisionTypeWidgetManager {
         // self.probes_by_sup_api_type_ids = probes_by_sup_api_type_ids;
 
         return probes_by_sup_api_type_ids;
+    }
+
+    public static async find_count_by_api_type_id_state(
+        dashboard: DashboardVO,
+        widget_options: SupervisionTypeWidgetOptionsVO,
+        active_field_filters: FieldFiltersVO,
+        options: {
+            active_api_type_ids: string[];
+            all_states: number[];
+            user: UserVO;
+        }
+    ): Promise<{ [sup_api_type_id: string]: { [state: number]: number } }> {
+
+        const res: { [sup_api_type_id: string]: { [state: number]: number } } = {};
+        if (!options
+            || !options.user
+            || !options.active_api_type_ids || !options.active_api_type_ids?.length
+            || !options.all_states || !options.all_states?.length) {
+            return res;
+        }
+
+        // One query|request by api_type_id
+        const pipeline_limit = options.active_api_type_ids.length;
+        const promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionTypeWidgetManager.find_count_by_api_type_id_state');
+        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(dashboard.id);
+
+        const field_filters_by_api_type_id: {
+            [api_type_id: string]: FieldFiltersVO
+        } = FieldFiltersVOManager.update_field_filters_for_required_api_type_ids(
+            widget_options,
+            active_field_filters,
+            options.active_api_type_ids,
+            options.active_api_type_ids,
+        );
+
+        // NB : le test d'acces selon le role connecté ast déja fait pour recolter les available_api_type_ids
+        for (const ai in options.active_api_type_ids) {
+            const sup_api_type_id = options.active_api_type_ids[ai];
+            const api_type_field_filters = field_filters_by_api_type_id[sup_api_type_id];
+
+            const api_type_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                api_type_field_filters
+            );
+
+            for (const si in options.all_states) {
+                const state_context_filter: ContextFilterVO = new ContextFilterVO();
+                state_context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
+                state_context_filter.field_name = field_names<ISupervisedItem>().state;
+                state_context_filter.param_numeric = options.all_states[si];
+                state_context_filter.vo_type = sup_api_type_id;
+
+                // const user_context_filter: ContextFilterVO = new ContextFilterVO();
+                // state_context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
+                // state_context_filter.field_name = field_names<ISupervisedItem>().state;
+                // state_context_filter.param_numeric = options.all_states[si];
+                // state_context_filter.vo_type = sup_api_type_id;
+
+                const context_filters: ContextFilterVO[] = [
+                    ...api_type_context_filters,
+                    state_context_filter,
+                ];
+
+                const api_type_context_query = query(sup_api_type_id)
+                    .using(api_type_ids)
+                    .add_filters(context_filters);
+
+                FieldValueFilterWidgetManager.add_discarded_field_paths(
+                    api_type_context_query,
+                    discarded_field_paths
+                );
+
+                await promise_pipeline.push(async () => {
+                    const count: number = await api_type_context_query.select_count();
+
+                    console.log(await api_type_context_query.get_select_query_str());
+
+                    if (count >= 0) {
+                        res[sup_api_type_id][si] = count;
+                    }
+                });
+            }
+        }
+
+        await promise_pipeline.end();
+
+        return res;
     }
 
     // istanbul ignore next: nothing to test

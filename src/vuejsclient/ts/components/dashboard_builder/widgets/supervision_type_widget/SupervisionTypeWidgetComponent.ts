@@ -13,8 +13,6 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page
 import VueComponentBase from '../../../VueComponentBase';
 import './SupervisionTypeWidgetComponent.scss';
 import SupervisedProbeVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeVO';
-import IVarDirectiveParams from '../../../Var/directives/var-directive/IVarDirectiveParams';
-import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import SupervisionProbeStateDataRangesVO from "../../../../../../shared/modules/Supervision/vars/vos/SupervisionProbeStateDataRangesVO";
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
 import SupervisionVarsNamesHolder from "../../../../../../shared/modules/Supervision/vars/SupervisionVarsNamesHolder";
@@ -24,6 +22,8 @@ import { query } from '../../../../../../shared/modules/ContextFilter/vos/Contex
 import ObjectHandler, { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import DataFilterOption from '../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
@@ -36,6 +36,9 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
+
+    @ModuleDashboardPageGetter
+    private get_query_api_type_ids: string[];
 
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
@@ -68,6 +71,11 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private probe_param_by_cat: { [cat_id: string]: { [state: number]: SupervisionProbeStateDataRangesVO } } = {};
     private opacityApitypeState: { [sup_api_type_id_state: string]: boolean } = {};
 
+    private is_loading_count_by_sup_api_type_ids: { [sup_api_type_id: string]: { [state: number]: boolean } } = {};
+    private count_by_sup_api_type_ids: { [sup_api_type_id: string]: { [state: number]: number } } = {};
+
+    private tmp_active_filter_options: DataFilterOption[] = []; // Local active filter options
+
     // Dictionnaire pour mémoriser l’état ouvert/fermé de chaque cat
     private isPanelOpenCat: { [catId: number]: boolean } = {};
 
@@ -82,6 +90,12 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     ];
 
     private selectedApitypeState: string = null;
+
+    private throttled_load_counter = ThrottleHelper.declare_throttle_without_args(
+        this.load_counter.bind(this),
+        50,
+        { leading: false, trailing: true }
+    );
 
     get title_name_code_text() {
         if (!this.widget_options) {
@@ -267,6 +281,8 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
         const new_available_api_type_ids_by_cat_ids: { [cat_id: string]: string[] } = {};
         const probe_param_by_sup_api_type_id: { [sup_api_type_id: string]: { [state: number]: SupervisionProbeStateDataRangesVO } } = {};
+        const is_loading_count_by_sup_api_type_ids: { [sup_api_type_id: string]: { [state: number]: boolean } } = {};
+        const count_by_sup_api_type_ids: { [sup_api_type_id: string]: { [state: number]: number } } = {};
         const probe_ids_by_cat: { [cat_id: string]: number[] } = {};
 
         if ((this.order_by_categories || this.show_counter) && !!this.probes_by_sup_api_type_ids) {
@@ -295,6 +311,9 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
                 if (!probe_param_by_sup_api_type_id[sup_api_type_id]) {
                     probe_param_by_sup_api_type_id[sup_api_type_id] = {};
                 }
+                if (!is_loading_count_by_sup_api_type_ids[sup_api_type_id]) {
+                    is_loading_count_by_sup_api_type_ids[sup_api_type_id] = {};
+                }
 
                 for (const si in this.all_states) {
                     probe_param_by_sup_api_type_id[sup_api_type_id][si] = SupervisionProbeStateDataRangesVO.createNew<SupervisionProbeStateDataRangesVO>(
@@ -303,6 +322,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
                         [RangeHandler.create_single_elt_NumRange(probe.id, NumSegment.TYPE_INT)],
                         [RangeHandler.create_single_elt_NumRange(parseInt(si), NumSegment.TYPE_INT)]
                     );
+                    is_loading_count_by_sup_api_type_ids[sup_api_type_id][si] = true;
                 }
             }
             // on range les api_type_ids par nom
@@ -334,9 +354,16 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
         this.probe_param_by_sup_api_type_id = probe_param_by_sup_api_type_id;
         this.probe_param_by_cat = probe_param_by_cat;
+        this.is_loading_count_by_sup_api_type_ids = is_loading_count_by_sup_api_type_ids;
+        this.count_by_sup_api_type_ids = count_by_sup_api_type_ids;
 
         this.available_api_type_ids = data.items;
         this.available_api_type_ids_by_cat_ids = new_available_api_type_ids_by_cat_ids;
+
+        if (!!this.show_counter) {
+            // Si on doit afficher le compteur, on fait les requêtes nécessaires
+            this.throttled_load_counter();
+        }
     }
 
     private async mounted() {
@@ -456,4 +483,41 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         // On inverse la valeur actuelle
         this.$set(this.isPanelOpenCat, catId, !this.isPanelOpenCat[catId]);
     }
+
+    /**
+     * charge les counter par api_type_id et par état
+     * @returns {Promise<void>}
+     */
+    private async load_counter(): Promise<void> {
+        // cf load_filter_visible_options_count
+        if (!this.show_counter) {
+            this.is_loading_count_by_sup_api_type_ids = {};
+            this.count_by_sup_api_type_ids = {};
+            return;
+        }
+
+        // this.available_api_type_ids
+        // cf FieldValueFilterEnumWidgetManager.find_enum_data_filters_count_from_widget_options
+        this.count_by_sup_api_type_ids = await SupervisionTypeWidgetManager.find_count_by_api_type_id_state(
+            this.dashboard,
+            this.widget_options,
+            this.get_active_field_filters,
+            {
+                active_api_type_ids: this.available_api_type_ids,
+                all_states: this.all_states,
+                user: this.data_user,
+            }
+        );
+
+        const is_loading_count_by_sup_api_type_ids: { [sup_api_type_id: string]: { [state: number]: boolean } } = {};
+
+        for (const ai in this.available_api_type_ids) {
+            const sup_api_type_id = this.available_api_type_ids[ai];
+            for (const si in this.all_states) {
+                is_loading_count_by_sup_api_type_ids[sup_api_type_id][si] = true;
+            }
+        }
+        this.is_loading_count_by_sup_api_type_ids = is_loading_count_by_sup_api_type_ids;
+    }
+
 }
