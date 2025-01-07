@@ -1,6 +1,11 @@
 import VueFlags from "@growthbunker/vueflags";
 import 'bootstrap';
+
 import $ from 'jquery';
+import 'jquery-ui-dist/jquery-ui';
+import 'jquery-ui-dist/jquery-ui.css';
+
+// import $ from 'jquery';
 import moment from 'moment';
 
 import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
