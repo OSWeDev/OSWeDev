@@ -169,14 +169,14 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
                         continue;
                     }
 
-                    console.debug('onchange_selected_api_type_id remove_active_field_filter ' + this.selected_state + ' ' + this.available_api_type_ids[i]);
+                    // console.debug('onchange_selected_api_type_id remove_active_field_filter ' + this.selected_state + ' ' + this.available_api_type_ids[i]);
                     this.remove_active_field_filter({
                         field_id: field_names<ISupervisedItem>().state,
                         vo_type: this.available_api_type_ids[i],
                     });
                 }
             }
-            console.debug('onchange_selected_api_type_id set_active_field_filter ' + this.selected_state + ' ' + this.selected_api_type_id);
+            // console.debug('onchange_selected_api_type_id set_active_field_filter ' + this.selected_state + ' ' + this.selected_api_type_id);
             this.set_active_field_filter({
                 field_id: field_names<ISupervisedItem>().state,
                 vo_type: this.selected_api_type_id,
@@ -194,7 +194,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         if (this.selected_state === null) {
             if (!!this.available_api_type_ids?.length) {
                 for (const i in this.available_api_type_ids) {
-                    console.debug('onchange_selected_state remove_active_field_filter ' + this.selected_state + ' ' + this.available_api_type_ids[i]);
+                    // console.debug('onchange_selected_state remove_active_field_filter ' + this.selected_state + ' ' + this.available_api_type_ids[i]);
                     this.remove_active_field_filter({
                         field_id: field_names<ISupervisedItem>().state,
                         vo_type: this.available_api_type_ids[i],
@@ -210,7 +210,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
                     continue;
                 }
 
-                console.debug('onchange_selected_api_type_id remove_active_field_filter ' + this.selected_state + ' ' + this.available_api_type_ids[i]);
+                // console.debug('onchange_selected_api_type_id remove_active_field_filter ' + this.selected_state + ' ' + this.available_api_type_ids[i]);
                 this.remove_active_field_filter({
                     field_id: field_names<ISupervisedItem>().state,
                     vo_type: this.available_api_type_ids[i],
@@ -218,7 +218,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             }
         }
 
-        console.debug('onchange_selected_state set_active_field_filter ' + this.selected_state + ' ' + this.selected_api_type_id);
+        // console.debug('onchange_selected_state set_active_field_filter ' + this.selected_state + ' ' + this.selected_api_type_id);
         this.set_active_field_filter({
             field_id: field_names<ISupervisedItem>().state,
             vo_type: this.selected_api_type_id,

@@ -110,6 +110,7 @@ import Patch20241010CreateLogType from './patchs/postmodules/Patch20241010Create
 import Patch20241030SuiviCompetencesGroupeShortName from './patchs/postmodules/Patch20241030SuiviCompetencesGroupeShortName';
 import Patch20241224SupervisionFillProbe from './patchs/postmodules/Patch20241224SupervisionFillProbe';
 import Patch20250102AddRightsSupervisedProbe from './patchs/postmodules/Patch20250102AddRightsSupervisedProbe';
+import Patch20250106createTableSupProbe from './patchs/premodules/Patch20250106createTableSupProbe';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -200,6 +201,7 @@ export default abstract class GeneratorBase {
             Patch2024OSELIAAssistantDescriptionNotNULL.getInstance(),
             Patch20240827DeleteVersionedAssistantsWithoutInstructions.getInstance(),
             Patch20241126TruncateLogs.getInstance(),
+            Patch20250106createTableSupProbe.getInstance(),
         ];
 
         this.post_modules_workers = [

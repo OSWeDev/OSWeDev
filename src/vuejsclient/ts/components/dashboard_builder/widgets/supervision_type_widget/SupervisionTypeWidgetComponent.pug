@@ -25,11 +25,12 @@
                                     .sup_cnt.btn.btn-sm.mr-1(
                                         :class="['STATE_' + state, { opacity_1:opacityApitypeState[cat.id + '_' + state]}]"
                                     )
-                                        var-data(
-                                            :v-if="!!probe_param_by_cat[cat.id][state]",
-                                            v-var-directive="get_var_param_directive(state, null, cat.id)",
-                                            :var_param="probe_param_by_cat[cat.id][state]",
-                                        )
+                                        template(v-if="!!probe_param_by_cat && !!probe_param_by_cat[cat.id]")
+                                            var-data(
+                                                :v-if="!!probe_param_by_cat[cat.id][state]",
+                                                v-var-directive="get_var_param_directive(state, null, cat.id)",
+                                                :var_param="probe_param_by_cat[cat.id][state]",
+                                            )
 
                     //- Contenu pliable
                     .accordion-panel-collapse.collapse(
