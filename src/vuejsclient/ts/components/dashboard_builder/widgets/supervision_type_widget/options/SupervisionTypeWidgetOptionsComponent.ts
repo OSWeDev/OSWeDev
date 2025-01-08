@@ -45,6 +45,12 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
     private supervision_api_type_ids: string[] = [];
     private supervision_select_options: string[] = [];
 
+    private order_by_categories: boolean = true;
+    private show_counter: boolean = true;
+    private refresh_button: boolean = true;
+    private auto_refresh: boolean = true;
+    private auto_refresh_seconds: number = 30;
+
     get widget_options(): SupervisionTypeWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
@@ -67,39 +73,37 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
         return this.widget_options?.supervision_api_type_ids ?? [];
     }
 
-    get order_by_categories(): boolean {
+    // get order_by_categories(): boolean {
 
-        if (!this.widget_options) {
-            return false;
-        }
+    //     if (!this.widget_options) {
+    //         return false;
+    //     }
 
-        return !!this.widget_options.order_by_categories;
-    }
+    //     return !!this.widget_options.order_by_categories;
+    // }
 
-    get show_counter(): boolean {
+    // get show_counter(): boolean {
 
-        if (!this.widget_options) {
-            return false;
-        }
+    //     if (!this.widget_options) {
+    //         return false;
+    //     }
 
-        return !!this.widget_options.show_counter;
-    }
+    //     return !!this.widget_options.show_counter;
+    // }
 
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
 
         this.supervision_select_options = SupervisionTypeWidgetManager.load_supervision_api_type_ids_by_dashboard(this.get_dashboard_api_type_ids);
 
-        if ((!this.page_widget) || (!this.widget_options)) {
-            if (this.supervision_api_type_ids?.length > 0) {
-                this.supervision_api_type_ids = [];
-            }
-            return;
-        }
+        // if ((!this.page_widget) || (!this.widget_options)) {
+        //     if (this.supervision_api_type_ids?.length > 0) {
+        //         this.supervision_api_type_ids = [];
+        //     }
+        //     return;
+        // }
 
-        if (!isEqual(this.supervision_api_type_ids, this.default_supervision_api_type_ids)) {
-            this.supervision_api_type_ids = this.default_supervision_api_type_ids;
-        }
+        this.initialize();
     }
 
     @Watch('supervision_api_type_ids')
@@ -117,12 +121,27 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
         }
     }
 
+    @Watch('auto_refresh_seconds')
+    private async onchange_auto_refresh_seconds() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.auto_refresh_seconds != this.next_update_options.auto_refresh_seconds) {
+            this.next_update_options.auto_refresh_seconds = this.auto_refresh_seconds;
+
+            this.throttled_update_options();
+        }
+    }
+
     private supervision_select_label(api_type_id: string): string {
         return this.label('supervision_widget_component.' + api_type_id);
     }
 
     private get_default_options(): SupervisionTypeWidgetOptionsVO {
-        return new SupervisionTypeWidgetOptionsVO(this.default_supervision_api_type_ids, this.order_by_categories, this.show_counter);
+        return new SupervisionTypeWidgetOptionsVO(this.default_supervision_api_type_ids, this.order_by_categories, this.show_counter, true, true, 30);
     }
 
     private async update_options() {
@@ -165,6 +184,86 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
 
         this.next_update_options.show_counter = !this.next_update_options.show_counter;
 
+        if (!this.next_update_options.show_counter) {
+            this.next_update_options.refresh_button = false;
+            this.refresh_button = false;
+            this.next_update_options.auto_refresh = false;
+            this.auto_refresh = false;
+        }
+
         await this.throttled_update_options();
+    }
+
+    private initialize() {
+        if ((!this.page_widget) || (!this.widget_options)) {
+            if (!this.supervision_api_type_ids) {
+                this.supervision_api_type_ids = [];
+            }
+            if (!this.order_by_categories) {
+                this.order_by_categories = true;
+            }
+            if (!this.show_counter) {
+                this.show_counter = true;
+            }
+            if (!this.refresh_button) {
+                this.refresh_button = true;
+            }
+            if (!this.auto_refresh) {
+                this.auto_refresh = true;
+            }
+            if (!this.auto_refresh_seconds) {
+                this.auto_refresh_seconds = 30;
+            }
+            return;
+        }
+
+        if (!isEqual(this.supervision_api_type_ids, this.default_supervision_api_type_ids)) {
+            this.supervision_api_type_ids = this.default_supervision_api_type_ids;
+        }
+        if (this.order_by_categories != this.widget_options.order_by_categories) {
+            this.order_by_categories = this.widget_options.order_by_categories;
+        }
+        if (this.show_counter != this.widget_options.show_counter) {
+            this.show_counter = this.widget_options.show_counter;
+        }
+        if (this.refresh_button != this.widget_options.refresh_button) {
+            this.refresh_button = this.widget_options.refresh_button;
+        }
+        if (this.auto_refresh != this.widget_options.auto_refresh) {
+            this.auto_refresh = this.widget_options.auto_refresh;
+        }
+        if (!!this.widget_options.auto_refresh_seconds && this.auto_refresh_seconds != this.widget_options.auto_refresh_seconds) {
+            this.auto_refresh_seconds = this.widget_options.auto_refresh_seconds;
+        }
+    }
+
+    private async switch_refresh_button() {
+        this.refresh_button = !this.refresh_button;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.refresh_button != this.refresh_button) {
+            this.next_update_options.refresh_button = this.refresh_button;
+            this.throttled_update_options();
+        }
+    }
+
+    private async switch_auto_refresh() {
+        this.auto_refresh = !this.auto_refresh;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.auto_refresh != this.auto_refresh) {
+            this.next_update_options.auto_refresh = this.auto_refresh;
+            this.throttled_update_options();
+        }
     }
 }

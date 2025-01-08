@@ -13,17 +13,20 @@ export default class SupervisionTypeWidgetOptionsVO extends AbstractVO {
 
     public constructor(
         /**
-         * Used to filter the supervision items (sondes) from each datatable
+         * Used to filter the supervision probes from each datatable
          */
         public supervision_api_type_ids?: string[],
         /**
-         * if true, the supervision items (sondes) will be ordered by categories
+         * if true, the supervision probes will be ordered by categories
          */
         public order_by_categories?: boolean,
         /***
-         *  if true, the supervision items (sondes) will display a counter
+         *  if true, the supervision probes will display a counter
          */
         public show_counter?: boolean,
+        public refresh_button?: boolean,
+        public auto_refresh?: boolean,
+        public auto_refresh_seconds?: number,
     ) {
         super();
     }

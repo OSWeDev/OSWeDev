@@ -25,6 +25,7 @@
                     :deselect-label='label("multiselect.deselectLabel")'
                     :deselect-group-label='label("multiselect.deselectGroupLabel")'
                 )
+
         .field_order_by_categories
             .input_label {{ label('supervision_type_widget_component.order_by_categories') }}
             .input_wrapper
@@ -35,6 +36,7 @@
                     :width="60"
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 )
+
         .field_show_counter
             .input_label {{ label('supervision_type_widget_component.show_counter') }}
             .input_wrapper
@@ -44,4 +46,34 @@
                     :sync="false"
                     :width="60"
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
+
+        .refresh_button(v-if="widget_options && widget_options.show_counter")
+            .input_label {{ label('supervision_type_widget_component.refresh_button') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_refresh_button"
+                    :value="refresh_button"
+                    :sync="true"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
+
+        .auto_refresh(v-if="widget_options && widget_options.show_counter")
+            .input_label {{ label('supervision_type_widget_component.auto_refresh') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_auto_refresh"
+                    :value="auto_refresh"
+                    :sync="true"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
+
+        .auto_refresh_seconds(v-if="widget_options && widget_options.auto_refresh")
+            .input_label {{ label('supervision_type_widget_component.auto_refresh_seconds') }}
+            .input_wrapper
+                input(
+                    type="number"
+                    v-model.number="auto_refresh_seconds"
                 )

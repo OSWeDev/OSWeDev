@@ -44,6 +44,8 @@
         // max-height: 1.1rem; ok si html 14px
         min-height: 16px;
         max-height: 16px;
+
+
         padding: 0;
         width: 15%;
         // line-height: 0.9rem; ok si html 14px
@@ -144,5 +146,9 @@
                 border: 2px solid grey;
             }
         }
+    }
+
+    .component_header .pull-right {
+        margin-top: -0.5rem;
     }
 }

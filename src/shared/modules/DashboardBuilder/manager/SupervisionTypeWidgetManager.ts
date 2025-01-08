@@ -238,16 +238,15 @@ export default class SupervisionTypeWidgetManager {
         dashboard: DashboardVO,
         widget_options: SupervisionTypeWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
+        active_api_type_ids: string[],
         options: {
             active_api_type_ids: string[];
             all_states: number[];
-            user: UserVO;
         }
     ): Promise<{ [sup_api_type_id: string]: { [state: number]: number } }> {
 
         const res: { [sup_api_type_id: string]: { [state: number]: number } } = {};
         if (!options
-            || !options.user
             || !options.active_api_type_ids || !options.active_api_type_ids?.length
             || !options.all_states || !options.all_states?.length) {
             return res;
@@ -263,34 +262,82 @@ export default class SupervisionTypeWidgetManager {
         } = FieldFiltersVOManager.update_field_filters_for_required_api_type_ids(
             widget_options,
             active_field_filters,
-            options.active_api_type_ids,
-            options.active_api_type_ids,
+            active_api_type_ids,
+            options?.active_api_type_ids ?? [],
+        );
+
+        // We may need to filter on other api_type_ids (or vo_type) than the supervision_api_type_ids
+        const other_field_filter: FieldFiltersVO = FieldFiltersVOManager.filter_field_filters_by_api_type_ids_to_exlude(
+            widget_options,
+            active_field_filters,
+            widget_options.supervision_api_type_ids ?? []
         );
 
         // NB : le test d'acces selon le role connecté ast déja fait pour recolter les available_api_type_ids
         for (const ai in options.active_api_type_ids) {
             const sup_api_type_id = options.active_api_type_ids[ai];
-            const api_type_field_filters = field_filters_by_api_type_id[sup_api_type_id];
+            const api_type_field_filters: FieldFiltersVO = field_filters_by_api_type_id[sup_api_type_id];
+
+            // FieldFiltersVO ==  [api_type_id: string]: { [field_id: string]: ContextFilterVO }
+            // on retire les filtres par état prééxistant dans active_field_filters
+            if (!!api_type_field_filters && !!api_type_field_filters[sup_api_type_id]) {
+                for (const field_id in api_type_field_filters[sup_api_type_id]) {
+                    const filter: ContextFilterVO = api_type_field_filters[sup_api_type_id][field_id];
+
+                    if (filter.field_name == field_names<ISupervisedItem>().state) {
+                        delete api_type_field_filters[sup_api_type_id][field_id];
+                        continue;
+                    }
+                    // if (filter.field_name == field_names<ISupervisedItem>().state) {
+                    //     delete other_field_filter[api_type_id][field_id];
+                    //     continue;
+                    // }
+                }
+            }
+
+            const other_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                other_field_filter,
+            );
 
             const api_type_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 api_type_field_filters
             );
 
+            res[sup_api_type_id] = {};
+
             for (const si in options.all_states) {
+
+                // const excluded_field_filters: FieldFiltersVO = {};
+
+                // // Remove unwanted field_filters (e.g. "__custom_filters__")
+                // const field_filters_for_request: {
+                //     [api_type_id: string]: { [field_id: string]: ContextFilterVO }
+                // } = FieldFiltersVOManager.clean_field_filters_for_request(
+                //     active_field_filters,
+                //     { should_restrict_to_api_type_id: !widget_options.no_inter_filter }
+                // );
+
+                // // Get api_type_ids from field_filters_for_request that are not in api_type_ids_to_exclude
+                // const api_type_ids_to_keep_for_request = Object.keys(field_filters_for_request).filter((api_type_id: string) => {
+                //     return !api_type_ids_to_exclude.includes(api_type_id);
+                // });
+
+                // for (const key in api_type_ids_to_keep_for_request) {
+                //     const api_type_id_to_keep: string = api_type_ids_to_keep_for_request[key];
+
+                //     excluded_field_filters[api_type_id_to_keep] = cloneDeep(field_filters_for_request[api_type_id_to_keep]);
+                // }
+
+
                 const state_context_filter: ContextFilterVO = new ContextFilterVO();
                 state_context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
                 state_context_filter.field_name = field_names<ISupervisedItem>().state;
                 state_context_filter.param_numeric = options.all_states[si];
                 state_context_filter.vo_type = sup_api_type_id;
 
-                // const user_context_filter: ContextFilterVO = new ContextFilterVO();
-                // state_context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
-                // state_context_filter.field_name = field_names<ISupervisedItem>().state;
-                // state_context_filter.param_numeric = options.all_states[si];
-                // state_context_filter.vo_type = sup_api_type_id;
-
                 const context_filters: ContextFilterVO[] = [
                     ...api_type_context_filters,
+                    ...other_context_filters,
                     state_context_filter,
                 ];
 

@@ -50,6 +50,43 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
 
     private supervision_select_options: string[] = [];
 
+    get title_name_code_text(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    get default_title_translation(): string {
+        return 'Supervision#' + this.page_widget.id;
+    }
+
+    get widget_options(): SupervisionWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: SupervisionWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as SupervisionWidgetOptions;
+                options = options ? new SupervisionWidgetOptions(
+                    options.limit,
+                    options.supervision_api_type_ids,
+                    options.refresh_button,
+                    options.auto_refresh,
+                    options.auto_refresh_seconds,
+                    options.show_bulk_edit,
+                ) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
 
@@ -231,40 +268,5 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
 
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get default_title_translation(): string {
-        return 'Supervision#' + this.page_widget.id;
-    }
-
-    get widget_options(): SupervisionWidgetOptions {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: SupervisionWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as SupervisionWidgetOptions;
-                options = options ? new SupervisionWidgetOptions(
-                    options.limit,
-                    options.supervision_api_type_ids,
-                    options.refresh_button,
-                    options.auto_refresh,
-                    options.auto_refresh_seconds,
-                    options.show_bulk_edit,
-                ) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
-    }
 }
