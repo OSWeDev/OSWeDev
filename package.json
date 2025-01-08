@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.34.15-retestjqueryui2",
+    "version": "0.34.15-retestjqueryui3",
     "description": "",
     "repository": {
         "type": "git",
@@ -39,7 +39,10 @@
         "@3scarecrow/vue-quarter-select": "2.0.0",
         "@fullcalendar/daygrid": "6.1.15",
         "@fullcalendar/interaction": "6.1.15",
-        "@fullcalendar/vue": "6.1.15",
+        "@fullcalendar/timegrid": "6.1.15",
+        "@fullcalendar/core": "6.1.15",
+        "@fullcalendar/resource": "6.1.15",
+        "@fullcalendar/resource-timeline": "6.1.15",
         "@godaddy/terminus": "4.4.1",
         "@growthbunker/vueflags": "0.0.6",
         "@maxgraph/core": "0.1.0",
@@ -68,8 +71,6 @@
         "express-socket.io-session": "1.3.5",
         "express-static-gzip": "2.2.0",
         "flatted": "2.0.2",
-        "fullcalendar": "6.1.15",
-        "fullcalendar-scheduler": "6.1.15",
         "he": "1.2.0",
         "helmet": "3.21.1",
         "html2canvas": "1.4.1",

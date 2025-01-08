@@ -4,6 +4,7 @@ import 'bootstrap';
 import $ from 'jquery';
 import 'jquery-ui-dist/jquery-ui';
 import 'jquery-ui-dist/jquery-ui.css';
+import 'jquery-ui-themes/themes/base/jquery-ui.min.css';
 
 // import $ from 'jquery';
 import moment from 'moment';

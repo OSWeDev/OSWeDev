@@ -1,4 +1,4 @@
-import 'jquery-ui';
+/// <reference types="jqueryui" />
 import { Component, Prop } from 'vue-property-decorator';
 import ModuleProgramPlanBase from '../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import VueComponentBase from '../../VueComponentBase';
