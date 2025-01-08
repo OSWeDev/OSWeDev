@@ -1,4 +1,3 @@
-import { EventObjectInput } from 'fullcalendar';
 import HourRange from '../../../shared/modules/DataRender/vos/HourRange';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';

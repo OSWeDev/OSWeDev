@@ -470,7 +470,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             dayNamesShort: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
             now: Dates.format(Dates.now(), 'Y-MM-DD'),
             defaultDate: this.calendar_date,
-            schedulerLicenseKey: '0801712196-fcs-1461229306',
+            schedulerLicenseKey: '0801712196-fcs-1461229306', // TODO FIXME DELETE THIS FROM OSWEDEV !!!!!! the new one shall never be used in OSWEDEV
             editable: this.can_edit_any,
             droppable: this.can_edit_any,
             aspectRatio: 3,

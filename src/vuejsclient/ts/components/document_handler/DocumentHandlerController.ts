@@ -14,6 +14,7 @@ import DocumentHandlerDatasVO from './vos/DocumentHandlerDatasVO';
 import DocumentHandlerReloadListVO from './vos/DocumentHandlerReloadListVO';
 
 export default class DocumentHandlerController {
+    private static instance: DocumentHandlerController = null;
 
     // istanbul ignore next: nothing to test
     public static getInstance(): DocumentHandlerController {
@@ -24,7 +25,6 @@ export default class DocumentHandlerController {
         return DocumentHandlerController.instance;
     }
 
-    private static instance: DocumentHandlerController = null;
 
     public async reloadDatas(): Promise<DocumentHandlerDatasVO> {
         let promises: Array<Promise<any>> = [];
