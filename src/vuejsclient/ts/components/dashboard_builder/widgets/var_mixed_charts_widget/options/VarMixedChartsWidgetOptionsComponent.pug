@@ -24,6 +24,17 @@
             .explication {{ label("var_mixed_charts_widget_options_component.bg_color") }}
             color-picker(v-model="bg_color" @change='throttled_update_colors')
 
+        .style_picker 
+            .input_label {{ label('var_mixed_charts_widget_options_component.switch_detailed') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_detailed" 
+                    :value="detailed" 
+                    :sync="false"
+                    :width="120"
+                    :labels="{checked: label('var_mixed_charts_widget_options_component.switch_detailed.simple'), unchecked: label('var_mixed_charts_widget_options_component.switch_detailed.detailed')}" 
+                )
+
 
         .options_separator_lvl1 {{ label('var_mixed_charts_widget_options_component.separator.chart_options') }}
 

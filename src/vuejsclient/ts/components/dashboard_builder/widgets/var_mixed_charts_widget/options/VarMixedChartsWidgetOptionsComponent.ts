@@ -59,6 +59,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     private legend_use_point_style: boolean = false;
     private title_display: boolean = false;
     private has_dimension: boolean = true;
+    private detailed: boolean = false;
     private sort_dimension_by_asc: boolean = false;
     private hide_filter: boolean = false;
     private dimension_is_vo_field_ref: boolean = false;
@@ -732,6 +733,22 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     }
 
     /**
+     * switch_detailed
+     *
+     * @returns {void}
+     */
+    private async switch_detailed() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.detailed = !this.detailed;
+        await this.throttled_update_options();
+    }
+
+    /**
      * switch_has_dimension
      *
      * @returns {void}
@@ -740,15 +757,6 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         if (!this.has_dimension) {
             this.snotify.error('Not implemented yet');
         }
-        // this.next_update_options = this.widget_options;
-
-        // if (!this.next_update_options) {
-        //     this.next_update_options = this.get_default_options();
-        // }
-
-        // this.next_update_options.has_dimension = !this.next_update_options.has_dimension;
-
-        // await this.throttled_update_options();
     }
 
     /**
@@ -1000,6 +1008,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             this.legend_use_point_style = false;
 
             this.title_display = false;
+            this.detailed = true;
             this.title_font_color = '#666';
             this.title_font_size = '16';
             this.title_padding = '10';
@@ -1043,6 +1052,9 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
 
         if (this.title_display != this.widget_options.title_display) {
             this.title_display = this.widget_options.title_display;
+        }
+        if (this.detailed != this.widget_options.detailed) {
+            this.detailed = this.widget_options.detailed;
         }
         if (((!this.widget_options.title_font_size) && this.title_font_size) || (this.widget_options.title_font_size && (this.title_font_size != this.widget_options.title_font_size.toString()))) {
             this.title_font_size = this.widget_options.title_font_size ? this.widget_options.title_font_size.toString() : null;

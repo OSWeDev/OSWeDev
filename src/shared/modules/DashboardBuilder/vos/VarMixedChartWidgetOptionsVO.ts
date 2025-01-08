@@ -33,6 +33,7 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
         public legend_use_point_style?: boolean,
 
         public title_display?: boolean,
+        public detailed?: boolean,
         public title_font_color?: string,
         public title_font_size?: number,
         public title_padding?: number,
@@ -113,6 +114,7 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
             false,
 
             false,
+            true,
             '#666',
             16,
             10,
