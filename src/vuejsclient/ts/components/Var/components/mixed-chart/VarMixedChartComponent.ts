@@ -448,9 +448,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
             return null;
         }
 
-
         yAxisID = this.t(new VarChartScalesOptionsVO().from(charts_scales_options).get_title_name_code_text(charts_scales_options.page_widget_id, charts_scales_options.chart_id));
-
 
         for (const var_key in chart_var_params) {
             const var_param: VarDataBaseVO = chart_var_params[var_key];
@@ -490,6 +488,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
                 borderColor: borderColor,
                 borderWidth: borderWidth,
                 data: data,
+                pointStyle: chart_var_dataset_descriptor.show_points,
                 fill: charts_scales_options.fill ? charts_scales_options.fill : false,
                 datalabels: {
                     display: chart_var_dataset_descriptor.activate_datalabels,

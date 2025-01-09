@@ -149,6 +149,11 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
 
     }
 
+    private get_var_name_code_text_for_var_id(var_id: number): string {
+        console.dir(this.var_names);
+        return this.var_names[var_id];
+    }
+
     private is_closed(index: number): boolean {
         if (this.opened_prop_index.indexOf(index) == -1) {
             return true;
@@ -177,6 +182,9 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
     private switch_use_palette() {
         this.use_palette = !this.use_palette;
         this.tmp_selected_color_palette = null;
+        for (const option_prop of this.options_props) {
+            option_prop.has_gradient = false;
+        }
         this.emit_change();
     }
 

@@ -141,6 +141,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
          * @returns {IChartOptions}
          */
     get options(): IChartOptions {
+
         if (this.widget_options.detailed) {
             const scales = {};
             const var_chart_scales_options = this.widget_options.var_chart_scales_options;
@@ -235,27 +236,63 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             return Object.assign({}, obj, interaction_option);
         } else {
             const scales = {};
+
             scales['x'] = {
-                display: false,
+                display: true,
                 grid: {
                     display: false
-                }
+                },
             };
-
             scales['y'] = {
                 display: false,
                 grid: {
                     display: false
-                }
+                },
             };
+
+            const var_chart_scales_options = this.widget_options.var_chart_scales_options;
+            if (var_chart_scales_options && var_chart_scales_options.length > 0) {
+                for (const i in this.current_charts_scales_options) {
+                    const current_scale = new VarChartScalesOptionsVO().from(this.current_charts_scales_options[i]);
+                    this.temp_current_scale = current_scale;
+                    const title = this.t(current_scale.get_title_name_code_text(current_scale.page_widget_id, current_scale.chart_id));
+                    if (title) {
+                        scales[title] = {
+                            display:false,
+                            title: {
+                                display: false
+                            },
+                            grid: {
+                                display:false,
+                                drawOnChartArea: false
+                            },
+                            type: current_scale.scale_options ? current_scale.scale_options.type : 'linear',
+                            ticks: {
+                                callback: this.get_scale_ticks_callback(current_scale),
+                            },
+                            axis: 'y',
+                            position: current_scale.selected_position ? current_scale.selected_position : 'left',
+                        };
+                    }
+                }
+            }
 
             const obj = {
                 inflateAmount: true,
                 borderRadius: 10,
                 responsive: true,
+                fill: this.widget_options.var_charts_options.some((option) => option.type == 'line') ? true : false,
+                tension: this.widget_options.var_charts_options.some((option) => option.type == 'line') ? 0.2 : 0,
                 maintainAspectRatio: false,
+                animations: this.widget_options.var_charts_options.some((option) => option.type == 'line') ? {
+                    tension: {
+                        duration: 1000,
+                        easing: 'linear',
+                        from: 0.5,
+                        to: 0.2,
+                    }
+                } : {},
                 plugins: {
-
                     title: {
                         display: this.get_bool_option('title_display', true),
                         text: this.translated_title ? this.translated_title : '',
@@ -301,18 +338,37 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
         const res = {};
 
-        for (const j in this.datasets) {
-            const dataset = this.datasets[j];
-            for (let i = 0; i < this.widget_options.var_charts_options.length; i++) {
-                const var_chart_option: VarChartOptionsVO = this.widget_options.var_charts_options[i];
-                if (var_chart_option.selected_filter_id == undefined) {
-                    return;
-                }
-                const current_scale = new VarChartScalesOptionsVO().from(this.widget_options.var_chart_scales_options.find((scale) => scale.chart_id == var_chart_option.selected_filter_id));
-                const var_chart_id_dataset = var_chart_option.chart_id + '_' + dataset;
+        if(this.widget_options.detailed) {
+            for (const j in this.datasets) {
+                const dataset = this.datasets[j];
+                for (let i = 0; i < this.widget_options.var_charts_options.length; i++) {
+                    const var_chart_option: VarChartOptionsVO = this.widget_options.var_charts_options[i];
+                    if (var_chart_option.selected_filter_id == undefined) {
+                        return;
+                    }
+                    const current_scale = new VarChartScalesOptionsVO().from(this.widget_options.var_chart_scales_options.find((scale) => scale.chart_id == var_chart_option.selected_filter_id));
+                    const var_chart_id_dataset = var_chart_option.chart_id + '_' + dataset;
 
-                if (res[var_chart_id_dataset] == undefined) {
-                    res[var_chart_id_dataset] = current_scale;
+                    if (res[var_chart_id_dataset] == undefined) {
+                        res[var_chart_id_dataset] = current_scale;
+                    }
+                }
+            }
+        } else {
+            for (const j in this.datasets) {
+                const dataset = this.datasets[j];
+                for (let i = 0; i < this.widget_options.var_charts_options.length; i++) {
+                    const var_chart_option: VarChartOptionsVO = this.widget_options.var_charts_options[i];
+                    if (var_chart_option.selected_filter_id == undefined) {
+                        return;
+                    }
+                    const current_scale = new VarChartScalesOptionsVO().from(this.widget_options.var_chart_scales_options.find((scale) => scale.chart_id == var_chart_option.selected_filter_id));
+                    const var_chart_id_dataset = var_chart_option.chart_id + '_' + dataset;
+                    current_scale.show_scale_title = false;
+                    current_scale.fill = this.widget_options.var_charts_options.some((option) => option.type == 'line') ? true : false;
+                    if (res[var_chart_id_dataset] == undefined) {
+                        res[var_chart_id_dataset] = current_scale;
+                    }
                 }
             }
         }
@@ -343,7 +399,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
             for (const j in this.datasets) {
                 const dataset = this.datasets[j];
-
+                let show_point = true;
                 for (const key in this.widget_options.var_charts_options) {
                     const var_chart_options = this.widget_options.var_charts_options[key];
 
@@ -367,12 +423,23 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     let backgroundColor = var_chart_options.bg_color;
                     let borderColor = var_chart_options.border_color;
                     if (!this.widget_options.detailed) {
+                        show_point = false;
+                        var_chart_options.show_values = false;
                         borderColor = backgroundColor;
                         if (backgroundColor.startsWith('#')) {
                             backgroundColor = this.hexToRgbA(var_chart_options.bg_color);
-                            backgroundColor+= ',0.6)';
+                            if (var_chart_options.type == 'line') {
+                                backgroundColor += ',1)';
+                            } else {
+                                backgroundColor += ',0.6)';
+                            }
                         } else {
-                            backgroundColor = 'rgba(' + var_chart_options.bg_color.substring(4, var_chart_options.bg_color.length - 2) + ',0.6)';
+                            const temp_bgcol = var_chart_options.bg_color.split(',');
+                            if (var_chart_options.type == 'line') {
+                                backgroundColor = temp_bgcol[0] + ',' + temp_bgcol[1] + ',' + temp_bgcol[2] + ',1)';
+                            } else {
+                                backgroundColor = temp_bgcol[0] + ',' + temp_bgcol[1] + ',' + temp_bgcol[2] + ',0.6)';
+                            }
                         }
                     }
 
@@ -388,7 +455,8 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                         .set_filters_type(var_chart_options.filter_type)
                         .set_filters_additional_params(var_chart_options.filter_additional_params)
                         .set_activate_datalabels(var_chart_options.show_values)
-                        .set_show_zeros(var_chart_options.show_zeros);
+                        .set_show_zeros(var_chart_options.show_zeros)
+                        .set_show_points(show_point);
                 }
             }
 
@@ -398,7 +466,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
         for (const j in this.datasets) {
             const dataset = this.datasets[j];
-
+            let show_point = true;
             for (const key in this.widget_options.var_charts_options) {
                 const var_chart_options = this.widget_options.var_charts_options[key];
 
@@ -419,6 +487,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
                     if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('#')) {
                         base_color = this.hexToRgbA(var_chart_options.bg_color);
+                        base_color = base_color.slice(0, base_color.lastIndexOf(','));
                         is_rbga = true;
                     } else if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('rgb(')) {
                         base_color = 'rgba(' + var_chart_options.bg_color.substring(4, var_chart_options.bg_color.length - 2);
@@ -469,12 +538,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                         }
                     }
                 }
-                let border_color = ['rgb(0,0,0)'];
-                if (var_chart_options.color_palette || !var_chart_options.border_color) {
-                    border_color = colors;
-                } else {
-                    border_color = [var_chart_options.border_color];
-                }
+
 
                 const var_chart_id_dataset = var_chart_options.chart_id + '_' + dataset;
 
@@ -485,17 +549,43 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     label_translatable_code = this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id)) != this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id) ? this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id)) : '';
                 }
 
+                let border_color = ['rgb(0,0,0)'];
+
                 if (!this.widget_options.detailed) {
-                    for (let i in colors) {
+                    var_chart_options.show_values = false;
+                    show_point = false;
+                    for (const i in colors) {
                         let color = colors[i];
                         if (color.startsWith('#')) {
                             color = this.hexToRgbA(color);
-                            color += ',0.6)';
-                            border_color[i] = colors[i] + '1)';
+                            if (var_chart_options.type == 'line') {
+                                color += ' 1)';
+                            } else {
+                                color += ' 0.6)';
+                            }
+                            border_color[i] = this.hexToRgbA(colors[i]) + '1)';
+                            colors[i] = color;
                         } else {
-                            color = 'rgba(' + colors[i].substring(4, colors[i].length - 2) + ',0.6)';
-                            border_color[i] = 'rgba(' + colors[i].substring(4, colors[i].length - 2) + ',1)';
+                            const temp_bgcol = color.split(',');
+                            if (!var_chart_options.has_gradient) {
+
+                                if (var_chart_options.type == 'line') {
+                                    color = temp_bgcol[0] + ',' + temp_bgcol[1] + ',' + temp_bgcol[2] + ',1)';
+                                } else {
+                                    color = temp_bgcol[0] + ',' + temp_bgcol[1] + ',' + temp_bgcol[2] + ',0.6)';
+                                }
+
+                                border_color[i] = temp_bgcol[0] + ',' + temp_bgcol[1] + ',' + temp_bgcol[2] + ',1)';
+                                colors[i] = color;
+                            }
+                            border_color[i] = temp_bgcol[0] + ',' + temp_bgcol[1] + ',' + temp_bgcol[2] + ',1)';
                         }
+                    }
+                } else {
+                    if (var_chart_options.color_palette || !var_chart_options.border_color) {
+                        border_color = colors;
+                    } else {
+                        border_color = [var_chart_options.border_color];
                     }
                 }
 
@@ -510,7 +600,8 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     .set_filters_type(var_chart_options.filter_type)
                     .set_filters_additional_params(var_chart_options.filter_additional_params)
                     .set_activate_datalabels(var_chart_options.show_values)
-                    .set_show_zeros(var_chart_options.show_zeros);
+                    .set_show_zeros(var_chart_options.show_zeros)
+                    .set_show_points(show_point);
             }
         }
 
