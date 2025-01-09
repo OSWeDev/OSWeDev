@@ -13,6 +13,9 @@ import SupervisedCategoryVO from './vos/SupervisedCategoryVO';
 import SupervisedCRONVO from './vos/SupervisedCRONVO';
 import ModuleTableController from '../DAO/ModuleTableController';
 import SupervisedProbeVO from './vos/SupervisedProbeVO';
+import SupervisedProbeGroupVO from './vos/SupervisedProbeGroupVO';
+import NumSegment from '../DataRender/vos/NumSegment';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 
 export default class ModuleSupervision extends Module {
 
@@ -64,18 +67,17 @@ export default class ModuleSupervision extends Module {
         this.initializeSupervisedCategoryVO();
         this.initializeSupervisedCRONVO();
         this.initializeSuperviseProbeVO();
+        this.initializeSuperviseProbeGroupVO();
     }
 
     private initializeSupervisedCategoryVO() {
+        // déclaration des champs de la table
         const name_field = ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom", true);
+        ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().notify, ModuleTableFieldVO.FIELD_TYPE_boolean, "Notification", true, true, false);
+        ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', false);
 
-        const fields = [
-            name_field,
-            ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().notify, ModuleTableFieldVO.FIELD_TYPE_boolean, "Notification", true, true, false),
-            ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', false),
-        ];
-
-        const datatable = ModuleTableController.create_new(this.name, SupervisedCategoryVO, name_field, "Supervision - Catégorie");
+        // déclaration de la table
+        ModuleTableController.create_new(this.name, SupervisedCategoryVO, name_field, "Supervision - Catégorie");
     }
 
     private initializeSupervisedCRONVO() {
@@ -89,17 +91,31 @@ export default class ModuleSupervision extends Module {
     }
 
     private initializeSuperviseProbeVO() {
+        // déclaration des champs de la table avec liaison
         const sup_item_api_type_id_field = ModuleTableFieldController.create_new(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().sup_item_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, "api_type_id d'item de supervision", true).unique();
-        const category_id_field = ModuleTableFieldController.create_new(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie').set_many_to_one_target_moduletable_name(
-            SupervisedCategoryVO.API_TYPE_ID
-        );
+        ModuleTableFieldController.create_new(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie')
+            .set_many_to_one_target_moduletable_name(
+                SupervisedCategoryVO.API_TYPE_ID
+            );
+        ModuleTableFieldController.create_new(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().notify, ModuleTableFieldVO.FIELD_TYPE_boolean, "Notification", true, true, false);
+        ModuleTableFieldController.create_new(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', false);
 
-        const fields = [
-            sup_item_api_type_id_field,
-            ModuleTableFieldController.create_new(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().notify, ModuleTableFieldVO.FIELD_TYPE_boolean, "Notification", true, true, false),
-            category_id_field,
-            ModuleTableFieldController.create_new(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', false),
-        ];
-        const datatable = ModuleTableController.create_new(this.name, SupervisedProbeVO, sup_item_api_type_id_field, "Supervision - Sonde");
+        // déclaration de la table
+        ModuleTableController.create_new(this.name, SupervisedProbeVO, sup_item_api_type_id_field, "Supervision - Sonde");
+    }
+
+    private initializeSuperviseProbeGroupVO() {
+        // déclaration des champs de la table avec liaison
+        const name_field = ModuleTableFieldController.create_new(SupervisedProbeGroupVO.API_TYPE_ID, field_names<SupervisedProbeGroupVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom", true);
+        ModuleTableFieldController.create_new(SupervisedProbeGroupVO.API_TYPE_ID, field_names<SupervisedProbeGroupVO>().probe_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Sondes')
+            .set_segmentation_type(NumSegment.TYPE_INT)
+            .set_many_to_one_target_moduletable_name(
+                SupervisedCategoryVO.API_TYPE_ID
+            );
+        ModuleTableFieldController.create_new(SupervisedProbeGroupVO.API_TYPE_ID, field_names<SupervisedProbeGroupVO>().ts_ranges, ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Période').set_segmentation_type(TimeSegment.TYPE_DAY);
+
+        // déclaration de la table
+        ModuleTableController.create_new(this.name, SupervisedProbeGroupVO, name_field, "Supervision - groupe de Sonde");
+
     }
 }
