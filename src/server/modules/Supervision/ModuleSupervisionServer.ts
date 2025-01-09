@@ -44,7 +44,6 @@ import SupervisionBGThread from './bgthreads/SupervisionBGThread';
 import SupervisedCRONServerController from './cron_supervision/SupervisedCRONServerController';
 import SupervisionCronWorkersHandler from './SupervisionCronWorkersHandler';
 import SupervisionServerController from './SupervisionServerController';
-import VarNbSupervisedItemByProbeStateController from './vars/VarNbSupervisedItemByProbeStateController';
 
 export default class ModuleSupervisionServer extends ModuleServerBase {
 
@@ -208,8 +207,6 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             preUpdateTrigger.registerHandler(vo_type, this, this.onPreU_SUP_ITEM_HISTORIZE);
             preCreateTrigger.registerHandler(vo_type, this, this.onpreC_SUP_ITEM);
         }
-
-        await this.configure_vars();
 
         SupervisedCRONServerController.getInstance();
     }
@@ -503,9 +500,5 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         }
 
         await SupervisionServerController.getInstance().registered_controllers[api_type_id].work_one(await ModuleDAO.getInstance().getNamedVoByName(api_type_id, name));
-    }
-
-    private async configure_vars() {
-        await VarNbSupervisedItemByProbeStateController.getInstance().initialize();
     }
 }
