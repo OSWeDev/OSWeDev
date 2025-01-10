@@ -22,6 +22,7 @@ export default class VarMixedChartDataSetDescriptor extends VarDataSetDescriptor
     public filters_additional_params: string = '';
     public activate_datalabels: boolean = false;
     public show_zeros: boolean = false;
+    public show_points: boolean = false;
 
     public constructor(
         public var_name: string,
@@ -80,6 +81,12 @@ export default class VarMixedChartDataSetDescriptor extends VarDataSetDescriptor
 
     public set_show_zeros(show_zeros: boolean): VarMixedChartDataSetDescriptor {
         this.show_zeros = show_zeros;
+
+        return this;
+    }
+
+    public set_show_points(show_points: boolean): VarMixedChartDataSetDescriptor {
+        this.show_points = show_points;
 
         return this;
     }

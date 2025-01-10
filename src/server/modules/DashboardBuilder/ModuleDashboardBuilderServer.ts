@@ -372,6 +372,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_mixed_charts_widget_options_component.separator.widget_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Style du graphique'
+        }, 'var_mixed_charts_widget_options_component.switch_detailed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Detaillé'
+        }, 'var_mixed_charts_widget_options_component.switch_detailed.detailed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Simple'
+        }, 'var_mixed_charts_widget_options_component.switch_detailed.simple.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Pas de données, veuillez vérifier que les tables nécessaires sont présentes.'
         }, 'var_mixed_charts_widget.error_message'));
 
@@ -3605,7 +3617,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'var_chart_scales_options_item.fill.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
-            { 'fr-fr': "Préréglage de la palette" },
+            { 'fr-fr': "Utiliser une palette" },
             'var_charts_options_component.use_palette.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
