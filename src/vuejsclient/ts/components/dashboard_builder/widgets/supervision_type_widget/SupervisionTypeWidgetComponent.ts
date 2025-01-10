@@ -14,8 +14,6 @@ import VueComponentBase from '../../../VueComponentBase';
 import './SupervisionTypeWidgetComponent.scss';
 import SupervisedProbeVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeVO';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
-import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
-import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ObjectHandler, { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -23,6 +21,7 @@ import ISupervisedItem from '../../../../../../shared/modules/Supervision/interf
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import ThreadHandler from '../../../../../../shared/tools/ThreadHandler';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
+import SupervisedProbeGroupVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeGroupVO';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
@@ -71,6 +70,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
     private categories_ordered: SupervisedCategoryVO[] = [];
     private probes_by_sup_api_type_ids: { [sup_api_type_id: string]: SupervisedProbeVO } = {};
+    private groups: SupervisedProbeGroupVO[] = [];
 
     private opacityApitypeState: { [sup_api_type_id_state: string]: boolean } = {};
 
@@ -271,6 +271,17 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
      */
     @Watch("supervision_api_type_ids")
     private async onchange_supervision_api_type_ids() {
+        const has_supervision_group_selection_filters = (!!this.get_active_field_filters && !!this.get_active_field_filters[SupervisedProbeGroupVO.API_TYPE_ID]);
+
+        if (!this.categories_ordered?.length) {
+            await this.load_all_supervised_categories();
+        }
+
+        await this.load_all_supervised_probes();
+
+        if (has_supervision_group_selection_filters && !this.groups?.length) {
+            await this.load_all_supervised_probe_groups();
+        }
 
         const data = await SupervisionTypeWidgetManager.find_available_supervision_type_ids(
             this.dashboard,
@@ -279,7 +290,8 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             {
                 categories_by_name: (!!this.categories_ordered?.length
                     ? ObjectHandler.map_array_by_object_field_value(this.categories_ordered, field_names<SupervisedCategoryVO>().name)
-                    : null)
+                    : null),
+                groups: this.groups
             }
         );
 
@@ -322,8 +334,16 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     }
 
     private async mounted() {
-        await this.load_all_supervised_categories();
+        const has_supervision_category_filters = (!!this.get_active_field_filters && !!this.get_active_field_filters[SupervisedCategoryVO.API_TYPE_ID]);
+        const has_supervision_group_selection_filters = (!!this.get_active_field_filters && !!this.get_active_field_filters[SupervisedProbeGroupVO.API_TYPE_ID]);
+
+        if (has_supervision_category_filters) {
+            await this.load_all_supervised_categories();
+        }
         await this.load_all_supervised_probes();
+        if (has_supervision_group_selection_filters) {
+            await this.load_all_supervised_probe_groups();
+        }
 
         if (this.widget_options && this.widget_options.auto_refresh) {
             await this.start_auto_refresh();
@@ -360,6 +380,14 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
      */
     private async load_all_supervised_probes(): Promise<void> {
         this.probes_by_sup_api_type_ids = await SupervisionTypeWidgetManager.find_all_supervised_probes_by_sup_api_type_ids();
+    }
+
+    /**
+     * Load all supervised probes
+     * @returns {Promise<void>}
+     */
+    private async load_all_supervised_probe_groups(): Promise<void> {
+        this.groups = await query(SupervisedProbeGroupVO.API_TYPE_ID).select_vos<SupervisedProbeGroupVO>();
     }
 
     private handle_select_api_type_id(api_type_id: string) {

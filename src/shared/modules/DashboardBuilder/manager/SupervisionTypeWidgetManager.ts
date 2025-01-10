@@ -1,6 +1,7 @@
 import SupervisionManager from "../../Supervision/manager/SupervisionManager";
 import PromisePipeline from '../../../tools/PromisePipeline/PromisePipeline';
 import SupervisedCategoryVO from '../../Supervision/vos/SupervisedCategoryVO';
+import SupervisedProbeGroupVO from '../../Supervision/vos/SupervisedProbeGroupVO';
 import ISupervisedItemController from '../../Supervision/interfaces/ISupervisedItemController';
 import SupervisionTypeWidgetOptionsVO from '../vos/SupervisionTypeWidgetOptionsVO';
 import ContextQueryVO, { query } from '../../ContextFilter/vos/ContextQueryVO';
@@ -13,11 +14,12 @@ import ModuleDAO from '../../DAO/ModuleDAO';
 import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
 import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
 import SupervisedProbeVO from "../../Supervision/vos/SupervisedProbeVO";
-import UserVO from "../../AccessPolicy/vos/UserVO";
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import FieldFiltersVOManager from "./FieldFiltersVOManager";
 import ISupervisedItem from "../../Supervision/interfaces/ISupervisedItem";
+import RangeHandler from "../../../tools/RangeHandler";
+import NumRange from "../../DataRender/vos/NumRange";
 
 /**
  * @class SupervisionTypeWidgetManager
@@ -66,6 +68,7 @@ export default class SupervisionTypeWidgetManager {
         active_field_filters: FieldFiltersVO,
         options?: {
             categories_by_name?: { [name: string]: SupervisedCategoryVO },
+            groups?: SupervisedProbeGroupVO[],
             refresh?: boolean,
         }
     ): Promise<{ items: string[], total_count: number }> {
@@ -73,10 +76,12 @@ export default class SupervisionTypeWidgetManager {
         let available_supervision_api_type_ids: string[] = [];
 
         const supervision_category_active_field_filters = active_field_filters && active_field_filters[SupervisedCategoryVO.API_TYPE_ID];
+        const supervision_group_selection_active_field_filters = active_field_filters && active_field_filters[SupervisedProbeGroupVO.API_TYPE_ID];
         const context_query_by_api_type_id: { [api_type_id: string]: ContextQueryVO } = {};
 
         let categories_by_name: { [name: string]: SupervisedCategoryVO } = options?.categories_by_name ?? null;
         let category_selections: SupervisedCategoryVO[] = null;
+        let probe_id_ranges: NumRange[] = [];
 
         // Supervision api type ids that have been registered in widget_options
         const supervision_api_type_ids: string[] = widget_options.supervision_api_type_ids;
@@ -101,7 +106,10 @@ export default class SupervisionTypeWidgetManager {
         }
 
         // If there is no filter, we show all default (widget_options) ones
-        if (!supervision_category_active_field_filters && !(registered_supervision_api_type_ids?.length > 0)) {
+        if (!(registered_supervision_api_type_ids?.length > 0)
+            && !supervision_category_active_field_filters
+            && !supervision_group_selection_active_field_filters
+        ) {
             available_supervision_api_type_ids = registered_supervision_api_type_ids;
 
             return {
@@ -115,7 +123,7 @@ export default class SupervisionTypeWidgetManager {
         for (const field_id in supervision_category_active_field_filters) {
             const filter = supervision_category_active_field_filters[field_id];
 
-            if (!filter) {
+            if (!filter || !filter.param_textarray?.length) {
                 continue;
             }
 
@@ -123,6 +131,40 @@ export default class SupervisionTypeWidgetManager {
             category_selections = filter.param_textarray?.map((category_name: string) => {
                 return categories_by_name[category_name];
             });
+        }
+
+        // gestion des filtre de groupes
+        for (const field_id in supervision_group_selection_active_field_filters) {
+            const filter = supervision_group_selection_active_field_filters[field_id];
+
+            if (!filter) {
+                continue;
+            }
+
+            if (!filter.param_tsranges?.length) {
+                console.debug('SupervisionTypeWidgetManager.find_available_supervision_type_ids: filter de groupe non géré ' + JSON.stringify(filter));
+                continue;
+            }
+
+            if (!options?.groups?.length) {
+                console.debug('SupervisionTypeWidgetManager.find_available_supervision_type_ids: pas de group chargés ');
+                continue;
+            }
+
+            // Get each category from the param_tsranges
+            for (const gi in options.groups) {
+                const group: SupervisedProbeGroupVO = options.groups[gi];
+                if (!group) {
+                    continue;
+                }
+                if (RangeHandler.any_range_intersects_any_range(group.ts_ranges, filter.param_tsranges) && !!group.probe_id_ranges?.length) {
+                    probe_id_ranges.push(...group.probe_id_ranges);
+                }
+            }
+        }
+
+        if (!!probe_id_ranges?.length) {
+            probe_id_ranges = RangeHandler.getRangesUnion(probe_id_ranges);
         }
 
         const pipeline_limit = registered_supervision_api_type_ids.length; // One query|request by api_type_id
@@ -158,6 +200,7 @@ export default class SupervisionTypeWidgetManager {
 
         promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionTypeWidgetManager.find_available_supervision_type_ids');
 
+
         for (const key in allowed_supervision_api_type_ids) {
             const api_type_id: string = allowed_supervision_api_type_ids[key];
 
@@ -168,9 +211,13 @@ export default class SupervisionTypeWidgetManager {
 
             if (category_selections?.length > 0) {
                 api_type_context_query = api_type_context_query.filter_by_num_eq(
-                    'category_id',
+                    field_names<ISupervisedItem>().category_id,
                     category_selections?.map((cat) => cat?.id)
                 );
+            }
+            if (probe_id_ranges?.length > 0) {
+                api_type_context_query = api_type_context_query.filter_by_num_x_ranges(
+                    field_names<ISupervisedItem>().probe_id, probe_id_ranges);
             }
 
             context_query_by_api_type_id[api_type_id] = api_type_context_query;
@@ -288,10 +335,6 @@ export default class SupervisionTypeWidgetManager {
                         delete api_type_field_filters[sup_api_type_id][field_id];
                         continue;
                     }
-                    // if (filter.field_name == field_names<ISupervisedItem>().state) {
-                    //     delete other_field_filter[api_type_id][field_id];
-                    //     continue;
-                    // }
                 }
             }
 
@@ -306,29 +349,6 @@ export default class SupervisionTypeWidgetManager {
             res[sup_api_type_id] = {};
 
             for (const si in options.all_states) {
-
-                // const excluded_field_filters: FieldFiltersVO = {};
-
-                // // Remove unwanted field_filters (e.g. "__custom_filters__")
-                // const field_filters_for_request: {
-                //     [api_type_id: string]: { [field_id: string]: ContextFilterVO }
-                // } = FieldFiltersVOManager.clean_field_filters_for_request(
-                //     active_field_filters,
-                //     { should_restrict_to_api_type_id: !widget_options.no_inter_filter }
-                // );
-
-                // // Get api_type_ids from field_filters_for_request that are not in api_type_ids_to_exclude
-                // const api_type_ids_to_keep_for_request = Object.keys(field_filters_for_request).filter((api_type_id: string) => {
-                //     return !api_type_ids_to_exclude.includes(api_type_id);
-                // });
-
-                // for (const key in api_type_ids_to_keep_for_request) {
-                //     const api_type_id_to_keep: string = api_type_ids_to_keep_for_request[key];
-
-                //     excluded_field_filters[api_type_id_to_keep] = cloneDeep(field_filters_for_request[api_type_id_to_keep]);
-                // }
-
-
                 const state_context_filter: ContextFilterVO = new ContextFilterVO();
                 state_context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
                 state_context_filter.field_name = field_names<ISupervisedItem>().state;
@@ -353,7 +373,7 @@ export default class SupervisionTypeWidgetManager {
                 await promise_pipeline.push(async () => {
                     const count: number = await api_type_context_query.select_count();
 
-                    console.log(await api_type_context_query.get_select_query_str());
+                    // console.log(await api_type_context_query.get_select_query_str());
 
                     if (count >= 0) {
                         res[sup_api_type_id][si] = count;

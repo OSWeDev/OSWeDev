@@ -107,15 +107,15 @@ export default class ModuleSupervision extends Module {
     private initializeSuperviseProbeGroupVO() {
         // déclaration des champs de la table avec liaison
         const name_field = ModuleTableFieldController.create_new(SupervisedProbeGroupVO.API_TYPE_ID, field_names<SupervisedProbeGroupVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom", true);
-        ModuleTableFieldController.create_new(SupervisedProbeGroupVO.API_TYPE_ID, field_names<SupervisedProbeGroupVO>().probe_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Sondes')
+        ModuleTableFieldController.create_new(SupervisedProbeGroupVO.API_TYPE_ID, field_names<SupervisedProbeGroupVO>().probe_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Sondes')
             .set_segmentation_type(NumSegment.TYPE_INT)
             .set_many_to_one_target_moduletable_name(
-                SupervisedCategoryVO.API_TYPE_ID
+                SupervisedProbeVO.API_TYPE_ID
             );
         ModuleTableFieldController.create_new(SupervisedProbeGroupVO.API_TYPE_ID, field_names<SupervisedProbeGroupVO>().ts_ranges, ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Période').set_segmentation_type(TimeSegment.TYPE_DAY);
 
         // déclaration de la table
-        ModuleTableController.create_new(this.name, SupervisedProbeGroupVO, name_field, "Supervision - groupe de Sonde");
 
+        ModuleTableController.create_new(this.name, SupervisedProbeGroupVO, name_field, "Supervision - groupe de Sonde");
     }
 }
