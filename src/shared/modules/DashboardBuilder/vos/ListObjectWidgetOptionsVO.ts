@@ -3,11 +3,29 @@ import VOFieldRefVO from "./VOFieldRefVO";
 
 export default class ListObjectWidgetOptionsVO extends AbstractVO {
 
-    public display_orientation: string;
+    public static TYPE_DISPLAY_CARD: number = 1;
+    public static TYPE_DISPLAY_LIST: number = 2;
+
+    public static TYPE_DISPLAY_LABELS: { [id: number]: string } = {
+        [ListObjectWidgetOptionsVO.TYPE_DISPLAY_CARD]: 'ListObjectWidgetOptionsVO.type_display_card.___LABEL___',
+        [ListObjectWidgetOptionsVO.TYPE_DISPLAY_LIST]: 'ListObjectWidgetOptionsVO.type_display_list.___LABEL___',
+    };
+
+    public static DISPLAY_ORIENTATION_HORIZONTAL: number = 1;
+    public static DISPLAY_ORIENTATION_VERTICAL: number = 2;
+
+    public static DISPLAY_ORIENTATION_LABELS: { [id: number]: string } = {
+        [ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_HORIZONTAL]: 'ListObjectWidgetOptionsVO.display_orientation_horizontal.___LABEL___',
+        [ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_VERTICAL]: 'ListObjectWidgetOptionsVO.display_orientation_vertical.___LABEL___',
+    };
+
+    public type_display: number;
+    public display_orientation: number;
     public number_of_elements: number;
     public sort_dimension_by: string;
     public image_id: VOFieldRefVO;
     public title: VOFieldRefVO;
+    public surtitre: VOFieldRefVO;
     public subtitle: VOFieldRefVO;
     public number: VOFieldRefVO;
     public sort_field_ref: VOFieldRefVO;
@@ -16,12 +34,14 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
     public blank: boolean;
 
     public static createNew(
-        display_orientation: string,
+        type_display: number,
+        display_orientation: number,
         number_of_elements: number,
         sort_dimension_by: string,
         image_id: VOFieldRefVO,
         title: VOFieldRefVO,
         subtitle: VOFieldRefVO,
+        surtitre: VOFieldRefVO,
         number: VOFieldRefVO,
         sort_field_ref: VOFieldRefVO,
         button_elements: boolean,
@@ -29,12 +49,14 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         blank: boolean
     ): ListObjectWidgetOptionsVO {
         const res = new ListObjectWidgetOptionsVO();
+        res.type_display = type_display;
         res.display_orientation = display_orientation;
         res.number_of_elements = number_of_elements;
         res.sort_dimension_by = sort_dimension_by;
         res.image_id = image_id;
         res.title = title;
         res.subtitle = subtitle;
+        res.surtitre = surtitre;
         res.number = number;
         res.sort_field_ref = sort_field_ref;
         res.button_elements = button_elements;
@@ -43,5 +65,4 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
 
         return res;
     }
-
 }

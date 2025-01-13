@@ -1,16 +1,18 @@
 include ../../../../../views/mixins/loading.pug
 
 .widget.list_object_card_widget 
-    template(v-if="widget_options")
-        template(v-if="widget_options.display_orientation == 'Vertical'")
+    template(v-if="widget_options && (nb_elements?.length > 0)")
+        template(v-if="widget_options.type_display == TYPE_DISPLAY_LIST")
             .list_object_widget_component
-                template(v-for="i in max_range_nb")
-                    .object(:href="urls[i]" :target="(widget_options.blank ? '_blank' : '')")
+                template(v-for="i in nb_elements")
+                    a.object(:href="urls[i]" :target="(widget_options.blank ? '_blank' : '')")
                         .first_row
                             template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
                                 .image 
                                     img(:src='image_paths[i]' alt="")
                             .title_and_sub
+                                template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
+                                    .surtitre {{ surtitres[i] }}
                                 template(v-if="titles && (titles.length > 0) && titles[i]")
                                     .title {{ titles[i] }}
                                 template(v-if="subtitles && (subtitles.length > 0) && subtitles[i]")
@@ -21,14 +23,16 @@ include ../../../../../views/mixins/loading.pug
                             .arrow 
                                 template(v-if="widget_options.button_elements && urls[i]")
                                     .fa-light.fa-arrow-right.ml-2
-        template(v-else-if="widget_options.display_orientation == 'Horizontal'")
-            .list_card_widget_component
-                template(v-for="i in max_range_nb")
+        template(v-else-if="widget_options.type_display == TYPE_DISPLAY_CARD")
+            .list_card_widget_component(:class="{['display_orientation_' + widget_options.display_orientation]: true}")
+                template(v-for="i in nb_elements")
                     a.card(:href="urls[i]" :target="(widget_options.blank ? '_blank' : '')")
                         template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
                             .image 
                                 img(:src='image_paths[i]' alt="")
                         .card_content 
+                            template(v-if="surtitre && (surtitre.length > 0) && surtitre[i]")
+                                .surtitre {{ surtitre[i] }}
                             template(v-if="titles && (titles.length > 0) && titles[i]")
                                 .title {{ titles[i] }}
                             template(v-if="subtitles && (subtitles.length > 0) && subtitles[i]")

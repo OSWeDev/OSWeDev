@@ -325,7 +325,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         );
 
         widgets = widgets ? widgets.filter((w) =>
-            !this.get_widgets_invisibility[w.id] && (w.dashboard_viewport_id == this.selected_viewport.id)
+            !this.get_widgets_invisibility[w.id] && (this.selected_viewport && (w.dashboard_viewport_id == this.selected_viewport.id))
         ) : null;
 
         if (widgets?.length) {

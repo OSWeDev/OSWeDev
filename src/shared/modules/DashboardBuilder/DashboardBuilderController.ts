@@ -25,6 +25,14 @@ export default class DashboardBuilderController {
     public static ROUTE_NAME_CRUD: string = "__CRUD";
     public static ROUTE_NAME_CRUD_ALL: string = "__all";
     public static ROUTE_NAME_CMS_TEMPLATE: string = "_CMS__TEMPLATE";
+    public static ROUTE_NAME_DASHBOARD_VIEW: string = "Dashboard View";
+    public static ROUTE_NAME_DASHBOARD_BUILDER: string = "DashboardBuilder";
+    public static ROUTE_NAME_DASHBOARD_BUILDER_ID: string = "DashboardBuilder_id";
+    public static ROUTE_NAME_CMS_VIEW: string = 'CMS View';
+    public static ROUTE_NAME_CMS_VO_FOR_CONTENT: string = 'CMS_Vo_For_Content';
+    public static ROUTE_NAME_CMS_BUILDER: string = 'CMSBuilder';
+    public static ROUTE_NAME_CMS_BUILDER_ID: string = 'CMSBuilder_id';
+    public static ROUTE_NAME_CMS_CONFIG: string = 'CMSConfig';
 
     private static instance: DashboardBuilderController = null;
 

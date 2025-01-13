@@ -17,7 +17,7 @@ import TablesGraphItemComponent from './item/TablesGraphItemComponent';
 import './TablesGraphComponent.scss';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import { field_names } from '../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../../../shared/tools/ObjectHandler';
 // const graphConfig = {
 //     mxBasePath: '/mx/', //Specifies the path in Client.basePath.
 //     ImageBasePath: '/mx/images', // Specifies the path in Client.imageBasePath.
@@ -198,9 +198,21 @@ export default class TablesGraphComponent extends VueComponentBase {
 
             const pt = graph.getPointForEvent(evt);
 
-
             if (this.is_cms_config && this.cms_compatible_dashboards.length > 0) {
-                for (let dashboard of this.cms_compatible_dashboards) {
+                const all_graphvoref_by_dashboard_id: { [dashboard_id: number]: DashboardGraphVORefVO } = ObjectHandler.mapByNumberFieldFromArray(
+                    await query(DashboardGraphVORefVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<DashboardGraphVORefVO>().vo_type, api_type_id)
+                        .filter_by_num_has(field_names<DashboardGraphVORefVO>().dashboard_id, this.cms_compatible_dashboards.map((e) => e.id))
+                        .select_vos<DashboardGraphVORefVO>(),
+                    field_names<DashboardGraphVORefVO>().dashboard_id
+                );
+
+                for (const dashboard of this.cms_compatible_dashboards) {
+                    // Si le graph est déjà présent sur le dashboard, on ne le rajoute pas
+                    if (all_graphvoref_by_dashboard_id[dashboard.id]) {
+                        continue;
+                    }
+
                     const graphvoref = new DashboardGraphVORefVO();
                     graphvoref.x = pt.x;
                     graphvoref.y = pt.y;

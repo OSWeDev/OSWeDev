@@ -11,6 +11,23 @@
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                 )
 
+        .sur_titre
+            .input_label {{ label('cms_bloc_text.widget_option.sur_titre') }}
+            .input_wrapper
+                template(v-if="use_for_template")
+                    .sur_titre_field_ref_for_template
+                        .input_label {{ label('cms_image.widget_option.sur_titre_field_ref_for_template') }}
+                        .input_wrapper
+                            Singlevofieldrefholdercomponent(
+                                :vo_field_ref="sur_titre_field_ref_for_template"
+                                @remove_field_ref="remove_sur_titre_field_ref_for_template"
+                                @add_field_ref="add_sur_titre_field_ref_for_template"
+                                :page_widget_id='page_widget ? page_widget.id : null'
+                            )
+
+                template(v-else)
+                    Vuequilleditor(v-model='sur_titre', :options="optionsEditeur")
+
         .titre
             .input_label {{ label('cms_bloc_text.widget_option.titre') }}
             .input_wrapper

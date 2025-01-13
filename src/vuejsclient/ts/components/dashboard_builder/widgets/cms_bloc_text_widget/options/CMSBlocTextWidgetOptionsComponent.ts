@@ -31,10 +31,12 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
 
     private titre: string = null;
     private sous_titre: string = null;
+    private sur_titre: string = null;
     private contenu: string = null;
     private use_for_template: boolean = false;
     private titre_field_ref_for_template: VOFieldRefVO = null;
     private sous_titre_field_ref_for_template: VOFieldRefVO = null;
+    private sur_titre_field_ref_for_template: VOFieldRefVO = null;
     private contenu_field_ref_for_template: VOFieldRefVO = null;
 
     private optionsEditeur = {
@@ -80,29 +82,35 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         if (!this.widget_options) {
             this.titre = null;
             this.sous_titre = null;
+            this.sur_titre = null;
             this.contenu = null;
             this.use_for_template = false;
             this.titre_field_ref_for_template = null;
             this.sous_titre_field_ref_for_template = null;
+            this.sur_titre_field_ref_for_template = null;
             this.contenu_field_ref_for_template = null;
 
             return;
         }
         this.titre = this.widget_options.titre;
         this.sous_titre = this.widget_options.sous_titre;
+        this.sur_titre = this.widget_options.sur_titre;
         this.contenu = this.widget_options.contenu;
         this.use_for_template = this.widget_options.use_for_template;
         this.titre_field_ref_for_template = this.widget_options.titre_field_ref_for_template ? Object.assign(new VOFieldRefVO(), this.widget_options.titre_field_ref_for_template) : null;
         this.sous_titre_field_ref_for_template = this.widget_options.sous_titre_field_ref_for_template ? Object.assign(new VOFieldRefVO(), this.widget_options.sous_titre_field_ref_for_template) : null;
+        this.sur_titre_field_ref_for_template = this.widget_options.sur_titre_field_ref_for_template ? Object.assign(new VOFieldRefVO(), this.widget_options.sur_titre_field_ref_for_template) : null;
         this.contenu_field_ref_for_template = this.widget_options.contenu_field_ref_for_template ? Object.assign(new VOFieldRefVO(), this.widget_options.contenu_field_ref_for_template) : null;
     }
 
     @Watch('titre')
     @Watch('sous_titre')
+    @Watch('sur_titre')
     @Watch('contenu')
     @Watch('use_for_template')
     @Watch('titre_field_ref_for_template')
     @Watch('sous_titre_field_ref_for_template')
+    @Watch('sur_titre_field_ref_for_template')
     @Watch('contenu_field_ref_for_template')
     private async onchange_bloc_text() {
         if (!this.widget_options) {
@@ -111,18 +119,22 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
 
         if (this.widget_options.titre != this.titre ||
             this.widget_options.sous_titre != this.sous_titre ||
+            this.widget_options.sur_titre != this.sur_titre ||
             this.widget_options.contenu != this.contenu ||
             this.widget_options.use_for_template != this.use_for_template ||
             !isEqual(this.widget_options.titre_field_ref_for_template, this.titre_field_ref_for_template) ||
             !isEqual(this.widget_options.sous_titre_field_ref_for_template, this.sous_titre_field_ref_for_template) ||
+            !isEqual(this.widget_options.sur_titre_field_ref_for_template, this.sur_titre_field_ref_for_template) ||
             !isEqual(this.widget_options.contenu_field_ref_for_template, this.contenu_field_ref_for_template)
         ) {
             this.next_update_options.titre = this.titre;
             this.next_update_options.sous_titre = this.sous_titre;
+            this.next_update_options.sur_titre = this.sur_titre;
             this.next_update_options.contenu = this.contenu;
             this.next_update_options.use_for_template = this.use_for_template;
             this.next_update_options.titre_field_ref_for_template = this.titre_field_ref_for_template;
             this.next_update_options.sous_titre_field_ref_for_template = this.sous_titre_field_ref_for_template;
+            this.next_update_options.sur_titre_field_ref_for_template = this.sur_titre_field_ref_for_template;
             this.next_update_options.contenu_field_ref_for_template = this.contenu_field_ref_for_template;
 
             await this.throttled_update_options();
@@ -147,7 +159,9 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
             "",
             "",
             "",
+            "",
             false,
+            null,
             null,
             null,
             null,
@@ -190,6 +204,9 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
     private async add_sous_titre_field_ref_for_template(api_type_id: string, field_id: string) {
         await this.add_vo_field_ref(api_type_id, field_id, 'sous_titre_field_ref_for_template');
     }
+    private async add_sur_titre_field_ref_for_template(api_type_id: string, field_id: string) {
+        await this.add_vo_field_ref(api_type_id, field_id, 'sur_titre_field_ref_for_template');
+    }
 
     private async add_contenu_field_ref_for_template(api_type_id: string, field_id: string) {
         await this.add_vo_field_ref(api_type_id, field_id, 'contenu_field_ref_for_template');
@@ -218,6 +235,9 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
 
     private async remove_sous_titre_field_ref_for_template() {
         await this.remove_vo_field_ref('sous_titre_field_ref_for_template');
+    }
+    private async remove_sur_titre_field_ref_for_template() {
+        await this.remove_vo_field_ref('sur_titre_field_ref_for_template');
     }
 
     private async remove_contenu_field_ref_for_template() {

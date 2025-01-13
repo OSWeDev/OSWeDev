@@ -1,9 +1,11 @@
 include ../../../../../views/mixins/loading.pug
 
 .cms_bloc_text_widget_component
+    template(v-if='sur_titre')
+        .sur_titre(v-html="sur_titre" class="ql-editor" style="word-wrap: break-word;")
     template(v-if='titre')
-        div(v-html="titre" class="ql-editor" style="word-wrap: break-word;")
+        .titre(v-html="titre" class="ql-editor" style="word-wrap: break-word;")
     template(v-if='sous_titre')
-        div(v-html="sous_titre" class="ql-editor" style="word-wrap: break-word;")
+        .sous_titre(v-html="sous_titre" class="ql-editor" style="word-wrap: break-word;")
     template(v-if='contenu')
-        div(v-html="contenu" class="ql-editor" style="word-wrap: break-word;")
+        .contenu(v-html="contenu" class="ql-editor" style="word-wrap: break-word;")

@@ -1201,8 +1201,10 @@ export default class CMSBuilderComponent extends VueComponentBase {
                 const pos: DashboardPageWidgetVO = positions[i];
 
                 // On va mettre toutes les positions avec la même hauteur que le viewport par défaut mais on adapte la largeur
-                pos.w = (default_positions[i].w > this.selected_viewport.nb_columns) ? this.selected_viewport.nb_columns : default_positions[i].w;
-                pos.h = default_positions[i].h;
+                if (default_positions[i]) {
+                    pos.w = (default_positions[i].w > this.selected_viewport.nb_columns) ? this.selected_viewport.nb_columns : default_positions[i].w;
+                    pos.h = default_positions[i] ? default_positions[i].h : null;
+                }
 
                 // Pour les positions x et y, on va mettre le 1er à 0 0 et les autres à la suite en dessous
                 if (i == '0') {

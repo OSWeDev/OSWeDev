@@ -37,11 +37,8 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
 
     private titre: string = null;
     private sous_titre: string = null;
+    private sur_titre: string = null;
     private contenu: string = null;
-
-    private style_titre: string = null;
-    private style_sous_titre: string = null;
-    private style_contenu: string = null;
 
     get widget_options(): CMSBlocTextWidgetOptionsVO {
         if (!this.page_widget) {
@@ -65,6 +62,7 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
     private onchange_get_cms_vo() {
         this.titre = this.get_value(this.widget_options.titre, this.widget_options.titre_field_ref_for_template);
         this.sous_titre = this.get_value(this.widget_options.sous_titre, this.widget_options.sous_titre_field_ref_for_template);
+        this.sur_titre = this.get_value(this.widget_options.sur_titre, this.widget_options.sur_titre_field_ref_for_template);
         this.contenu = this.get_value(this.widget_options.contenu, this.widget_options.contenu_field_ref_for_template);
     }
 
@@ -73,6 +71,7 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
         if (!this.widget_options) {
             this.titre = null;
             this.sous_titre = null;
+            this.sur_titre = null;
             this.contenu = null;
 
             return;
@@ -80,6 +79,7 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
 
         this.titre = this.get_value(this.widget_options.titre, this.widget_options.titre_field_ref_for_template);
         this.sous_titre = this.get_value(this.widget_options.sous_titre, this.widget_options.sous_titre_field_ref_for_template);
+        this.sur_titre = this.get_value(this.widget_options.sur_titre, this.widget_options.sur_titre_field_ref_for_template);
         this.contenu = this.get_value(this.widget_options.contenu, this.widget_options.contenu_field_ref_for_template);
     }
 

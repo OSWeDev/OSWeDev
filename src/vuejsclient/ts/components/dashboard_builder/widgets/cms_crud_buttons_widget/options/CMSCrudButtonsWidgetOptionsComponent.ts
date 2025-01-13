@@ -11,11 +11,6 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import './CMSCrudButtonsWidgetOptionsComponent.scss';
-import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
-import ModuleTableFieldController from '../../../../../../../shared/modules/DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import { isEqual } from 'lodash';
 
 @Component({
     template: require('./CMSCrudButtonsWidgetOptionsComponent.pug')
@@ -28,9 +23,9 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
-    private show_add: boolean = true;
-    private show_update: boolean = true;
-    private show_delete: boolean = true;
+    private show_add: boolean = false;
+    private show_update: boolean = false;
+    private show_delete: boolean = false;
 
     private next_update_options: CMSCrudButtonsWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -57,9 +52,9 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.widget_options) {
-            this.show_add = null;
-            this.show_update = null;
-            this.show_delete = null;
+            this.show_add = false;
+            this.show_update = false;
+            this.show_delete = false;
 
             return;
         }
@@ -103,9 +98,9 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
 
     private get_default_options(): CMSCrudButtonsWidgetOptionsVO {
         return CMSCrudButtonsWidgetOptionsVO.createNew(
-            true,
-            true,
-            true,
+            false,
+            false,
+            false,
         );
     }
 
@@ -126,12 +121,38 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
         this.$emit('update_layout_widget', this.page_widget);
     }
 
-    private async switch_use_for_template() {
+    private async switch_show_add() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
         }
+
+        this.next_update_options.show_add = !this.next_update_options.show_add;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_show_update() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.show_update = !this.next_update_options.show_update;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_show_delete() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.show_delete = !this.next_update_options.show_delete;
 
         await this.throttled_update_options();
     }

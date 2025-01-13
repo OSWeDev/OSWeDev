@@ -1,39 +1,53 @@
 .list_object_widget_options_component
     template(v-if='widget_options')
         .options_separator_lvl1 {{ label('list_object_widget_options_component.separator.widget_options') }}
-        .widget_title_label {{ label('list_object_widget_options_component.widget_title.title') }}
-        .widget_title_wrapper
-            .field_ref
-                .input_wrapper
-                    Singlevofieldrefholdercomponent(
-                        :vo_field_ref="title_field_ref" @remove_field_ref="remove_title_field_ref" @add_field_ref="add_title_field_ref"
-                        :page_widget_id='page_widget ? page_widget.id : null'
-                    )
-        .widget_subtitle_label {{ label('list_object_widget_options_component.widget_subtitle.subtitle') }}
-        .widget_subtitle_wrapper
-            .field_ref
-                .input_wrapper
-                    Singlevofieldrefholdercomponent(
-                        :vo_field_ref="subtitle_field_ref" @remove_field_ref="remove_subtitle_field_ref" @add_field_ref="add_subtitle_field_ref"
-                        :page_widget_id='page_widget ? page_widget.id : null'
-                    )
+        .surtitre
+            .widget_surtitre_label {{ label('list_object_widget_options_component.widget_surtitre.surtitre') }}
+            .widget_surtitre_wrapper
+                .field_ref
+                    .input_wrapper
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="surtitre_field_ref" @remove_field_ref="remove_surtitre_field_ref" @add_field_ref="add_surtitre_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
+        .title
+            .widget_title_label {{ label('list_object_widget_options_component.widget_title.title') }}
+            .widget_title_wrapper
+                .field_ref
+                    .input_wrapper
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="title_field_ref" @remove_field_ref="remove_title_field_ref" @add_field_ref="add_title_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
+        .subtitle
+            .widget_subtitle_label {{ label('list_object_widget_options_component.widget_subtitle.subtitle') }}
+            .widget_subtitle_wrapper
+                .field_ref
+                    .input_wrapper
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="subtitle_field_ref" @remove_field_ref="remove_subtitle_field_ref" @add_field_ref="add_subtitle_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
 
-        .widget_image_label {{ label('list_object_widget_options_component.widget_image.image') }}
-        .widget_image_wrapper
-            .field_ref
-                .input_wrapper
-                    Singlevofieldrefholdercomponent(
-                        :vo_field_ref="image_field_ref" @remove_field_ref="remove_image_field_ref" @add_field_ref="add_image_field_ref"
-                        :page_widget_id='page_widget ? page_widget.id : null'
-                    )
-        .widget_number_label {{ label('list_object_widget_options_component.widget_number.number') }}
-        .widget_number_wrapper
-            .field_ref
-                .input_wrapper
-                    Singlevofieldrefholdercomponent(
-                        :vo_field_ref="number_field_ref" @remove_field_ref="remove_number_field_ref" @add_field_ref="add_number_field_ref"
-                        :page_widget_id='page_widget ? page_widget.id : null'
-                    )
+        .image
+            .widget_image_label {{ label('list_object_widget_options_component.widget_image.image') }}
+            .widget_image_wrapper
+                .field_ref
+                    .input_wrapper
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="image_field_ref" @remove_field_ref="remove_image_field_ref" @add_field_ref="add_image_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
+
+        .number        
+            .widget_number_label {{ label('list_object_widget_options_component.widget_number.number') }}
+            .widget_number_wrapper
+                .field_ref
+                    .input_wrapper
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="number_field_ref" @remove_field_ref="remove_number_field_ref" @add_field_ref="add_number_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
 
         .sort_field_ref
             .input_label {{ label('list_object_widget_options_component.sort_field_ref') }}
@@ -66,14 +80,24 @@
                         v-tooltip="label('list_object_widget_options_component.number_of_elements.tooltip')"
                     )
 
-        .display_orientation
-            .input_label {{ label('list_object_widget_options_component.display_orientation') }}
+        .type_display
+            .input_label {{ label('list_object_widget_options_component.type_display') }}
             .input_wrapper
                 .switch_toggle
-                    .input(id="Horizontal" @click="change_display_orientation('Horizontal')" name="state-d" type="radio" :class="{'selected': (display_orientation=='Horizontal') }" )
-                        label(for="Horizontal") Horizontal
-                    .input(id="Vertical" @click="change_display_orientation('Vertical')" name="state-d" type="radio" :class="{'selected': (display_orientation=='Vertical') }" )
-                        label(for="Vertical") Vertical
+                    .input(:id="'TYPE_DISPLAY_' + TYPE_DISPLAY_CARD" @click="change_type_display(TYPE_DISPLAY_CARD)" name="state-d" type="radio" :class="{'selected': (type_display==TYPE_DISPLAY_CARD) }" )
+                        label(:for="'TYPE_DISPLAY_' + TYPE_DISPLAY_CARD") {{ t(TYPE_DISPLAY_LABELS[TYPE_DISPLAY_CARD]) }}
+                    .input(:id="'TYPE_DISPLAY_' + TYPE_DISPLAY_LIST" @click="change_type_display(TYPE_DISPLAY_LIST)" name="state-d" type="radio" :class="{'selected': (type_display==TYPE_DISPLAY_LIST) }" )
+                        label(:for="'TYPE_DISPLAY_' + TYPE_DISPLAY_LIST") {{ t(TYPE_DISPLAY_LABELS[TYPE_DISPLAY_LIST]) }}
+
+        template(v-if="type_display==TYPE_DISPLAY_CARD")
+            .display_orientation
+                .input_label {{ label('list_object_widget_options_component.display_orientation') }}
+                .input_wrapper
+                    .switch_toggle
+                        .input(:id="'DISPLAY_ORIENTATION_' + DISPLAY_ORIENTATION_HORIZONTAL" @click="change_display_orientation(DISPLAY_ORIENTATION_HORIZONTAL)" name="state-d" type="radio" :class="{'selected': (display_orientation==DISPLAY_ORIENTATION_HORIZONTAL) }" )
+                            label(:for="'DISPLAY_ORIENTATION_' + DISPLAY_ORIENTATION_HORIZONTAL") {{ t(DISPLAY_ORIENTATION_LABELS[DISPLAY_ORIENTATION_HORIZONTAL]) }}
+                        .input(:id="'DISPLAY_ORIENTATION_' + DISPLAY_ORIENTATION_VERTICAL" @click="change_display_orientation(DISPLAY_ORIENTATION_VERTICAL)" name="state-d" type="radio" :class="{'selected': (display_orientation==DISPLAY_ORIENTATION_VERTICAL) }" )
+                            label(:for="'DISPLAY_ORIENTATION_' + DISPLAY_ORIENTATION_VERTICAL") {{ t(DISPLAY_ORIENTATION_LABELS[DISPLAY_ORIENTATION_VERTICAL]) }}
 
         .button_for_elements
             .input_label {{ label('list_object_widget_options_component.button_for_elements') }}

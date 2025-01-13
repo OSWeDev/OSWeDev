@@ -70,21 +70,19 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
             // On crée les routes names, mais pas les liens de menus qui seront créés dans le dashboard builder directement
             let url: string = "/dashboard/view/:dashboard_id";
-            let main_route_name: string = 'Dashboard View';
 
             this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
                 url,
-                main_route_name,
+                DashboardBuilderController.ROUTE_NAME_DASHBOARD_VIEW,
                 () => import('./viewer/DashboardViewerComponent'),
                 true,
             ));
 
             url = "/dashboard_builder";
-            main_route_name = 'DashboardBuilder';
 
             this.routes.push({
                 path: url,
-                name: main_route_name,
+                name: DashboardBuilderController.ROUTE_NAME_DASHBOARD_BUILDER,
                 component: () => import('./DashboardBuilderComponent'),
                 props: (route) => ({
                     dashboard_id: null
@@ -92,11 +90,10 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
             });
 
             url = "/dashboard_builder" + "/:dashboard_id";
-            main_route_name = 'DashboardBuilder_id';
 
             this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
                 url,
-                main_route_name,
+                DashboardBuilderController.ROUTE_NAME_DASHBOARD_BUILDER_ID,
                 () => import('./DashboardBuilderComponent'),
                 true,
             ));
@@ -107,35 +104,35 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
             // On crée les routes names, mais pas les liens de menus qui seront créés dans le cms builder directement
             this.routes.push({
                 path: '/cms/view/:dashboard_id',
-                name: 'CMS View',
+                name: DashboardBuilderController.ROUTE_NAME_CMS_VIEW,
                 component: () => import('./viewer/DashboardViewerComponent'),
                 props: true,
             });
 
             this.routes.push({
                 path: '/cms/vo/:cms_vo_api_type_id/:cms_vo_id',
-                name: 'CMS_Vo_For_Content',
+                name: DashboardBuilderController.ROUTE_NAME_CMS_VO_FOR_CONTENT,
                 component: () => import('./viewer/vo/VoViewerComponent'),
                 props: true,
             });
 
             this.routes.push({
                 path: '/cms_builder',
-                name: 'CMSBuilder',
+                name: DashboardBuilderController.ROUTE_NAME_CMS_BUILDER,
                 component: () => import('./cms_builder/CMSBuilderComponent'),
                 props: true,
             });
 
             this.routes.push({
                 path: "/cms_builder" + "/:dashboard_id",
-                name: 'CMSBuilder_id',
+                name: DashboardBuilderController.ROUTE_NAME_CMS_BUILDER_ID,
                 component: () => import('./cms_builder/CMSBuilderComponent'),
                 props: true,
             });
 
             this.routes.push({
                 path: '/cms_config',
-                name: 'CMSConfig',
+                name: DashboardBuilderController.ROUTE_NAME_CMS_CONFIG,
                 component: () => import('./cms_config/CMSConfigComponent'),
                 props: true,
             });

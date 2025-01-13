@@ -9,7 +9,7 @@ import MaxGraphCellMapper from '../graph_mapper/MaxGraphCellMapper';
 import MaxGraphEdgeMapper from '../graph_mapper/MaxGraphEdgeMapper';
 import MaxGraphMapper from '../graph_mapper/MaxGraphMapper';
 import './TablesGraphEditFormComponent.scss';
-import { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 
 @Component({
@@ -66,7 +66,20 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
              * Si le graphvoref existe pas on le crée - a priori ça ressemble à un N/N
              */
             if (this.cms_compatible_dashboards && this.cms_compatible_dashboards.length > 0) {
+                const all_graphvoref_by_dashboard_id: { [dashboard_id: number]: DashboardGraphVORefVO } = ObjectHandler.mapByNumberFieldFromArray(
+                    await query(DashboardGraphVORefVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<DashboardGraphVORefVO>().vo_type, edge.source_cell.api_type_id)
+                        .filter_by_num_has(field_names<DashboardGraphVORefVO>().dashboard_id, this.cms_compatible_dashboards.map((e) => e.id))
+                        .select_vos<DashboardGraphVORefVO>(),
+                    field_names<DashboardGraphVORefVO>().dashboard_id
+                );
+
                 for (let dashboard of this.cms_compatible_dashboards) {
+                    // Si le graph est déjà présent sur le dashboard, on ne le rajoute pas
+                    if (all_graphvoref_by_dashboard_id[dashboard.id]) {
+                        continue;
+                    }
+
                     const graphVoRef = new DashboardGraphVORefVO();
                     graphVoRef.x = 800;
                     graphVoRef.y = 80;

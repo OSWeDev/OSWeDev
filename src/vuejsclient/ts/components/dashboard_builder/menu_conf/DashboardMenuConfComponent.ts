@@ -16,6 +16,7 @@ import MenuOrganizerComponent from '../../menu/organizer/MenuOrganizerComponent'
 import VueComponentBase from '../../VueComponentBase';
 import './DashboardMenuConfComponent.scss';
 import { field_names } from '../../../../../shared/tools/ObjectHandler';
+import DashboardBuilderController from '../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 
 @Component({
     template: require('./DashboardMenuConfComponent.pug'),
@@ -58,7 +59,7 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
                 ? await ModuleDAO.getInstance().getNamedVoByName<MenuElementVO>(
                     MenuElementVO.API_TYPE_ID, 'cms__menu__' + app_name + '__' + this.dashboard.id)
                 : await ModuleDAO.getInstance().getNamedVoByName<MenuElementVO>(
-                    MenuElementVO.API_TYPE_ID, 'dashboard__menu__' + app_name + '__' + this.dashboard.id)
+                    MenuElementVO.API_TYPE_ID, 'dashboard__menu__' + app_name + '__' + this.dashboard.id);
 
             if (db_menu) {
                 this.menu_app[db_menu.app_name] = db_menu.id;
@@ -77,12 +78,12 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
         if (this.dashboard?.is_cms_compatible) {
 
             res.access_policy_name = ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS;
-            res.target = 'CMS View';
+            res.target = DashboardBuilderController.ROUTE_NAME_CMS_VIEW;
             res.name = 'cms__menu__' + app_name + '__' + this.dashboard.id;
         } else {
 
             res.access_policy_name = ModuleDashboardBuilder.POLICY_FO_ACCESS;
-            res.target = 'Dashboard View';
+            res.target = DashboardBuilderController.ROUTE_NAME_DASHBOARD_VIEW;
             res.name = 'dashboard__menu__' + app_name + '__' + this.dashboard.id;
         }
         res.app_name = app_name;
@@ -106,7 +107,7 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
                 ? await ModuleDAO.getInstance().getNamedVoByName<MenuElementVO>(
                     MenuElementVO.API_TYPE_ID, 'cms__menu__' + app_name + '__' + this.dashboard.id)
                 : await ModuleDAO.getInstance().getNamedVoByName<MenuElementVO>(
-                    MenuElementVO.API_TYPE_ID, 'dashboard__menu__' + app_name + '__' + this.dashboard.id)
+                    MenuElementVO.API_TYPE_ID, 'dashboard__menu__' + app_name + '__' + this.dashboard.id);
 
             if (this.menu_app[app_name]) {
 

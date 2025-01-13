@@ -54,12 +54,14 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
-    private display_orientation: string = "Horizontal";
+    private type_display: number = ListObjectWidgetOptionsVO.TYPE_DISPLAY_CARD;
+    private display_orientation: number = ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_HORIZONTAL;
     private number_of_elements: number = 10;
     private sort_dimension_by: string = null;
     private image_id: VOFieldRefVO = null;
     private title: VOFieldRefVO = null;
     private subtitle: VOFieldRefVO = null;
+    private surtitre: VOFieldRefVO = null;
     private number: VOFieldRefVO = null;
     private sort_field_ref: VOFieldRefVO = null;
     private button_elements: boolean = false;
@@ -71,6 +73,99 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
     private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(this.reload_options.bind(this), 50, { leading: false, trailing: true });
     private widget_options: ListObjectWidgetOptionsVO = null;
 
+    get title_field_ref(): VOFieldRefVO {
+        const options: ListObjectWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.title)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.title);
+    }
+
+    get subtitle_field_ref(): VOFieldRefVO {
+        const options: ListObjectWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.subtitle)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.subtitle);
+    }
+
+    get surtitre_field_ref(): VOFieldRefVO {
+        const options: ListObjectWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.surtitre)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.surtitre);
+    }
+
+    get image_field_ref(): VOFieldRefVO {
+        const options: ListObjectWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.image_id)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.image_id);
+    }
+
+    get number_field_ref(): VOFieldRefVO {
+        const options: ListObjectWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.number)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.number);
+    }
+
+    get url_field_ref(): VOFieldRefVO {
+        const options: ListObjectWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.url)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.url);
+    }
+
+    get _sort_field_ref(): VOFieldRefVO {
+        const options: ListObjectWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.sort_field_ref)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.sort_field_ref);
+    }
+
+    get TYPE_DISPLAY_CARD() {
+        return ListObjectWidgetOptionsVO.TYPE_DISPLAY_CARD;
+    }
+
+    get TYPE_DISPLAY_LIST() {
+        return ListObjectWidgetOptionsVO.TYPE_DISPLAY_LIST;
+    }
+
+    get TYPE_DISPLAY_LABELS() {
+        return ListObjectWidgetOptionsVO.TYPE_DISPLAY_LABELS;
+    }
+
+    get DISPLAY_ORIENTATION_HORIZONTAL() {
+        return ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_HORIZONTAL;
+    }
+
+    get DISPLAY_ORIENTATION_VERTICAL() {
+        return ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_VERTICAL;
+    }
+
+    get DISPLAY_ORIENTATION_LABELS() {
+        return ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_LABELS;
+    }
 
     @Watch('widget_options')
     private async onchange_widget_options() {
@@ -126,17 +221,19 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
     private get_default_options(): ListObjectWidgetOptionsVO {
         return ListObjectWidgetOptionsVO.createNew(
-            this.display_orientation = "Horizontal",
-            this.number_of_elements = 10,
-            this.sort_dimension_by = null,
-            this.image_id = null,
-            this.title = null,
-            this.subtitle = null,
-            this.number = null,
-            this.sort_field_ref = null,
-            this.button_elements = null,
-            this.url = null,
-            this.blank = null,
+            ListObjectWidgetOptionsVO.TYPE_DISPLAY_CARD,
+            ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_HORIZONTAL,
+            10,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
         );
     }
 
@@ -178,6 +275,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         (this.widget_options.number_of_elements == options.number_of_elements) &&
                         (this.widget_options.sort_dimension_by == options.sort_dimension_by) &&
                         (this.widget_options.subtitle == options.subtitle) &&
+                        (this.widget_options.surtitre == options.surtitre) &&
                         (this.widget_options.title == options.title) &&
                         (this.widget_options.url == options.url)
                     ) {
@@ -185,12 +283,14 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                     }
 
                     options = options ? ListObjectWidgetOptionsVO.createNew(
+                        options.type_display,
                         options.display_orientation,
                         options.number_of_elements,
                         options.sort_dimension_by,
                         options.image_id,
                         options.title,
                         options.subtitle,
+                        options.surtitre,
                         options.number,
                         options.sort_field_ref,
                         options.button_elements,
@@ -215,12 +315,14 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.next_update_options = null;
             let default_options = this.get_default_options();
 
+            this.type_display = default_options.type_display;
             this.display_orientation = default_options.display_orientation;
             this.number_of_elements = default_options.number_of_elements;
             this.sort_dimension_by = default_options.sort_dimension_by;
             this.image_id = default_options.image_id;
             this.title = default_options.title;
             this.subtitle = default_options.subtitle;
+            this.surtitre = default_options.surtitre;
             this.number = default_options.number;
             this.sort_field_ref = default_options.sort_field_ref;
             this.button_elements = default_options.button_elements;
@@ -231,6 +333,9 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             return;
         }
 
+        if (this.type_display != this.widget_options.type_display) {
+            this.type_display = this.widget_options.type_display;
+        }
         if (this.display_orientation != this.widget_options.display_orientation) {
             this.display_orientation = this.widget_options.display_orientation;
         }
@@ -248,6 +353,9 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.subtitle != this.widget_options.subtitle) {
             this.subtitle = this.widget_options.subtitle;
+        }
+        if (this.surtitre != this.widget_options.surtitre) {
+            this.surtitre = this.widget_options.surtitre;
         }
         if (this.number != this.widget_options.number) {
             this.number = this.widget_options.number;
@@ -310,18 +418,24 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         await this.throttled_update_options();
     }
 
-    private async change_display_orientation(orientation: string) {
+    private async change_type_display(type_display: number) {
         if (!this.widget_options) {
             return;
         }
+
         this.next_update_options = this.widget_options;
-        const accepted_orientations = ['Horizontal', 'Vertical'];
-        this.next_update_options = this.widget_options;
-        if (accepted_orientations.indexOf(orientation) < 0) {
+        this.next_update_options.type_display = type_display;
+
+        await this.throttled_update_options();
+    }
+
+    private async change_display_orientation(display_orientation: number) {
+        if (!this.widget_options) {
             return;
-        } else {
-            this.next_update_options.display_orientation = orientation;
         }
+
+        this.next_update_options = this.widget_options;
+        this.next_update_options.display_orientation = display_orientation;
 
         await this.throttled_update_options();
     }
@@ -359,17 +473,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         await this.throttled_update_options();
     }
 
-
-    get title_field_ref(): VOFieldRefVO {
-        const options: ListObjectWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.title)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.title);
-    }
-
     private async remove_subtitle_field_ref() {
         this.next_update_options = this.widget_options;
 
@@ -403,15 +506,37 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         await this.throttled_update_options();
     }
 
+    private async remove_surtitre_field_ref() {
+        this.next_update_options = this.widget_options;
 
-    get subtitle_field_ref(): VOFieldRefVO {
-        const options: ListObjectWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.subtitle)) {
+        if (!this.next_update_options) {
             return null;
         }
 
-        return Object.assign(new VOFieldRefVO(), options.subtitle);
+        if (!this.next_update_options.surtitre) {
+            return null;
+        }
+
+        this.next_update_options.surtitre = null;
+
+        await this.throttled_update_options();
+    }
+
+    private async add_surtitre_field_ref(api_type_id: string, field_id: string) {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        const dimension_vo_field_ref = new VOFieldRefVO();
+        dimension_vo_field_ref.api_type_id = api_type_id;
+        dimension_vo_field_ref.field_id = field_id;
+        dimension_vo_field_ref.weight = 0;
+
+        this.next_update_options.surtitre = dimension_vo_field_ref;
+
+        await this.throttled_update_options();
     }
 
     private async remove_image_field_ref() {
@@ -447,17 +572,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         await this.throttled_update_options();
     }
 
-
-    get image_field_ref(): VOFieldRefVO {
-        const options: ListObjectWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.image_id)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.image_id);
-    }
-
     private async remove_number_field_ref() {
         this.next_update_options = this.widget_options;
 
@@ -489,17 +603,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         this.next_update_options.number = dimension_vo_field_ref;
 
         await this.throttled_update_options();
-    }
-
-
-    get number_field_ref(): VOFieldRefVO {
-        const options: ListObjectWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.number)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.number);
     }
 
     private async remove_url_field_ref() {
@@ -535,17 +638,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         await this.throttled_update_options();
     }
 
-
-    get url_field_ref(): VOFieldRefVO {
-        const options: ListObjectWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.url)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.url);
-    }
-
     private async remove_sort_field_ref() {
         this.next_update_options = this.widget_options;
 
@@ -578,16 +670,4 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         await this.throttled_update_options();
     }
-
-
-    get _sort_field_ref(): VOFieldRefVO {
-        const options: ListObjectWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.sort_field_ref)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.sort_field_ref);
-    }
-
 }

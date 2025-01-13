@@ -3615,6 +3615,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'cms_bloc_text.widget_option.sous_titre.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Sur-titre" },
+            'cms_bloc_text.widget_option.sur_titre.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Contenu" },
             'cms_bloc_text.widget_option.contenu.___LABEL___'
         ));
@@ -3667,6 +3671,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Sous-titres" },
             'list_object_widget_options_component.widget_subtitle.subtitle.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Sur-titre" },
+            'list_object_widget_options_component.widget_surtitre.surtitre.___LABEL___'
+        ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Images" },
@@ -3691,6 +3699,26 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Orientation" },
             'list_object_widget_options_component.display_orientation.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Card" },
+            'ListObjectWidgetOptionsVO.type_display_card.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Liste" },
+            'ListObjectWidgetOptionsVO.type_display_list.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Horizontal" },
+            'ListObjectWidgetOptionsVO.display_orientation_horizontal.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Vertical" },
+            'ListObjectWidgetOptionsVO.display_orientation_vertical.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Type d'affichage" },
+            'list_object_widget_options_component.type_display.___LABEL___'
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
@@ -3834,6 +3862,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Champ sous-titre à utiliser pour le template (dynamique)" },
             'cms_image.widget_option.sous_titre_field_ref_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ sur-titre à utiliser pour le template (dynamique)" },
+            'cms_image.widget_option.sur_titre_field_ref_for_template.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Champ titre à utiliser pour le template (dynamique)" },

@@ -1,6 +1,3 @@
-import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
-import 'quill/dist/quill.core.css'; // Compliqué à lazy load
-import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -43,12 +40,18 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_cms_vo: IDistantVOBase;
 
+    @ModuleDashboardPageGetter
+    private get_Crudcreatemodalcomponent: CRUDCreateModalComponent;
+
+    @ModuleDashboardPageGetter
+    private get_Crudupdatemodalcomponent: CRUDUpdateModalComponent;
+
     @ModuleDAOAction
     private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
-    private show_add: boolean = true;
-    private show_update: boolean = true;
-    private show_delete: boolean = true;
+    private show_add: boolean = false;
+    private show_update: boolean = false;
+    private show_delete: boolean = false;
 
     private has_access_to_add: boolean = false;
     private has_access_to_update: boolean = false;
@@ -84,9 +87,9 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.widget_options) {
-            this.show_add = true;
-            this.show_update = true;
-            this.show_delete = true;
+            this.show_add = false;
+            this.show_update = false;
+            this.show_delete = false;
 
             return;
         }
@@ -100,12 +103,24 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
         this.user = VueAppController.getInstance().data_user;
 
         if (this.get_cms_vo?._type) {
-            this.has_access_to_add = await ModuleAccessPolicy.getInstance().testAccess(
-                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.get_cms_vo._type));
-            this.has_access_to_update = await ModuleAccessPolicy.getInstance().testAccess(
-                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.get_cms_vo._type));
-            this.has_access_to_delete = await ModuleAccessPolicy.getInstance().testAccess(
-                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.get_cms_vo._type));
+            const promises = [];
+
+            promises.push((async () => {
+                this.has_access_to_add = await ModuleAccessPolicy.getInstance().testAccess(
+                    DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.get_cms_vo._type));
+            })());
+
+            promises.push((async () => {
+                this.has_access_to_update = await ModuleAccessPolicy.getInstance().testAccess(
+                    DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.get_cms_vo._type));
+            })());
+
+            promises.push((async () => {
+                this.has_access_to_delete = await ModuleAccessPolicy.getInstance().testAccess(
+                    DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.get_cms_vo._type));
+            })());
+
+            await Promise.all(promises);
         }
 
         this.onchange_widget_options();
@@ -117,14 +132,14 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
 
     private open_add_modal() {
         if (this.get_cms_vo?._type) {
-            (this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent).open_modal(this.get_cms_vo._type,
+            this.get_Crudcreatemodalcomponent.open_modal(this.get_cms_vo._type,
                 this.storeDatas,
                 this.update_visible_options.bind(this)
             );
         }
     }
     private open_update_modal() {
-        (this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent).open_modal(
+        this.get_Crudupdatemodalcomponent.open_modal(
             this.get_cms_vo,
             this.storeDatas,
             this.update_visible_options.bind(this)

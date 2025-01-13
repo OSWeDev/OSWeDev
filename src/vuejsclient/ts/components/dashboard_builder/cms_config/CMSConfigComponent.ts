@@ -119,7 +119,9 @@ export default class CMSConfigComponent extends VueComponentBase {
             const dashboard_api_type_ids: string[] = [];
 
             for (const i in dbb_graphs_cms) {
-                dashboard_api_type_ids.push(dbb_graphs_cms[i].vo_type);
+                if (!dashboard_api_type_ids.includes(dbb_graphs_cms[i].vo_type)) {
+                    dashboard_api_type_ids.push(dbb_graphs_cms[i].vo_type);
+                }
             }
 
             this.set_dashboard_api_type_ids(dashboard_api_type_ids);

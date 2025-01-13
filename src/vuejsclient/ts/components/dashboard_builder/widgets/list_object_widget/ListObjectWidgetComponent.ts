@@ -19,6 +19,10 @@ import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './ListObjectWidgetComponent.scss';
+import { debounce } from 'lodash';
+import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 
 @Component({
     template: require('./ListObjectWidgetComponent.pug'),
@@ -51,12 +55,13 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
     private titles: any[] = [];
     private subtitles: any[] = [];
+    private surtitres: any[] = [];
     private image_paths: string[] = [];
     private numbers: any[] = [];
     private urls: any[] = [];
-    private max_range_nb: number[] = [];
+    private nb_elements: number[] = [];
 
-    private throttle_reload_values = ThrottleHelper.declare_throttle_without_args(this.reload_values.bind(this), 300, { leading: false });
+    private throttle_do_update_visible_options = debounce(this.do_update_visible_options.bind(this), 500);
 
     get widget_options(): ListObjectWidgetOptionsVO {
         if (!this.page_widget) {
@@ -84,23 +89,54 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         }
     }
 
+    get TYPE_DISPLAY_CARD() {
+        return ListObjectWidgetOptionsVO.TYPE_DISPLAY_CARD;
+    }
+
+    get TYPE_DISPLAY_LIST() {
+        return ListObjectWidgetOptionsVO.TYPE_DISPLAY_LIST;
+    }
+
     @Watch('widget_options')
     @Watch('get_active_field_filters', { immediate: true, deep: true })
     private onchange_widget_options() {
-        this.throttle_reload_values();
+        this.throttle_do_update_visible_options();
     }
 
-    private async reload_values() {
+    private async do_update_visible_options() {
         if (!this.widget_options) {
             return;
         }
 
-        this.titles = await this.get_titles();
-        this.subtitles = await this.get_subtitles();
-        this.image_paths = await this.get_image_paths();
-        this.numbers = await this.get_numbers();
-        this.urls = await this.get_urls();
-        this.max_range_nb = Array.from({ length: Math.max(...[this.titles.length, this.subtitles.length, this.image_paths.length, this.numbers.length, this.urls.length]) }, (x, i) => i);
+        const promises = [];
+
+        promises.push((async () => {
+            this.titles = await this.get_titles();
+        })());
+
+        promises.push((async () => {
+            this.subtitles = await this.get_subtitles();
+        })());
+
+        promises.push((async () => {
+            this.surtitres = await this.get_surtitres();
+        })());
+
+        promises.push((async () => {
+            this.image_paths = await this.get_image_paths();
+        })());
+
+        promises.push((async () => {
+            this.numbers = await this.get_numbers();
+        })());
+
+        promises.push((async () => {
+            this.urls = await this.get_urls();
+        })());
+
+        await Promise.all(promises);
+
+        this.nb_elements = Array.from({ length: Math.max(...[this.titles.length, this.subtitles.length, this.surtitres.length, this.image_paths.length, this.numbers.length, this.urls.length]) }, (x, i) => i);
     }
 
     private async get_titles() {
@@ -125,11 +161,8 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         }
 
         const titles = await query_.select_vos();
-        const res = [];
-        for (const title of titles) {
-            res.push(title[this.widget_options.title.field_id]);
-        }
-        return res;
+
+        return this.get_values_formatted(titles, this.widget_options.title.field_id, this.widget_options.title.api_type_id);
     }
 
     private async get_subtitles() {
@@ -155,11 +188,35 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         }
 
         const subtitles = await query_.select_vos();
-        const res = [];
-        for (const subtitle of subtitles) {
-            res.push(subtitle[this.widget_options.subtitle.field_id]);
+
+        return this.get_values_formatted(subtitles, this.widget_options.subtitle.field_id, this.widget_options.subtitle.api_type_id);
+    }
+
+    private async get_surtitres() {
+        if (!this.widget_options.surtitre || !this.widget_options.surtitre.api_type_id || !this.widget_options.surtitre.field_id) {
+            return [];
         }
-        return res;
+
+        const query_ = await query(this.widget_options.surtitre.api_type_id)
+            .set_limit(this.widget_options.number_of_elements)
+            .using(this.get_dashboard_api_type_ids)
+            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+            ));
+
+        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
+
+        if (this.widget_options.sort_dimension_by && this.widget_options.sort_field_ref) {
+            query_.set_sort(new SortByVO(
+                this.widget_options.sort_field_ref.api_type_id,
+                this.widget_options.sort_field_ref.field_id,
+                this.sort_by_asc
+            ));
+        }
+
+        const surtitres = await query_.select_vos();
+
+        return this.get_values_formatted(surtitres, this.widget_options.surtitre.field_id, this.widget_options.surtitre.api_type_id);
     }
 
     private async get_image_paths() {
@@ -240,11 +297,8 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         }
 
         const numbers = await query_.select_vos();
-        const res = [];
-        for (const number of numbers) {
-            res.push(number[this.widget_options.number.field_id]);
-        }
-        return res;
+
+        return this.get_values_formatted(numbers, this.widget_options.number.field_id, this.widget_options.number.api_type_id);
     }
 
     private async get_urls() {
@@ -269,10 +323,19 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         }
 
         const urls = await query_.select_vos();
+
+        return this.get_values_formatted(urls, this.widget_options.url.field_id, this.widget_options.url.api_type_id);
+    }
+
+    private get_values_formatted(vos: IDistantVOBase[], field_id: string, api_type_id: string) {
         const res = [];
-        for (const url of urls) {
-            res.push(url[this.widget_options.url.field_id]);
+        const field: SimpleDatatableFieldVO<any, any> = SimpleDatatableFieldVO.createNew(field_id)
+            .setModuleTable(ModuleTableController.module_tables_by_vo_type[api_type_id]);
+
+        for (const vo of vos) {
+            res.push(field.dataToReadIHM(vo[field_id], vo));
         }
+
         return res;
     }
 }
