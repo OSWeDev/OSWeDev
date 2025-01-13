@@ -31,6 +31,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     public static FIELD_TYPE_email: string = 'email';
     public static FIELD_TYPE_string: string = 'text';
     public static FIELD_TYPE_color: string = 'color';
+    public static FIELD_TYPE_color_array: string = 'color[]';
     public static FIELD_TYPE_plain_vo_obj: string = 'plain_vo_obj';
     public static FIELD_TYPE_textarea: string = 'textarea';
     public static FIELD_TYPE_enum: string = 'enum';
@@ -497,6 +498,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
                 return (db_type == "numeric");
 
             case ModuleTableFieldVO.FIELD_TYPE_string_array:
+            case ModuleTableFieldVO.FIELD_TYPE_color_array:
             case ModuleTableFieldVO.FIELD_TYPE_html_array:
                 return (db_type == "text[]") || (db_type == "ARRAY");
 
@@ -603,6 +605,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
 
             case ModuleTableFieldVO.FIELD_TYPE_string_array:
             case ModuleTableFieldVO.FIELD_TYPE_html_array:
+            case ModuleTableFieldVO.FIELD_TYPE_color_array:
                 return "text[]";
 
             case ModuleTableFieldVO.FIELD_TYPE_float_array:

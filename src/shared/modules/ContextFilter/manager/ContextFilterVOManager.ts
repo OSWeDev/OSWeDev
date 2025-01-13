@@ -113,6 +113,7 @@ export default class ContextFilterVOManager {
             case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+            case ModuleTableFieldVO.FIELD_TYPE_color_array:
             case ModuleTableFieldVO.FIELD_TYPE_string_array:
             case ModuleTableFieldVO.FIELD_TYPE_html_array:
                 context_filter.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;

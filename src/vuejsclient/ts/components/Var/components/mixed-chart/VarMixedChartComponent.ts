@@ -491,7 +491,12 @@ export default class VarMixedChartComponent extends VueComponentBase {
                 pointStyle: chart_var_dataset_descriptor.show_points,
                 fill: charts_scales_options.fill ? charts_scales_options.fill : false,
                 datalabels: {
-                    display: chart_var_dataset_descriptor.activate_datalabels,
+                    display: chart_var_dataset_descriptor.activate_datalabels ? 'auto' : false,
+                    listeners: {
+                        click: function (context, event) {
+                            console.log('label ' + context.dataIndex + ' has been clicked!');
+                        }
+                    },
                     align: 'end',
                     anchor: 'end',
                     clamp: true,

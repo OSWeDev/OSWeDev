@@ -110,6 +110,8 @@ export default class AssistantVoFieldDescription {
                 return 'array of floats';
             case ModuleTableFieldVO.FIELD_TYPE_string_array:
                 return 'array of strings';
+            case ModuleTableFieldVO.FIELD_TYPE_color_array:
+                return 'array of colors';
             case ModuleTableFieldVO.FIELD_TYPE_prct:
                 return 'percentage as float (1 == 100%)';
             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
