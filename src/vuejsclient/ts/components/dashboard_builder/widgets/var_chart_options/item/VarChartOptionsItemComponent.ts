@@ -33,6 +33,9 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     })
     private options: VarChartOptionsVO;
 
+    @Prop({ default: false })
+    private detailed: boolean;
+
     @Prop({ default: null })
     private page_widget_id: number;
 
@@ -172,6 +175,9 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
             this.selected_var_name = this.var_id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.var_id));
         }
 
+        if(!this.detailed) {
+            this.border_width = 0;
+        }
         this.options_props = this.options;
         this.selected_filter_name = this.options_props.selected_filter_name ? this.options_props.selected_filter_name : null;
     }
