@@ -100,6 +100,11 @@ export default class VarMixedChartComponent extends VueComponentBase {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
 
+    private hide_values = [
+        {id: Number},
+        {hide: Boolean}
+    ];
+
     get all_data_loaded(): boolean {
 
         if (
@@ -494,7 +499,11 @@ export default class VarMixedChartComponent extends VueComponentBase {
                     display: chart_var_dataset_descriptor.activate_datalabels ? 'auto' : false,
                     listeners: {
                         click: function (context, event) {
-                            console.log('label ' + context.dataIndex + ' has been clicked!');
+                            if (this.hide_values[context.dataIndex].hide) {
+                                this.hide_values[context.dataIndex].hide = false;
+                            } else {
+                                this.hide_values[context.dataIndex].hide = true;
+                            }
                         }
                     },
                     align: 'end',
@@ -514,7 +523,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
         }
 
     }
-    private getLabelsForVar(value, current_var: VarMixedChartDataSetDescriptor) {
+    private getLabelsForVar(value, current_var: VarMixedChartDataSetDescriptor, index) {
         if (current_var.filters_types == 'none') {
             return value;
         }
@@ -535,7 +544,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
     private get_var_ticks_callback(current_var: VarMixedChartDataSetDescriptor) {
         return (value, index, values) => {
-            return this.getLabelsForVar(value, current_var);
+            return this.getLabelsForVar(value, current_var, index);
         };
     }
 
