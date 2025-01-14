@@ -1734,6 +1734,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 case ModuleTableFieldVO.FIELD_TYPE_float_array:
                 case ModuleTableFieldVO.FIELD_TYPE_int_array:
                 case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                case ModuleTableFieldVO.FIELD_TYPE_color_array:
                 case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                 case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                 case ModuleTableFieldVO.FIELD_TYPE_daterange:
@@ -1863,6 +1864,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 case ModuleTableFieldVO.FIELD_TYPE_int_array:
                 case ModuleTableFieldVO.FIELD_TYPE_float_array:
                 case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                case ModuleTableFieldVO.FIELD_TYPE_color_array:
                 case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                 case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                 case ModuleTableFieldVO.FIELD_TYPE_daterange:

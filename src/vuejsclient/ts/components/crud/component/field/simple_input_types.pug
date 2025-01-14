@@ -246,6 +246,14 @@
             v-model="field_value", :id="input_elt_id" :vo="vo", :field="field", :required="field.is_required",
             :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="text",
             @input_with_infos="validateMultiInput")
+    template(v-else-if="field_type == 'color[]'")
+        Multiinputcomponent(
+            :class="{'valign-middle': show_pencil_btn}"
+            ref="input_elt"
+            :inline_input_mode='inline_input_mode'
+            v-model="field_value", :id="input_elt_id" :vo="vo", :field="field", :required="field.is_required",
+            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="color",
+            @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'html_array'")
         Multiinputcomponent(
             :class="{'valign-middle': show_pencil_btn}"

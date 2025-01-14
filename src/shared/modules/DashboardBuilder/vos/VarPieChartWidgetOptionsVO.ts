@@ -5,6 +5,7 @@ import VarConfVO from "../../Var/vos/VarConfVO";
 import VOFieldRefVO from "./VOFieldRefVO";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import Filters from '../../../../shared/tools/Filters';
+import DashboardGraphColorPaletteVO from "./DashboardGraphColorPaletteVO";
 
 /**
  * On va gérer 2 types de paramétrages :
@@ -73,7 +74,7 @@ export default class VarPieChartWidgetOptionsVO extends AbstractVO {
 
         public filter_custom_field_filters_1: { [field_id: string]: string },
 
-        public color_palette: string[],
+        public color_palette: DashboardGraphColorPaletteVO,
         public bg_colors: string[],
         public bg_gradient: boolean,
         public bg_color_1: string,
@@ -152,7 +153,7 @@ export default class VarPieChartWidgetOptionsVO extends AbstractVO {
             null,
 
             {},
-            [],
+            null,
             [],
             null,
 

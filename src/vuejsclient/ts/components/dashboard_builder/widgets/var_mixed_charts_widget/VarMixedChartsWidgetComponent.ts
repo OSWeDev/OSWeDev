@@ -37,6 +37,7 @@ import VarChartScalesOptionsVO from '../../../../../../shared/modules/DashboardB
 import VarChartOptionsItemComponent from '../var_chart_options/item/VarChartOptionsItemComponent';
 import Filters from '../../../../../../shared/tools/Filters';
 import VarChartOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
+import { enabled } from 'screenfull';
 
 @Component({
     template: require('./VarMixedChartsWidgetComponent.pug')
@@ -284,14 +285,6 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 fill: this.widget_options.var_charts_options.some((option) => option.type == 'line') ? true : false,
                 tension: this.widget_options.var_charts_options.some((option) => option.type == 'line') ? 0.2 : 0,
                 maintainAspectRatio: false,
-                animations: this.widget_options.var_charts_options.some((option) => option.type == 'line') ? {
-                    tension: {
-                        duration: 1000,
-                        easing: 'linear',
-                        from: 0.5,
-                        to: 0.2,
-                    }
-                } : {},
                 plugins: {
                     title: {
                         display: this.get_bool_option('title_display', true),
@@ -481,7 +474,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 let is_rbga = true;
                 let colors = [];
 
-                if (var_chart_options.has_gradient) {
+                if (var_chart_options.has_gradient && var_chart_options.type!= 'line') {
                     // tentative de faire un dégradé automatique de couleur pour les dimensions.
                     // à voir comment on peut proposer de paramétrer cette partie
 
@@ -525,7 +518,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                         }
                     } else {
                         const index_for_color: number = parseInt(key) + parseInt(j);
-                        let color = var_chart_options.color_palette[index_for_color];
+                        let color = var_chart_options.color_palette.colors[index_for_color];
 
                         if (!color) {
                             color = this.getRandomColor();
@@ -560,25 +553,23 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                             color = this.hexToRgbA(color);
                             if (var_chart_options.type == 'line') {
                                 color += ' 1)';
+                                border_color[i] = var_chart_options.border_color;
                             } else {
                                 color += ' 0.6)';
+                                border_color[i] = this.hexToRgbA(colors[i]) + '1)';
                             }
-                            border_color[i] = this.hexToRgbA(colors[i]) + '1)';
                             colors[i] = color;
                         } else {
                             const temp_bgcol = color.split(',');
-                            if (!var_chart_options.has_gradient) {
-
-                                if (var_chart_options.type == 'line') {
-                                    color = temp_bgcol[0] + ',' + temp_bgcol[1] + ',' + temp_bgcol[2] + ',1)';
-                                } else {
+                            if (var_chart_options.type == 'bar') {
+                                if (!var_chart_options.has_gradient) {
                                     color = temp_bgcol[0] + ',' + temp_bgcol[1] + ',' + temp_bgcol[2] + ',0.6)';
+                                    border_color[i] = temp_bgcol[0] + ',' + temp_bgcol[1] + ',' + temp_bgcol[2] + ',1)';
+                                    colors[i] = color;
                                 }
-
-                                border_color[i] = temp_bgcol[0] + ',' + temp_bgcol[1] + ',' + temp_bgcol[2] + ',1)';
-                                colors[i] = color;
+                            } else {
+                                border_color[i] = var_chart_options.border_color;
                             }
-                            border_color[i] = temp_bgcol[0] + ',' + temp_bgcol[1] + ',' + temp_bgcol[2] + ',1)';
                         }
                     }
                 } else {

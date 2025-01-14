@@ -1,5 +1,6 @@
 
 import AbstractVO from "../../VO/abstract/AbstractVO";
+import DashboardGraphColorPaletteVO from "./DashboardGraphColorPaletteVO";
 /**
  * The VarChartOptionsVO
  *
@@ -22,7 +23,7 @@ export default class VarChartOptionsVO extends AbstractVO {
         public show_values?: boolean,
         public show_zeros?: boolean,
         public filter_type?: string,
-        public color_palette?: string[],
+        public color_palette?: DashboardGraphColorPaletteVO,
         public filter_additional_params?: string,
         public stacked?: boolean,
         public fill?: boolean

@@ -80,6 +80,7 @@ export default class ContextQueryFieldServerController {
                 break;
 
             case ModuleTableFieldVO.FIELD_TYPE_html_array:
+            case ModuleTableFieldVO.FIELD_TYPE_color_array:
             case ModuleTableFieldVO.FIELD_TYPE_string_array:
                 use_default_res = false;
                 for (const i in db_res) {
