@@ -25,6 +25,22 @@ export default class StatsController {
     public static ACTIVATED: boolean = false;
 
     /**
+     * Pour filtrer les stats qu'on active. Si c'est null pas de filtre. A modifier probablement plus tard pour voir comment on rend ce param flexible
+     */
+    public static FILTRER_STAT_CATEGORY: { [category: string]: boolean } = null;
+
+    /**
+     * Pour filtrer les stats qu'on active. Si c'est null pas de filtre. A modifier probablement plus tard pour voir comment on rend ce param flexible
+     */
+    public static FILTRER_STAT_SUB_CATEGORY: { [sub_category: string]: boolean } = null;
+
+    /**
+     * Pour filtrer les stats qu'on active. Si c'est null pas de filtre. A modifier probablement plus tard pour voir comment on rend ce param flexible
+     */
+    public static FILTRER_STAT_EVENT: { [event: string]: boolean } = null;
+
+
+    /**
      * Le server doit initialiser le THREAD_NAME en fonction du thread. Côté client on garde la valeur par défaut.
      */
 
@@ -43,6 +59,25 @@ export default class StatsController {
 
     public static throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
         StatsController.unstack_stats.bind(StatsController.getInstance()), 5000, { leading: false, trailing: true }); // defaults to 1 minute
+
+
+    private static instance: StatsController = null;
+
+    private static first_unstacking_date: number = null;
+    private static is_unstacking: boolean = false;
+
+    private UNSTACK_THROTTLE_: number = 5000;
+    private constructor() { }
+
+    get UNSTACK_THROTTLE(): number {
+        return this.UNSTACK_THROTTLE_;
+    }
+
+    set UNSTACK_THROTTLE(throttle: number) {
+        this.UNSTACK_THROTTLE_ = throttle;
+        StatsController.throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
+            StatsController.unstack_stats.bind(StatsController.getInstance()), this.UNSTACK_THROTTLE_, { leading: false, trailing: true });
+    }
 
     public static get_aggregator_extension(aggregator: number): string {
         switch (aggregator) {
@@ -94,6 +129,10 @@ export default class StatsController {
             return;
         }
 
+        if (!StatsController.filter_stat(category_name, sub_category_name, event_name)) {
+            return;
+        }
+
         for (const i in StatVO.AGGREGATOR_LABELS) {
             StatsController.register_stat_agg(
                 category_name, sub_category_name, event_name, StatsTypeVO.TYPE_COMPTEUR,
@@ -113,6 +152,10 @@ export default class StatsController {
         duree_ms: number, min_segment_type: number = TimeSegment.TYPE_MINUTE) {
 
         if (!StatsController.ACTIVATED) {
+            return;
+        }
+
+        if (!StatsController.filter_stat(category_name, sub_category_name, event_name)) {
             return;
         }
 
@@ -138,6 +181,10 @@ export default class StatsController {
             return;
         }
 
+        if (!StatsController.filter_stat(category_name, sub_category_name, event_name)) {
+            return;
+        }
+
         for (const i in StatVO.AGGREGATOR_LABELS) {
             StatsController.register_stat_agg(
                 category_name, sub_category_name, event_name, StatsTypeVO.TYPE_QUANTITE,
@@ -159,6 +206,10 @@ export default class StatsController {
         value: number, aggregator: number, min_segment_type: number, force_timestamp: number = null, force_thread_name: string = null) {
 
         if (!StatsController.ACTIVATED) {
+            return;
+        }
+
+        if (!StatsController.filter_stat(category_name, sub_category_name, event_name)) {
             return;
         }
 
@@ -193,11 +244,6 @@ export default class StatsController {
         StatsController.stacked_registered_stats_by_group_name[stats_name].push(stat);
         StatsController.throttled_unstack_stats();
     }
-
-    private static instance: StatsController = null;
-
-    private static first_unstacking_date: number = null;
-    private static is_unstacking: boolean = false;
 
     private static async unstack_stats() {
 
@@ -377,16 +423,20 @@ export default class StatsController {
         }
     }
 
-    private UNSTACK_THROTTLE_: number = 5000;
-    private constructor() { }
+    private static filter_stat(category_name: string, sub_category_name: string, event_name: string): boolean {
 
-    get UNSTACK_THROTTLE(): number {
-        return this.UNSTACK_THROTTLE_;
-    }
+        if (StatsController.FILTRER_STAT_CATEGORY && (!StatsController.FILTRER_STAT_CATEGORY[category_name])) {
+            return false;
+        }
 
-    set UNSTACK_THROTTLE(throttle: number) {
-        this.UNSTACK_THROTTLE_ = throttle;
-        StatsController.throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
-            StatsController.unstack_stats.bind(StatsController.getInstance()), this.UNSTACK_THROTTLE_, { leading: false, trailing: true });
+        if (StatsController.FILTRER_STAT_SUB_CATEGORY && (!StatsController.FILTRER_STAT_SUB_CATEGORY[sub_category_name])) {
+            return false;
+        }
+
+        if (StatsController.FILTRER_STAT_EVENT && (!StatsController.FILTRER_STAT_EVENT[event_name])) {
+            return false;
+        }
+
+        return true;
     }
 }
