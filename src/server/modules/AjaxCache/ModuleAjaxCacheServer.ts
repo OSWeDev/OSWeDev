@@ -7,10 +7,13 @@ import ModuleAjaxCache from '../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import RequestsWrapperResult from '../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import { IRequestStackContext } from '../../ServerExpressController';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -92,8 +95,11 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         const res: RequestsWrapperResult = new RequestsWrapperResult();
         res.requests_results = {};
 
-        const limit = ConfigurationService.node_configuration.max_pool / 2;
-        const promise_pipeline = new PromisePipeline(limit, 'ModuleAjaxCacheServer.requests_wrapper');
+        // On tente sans promise pipeline par ce qu'en réalité je suis pas sur de l'intéret ici. On promisepipeline les appels à la base de données, mais pas les appels à des APIs
+        // à creuser. En l'occurrence ce pipeline explose bien avant celui des requetes en base de données.
+        // const limit = ConfigurationService.node_configuration.max_pool / 2;
+        // const promise_pipeline = PromisePipeline.get_semaphore_pipeline('ModuleAjaxCacheServer.requests_wrapper', limit);
+        const promises = [];
 
         for (const i in requests) {
             const wrapped_request: LightWeightSendableRequestVO = requests[i];
@@ -102,7 +108,8 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 continue;
             }
 
-            await promise_pipeline.push(async () => {
+            promises.push((async () => {
+                // await promise_pipeline.push(async () => {
 
                 // /**
                 //  * FIXME DELETE ME DEBUG ONLY JNE
@@ -169,8 +176,14 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                 const params = (param && apiDefinition.param_translator) ? apiDefinition.param_translator.getAPIParams(param) : [param];
                 try {
+
+                    StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'api.SERVER_HANDLER', apiDefinition.api_name);
+                    const date_in_ms = Dates.now_ms();
+
                     const api_res = await apiDefinition.SERVER_HANDLER(...params);
                     res.requests_results[wrapped_request.index] = (typeof api_res === 'undefined') ? null : api_res;
+
+                    StatsController.register_stat_DUREE('ModuleAPIServer', 'api.SERVER_HANDLER', apiDefinition.api_name, Dates.now_ms() - date_in_ms);
                 } catch (error) {
                     const session: IServerUserSession = (req as any).session;
                     ConsoleHandler.error('Erreur API:requests_wrapper:' + apiDefinition.api_name + ':' + ' sessionID:' + (req as any).sessionID + ": UID:" + (session ? session.uid : "null") + ":error:" + error + ':');
@@ -185,11 +198,12 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 //  * ! FIXME DELETE ME DEBUG ONLY JNE
                 //  */
 
-            });
-
+                // });
+            })());
         }
 
-        await promise_pipeline.end();
+        // await promise_pipeline.end();
+        await all_promises(promises);
 
         // /**
         //  * FIXME DELETE ME DEBUG ONLY JNE

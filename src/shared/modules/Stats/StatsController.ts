@@ -104,9 +104,9 @@ export default class StatsController {
 
     public static async init_params() {
 
-        if (!StatsController.ACTIVATED) {
-            return;
-        }
+        // if (!StatsController.ACTIVATED) {
+        //     return;
+        // }
 
         const default_value = 60000;
         if ((!!StatsController.getInstance().UNSTACK_THROTTLE) && (StatsController.getInstance().UNSTACK_THROTTLE !== default_value)) {

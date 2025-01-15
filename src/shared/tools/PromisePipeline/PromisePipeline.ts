@@ -86,6 +86,7 @@ export default class PromisePipeline {
             n++;
 
             StatsController.register_stat_QUANTITE('PromisePipeline', promise_pipeline.stat_name, 'RUNNING', promise_pipeline.nb_running_promises);
+            StatsController.register_stat_QUANTITE('PromisePipeline', promise_pipeline.stat_name, 'EMPTY_SLOTS', promise_pipeline.max_concurrent_promises - promise_pipeline.nb_running_promises);
             if (PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS) {
                 ConsoleHandler.log('PromisePipeline:STATS:' + promise_pipeline.stat_name + ':' + promise_pipeline.uid + ':' + promise_pipeline.nb_running_promises);
             }

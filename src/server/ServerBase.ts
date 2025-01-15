@@ -218,6 +218,21 @@ export default abstract class ServerBase {
         // this.jwtSecret = 'This is the jwt secret for the rest part';
 
         const pgp: pg_promise.IMain = pg_promise({
+            receive: StatsController.ACTIVATED ?
+                (e: { data: any[]; result: void | IResultExt<unknown>; ctx: IEventContext<IClient>; }) => {
+
+                    StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'receive');
+
+                    /**
+                     * On stocke l'info de la taille des requetes si en plus d'etre en stats on est en debug_top_10_query_size
+                     */
+                    const size_ko = Buffer.byteLength(JSON.stringify(e.data), 'utf8');
+                    StatsServerController.pgsql_queries_log.push({
+                        query: e.ctx.query,
+                        size_ko: size_ko
+                    });
+
+                } : null,
             connect: StatsController.ACTIVATED ?
                 async (e: { client: IClient, dc: any, useCount: number }) => {
                     StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'connect');

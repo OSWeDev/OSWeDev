@@ -196,6 +196,8 @@ export default class ModuleEnvParam extends Module {
         // DEBUG_VO_EVENTS ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_vo_events, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug VO events', true);
 
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_top_10_query_size, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug top 10 query size', true, true, false);
+
         // DEBUG_PROMISE_PIPELINE ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_promise_pipeline, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug promise pipeline', true);
         // DEBUG_PROMISE_PIPELINE_WORKER_STATS ?: boolean;

@@ -170,4 +170,6 @@ export default class EnvParam implements IEnvParam {
     public log_login_redirects?: boolean = false;
 
     public activate_async_hook_for_promise_watch?: boolean = false;
+
+    public debug_top_10_query_size?: boolean = false;
 }

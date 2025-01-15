@@ -146,4 +146,6 @@ export default interface IEnvParam {
     log_login_redirects?: boolean;
 
     activate_async_hook_for_promise_watch?: boolean;
+
+    debug_top_10_query_size?: boolean;
 }

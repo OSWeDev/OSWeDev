@@ -59,6 +59,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     private legend_use_point_style: boolean = false;
     private title_display: boolean = false;
     private has_dimension: boolean = true;
+    private tooltip_by_index: boolean = false;
     private sort_dimension_by_asc: boolean = false;
     private hide_filter: boolean = false;
     private dimension_is_vo_field_ref: boolean = false;
@@ -732,6 +733,22 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     }
 
     /**
+     * switch_tooltip_by_index
+     *
+     * @returns {void}
+     */
+    private async switch_tooltip_by_index() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.tooltip_by_index = !this.tooltip_by_index;
+        await this.throttled_update_options();
+    }
+
+    /**
      * switch_has_dimension
      *
      * @returns {void}
@@ -1000,6 +1017,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             this.legend_use_point_style = false;
 
             this.title_display = false;
+            this.tooltip_by_index = false;
             this.title_font_color = '#666';
             this.title_font_size = '16';
             this.title_padding = '10';
@@ -1043,6 +1061,9 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
 
         if (this.title_display != this.widget_options.title_display) {
             this.title_display = this.widget_options.title_display;
+        }
+        if (this.tooltip_by_index != this.widget_options.tooltip_by_index) {
+            this.tooltip_by_index = this.widget_options.tooltip_by_index;
         }
         if (((!this.widget_options.title_font_size) && this.title_font_size) || (this.widget_options.title_font_size && (this.title_font_size != this.widget_options.title_font_size.toString()))) {
             this.title_font_size = this.widget_options.title_font_size ? this.widget_options.title_font_size.toString() : null;

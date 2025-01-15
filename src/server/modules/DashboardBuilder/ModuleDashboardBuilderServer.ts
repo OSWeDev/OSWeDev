@@ -246,6 +246,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_mixed_charts_widget_options_component.separator.multiple_dataset.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Condition du survol'
+        }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Par abscisse'
+        }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.index.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Par valeur proche'
+        }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.nearest.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
         }, 'var_radar_chart_widget_options_component.has_dimension.___LABEL___'));
 

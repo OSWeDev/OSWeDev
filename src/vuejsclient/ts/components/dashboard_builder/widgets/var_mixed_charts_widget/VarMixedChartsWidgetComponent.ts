@@ -208,7 +208,9 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 },
 
                 tooltip: {
-                    enabled: this.widget_options.var_charts_options.some((option) => option.show_values) ? false : true,
+                    enabled: true,
+                    axis: 'xy',
+                    mode: this.widget_options.tooltip_by_index ? 'index' : 'nearest',
                 },
                 datalabels: {
                     display: false

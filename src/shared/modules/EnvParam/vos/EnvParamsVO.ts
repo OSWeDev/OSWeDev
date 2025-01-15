@@ -270,4 +270,6 @@ export default class EnvParamsVO implements IDistantVOBase {
 
     public debug_vars_notifs: boolean;
     public log_login_redirects: boolean;
+
+    public debug_top_10_query_size: boolean;
 }

@@ -343,9 +343,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await this.insert_or_update_uselog(user_log);
+            this.insert_or_update_uselog(user_log);
 
-            await PushDataServerController.notify_user_and_redirect(session.sid);
+            PushDataServerController.notify_user_and_redirect(session.sid);
 
             return true;
         } catch (error) {

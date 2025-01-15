@@ -4,6 +4,8 @@ import StatsUnstackerBGThread from './bgthreads/StatsUnstackerBGThread';
 
 export default class StatsServerController {
 
+    public static pgsql_queries_log: Array<{ query: string, size_ko: number }> = [];
+
     // istanbul ignore next: nothing to test
     public static getInstance(): StatsServerController {
         if (!StatsServerController.instance) {

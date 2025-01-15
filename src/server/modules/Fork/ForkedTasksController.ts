@@ -307,6 +307,12 @@ export default class ForkedTasksController {
 
                 if ((!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType]) ||
                     (!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread])) {
+
+                    // Sauf si on peut defaults_to_this_thread
+                    if (defaults_to_this_thread) {
+                        return true;
+                    }
+
                     delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
                     ConsoleHandler.error("Unable to find target for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
                     thrower("Unable to find target for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
