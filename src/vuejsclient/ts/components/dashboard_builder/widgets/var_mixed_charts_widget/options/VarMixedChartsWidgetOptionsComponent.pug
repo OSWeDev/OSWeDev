@@ -23,7 +23,8 @@
         .bg_color
             .explication {{ label("var_mixed_charts_widget_options_component.bg_color") }}
             color-picker(v-model="bg_color" @change='throttled_update_colors')
-
+        
+        .options_separator_lvl1 {{ label('var_mixed_charts_widget_options_component.separator.chart_options') }}
         .style_picker 
             .input_label {{ label('var_mixed_charts_widget_options_component.switch_detailed') }}
             .input_wrapper
@@ -34,10 +35,16 @@
                     :width="120"
                     :labels="{checked: label('var_mixed_charts_widget_options_component.switch_detailed.detailed'), unchecked: label('var_mixed_charts_widget_options_component.switch_detailed.simple')}" 
                 )
-
-
-        .options_separator_lvl1 {{ label('var_mixed_charts_widget_options_component.separator.chart_options') }}
-
+        .tooltip_picker 
+            .input_label {{ label('var_mixed_charts_widget_options_component.switch_tooltip_by_index') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_tooltip_by_index" 
+                    :value="tooltip_by_index" 
+                    :sync="false"
+                    :width="120"
+                    :labels="{checked: label('var_mixed_charts_widget_options_component.switch_tooltip_by_index.index'), unchecked: label('var_mixed_charts_widget_options_component.switch_tooltip_by_index.nearest')}" 
+                )
         .options_separator_lvl2 {{ label('var_mixed_charts_widget_options_component.separator.chart_title_options') }}
         .field_title_display
             .input_label {{ label('var_mixed_charts_widget_options_component.title_display') }}

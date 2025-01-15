@@ -384,6 +384,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_mixed_charts_widget_options_component.switch_detailed.simple.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Condition du survol'
+        }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Par abscisse'
+        }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.index.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Par valeur proche'
+        }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.nearest.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Pas de données, veuillez vérifier que les tables nécessaires sont présentes.'
         }, 'var_mixed_charts_widget.error_message'));
 

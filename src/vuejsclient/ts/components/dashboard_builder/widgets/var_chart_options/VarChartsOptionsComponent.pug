@@ -40,7 +40,7 @@
             .input_wrapper(v-for="(var_chart_options, index) in options_props")
                 button.btn-primary.closer(
                     @click="close_var_chart_options(index)"
-                ) {{ is_closed(index) ? label('var_charts_options_component.open_var_chart_options') + ' ' + ( var_chart_options.var_id ? 'Variable ' + var_chart_options.var_id : ( (var_chart_options.type ? var_chart_options.type : ( (var_chart_options.chart_id ? var_chart_options.chart_id : '') ) ) ) ) : label('var_charts_options_component.close_var_chart_options') }}
+                ) {{ is_closed(index) ? label('var_charts_options_component.open_var_chart_options') + ' ' + ( var_chart_options.var_id ? 'Variable ' + get_var_name(var_chart_options.var_id) : ( (var_chart_options.type ? var_chart_options.type : ( (var_chart_options.chart_id ? var_chart_options.chart_id : '') ) ) ) ) : label('var_charts_options_component.close_var_chart_options') }}
                 template(v-if="!is_closed(index)")
                     Varchartoptionsitemcomponent(
                         @on_change="handle_var_chart_options_change(index, $event)"

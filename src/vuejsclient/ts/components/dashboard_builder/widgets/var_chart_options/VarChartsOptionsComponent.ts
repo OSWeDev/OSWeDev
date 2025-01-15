@@ -185,6 +185,10 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         this.emit_change();
     }
 
+    private get_var_name(var_id: number): string {
+        return this.t(VarsController.get_translatable_name_code_by_var_id(var_id));
+    }
+
     /**
      * handle_var_chart_options_change
      *  - When a var_chart_options is changed, we need to update the var_chart_options collection.

@@ -100,10 +100,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
 
-    private hide_values = [
-        {id: Number},
-        {hide: Boolean}
-    ];
+    private hide_values: { id: number, hide: boolean }[] = null;
 
     get all_data_loaded(): boolean {
 
@@ -498,11 +495,20 @@ export default class VarMixedChartComponent extends VueComponentBase {
                 datalabels: {
                     display: chart_var_dataset_descriptor.activate_datalabels ? 'auto' : false,
                     listeners: {
-                        click: function (context, event) {
-                            if (this.hide_values[context.dataIndex].hide) {
-                                this.hide_values[context.dataIndex].hide = false;
+                        click: (context, event) => {
+                            if (this.hide_values) {
+                                if (this.hide_values[context.dataIndex]) {
+                                    if (this.hide_values[context.dataIndex].hide) {
+                                        this.hide_values[context.dataIndex].hide = false;
+                                    } else {
+                                        this.hide_values[context.dataIndex].hide = true;
+                                    }
+                                } else {
+                                    this.hide_values[context.dataIndex] = { id: context.dataIndex, hide: true };
+                                }
                             } else {
-                                this.hide_values[context.dataIndex].hide = true;
+                                this.hide_values = [];
+                                this.hide_values[context.dataIndex] = { id: context.dataIndex, hide: true };
                             }
                         }
                     },
@@ -527,7 +533,11 @@ export default class VarMixedChartComponent extends VueComponentBase {
         if (current_var.filters_types == 'none') {
             return value;
         }
-
+        if(this.hide_values) {
+            if (this.hide_values[index.dataIndex] && this.hide_values[index.dataIndex].hide) {
+                return '';
+            }
+        }
         const filter = current_var.filters_types ? this.const_filters[current_var.filters_types].read : undefined;
         const filter_additional_params = current_var.filters_additional_params ? ObjectHandler.try_get_json(current_var.filters_additional_params) : undefined;
         if (current_var.show_zeros == false && value == 0) {
