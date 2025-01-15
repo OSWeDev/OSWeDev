@@ -65,7 +65,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     private type: string | 'line' | 'bar' | 'radar' = null;
     private bg_color: string = '#666';
     private border_color: string = '#666';
-    private border_width: number = null;
+    private border_width: number = 0;
     private has_gradient: boolean = false;
     private show_values: boolean = false;
     private show_zeros: boolean = true;

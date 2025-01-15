@@ -125,6 +125,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await this.initializeWidget_ResetFilters();
         await this.initializeWidget_BlocText();
+        await this.initializeWidget_BlockViewer();
         await this.initializeWidget_SuiviCompetences();
 
         await this.initializeWidget_SaveFavoritesFilters();
@@ -592,6 +593,26 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('BlocTextwidgetoptionscomponent', () => import('./widgets/bloc_text_widget/options/BlocTextWidgetOptionsComponent'));
         Vue.component('BlocTextwidgeticoncomponent', () => import('./widgets/bloc_text_widget/icon/BlocTextWidgetIconComponent'));
     }
+
+    private async initializeWidget_BlockViewer() {
+        const BlockViewer = new DashboardWidgetVO();
+        BlockViewer.default_height = 5;
+        BlockViewer.default_width = 2;
+        BlockViewer.name = 'BlockViewer';
+        BlockViewer.widget_component = 'BlockViewerwidgetcomponent';
+        BlockViewer.options_component = 'BlockViewerwidgetoptionscomponent';
+        BlockViewer.weight = 3;
+        BlockViewer.default_background = '#f5f5f5';
+        BlockViewer.icon_component = 'BlockViewerwidgeticoncomponent';
+        BlockViewer.is_filter = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(BlockViewer, null, null);
+
+        Vue.component('BlockViewerwidgetcomponent', () => import('./widgets/blocs_viewer_widget/BlockViewerWidgetComponent'));
+        Vue.component('BlockViewerwidgetoptionscomponent', () => import('./widgets/blocs_viewer_widget/options/BlockViewerWidgetOptionsComponent'));
+        Vue.component('BlockViewerwidgeticoncomponent', () => import('./widgets/blocs_viewer_widget/icon/BlockViewerWidgetIconComponent'));
+    }
+
     private async initializeWidget_SuiviCompetences() {
         let SuiviCompetences = new DashboardWidgetVO();
 
