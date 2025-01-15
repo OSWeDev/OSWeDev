@@ -15,6 +15,7 @@ import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import './VarPieChartComponent.scss';
 @Component({
     template: require('./VarPieChartComponent.pug'),
     components: {
@@ -214,6 +215,9 @@ export default class VarPieChartComponent extends VueComponentBase {
         const res = [];
 
         for (const i in this.var_params) {
+            if (this.var_datas[i] && this.var_datas[i].value === 0) {
+                continue;
+            }
             if (this.getlabel && this.getlabel(this.var_params[i])) {
                 if (this.getlabel(this.var_params[i]).length <= 1) {
                     res.push(this.getlabel(this.var_params[i]));
@@ -226,6 +230,8 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
         if (this.datasets.length == 1 && this.datasets[0].data.every(value => value === 0)) {
             this.has_data_to_display = false;
+        } else {
+            this.has_data_to_display = true;
         }
         return res;
     }

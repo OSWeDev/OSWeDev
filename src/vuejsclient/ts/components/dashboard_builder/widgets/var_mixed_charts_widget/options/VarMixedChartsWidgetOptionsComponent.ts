@@ -59,7 +59,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     private legend_use_point_style: boolean = false;
     private title_display: boolean = false;
     private has_dimension: boolean = true;
-    private detailed: boolean = false;
+    private detailed: boolean = true;
     private tooltip_by_index: boolean = false;
     private sort_dimension_by_asc: boolean = false;
     private hide_filter: boolean = false;

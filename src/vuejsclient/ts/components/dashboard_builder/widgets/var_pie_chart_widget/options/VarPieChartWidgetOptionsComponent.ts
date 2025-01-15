@@ -84,8 +84,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     private rotation: string = null;
     private circumference: string = null;
     private max_dimension_values: string = null;
-    private border_width_1: string = null;
-    private border_width_2: string = null;
+    private border_width_1: number = 0;
+    private border_width_2: number = 0;
 
     private tmp_selected_legend_position: string = null;
     private tmp_selected_dimension_custom_filter_segment_type: string = null;
@@ -642,10 +642,10 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
         try {
 
-            if (this.widget_options.border_width_1 != parseInt(this.border_width_1)) {
-                if (parseInt(this.border_width_1) <= 10 && parseInt(this.border_width_1) >= 0) {
+            if (this.widget_options.border_width_1 != this.border_width_1) {
+                if (this.border_width_1 <= 10 && this.border_width_1 >= 0) {
                     this.next_update_options = this.widget_options;
-                    this.next_update_options.border_width_1 = parseInt(this.border_width_1);
+                    this.next_update_options.border_width_1 = this.border_width_1;
                 }
                 await this.throttled_update_options();
             }
@@ -671,10 +671,10 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
         try {
 
-            if (this.widget_options.border_width_2 != parseInt(this.border_width_2)) {
-                if (parseInt(this.border_width_2) <= 10 && parseInt(this.border_width_2) >= 0) {
+            if (this.widget_options.border_width_2 != this.border_width_2) {
+                if (this.border_width_2 <= 10 && this.border_width_2 >= 0) {
                     this.next_update_options = this.widget_options;
-                    this.next_update_options.border_width_2 = parseInt(this.border_width_2);
+                    this.next_update_options.border_width_2 = this.border_width_2;
                 }
                 await this.throttled_update_options();
             }
@@ -1137,12 +1137,12 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             this.bg_gradient = false;
             this.bg_color_1 = null;
             this.border_color_1 = null;
-            this.border_width_1 = null;
+            this.border_width_1 = 0;
             this.tmp_selected_var_name_2 = null;
             this.custom_filter_names_2 = {};
             this.bg_color_2 = null;
             this.border_color_2 = null;
-            this.border_width_2 = null;
+            this.border_width_2 = 0;
             this.max_is_sum_of_var_1_and_2 = false;
 
             return;
@@ -1205,11 +1205,11 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             this.dimension_custom_filter_name = this.widget_options.dimension_custom_filter_name;
         }
 
-        if (((!this.widget_options.border_width_1) && this.border_width_1) || (this.widget_options.border_width_1 && (this.border_width_1 != this.widget_options.border_width_1.toString()))) {
-            this.border_width_1 = this.widget_options.border_width_1 ? this.widget_options.border_width_1.toString() : null;
+        if (((!this.widget_options.border_width_1) && this.border_width_1) || (this.widget_options.border_width_1 && (this.border_width_1 != this.widget_options.border_width_1))) {
+            this.border_width_1 = this.widget_options.border_width_1 ? this.widget_options.border_width_1: null;
         }
-        if (((!this.widget_options.border_width_2) && this.border_width_2) || (this.widget_options.border_width_2 && (this.border_width_2 != this.widget_options.border_width_2.toString()))) {
-            this.border_width_2 = this.widget_options.border_width_2 ? this.widget_options.border_width_2.toString() : null;
+        if (((!this.widget_options.border_width_2) && this.border_width_2) || (this.widget_options.border_width_2 && (this.border_width_2 != this.widget_options.border_width_2))) {
+            this.border_width_2 = this.widget_options.border_width_2 ? this.widget_options.border_width_2: null;
         }
         if (this.max_is_sum_of_var_1_and_2 != this.widget_options.max_is_sum_of_var_1_and_2) {
             this.max_is_sum_of_var_1_and_2 = this.widget_options.max_is_sum_of_var_1_and_2;

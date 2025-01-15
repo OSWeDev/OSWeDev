@@ -33,7 +33,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     })
     private options: VarChartOptionsVO;
 
-    @Prop({ default: false })
+    @Prop({ default: true })
     private detailed: boolean;
 
     @Prop({ default: null })
