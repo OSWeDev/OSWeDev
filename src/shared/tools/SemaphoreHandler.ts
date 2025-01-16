@@ -1,3 +1,4 @@
+import { StatThisMapKeys } from "../modules/Stats/annotations/StatThisMapKeys";
 import ThreadHandler from "./ThreadHandler";
 
 export interface ISemaphoreHandlerCallInstance<T> {
@@ -8,8 +9,10 @@ export interface ISemaphoreHandlerCallInstance<T> {
 
 export default class SemaphoreHandler {
 
+    @StatThisMapKeys('SemaphoreHandler')
     private static SEMAPHORES: { [key: string]: boolean } = {};
 
+    @StatThisMapKeys('SemaphoreHandler', null, 1, true)
     private static SEMAPHORES_call_instances: { [key: string]: ISemaphoreHandlerCallInstance<unknown>[] } = {};
 
     /**

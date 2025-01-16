@@ -6,6 +6,7 @@ import ModuleLogger from '../modules/Logger/ModuleLogger';
 import LogVO from '../modules/Logger/vos/LogVO';
 import ModulesManager from '../modules/ModulesManager';
 import ParamsManager from '../modules/Params/ParamsManager';
+import { StatThisArrayLength } from '../modules/Stats/annotations/StatThisArrayLength';
 import ThrottleHelper from './ThrottleHelper';
 import ILoggerHandler from './interfaces/ILoggerHandler';
 
@@ -68,13 +69,16 @@ export default class ConsoleHandler {
     private static old_console_warn: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_error: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_debug: (message?: any, ...optionalParams: any[]) => void = null;
-
-    private static log_to_console_cache: Array<{ msg: string, date: number, params: any[], log_type: number, url: string }> = [];
     private static log_to_console_throttler = ThrottleHelper.declare_throttle_without_args(this.log_to_console.bind(this), 1000);
     private static add_logs_client_throttler = ThrottleHelper.declare_throttle_without_args(this.add_logs_client.bind(this), 1000, { leading: false, trailing: true });
-
     private static throttled_logs_counter: { [log: string]: number } = {};
+
+    @StatThisArrayLength("ConsoleHandler")
     private static throttled_add_logs_client: LogVO[] = [];
+
+    @StatThisArrayLength("ConsoleHandler")
+    private static log_to_console_cache: Array<{ msg: string, date: number, params: any[], log_type: number, url: string }> = [];
+
 
     public static init(thread_name: string) {
 

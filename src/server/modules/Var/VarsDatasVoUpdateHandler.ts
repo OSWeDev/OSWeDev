@@ -6,6 +6,7 @@ import EventsController from '../../../shared/modules/Eventify/EventsController'
 import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import { StatThisArrayLength } from '../../../shared/modules/Stats/annotations/StatThisArrayLength';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
@@ -51,7 +52,6 @@ export default class VarsDatasVoUpdateHandler {
      *  - There's only one bgthread doing all the computations, and separated from the other threads if the project decides to do so
      *  - Everything in this controller needs to be running in the var calculation bg thread
      */
-    public static ordered_vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = [];
     public static last_call_handled_something: boolean = false;
 
     public static block_ordered_vos_cud: boolean = false;
@@ -59,7 +59,11 @@ export default class VarsDatasVoUpdateHandler {
     /**
      * La liste des invalidations en attente de traitement
      */
+    @StatThisArrayLength('VarsDatasVoUpdateHandler')
     public static invalidators: VarDataInvalidatorVO[] = [];
+
+    @StatThisArrayLength('VarsDatasVoUpdateHandler')
+    public static ordered_vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = [];
 
 
     // private static last_registration: number = null;

@@ -17,20 +17,22 @@ import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMe
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import TaskResultForkMessage from './messages/TaskResultForkMessage';
+import { StatThisArrayLength } from '../../../shared/modules/Stats/annotations/StatThisArrayLength';
 
 export default class ForkMessageController {
-
-    /**
-     * Local thread cache -----
-     */
-    public static stacked_msg_waiting: IForkMessageWrapper[] = [];
-    /**
-     * ----- Local thread cache
-     */
 
     private static registered_messages_handlers: { [message_type: string]: (msg: IForkMessage, send_handle: Worker | MessagePort) => Promise<boolean> } = {};
     private static last_log_msg_error: number = 0;
     private static throttled_retry = throttle(ForkMessageController.retry.bind(ForkMessageController), 500);
+
+    /**
+     * Local thread cache -----
+     */
+    @StatThisArrayLength('ForkMessageController')
+    public static stacked_msg_waiting: IForkMessageWrapper[] = [];
+    /**
+     * ----- Local thread cache
+     */
 
     public static register_message_handler(message_type: string, handler: (msg: IForkMessage, send_handle: Worker | MessagePort) => Promise<boolean>) {
         ForkMessageController.registered_messages_handlers[message_type] = handler;

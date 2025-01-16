@@ -13,6 +13,7 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import APIBGThread from '../API/bgthreads/APIBGThread';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 
 const session = expressSession as any;
 const Store = session.Store || session.session.Store;
@@ -29,7 +30,9 @@ export default class ExpressDBSessionsServerController extends Store {
      * On ajoute un cache de session pour éviter de faire des requêtes SQL inutiles
      *  (on ne fait pas de requête SQL si on a déjà la session en cache et qu'elle est valide)
      */
+    @StatThisMapKeys('ExpressDBSessionsServerController')
     private static session_cache: { [session_id: string]: ExpressSessionVO } = {};
+    @StatThisMapKeys('ExpressDBSessionsServerController')
     private static parsed_session_cache: { [session_id: string]: IServerUserSession } = {};
 
     public constructor(options) {

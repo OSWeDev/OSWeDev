@@ -1,5 +1,6 @@
 import { PostThrottleParam, PreThrottleParam, THROTTLED_METHOD_PARAM_TYPE } from '../../../shared/annotations/Throttle';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -21,13 +22,15 @@ export default class VarsTabsSubsController {
     public static PARAM_NAME_SUBS_CLEAN_THROTTLE: string = 'VarsTabsSubsController.SUBS_CLEAN_THROTTLE';
     public static PARAM_NAME_SUBS_CLEAN_DELAY: string = 'VarsTabsSubsController.SUBS_CLEAN_DELAY';
 
+    private static last_subs_clean: number = 0;
+
     /**
      * Les client_tab_ids abonnés à chaque var_index
      * On stocke la date de la dernière demande pour pouvoir faire un nettoyage
      */
+    @StatThisMapKeys('VarsTabsSubsController', null, 2)
     private static _tabs_subs: { [var_index: string]: { [user_id: number]: { [client_tab_id: string]: { last_notif_value_ts: number, last_registration_ts: number } } } } = {};
 
-    private static last_subs_clean: number = 0;
 
     public static init() {
         // istanbul ignore next: nothing to test : register_task

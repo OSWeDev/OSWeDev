@@ -1,13 +1,19 @@
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
+import { StatThisMapKeys } from '../../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import VueModuleBase from '../VueModuleBase';
 import VOEventRegistrationKey from "./VOEventRegistrationKey";
 
 export default class VOEventRegistrationsHandler extends VueModuleBase {
 
+    protected static VO_EVENTS_CB_ID: number = 0;
+
+    @StatThisMapKeys('VOEventRegistrationsHandler', null, 1)
     public static registered_vo_create_callbacks: { [room_id: string]: { [cb_id: string]: (created_vo: IDistantVOBase) => void } } = {};
+    @StatThisMapKeys('VOEventRegistrationsHandler', null, 1)
     public static registered_vo_update_callbacks: { [room_id: string]: { [cb_id: string]: (pre_update_vo: IDistantVOBase, post_update_vo: IDistantVOBase) => void } } = {};
+    @StatThisMapKeys('VOEventRegistrationsHandler', null, 1)
     public static registered_vo_delete_callbacks: { [room_id: string]: { [cb_id: string]: (deleted_vo: IDistantVOBase) => void } } = {};
 
     public static async register_vo_create_callback(
@@ -103,6 +109,4 @@ export default class VOEventRegistrationsHandler extends VueModuleBase {
 
         return new VOEventRegistrationKey(VOEventRegistrationKey.EVENT_TYPE_DELETION, room_vo, room_fields, room_id, cb_id);
     }
-
-    protected static VO_EVENTS_CB_ID: number = 0;
 }

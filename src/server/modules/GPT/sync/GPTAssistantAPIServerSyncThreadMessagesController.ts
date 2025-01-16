@@ -27,11 +27,14 @@ import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncCont
 import GPTAssistantAPIServerSyncFilesController from './GPTAssistantAPIServerSyncFilesController';
 import GPTAssistantAPIServerSyncRunsController from './GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerSyncThreadsController';
+import { StatThisMapKeys } from '../../../../shared/modules/Stats/annotations/StatThisMapKeys';
 
 export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
+    @StatThisMapKeys('GPTAssistantAPIServerSyncThreadMessagesController')
     public static syncing_semaphores_promises: { [gpt_thread_id: string]: Promise<void> } = {};
 
+    @StatThisMapKeys('GPTAssistantAPIServerSyncThreadMessagesController')
     public static already_syncing_thread_message: { [id: number]: boolean } = {};
 
     public static get_user_info_prefix_for_content_text(

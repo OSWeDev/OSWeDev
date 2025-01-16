@@ -9,6 +9,7 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ParamsServerController from '../Params/ParamsServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 
 
 export default class AsyncHookPromiseWatchController {
@@ -29,10 +30,12 @@ export default class AsyncHookPromiseWatchController {
     private static current_activation: boolean = AsyncHookPromiseWatchController.ACTIVATION_PARAM_DEFAULT_VALUE;
     private static current_limit_to_news: boolean = AsyncHookPromiseWatchController.LIMIT_TO_NEWS_PARAM_DEFAULT_VALUE;
 
-    private static promises: { [asyncId: number]: { timestamp: number, location: string, logged: boolean } } = {};
     private static interval: NodeJS.Timeout = null;
 
     private static hook = null;
+
+    @StatThisMapKeys('AsyncHookPromiseWatchController')
+    private static promises: { [asyncId: number]: { timestamp: number, location: string, logged: boolean } } = {};
 
     private constructor() { }
 

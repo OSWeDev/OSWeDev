@@ -21,17 +21,9 @@ import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import SocketWrapper from './vos/SocketWrapper';
+import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 
 export default class PushDataServerController {
-
-    /**
-     * Only on main thread (express).
-     */
-    // The goal is to keep track of the last tab id for each user, being the last tab to have sent a request
-    public static last_known_tab_id_by_user_id: { [user_id: number]: string } = {};
-    /**
-     * !!!!!!!!!
-     */
 
     public static NOTIF_INTERVAL_MS: number = 1000;
 
@@ -69,28 +61,6 @@ export default class PushDataServerController {
 
     // public static TASK_NAME_notifyVarsTabsReload: string = 'PushDataServerController' + '.notifyVarsTabsReload';
 
-    /**
-     * Global application cache - Handled by Main process -----
-     */
-    public static registered_prompts_cbs_by_uid: { [prompt_uid: string]: (prompt_result: string) => Promise<void> } = {};
-    public static registeredSockets: { [userId: number]: { [client_tab_id: string]: { [sessId: string]: { [socket_id: string]: SocketWrapper } } } } = {};
-
-    /**
-     * !!!! Only for main process use !!!!
-     */
-    public static registered_sessions_by_sid: { [sid: string]: IServerUserSession } = {};
-
-    private static PROMPT_UID: number = 0;
-
-    private static registered_sessions_by_uid: { [userId: number]: { [sessId: string]: IServerUserSession } } = {};
-    private static registered_sockets_by_id: { [socket_id: string]: SocketWrapper } = {};
-    private static registered_sockets_by_sessionid: { [session_id: string]: { [socket_id: string]: SocketWrapper } } = {};
-    private static registereduid_by_socketid: { [socket_id: string]: number } = {};
-    private static registeredclient_tab_id_by_socketid: { [socket_id: string]: string } = {};
-    /**
-     * ----- Global application cache - Handled by Main process
-     */
-
     private static throttled_notifyVarsDatasBySocket = ThrottleHelper.declare_throttle_with_stackable_args(async (stackable_args: any[]) => {
         if (!stackable_args) {
             return;
@@ -116,6 +86,48 @@ export default class PushDataServerController {
         }
         await all_promises(promises);
     }, 100, { leading: false, trailing: true });
+
+
+    private static PROMPT_UID: number = 0;
+
+    /**
+     * Only on main thread (express).
+     */
+    // The goal is to keep track of the last tab id for each user, being the last tab to have sent a request
+    @StatThisMapKeys('PushDataServerController')
+    public static last_known_tab_id_by_user_id: { [user_id: number]: string } = {};
+    /**
+     * !!!!!!!!!
+     */
+
+    /**
+     * Global application cache - Handled by Main process -----
+     */
+    @StatThisMapKeys('PushDataServerController')
+    public static registered_prompts_cbs_by_uid: { [prompt_uid: string]: (prompt_result: string) => Promise<void> } = {};
+    @StatThisMapKeys('PushDataServerController', null, 3)
+    public static registeredSockets: { [userId: number]: { [client_tab_id: string]: { [sessId: string]: { [socket_id: string]: SocketWrapper } } } } = {};
+
+    /**
+     * !!!! Only for main process use !!!!
+     */
+    @StatThisMapKeys('PushDataServerController')
+    public static registered_sessions_by_sid: { [sid: string]: IServerUserSession } = {};
+
+
+    @StatThisMapKeys('PushDataServerController', null, 1)
+    private static registered_sessions_by_uid: { [userId: number]: { [sessId: string]: IServerUserSession } } = {};
+    @StatThisMapKeys('PushDataServerController')
+    private static registered_sockets_by_id: { [socket_id: string]: SocketWrapper } = {};
+    @StatThisMapKeys('PushDataServerController', null, 1)
+    private static registered_sockets_by_sessionid: { [session_id: string]: { [socket_id: string]: SocketWrapper } } = {};
+    @StatThisMapKeys('PushDataServerController')
+    private static registereduid_by_socketid: { [socket_id: string]: number } = {};
+    @StatThisMapKeys('PushDataServerController')
+    private static registeredclient_tab_id_by_socketid: { [socket_id: string]: string } = {};
+    /**
+     * ----- Global application cache - Handled by Main process
+     */
 
     public static initialize() {
 

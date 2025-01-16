@@ -53,18 +53,17 @@ export default class StatsController {
 
     public static UNSTACK_THROTTLE_PARAM_NAME: string = 'StatsController.UNSTACK_THROTTLE_CLIENT';
 
-    public static new_stats_handler: (new_stats: StatClientWrapperVO[]) => Promise<boolean> = null;
-
     public static stacked_registered_stats_by_group_name: { [group_name: string]: StatClientWrapperVO[] } = {};
+    public static new_stats_handler: (new_stats: StatClientWrapperVO[]) => Promise<boolean> = null;
 
     public static throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
         StatsController.unstack_stats.bind(StatsController.getInstance()), 5000, { leading: false, trailing: true }); // defaults to 1 minute
-
 
     private static instance: StatsController = null;
 
     private static first_unstacking_date: number = null;
     private static is_unstacking: boolean = false;
+
 
     private UNSTACK_THROTTLE_: number = 5000;
     private constructor() { }

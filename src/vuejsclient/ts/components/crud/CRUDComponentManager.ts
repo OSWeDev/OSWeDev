@@ -4,17 +4,26 @@ import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import CRUDHandler from '../../../../shared/tools/CRUDHandler';
 import MenuController from '../menu/MenuController';
+import { StatThisArrayLength } from '../../../../shared/modules/Stats/annotations/StatThisArrayLength';
+import { StatThisMapKeys } from '../../../../shared/modules/Stats/annotations/StatThisMapKeys';
 
 export default class CRUDComponentManager {
 
     private static instance: CRUDComponentManager;
 
-    public cruds_by_api_type_id: { [api_type_id: string]: CRUD<any> } = {};
+    @StatThisArrayLength("CRUDComponentManager", CRUDComponentManager.getInstance)
     public callback_routes: string[] = [];
+
+    @StatThisArrayLength("CRUDComponentManager", CRUDComponentManager.getInstance)
     public idistantvo_init: IDistantVOBase[] = [];
 
-    public inline_input_mode_semaphore: boolean = false;
+    @StatThisMapKeys('CRUDComponentManager', CRUDComponentManager.getInstance)
     public inline_input_mode_semaphore_disable_cb: { [ii_id: number]: () => void } = {};
+
+    public cruds_by_api_type_id: { [api_type_id: string]: CRUD<any> } = {};
+
+    public inline_input_mode_semaphore: boolean = false;
+
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {

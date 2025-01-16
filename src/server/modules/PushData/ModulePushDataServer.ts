@@ -5,6 +5,7 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
+import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -35,6 +36,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
     /**
      * En clé le nom de la room IO, en valeur l'objet de filtrage
      */
+    @StatThisMapKeys('ModulePushDataServer', ModulePushDataServer.getInstance)
     private registered_rooms: { [room_id: string]: any } = {};
 
     private throttle_broadcast_registered_rooms = ThrottleHelper.declare_throttle_with_mappable_args(this.broadcast_registered_rooms, 1);

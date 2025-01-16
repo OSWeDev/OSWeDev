@@ -199,7 +199,7 @@ export default class VarsProcessInvalidator {
 
             if (has_max_vocuds && !handles_invalidators) {
                 this.ten_last_vocuds_invalidations_duration_ms.push(Dates.now_ms() - start_date_ms);
-                if (this.ten_last_vocuds_invalidations_duration_ms.length > 10) {
+                while (this.ten_last_vocuds_invalidations_duration_ms.length > 10) {
                     this.ten_last_vocuds_invalidations_duration_ms.shift();
                 }
 
@@ -208,7 +208,7 @@ export default class VarsProcessInvalidator {
 
             if (has_max_invalidators && !handles_vocuds) {
                 this.ten_last_intersectors_invalidations_duration_ms.push(Dates.now_ms() - start_date_ms);
-                if (this.ten_last_intersectors_invalidations_duration_ms.length > 10) {
+                while (this.ten_last_intersectors_invalidations_duration_ms.length > 10) {
                     this.ten_last_intersectors_invalidations_duration_ms.shift();
                 }
 

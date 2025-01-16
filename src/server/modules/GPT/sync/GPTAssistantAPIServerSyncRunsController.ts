@@ -16,9 +16,11 @@ import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncCont
 import GPTAssistantAPIServerSyncRunStepsController from './GPTAssistantAPIServerSyncRunStepsController';
 import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerSyncThreadsController';
 import { AssistantResponseFormatOption } from 'openai/resources/beta/threads/threads';
+import { StatThisMapKeys } from '../../../../shared/modules/Stats/annotations/StatThisMapKeys';
 
 export default class GPTAssistantAPIServerSyncRunsController {
 
+    @StatThisMapKeys('GPTAssistantAPIServerSyncRunsController')
     public static syncing_semaphores_promises: { [gpt_thread_id: string]: Promise<void> } = {};
 
     /**

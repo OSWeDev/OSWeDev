@@ -11,28 +11,32 @@ import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import PushDataVueModule from '../../modules/PushData/PushDataVueModule';
 import RegisteredVarDataWrapper from './vos/RegisteredVarDataWrapper';
+import { StatThisMapKeys } from '../../../../shared/modules/Stats/annotations/StatThisMapKeys';
 
 export default class VarsClientController {
+    private static CB_UID: number = 0;
+    private static instance: VarsClientController = null;
+
     /**
-     * Les vars params registered et donc registered aussi côté serveur, si on est déjà registered on a pas besoin de rajouter des instances
+     * Les vars params registered et donc registered aussi côté serveur, si on est déjà registered on a pas besoin de rajouter des instances 
      *  on stocke aussi le nombre d'enregistrements, pour pouvoir unregister au fur et à mesure
      */
+    @StatThisMapKeys('VarsClientController')
     public static registered_var_params: { [index: string]: RegisteredVarDataWrapper } = {};
 
     /**
      * On stocke les dernières Vardatares reçues (TODO FIXME à nettoyer peut-etre au bout d'un moment)
      */
+    @StatThisMapKeys('VarsClientController')
     public static cached_var_datas: { [index: string]: VarDataValueResVO } = {};
-
-    private static CB_UID: number = 0;
-    private static instance: VarsClientController = null;
-
-    public last_notif_received: number = 0;
 
     /**
      * On utilise pour se donner un délai de 30 secondes pour les calculs et si on dépasse (entre 30 et 60 secondes) on relance un register sur la var pour rattrapper un oublie de notif
      */
+    @StatThisMapKeys('VarsClientController')
     public registered_var_params_to_check_next_time: { [index: string]: boolean } = {};
+
+    public last_notif_received: number = 0;
 
     public throttled_server_registration = ThrottleHelper.declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 50, { leading: false, trailing: true });
     public throttled_server_unregistration = ThrottleHelper.declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 100, { leading: false, trailing: true });

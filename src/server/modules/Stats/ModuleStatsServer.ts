@@ -17,6 +17,7 @@ import VarSecStatsGroupeController from './vars/controllers/VarSecStatsGroupeCon
 import axios from 'axios';
 import ConfigurationService from '../../env/ConfigurationService';
 import StatsServerController from './StatsServerController';
+import { threadId } from 'worker_threads';
 
 export default class ModuleStatsServer extends ModuleServerBase {
 
@@ -169,10 +170,10 @@ export default class ModuleStatsServer extends ModuleServerBase {
             if (!existsSync('./tmp')) {
                 mkdirSync('./tmp');
             }
-            const fd = openSync('./tmp/stats_io_test.txt', 'w');
+            const fd = openSync('./tmp/stats_io_test_' + threadId + '.txt', 'w');
             writeFileSync(fd, '1');
             closeSync(fd);
-            unlinkSync('./tmp/stats_io_test.txt');
+            unlinkSync('./tmp/stats_io_test_' + threadId + '.txt');
 
             StatsController.register_stat_DUREE('ModuleStatsServer', 'do_stat_io', 'success', Dates.now_ms() - start);
         } catch (error) {

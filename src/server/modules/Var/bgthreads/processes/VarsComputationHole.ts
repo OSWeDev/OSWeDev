@@ -1,6 +1,7 @@
 import EventsController from '../../../../../shared/modules/Eventify/EventsController';
 import EventifyEventInstanceVO from '../../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { StatThisArrayLength } from '../../../../../shared/modules/Stats/annotations/StatThisArrayLength';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
@@ -28,8 +29,9 @@ export default class VarsComputationHole {
 
     public static ask_for_hole_termination: boolean = false;
 
-    private static current_cbs_stack: Array<() => any> = [];
     private static currently_waiting_for_hole_semaphore: boolean = false;
+    @StatThisArrayLength("VarsComputationHole")
+    private static current_cbs_stack: Array<() => any> = [];
 
     protected constructor() { }
 

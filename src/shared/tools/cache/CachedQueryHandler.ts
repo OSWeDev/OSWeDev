@@ -1,4 +1,5 @@
 import Dates from "../../modules/FormatDatesNombres/Dates/Dates";
+import { StatThisMapKeys } from "../../modules/Stats/annotations/StatThisMapKeys";
 
 /**
  * On veut un cache par type de requete + index de la requete (par exemple UserVO + id du user ciblé)
@@ -8,6 +9,7 @@ import Dates from "../../modules/FormatDatesNombres/Dates/Dates";
  */
 export default class CachedQueryHandler {
 
+    @StatThisMapKeys('CachedQueryHandler', null, 1)
     private static cache: { [query_type_UID: string]: { [this_query_INDEX: string]: { last_update_ms: number, data: any } } } = {};
 
     /**

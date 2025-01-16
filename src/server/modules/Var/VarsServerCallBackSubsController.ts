@@ -1,3 +1,4 @@
+import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
@@ -9,12 +10,6 @@ import VarsBGThreadNameHolder from './VarsBGThreadNameHolder';
 import VarsDatasProxy from './VarsDatasProxy';
 
 export default class VarsServerCallBackSubsController {
-
-    /**
-     * Les callbacks à appeler dès que possible
-     *  ATTENTION les callbacks sont sur le thread des vars obligatoirement !!
-     */
-    public static cb_subs: { [var_index: string]: Array<(var_data: VarDataBaseVO) => any> } = {};
 
     public static TASK_NAME_notify_vardatas: string = 'VarsServerCallBackSubsController.notify_vardatas';
     public static TASK_NAME_get_vars_datas: string = 'VarsServerCallBackSubsController.get_vars_datas';
@@ -31,6 +26,14 @@ export default class VarsServerCallBackSubsController {
         'VarsServerCallBackSubsController.get_var_data_indexed',
         this._get_vars_datas.bind(this), 10, 500, 20
     );
+
+    /**
+     * Les callbacks à appeler dès que possible
+     *  ATTENTION les callbacks sont sur le thread des vars obligatoirement !!
+     */
+    @StatThisMapKeys('VarsServerCallBackSubsController')
+    public static cb_subs: { [var_index: string]: Array<(var_data: VarDataBaseVO) => any> } = {};
+
 
     public static init() {
         // istanbul ignore next: nothing to test : register_task

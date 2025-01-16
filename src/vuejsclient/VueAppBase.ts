@@ -395,7 +395,7 @@ export default abstract class VueAppBase {
                 code_google_analytics,
             );
 
-            if (VueAppController.getInstance().routes_log.length >= VueAppController.getInstance().routes_log_limit) {
+            while (VueAppController.getInstance().routes_log.length >= VueAppController.getInstance().routes_log_limit) {
                 VueAppController.getInstance().routes_log.shift();
             }
             VueAppController.getInstance().routes_log.push(route);

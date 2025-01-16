@@ -2,6 +2,7 @@
 
 import EventsController from "../modules/Eventify/EventsController";
 import Dates from "../modules/FormatDatesNombres/Dates/Dates";
+import { StatThisMapKeys } from "../modules/Stats/annotations/StatThisMapKeys";
 import StatsController from "../modules/Stats/StatsController";
 import DBDisconnectionManager from "./DBDisconnectionManager";
 
@@ -15,6 +16,7 @@ interface IIntervalConf {
 
 export default class ThreadHandler {
 
+    @StatThisMapKeys('ThreadHandler')
     private static intervals_confs: { [uid: string]: IIntervalConf } = {};
 
     private constructor() {

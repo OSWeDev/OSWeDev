@@ -1,5 +1,6 @@
 import DAOCacheParamVO from "../../../shared/modules/DAO/vos/DAOCacheParamVO";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
+import { StatThisMapKeys } from "../../../shared/modules/Stats/annotations/StatThisMapKeys";
 import ThreadHandler from "../../../shared/tools/ThreadHandler";
 
 export default class DAOCacheHandler {
@@ -9,7 +10,9 @@ export default class DAOCacheHandler {
     /**
      * Cache local - au thread - des DAO throttled queries
      */
+    @StatThisMapKeys('DAOCacheHandler')
     private static dao_cache: { [parameterized_full_query: string]: any } = {};
+    @StatThisMapKeys('DAOCacheHandler')
     private static dao_cache_params: { [parameterized_full_query: string]: DAOCacheParamVO } = {};
     /**
      * --------------------------------

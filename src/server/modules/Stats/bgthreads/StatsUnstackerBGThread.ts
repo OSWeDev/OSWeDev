@@ -2,6 +2,7 @@ import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilte
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { StatThisArrayLength } from '../../../../shared/modules/Stats/annotations/StatThisArrayLength';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
 import StatClientWrapperVO from '../../../../shared/modules/Stats/vos/StatClientWrapperVO';
 import StatsCategoryVO from '../../../../shared/modules/Stats/vos/StatsCategoryVO';
@@ -17,6 +18,7 @@ import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
+import VarsDatasVoUpdateHandler from '../../Var/VarsDatasVoUpdateHandler';
 
 /**
  * Objectif centraliser les stats pour éviter les doublons dans les liaisons et délestet les autres threads de ces requêtes
@@ -26,6 +28,9 @@ export default class StatsUnstackerBGThread implements IBGThread {
     public static TASK_NAME_register_aggregated_stats: string = 'StatsUnstackerBGThread.register_aggregated_stats';
 
     private static instance: StatsUnstackerBGThread = null;
+
+    @StatThisArrayLength('StatsUnstackerBGThread', StatsUnstackerBGThread.getInstance)
+    private aggregated_stats: StatClientWrapperVO[] = [];
 
     public current_timeout: number = 10000;
     public MAX_timeout: number = 10000;
@@ -42,11 +47,14 @@ export default class StatsUnstackerBGThread implements IBGThread {
     private thread_cache: { [thread_name: string]: StatsThreadVO } = {};
 
     private cache_initialised: boolean = false;
-    private aggregated_stats: StatClientWrapperVO[] = [];
 
     private constructor() {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(StatsUnstackerBGThread.TASK_NAME_register_aggregated_stats, this.register_aggregated_stats.bind(this));
+    }
+
+    get name(): string {
+        return "StatsUnstackerBGThread";
     }
 
     // istanbul ignore next: nothing to test : getInstance
@@ -91,10 +99,6 @@ export default class StatsUnstackerBGThread implements IBGThread {
         });
     }
 
-    get name(): string {
-        return "StatsUnstackerBGThread";
-    }
-
     /**
      * On recharge régulièrement les stats en fonction des paramètres
      */
@@ -122,6 +126,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
             }
 
             const stats_to_insert = [];
+            const stats_to_insert_by_group_id: { [group_id: number]: StatVO[] } = {};
             for (const i in aggregated_stats) {
                 const aggregated_stat = aggregated_stats[i];
 
@@ -158,8 +163,20 @@ export default class StatsUnstackerBGThread implements IBGThread {
                 }
 
                 stats_to_insert.push(new_stat);
+
+                if (!stats_to_insert_by_group_id[new_stat.stat_group_id]) {
+                    stats_to_insert_by_group_id[new_stat.stat_group_id] = [];
+                }
+                stats_to_insert_by_group_id[new_stat.stat_group_id].push(new_stat);
             }
-            await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(stats_to_insert);
+
+            for (const stat_group_id_s in stats_to_insert_by_group_id) {
+                const stats = stats_to_insert_by_group_id[stat_group_id_s];
+                await ModuleDAOServer.instance.insert_without_triggers_using_COPY(stats, parseInt(stat_group_id_s), true);
+            }
+            VarsDatasVoUpdateHandler.register_vo_cud(stats_to_insert);
+
+            // await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(stats_to_insert);
 
             this.stats_out('ok', time_in);
             return ModuleBGThreadServer.TIMEOUT_COEF_NEUTRAL;

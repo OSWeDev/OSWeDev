@@ -1,10 +1,12 @@
+import { StatThisArrayLength } from '../../../shared/modules/Stats/annotations/StatThisArrayLength';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 
 export default class AzureMemoryCheckServerController {
 
-    public static memory_usage_datas: number[] = [];
     public static dao_server_coef: number = 1;
+    @StatThisArrayLength('AzureMemoryCheckServerController')
+    public static memory_usage_datas: number[] = [];
 
     // Ajouter une nouvelle entrée à memory_usage_datas en respectant la limite
     public static addMemoryUsageData(value: number, limit: number = 60): void {

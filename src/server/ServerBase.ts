@@ -223,14 +223,16 @@ export default abstract class ServerBase {
 
                     StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'receive');
 
-                    /**
-                     * On stocke l'info de la taille des requetes si en plus d'etre en stats on est en debug_top_10_query_size
-                     */
-                    const size_ko = Buffer.byteLength(JSON.stringify(e.data), 'utf8');
-                    StatsServerController.pgsql_queries_log.push({
-                        query: e.ctx.query,
-                        size_ko: size_ko
-                    });
+                    if (ConfigurationService.node_configuration.debug_top_10_query_size) {
+                        /**
+                         * On stocke l'info de la taille des requetes si en plus d'etre en stats on est en debug_top_10_query_size
+                         */
+                        const size_ko = Buffer.byteLength(JSON.stringify(e.data), 'utf8');
+                        StatsServerController.pgsql_queries_log.push({
+                            query: e.ctx.query,
+                            size_ko: size_ko
+                        });
+                    }
 
                 } : null,
             connect: StatsController.ACTIVATED ?

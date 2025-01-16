@@ -2,17 +2,20 @@ import EventifyEventInstanceVO from "../../../shared/modules/Eventify/vos/Eventi
 import EventifyEventListenerInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import ThreadHandler from "../../../shared/tools/ThreadHandler";
+import { StatThisMapKeys } from "../Stats/annotations/StatThisMapKeys";
 import EventifyEventConfVO from "./vos/EventifyEventConfVO";
 
 export default class EventsController {
-
-    public static registered_events_conf_by_name: { [event_conf_name: string]: EventifyEventConfVO } = {};
-    public static registered_listeners: { [event_conf_name: string]: { [listener_conf_name: string]: EventifyEventListenerInstanceVO } } = {};
 
     /**
      * Hook initialisé au début du serveur pour pouvoir mettre un flag Context
      */
     public static hook_stack_incompatible: <T extends Array<unknown>, U>(callback: (...params: T) => U | Promise<U>, this_arg: unknown, reason_context_incompatible: string, ...params: T) => Promise<U> = null;
+
+    @StatThisMapKeys('EventsController')
+    public static registered_events_conf_by_name: { [event_conf_name: string]: EventifyEventConfVO } = {};
+    @StatThisMapKeys('EventsController', null, 1)
+    public static registered_listeners: { [event_conf_name: string]: { [listener_conf_name: string]: EventifyEventListenerInstanceVO } } = {};
 
 
     /**

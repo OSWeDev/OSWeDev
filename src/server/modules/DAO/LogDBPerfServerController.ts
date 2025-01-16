@@ -1,8 +1,13 @@
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
+import { StatThisMapKeys } from "../../../shared/modules/Stats/annotations/StatThisMapKeys";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import ConfigurationService from "../../env/ConfigurationService";
 
 export default class LogDBPerfServerController {
+
+    private static log_db_query_perf_uid: number = 0;
+    @StatThisMapKeys('LogDBPerfServerController')
+    private static log_db_query_perf_start_by_uid: { [uid: number]: number } = {};
 
     public static log_db_query_perf_start(method_name: string, query_string: string = null, step_name: string = null): number {
         if (ConfigurationService.node_configuration.debug_db_query_perf) {
@@ -43,7 +48,4 @@ export default class LogDBPerfServerController {
             }
         }
     }
-
-    private static log_db_query_perf_start_by_uid: { [uid: number]: number } = {};
-    private static log_db_query_perf_uid: number = 0;
 }
