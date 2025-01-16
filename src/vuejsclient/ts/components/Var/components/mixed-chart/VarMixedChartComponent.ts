@@ -516,6 +516,9 @@ export default class VarMixedChartComponent extends VueComponentBase {
                     anchor: 'end',
                     clamp: true,
                     formatter: this.get_var_ticks_callback(chart_var_dataset_descriptor),
+                    font: {
+                        size: chart_var_dataset_descriptor.value_label_size
+                    }
                 }
             };
             if (yAxisID != null) {

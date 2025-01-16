@@ -617,6 +617,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_chart_options_item_component.show_zeros.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Taille des valeurs'
+        }, 'var_chart_options_item_component.value_label_size.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Il n\'y a aucune donnée à afficher'
         }, 'var_chart.no_data_to_display.___LABEL___'));
 

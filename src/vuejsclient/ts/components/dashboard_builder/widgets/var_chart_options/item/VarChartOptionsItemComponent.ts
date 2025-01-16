@@ -65,7 +65,8 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     private type: string | 'line' | 'bar' | 'radar' = null;
     private bg_color: string = '#666';
     private border_color: string = '#666';
-    private border_width: number = null;
+    private border_width: number = 0;
+    private value_label_size: number = 18;
     private has_gradient: boolean = false;
     private show_values: boolean = false;
     private show_zeros: boolean = true;
@@ -227,6 +228,18 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         await this.throttled_emit_changes();
     }
 
+    @Watch('value_label_size')
+    private async on_change_value_label_size() {
+        if (this.value_label_size < 0) {
+            this.value_label_size = 0;
+        }
+
+        if (this.value_label_size > 35) {
+            this.value_label_size = 35;
+        }
+        await this.throttled_emit_changes();
+    }
+
     @Watch('selected_filter_name')
     private async change_selected_filter_name() {
         if (this.fields_that_could_get_scales_filter[this.scale_filter_names.indexOf(this.selected_filter_name)]) {
@@ -307,6 +320,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         this.options_props.bg_color = this.bg_color;
         this.options_props.border_color = this.border_color;
         this.options_props.border_width = this.border_width;
+        this.options_props.value_label_size = this.value_label_size;
         this.options_props.custom_filter_names = this.custom_filter_names;
         this.options_props.has_gradient = this.has_gradient;
         this.options_props.show_values = this.show_values;

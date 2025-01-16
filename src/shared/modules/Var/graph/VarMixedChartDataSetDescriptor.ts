@@ -23,6 +23,7 @@ export default class VarMixedChartDataSetDescriptor extends VarDataSetDescriptor
     public activate_datalabels: boolean = false;
     public show_zeros: boolean = false;
     public show_points: boolean = false;
+    public value_label_size: number = 18;
 
     public constructor(
         public var_name: string,
@@ -57,6 +58,12 @@ export default class VarMixedChartDataSetDescriptor extends VarDataSetDescriptor
 
     public set_borderwidths(borderWidth: number[]): VarMixedChartDataSetDescriptor {
         this.borderWidth = borderWidth;
+
+        return this;
+    }
+
+    public set_value_label_size(value_label_size: number): VarMixedChartDataSetDescriptor {
+        this.value_label_size = value_label_size;
 
         return this;
     }
