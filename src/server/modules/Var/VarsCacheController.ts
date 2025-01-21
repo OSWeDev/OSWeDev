@@ -5,6 +5,8 @@ import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import StatsController from '../../../shared/modules/Stats/StatsController';
+import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
+import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 
 /**
  * On se fixe 3 stratégies de cache :
@@ -15,11 +17,51 @@ import StatsController from '../../../shared/modules/Stats/StatsController';
  */
 export default class VarsCacheController {
 
-    public static async get_deps_intersectors(intersector: VarDataBaseVO, promise_pipeline: PromisePipeline): Promise<{ [index: string]: VarDataBaseVO }> {
-        const res: { [index: string]: VarDataBaseVO } = {};
+    // public static async get_deps_intersectors(intersector: VarDataBaseVO, promise_pipeline: PromisePipeline): Promise<{ [index: string]: VarDataBaseVO }> {
+    //     const res: { [index: string]: VarDataBaseVO } = {};
 
-        const node = VarsServerController.varcontrollers_dag.nodes[intersector.var_id];
+    //     const node = VarsServerController.varcontrollers_dag.nodes[intersector.var_id];
+    //     const this_call_promises = [];
+    //     for (const j in node.incoming_deps) {
+    //         const deps = node.incoming_deps[j];
+
+    //         for (const i in deps) {
+    //             const dep = deps[i];
+
+    //             const controller = (dep.incoming_node as VarCtrlDAGNode).var_controller;
+
+    //             this_call_promises.push((await promise_pipeline.push(async () => {
+    //                 const tmp = StatsController.ACTIVATED ?
+    //                     await controller.get_invalid_params_intersectors_from_dep_stats_wrapper(dep.dep_name, [intersector]) :
+    //                     await controller.get_invalid_params_intersectors_from_dep(dep.dep_name, [intersector]);
+    //                 if (tmp && tmp.length) {
+    //                     tmp.forEach((e) => res[e.index] = e);
+    //                 }
+    //             }))());
+    //         }
+    //     }
+    //     await all_promises(this_call_promises);
+
+    //     return res;
+    // }
+
+    /**
+     * ATTENTION : tous les invalidateurs doivent être de même conf (même var_id, propage_to_parents, invalidate_denied, invalidate_imports, ...)
+     * @param var_id
+     * @param invalidators_by_index
+     * @param promise_pipeline
+     * @returns
+     */
+    public static async get_deps_invalidators(
+        invalidators: VarDataInvalidatorVO[],
+        promise_pipeline: PromisePipeline,
+    ): Promise<VarDataInvalidatorVO[]> {
+        const intersectors_res_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
+        const exemple_conf_invalidateur = invalidators[0];
+
+        const node = VarsServerController.varcontrollers_dag.nodes[exemple_conf_invalidateur.var_data.var_id];
         const this_call_promises = [];
+        const intersectors = Object.values(invalidators).map((e) => e.var_data);
         for (const j in node.incoming_deps) {
             const deps = node.incoming_deps[j];
 
@@ -30,17 +72,41 @@ export default class VarsCacheController {
 
                 this_call_promises.push((await promise_pipeline.push(async () => {
                     const tmp = StatsController.ACTIVATED ?
-                        await controller.get_invalid_params_intersectors_from_dep_stats_wrapper(dep.dep_name, [intersector]) :
-                        await controller.get_invalid_params_intersectors_from_dep(dep.dep_name, [intersector]);
+                        await controller.get_invalid_params_intersectors_from_dep_stats_wrapper(dep.dep_name, intersectors) :
+                        await controller.get_invalid_params_intersectors_from_dep(dep.dep_name, intersectors);
                     if (tmp && tmp.length) {
-                        tmp.forEach((e) => res[e.index] = e);
+
+                        if (!intersectors_res_by_var_id[controller.varConf.id]) {
+                            intersectors_res_by_var_id[controller.varConf.id] = {};
+                        }
+                        tmp.forEach((e) => intersectors_res_by_var_id[controller.varConf.id][e.index] = e);
                     }
                 }))());
             }
         }
         await all_promises(this_call_promises);
 
-        return res;
+        const res_invalidators: VarDataInvalidatorVO[] = [];
+        for (const var_id in intersectors_res_by_var_id) {
+            const intersectors_res = intersectors_res_by_var_id[var_id];
+
+            // Tous la même conf, donc on peut union les intersecteurs à ce stade et renvoyer les invalidateurs
+            const union_matroids = MatroidController.union(Object.values(intersectors_res));
+
+            for (const i in union_matroids) {
+                const intersector = union_matroids[i];
+                const invalidator = VarDataInvalidatorVO.create_new(
+                    intersector,
+                    exemple_conf_invalidateur.invalidator_type,
+                    exemple_conf_invalidateur.propagate_to_parents,
+                    exemple_conf_invalidateur.invalidate_denied,
+                    exemple_conf_invalidateur.invalidate_imports,
+                );
+                res_invalidators.push(invalidator);
+            }
+        }
+
+        return res_invalidators;
     }
 
     /**

@@ -14,6 +14,17 @@ export default class VarDataInvalidatorVO implements IDistantVOBase {
 
     public static API_TYPE_ID: string = "vdinvldtr";
 
+    public id: number;
+
+    public _type: string = VarDataInvalidatorVO.API_TYPE_ID;
+
+    public var_data: VarDataBaseVO;
+    public invalidator_type: number;
+    public propagate_to_parents: boolean;
+    public invalidate_denied: boolean;
+    public invalidate_imports: boolean;
+
+
     public static create_new(
         var_data: VarDataBaseVO,
         invalidator_type: number = VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT,
@@ -31,16 +42,6 @@ export default class VarDataInvalidatorVO implements IDistantVOBase {
 
         return res;
     }
-
-    public id: number;
-
-    public _type: string = VarDataInvalidatorVO.API_TYPE_ID;
-
-    public var_data: VarDataBaseVO;
-    public invalidator_type: number;
-    public propagate_to_parents: boolean;
-    public invalidate_denied: boolean;
-    public invalidate_imports: boolean;
 
     /**
      * On log vers la console. JNE : on ajoute l'idée de logguer dans un format qui serait compatible
@@ -63,5 +64,9 @@ export default class VarDataInvalidatorVO implements IDistantVOBase {
         ConsoleHandler.log(invalidator_name + '.propagate_to_parents = ' + this.propagate_to_parents + ';');
         ConsoleHandler.log(invalidator_name + '.invalidate_denied = ' + this.invalidate_denied + ';');
         ConsoleHandler.log(invalidator_name + '.invalidate_imports = ' + this.invalidate_imports + ';');
+    }
+
+    public invalidator_conf_index(): string {
+        return VarsController.get_validator_config_id(this);
     }
 }

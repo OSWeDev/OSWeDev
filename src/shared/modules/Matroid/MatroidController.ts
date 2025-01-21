@@ -85,10 +85,13 @@ export default class MatroidController {
         return res;
     }
 
-    // FIXME Algo naif certainement très mauvais mais simple
-    //  on regarde si on trouve des matroids identiques, on ignore le second,
-    //  si on trouve des matroids qui n'ont qu'une base différente, on fait une union des bases sur le premier et on ignore le second,
-    //  si on trouve plus d'une base différente
+    /**
+     * ATTENTION : le var_id doit être identique !!!
+     * FIXME Algo naif certainement très mauvais mais simple
+     *  on regarde si on trouve des matroids identiques, on ignore le second,
+     *  si on trouve des matroids qui n'ont qu'une base différente, on fait une union des bases sur le premier et on ignore le second,
+     *  si on trouve plus d'une base différente
+     */
     public static union<T extends IMatroid>(matroids: T[]): T[] {
         const res: T[] = [];
 

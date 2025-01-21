@@ -115,7 +115,7 @@ export default abstract class ServerBase {
 
         // INIT Stats Server side
         StatsController.THREAD_NAME = 'main';
-        StatsController.getInstance().UNSTACK_THROTTLE = 60000;
+        StatsController.getInstance().UNSTACK_THROTTLE = 10000;
         StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
         StatsController.new_stats_handler = StatsServerController.new_stats_handler;
         StatsController.register_stat_COMPTEUR('ServerBase', 'START', '-');

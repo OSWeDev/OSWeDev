@@ -15,7 +15,7 @@ const INTERVAL = 10000;
 let interval_object = null;
 const objects_to_stat: ObjectToStat[] = [];
 
-function get_keys_length(mapRef: { [key: string]: any }, stat_object_name: string, property_key: string, depth: number, stat_value_type_array_length_instead_of_keys: boolean): number {
+export function get_keys_length(mapRef: { [key: string]: any }, stat_object_name: string, property_key: string, depth: number, stat_value_type_array_length_instead_of_keys: boolean): number {
     if (depth < 0) {
         throw new Error('should not happen :length < 0: ' + stat_object_name + '.' + property_key);
     }

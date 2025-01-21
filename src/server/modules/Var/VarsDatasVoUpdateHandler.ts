@@ -6,7 +6,9 @@ import EventsController from '../../../shared/modules/Eventify/EventsController'
 import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import { StatThisArrayLength } from '../../../shared/modules/Stats/annotations/StatThisArrayLength';
+import { get_keys_length } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
@@ -123,8 +125,9 @@ export default class VarsDatasVoUpdateHandler {
      */
     public static async deploy_invalidators(invalidators: VarDataInvalidatorVO[]): Promise<{ [invalidator_id: string]: VarDataInvalidatorVO }> {
 
-        const deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO } = {};
-        const actual_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO } = {};
+        const treated_deployed_invalidators: { [invalidator_id: string]: boolean } = {};
+        const res_deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO } = {};
+        let actual_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO } = {};
 
         for (const i in invalidators) {
             const invalidator = invalidators[i];
@@ -132,7 +135,7 @@ export default class VarsDatasVoUpdateHandler {
             actual_invalidators[VarsController.get_validator_config_id(invalidator)] = invalidator;
         }
 
-        // TODO FIXME pour booster ce passage, au lieu d'attendre toutes les promises de la boucle, on veut en fait attendre le plus rapide entre un event sur un push de actual_invalidators, et la fin de toutes les promises. Comme ça on peut rapidement reprendre l'empilage de promises
+        // Pour booster ce passage, au lieu d'attendre toutes les promises de la boucle, on veut en fait attendre le plus rapide entre un event sur un push de actual_invalidators, et la fin de toutes les promises. Comme ça on peut rapidement reprendre l'empilage de promises
         //  sans attendre de tout résoudre.
         let is_looking_for_more_resolver = null;
         const promise_pipeline = PromisePipeline.get_semaphore_pipeline('VarsDatasVoUpdateHandler.handle_intersectors', ConfigurationService.node_configuration.max_pool);
@@ -141,63 +144,64 @@ export default class VarsDatasVoUpdateHandler {
 
         while (ObjectHandler.hasAtLeastOneAttribute(actual_invalidators)) {
 
-            while (ObjectHandler.hasAtLeastOneAttribute(actual_invalidators)) {
+            /**
+             * Subtilité pour les perfs :
+             *  La version simple : on await promise_pipeline.end(); et donc après on checke si on a des nouveaux invalidators à traiter
+             *  La version opti : on race entre le await promise_pipeline.end(); et un event sur actual_invalidators lancé par le push d'un nouveau invalidateur, qu'on gère en resolvant une promise qu'on init ici
+             */
+            const has_new_invalidator = new Promise((resolve) => {
+                is_looking_for_more_resolver = resolve;
+            });
+
+            // On regroupe les invalidateurs par varconf_id et par conf d'invalidation, et on demande les deps sur chaque groupe
+            const tmp = Object.values(actual_invalidators);
+            actual_invalidators = {};
+
+            for (const i in tmp) {
+                treated_deployed_invalidators[VarsController.get_validator_config_id(tmp[i])] = true;
+            }
+
+            const invalidators_by_varconf_id: { [invalidation_conf_key: string]: VarDataInvalidatorVO[] } = this.union_invalidators(tmp);
+
+            for (const invalidator_conf in invalidators_by_varconf_id) {
+                const this_type_invalidators = invalidators_by_varconf_id[invalidator_conf];
+
+                for (const i in this_type_invalidators) {
+                    treated_deployed_invalidators[VarsController.get_validator_config_id(this_type_invalidators[i])] = true;
+                    res_deployed_invalidators[VarsController.get_validator_config_id(this_type_invalidators[i])] = this_type_invalidators[i];
+                }
 
                 promises.push((async () => {
-                    const invalidator_id = ObjectHandler.getFirstAttributeName(actual_invalidators);
-                    const actual_invalidator = actual_invalidators[invalidator_id];
-                    delete actual_invalidators[invalidator_id];
 
-                    deployed_invalidators[invalidator_id] = actual_invalidator;
-                    if (!actual_invalidator.propagate_to_parents) {
+                    const invalidateurs: VarDataInvalidatorVO[] = await VarsCacheController.get_deps_invalidators(this_type_invalidators, promise_pipeline);
+
+                    if ((!invalidateurs) || (!invalidateurs.length)) {
                         return;
                     }
 
-                    const intersectors = await VarsCacheController.get_deps_intersectors(actual_invalidator.var_data, promise_pipeline);
-
-                    if (!intersectors) {
-                        return;
-                    }
-
-                    const intersectors_array = Object.values(intersectors);
-
-                    if (!intersectors_array || !intersectors_array.length) {
-                        return;
-                    }
-
-                    intersectors_array.map((intersector) => {
-                        const new_invalidator = VarDataInvalidatorVO.create_new(intersector, actual_invalidator.invalidator_type, actual_invalidator.propagate_to_parents, actual_invalidator.invalidate_denied, actual_invalidator.invalidate_imports);
+                    for (const j in invalidateurs) {
+                        const new_invalidator = invalidateurs[j];
                         const new_invalidator_id = VarsController.get_validator_config_id(new_invalidator);
 
-                        if (deployed_invalidators[new_invalidator_id]) {
-                            return;
+                        if (treated_deployed_invalidators[new_invalidator_id]) {
+                            continue;
                         }
 
                         if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                            ConsoleHandler.log('VarsDatasVoUpdateHandler.deploy_invalidators:DEPLOYING:' + new_invalidator_id + ':by:' + invalidator_id);
+                            ConsoleHandler.log('VarsDatasVoUpdateHandler.deploy_invalidators:DEPLOYING:' + new_invalidator_id + ':by:' + invalidator_conf);
                             new_invalidator.console_log();
-                            actual_invalidator.console_log();
                         }
+
                         actual_invalidators[new_invalidator_id] = new_invalidator;
 
                         if (is_looking_for_more_resolver) {
                             is_looking_for_more_resolver();
                             is_looking_for_more_resolver = null;
                         }
-                    });
+
+                    }
                 })());
             }
-
-            /**
-             * Subtilité pour les perfs :
-             *  La version simple : on await promise_pipeline.end(); et donc après on checke si on a des nouveaux invalidators à traiter
-             *  La version opti : on race entre le await promise_pipeline.end(); et un event sur actual_invalidators lancé par le push d'un nouveau invalidateur, qu'on gère en resolvant une promise qu'on init ici
-             */
-            let has_new_invalidator_resolver = null;
-            const has_new_invalidator = new Promise((resolve) => {
-                has_new_invalidator_resolver = resolve;
-            });
-            is_looking_for_more_resolver = has_new_invalidator_resolver;
 
             await Promise.race([
                 all_promises(promises),
@@ -205,7 +209,7 @@ export default class VarsDatasVoUpdateHandler {
             ]);
         }
 
-        return deployed_invalidators;
+        return res_deployed_invalidators;
     }
 
     /**
@@ -253,7 +257,7 @@ export default class VarsDatasVoUpdateHandler {
      * Cas spécifique des vars pixels never delete : on doit d'abord charger avant de les supprimer et on retourne les vars chargées
      * @param invalidator
      */
-    private static async apply_invalidator_in_db(invalidator: VarDataInvalidatorVO): Promise<VarDataBaseVO[]> {
+    private static async apply_invalidator_in_db(invalidator: VarDataInvalidatorVO, conditions_by_type: { [api_type_id: string]: string[] }): Promise<VarDataBaseVO[]> {
 
         let pixels_never_delete = [];
         const controller = VarsController.var_conf_by_id[invalidator.var_data.var_id];
@@ -262,7 +266,7 @@ export default class VarsDatasVoUpdateHandler {
             pixels_never_delete = await VarsDatasVoUpdateHandler.load_invalidateds_from_bdd(invalidator);
         }
 
-        await VarsDatasVoUpdateHandler.delete_var_by_intersectors_without_triggers(controller.var_data_vo_type, invalidator);
+        VarsDatasVoUpdateHandler.get_condition_for_delete_var_by_intersectors_without_triggers(controller.var_data_vo_type, invalidator, conditions_by_type);
 
         return pixels_never_delete;
     }
@@ -311,14 +315,18 @@ export default class VarsDatasVoUpdateHandler {
      *  WARN ça signifie que les triggers sur suppression de vardata sont interdits à ce stade
      *  !! Ne peut être utilisé safe que par handle_invalidation
      */
-    private static async delete_var_by_intersectors_without_triggers(api_type_id: string, invalidator: VarDataInvalidatorVO) {
+    private static get_condition_for_delete_var_by_intersectors_without_triggers(
+        api_type_id: string,
+        invalidator: VarDataInvalidatorVO,
+        conditions_by_type: { [api_type_id: string]: string[] },
+    ) {
 
         switch (invalidator.invalidator_type) {
             case VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED:
-                await VarsDatasVoUpdateHandler.delete_var_by_intersected_without_triggers(api_type_id, invalidator);
+                VarsDatasVoUpdateHandler.get_condition_for_delete_var_by_intersected_without_triggers(api_type_id, invalidator, conditions_by_type);
                 break;
             case VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT:
-                await VarsDatasVoUpdateHandler.delete_var_by_exact_without_triggers(api_type_id, invalidator);
+                VarsDatasVoUpdateHandler.get_condition_for_delete_var_by_exact_without_triggers(api_type_id, invalidator, conditions_by_type);
                 break;
             default:
                 ConsoleHandler.error('invalidator_type not implemented: ' + invalidator.invalidator_type);
@@ -326,10 +334,13 @@ export default class VarsDatasVoUpdateHandler {
         }
     }
 
-    private static async delete_var_by_intersected_without_triggers(api_type_id: string, invalidator: VarDataInvalidatorVO) {
+    private static get_condition_for_delete_var_by_intersected_without_triggers(
+        api_type_id: string,
+        invalidator: VarDataInvalidatorVO,
+        conditions_by_type: { [api_type_id: string]: string[] },
+    ) {
 
-        const moduleTable = ModuleTableController.module_tables_by_vo_type[api_type_id];
-        let request = "DELETE FROM " + moduleTable.full_name + " WHERE " + ModuleDAOServer.instance.getWhereClauseForFilterByMatroidIntersection(api_type_id, invalidator.var_data, null);
+        let request = ModuleDAOServer.instance.getWhereClauseForFilterByMatroidIntersection(api_type_id, invalidator.var_data, null);
 
         const list_valid_value_types = [VarDataBaseVO.VALUE_TYPE_COMPUTED];
         if (invalidator.invalidate_denied) {
@@ -338,15 +349,21 @@ export default class VarsDatasVoUpdateHandler {
         if (invalidator.invalidate_imports) {
             list_valid_value_types.push(VarDataBaseVO.VALUE_TYPE_IMPORT);
         }
-        request += " AND " + field_names<VarDataBaseVO>().value_type + " IN (" + list_valid_value_types.join(',') + ");";
+        request += " AND " + field_names<VarDataBaseVO>().value_type + " IN (" + list_valid_value_types.join(',') + ")";
 
-        return ModuleDAOServer.instance.query(request);
+        if (!conditions_by_type[api_type_id]) {
+            conditions_by_type[api_type_id] = [];
+        }
+
+        conditions_by_type[api_type_id].push(request);
     }
 
-    private static async delete_var_by_exact_without_triggers(api_type_id: string, invalidator: VarDataInvalidatorVO) {
+    private static get_condition_for_delete_var_by_exact_without_triggers(
+        api_type_id: string,
+        invalidator: VarDataInvalidatorVO,
+        conditions_by_type: { [api_type_id: string]: string[] }) {
 
-        const moduleTable = ModuleTableController.module_tables_by_vo_type[api_type_id];
-        let request = "DELETE FROM " + moduleTable.full_name + " WHERE _bdd_only_index = '" + invalidator.var_data.index + "'";
+        let request = "_bdd_only_index = '" + invalidator.var_data.index + "'";
 
         const list_valid_value_types = [VarDataBaseVO.VALUE_TYPE_COMPUTED];
         if (invalidator.invalidate_denied) {
@@ -355,9 +372,13 @@ export default class VarsDatasVoUpdateHandler {
         if (invalidator.invalidate_imports) {
             list_valid_value_types.push(VarDataBaseVO.VALUE_TYPE_IMPORT);
         }
-        request += " AND " + field_names<VarDataBaseVO>().value_type + " IN (" + list_valid_value_types.join(',') + ");";
+        request += " AND " + field_names<VarDataBaseVO>().value_type + " IN (" + list_valid_value_types.join(',') + ")";
 
-        await ModuleDAOServer.instance.query(request);
+        if (!conditions_by_type[api_type_id]) {
+            conditions_by_type[api_type_id] = [];
+        }
+
+        conditions_by_type[api_type_id].push(request);
     }
 
     /**
@@ -489,14 +510,12 @@ export default class VarsDatasVoUpdateHandler {
     }
 
     /**
-     * Pour l'union des invalidators, on peut union à condition d'avoir :
+     * Pour l'union des invalidators, on union par type de conf (et var_id) et on union les var_datas :
      *  - un var_id identique
      *  - une conf de types de var_data à supprimer identiques (donc denied / imports identiques)
-     *
-     * !! à ce stade on considère que le propagate est commun à tous ces invalidators
      */
-    private static union_invalidators(invalidators: VarDataInvalidatorVO[]): VarDataInvalidatorVO[] {
-        const union_invalidators: VarDataInvalidatorVO[] = [];
+    private static union_invalidators(invalidators: VarDataInvalidatorVO[]): { [conf_id: string]: VarDataInvalidatorVO[] } {
+        const union_invalidators: { [conf_id: string]: VarDataInvalidatorVO[] } = {};
 
         /**
          * On commence par regrouper par confs de types de var_data à supprimer
@@ -516,22 +535,26 @@ export default class VarsDatasVoUpdateHandler {
         for (const conf_id in invalidators_by_conf) {
             const this_conf_invalidators = invalidators_by_conf[conf_id];
 
+            if (!union_invalidators[conf_id]) {
+                union_invalidators[conf_id] = [];
+            }
+
             if (this_conf_invalidators.length == 1) {
-                union_invalidators.push(this_conf_invalidators[0]);
+                union_invalidators[conf_id].push(this_conf_invalidators[0]);
                 continue;
             }
 
             /**
-             * L'union est faite en sélectionnant le premier invalidator, et en union les var_datas.
+             * L'union est faite en sélectionnant le premier invalidator pour sa conf, et en union les var_datas.
              *  Le reste de la conf est sensé être identique par définition donc ça devrait marcher.
              */
-            const kept_invalidator = this_conf_invalidators[0];
+            const exemple_invalidator = this_conf_invalidators[0];
             const union_var_datas = MatroidController.union(this_conf_invalidators.map((invalidator) => invalidator.var_data));
 
             for (const i in union_var_datas) {
                 const union_var_data = union_var_datas[i];
-                const union_invalidator = VarDataInvalidatorVO.create_new(union_var_data, kept_invalidator.invalidator_type, kept_invalidator.propagate_to_parents, kept_invalidator.invalidate_denied, kept_invalidator.invalidate_imports);
-                union_invalidators.push(union_invalidator);
+                const union_invalidator = VarDataInvalidatorVO.create_new(union_var_data, exemple_invalidator.invalidator_type, exemple_invalidator.propagate_to_parents, exemple_invalidator.invalidate_denied, exemple_invalidator.invalidate_imports);
+                union_invalidators[conf_id].push(union_invalidator);
             }
         }
 
@@ -723,17 +746,17 @@ export default class VarsDatasVoUpdateHandler {
     @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, null)//static
     public static async handle_invalidators(deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO }) {
 
-        let invalidators = Object.values(deployed_invalidators);
+        const invalidators_array = Object.values(deployed_invalidators);
 
-        if (!invalidators || !invalidators.length) {
+        if (!invalidators_array || !invalidators_array.length) {
             return;
         }
-        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:IN:' + invalidators.length);
+        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:IN:' + invalidators_array.length);
 
-        // On fait l'union
-        invalidators = this.union_invalidators(invalidators);
+        // On fait l'union et on regroupe par conf d'invalidation
+        const invalidators_by_varconf_id: { [invalidation_conf_key: string]: VarDataInvalidatorVO[] } = this.union_invalidators(invalidators_array);
         if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-            ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:UNION:' + invalidators.length);
+            ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:UNION:KEYS:' + Object.keys(invalidators_by_varconf_id).length + get_keys_length(invalidators_by_varconf_id, null, null, 1, true));
         }
 
         /**
@@ -743,25 +766,46 @@ export default class VarsDatasVoUpdateHandler {
         const invalidated_pixels_never_delete: VarDataBaseVO[] = [];
         const promise_pipeline: PromisePipeline = new PromisePipeline(ConfigurationService.node_configuration.max_vars_invalidators, 'VarsDatasVoUpdateHandler.handle_invalidators');
 
-        for (const i in invalidators) {
-            const invalidator = invalidators[i];
+        // On doit pouvoir génrer une requete unique par type de var_data à supprimer, avec toutes les conditions sous la forme (A) OR (B) OR (C) ...
+        const conditions_by_type: { [api_type_id: string]: string[] } = {};
 
-            await promise_pipeline.push(async () => {
-                const this_invalidated_pixels_never_delete = await this.apply_invalidator_in_db(invalidator);
-                if (this_invalidated_pixels_never_delete && this_invalidated_pixels_never_delete.length) {
-                    invalidated_pixels_never_delete.push(...this_invalidated_pixels_never_delete);
+        for (const conf_type in invalidators_by_varconf_id) {
+            const invalidators = invalidators_by_varconf_id[conf_type];
+            for (const i in invalidators) {
+                const invalidator = invalidators[i];
 
-                    if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                        this_invalidated_pixels_never_delete.forEach((pixel_never_delete) => {
-                            ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:this_invalidated_pixels_never_delete:' + pixel_never_delete.index + ':by:');
-                            invalidator.console_log();
-                        });
+                await promise_pipeline.push(async () => {
+                    const this_invalidated_pixels_never_delete = await this.apply_invalidator_in_db(invalidator, conditions_by_type);
+                    if (this_invalidated_pixels_never_delete && this_invalidated_pixels_never_delete.length) {
+                        invalidated_pixels_never_delete.push(...this_invalidated_pixels_never_delete);
+
+                        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                            this_invalidated_pixels_never_delete.forEach((pixel_never_delete) => {
+                                ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:this_invalidated_pixels_never_delete:' + pixel_never_delete.index + ':by:');
+                                invalidator.console_log();
+                            });
+                        }
                     }
-                }
-            });
+                });
 
-            // Attention on ne doit pas unlink en //, sinon il faut semaphore comme le getInstance()
-            this.apply_invalidator_in_tree(invalidator);
+                // Attention on ne doit pas unlink en //, sinon il faut semaphore comme le getInstance()
+                this.apply_invalidator_in_tree(invalidator);
+            }
+        }
+
+        await promise_pipeline.end();
+
+        // On applique les delete by type
+        for (const api_type_id in conditions_by_type) {
+            const conditions = conditions_by_type[api_type_id];
+
+            if (!conditions || !conditions.length) {
+                continue;
+            }
+
+            const moduleTable = ModuleTableController.module_tables_by_vo_type[api_type_id];
+            const request = '(' + conditions.join(') OR (') + ')';
+            await promise_pipeline.push(async () => ModuleDAOServer.instance.query("DELETE FROM " + moduleTable.full_name + " WHERE " + request + ";"));
         }
 
         await promise_pipeline.end();
@@ -799,28 +843,31 @@ export default class VarsDatasVoUpdateHandler {
             }
 
             let invalidated = false;
-            for (const i in invalidators) {
-                const invalidator = invalidators[i];
+            for (const conf_type in invalidators_by_varconf_id) {
+                const invalidators = invalidators_by_varconf_id[conf_type];
+                for (const i in invalidators) {
+                    const invalidator = invalidators[i];
 
-                switch (invalidator.invalidator_type) {
-                    case VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED:
-                        if (!MatroidController.matroid_intersects_matroid(registered_var, invalidator.var_data)) {
-                            continue;
-                        }
-                        break;
-                    case VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT:
-                        if (registered_var.index != invalidator.var_data.index) {
-                            continue;
-                        }
-                        break;
+                    switch (invalidator.invalidator_type) {
+                        case VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED:
+                            if (!MatroidController.matroid_intersects_matroid(registered_var, invalidator.var_data)) {
+                                continue;
+                            }
+                            break;
+                        case VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT:
+                            if (registered_var.index != invalidator.var_data.index) {
+                                continue;
+                            }
+                            break;
+                    }
+
+                    if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:SUBInvalidated:' + index + ':by:');
+                        invalidator.console_log();
+                    }
+
+                    invalidated = true;
                 }
-
-                if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                    ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:SUBInvalidated:' + index + ':by:');
-                    invalidator.console_log();
-                }
-
-                invalidated = true;
             }
 
             if (!invalidated) {
@@ -840,7 +887,7 @@ export default class VarsDatasVoUpdateHandler {
 
         VarDAGNode.unlock_nodes(nodes_to_unlock);
 
-        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:OUT:' + invalidators.length);
+        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:OUT');
     }
 
     /**

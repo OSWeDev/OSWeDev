@@ -130,7 +130,7 @@ export default class OrderedPromisePipeline {
 
             const time_in = Dates.now_ms();
 
-            await EventsController.await_next_event(this.free_slot_event_name);
+            await EventsController.await_next_event_semaphored(this.free_slot_event_name, this.uid.toString());
 
             // We have a pb with race, it invokes multipleResolve, which is a perf pb : https://github.com/nodejs/node/issues/24321
             // // Wait for a free slot, handle the fastest finished promise

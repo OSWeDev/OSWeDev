@@ -41,7 +41,7 @@ export default class PromisePipeline {
         this.uid = PromisePipeline.GLOBAL_UID++;
 
         // Dès qu'on a une stat, on lance le worker. Si il est déjà lancé ça aura pas d'impact
-        if (this.stat_name && this.stat_worker) {
+        if (StatsController.ACTIVATED && this.stat_name && this.stat_worker) {
             ThreadHandler.set_interval(
                 'PromisePipeline.stat_all_promise_pipelines',
                 PromisePipeline.stat_all_promise_pipelines,
@@ -85,10 +85,13 @@ export default class PromisePipeline {
             const promise_pipeline = PromisePipeline.all_promise_pipelines_by_uid[uid];
             n++;
 
-            StatsController.register_stat_QUANTITE('PromisePipeline', promise_pipeline.stat_name, 'RUNNING', promise_pipeline.nb_running_promises);
-            StatsController.register_stat_QUANTITE('PromisePipeline', promise_pipeline.stat_name, 'EMPTY_SLOTS', promise_pipeline.max_concurrent_promises - promise_pipeline.nb_running_promises);
-            if (PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS) {
-                ConsoleHandler.log('PromisePipeline:STATS:' + promise_pipeline.stat_name + ':' + promise_pipeline.uid + ':' + promise_pipeline.nb_running_promises);
+            if (!!promise_pipeline.stat_name) {
+                StatsController.register_stat_QUANTITE('PromisePipeline', promise_pipeline.stat_name, 'RUNNING', promise_pipeline.nb_running_promises);
+                StatsController.register_stat_QUANTITE('PromisePipeline', promise_pipeline.stat_name, 'EMPTY_SLOTS', promise_pipeline.max_concurrent_promises - promise_pipeline.nb_running_promises);
+                if (PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS) {
+                    ConsoleHandler.log('PromisePipeline:STATS:' + promise_pipeline.stat_name + ':' + promise_pipeline.uid + ':' + promise_pipeline.nb_running_promises);
+                }
+
             }
         }
 
@@ -173,7 +176,7 @@ export default class PromisePipeline {
 
             const time_in = Dates.now_ms();
 
-            await EventsController.await_next_event(this.free_slot_event_name);
+            await EventsController.await_next_event_semaphored(this.free_slot_event_name, this.uid.toString());
 
             // We have a pb with race, it invokes multipleResolve, which is a perf pb : https://github.com/nodejs/node/issues/24321
             // // Wait for a free slot, handle the fastest finished promise

@@ -2,11 +2,14 @@ import EventsController from '../../../../../shared/modules/Eventify/EventsContr
 import EventifyEventInstanceVO from '../../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import { StatThisArrayLength } from '../../../../../shared/modules/Stats/annotations/StatThisArrayLength';
+import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import ForkedTasksController from '../../../Fork/ForkedTasksController';
 import CurrentVarDAGHolder from '../../CurrentVarDAGHolder';
+import VarDAGNode from '../../vos/VarDAGNode';
+import VarsProcessBase from './VarsProcessBase';
 
 export default class VarsComputationHole {
 
@@ -143,6 +146,8 @@ export default class VarsComputationHole {
         } catch (error) {
             ConsoleHandler.error('VarsComputationHole:wrap_handle_hole:' + error);
         }
+
+        return true;
     }
 
     private static async handle_hole(): Promise<boolean> {
@@ -194,10 +199,42 @@ export default class VarsComputationHole {
             if (Dates.now() - start_date > 60) {
                 ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT');
                 start_date = Dates.now();
+                const nodes_to_reinsert: VarDAGNode[] = [];
+                const event_to_call: { [event_name: string]: boolean } = {};
                 for (const i in CurrentVarDAGHolder.current_vardag.nodes) {
                     const node = CurrentVarDAGHolder.current_vardag.nodes[i];
 
-                    ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:node:' + node.var_data.index + ':' + Object.keys(node.tags).join(','));
+                    // Si le noeud n'a pas d'état en cours, on doit indiquer une grosse erreur, et tenter de le réinsérer
+                    const tags = Object.keys(node.tags).join(',');
+                    if (!tags || !tags.length) {
+                        ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:node:' + node.var_data.index + ':no_state:reinsert');
+                        nodes_to_reinsert.push(node);
+                    }
+
+                    // On tente aussi de relancer un event en fonction de l'état du noeud des fois que le système soit bloqué à ce niveau
+                    for (const event_name in node.tags) {
+                        const work_event_name = VarsProcessBase.registered_processes_work_event_name_by_tag_in[event_name];
+                        if (!work_event_name) {
+                            continue;
+                        }
+
+                        event_to_call[work_event_name] = true;
+                    }
+
+                    ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:node:' + node.var_data.index + ':' + tags);
+                }
+
+                for (const i in nodes_to_reinsert) {
+                    const node: VarDAGNode = nodes_to_reinsert[i];
+                    node.unlinkFromDAG(true);
+
+                    ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:node:' + node.var_data.index + ':reinsert');
+                    await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, node.var_data, false);
+                }
+
+                for (const event_name in event_to_call) {
+                    ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:FORCING EVENT:' + event_name);
+                    EventsController.emit_event(EventifyEventInstanceVO.new_event(event_name));
                 }
             }
         }

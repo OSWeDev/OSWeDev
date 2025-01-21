@@ -1,4 +1,5 @@
 import EventsController from '../../../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
@@ -186,7 +187,10 @@ export default class VarsProcessInvalidator {
                 }
             }
 
-            const deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO } = await VarsDatasVoUpdateHandler.deploy_invalidators(invalidators);
+            let deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO } = null;
+            if (invalidators && invalidators.length) {
+                deployed_invalidators = await VarsDatasVoUpdateHandler.deploy_invalidators(invalidators);
+            }
 
             /**
              * Si on invalide, on veut d'une part supprimer en bdd tout ce qui intersecte les invalidators
@@ -219,6 +223,11 @@ export default class VarsProcessInvalidator {
                 ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:OUT');
             }
         });
+
+        // On a plus de boucle automatique sur les vars, donc si on dépile que max vos cud, il faut rappeler obligatoirement le process automatiquement pour dépiler le reste
+        if (VarsDatasVoUpdateHandler.has_vos_cud_or_intersectors()) {
+            EventsController.emit_event(EventifyEventInstanceVO.new_event(VarsProcessInvalidator.WORK_EVENT_NAME));
+        }
 
         return true;
     }

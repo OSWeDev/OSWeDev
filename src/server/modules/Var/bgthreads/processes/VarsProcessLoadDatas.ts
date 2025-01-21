@@ -1,3 +1,5 @@
+import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatsController from '../../../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
@@ -92,7 +94,16 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
                 CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[datasource_name] = {};
             }
 
-            promises.push(datasource.load_nodes_data_using_pipeline(nodes_by_datasource[datasource_name], promise_pipeline));
+            if (StatsController.ACTIVATED) {
+                promises.push((async () => {
+                    StatsController.register_stat_COMPTEUR('DataSources', datasource_name, 'load_nodes_datas');
+                    const date = Dates.now_ms();
+                    await datasource.load_nodes_data_using_pipeline(nodes_by_datasource[datasource_name], promise_pipeline);
+                    StatsController.register_stat_DUREE('DataSources', datasource_name, 'load_nodes_datas', Dates.now_ms() - date);
+                })());
+            } else {
+                promises.push(datasource.load_nodes_data_using_pipeline(nodes_by_datasource[datasource_name], promise_pipeline));
+            }
         }
 
         await all_promises(promises);

@@ -34,8 +34,7 @@ export default class VarsServerController {
     public static registered_vars_controller: { [name: string]: VarServerControllerBase<any> } = {};
     public static registered_vars_by_datasource: { [datasource_id: string]: Array<VarServerControllerBase<any>> } = {};
 
-    // TODO FIXME est-ce que tout n'est pas en cache à ce stade, si on demande toujours en insérant en base ?
-    public static registered_vars_controller_by_api_type_id: { [api_type_id: string]: Array<VarServerControllerBase<any>> } = {};
+    public static registered_vars_controller_by_api_type_id: { [api_type_id: string]: { [var_conf_id: number]: VarServerControllerBase<any> } } = {};
 
     public static preloadedVarConfs: boolean = false;
     /**
@@ -663,9 +662,9 @@ export default class VarsServerController {
                 const vo_api_type_id = ds.vo_api_type_ids[j];
 
                 if (!VarsServerController.registered_vars_controller_by_api_type_id[vo_api_type_id]) {
-                    VarsServerController.registered_vars_controller_by_api_type_id[vo_api_type_id] = [];
+                    VarsServerController.registered_vars_controller_by_api_type_id[vo_api_type_id] = {};
                 }
-                VarsServerController.registered_vars_controller_by_api_type_id[vo_api_type_id].push(controller);
+                VarsServerController.registered_vars_controller_by_api_type_id[vo_api_type_id][varConf.id] = controller;
             }
         }
 

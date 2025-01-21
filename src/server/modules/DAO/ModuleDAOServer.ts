@@ -521,24 +521,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             if (moduleTable.is_segmented) {
                 // Si on est sur une table segmentée on adapte le comportement
-                const name = moduleTable.get_segmented_name_from_vo(vo);
                 full_name = moduleTable.get_segmented_full_name_from_vo(vo);
 
-                // Si on est sur du segmented en insert on doit vérifier l'existence de la table, sinon il faut la créer avant d'insérer la première donnée
-                if ((!DAOServerController.segmented_known_databases[moduleTable.database]) || (!DAOServerController.segmented_known_databases[moduleTable.database][name])) {
-
-                    const queries_to_try_after_creation: string[] = [];
-                    await ModuleTableDBService.getInstance(null).create_or_update_datatable(
-                        moduleTable,
-                        [RangeHandler.create_single_elt_range(moduleTable.table_segmented_field_range_type, moduleTable.get_segmented_field_value_from_vo(vo), moduleTable.table_segmented_field_segment_type)],
-                        queries_to_try_after_creation,
-                    );
-
-                    if (queries_to_try_after_creation && queries_to_try_after_creation.length) {
-                        ConsoleHandler.error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
-                        throw new Error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
-                    }
-                }
+                await this.check_or_create_segmented_table(moduleTable, moduleTable.get_segmented_field_value_from_vo(vo));
             } else {
                 full_name = moduleTable.full_name;
             }
@@ -1409,6 +1394,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
 
+        // Si on est sur une table segmentées, on check / crée le segment si besoin
+        if (segmented_value) {
+            // On a donc une seule table cible, et un seul segment
+            const module_table = ModuleTableController.module_tables_by_vo_type[vos[0]._type];
+            await this.check_or_create_segmented_table(module_table, segmented_value);
+        }
 
         // for (let api_type in check_pixel_update_vos_by_type) {
         //     let check_pixel_update_vos = check_pixel_update_vos_by_type[api_type];
@@ -1678,9 +1669,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                                 }
                             }
 
-                            const duplicates_by_index: { [index: string]: VarDataBaseVO } = {};
+                            let duplicates_by_index: { [index: string]: VarDataBaseVO } = {};
                             for (const i in packets) {
-                                const packet: VarDataBaseVO[] = packets[i];
+                                packet = packets[i];
                                 const pack_duplicates: VarDataBaseVO[] = await query(moduleTable.vo_type).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, packet.map((vo: VarDataBaseVO) => vo._bdd_only_index)).exec_as_server().select_vos();
 
                                 for (const j in pack_duplicates) {
@@ -1695,7 +1686,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                                 ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a trouvé des doublons (' + duplicates.length + '), on les mets à jour plutôt');
                                 ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: Index des doublons trouvés en base : ' + JSON.stringify(duplicates.map((vo: VarDataBaseVO) => vo._bdd_only_index)));
 
-                                const duplicates_by_index: { [index: string]: VarDataBaseVO } = {};
+                                duplicates_by_index = {};
                                 const filtered_not_imported_vos: VarDataBaseVO[] = [];
                                 for (const i in duplicates) {
                                     const duplicate: VarDataBaseVO = duplicates[i];
@@ -1736,9 +1727,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                                 throw new Error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a pas trouvé de doublons ce qui ne devrait jamais arriver');
                             }
 
-                        } catch (error) {
+                        } catch (error__) {
 
-                            ConsoleHandler.error('ERROR in insert_without_triggers_using_COPY: ' + error);
+                            ConsoleHandler.error('ERROR in insert_without_triggers_using_COPY: ' + error__);
                             try {
 
                                 const query_res = await self.insertOrUpdateVOs_without_triggers(vos, null, exec_as_server);
@@ -1755,8 +1746,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         try {
                             const query_res = await self.insertOrUpdateVOs_without_triggers(vos, null, exec_as_server);
                             result = (!!query_res) && (query_res.length == vos.length);
-                        } catch (error) {
-                            ConsoleHandler.error('insert_without_triggers_using_COPY:' + error);
+                        } catch (err_) {
+                            ConsoleHandler.error('insert_without_triggers_using_COPY:' + err_);
                             result = false;
                         }
                     }
@@ -3201,5 +3192,25 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         return false;
+    }
+
+    private async check_or_create_segmented_table(module_table: ModuleTableVO, segment_value: number): Promise<void> {
+        const name = module_table.get_segmented_name(segment_value);
+
+        // Si on est sur du segmented en insert on doit vérifier l'existence de la table, sinon il faut la créer avant d'insérer la première donnée
+        if ((!DAOServerController.segmented_known_databases[module_table.database]) || (!DAOServerController.segmented_known_databases[module_table.database][name])) {
+
+            const queries_to_try_after_creation: string[] = [];
+            await ModuleTableDBService.getInstance(null).create_or_update_datatable(
+                module_table,
+                [RangeHandler.create_single_elt_range(module_table.table_segmented_field_range_type, segment_value, module_table.table_segmented_field_segment_type)],
+                queries_to_try_after_creation,
+            );
+
+            if (queries_to_try_after_creation && queries_to_try_after_creation.length) {
+                ConsoleHandler.error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
+                throw new Error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
+            }
+        }
     }
 }

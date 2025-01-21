@@ -116,7 +116,7 @@ export default abstract class ForkedProcessWrapperBase {
         thread_name += Object.keys(BGThreadServerDataManager.valid_bgthreads_names).join('_').replace(/ \./g, '_');
         StatsController.THREAD_NAME = thread_name;
         StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
-        StatsController.getInstance().UNSTACK_THROTTLE = 60000;
+        StatsController.getInstance().UNSTACK_THROTTLE = 10000;
         StatsController.new_stats_handler = StatsServerController.new_stats_handler;
         StatsController.register_stat_COMPTEUR('ServerBase', 'START', '-');
     }

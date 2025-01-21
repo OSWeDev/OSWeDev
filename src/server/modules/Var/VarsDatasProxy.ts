@@ -225,7 +225,7 @@ export default class VarsDatasProxy {
     private static async add_to_tree_and_return_datas_that_need_notification<T extends VarDataBaseVO>(indexs: string[]): Promise<T[]> {
 
         if (VarsComputationHole.waiting_for_computation_hole) {
-            await EventsController.await_next_event(VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME);
+            await EventsController.await_next_event_semaphored(VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME, "add_to_tree_and_return_datas_that_need_notification");
         }
 
         const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));

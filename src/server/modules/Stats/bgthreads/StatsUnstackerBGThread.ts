@@ -1,6 +1,5 @@
 import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import { StatThisArrayLength } from '../../../../shared/modules/Stats/annotations/StatThisArrayLength';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
@@ -14,6 +13,8 @@ import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../../shared/tools/ObjectHandler';
+import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
+import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
@@ -170,10 +171,12 @@ export default class StatsUnstackerBGThread implements IBGThread {
                 stats_to_insert_by_group_id[new_stat.stat_group_id].push(new_stat);
             }
 
+            const promise_pipeline = PromisePipeline.get_semaphore_pipeline('StatsUnstackerBGThread.insert_without_triggers_using_COPY', ConfigurationService.node_configuration.max_pool / 4);
             for (const stat_group_id_s in stats_to_insert_by_group_id) {
                 const stats = stats_to_insert_by_group_id[stat_group_id_s];
-                await ModuleDAOServer.instance.insert_without_triggers_using_COPY(stats, parseInt(stat_group_id_s), true);
+                await promise_pipeline.push(() => ModuleDAOServer.instance.insert_without_triggers_using_COPY(stats, parseInt(stat_group_id_s), true));
             }
+            await promise_pipeline.end();
             VarsDatasVoUpdateHandler.register_vo_cud(stats_to_insert);
 
             // await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(stats_to_insert);

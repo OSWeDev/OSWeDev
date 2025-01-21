@@ -295,7 +295,7 @@ export default class ModuleStats extends Module {
 
     /* istanbul ignore next: nothing to test here */
     private async initializeasync() {
-        ModuleParams.getInstance().getParamValueAsInt(StatsController.UNSTACK_THROTTLE_PARAM_NAME, 60000, 180000).then((res: number) => {
+        ModuleParams.getInstance().getParamValueAsInt(StatsController.UNSTACK_THROTTLE_PARAM_NAME, 10000, 180000).then((res: number) => {
             StatsController.getInstance().UNSTACK_THROTTLE = res;
         });
     }

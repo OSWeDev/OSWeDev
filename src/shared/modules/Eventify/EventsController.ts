@@ -17,6 +17,9 @@ export default class EventsController {
     @StatThisMapKeys('EventsController', null, 1)
     public static registered_listeners: { [event_conf_name: string]: { [listener_conf_name: string]: EventifyEventListenerInstanceVO } } = {};
 
+    @StatThisMapKeys('EventsController', null, 1, true)
+    public static semaphored_await_next_promises: { [full_semaphore_name: string]: Array<Promise<unknown>> } = {};
+
 
     /**
      * Méthode qui gère l'impact de l'évènement sur les listeners
@@ -149,6 +152,35 @@ export default class EventsController {
             resolve_promise = resolve;
         });
 
+        EventsController.on_next_event(event_name, resolve_promise);
+        return waiting_for_event_promise;
+    }
+
+    /**
+     * On await next, mais on sémaphore la promise pour éviter des résolutions multiples pour un seul event
+     * En gros si on fait 4 await next, on aura besoin de 4 events pour résoudre les 4 promises
+     * @param event_name
+     * @param semaphore_name
+     */
+    public static async await_next_event_semaphored(event_name: string, semaphore_name: string): Promise<unknown> {
+
+        const full_semaphore_name = event_name + '___' + semaphore_name;
+        if (!EventsController.semaphored_await_next_promises[full_semaphore_name]) {
+            EventsController.semaphored_await_next_promises[full_semaphore_name] = [];
+        }
+
+        // On déclare la nouvelle promise dans la map
+        let resolve_promise = null;
+        const waiting_for_event_promise = new Promise((resolve, reject) => {
+            resolve_promise = resolve;
+        });
+        EventsController.semaphored_await_next_promises[full_semaphore_name].push(waiting_for_event_promise);
+        // On attend la promise précédente dans la map
+        if (EventsController.semaphored_await_next_promises[full_semaphore_name].length > 1) {
+            await EventsController.semaphored_await_next_promises[full_semaphore_name][EventsController.semaphored_await_next_promises[full_semaphore_name].length - 2];
+        }
+
+        // On attend le prochain event
         EventsController.on_next_event(event_name, resolve_promise);
         return waiting_for_event_promise;
     }
