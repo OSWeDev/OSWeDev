@@ -45,7 +45,8 @@ export default abstract class VarsProcessBase {
         EventsController.on_every_event_throttle_cb(
             VarsProcessBase.registered_processes_work_event_name_by_tag_in[this.TAG_IN_NAME],
             this.work.bind(this),
-            5
+            1,
+            true,
         );
 
         this.promise_pipeline = (this.as_batch || !this.MAX_Workers) ? null : new PromisePipeline(this.MAX_Workers, 'VarsProcessBase.' + this.name, true);

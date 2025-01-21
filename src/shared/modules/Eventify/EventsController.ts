@@ -172,7 +172,17 @@ export default class EventsController {
         // On déclare la nouvelle promise dans la map
         let resolve_promise = null;
         const waiting_for_event_promise = new Promise((resolve, reject) => {
-            resolve_promise = resolve;
+
+            resolve_promise = () => {
+                // On supprime la promise de la map
+                EventsController.semaphored_await_next_promises[full_semaphore_name].shift();
+
+                if (EventsController.semaphored_await_next_promises[full_semaphore_name].length == 0) {
+                    delete EventsController.semaphored_await_next_promises[full_semaphore_name];
+                }
+
+                resolve(null);
+            };
         });
         EventsController.semaphored_await_next_promises[full_semaphore_name].push(waiting_for_event_promise);
         // On attend la promise précédente dans la map
