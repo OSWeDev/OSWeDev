@@ -5,6 +5,8 @@ import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBui
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import './CMSLinkButtonWidgetComponent.scss';
+import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 
 @Component({
     template: require('./CMSLinkButtonWidgetComponent.pug'),
@@ -14,6 +16,9 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
+
+    @ModuleDashboardPageGetter
+    private get_cms_vo: IDistantVOBase;
 
     private url: string = null;
     private title: string = null;
@@ -57,7 +62,7 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
 
             return;
         }
-        this.url = this.widget_options.url;
+        this.url = this.get_cms_vo[this.widget_options.url_field_ref.field_id];
         this.title = this.widget_options.title;
         this.color = this.widget_options.color;
         this.text_color = this.widget_options.text_color;

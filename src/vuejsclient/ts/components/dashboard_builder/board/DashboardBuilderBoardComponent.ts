@@ -297,10 +297,12 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
         }
         // On récupère les positions pour le viewport selectionné pour les insérer dans le layout
-        const position_layout: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, this.dashboard_page.id)
-            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_viewport_id, this.selected_viewport.id)
-            .select_vos();
+        const position_layout: DashboardPageWidgetVO[] = this.selected_viewport?.id
+            ? await query(DashboardPageWidgetVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, this.dashboard_page.id)
+                .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_viewport_id, this.selected_viewport.id)
+                .select_vos()
+            : [];
 
 
         if (position_layout?.length) {

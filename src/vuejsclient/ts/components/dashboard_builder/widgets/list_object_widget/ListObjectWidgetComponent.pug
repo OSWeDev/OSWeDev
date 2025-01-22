@@ -31,8 +31,8 @@ include ../../../../../views/mixins/loading.pug
                             .image 
                                 img(:src='image_paths[i]' alt="")
                         .card_content 
-                            template(v-if="surtitre && (surtitre.length > 0) && surtitre[i]")
-                                .surtitre {{ surtitre[i] }}
+                            template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
+                                .surtitre {{ surtitres[i] }}
                             template(v-if="titles && (titles.length > 0) && titles[i]")
                                 .title {{ titles[i] }}
                             template(v-if="subtitles && (subtitles.length > 0) && subtitles[i]")

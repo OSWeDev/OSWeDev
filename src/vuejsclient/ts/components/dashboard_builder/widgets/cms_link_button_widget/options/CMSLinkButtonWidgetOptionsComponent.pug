@@ -1,12 +1,14 @@
 .cms_link_button_widget_options_component
     .cms_link_button_widget_options_component_wrapper
 
-        .widget_url_label {{ label('cms_link_button.widget_option.url') }}
-            .widget_url_wrapper
-                input(
-                    type="text"
-                    v-model="url"
-                    v-tooltip.top='label("cms_link_button.tooltip_url")'
+        .widget_url_label
+            .input_label {{ label('cms_link_button.widget_option.url') }}
+            .input_wrapper
+                Singlevofieldrefholdercomponent(
+                    :vo_field_ref="url_field_ref"
+                    @remove_field_ref="remove_url_field_ref"
+                    @add_field_ref="add_url_field_ref"
+                    :page_widget_id='page_widget ? page_widget.id : null'
                 )
         
         .widget_title_label {{ label('cms_link_button.widget_option.titre') }}

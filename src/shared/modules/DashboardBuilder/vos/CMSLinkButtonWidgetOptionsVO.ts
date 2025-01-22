@@ -1,4 +1,5 @@
 import AbstractVO from "../../VO/abstract/AbstractVO";
+import VOFieldRefVO from "./VOFieldRefVO";
 
 export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
 
@@ -8,6 +9,7 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
     public text_color: string;
     public about_blank: boolean;
     public radius: number;
+    public url_field_ref: VOFieldRefVO;
 
     public static createNew(
         url: string,
@@ -15,7 +17,8 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
         color: string,
         text_color: string,
         about_blank: boolean,
-        radius: number
+        radius: number,
+        url_field_ref: VOFieldRefVO,
     ): CMSLinkButtonWidgetOptionsVO {
         const res = new CMSLinkButtonWidgetOptionsVO();
 
@@ -25,6 +28,7 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
         res.text_color = text_color;
         res.about_blank = about_blank;
         res.radius = radius;
+        res.url_field_ref = url_field_ref;
 
         return res;
     }
