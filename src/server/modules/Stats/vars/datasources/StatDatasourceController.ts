@@ -101,10 +101,10 @@ export default class StatDatasourceController extends DataSourceControllerBatchL
             RangeHandler.foreach_ranges_sync(var_data.stats_groupe_id_ranges, (stats_groupe_id: number) => {
 
                 RangeHandler.foreach_ranges_sync(var_data.ts_ranges, (ts: number) => {
-                    if (stats_groupes_by_id_and_date[stats_groupe_id]) {
+                    if (stats_groupes_by_id_and_date[stats_groupe_id] && stats_groupes_by_id_and_date[stats_groupe_id][ts]) {
                         datasource_result.push(stats_groupes_by_id_and_date[stats_groupe_id][ts]);
                     }
-                }, TimeSegment.TYPE_DAY);
+                }, TimeSegment.TYPE_MINUTE);
             });
 
             node.datasources[this.name] = datasource_result;

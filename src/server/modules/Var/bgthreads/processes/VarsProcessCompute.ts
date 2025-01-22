@@ -3,6 +3,8 @@ import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import VarsServerController from '../../VarsServerController';
 import VarsProcessBase from './VarsProcessBase';
+import StatsController from '../../../../../shared/modules/Stats/StatsController';
+import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 
 export default class VarsProcessCompute extends VarsProcessBase {
 
@@ -37,10 +39,38 @@ export default class VarsProcessCompute extends VarsProcessBase {
     protected worker_sync(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): boolean {
 
         const controller = VarsServerController.getVarControllerById(node.var_data.var_id);
-        controller.computeValue(node);
 
         if (ConfigurationService.node_configuration.debug_vars) {
-            ConsoleHandler.log('VarsProcessCompute: ' + node.var_data.index + ' ' + node.var_data.value);
+            ConsoleHandler.log('VarsProcessCompute:IN:' + node.var_data.index);
+        }
+
+        /**
+         * Petit check en amont, si on a un denied en dep, on est denied par def donc on appel pas le compute
+         */
+        for (const i in node.outgoing_deps) {
+            const dep = node.outgoing_deps[i];
+            const dep_node: VarDAGNode = dep.outgoing_node as VarDAGNode;
+
+            if (dep_node.var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) {
+                node.var_data.value = null;
+                node.var_data.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
+                StatsController.register_stat_COMPTEUR('VarsProcessCompute', 'worker_sync_denied_dep', controller.varConf.name);
+                return true;
+            }
+        }
+
+        try {
+            controller.computeValue(node);
+        } catch (error) {
+            ConsoleHandler.error('VarsProcessCompute:ERROR:' + node.var_data.index + ':error:' + error);
+            StatsController.register_stat_COMPTEUR('VarsProcessCompute', 'worker_sync_computeValue_throws', controller.varConf.name);
+            node.var_data.value = null;
+            node.var_data.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
+            return true;
+        }
+
+        if (ConfigurationService.node_configuration.debug_vars) {
+            ConsoleHandler.log('VarsProcessCompute:OUT:' + node.var_data.index + ':value:' + node.var_data.value);
         }
 
         return true;

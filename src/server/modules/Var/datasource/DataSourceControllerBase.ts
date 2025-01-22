@@ -1,4 +1,6 @@
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
 import VarDAGNode from '../../../modules/Var/vos/VarDAGNode';
 import DataSourcesController from './DataSourcesController';
@@ -34,11 +36,20 @@ export default abstract class DataSourceControllerBase {
      * Par définition les noeuds ont été testés avant pour vérifier que ce ne sont pas des nodes de type pixel avec un card > 1
      * @param nodes
      */
-    public async load_nodes_data_using_pipeline(nodes_by_index: { [index: string]: VarDAGNode }, pipeline: PromisePipeline): Promise<void> {
+    public async load_nodes_datas_using_pipeline(nodes_by_index: { [index: string]: VarDAGNode }, pipeline: PromisePipeline): Promise<void> {
 
         // Par défaut, ça consiste simplement à appeler load_node_data sur chaque node
         for (const i in nodes_by_index) {
-            await pipeline.push(async () => this.load_node_data(nodes_by_index[i]));
+            await pipeline.push(async () => {
+                const node = nodes_by_index[i];
+                try {
+                    await this.load_node_data(node);
+                } catch (error) {
+                    ConsoleHandler.error('Error loading node data for node ' + node.var_data.index + ' : ' + error);
+                    node.var_data.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
+                    StatsController.register_stat_COMPTEUR('VarsProcessLoadDatas', 'load_node_data_error', this.name);
+                }
+            });
         }
     }
 

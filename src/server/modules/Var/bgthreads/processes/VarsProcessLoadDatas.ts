@@ -98,11 +98,11 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
                 promises.push((async () => {
                     StatsController.register_stat_COMPTEUR('DataSources', datasource_name, 'load_nodes_datas');
                     const date = Dates.now_ms();
-                    await datasource.load_nodes_data_using_pipeline(nodes_by_datasource[datasource_name], promise_pipeline);
+                    await datasource.load_nodes_datas_using_pipeline(nodes_by_datasource[datasource_name], promise_pipeline);
                     StatsController.register_stat_DUREE('DataSources', datasource_name, 'load_nodes_datas', Dates.now_ms() - date);
                 })());
             } else {
-                promises.push(datasource.load_nodes_data_using_pipeline(nodes_by_datasource[datasource_name], promise_pipeline));
+                promises.push(datasource.load_nodes_datas_using_pipeline(nodes_by_datasource[datasource_name], promise_pipeline));
             }
         }
 

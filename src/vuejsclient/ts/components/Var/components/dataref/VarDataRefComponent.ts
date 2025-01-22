@@ -817,7 +817,10 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     private set_is_being_updated() {
 
-        this.is_being_updated = (!this.var_data) || (typeof this.var_data.value === 'undefined') || (this.var_data.is_computing);
+        const new_is_being_updated = (!this.var_data) || (typeof this.var_data.value === 'undefined') || (this.var_data.is_computing);
+        if (this.is_being_updated != new_is_being_updated) {
+            this.is_being_updated = new_is_being_updated;
+        }
     }
 
     private set_var_data_value() {

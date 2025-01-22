@@ -16,6 +16,8 @@ import CRUDUpdateModalComponent from "../widgets/table_widget/crud_modals/update
 import SharedFiltersModalComponent from '../shared_filters/modal/SharedFiltersModalComponent';
 import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComponent";
 import VueComponentBase from "../../VueComponentBase";
+import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
@@ -158,6 +160,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 Vue.set(state.active_field_filters, param.vo_type, {
                     [param.field_id]: param.active_field_filter
                 });
+                return;
+            }
+
+            if (ObjectHandler.are_equal(state.active_field_filters[param.vo_type][param.field_id], param.active_field_filter)) {
                 return;
             }
 
