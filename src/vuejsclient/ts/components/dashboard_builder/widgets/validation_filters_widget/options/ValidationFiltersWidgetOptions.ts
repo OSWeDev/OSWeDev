@@ -9,6 +9,8 @@ export default class ValidationFiltersWidgetOptions extends AbstractVO implement
 
     public constructor(
         public load_widgets_prevalidation: boolean = false,
+        public bg_color: string = null,
+        public fg_color_text: string = null,
     ) {
         super();
     }

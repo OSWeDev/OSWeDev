@@ -8,4 +8,13 @@
             :width="100"
             :labels="{checked: label('table_widget_options_component.load_widgets_prevalidation.visible'), unchecked: label('table_widget_options_component.load_widgets_prevalidation.hidden')}")
 
-        
+    .color_options 
+        .color_option
+            .bg_color
+                .explication {{ label("var_widget_options_component.bg_color") }}
+                color-picker(v-model="bg_color" @change='throttled_update_colors')
+            .fg_color_text
+                .explication {{ label("var_widget_options_component.fg_color_text") }}
+                color-picker(v-model="fg_color_text" @change='throttled_update_colors')
+
+            .preview(:style='{background: bg_color, color: fg_color_text}') {{ t(title_name_code_text) }}
