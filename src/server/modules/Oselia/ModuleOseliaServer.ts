@@ -1089,6 +1089,73 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         return 'OK';
     }
 
+
+    public async accept_join_request(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
+        if (!action_url.params_json) {
+            ConsoleHandler.error('Impossible de trouver la discussion Oselia pour l\'action URL: ' + action_url.action_name);
+            return ActionURLServerTools.create_error_cr(action_url, 'Impossible de trouver la discussion Oselia');
+        }
+        const asking_user_id = JSON.parse(action_url.params_json).asking_user_id;
+        const target_thread_id = JSON.parse(action_url.params_json).target_thread_id;
+        const target_thread_message_id = JSON.parse(action_url.params_json).thread_message_id;
+        if (!asking_user_id || !target_thread_id || !target_thread_message_id) {
+            ConsoleHandler.error('Impossible de trouver l\'utilisateur demandeur, ou le thread visé pour l\'action URL: ' + action_url.action_name);
+            return ActionURLServerTools.create_error_cr(action_url, 'Impossible d\'ajouter l\'utilisateur à la conversation Osélia');
+        }
+
+        ConsoleHandler.log('ModuleOseliaServer:accept_join_request:Accepting join request:asking_user_id:' + asking_user_id + ':target_thread_id:' + target_thread_id);
+        const thread_user_vo = new OseliaThreadUserVO();
+        thread_user_vo.thread_id = target_thread_id;
+        thread_user_vo.user_id = asking_user_id;
+        thread_user_vo.role_id = (await query(OseliaThreadRoleVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaThreadRoleVO>().translatable_name, ModuleOselia.ROLE_USER)
+            .exec_as_server()
+            .select_vo<OseliaThreadRoleVO>()).id; // User
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_user_vo);
+
+        await PushDataServerController.notifySimpleINFO(
+            asking_user_id,
+            StackContext.get('CLIENT_TAB_ID'),
+            'oselia.join_request.notify.accept.___LABEL___'
+        );
+        const current_message_action_urls: ActionURLVO[] = await query(ActionURLVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos();
+        for (let action_url of current_message_action_urls) {
+            if (action_url.params_json && JSON.parse(action_url.params_json).thread_message_id == target_thread_message_id) {
+                action_url.action_remaining_counter = 0;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_url);
+            }
+        }
+        return ActionURLServerTools.create_info_cr(action_url, 'Ajout dans la conversation Osélia');
+    }
+
+    public async refuse_join_request(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
+        const asking_user_id = JSON.parse(action_url.params_json).asking_user_id;
+        const target_thread_message_id = JSON.parse(action_url.params_json).thread_message_id;
+        if (!asking_user_id || !target_thread_message_id) {
+            ConsoleHandler.error('Impossible de trouver l\'utilisateur demandeur pour l\'action URL: ' + action_url.action_name);
+            return ActionURLServerTools.create_error_cr(action_url, 'Impossible de refuser l\'ajout à la conversation Osélia');
+        }
+
+        await PushDataServerController.notifySimpleINFO(
+            asking_user_id,
+            null,
+            'oselia.join_request.notify.deny.___LABEL___'
+        );
+
+        const current_message_action_urls: ActionURLVO[] = await query(ActionURLVO.API_TYPE_ID)
+            .filter_by_text_including(field_names<ActionURLVO>().params_json, 'thread_message_id: ' + target_thread_message_id.toString())
+            .exec_as_server()
+            .select_vos();
+        for (const action_url_ of current_message_action_urls) {
+            action_url_.action_remaining_counter = 0;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_url_);
+        }
+
+        return ActionURLServerTools.create_info_cr(action_url, 'Refus d\'ajout dans la discussion Oselia');
+    }
+
     private async set_screen_track(track: MediaStreamTrack): Promise<void> {
         ModuleOseliaServer.screen_track = track;
     }
@@ -1681,7 +1748,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                         text_content.thread_message_id = new_thread_message.id;
                         text_content.gpt_thread_message_id = new_thread_message.gpt_id;
                         text_content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
-                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(text_content)
+                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(text_content);
 
                         const accept_action = new ActionURLVO();
 
@@ -1714,7 +1781,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                         accept_button.thread_message_id = new_thread_message.id;
                         accept_button.type = GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL;
                         accept_button.gpt_thread_message_id = new_thread_message.gpt_id;
-                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(accept_button)
+                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(accept_button);
 
                         const deny_action = new ActionURLVO();
 
@@ -1747,7 +1814,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                         deny_button.thread_message_id = new_thread_message.id;
                         deny_button.type = GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL;
                         deny_button.gpt_thread_message_id = new_thread_message.gpt_id;
-                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(deny_button)
+                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(deny_button);
 
                         await PushDataServerController.notifySimpleINFO(
                             asking_user_id,
@@ -1765,73 +1832,6 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         } catch (error) {
             ConsoleHandler.error('ModuleOseliaServer:send_join_request:Error while sending join request:' + error);
         }
-    }
-
-
-    public async accept_join_request(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
-        if (!action_url.params_json) {
-            ConsoleHandler.error('Impossible de trouver la discussion Oselia pour l\'action URL: ' + action_url.action_name);
-            return ActionURLServerTools.create_error_cr(action_url, 'Impossible de trouver la discussion Oselia');
-        }
-        const asking_user_id = JSON.parse(action_url.params_json).asking_user_id;
-        const target_thread_id = JSON.parse(action_url.params_json).target_thread_id;
-        const target_thread_message_id = JSON.parse(action_url.params_json).thread_message_id;
-        if (!asking_user_id || !target_thread_id || !target_thread_message_id) {
-            ConsoleHandler.error('Impossible de trouver l\'utilisateur demandeur, ou le thread visé pour l\'action URL: ' + action_url.action_name);
-            return ActionURLServerTools.create_error_cr(action_url, 'Impossible d\'ajouter l\'utilisateur à la conversation Osélia');
-        }
-
-        ConsoleHandler.log('ModuleOseliaServer:accept_join_request:Accepting join request:asking_user_id:' + asking_user_id + ':target_thread_id:' + target_thread_id);
-        const thread_user_vo = new OseliaThreadUserVO();
-        thread_user_vo.thread_id = target_thread_id;
-        thread_user_vo.user_id = asking_user_id;
-        thread_user_vo.role_id = (await query(OseliaThreadRoleVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<OseliaThreadRoleVO>().translatable_name, ModuleOselia.ROLE_USER)
-            .exec_as_server()
-            .select_vo<OseliaThreadRoleVO>()).id; // User
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_user_vo);
-
-        await PushDataServerController.notifySimpleINFO(
-            asking_user_id,
-            StackContext.get('CLIENT_TAB_ID'),
-            'oselia.join_request.notify.accept.___LABEL___'
-        );
-        const current_message_action_urls: ActionURLVO[] = await query(ActionURLVO.API_TYPE_ID)
-            .exec_as_server()
-            .select_vos();
-        for (let action_url of current_message_action_urls) {
-            if (action_url.params_json && JSON.parse(action_url.params_json).thread_message_id == target_thread_message_id) {
-                action_url.action_remaining_counter = 0;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_url);
-            }
-        }
-        return ActionURLServerTools.create_info_cr(action_url, 'Ajout dans la conversation Osélia');
-    }
-
-    public async refuse_join_request(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
-        const asking_user_id = JSON.parse(action_url.params_json).asking_user_id;
-        const target_thread_message_id = JSON.parse(action_url.params_json).thread_message_id;
-        if (!asking_user_id || !target_thread_message_id) {
-            ConsoleHandler.error('Impossible de trouver l\'utilisateur demandeur pour l\'action URL: ' + action_url.action_name);
-            return ActionURLServerTools.create_error_cr(action_url, 'Impossible de refuser l\'ajout à la conversation Osélia');
-        }
-
-        await PushDataServerController.notifySimpleINFO(
-            asking_user_id,
-            null,
-            'oselia.join_request.notify.deny.___LABEL___'
-        );
-
-        const current_message_action_urls: ActionURLVO[] = await query(ActionURLVO.API_TYPE_ID)
-            .filter_by_text_including(field_names<ActionURLVO>().params_json, 'thread_message_id: ' + target_thread_message_id.toString())
-            .exec_as_server()
-            .select_vos();
-        for (let action_url of current_message_action_urls) {
-            action_url.action_remaining_counter = 0;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_url);
-        }
-
-        return ActionURLServerTools.create_info_cr(action_url, 'Refus d\'ajout dans la discussion Oselia');
     }
 
     private async clear_referrers_triggers() {

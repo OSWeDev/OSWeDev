@@ -97,9 +97,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
 
-    @ModuleDashboardPageAction
-    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
-
     @ModuleOseliaGetter
     private get_too_many_assistants: boolean;
     @ModuleOseliaGetter

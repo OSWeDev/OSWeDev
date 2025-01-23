@@ -306,6 +306,11 @@ export default class CRUDFormServices {
                     res[field.datatable_field_uid] = res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
                 }
 
+                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_color_array) {
+                    const reg = /(#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}|rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+(?:\s*,\s*\d*\.?\d+)?\))/g;
+                    res[field.datatable_field_uid] = res[field.datatable_field_uid] ? res[field.datatable_field_uid].match(reg) : null;
+                }
+
                 for (const j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
                     const tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
 

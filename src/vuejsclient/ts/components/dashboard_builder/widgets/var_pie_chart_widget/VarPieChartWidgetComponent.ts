@@ -302,15 +302,15 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                         .set_bordercolors([this.widget_options.border_color_1])
                         .set_borderwidths([this.widget_options.border_width_1]);
                 } else {
-                    let colors = [];
+                    const colors = [];
                     if (!this.widget_options.color_palette) {
                         return;
                     }
-                    for (let palette in this.widget_options.color_palette) {
-                        if (this.widget_options.color_palette[palette].startsWith('#')) {
-                            colors.push(this.hexToRgb(this.widget_options.color_palette[palette]));
+                    for (const color of this.widget_options.color_palette.colors) {
+                        if (color.startsWith('#')) {
+                            colors.push(this.hexToRgb(color));
                         } else {
-                            colors.push(this.widget_options.color_palette[palette]);
+                            colors.push(color);
                         }
                     }
                     return new VarPieDataSetDescriptor(
@@ -887,10 +887,11 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return;
         }
 
-        if (!this.isValid) {
-            this.snotify.error("Pas de données, veuillez vérifier que les tables nécessaires sont présentes.");
-            return;
-        }
+        // Désactivé après retour
+        // if (!this.isValid) {
+        //     this.snotify.error("Pas de données, veuillez vérifier que les tables nécessaires sont présentes.");
+        //     return;
+        // }
 
         this.var_params_by_dimension = var_params_by_dimension;
     }

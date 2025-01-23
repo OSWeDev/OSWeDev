@@ -74,48 +74,66 @@
                 .explication {{ label("var_chart_options_item_component.bg_color") }}
                 color-picker(v-model="bg_color")
 
-            .has_gradient 
-                .explication {{ label("var_chart_options_item_component.has_gradient") }}
-                .input_wrapper
-                        toggle-button(
-                            @change="on_change_gradient" 
-                            :value="has_gradient" 
-                            :sync="true"
-                            :width="60"
-                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                        )
+            template(v-if='type !="line"')
+                .has_gradient 
+                    .explication {{ label("var_chart_options_item_component.has_gradient") }}
+                    .input_wrapper
+                            toggle-button(
+                                @change="on_change_gradient" 
+                                :value="has_gradient" 
+                                :sync="true"
+                                :width="60"
+                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                            )
 
             .border_color
                 .explication {{ label("var_chart_options_item_component.border_color") }}
                 color-picker(v-model="border_color")
-
-        .border_width
-            .input_label {{ label('var_chart_options_item_component.border_width') }}
-            .input_wrapper
-                input(
-                    v-model="border_width"
-                    type="number"
-                )
-        .show_values 
-            .explication {{ label("var_chart_options_item_component.show_values") }}
-            .input_wrapper
-                    toggle-button(
-                        @change="switch_show_values" 
-                        :value="show_values" 
-                        :sync="true"
-                        :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+        template(v-if="detailed")
+            .border_width
+                .input_label {{ label('var_chart_options_item_component.border_width') }}
+                .input_wrapper
+                    input(
+                        v-model="border_width"
+                        type="number"
                     )
-        template(v-if="show_values")
-            .explication {{ label('var_chart_options_item_component.datas_filter_options') }}
-            .filter_options
-                .filter_options_wrapper
-                    Widgetfilteroptionscomponent(
-                        :actual_additional_options="filter_additional_params"
-                        :actual_filter_type="filter_type"
-                        @update_additional_options="update_additional_options"
-                        @update_filter_type="update_filter_type"
-                    )
+            .show_values 
+                .explication {{ label("var_chart_options_item_component.show_values") }}
+                .input_wrapper
+                        toggle-button(
+                            @change="switch_show_values" 
+                            :value="show_values" 
+                            :sync="true"
+                            :width="60"
+                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        )
+            template(v-if="show_values")
+                .show_zeros 
+                    .explication {{ label("var_chart_options_item_component.show_zeros") }}
+                    .input_wrapper
+                            toggle-button(
+                                @change="switch_show_zeros" 
+                                :value="show_zeros" 
+                                :sync="true"
+                                :width="60"
+                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                            )
+                .value_label_size
+                    .explication {{ label('var_chart_options_item_component.value_label_size') }}
+                    .input_wrapper
+                        input(
+                            v-model="value_label_size"
+                            type="number"
+                        )
+                .explication {{ label('var_chart_options_item_component.datas_filter_options') }}
+                .filter_options
+                    .filter_options_wrapper
+                        Widgetfilteroptionscomponent(
+                            :actual_additional_options="filter_additional_params"
+                            :actual_filter_type="filter_type"
+                            @update_additional_options="update_additional_options"
+                            @update_filter_type="update_filter_type"
+                        )
 
         template(v-if='fields_that_could_get_custom_filter && fields_that_could_get_custom_filter.length')
             .fields_that_could_get_custom_filter

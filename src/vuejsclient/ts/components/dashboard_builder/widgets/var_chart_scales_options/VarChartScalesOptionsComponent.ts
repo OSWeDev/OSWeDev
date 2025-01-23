@@ -20,6 +20,9 @@ export default class VarChartScalesOptionsComponent extends VueComponentBase {
     })
     private options: VarChartScalesOptionsVO[];
 
+    @Prop({ default: false })
+    private detailed: boolean;
+
     @Prop({ default: null })
     private page_widget_id: number;
 

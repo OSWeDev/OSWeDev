@@ -8,6 +8,8 @@
                     slot(v-bind:value="values[i]" v-model="values[i]" :required="required" :disabled="disabled" @input="emitInput" :field='field' :vo='vo')
                 template(v-else-if="type_input == 'custom'")
                     .custom_field_component(:is='custom_field_component' v-model="values[i]" :required="required" :disabled="disabled" @input="emitInput" @input_with_infos="emitInput" :field='field' :vo='vo')
+                template(v-else-if="type_input == 'color'")
+                    color-picker.ml-2(v-model="values[i]", @input="emitInput" :disabled="disabled" :required="required")
                 template(v-else)
                     input(:class="{'form-control': !inline_input_mode}" v-model="values[i]", :type="type_input", :required="required", :disabled="disabled", @input="emitInput" :step='input_step')
         .actions.col-sm-2(v-if="!disabled")

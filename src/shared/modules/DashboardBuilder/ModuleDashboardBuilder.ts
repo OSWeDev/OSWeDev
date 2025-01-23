@@ -24,6 +24,7 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import VarConfVO from '../Var/vos/VarConfVO';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
+import DashboardGraphColorPaletteVO from './vos/DashboardGraphColorPaletteVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
 import DashboardPageVO from './vos/DashboardPageVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
@@ -99,6 +100,7 @@ export default class ModuleDashboardBuilder extends Module {
         this.initialize_SelectBoxDatatableFieldVO();
         this.initialize_SimpleDatatableFieldVO();
         this.initialize_VarDatatableFieldVO();
+        this.initialize_DashboardGraphColorPaletteVO();
     }
 
     private init_DashboardVO(): ModuleTableVO {
@@ -616,5 +618,12 @@ export default class ModuleDashboardBuilder extends Module {
 
         var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
         dashboard_id.set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);
+    }
+
+    private initialize_DashboardGraphColorPaletteVO() {
+        ModuleTableFieldController.create_new(DashboardGraphColorPaletteVO.API_TYPE_ID, field_names<DashboardGraphColorPaletteVO>().colors, ModuleTableFieldVO.FIELD_TYPE_color_array, 'colors', true, false, false);
+        ModuleTableFieldController.create_new(DashboardGraphColorPaletteVO.API_TYPE_ID, field_names<DashboardGraphColorPaletteVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'name', true, false, false);
+
+        ModuleTableController.create_new(this.name, DashboardGraphColorPaletteVO, null, "Palettes de couleurs");
     }
 }

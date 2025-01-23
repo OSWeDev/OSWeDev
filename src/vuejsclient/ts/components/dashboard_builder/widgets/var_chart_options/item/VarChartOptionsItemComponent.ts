@@ -33,6 +33,9 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     })
     private options: VarChartOptionsVO;
 
+    @Prop({ default: true })
+    private detailed: boolean;
+
     @Prop({ default: null })
     private page_widget_id: number;
 
@@ -62,9 +65,11 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     private type: string | 'line' | 'bar' | 'radar' = null;
     private bg_color: string = '#666';
     private border_color: string = '#666';
-    private border_width: number = null;
+    private border_width: number = 0;
+    private value_label_size: number = 18;
     private has_gradient: boolean = false;
     private show_values: boolean = false;
+    private show_zeros: boolean = true;
     private filter_type: string = '';
     private filter_additional_params: string = '';
     private graphe_types: string[] = [
@@ -171,6 +176,9 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
             this.selected_var_name = this.var_id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.var_id));
         }
 
+        if(!this.detailed) {
+            this.border_width = 0;
+        }
         this.options_props = this.options;
         this.selected_filter_name = this.options_props.selected_filter_name ? this.options_props.selected_filter_name : null;
     }
@@ -220,6 +228,18 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         await this.throttled_emit_changes();
     }
 
+    @Watch('value_label_size')
+    private async on_change_value_label_size() {
+        if (this.value_label_size < 0) {
+            this.value_label_size = 0;
+        }
+
+        if (this.value_label_size > 35) {
+            this.value_label_size = 35;
+        }
+        await this.throttled_emit_changes();
+    }
+
     @Watch('selected_filter_name')
     private async change_selected_filter_name() {
         if (this.fields_that_could_get_scales_filter[this.scale_filter_names.indexOf(this.selected_filter_name)]) {
@@ -261,6 +281,11 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         await this.throttled_emit_changes();
     }
 
+    private async switch_show_zeros() {
+        this.show_zeros = !this.show_zeros;
+        await this.throttled_emit_changes();
+    }
+
     private async update_additional_options(additional_options: string) {
         this.filter_additional_params = additional_options;
         await this.throttled_emit_changes();
@@ -295,9 +320,11 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         this.options_props.bg_color = this.bg_color;
         this.options_props.border_color = this.border_color;
         this.options_props.border_width = this.border_width;
+        this.options_props.value_label_size = this.value_label_size;
         this.options_props.custom_filter_names = this.custom_filter_names;
         this.options_props.has_gradient = this.has_gradient;
         this.options_props.show_values = this.show_values;
+        this.options_props.show_zeros = this.show_zeros;
         this.options_props.filter_additional_params = this.filter_additional_params;
         this.options_props.filter_type = this.filter_type;
         this.options_props.selected_filter_id = this.selected_filter_id;

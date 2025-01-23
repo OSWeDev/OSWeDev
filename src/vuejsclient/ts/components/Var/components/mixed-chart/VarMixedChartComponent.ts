@@ -100,6 +100,8 @@ export default class VarMixedChartComponent extends VueComponentBase {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
 
+    private hide_values: { id: number, hide: boolean }[] = null;
+
     get all_data_loaded(): boolean {
 
         if (
@@ -324,7 +326,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
         await import("chartjs-plugin-datalabels");
     }
-    
+
     /**
      * Si on a pas encore rendered le chart, on checke les datas. Dès que les datas sont là, on render.
      *  Pendant ce temps on bloque le sémaphore
@@ -417,7 +419,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
         for (const chart_id in this.charts_var_params) {
 
             const data: IChartDataset = this.get_chart_dataset_by_chart_id(chart_id);
-            if (data != null) {
+            if (data != null && data.data.length > 0) {
                 datasets[chart_id] = data;
             }
         }
@@ -448,15 +450,11 @@ export default class VarMixedChartComponent extends VueComponentBase {
             return null;
         }
 
-
         yAxisID = this.t(new VarChartScalesOptionsVO().from(charts_scales_options).get_title_name_code_text(charts_scales_options.page_widget_id, charts_scales_options.chart_id));
-
 
         for (const var_key in chart_var_params) {
             const var_param: VarDataBaseVO = chart_var_params[var_key];
-
             data.push(chart_var_datas[var_param.id].value);
-
             if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.backgroundColor[var_key]) {
                 backgroundColor.push(chart_var_dataset_descriptor.backgroundColor[var_key]);
             } else if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.backgroundColor[0]) {
@@ -492,13 +490,35 @@ export default class VarMixedChartComponent extends VueComponentBase {
                 borderColor: borderColor,
                 borderWidth: borderWidth,
                 data: data,
+                pointStyle: chart_var_dataset_descriptor.show_points,
                 fill: charts_scales_options.fill ? charts_scales_options.fill : false,
                 datalabels: {
-                    display: chart_var_dataset_descriptor.activate_datalabels,
+                    display: chart_var_dataset_descriptor.activate_datalabels ? 'auto' : false,
+                    listeners: {
+                        click: (context, event) => {
+                            if (this.hide_values) {
+                                if (this.hide_values[context.dataIndex]) {
+                                    if (this.hide_values[context.dataIndex].hide) {
+                                        this.hide_values[context.dataIndex].hide = false;
+                                    } else {
+                                        this.hide_values[context.dataIndex].hide = true;
+                                    }
+                                } else {
+                                    this.hide_values[context.dataIndex] = { id: context.dataIndex, hide: true };
+                                }
+                            } else {
+                                this.hide_values = [];
+                                this.hide_values[context.dataIndex] = { id: context.dataIndex, hide: true };
+                            }
+                        }
+                    },
                     align: 'end',
                     anchor: 'end',
                     clamp: true,
                     formatter: this.get_var_ticks_callback(chart_var_dataset_descriptor),
+                    font: {
+                        size: chart_var_dataset_descriptor.value_label_size
+                    }
                 }
             };
             if (yAxisID != null) {
@@ -512,13 +532,20 @@ export default class VarMixedChartComponent extends VueComponentBase {
         }
 
     }
-    private getLabelsForVar(value, current_var: VarMixedChartDataSetDescriptor) {
+    private getLabelsForVar(value, current_var: VarMixedChartDataSetDescriptor, index) {
         if (current_var.filters_types == 'none') {
             return value;
         }
-
+        if(this.hide_values) {
+            if (this.hide_values[index.dataIndex] && this.hide_values[index.dataIndex].hide) {
+                return '';
+            }
+        }
         const filter = current_var.filters_types ? this.const_filters[current_var.filters_types].read : undefined;
         const filter_additional_params = current_var.filters_additional_params ? ObjectHandler.try_get_json(current_var.filters_additional_params) : undefined;
+        if (current_var.show_zeros == false && value == 0) {
+            return '';
+        }
         if (filter != undefined) {
             if (filter) {
                 return filter.apply(this, [value].concat(filter_additional_params));
@@ -530,7 +557,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
     private get_var_ticks_callback(current_var: VarMixedChartDataSetDescriptor) {
         return (value, index, values) => {
-            return this.getLabelsForVar(value, current_var);
+            return this.getLabelsForVar(value, current_var, index);
         };
     }
 

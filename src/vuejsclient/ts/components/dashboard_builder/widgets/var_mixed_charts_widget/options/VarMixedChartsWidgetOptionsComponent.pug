@@ -23,9 +23,18 @@
         .bg_color
             .explication {{ label("var_mixed_charts_widget_options_component.bg_color") }}
             color-picker(v-model="bg_color" @change='throttled_update_colors')
-
-
+        
         .options_separator_lvl1 {{ label('var_mixed_charts_widget_options_component.separator.chart_options') }}
+        .style_picker 
+            .input_label {{ label('var_mixed_charts_widget_options_component.switch_detailed') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_detailed" 
+                    :value="detailed" 
+                    :sync="false"
+                    :width="120"
+                    :labels="{checked: label('var_mixed_charts_widget_options_component.switch_detailed.detailed'), unchecked: label('var_mixed_charts_widget_options_component.switch_detailed.simple')}" 
+                )
         .tooltip_picker 
             .input_label {{ label('var_mixed_charts_widget_options_component.switch_tooltip_by_index') }}
             .input_wrapper
@@ -277,6 +286,7 @@
                 :get_var_name_code_text="this.widget_options.get_var_name_code_text"
                 :page_widget_id="page_widget.id"
                 :options="fields_that_could_get_scales_filter"
+                :detailed="detailed"
             )
         .options_separator_lvl2
         
@@ -287,6 +297,7 @@
                     :get_var_name_code_text="this.widget_options.get_var_name_code_text"
                     :page_widget_id="page_widget.id"
                     :options="var_charts_options"
+                    :detailed="detailed"
                     :fields_that_could_get_scales_filter="fields_that_could_get_scales_filter"
                 )
             

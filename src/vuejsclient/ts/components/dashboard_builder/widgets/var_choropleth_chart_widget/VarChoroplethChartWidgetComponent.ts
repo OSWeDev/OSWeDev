@@ -772,10 +772,11 @@ export default class VarChoroplethChartWidgetComponent extends VueComponentBase 
             return;
         }
 
-        if (!this.isValid) {
-            this.snotify.error("Pas de données, veuillez vérifier que les tables nécessaires sont présentes.");
-            return;
-        }
+        // désactivé après retour
+        // if (!this.isValid) {
+        //     this.snotify.error("Pas de données, veuillez vérifier que les tables nécessaires sont présentes.");
+        //     return;
+        // }
 
         this.var_params_by_dimension = var_params_by_dimension;
     }

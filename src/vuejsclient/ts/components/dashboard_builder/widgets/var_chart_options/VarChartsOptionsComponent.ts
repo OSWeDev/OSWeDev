@@ -7,6 +7,8 @@ import VueComponentBase from '../../../VueComponentBase';
 import VarChartOptionsItemComponent from './item/VarChartOptionsItemComponent';
 import './VarChartsOptionsComponent.scss';
 import VarChartScalesOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
+import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import DashboardGraphColorPaletteVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphColorPaletteVO';
 
 @Component({
     template: require('./VarChartsOptionsComponent.pug'),
@@ -22,6 +24,9 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
     })
     private options: VarChartOptionsVO[];
 
+    @Prop({ default: true })
+    private detailed: boolean;
+
     @Prop({ default: null })
     private page_widget_id: number;
 
@@ -34,57 +39,11 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
     private options_props: VarChartOptionsVO[] = [];
 
     private use_palette: boolean = false;
-    private color_palettes_labels: string[] = [
-        "Tableau",
-        "ColorBrewer",
-        "Matplotlib",
-        "Coolors",
-    ];
-    private color_palettes: string[][] = [
-        [
-            '#4E79A7', // Bleu
-            '#F28E2B', // Orange
-            '#E15759', // Rouge
-            '#76B7B2', // Vert
-            '#59A14F', // Vert foncé
-            '#EDC948', // Jaune
-            '#B07AA1', // Violet
-            '#FF9DA7', // Rose
-            '#9C755F', // Marron
-            '#BAB0AC'  // Gris
-        ],
-        [
-            '#1b9e77', // Vert
-            '#d95f02', // Orange
-            '#7570b3', // Violet
-            '#e7298a', // Rose
-            '#66a61e', // Vert clair
-            '#e6ab02', // Jaune
-            '#a6761d', // Marron
-            '#666666'  // Gris
-        ],
-        [
-            '#1f77b4', // Bleu
-            '#ff7f0e', // Orange
-            '#2ca02c', // Vert
-            '#d62728', // Rouge
-            '#9467bd', // Violet
-            '#8c564b', // Marron
-            '#e377c2', // Rose
-            '#7f7f7f', // Gris
-            '#bcbd22', // Jaune
-            '#17becf'  // Cyan
-        ],
-        [
-            '#264653', // Bleu foncé
-            '#2a9d8f', // Vert sarcelle
-            '#e9c46a', // Jaune moutarde
-            '#f4a261', // Orange brûlé
-            '#e76f51'  // Rouge terre cuite
-        ]
-    ];
+    private color_palettes_labels: string[] = [];
+    private color_palettes : DashboardGraphColorPaletteVO[] = [];
     private tmp_selected_color_palette: string = null;
     private opened_prop_index: number[] = [];
+
     get var_names(): string[] {
 
         const res: string[] = [];
@@ -135,7 +94,7 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
     }
 
     @Watch('options', { immediate: true, deep: true })
-    private on_input_options_changed() {
+    private async on_input_options_changed() {
         if (isEqual(this.options_props, this.options)) {
             return;
         }
@@ -144,9 +103,20 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         if (this.opened_prop_index.length == 0) {
             this.opened_prop_index = Array.from({ length: this.options_props.length }, (x, i) => i);
         }
-        this.use_palette = this.options_props.some(option_prop => option_prop.color_palette && option_prop.color_palette.length > 0);
+        this.color_palettes_labels = await this.get_color_palettes_labels();
+        this.use_palette = this.options_props.some(option_prop => option_prop.color_palette);
         this.tmp_selected_color_palette = this.use_palette ? this.color_palettes_labels[this.searchIndexOfArray(this.options_props[0].color_palette, this.color_palettes)] : null;
+    }
 
+    private async get_color_palettes_labels(): Promise<string[]> {
+        const res: string[] = [];
+        const query_res: DashboardGraphColorPaletteVO[] = await query(DashboardGraphColorPaletteVO.API_TYPE_ID).select_vos();
+        for (const palette of query_res) {
+            res.push(palette.name);
+            this.color_palettes.push(palette);
+        }
+
+        return res;
     }
 
     private is_closed(index: number): boolean {
@@ -177,6 +147,9 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
     private switch_use_palette() {
         this.use_palette = !this.use_palette;
         this.tmp_selected_color_palette = null;
+        for (const option_prop of this.options_props) {
+            option_prop.has_gradient = false;
+        }
         this.emit_change();
     }
 
@@ -210,6 +183,10 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         this.options_props = options;
 
         this.emit_change();
+    }
+
+    private get_var_name(var_id: number): string {
+        return this.t(VarsController.get_translatable_name_code_by_var_id(var_id));
     }
 
     /**

@@ -2,6 +2,7 @@
     .options_separator_lvl2 {{ label('var_charts_options_component.separator.var_options') }}
     template(v-if='options_props.length >0')
         .input_label {{ label('var_charts_options_component.use_palette') }}
+        .input_wrapper
             toggle-button(
                 @change="switch_use_palette" 
                 :value="use_palette" 
@@ -11,7 +12,7 @@
             )
         template(v-if='use_palette')
             multiselect(
-                :preselect-first="false"
+                :preselect-first="true"
                 :multiple="false"
                 v-model="tmp_selected_color_palette"
                 :options="color_palettes_labels"
@@ -39,7 +40,7 @@
             .input_wrapper(v-for="(var_chart_options, index) in options_props")
                 button.btn-primary.closer(
                     @click="close_var_chart_options(index)"
-                ) {{ is_closed(index) ? label('var_charts_options_component.open_var_chart_options') : label('var_charts_options_component.close_var_chart_options') }}
+                ) {{ is_closed(index) ? label('var_charts_options_component.open_var_chart_options') + ' ' + ( var_chart_options.var_id ? 'Variable ' + get_var_name(var_chart_options.var_id) : ( (var_chart_options.type ? var_chart_options.type : ( (var_chart_options.chart_id ? var_chart_options.chart_id : '') ) ) ) ) : label('var_charts_options_component.close_var_chart_options') }}
                 template(v-if="!is_closed(index)")
                     Varchartoptionsitemcomponent(
                         @on_change="handle_var_chart_options_change(index, $event)"
@@ -47,6 +48,7 @@
                         :page_widget_id="page_widget_id"
                         :options="var_chart_options"
                         :use_palette="use_palette"
+                        :detailed="detailed"
                         :fields_that_could_get_scales_filter="fields_that_could_get_scales_filter"
                     )
                     button.btn-danger.btn-lg.btn-block.remove_var_chart_options_button(

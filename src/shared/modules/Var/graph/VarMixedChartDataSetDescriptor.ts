@@ -21,6 +21,9 @@ export default class VarMixedChartDataSetDescriptor extends VarDataSetDescriptor
     public filters_types: string = '';
     public filters_additional_params: string = '';
     public activate_datalabels: boolean = false;
+    public show_zeros: boolean = false;
+    public show_points: boolean = false;
+    public value_label_size: number = 18;
 
     public constructor(
         public var_name: string,
@@ -59,6 +62,12 @@ export default class VarMixedChartDataSetDescriptor extends VarDataSetDescriptor
         return this;
     }
 
+    public set_value_label_size(value_label_size: number): VarMixedChartDataSetDescriptor {
+        this.value_label_size = value_label_size;
+
+        return this;
+    }
+
     public set_filters_type(filter_type: string): VarMixedChartDataSetDescriptor {
         this.filters_types = filter_type;
 
@@ -73,6 +82,18 @@ export default class VarMixedChartDataSetDescriptor extends VarDataSetDescriptor
 
     public set_activate_datalabels(activate_datalabels: boolean): VarMixedChartDataSetDescriptor {
         this.activate_datalabels = activate_datalabels;
+
+        return this;
+    }
+
+    public set_show_zeros(show_zeros: boolean): VarMixedChartDataSetDescriptor {
+        this.show_zeros = show_zeros;
+
+        return this;
+    }
+
+    public set_show_points(show_points: boolean): VarMixedChartDataSetDescriptor {
+        this.show_points = show_points;
 
         return this;
     }

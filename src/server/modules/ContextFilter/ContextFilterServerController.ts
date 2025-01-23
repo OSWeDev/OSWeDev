@@ -185,6 +185,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                     case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_color_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
                     default:
                         throw new Error('Not Implemented');
@@ -274,6 +275,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_color_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
                         if (!context_filter.param_text) {
                             throw new Error('Not Implemented');
@@ -406,6 +408,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_color_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
                         if (context_filter.param_text != null) {
                             const text = context_filter.param_text;
@@ -704,6 +707,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_color_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
 
                         /**
@@ -883,6 +887,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_color_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
                         /**
                          * TODO FIXME le ignore_case est pas pris en compte sur les tableaux par ce que c'est le merdier à faire :
@@ -1030,6 +1035,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_color_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
 
                         if (context_filter.param_text != null) {
@@ -1181,6 +1187,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_color_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
 
                         if (context_filter.param_text != null) {
@@ -1337,6 +1344,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_color_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
 
                         /**
@@ -1465,6 +1473,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_color_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
                         if (context_filter.param_text != null) {
                             const text = context_filter.param_text;
@@ -1596,6 +1605,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_color_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
 
                         if (context_filter.param_text != null) {
@@ -1739,6 +1749,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_color_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
 
                         if (context_filter.param_text != null) {
@@ -3053,6 +3064,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_color_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
                     case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
                     case ModuleTableFieldVO.FIELD_TYPE_int_array:
@@ -3172,6 +3184,7 @@ export default class ContextFilterServerController {
 
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_color_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
                     case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
                     case ModuleTableFieldVO.FIELD_TYPE_int_array:
@@ -3219,6 +3232,7 @@ export default class ContextFilterServerController {
 
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_color_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
                     case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
                     case ModuleTableFieldVO.FIELD_TYPE_int_array:
