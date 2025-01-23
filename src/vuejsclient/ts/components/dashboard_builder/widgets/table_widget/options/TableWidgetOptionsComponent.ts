@@ -17,12 +17,10 @@ import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
-import TableWidgetController from '../TableWidgetController';
 import './TableWidgetOptionsComponent.scss';
 import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
 import { cloneDeep, isEqual } from 'lodash';
 import VueAppController from '../../../../../../VueAppController';
-import VOFieldRefVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/VOFieldRefVOHandler';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
@@ -31,6 +29,7 @@ import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
+import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
 
 @Component({
     template: require('./TableWidgetOptionsComponent.pug'),
@@ -123,20 +122,20 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return [];
         }
 
-        if (!TableWidgetController.cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
+        if (!TableWidgetManager.cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
             return [];
         }
 
-        const res = TableWidgetController.cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id];
+        const res = TableWidgetManager.cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id];
 
         return res.map((c) => c.translatable_title);
     }
 
     get segmentation_type_options(): DataFilterOption[] {
-        let res: DataFilterOption[] = [];
+        const res: DataFilterOption[] = [];
 
-        for (let segmentation_type in TimeSegment.TYPE_NAMES_ENUM) {
-            let new_opt: DataFilterOption = new DataFilterOption(
+        for (const segmentation_type in TimeSegment.TYPE_NAMES_ENUM) {
+            const new_opt: DataFilterOption = new DataFilterOption(
                 DataFilterOption.STATE_SELECTABLE,
                 this.t(TimeSegment.TYPE_NAMES_ENUM[segmentation_type]),
                 parseInt(segmentation_type)
@@ -238,15 +237,19 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return [];
         }
 
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let api_type_id in TableWidgetController.components_by_crud_api_type_id) {
-            for (let i in TableWidgetController.components_by_crud_api_type_id[api_type_id]) {
-                res.push(TableWidgetController.components_by_crud_api_type_id[api_type_id][i].translatable_title);
+        for (const api_type_id in TableWidgetManager.components_by_crud_api_type_id) {
+            for (const i in TableWidgetManager.components_by_crud_api_type_id[api_type_id]) {
+                res.push(TableWidgetManager.components_by_crud_api_type_id[api_type_id][i].translatable_title);
             }
         }
 
         return res;
+    }
+
+    get vars_options(): string[] {
+        return Object.keys(VarsController.var_conf_by_name);
     }
 
     @Watch('page_widget', { immediate: true })
@@ -1349,9 +1352,5 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
     private crud_api_type_id_select_label(api_type_id: string): string {
         return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
-    }
-
-    get vars_options(): string[] {
-        return Object.keys(VarsController.var_conf_by_name);
     }
 }

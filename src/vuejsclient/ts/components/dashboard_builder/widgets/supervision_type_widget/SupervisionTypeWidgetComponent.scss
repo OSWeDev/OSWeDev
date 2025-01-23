@@ -1,4 +1,33 @@
 .supervision_type_widget_component {
+    .category_label {
+        border-top: 1px solid #888;
+        font-weight: bold;
+        margin: 0.5rem 0 0.2rem 0;
+
+        p {
+            padding: 0.5rem 0 0.1rem 0;
+            display: inline-block;
+            margin: 0;
+        }
+
+        .btn-sm.fa {
+            margin: 0.4rem 0 0 0;
+
+        }
+
+        .btn-sm.fa::before {
+            margin: 0;
+        }
+    }
+
+    .probe_label {
+        padding: 0 0 0 0.3rem;
+        margin: 0.4rem 0 -0.1rem 1rem;
+        // font-size: 1rem; // ; ok si html 14px
+        font-size: 14px;
+        border-left: 1px solid #888;
+    }
+
     .button_opacity {
         opacity: 0.4;
 
@@ -6,5 +35,120 @@
         &.active {
             opacity: 1;
         }
+    }
+
+    .sup_cnt.btn.btn-sm {
+        font-weight: bold;
+        color: white;
+        // min-height: 1.1rem; ok si html 14px
+        // max-height: 1.1rem; ok si html 14px
+        min-height: 16px;
+        max-height: 16px;
+
+
+        padding: 0;
+        width: 15%;
+        // line-height: 0.9rem; ok si html 14px
+        line-height: 14px;
+        // font-size: 0.9rem; ok si html 14px
+        font-size: 14px;
+
+        opacity: 0.25;
+
+        &.opacity_1 {
+            opacity: 0.8;
+        }
+
+        &:hover,
+        &.active {
+            opacity: 1;
+        }
+
+        &:hover,
+        &.active &.selected {
+            box-shadow: 3px 3px 3px -2px #888
+        }
+
+        &.selected {
+            opacity: 1;
+            border: 2px solid #888;
+        }
+
+        &.STATE_0 {
+            background-color: red;
+        }
+
+        &.STATE_1 {
+            background-color: orangered;
+        }
+
+        &.STATE_2 {
+            background-color: orange;
+        }
+
+        &.STATE_3 {
+            background-color: #ffd400;
+        }
+
+        &.STATE_4 {
+            background-color: green;
+        }
+
+        &.STATE_5 {
+            background-color: blue;
+        }
+
+        &.STATE_6 {
+            background-color: grey;
+        }
+    }
+
+    .accordion-panel-heading {
+        cursor: pointer;
+
+        .sup_cnt.btn.btn-sm {
+            background-color: white;
+            min-height: 18px;
+            max-height: 18px;
+
+            &.STATE_0 {
+                color: red;
+                border: 2px solid red;
+            }
+
+            &.STATE_1 {
+                color: orangered;
+                border: 2px solid orangered;
+            }
+
+            &.STATE_2 {
+                color: orange;
+                border: 2px solid orange;
+            }
+
+            &.STATE_3 {
+                color: #ffd400;
+                border: 2px solid #ffd400;
+            }
+
+            &.STATE_4 {
+                color: green;
+                border: 2px solid green;
+            }
+
+            &.STATE_5 {
+                color: blue;
+                border: 2px solid blue;
+            }
+
+            &.STATE_6 {
+                color: grey;
+                border: 2px solid grey;
+            }
+        }
+    }
+
+    .component_header .pull-right {
+        margin-top: -0.5rem;
     }
 }

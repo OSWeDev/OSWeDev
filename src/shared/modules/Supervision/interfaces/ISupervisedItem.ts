@@ -13,5 +13,11 @@ export default interface ISupervisedItem extends IDistantVOBase, INamedVO {
 
     category_id: number;
 
+    /**
+     * champ clé étrangère vers SupervisedProbeVO
+     * necessaire pour afficher les compteurs par sonde et par état
+     */
+    probe_id: number;
+
     invalid: boolean;
 }

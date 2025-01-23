@@ -5,6 +5,10 @@ import SupervisedCRONVO from './vos/SupervisedCRONVO';
 
 export default class SupervisedCRONController implements ISupervisedItemController<SupervisedCRONVO> {
 
+    private static instance: SupervisedCRONController = null;
+
+    private constructor() { }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): SupervisedCRONController {
         if (!SupervisedCRONController.instance) {
@@ -13,10 +17,6 @@ export default class SupervisedCRONController implements ISupervisedItemControll
 
         return SupervisedCRONController.instance;
     }
-
-    private static instance: SupervisedCRONController = null;
-
-    private constructor() { }
 
     public is_actif(): boolean {
         return true;

@@ -1,5 +1,4 @@
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
@@ -49,6 +48,7 @@ export default abstract class SupervisedItemServerControllerBase<T extends ISupe
         return true;
     }
 
+    public abstract get_execute_time_ms(): number;
     public abstract work_one(item: T, ...args): Promise<boolean>;
     public abstract get_execute_time_ms(): number;
 }

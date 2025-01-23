@@ -16,12 +16,32 @@ import SupervisionWidgetOptionsVO from "../vos/SupervisionWidgetOptionsVO";
 import FieldFiltersVOManager from './FieldFiltersVOManager';
 import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
 import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
+import SupervisedProbeGroupVO from "../../Supervision/vos/SupervisedProbeGroupVO";
+import RangeHandler from "../../../tools/RangeHandler";
+import SupervisedProbeVO from "../../Supervision/vos/SupervisedProbeVO";
+import ObjectHandler from "../../../tools/ObjectHandler";
 
 /**
  * SupervisionWidgetManager
  *  - Manager for the supervision widget
  */
 export default class SupervisionWidgetManager {
+
+    private static instance: SupervisionWidgetManager;
+
+    public is_item_accepted: { [dashboard_id: number]: (supervised_item: ISupervisedItem) => boolean } = {};
+    public allowed_api_type_ids: string[] = [];
+
+    protected constructor() { }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): SupervisionWidgetManager {
+        if (!SupervisionWidgetManager.instance) {
+            SupervisionWidgetManager.instance = new SupervisionWidgetManager();
+        }
+
+        return SupervisionWidgetManager.instance;
+    }
 
     /**
      * Find supervision probs by api type ids
@@ -41,17 +61,63 @@ export default class SupervisionWidgetManager {
         widget_options: SupervisionWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
         active_api_type_ids: string[],
+        groups: SupervisedProbeGroupVO[],
+        probes_by_ids: { [id: number]: SupervisedProbeVO },
         pagination?: { offset: number, limit?: number, sorts?: SortByVO[] },
     ): Promise<{ items: ISupervisedItem[], total_count: number }> {
         const self = SupervisionWidgetManager.getInstance();
 
         const context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] } = {};
+        const supervision_group_selection_active_field_filters = active_field_filters && active_field_filters[SupervisedProbeGroupVO.API_TYPE_ID];
+        const api_type_ids_in_group: { [api_type_ids_in_group: string]: boolean } = {};
+
+        // gestion des filtre de groupes
+        for (const field_id in supervision_group_selection_active_field_filters) {
+            const filter = supervision_group_selection_active_field_filters[field_id];
+
+            if (!filter) {
+                continue;
+            }
+
+            if (!filter.param_tsranges?.length) {
+                console.debug('SupervisionWidgetManager.find_supervision_probs_by_api_type_ids: filter de groupe non géré ' + JSON.stringify(filter));
+                continue;
+            }
+
+            if (!groups?.length) {
+                console.debug('SupervisionWidgetManager.find_supervision_probs_by_api_type_ids: pas de group chargés ');
+                continue;
+            }
+            if (!ObjectHandler.hasAtLeastOneAttribute(probes_by_ids)) {
+                console.debug('SupervisionWidgetManager.find_supervision_probs_by_api_type_ids: pas de sondes chargées ');
+                continue;
+            }
+
+            // Get each category from the param_tsranges
+            for (const gi in groups) {
+                const group: SupervisedProbeGroupVO = groups[gi];
+                if (!group || !group.probe_id_ranges?.length || !ObjectHandler.hasAtLeastOneAttribute(probes_by_ids)) {
+                    continue;
+                }
+
+                if (RangeHandler.any_range_intersects_any_range(group.ts_ranges, filter.param_tsranges)) {
+                    RangeHandler.foreach_ranges_sync(group.probe_id_ranges, (probe_id: number) => {
+                        const probe = probes_by_ids[probe_id];
+                        if (!probe) {
+                            return;
+                        }
+                        api_type_ids_in_group[probe.sup_item_api_type_id] = true;
+                    });
+                }
+            }
+        }
 
         // We must check the access for each api_type_id
         // And then get the allowed api_type_ids
         const allowed_api_type_ids: string[] = await SupervisionWidgetManager.filter_allowed_api_type_ids(
             widget_options,
             active_api_type_ids,
+            api_type_ids_in_group
         );
 
         self.allowed_api_type_ids = allowed_api_type_ids;
@@ -118,17 +184,6 @@ export default class SupervisionWidgetManager {
         );
     }
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): SupervisionWidgetManager {
-        if (!SupervisionWidgetManager.instance) {
-            SupervisionWidgetManager.instance = new SupervisionWidgetManager();
-        }
-
-        return SupervisionWidgetManager.instance;
-    }
-
-    private static instance: SupervisionWidgetManager;
-
     /**
      * should_check_api_type_ids_access
      * - Check if we should check the api_type_ids access
@@ -160,6 +215,7 @@ export default class SupervisionWidgetManager {
     private static async filter_allowed_api_type_ids(
         widget_options: SupervisionWidgetOptionsVO,
         active_api_type_ids: string[],
+        api_type_ids_in_group: { [api_type_ids_in_group: string]: boolean }
     ): Promise<string[]> {
 
         // Default api_type_ids (should be from widget_options)
@@ -178,6 +234,12 @@ export default class SupervisionWidgetManager {
 
         for (const key in available_api_type_ids) {
             const api_type_id: string = available_api_type_ids[key];
+
+            if (ObjectHandler.hasAtLeastOneAttribute(api_type_ids_in_group)) {
+                if (!api_type_ids_in_group[api_type_id]) {
+                    continue;
+                }
+            }
 
             const registered_api_type: ISupervisedItemController<any> = SupervisionController.getInstance().registered_controllers[api_type_id];
 
@@ -302,11 +364,6 @@ export default class SupervisionWidgetManager {
 
         return { items, total_count };
     }
-
-    public is_item_accepted: { [dashboard_id: number]: (supervised_item: ISupervisedItem) => boolean } = {};
-    public allowed_api_type_ids: string[] = [];
-
-    protected constructor() { }
 
     /**
      * permet de définir une fonction de test pour filtrer les Items affichées dans le dashboard de la supervision

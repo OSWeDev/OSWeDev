@@ -136,6 +136,9 @@ import Patch20241119DeleteSessions from './patchs/premodules/Patch20241119Delete
 import Patch20241023AddOseliaFunction_azure_get_last_unread_email from './patchs/postmodules/Patch20241023AddOseliaFunction_azure_get_last_unread_email';
 import Patch20241216LowerDefaultDBLogTypeToWARN from './patchs/postmodules/Patch20241216LowerDefaultDBLogTypeToWARN';
 // import Patch20241129PreCreateEventsConfs from './patchs/premodules/Patch20241129PreCreateEventsConfs';
+import Patch20241224SupervisionFillProbe from './patchs/postmodules/Patch20241224SupervisionFillProbe';
+import Patch20250102AddRightsSupervisedProbe from './patchs/postmodules/Patch20250102AddRightsSupervisedProbe';
+import Patch20250106createTableSupProbe from './patchs/premodules/Patch20250106createTableSupProbe';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -231,6 +234,8 @@ export default abstract class GeneratorBase {
             Patch20241119DeleteSessions.getInstance(),
             Patch20122024TruncateLogsUpdated.getInstance(),
             // Patch20241129PreCreateEventsConfs.getInstance(),
+            // Patch20241126TruncateLogs.getInstance(),
+            Patch20250106createTableSupProbe.getInstance(),
         ];
 
         this.post_modules_workers = [
@@ -296,6 +301,8 @@ export default abstract class GeneratorBase {
             Patch20241016AddOseliaFunction_OSELIA_get_assistant.getInstance(),
             Patch20241010CreateLogType.getInstance(),
             Patch20241030SuiviCompetencesGroupeShortName.getInstance(),
+            Patch20241224SupervisionFillProbe.getInstance(),
+            Patch20250102AddRightsSupervisedProbe.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
 
             Patch20241023AddOseliaFunction_azure_get_last_unread_email.getInstance(),

@@ -1,0 +1,28 @@
+Draggablewindowcomponent.sup_drag_panel_component(
+    v-if="!!sup_item_id && !!sup_api_type_id"
+    :initial_width="448"
+    :initial_height="840"
+    :minh="115"
+    :minw="448"
+    :initial_x="70"
+    :initial_y="56"
+    :initial_opened="true"
+    :opened_width="448"
+    :opened_height="840"
+    :closed_width="448"
+    :closed_height="37"
+    :unusable_height="37"
+    :opened_minh="115"
+    :opened_minw="448"
+    :closed_minh="37"
+    :closed_minw="448"
+)
+    .slot_header(slot='icons')
+        span.title.pull-left {{ label('supervision.item_drag_panel.title') }}
+
+    .sup_drag_panel_container.col-sm-12
+        Superviseditemcomponent(
+            :supervised_item_id='sup_item_id'
+            :supervised_item_vo_type='sup_api_type_id'
+            :embed='true'
+        )

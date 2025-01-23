@@ -43,7 +43,7 @@
                     v-if="show_details"
                 ) {{ label('suivi_competences_widget_component.indicateur_detail.grille_' + grille.id) }}
                 th.col-md-3(
-                    :colspan="(!(grille && grille.show_column_rapport_indicateur && !grille.move_indicateur_to_end) && (!show_details)) ? 2 : 1"
+                    :colspan="(!(grille && grille.show_column_rapport_indicateur && !grille.move_indicateur_to_end) && (!show_details) && (grille.show_column_name)) ? 2 : 1"
                     v-if="grille?.show_column_rapport_cible"
                 ) {{ label('suivi_competences_widget_component.cible.grille_' + grille.id) }}
                 th.col-md-3(
@@ -55,6 +55,9 @@
                 th.col-md-3(
                     v-if="grille?.show_column_rapport_delais"
                 ) {{ label('suivi_competences_widget_component.delais.grille_' + grille.id) }}
+                th.col-md-3(
+                    v-if="grille?.show_column_bilan_precedent"
+                ) {{ label('suivi_competences_widget_component.bilan_precedent.grille_' + grille.id) }}
                 th.col-md-1(
                     v-if='grille?.show_column_rapport_indicateur && grille?.move_indicateur_to_end'
                 ) {{ label('suivi_competences_widget_component.indicateur.grille_' + grille.id) }}
@@ -92,7 +95,7 @@
 
                     template(v-for="item in sous_groupe.items")
                         tr
-                            td.valign-middle.item_name
+                            td.valign-middle.item_name(v-if="grille.show_column_name")
                                 span(v-tooltip="item.popup") {{ item.name }}
                             td.valign-middle.details(
                                 :data-label="label('suivi_competences_widget_component.kpi.grille_' + grille.id)" 
@@ -179,6 +182,21 @@
                             )
                                 Crudcomponentfield.highlight_editable_input(
                                     :field="delais_editable_field"
+                                    :vo="all_rapport_item_by_ids[item.id]"
+                                    :show_insert_or_update_target="false",
+                                    :auto_update_field_value='true',
+                                    :auto_validate_inline_input='true',
+                                    :auto_validate_inline_input_delay_sec='0',
+                                    :inline_input_mode='true'
+                                    :show_pencil_btn='true'
+                                )
+
+                            td.valign-middle.bilan_precedent(
+                                v-if="grille?.show_column_bilan_precedent"
+                                :data-label="label('suivi_competences_widget_component.bilan_precedent.grille_' + grille.id)" 
+                            )
+                                Crudcomponentfield.highlight_editable_input(
+                                    :field="bilan_precedent_editable_field"
                                     :vo="all_rapport_item_by_ids[item.id]"
                                     :show_insert_or_update_target="false",
                                     :auto_update_field_value='true',

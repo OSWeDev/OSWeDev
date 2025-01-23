@@ -456,7 +456,8 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                             item.id,
                             this.selected_rapport.id,
                             null,
-                            null
+                            null,
+                            null,
                         );
                     }
                 }

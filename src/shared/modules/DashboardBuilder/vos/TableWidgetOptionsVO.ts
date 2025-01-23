@@ -3,55 +3,16 @@ import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import TableColumnDescVO from "./TableColumnDescVO";
-import VOFieldRefVO from "./VOFieldRefVO";
 
 /**
  * TableWidgetOptionsVO
- */
+*/
 export default class TableWidgetOptionsVO extends AbstractVO {
 
     public static TITLE_CODE_PREFIX: string = "TableWidgetOptions.title.";
     public static DEFAULT_LIMIT: number = 100;
     public static DEFAULT_LIMIT_SELECTABLE: string = "10,20,50,100";
     public static DEFAULT_NBPAGES_PAGINATION_LIST: number = 5;
-
-    public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
-        const res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
-
-        const options: TableWidgetOptionsVO = (page_widget && page_widget.json_options) ? ObjectHandler.try_get_json(page_widget.json_options) : null;
-        if (!options) {
-            return res;
-        }
-
-        for (const i in options.columns) {
-            const column = options.columns[i];
-
-            if (column.type == TableColumnDescVO.TYPE_header && column.children.length > 0) {
-                for (const key in column.children) {
-                    const child = column.children[key];
-                    if ((!child.api_type_id) || (!child.field_id)) {
-                        continue;
-                    }
-                    if (!res[child.api_type_id]) {
-                        res[child.api_type_id] = {};
-                    }
-                    res[child.api_type_id][child.field_id] = true;
-                }
-            }
-
-            if ((!column.api_type_id) || (!column.field_id)) {
-                continue;
-            }
-
-            if (!res[column.api_type_id]) {
-                res[column.api_type_id] = {};
-            }
-
-            res[column.api_type_id][column.field_id] = true;
-        }
-
-        return res;
-    }
 
     public constructor(
         public columns?: TableColumnDescVO[],
@@ -94,6 +55,45 @@ export default class TableWidgetOptionsVO extends AbstractVO {
     ) {
         super();
     }
+
+    public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
+        const res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
+
+        const options: TableWidgetOptionsVO = (page_widget && page_widget.json_options) ? ObjectHandler.try_get_json(page_widget.json_options) : null;
+        if (!options) {
+            return res;
+        }
+
+        for (const i in options.columns) {
+            const column = options.columns[i];
+
+            if (column.type == TableColumnDescVO.TYPE_header && column.children.length > 0) {
+                for (const key in column.children) {
+                    const child = column.children[key];
+                    if ((!child.api_type_id) || (!child.field_id)) {
+                        continue;
+                    }
+                    if (!res[child.api_type_id]) {
+                        res[child.api_type_id] = {};
+                    }
+                    res[child.api_type_id][child.field_id] = true;
+                }
+            }
+
+            if ((!column.api_type_id) || (!column.field_id)) {
+                continue;
+            }
+
+            if (!res[column.api_type_id]) {
+                res[column.api_type_id] = {};
+            }
+
+            res[column.api_type_id][column.field_id] = true;
+        }
+
+        return res;
+    }
+
 
     public get_title_name_code_text(page_widget_id: number): string {
 

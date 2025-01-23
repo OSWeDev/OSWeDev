@@ -64,6 +64,8 @@ export default class ModuleLoggerServer extends ModuleServerBase {
     }
 
     public async configure() {
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(LogVO.API_TYPE_ID, this, this.onPreCreateLogVO);
         const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         postCreateTrigger.registerHandler(LogTypeVO.API_TYPE_ID, this, this.onCreateLogTypeVO);
     }
@@ -103,5 +105,13 @@ export default class ModuleLoggerServer extends ModuleServerBase {
             [RangeHandler.create_single_elt_NumRange(vo.id, NumSegment.TYPE_INT)],
             []
         );
+    }
+
+    private async onPreCreateLogVO(vo: LogVO): Promise<boolean> {
+        if (vo?.msg?.length > 1000) {
+            vo.msg = vo.msg?.substr(0, 1000) + '[...]';
+        }
+
+        return true;
     }
 }

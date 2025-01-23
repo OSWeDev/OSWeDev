@@ -11,6 +11,7 @@ export default class SuiviCompetencesItemRapportVO implements IVersionedVO {
         rapport_id: number,
         cible: string,
         delais: string,
+        bilan_precedent: string,
     ): SuiviCompetencesItemRapportVO {
         let res: SuiviCompetencesItemRapportVO = new SuiviCompetencesItemRapportVO();
 
@@ -21,6 +22,7 @@ export default class SuiviCompetencesItemRapportVO implements IVersionedVO {
         res.rapport_id = rapport_id;
         res.cible = cible;
         res.delais = delais;
+        res.bilan_precedent = bilan_precedent;
 
         return res;
     }
@@ -32,6 +34,7 @@ export default class SuiviCompetencesItemRapportVO implements IVersionedVO {
     public etat_des_lieux: string;
     public cible: string;
     public delais: string;
+    public bilan_precedent: string;
     public indicateur: number;
 
     public suivi_comp_item_id: number;

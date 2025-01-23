@@ -170,11 +170,7 @@ export default class TableWidgetManager {
      */
     public static async get_valuetables_widgets_options(
         dashboard_page_id: number
-    ): Promise<
-        {
-            [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number }
-        }
-    > {
+    ): Promise<{ [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number } }> {
 
         const valuetable_page_widgets: {
             [page_widget_id: string]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }
@@ -770,7 +766,7 @@ export default class TableWidgetManager {
                         .auto_update_datatable_field_uid_with_vo_type();
 
                     break;
-                case TableColumnDescVO.TYPE_var_ref:
+                case TableColumnDescVO.TYPE_var_ref: {
                     const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
                         column.id.toString(),
                         column.var_id,
@@ -782,7 +778,8 @@ export default class TableWidgetManager {
                     field_by_column_id[column.id] = var_data_field;
 
                     break;
-                case TableColumnDescVO.TYPE_vo_field_ref:
+                }
+                case TableColumnDescVO.TYPE_vo_field_ref: {
                     const field = moduleTable.get_field_by_id(column.field_id);
 
                     if (!field) {
@@ -807,6 +804,7 @@ export default class TableWidgetManager {
                     field_by_column_id[column.id] = data_field;
 
                     break;
+                }
                 case TableColumnDescVO.TYPE_crud_actions:
                     field_by_column_id[column.id] = CRUDActionsDatatableFieldVO.createNew().setModuleTable(moduleTable);
                     break;
@@ -858,22 +856,22 @@ export default class TableWidgetManager {
             return actual_active_field_filters;
         }
 
-        let new_active_field_filters: FieldFiltersVO = cloneDeep(actual_active_field_filters);
+        const new_active_field_filters: FieldFiltersVO = cloneDeep(actual_active_field_filters);
 
-        for (let i in do_not_use_page_widget_ids) {
-            let page_widget: DashboardPageWidgetVO = all_page_widgets_by_id[do_not_use_page_widget_ids[i]];
+        for (const i in do_not_use_page_widget_ids) {
+            const page_widget: DashboardPageWidgetVO = all_page_widgets_by_id[do_not_use_page_widget_ids[i]];
 
             if (!page_widget) {
                 continue;
             }
 
-            let widget: DashboardWidgetVO = widgets_by_id[page_widget.widget_id];
+            const widget: DashboardWidgetVO = widgets_by_id[page_widget.widget_id];
 
             if (!widget || (widget.name != DashboardWidgetVO.WIDGET_NAME_fieldvaluefilter)) {
                 continue;
             }
 
-            let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
+            const page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
 
             if (page_widget_options?.vo_field_ref) {
                 if (new_active_field_filters && new_active_field_filters[page_widget_options.vo_field_ref.api_type_id]) {
