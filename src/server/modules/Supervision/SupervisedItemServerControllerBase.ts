@@ -48,7 +48,6 @@ export default abstract class SupervisedItemServerControllerBase<T extends ISupe
         return true;
     }
 
-    public abstract get_execute_time_ms(): number;
     public abstract work_one(item: T, ...args): Promise<boolean>;
     public abstract get_execute_time_ms(): number;
 }

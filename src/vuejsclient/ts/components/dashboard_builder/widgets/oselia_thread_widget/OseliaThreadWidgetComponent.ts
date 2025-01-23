@@ -3,6 +3,7 @@ import Component from 'vue-class-component';
 import VueJsonPretty from 'vue-json-pretty';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -24,6 +25,7 @@ import GPTAssistantAPIFunctionVO from '../../../../../../shared/modules/GPT/vos/
 import GPTAssistantAPIThreadMessageVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import ModuleOselia from '../../../../../../shared/modules/Oselia/ModuleOselia';
+import OseliaController from '../../../../../../shared/modules/Oselia/OseliaController';
 import OseliaRunFunctionCallVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 import OseliaRunVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunVO';
 import OseliaThreadCacheVO from '../../../../../../shared/modules/Oselia/vos/OseliaThreadCacheVO';
@@ -41,13 +43,11 @@ import DatatableComponentField from '../../../datatable/component/fields/Datatab
 import MailIDEventsComponent from '../../../mail_id_events/MailIDEventsComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
+import OseliaLeftPanelComponent from './OseliaLeftPanel/OseliaLeftPanelComponent';
 import OseliaRunArboComponent from './OseliaRunArbo/OseliaRunArboComponent';
 import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
 import './OseliaThreadWidgetComponent.scss';
-import OseliaLeftPanelComponent from './OseliaLeftPanel/OseliaLeftPanelComponent';
-import ConfigurationService from '../../../../../../server/env/ConfigurationService';
-import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
     components: {
@@ -75,6 +75,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
+    @ModuleDashboardPageAction
+    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -234,7 +236,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async mounted() {
-        this.use_realtime_voice = ConfigurationService.node_configuration.unblock_realtime_api;
+        this.use_realtime_voice = await ModuleParams.getInstance().getParamValueAsBoolean(OseliaController.PARAM_NAME_UNBLOCK_REALTIME_API, false, 120000);
 
         this.frame = parent.document.getElementById('OseliaContainer');
 
@@ -639,9 +641,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 this.thread = null;
             }
             if (context_query_select.filters.length > 0) {
-                for (let filter of context_query_select.filters) {
-                    if ((filter.field_name == field_names<GPTAssistantAPIThreadVO>().id) && (filter.param_numeric)) {
-                        await ModuleOselia.getInstance().send_join_request(VueAppController.getInstance().data_user.id, filter.param_numeric);
+                for (const f of context_query_select.filters) {
+                    if ((f.field_name == field_names<GPTAssistantAPIThreadVO>().id) && (f.param_numeric)) {
+                        await ModuleOselia.getInstance().send_join_request(VueAppController.getInstance().data_user.id, f.param_numeric);
                         return;
                     }
                 }

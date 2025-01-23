@@ -113,6 +113,32 @@ export default class ModuleGPTServer extends ModuleServerBase {
         throw new Error('Method not implemented.');
     }
 
+    /**
+     * istanbul ignore next: cannot test extern apis
+     * @deprecated use Assistants instead => cheaper / faster / better control. Will be removed soon
+     */
+    public async generate_response(conversation: GPTCompletionAPIConversationVO, newPrompt: GPTCompletionAPIMessageVO): Promise<GPTCompletionAPIMessageVO> {
+        try {
+            const modelId = await ParamsServerController.getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4-turbo-preview", 60000);
+
+            if (!conversation || !newPrompt) {
+                throw new Error("Invalid conversation or prompt");
+            }
+
+            const currentMessages = await this.prepare_for_api(conversation, newPrompt);
+            if (!currentMessages) {
+                throw new Error("Invalid currentMessages");
+            }
+
+            const result = await this.call_api(modelId, currentMessages);
+
+            return await this.api_response_handler(conversation, result);
+        } catch (err) {
+            ConsoleHandler.error(err);
+        }
+        return null;
+    }
+
     public async ask_assistant(
         assistant_id: string,
         thread_id: string,
@@ -507,32 +533,6 @@ export default class ModuleGPTServer extends ModuleServerBase {
             .exec_as_server();
 
         return res;
-    }
-
-    /**
-     * istanbul ignore next: cannot test extern apis
-     * @deprecated use Assistants instead => cheaper / faster / better control. Will be removed soon
-     */
-    public async generate_response(conversation: GPTCompletionAPIConversationVO, newPrompt: GPTCompletionAPIMessageVO): Promise<GPTCompletionAPIMessageVO> {
-        try {
-            const modelId = await ParamsServerController.getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4-turbo-preview", 60000);
-
-            if (!conversation || !newPrompt) {
-                throw new Error("Invalid conversation or prompt");
-            }
-
-            const currentMessages = await this.prepare_for_api(conversation, newPrompt);
-            if (!currentMessages) {
-                throw new Error("Invalid currentMessages");
-            }
-
-            const result = await this.call_api(modelId, currentMessages);
-
-            return await this.api_response_handler(conversation, result);
-        } catch (err) {
-            ConsoleHandler.error(err);
-        }
-        return null;
     }
 
     /**
