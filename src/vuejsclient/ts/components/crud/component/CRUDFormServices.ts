@@ -604,7 +604,7 @@ export default class CRUDFormServices {
      * @param field
      * @param fileVo
      */
-    public async uploadedFile(
+    public static async uploadedFile(
         vo: IDistantVOBase,
         field: DatatableField<unknown, unknown>,
         fileVo: FileVO | ImageVO,
