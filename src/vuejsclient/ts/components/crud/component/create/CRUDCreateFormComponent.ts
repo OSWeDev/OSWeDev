@@ -505,7 +505,12 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
      * @param fileVo
      */
     private async uploadedFile_(vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO) {
-        await CRUDFormServices.uploadedFile(vo, field, fileVo, this.api_type_id, this.editableVO, this.updateData, this);
+        const to_refresh: boolean = await CRUDFormServices.uploadedFile(vo, field, fileVo, this.api_type_id, this.editableVO, this.updateData, this);
+
+        if (to_refresh) {
+            this.crud.createDatatable.refresh();
+            this.crud_createDatatable_key = this.crud.createDatatable.key;
+        }
     }
 
     private async cancel() {
