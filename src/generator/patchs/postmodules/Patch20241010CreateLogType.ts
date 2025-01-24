@@ -5,6 +5,8 @@ import ModuleLogger from '../../../shared/modules/Logger/ModuleLogger';
 import LogTypeVO from '../../../shared/modules/Logger/vos/LogTypeVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class Patch20241010CreateLogType implements IGeneratorWorker {
 
@@ -38,6 +40,20 @@ export default class Patch20241010CreateLogType implements IGeneratorWorker {
     }
 
     private async createLogType(logtype: LogTypeVO, param_name: string) {
+
+        /**
+         * On teste d'abord de récupérer le logtype exstant
+         */
+        const existing_logtype = await query(LogTypeVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<LogTypeVO>().name, logtype.name)
+            .exec_as_server()
+            .select_vo<LogTypeVO>();
+
+        if (existing_logtype) {
+            await ModuleParams.getInstance().setParamValueAsNumber(param_name, existing_logtype.id);
+            return;
+        }
+
         const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(logtype);
 
         if (!res) {

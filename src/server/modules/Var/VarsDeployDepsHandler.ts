@@ -141,7 +141,7 @@ export default class VarsDeployDepsHandler {
      */
     public static async load_caches_and_imports_on_var_to_deploy(
         node: VarDAGNode,
-        limit_to_aggregated_datas: boolean = false,
+        limit_to_aggregated_datas: boolean,
         nodes_to_unlock: VarDAGNode[],
     ): Promise<boolean> {
 
@@ -179,7 +179,7 @@ export default class VarsDeployDepsHandler {
                 }
                 StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_has_valid_value');
                 StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_has_valid_value', Dates.now_ms() - time_in);
-                return;
+                return true;
             }
         }
 
@@ -191,14 +191,14 @@ export default class VarsDeployDepsHandler {
             if (await VarsDeployDepsHandler.handle_pixellisation(node, varconf, limit_to_aggregated_datas, DEBUG_VARS, nodes_to_unlock)) {
                 StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_handle_pixellisation');
                 StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_handle_pixellisation', Dates.now_ms() - time_in);
-                return;
+                return true;
             }
         }
 
         if (limit_to_aggregated_datas) {
 
             // Si on a des données aggrégées elles sont déjà ok à renvoyer si on ne veut que savoir les données aggrégées
-            return;
+            return true;
         }
 
         const deps: { [index: string]: VarDataBaseVO } = await VarsDeployDepsHandler.get_node_deps(node, nodes_to_unlock);
@@ -215,6 +215,7 @@ export default class VarsDeployDepsHandler {
 
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT');
         StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT', Dates.now_ms() - time_in);
+        return false;
     }
 
     /**

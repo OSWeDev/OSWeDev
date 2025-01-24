@@ -14,6 +14,7 @@ import WeightHandler from '../../../../shared/tools/WeightHandler';
 import VueAppBase from '../../../VueAppBase';
 import ContextQueryVO from '../../../../../dist/shared/modules/ContextFilter/vos/ContextQueryVO';
 import { field_names } from '../../../../shared/tools/ObjectHandler';
+import { EventInput, ViewApi } from '@fullcalendar/core';
 
 export default abstract class ProgramPlanControllerBase {
 

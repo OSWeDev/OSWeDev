@@ -81,7 +81,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
             // On charge les caches pour ces noeuds
             //  et on récupère les nouveaux vars_datas à insérer dans l'arbre
             await promise_pipeline.push(async () => {
-                const node_does_not_need_deployment: boolean = await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(node, true, nodes_to_unlock);
+                const node_does_not_need_deployment: boolean = await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(node, false, nodes_to_unlock);
 
                 if (node_does_not_need_deployment) {
                     if (ConfigurationService.node_configuration.debug_vars) {

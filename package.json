@@ -43,6 +43,7 @@
         "@fullcalendar/core": "6.1.15",
         "@fullcalendar/resource": "6.1.15",
         "@fullcalendar/resource-timeline": "6.1.15",
+        "@fullcalendar/vue": "6.1.15",
         "@godaddy/terminus": "4.4.1",
         "@growthbunker/vueflags": "0.0.6",
         "@maxgraph/core": "0.1.0",
