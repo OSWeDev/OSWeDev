@@ -22,6 +22,7 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
 
     private url: string = null;
     private title: string = null;
+    private icone: string = null;
     private color: string = null;
     private text_color: string = null;
     private about_blank: boolean = null;
@@ -55,6 +56,7 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
         if (!this.widget_options) {
             this.url = null;
             this.title = null;
+            this.icone = null;
             this.color = '#003c7d';
             this.text_color = '#ffffff';
             this.about_blank = false;
@@ -62,8 +64,9 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
 
             return;
         }
-        this.url = this.get_cms_vo[this.widget_options.url_field_ref.field_id];
+        this.url = (this.get_cms_vo && this.widget_options?.url_field_ref) ? this.get_cms_vo[this.widget_options.url_field_ref.field_id] : null;
         this.title = this.widget_options.title;
+        this.icone = this.widget_options.icone;
         this.color = this.widget_options.color;
         this.text_color = this.widget_options.text_color;
         this.about_blank = this.widget_options.about_blank;

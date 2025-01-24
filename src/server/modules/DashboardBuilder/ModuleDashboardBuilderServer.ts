@@ -3782,6 +3782,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Couleur du texte du bouton" },
             'cms_link_button.widget_option.text_color.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Icône" },
+            'cms_link_button.widget_option.icone.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Code FontAwesome" },
+            'cms_link_button.widget_option.icone.tooltip.___LABEL___'
+        ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Arrondir les angles (valeur en degrés)" },

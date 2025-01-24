@@ -18,6 +18,14 @@
                     v-model="title"
                 )
         
+        .widget_icone_label {{ label('cms_link_button.widget_option.icone') }}
+            .widget_icone_wrapper
+                input(
+                    type="text"
+                    v-model="icone"
+                    v-tooltip='label("cms_link_button.widget_option.icone.tooltip")'
+                )
+        
         .about_blank_label {{ label('cms_link_button.widget_option.about_blank') }}
         toggle-button(
             @change="switch_about_blank"
