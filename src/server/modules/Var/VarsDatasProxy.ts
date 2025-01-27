@@ -63,7 +63,7 @@ export default class VarsDatasProxy {
                     this_not_found_indexes[var_data_indexes[i]] = true;
                 }
 
-                const bdd_res: T[] = await query(api_type_id).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, var_data_indexes).exec_as_server().select_vos<T>();
+                const bdd_res: T[] = await query(api_type_id).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, var_data_indexes).exec_as_server().select_vos<T>(); // depuis quand c'est logique de faire ça et pas directement un select qu'on passerait au throttled ?
 
                 for (const i in bdd_res) {
                     const var_data = bdd_res[i];
@@ -225,7 +225,13 @@ export default class VarsDatasProxy {
     private static async add_to_tree_and_return_datas_that_need_notification<T extends VarDataBaseVO>(indexs: string[]): Promise<T[]> {
 
         if (VarsComputationHole.waiting_for_computation_hole) {
-            await EventsController.await_next_event_semaphored(VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME, "add_to_tree_and_return_datas_that_need_notification");
+
+            if (ConfigurationService.node_configuration.debug_vars) {
+                ConsoleHandler.log('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification: waiting_for_computation_hole is active, not adding new elements to tree and waiting for next VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME event');
+            }
+
+            await EventsController.await_next_event(VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME);
+            // await EventsController.await_next_event_semaphored(VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME, "add_to_tree_and_return_datas_that_need_notification"); // Pourquoi semaphored ??? on doit tout ajouter à l'arbre dès qu'on release....
         }
 
         const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
