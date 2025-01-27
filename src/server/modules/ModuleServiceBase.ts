@@ -169,6 +169,14 @@ export default abstract class ModuleServiceBase {
     private server_base_modules: ModuleServerBase[] = [];
 
     private db_: IDatabase<any>;
+
+    private cooldown_retries_ms: number = 100;
+    private min_cooldown_retries_ms: number = 100;
+    private max_cooldown_retries_ms: number = 10000;
+    private coef_cooldown_retries_ms: number = 2;
+    private timeout_cooldown_retries_ms: number = 60000; // Si ça fait 1 minute qu'il n'y a plus d'erreur, on diminue le cooldown
+    private last_update_cooldown_retries_ms: number = 0;
+
     /**
      * ----- Local thread cache
      */
@@ -506,11 +514,21 @@ export default abstract class ModuleServiceBase {
 
         if (compteur_id && sleep_id) {
             StatsController.register_stat_COMPTEUR(func_name, 'error', compteur_id);
-            ConsoleHandler.error(error + ' - retrying in 100 ms');
+
+            const now_ms = Dates.now_ms();
+            if (now_ms - this.last_update_cooldown_retries_ms > this.timeout_cooldown_retries_ms) {
+                this.cooldown_retries_ms = this.min_cooldown_retries_ms;
+            } else {
+                this.cooldown_retries_ms = Math.min(this.cooldown_retries_ms * this.coef_cooldown_retries_ms, this.max_cooldown_retries_ms);
+            }
+
+            this.last_update_cooldown_retries_ms = now_ms;
+
+            ConsoleHandler.error(error + ' - retrying in ' + this.cooldown_retries_ms + ' ms');
 
             return new Promise(async (resolve, reject) => {
 
-                await ThreadHandler.sleep(100, sleep_id, true);
+                await ThreadHandler.sleep(this.cooldown_retries_ms, sleep_id, true);
                 if (DBDisconnectionManager.instance) {
                     await DBDisconnectionManager.instance.wait_for_reconnection();
                 }

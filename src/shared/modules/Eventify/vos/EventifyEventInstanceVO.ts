@@ -1,3 +1,4 @@
+import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../IDistantVOBase';
 import EventifyEventConfVO from './EventifyEventConfVO';
 
@@ -20,12 +21,18 @@ export default class EventifyEventInstanceVO implements IDistantVOBase {
 
     public event_conf_id: number;
 
+    /**
+     * Date d'émission de l'évènement (en ms)
+     */
+    public emission_date_ms: number;
+
     public static instantiate(event_conf: EventifyEventConfVO): EventifyEventInstanceVO {
         const res: EventifyEventInstanceVO = new EventifyEventInstanceVO();
 
         res.event_conf_id = event_conf.id;
         res.name = event_conf.name;
         res.instance_uid = event_conf.name + '_' + (EventifyEventInstanceVO.UID++);
+        res.emission_date_ms = Dates.now_ms();
         return res;
     }
 
@@ -35,6 +42,7 @@ export default class EventifyEventInstanceVO implements IDistantVOBase {
         res.event_conf_id = null;
         res.name = event_name;
         res.instance_uid = event_name + '_' + (EventifyEventInstanceVO.UID++);
+        res.emission_date_ms = Dates.now_ms();
         return res;
     }
 }

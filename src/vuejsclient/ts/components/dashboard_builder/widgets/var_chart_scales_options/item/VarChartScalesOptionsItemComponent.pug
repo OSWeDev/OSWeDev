@@ -97,3 +97,14 @@
                             @on_change="handle_scale_options_change"
                             :options="scale_options"
                         )
+
+                .fill
+                    .input_label {{ label('var_chart_scales_options_item.fill') }}
+                    .input_wrapper
+                        toggle-button(
+                            @change="switch_fill"
+                            :value="fill" 
+                            :sync="true"
+                            :width="60"
+                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        )

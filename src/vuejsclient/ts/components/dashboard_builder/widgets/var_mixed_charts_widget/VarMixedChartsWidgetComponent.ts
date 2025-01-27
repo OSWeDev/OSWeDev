@@ -275,6 +275,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                             },
                             axis: 'y',
                             position: current_scale.selected_position ? current_scale.selected_position : 'left',
+                            fill: this.widget_options.var_charts_options.some((option) => option.type == 'line') ? (current_scale.fill ? current_scale.fill : false) : false,
                         };
                     }
                 }
@@ -284,7 +285,6 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 inflateAmount: true,
                 borderRadius: 10,
                 responsive: true,
-                fill: this.widget_options.var_charts_options.some((option) => option.type == 'line') ? true : false,
                 tension: this.widget_options.var_charts_options.some((option) => option.type == 'line') ? 0.2 : 0,
                 maintainAspectRatio: false,
                 plugins: {
@@ -362,7 +362,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     const current_scale = new VarChartScalesOptionsVO().from(this.widget_options.var_chart_scales_options.find((scale) => scale.chart_id == var_chart_option.selected_filter_id));
                     const var_chart_id_dataset = var_chart_option.chart_id + '_' + dataset;
                     current_scale.show_scale_title = false;
-                    current_scale.fill = this.widget_options.var_charts_options.some((option) => option.type == 'line') ? true : false;
+                    // current_scale.fill = this.widget_options.var_charts_options.some((option) => option.type == 'line') ? true : false;
                     if (res[var_chart_id_dataset] == undefined) {
                         res[var_chart_id_dataset] = current_scale;
                     }

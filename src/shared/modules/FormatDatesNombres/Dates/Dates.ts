@@ -59,7 +59,7 @@ export default class Dates {
     }
 
     /**
-     * @returns current timestamp in secs
+     * @returns current timestamp in ms
      */
     public static now_ms(localized_src: boolean = true): number {
         if (!Dates.p) {

@@ -308,6 +308,13 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
                 dataset['label'] = this.t(VarsController.get_translatable_name_code(var_dataset_descriptor.var_name));
             }
 
+            // JNE : Je rajoute ça par ce que là, par défaut tous les graphs ont des textes en rab.
+            // if (var_dataset_descriptor.activate_datalabels) {
+            dataset['datalabels'] = {
+                display: false,
+            };
+            // }
+
             if (var_dataset_descriptor.bg_color) {
                 dataset['backgroundColor'] = var_dataset_descriptor.bg_color;
             }

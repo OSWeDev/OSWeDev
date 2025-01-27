@@ -1,4 +1,5 @@
 import ConsoleHandler from '../../../tools/ConsoleHandler';
+import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModulesManager from '../../ModulesManager';
 import EventsController from '../EventsController';
@@ -122,6 +123,11 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
      */
     public last_cb_run_end_date_ms: number;
 
+    /**
+     * Date de début du dernier appel pour du log et debug principalement
+     */
+    public last_cb_run_start_date_ms: number;
+
     private _cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown;
 
     get cb(): (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown {
@@ -145,6 +151,7 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
         res.cb_function_name = conf.cb_function_name;
         res.cb_is_running = false;
         res.cb_is_cooling_down = false;
+        res.last_cb_run_start_date_ms = 0;
         res.last_cb_run_end_date_ms = 0;
         res.run_as_soon_as_possible = false;
         res.run_as_soon_as_possible_event_conf_id = conf.run_as_soon_as_possible_event_conf_id;
@@ -172,6 +179,7 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
         res.throttle_triggered_event_during_cb = false;
         res.cb_is_running = false;
         res.cb_is_cooling_down = false;
+        res.last_cb_run_start_date_ms = 0;
         res.last_cb_run_end_date_ms = 0;
         res.run_as_soon_as_possible = false;
         res._cb = cb;
@@ -180,6 +188,32 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
 
     public static get_uid(name: string): string {
         return name + '_' + EventifyEventListenerInstanceVO.UID++;
+    }
+
+    /**
+     * On affiche l'état actuel du listener. On s'intéresse en particulier à savoir la date de dernier appel, l'état actuel (en attent, en cours, ...)
+     */
+    public log() {
+
+        const now_ms: number = Dates.now_ms();
+        let log = '=== Listener "' + this.name + '" ===\n';
+        log += '  - Event name : ' + this.event_conf_name + '\n';
+        log += '  - Event conf id : ' + this.event_conf_id + '\n';
+        log += '  - Listener conf id : ' + this.listener_conf_id + '\n';
+        log += '  - Unlimited calls : ' + this.unlimited_calls + '\n';
+        log += '  - Remaining calls : ' + this.remaining_calls + '\n';
+        log += '  - Cooldown ms : ' + this.cooldown_ms + '\n';
+        log += '  - Throttled : ' + this.throttled + '\n';
+        log += '  - Debounce leading : ' + this.debounce_leading + '\n';
+        log += '  - Throttle triggered event during cb : ' + this.throttle_triggered_event_during_cb + '\n';
+        log += '  - Run as soon as possible : ' + this.run_as_soon_as_possible + '\n';
+        log += '  - Is bgthread : ' + this.is_bgthread + '\n';
+        log += '  - Is running : ' + this.cb_is_running + '\n';
+        log += '  - Is cooling down : ' + this.cb_is_cooling_down + '\n';
+        log += '  - Last cb run start date : ' + (now_ms - this.last_cb_run_start_date_ms) + 'ms ago\n';
+        log += '  - Last cb run end date : ' + (now_ms - this.last_cb_run_end_date_ms) + 'ms ago\n';
+
+        ConsoleHandler.log(log);
     }
 
     private initial_getter_cb(): (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown {

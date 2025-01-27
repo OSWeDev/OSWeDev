@@ -2,8 +2,10 @@ import EventsController from '../../../../../shared/modules/Eventify/EventsContr
 import EventifyEventInstanceVO from '../../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import { StatThisArrayLength } from '../../../../../shared/modules/Stats/annotations/StatThisArrayLength';
+import StatsController from '../../../../../shared/modules/Stats/StatsController';
 import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import ForkedTasksController from '../../../Fork/ForkedTasksController';
@@ -31,6 +33,8 @@ export default class VarsComputationHole {
     public static redo_in_a_hole_semaphore: boolean = false;
 
     public static ask_for_hole_termination: boolean = false;
+
+    public static last_check_waiting_for_hole_indexes_and_states: { [index: string]: number } = {};
 
     private static currently_waiting_for_hole_semaphore: boolean = false;
     @StatThisArrayLength("VarsComputationHole")
@@ -178,6 +182,9 @@ export default class VarsComputationHole {
 
     private static async wait_for_everyone_to_be_ready(): Promise<void> {
 
+        const real_start_date = Dates.now();
+        let first_timeout = true;
+
         let start_date = Dates.now();
         // while (true) {
         while (CurrentVarDAGHolder.current_vardag && CurrentVarDAGHolder.current_vardag.nodes && CurrentVarDAGHolder.current_vardag.nb_nodes) {
@@ -195,9 +202,60 @@ export default class VarsComputationHole {
             // }
 
             await ThreadHandler.sleep(2, 'VarsComputationHole:wait_for_everyone_to_be_ready');
+            const nb_secs = Math.floor(Dates.now() - real_start_date);
+            if (Math.floor(Dates.now() - start_date) > 10) {
+                ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT: ' + nb_secs + 's');
 
-            if (Dates.now() - start_date > 60) {
-                ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT');
+                // Si on est sur la première attente, on rempli juste la map de last_check_waiting_for_hole_indexes_and_states et sinon on peut checker si la liste est identique
+                let reinsert_all = !first_timeout; // si first_timeout, on réinsère personne, sinon on check l'arbre pour savoir et par défaut si tout est identique on réinsère tout le monde
+                if (!first_timeout) {
+
+                    if (CurrentVarDAGHolder.current_vardag.nb_nodes != Object.keys(VarsComputationHole.last_check_waiting_for_hole_indexes_and_states).length) {
+                        reinsert_all = false;
+                    } else {
+                        for (const i in CurrentVarDAGHolder.current_vardag.nodes) {
+                            const node = CurrentVarDAGHolder.current_vardag.nodes[i];
+                            if (VarsComputationHole.last_check_waiting_for_hole_indexes_and_states[node.var_data.index] != node.current_step) {
+                                // Ya une évolution dans l'arbre, on attend encore
+                                reinsert_all = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+                first_timeout = false;
+
+                // C'est ptetre pas l'idée du siècle de réinsérer des noeuds, par ce que si on arrive pas à finir dans les temps, on se rajoute de la charge potentiellement.... typiquement l'insert en base qui prenait 11 secs => réinsert...
+                // et en même temps 11 secs c'est juste trop
+                if (reinsert_all) {
+                    StatsController.register_stat_COMPTEUR('VarsComputationHole', 'wait_for_everyone_to_be_ready', 'reinsert_all');
+                    ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:reinsert_all');
+                    const promises = [];
+                    for (const i in CurrentVarDAGHolder.current_vardag.nodes) {
+                        const node = CurrentVarDAGHolder.current_vardag.nodes[i];
+                        node.unlinkFromDAG(true);
+                        promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, node.var_data, false));
+
+                        if (ConfigurationService.node_configuration.debug_vars_current_tree) {
+                            ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:reinsert_all:node:' + node.var_data.index + ':' + Object.keys(node.tags).join(','));
+                        }
+
+                    }
+                    await all_promises(promises);
+
+                    first_timeout = true;
+                    VarsComputationHole.last_check_waiting_for_hole_indexes_and_states = {};
+                    start_date = Dates.now();
+                    continue;
+                }
+
+                // On commence par mettre à jour la liste des états
+                VarsComputationHole.last_check_waiting_for_hole_indexes_and_states = {};
+                for (const i in CurrentVarDAGHolder.current_vardag.nodes) {
+                    const node = CurrentVarDAGHolder.current_vardag.nodes[i];
+                    VarsComputationHole.last_check_waiting_for_hole_indexes_and_states[node.var_data.index] = node.current_step;
+                }
+
                 start_date = Dates.now();
                 const nodes_to_reinsert: VarDAGNode[] = [];
                 const event_to_call: { [event_name: string]: boolean } = {};
@@ -221,19 +279,33 @@ export default class VarsComputationHole {
                         event_to_call[work_event_name] = true;
                     }
 
-                    ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:node:' + node.var_data.index + ':' + tags);
+                    if (ConfigurationService.node_configuration.debug_vars_current_tree) {
+                        ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:node:' + node.var_data.index + ':' + tags);
+                    }
                 }
 
+                const promises = [];
                 for (const i in nodes_to_reinsert) {
                     const node: VarDAGNode = nodes_to_reinsert[i];
                     node.unlinkFromDAG(true);
 
                     ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:node:' + node.var_data.index + ':reinsert');
-                    await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, node.var_data, false);
+                    promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, node.var_data, false));
                 }
+                await all_promises(promises);
 
                 for (const event_name in event_to_call) {
                     ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:FORCING EVENT:' + event_name);
+
+                    /**
+                     * On log les listeners de l'event d'abord pour voir dans quel état on est
+                     */
+                    for (const i in EventsController.registered_listeners[event_name]) {
+                        const listener = EventsController.registered_listeners[event_name][i];
+
+                        listener.log();
+                    }
+
                     EventsController.emit_event(EventifyEventInstanceVO.new_event(event_name));
                 }
             }

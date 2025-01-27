@@ -61,10 +61,10 @@ export default class VarsDeployDepsHandler {
                     ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':already in tree, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
                 }
 
-                // Si on ne peut pas ajouter le lien, on doit attendre
-                while (!node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index])) {
+                // Si on ne peut pas ajouter le lien, on doit attendre, sauf si le noeud n'est plus dans l'arbre entre temps
+                while (node.var_dag.nodes[dep.index] && !node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index])) {
                     ConsoleHandler.throttle_log('handle_deploy_deps:dep already in tree:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
-                    await ThreadHandler.sleep(1, 'handle_deploy_deps:dep already in tree:add dep failed, waiting');
+                    await ThreadHandler.sleep(10, 'handle_deploy_deps:dep already in tree:add dep failed, waiting');
                 }
                 continue;
             }

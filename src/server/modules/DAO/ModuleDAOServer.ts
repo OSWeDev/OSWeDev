@@ -93,6 +93,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public check_foreign_keys: boolean = true;
 
+    // Déclarer le pool de copy UNE SEULE FOIS:
+    private pool_for_copies = new Pool({
+        connectionString: ConfigurationService.node_configuration.connection_string,
+        max: 10, // Ajuster si besoin
+    });
+
     // private copy_dedicated_pool = null;
 
     // istanbul ignore next: cannot test module constructor
@@ -1593,26 +1599,26 @@ export default class ModuleDAOServer extends ModuleServerBase {
         //     });
         // }
 
-        const copy_dedicated_pool: any = new Pool({
-            connectionString: ConfigurationService.node_configuration.connection_string,
-            max: 1,
-        });
+        // const copy_dedicated_pool: any = new Pool({
+        //     connectionString: ConfigurationService.node_configuration.connection_string,
+        //     max: 1,
+        // });
 
         let result = true;
         const self = this;
         return new Promise(async (resolve, reject) => {
 
             // self.copy_dedicated_pool.connect(function (err, client, done) {
-            copy_dedicated_pool.connect(async (err, client, done) => {
+            this.pool_for_copies.connect(async (err, client, done) => {
 
                 const cb = async () => {
                     if (debug_insert_without_triggers_using_COPY) {
                         ConsoleHandler.log('insert_without_triggers_using_COPY:end');
                     }
                     await done();
-                    if (!!client) {
-                        client.end();
-                    }
+                    // if (!!client) {
+                    //     client.release(); // Throws on double release .....
+                    // }
                     await resolve(result);
                 };
 

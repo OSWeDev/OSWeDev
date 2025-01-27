@@ -479,7 +479,7 @@ export default class VarDAGNode extends DAGNodeBase {
      *  Sinon on refuse l'ajout. On a pas non plus le droit de remettre un Tag déjà passé. On peut mettre des tags à venir, mais pas < au current_step
      * @param tag Le tag à ajouter
      */
-    public add_tag(tag: string): boolean {
+    public add_tag(tag: string, force_update_even_when_inf_current_step: boolean = false): boolean {
 
         if (this.tags[tag]) {
 
@@ -493,7 +493,7 @@ export default class VarDAGNode extends DAGNodeBase {
             return true;
         }
 
-        if (VarDAGNode.STEP_TAGS_INDEXES[tag] < this.current_step) {
+        if ((!force_update_even_when_inf_current_step) && (VarDAGNode.STEP_TAGS_INDEXES[tag] < this.current_step)) {
 
             if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                 ConsoleHandler.log(
@@ -595,6 +595,21 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         /**
+         * Si le noeud de dep est marqué comme IS_DELETABLE, on doit le ramener à du UPDATED_IN_DB
+         */
+        if (outgoing_node.tags[VarDAGNode.TAG_7_IS_DELETABLE]) {
+            if (ConfigurationService.node_configuration.debug_vars_current_tree) {
+                ConsoleHandler.log(
+                    'VarDAGNode.addOutgoingDep:On doit unmark le noeud cible de la dep pour éviter sa suppression:' + this.var_data.index +
+                    ':outgoing_dep:' + dep_name +
+                    ':outgoing_node:' + (outgoing_node as VarDAGNode).var_data.index);
+            }
+
+            outgoing_node.remove_tag(VarDAGNode.TAG_7_IS_DELETABLE);
+            outgoing_node.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB, true);
+        }
+
+        /**
          * Si le noeud de dep est en cours de suppression, on ne peut pas ajouter de dep
          */
         if (outgoing_node.tags[VarDAGNode.TAG_7_DELETING] || !outgoing_node.var_dag) {
@@ -656,7 +671,7 @@ export default class VarDAGNode extends DAGNodeBase {
         if (this.hasIncoming && (!force_delete)) {
             this.remove_tag(VarDAGNode.TAG_7_IS_DELETABLE);
             this.remove_tag(VarDAGNode.TAG_7_DELETING);
-            this.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
+            this.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB, true); // On force, bien que le current_state soit >= 14 à ce stade. On vient de supprimer les tags au dessus mais on est en lock current state.
             return false;
         }
 
