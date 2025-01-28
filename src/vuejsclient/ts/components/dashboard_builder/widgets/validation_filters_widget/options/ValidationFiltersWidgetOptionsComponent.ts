@@ -30,7 +30,10 @@ export default class ValidationFiltersWidgetOptionsComponent extends VueComponen
 
     private next_update_options: ValidationFiltersWidgetOptions = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
 
+    private fg_color_text: string = null;
+    private bg_color: string = null;
     private load_widgets_prevalidation: boolean = false;
 
     get widget_options(): ValidationFiltersWidgetOptions {
@@ -48,7 +51,19 @@ export default class ValidationFiltersWidgetOptionsComponent extends VueComponen
             ConsoleHandler.error(error);
         }
 
+        if (!options) {
+            options = this.get_default_options();
+        }
+
         return options;
+    }
+
+    get title_name_code_text(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
     @Watch('page_widget', { immediate: true })
@@ -57,12 +72,24 @@ export default class ValidationFiltersWidgetOptionsComponent extends VueComponen
             if (!this.load_widgets_prevalidation) {
                 this.load_widgets_prevalidation = false;
             }
+            if (!this.fg_color_text) {
+                this.fg_color_text = null;
+            }
+            if (!this.bg_color) {
+                this.bg_color = null;
+            }
 
             return;
         }
 
         if (this.load_widgets_prevalidation != this.widget_options.load_widgets_prevalidation) {
             this.load_widgets_prevalidation = this.widget_options.load_widgets_prevalidation;
+        }
+        if (this.fg_color_text != this.widget_options.fg_color_text) {
+            this.fg_color_text = this.widget_options.fg_color_text;
+        }
+        if (this.bg_color != this.widget_options.bg_color) {
+            this.bg_color = this.widget_options.bg_color;
         }
     }
 
@@ -93,6 +120,18 @@ export default class ValidationFiltersWidgetOptionsComponent extends VueComponen
 
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
+    }
+
+    private async update_colors() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.fg_color_text = this.fg_color_text;
+        this.next_update_options.bg_color = this.bg_color;
+        await this.throttled_update_options();
     }
 
     private get_default_options(): ValidationFiltersWidgetOptions {

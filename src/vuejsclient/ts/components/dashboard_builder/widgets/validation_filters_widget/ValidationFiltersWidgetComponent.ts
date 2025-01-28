@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
+import { Prop, Watch } from 'vue-property-decorator';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -26,6 +26,30 @@ export default class ValidationFiltersWidgetComponent extends VueComponentBase {
     private dashboard_page: DashboardPageVO;
 
     private start_update: boolean = false;
+    private button_class: string = null;
+
+    get widget_options() {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: ValidationFiltersWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as ValidationFiltersWidgetOptions;
+                options = options ? new ValidationFiltersWidgetOptions().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    @Watch('widget_options', { immediate: true })
+    private onchange_widget_options() {
+        this.reload_button_class();
+    }
 
     private async handle_validate() {
         if (this.start_update) {
@@ -45,21 +69,17 @@ export default class ValidationFiltersWidgetComponent extends VueComponentBase {
         this.start_update = false;
     }
 
-    get widget_options() {
-        if (!this.page_widget) {
-            return null;
+    private reload_button_class() {
+        const res: any = {};
+
+        if (this.widget_options?.bg_color) {
+            res['backgroundColor'] = this.widget_options.bg_color + ' !important';
         }
 
-        let options: ValidationFiltersWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as ValidationFiltersWidgetOptions;
-                options = options ? new ValidationFiltersWidgetOptions() : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
+        if (this.widget_options?.fg_color_text) {
+            res['color'] = this.widget_options.fg_color_text + ' !important';
         }
 
-        return options;
+        this.button_class = res;
     }
 }
