@@ -134,6 +134,9 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
     /**
      * Check la taille des champs de type ranges au format texte pour parer au bug de postgresql 13 :
      *  'exceeds btree version 4 maximum 2704 for index'
+     * Mise à jour le 28/01/2025 : j(JNE)'ai fait des recherches avec GPT sur les solutions. A priori pour le moment la seule solution est de développer notre propre extension postgresql
+     * pour être compatible avec les tableaux de ranges. Comme les tableaux sont normalisés dans oswedev, on doit pouvoir le faire et le faire bien. Mais c'est un boulot monstre
+     * et surtout je ne sais pas si on pourra intégrer nos extensions persos sur Azure... donc à bien réfléchir avant de se lancer là dedans
      * @param vardatas
      * @returns
      */

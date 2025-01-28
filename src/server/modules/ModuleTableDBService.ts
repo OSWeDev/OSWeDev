@@ -324,7 +324,7 @@ export default class ModuleTableDBService {
         if ((!table_cols) || (!table_cols.length)) {
             res = true;
             await this.create_new_datatable(moduleTable, database_name, table_name, queries_to_try_after_creation);
-            await this.chec_indexes(moduleTable, database_name, table_name);
+            await this.check_indexes(moduleTable, database_name, table_name);
             await this.check_triggers(moduleTable, database_name, table_name);
 
             if (segmented_value != null) {
@@ -333,7 +333,7 @@ export default class ModuleTableDBService {
         } else {
             res = await this.check_datatable_structure(moduleTable, database_name, table_name, table_cols, queries_to_try_after_creation);
 
-            if (await this.chec_indexes(moduleTable, database_name, table_name)) {
+            if (await this.check_indexes(moduleTable, database_name, table_name)) {
                 res = true;
             }
 
@@ -795,10 +795,10 @@ export default class ModuleTableDBService {
     /**
      * @returns true if causes a change in the db structure
      */
-    // istanbul ignore next: cannot test chec_indexes
-    private async chec_indexes(moduleTable: ModuleTableVO, database_name: string, table_name: string): Promise<boolean> {
+    // istanbul ignore next: cannot test check_indexes
+    private async check_indexes(moduleTable: ModuleTableVO, database_name: string, table_name: string): Promise<boolean> {
 
-        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'chec_indexes', '-');
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'check_indexes', '-');
 
         let res_: boolean = false;
         const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
@@ -813,6 +813,24 @@ export default class ModuleTableDBService {
 
             const res: any[] = await this.db.query("SELECT * FROM pg_indexes WHERE tablename = '" + table_name + "' and schemaname = '" + database_name + "' and indexname = '" + field.get_index_name(table_name) + "';");
             if ((!!res) && (!!res.length)) {
+
+                // On va checker le type d'index, cf mise en place des indexs gin
+                if (field.is_indexed_using_gin_trgm) {
+                    if (res[0].indexdef.toLowerCase().indexOf('using gin') < 0) {
+                        ConsoleHandler.log('UPDATING INDEX:' + database_name + '.' + table_name + '.' + field.get_index_name(table_name) + ': IF IT FAILS, make sure pg_trgm extension is activated by running this query as DB admin : "CREATE EXTENSION IF NOT EXISTS pg_trgm;"');
+                        await this.db.query('DROP INDEX ' + database_name + '.' + field.get_index_name(table_name) + ';');
+                        await this.db.query(index_str);
+                        res_ = true;
+                    }
+                } else {
+                    if (res[0].indexdef.toLowerCase().indexOf('using btree') < 0) {
+                        ConsoleHandler.log('UPDATING INDEX:' + database_name + '.' + table_name + '.' + field.get_index_name(table_name) + ':');
+                        await this.db.query('DROP INDEX ' + database_name + '.' + field.get_index_name(table_name) + ';');
+                        await this.db.query(index_str);
+                        res_ = true;
+                    }
+                }
+
                 continue;
             }
 

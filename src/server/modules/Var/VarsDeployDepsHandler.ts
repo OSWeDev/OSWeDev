@@ -195,27 +195,34 @@ export default class VarsDeployDepsHandler {
             }
         }
 
-        if (limit_to_aggregated_datas) {
-
-            // Si on a des données aggrégées elles sont déjà ok à renvoyer si on ne veut que savoir les données aggrégées
-            return true;
-        }
-
-        const deps: { [index: string]: VarDataBaseVO } = await VarsDeployDepsHandler.get_node_deps(node, nodes_to_unlock);
-
-        if (DEBUG_VARS) {
-            ConsoleHandler.log('deploy_deps:' + node.var_data.index + ':handle_deploy_deps:IN:');
-        }
-        if (deps) {
-            await VarsDeployDepsHandler.handle_deploy_deps(node, deps, nodes_to_unlock);
-        }
-        if (DEBUG_VARS) {
-            ConsoleHandler.log('deploy_deps:' + node.var_data.index + ':handle_deploy_deps:OUT:');
-        }
-
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT');
         StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT', Dates.now_ms() - time_in);
+
+        // A priori on doit déployer les deps du coup, que ce soit un aggrégat ou pas, mais c'est maintenant géré en amont pour charger les datas en groupe
+
         return false;
+
+        // if (limit_to_aggregated_datas) {
+
+        //     // Si on a des données aggrégées elles sont déjà ok à renvoyer si on ne veut que savoir les données aggrégées
+        //     return true;
+        // }
+
+        // const deps: { [index: string]: VarDataBaseVO } = await VarsDeployDepsHandler.get_node_deps(node, nodes_to_unlock);
+
+        // if (DEBUG_VARS) {
+        //     ConsoleHandler.log('deploy_deps:' + node.var_data.index + ':handle_deploy_deps:IN:');
+        // }
+        // if (deps) {
+        //     await VarsDeployDepsHandler.handle_deploy_deps(node, deps, nodes_to_unlock);
+        // }
+        // if (DEBUG_VARS) {
+        //     ConsoleHandler.log('deploy_deps:' + node.var_data.index + ':handle_deploy_deps:OUT:');
+        // }
+
+        // StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT');
+        // StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT', Dates.now_ms() - time_in);
+        // return false;
     }
 
     /**

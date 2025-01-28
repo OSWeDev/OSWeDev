@@ -16,6 +16,7 @@ import ModuleLogger from '../shared/modules/Logger/ModuleLogger';
 import StackContext from './StackContext';
 import { reflect } from '../shared/tools/ObjectHandler';
 import { IRequestStackContext } from './ServerExpressController';
+import { isMainThread, threadId } from 'worker_threads';
 
 export default class FileLoggerHandler implements ILoggerHandler {
 
@@ -76,7 +77,7 @@ export default class FileLoggerHandler implements ILoggerHandler {
 
     private set_log_file() {
         if (ConfigurationService.node_configuration.console_log_to_file && this.is_prepared) {
-            this.log_file = FileServerController.getInstance().getWriteStream('./nodes_logs/node_log_' + process.pid + '_' + Dates.now() + '.txt', 'a');
+            this.log_file = FileServerController.getInstance().getWriteStream('./nodes_logs/node_log_' + (isMainThread ? 'main' : threadId) + '_' + Dates.now() + '.txt', 'a');
         }
     }
 

@@ -37,7 +37,7 @@ export default class VarsProcessInvalidator {
 
     private static max_invalidators: number = 500;
     private static max_ordered_vos_cud: number = 200;
-    private static timeout_ms_invalidation: number = 60000;
+    private static timeout_ms_invalidation: number = 6000000; // Initialement 60000, on augmente largement pour tenter sans ce système, sauf cas extrême
     private static timeout_ms_log: number = 3000;
 
     private last_clear_datasources_cache: number = null;
@@ -241,7 +241,7 @@ export default class VarsProcessInvalidator {
                 VarsProcessInvalidator.max_ordered_vos_cud = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_ordered_vos_cud_param_name, 200, 120000);
             })(),
             (async () => {
-                VarsProcessInvalidator.timeout_ms_invalidation = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_invalidation_param_name, 60000, 120000);
+                VarsProcessInvalidator.timeout_ms_invalidation = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_invalidation_param_name, 6000000, 120000); // Initialement 60000, on augmente largement pour tenter sans ce système, sauf cas extrême
             })(),
             (async () => {
                 VarsProcessInvalidator.timeout_ms_log = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.timeout_ms_log_param_name, 3000, 120000);
@@ -300,6 +300,7 @@ export default class VarsProcessInvalidator {
 
                 delete CurrentBatchDSCacheHolder.current_batch_ds_cache[ds.name];
                 delete CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[ds.name];
+                delete CurrentBatchDSCacheHolder.semaphore_event_listener_promise[ds.name];
             }
         }
     }

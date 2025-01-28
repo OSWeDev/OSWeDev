@@ -257,6 +257,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         if (this.block_param_by_name[bgthread.name]) {
             // Si on est bloqués, on ne fait rien, et on attend au moins les 2 minutes nécessaires pour recharger le param
             listener.cooldown_ms = Math.max(120000, listener.cooldown_ms);
+            bgthread.current_timeout = listener.cooldown_ms;
             return;
         }
 
@@ -265,6 +266,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             // Si le serveur est pas prêt, on ne fait rien, et on attend au moins 3 secondes
             if (!BGThreadServerController.SERVER_READY) {
                 listener.cooldown_ms = Math.max(3000, listener.cooldown_ms);
+                bgthread.current_timeout = listener.cooldown_ms;
                 return;
             }
 
@@ -288,6 +290,8 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             if (listener.cooldown_ms < bgthread.MIN_timeout) {
                 listener.cooldown_ms = bgthread.MIN_timeout;
             }
+
+            bgthread.current_timeout = listener.cooldown_ms;
         } catch (error) {
             ConsoleHandler.error(error);
         }
