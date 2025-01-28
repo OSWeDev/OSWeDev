@@ -60,6 +60,9 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     private numbers: any[] = [];
     private urls: any[] = [];
     private nb_elements: number[] = [];
+    private current_element: number = 0;
+
+    private is_card_display_single: boolean = false;
 
     private throttle_do_update_visible_options = debounce(this.do_update_visible_options.bind(this), 500);
 
@@ -134,9 +137,27 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             this.urls = await this.get_urls();
         })());
 
+        this.is_card_display_single = this.widget_options.is_card_display_single;
+
         await Promise.all(promises);
 
         this.nb_elements = Array.from({ length: Math.max(...[this.titles.length, this.subtitles.length, this.surtitres.length, this.image_paths.length, this.numbers.length, this.urls.length]) }, (x, i) => i);
+    }
+
+    private previous_card_single_display() {
+        if (this.current_element > 0) {
+            this.current_element--;
+        }
+    }
+
+    private next_card_single_display() {
+        if (this.current_element < this.nb_elements.length - 1) {
+            this.current_element++;
+        }
+    }
+
+    private getTransformStyle(): string {
+        return "transform: translateX(-" + (this.current_element * 100) + "vw);";
     }
 
     private async get_titles() {

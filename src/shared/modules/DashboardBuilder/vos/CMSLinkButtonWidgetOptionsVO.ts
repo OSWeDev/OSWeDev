@@ -11,6 +11,7 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
     public radius: number;
     public url_field_ref: VOFieldRefVO;
     public icone: string;
+    public is_url_field: boolean;
 
     public static createNew(
         url: string,
@@ -20,7 +21,8 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
         about_blank: boolean,
         radius: number,
         url_field_ref: VOFieldRefVO,
-        icone: string
+        icone: string,
+        is_url_field: boolean,
     ): CMSLinkButtonWidgetOptionsVO {
         const res = new CMSLinkButtonWidgetOptionsVO();
 
@@ -32,6 +34,7 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
         res.radius = radius;
         res.url_field_ref = url_field_ref;
         res.icone = icone;
+        res.is_url_field = is_url_field;
 
         return res;
     }

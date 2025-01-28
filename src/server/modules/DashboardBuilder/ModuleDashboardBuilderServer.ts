@@ -3740,6 +3740,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Champ pour trier" },
             'list_object_widget_options_component.sort_field_ref.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher une seule carte (zoomée)" },
+            'list_object_widget_options_component.card_width.___LABEL___'
+        ));
 
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
@@ -3789,6 +3793,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Code FontAwesome" },
             'cms_link_button.widget_option.icone.tooltip.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'cms_link_button.widget_option.is_url_field.true.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'cms_link_button.widget_option.is_url_field.false.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "L'URL est un champs ?" },
+            'cms_link_button.widget_option.is_url_field.___LABEL___'
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(

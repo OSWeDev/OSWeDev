@@ -31,6 +31,8 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
 
     private url: string = null;
     private url_field_ref: VOFieldRefVO = null;
+    private is_url_field: boolean = false;
+
     private title: string = null;
     private color: string = null;
     private text_color: string = null;
@@ -65,6 +67,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         if (!this.widget_options) {
             this.url = null;
             this.url_field_ref = null;
+            this.is_url_field = false;
             this.title = null;
             this.color = '#003c7d';
             this.text_color = '#ffffff';
@@ -77,6 +80,8 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         }
         this.url = this.widget_options.url;
         this.url_field_ref = this.widget_options.url_field_ref ? Object.assign(new VOFieldRefVO(), this.widget_options.url_field_ref) : null;
+        this.is_url_field = this.widget_options.is_url_field;
+
         this.title = this.widget_options.title;
         this.color = this.widget_options.color;
         this.text_color = this.widget_options.text_color;
@@ -88,6 +93,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
 
     @Watch('url')
     @Watch('url_field_ref')
+    @Watch('is_url_field')
     @Watch('title')
     @Watch('color')
     @Watch('text_color')
@@ -106,10 +112,13 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             this.widget_options.text_color != this.text_color ||
             this.widget_options.radius != this.radius ||
             this.widget_options.icone != this.icone ||
+            this.widget_options.is_url_field != this.is_url_field ||
             this.widget_options.color != this.color) {
 
             this.next_update_options.url = this.url;
             this.next_update_options.url_field_ref = this.url_field_ref;
+            this.next_update_options.is_url_field = this.is_url_field;
+
             this.next_update_options.title = this.title;
             this.next_update_options.color = this.color;
             this.next_update_options.text_color = this.text_color;
@@ -148,6 +157,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             0,
             null,
             "",
+            false,
         );
     }
 
@@ -176,6 +186,18 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         }
 
         this.next_update_options.about_blank = !this.next_update_options.about_blank;
+
+        this.throttled_update_options();
+    }
+
+    private async switch_is_url_field() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.is_url_field = !this.next_update_options.is_url_field;
 
         this.throttled_update_options();
     }

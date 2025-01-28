@@ -67,6 +67,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
     private button_elements: boolean = false;
     private url: VOFieldRefVO = null;
     private blank?: boolean;
+    private is_card_display_single: boolean = false;
 
     private next_update_options: ListObjectWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -234,6 +235,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             null,
             null,
             null,
+            false,
         );
     }
 
@@ -277,7 +279,8 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         (this.widget_options.subtitle == options.subtitle) &&
                         (this.widget_options.surtitre == options.surtitre) &&
                         (this.widget_options.title == options.title) &&
-                        (this.widget_options.url == options.url)
+                        (this.widget_options.url == options.url) &&
+                        (this.widget_options.is_card_display_single == options.is_card_display_single)
                     ) {
                         options = null;
                     }
@@ -296,6 +299,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         options.button_elements,
                         options.url,
                         options.blank,
+                        options.is_card_display_single,
                     ) : null;
                 }
             } catch (error) {
@@ -313,7 +317,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         if (!this.widget_options) {
             this.next_update_options = null;
-            let default_options = this.get_default_options();
+            const default_options = this.get_default_options();
 
             this.type_display = default_options.type_display;
             this.display_orientation = default_options.display_orientation;
@@ -328,6 +332,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.button_elements = default_options.button_elements;
             this.url = default_options.url;
             this.blank = default_options.blank;
+            this.is_card_display_single = default_options.is_card_display_single;
 
             this.widget_options = default_options;
             return;
@@ -372,6 +377,9 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         if (this.blank != this.widget_options.blank) {
             this.blank = this.widget_options.blank;
         }
+        if (this.is_card_display_single != this.widget_options.is_card_display_single) {
+            this.is_card_display_single = this.widget_options.is_card_display_single;
+        }
 
         if (this.next_update_options != this.widget_options) {
             this.next_update_options = this.widget_options;
@@ -398,6 +406,18 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
 
         this.next_update_options.blank = !this.next_update_options.blank;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_is_card_display_single() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.is_card_display_single = !this.next_update_options.is_card_display_single;
 
         await this.throttled_update_options();
     }

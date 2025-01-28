@@ -99,6 +99,18 @@
                         .input(:id="'DISPLAY_ORIENTATION_' + DISPLAY_ORIENTATION_VERTICAL" @click="change_display_orientation(DISPLAY_ORIENTATION_VERTICAL)" name="state-d" type="radio" :class="{'selected': (display_orientation==DISPLAY_ORIENTATION_VERTICAL) }" )
                             label(:for="'DISPLAY_ORIENTATION_' + DISPLAY_ORIENTATION_VERTICAL") {{ t(DISPLAY_ORIENTATION_LABELS[DISPLAY_ORIENTATION_VERTICAL]) }}
 
+        template(v-if="(type_display==TYPE_DISPLAY_CARD) && (display_orientation==DISPLAY_ORIENTATION_HORIZONTAL)")
+            .card_width
+                .input_label {{ label('list_object_widget_options_component.card_width') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_is_card_display_single" 
+                        :value="is_card_display_single" 
+                        :sync="false"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                    )
+
         .button_for_elements
             .input_label {{ label('list_object_widget_options_component.button_for_elements') }}
             .input_wrapper

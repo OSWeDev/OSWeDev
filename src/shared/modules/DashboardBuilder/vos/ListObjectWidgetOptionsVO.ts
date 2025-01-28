@@ -32,6 +32,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
     public button_elements: boolean;
     public url: VOFieldRefVO;
     public blank: boolean;
+    public is_card_display_single: boolean;
 
     public static createNew(
         type_display: number,
@@ -46,7 +47,8 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         sort_field_ref: VOFieldRefVO,
         button_elements: boolean,
         url: VOFieldRefVO,
-        blank: boolean
+        blank: boolean,
+        is_card_display_single: boolean,
     ): ListObjectWidgetOptionsVO {
         const res = new ListObjectWidgetOptionsVO();
         res.type_display = type_display;
@@ -62,6 +64,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         res.button_elements = button_elements;
         res.url = url;
         res.blank = blank;
+        res.is_card_display_single = is_card_display_single;
 
         return res;
     }

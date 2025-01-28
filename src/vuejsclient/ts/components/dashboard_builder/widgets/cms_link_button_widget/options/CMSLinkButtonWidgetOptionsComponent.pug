@@ -2,14 +2,32 @@
     .cms_link_button_widget_options_component_wrapper
 
         .widget_url_label
-            .input_label {{ label('cms_link_button.widget_option.url') }}
-            .input_wrapper
-                Singlevofieldrefholdercomponent(
-                    :vo_field_ref="url_field_ref"
-                    @remove_field_ref="remove_url_field_ref"
-                    @add_field_ref="add_url_field_ref"
-                    :page_widget_id='page_widget ? page_widget.id : null'
-                )
+            .widget_url_label {{ label('cms_link_button.widget_option.url') }}
+            .widget_url_wrapper
+
+                .widget_url_wrapper_toggle {{ label('cms_link_button.widget_option.is_url_field') }}
+                    toggle-button(
+                        @change="switch_is_url_field"
+                        :value="is_url_field" 
+                        :sync="true"
+                        :width="100"
+                        :labels="{checked: label('cms_link_button.widget_option.is_url_field.true'), unchecked: label('cms_link_button.widget_option.is_url_field.false')}"
+                    )
+                .widget_url_wrapper_input
+                    template(v-if="is_url_field")
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="url_field_ref"
+                            @remove_field_ref="remove_url_field_ref"
+                            @add_field_ref="add_url_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
+
+                    template(v-else)
+                        input(
+                            type="text"
+                            v-model="url"
+                            v-tooltip.top='label("cms_link_button.tooltip_url")'
+                        )
         
         .widget_title_label {{ label('cms_link_button.widget_option.titre') }}
             .widget_title_wrapper
