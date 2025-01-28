@@ -1,3 +1,4 @@
+import { isArray } from "lodash";
 import EventifyEventInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventInstanceVO";
 import EventifyEventListenerInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
@@ -5,6 +6,7 @@ import ThreadHandler from "../../../shared/tools/ThreadHandler";
 import Dates from "../FormatDatesNombres/Dates/Dates";
 import { StatThisMapKeys } from "../Stats/annotations/StatThisMapKeys";
 import EventifyEventConfVO from "./vos/EventifyEventConfVO";
+import EventifyEventListenerConfVO from "./vos/EventifyEventListenerConfVO";
 
 export default class EventsController {
 
@@ -34,19 +36,15 @@ export default class EventsController {
     public static emit_event(event: EventifyEventInstanceVO): void {
 
         if (EventsController.log_events_names[event.name]) {
-            ConsoleHandler.log('Emitting event "' + event.name + '"');
+            ConsoleHandler.log('Emitting event "' + event.name + '" - ' + (event.param ? 'with param : ' + JSON.stringify(event.param) : 'without param'));
         }
 
+        // Pas de listeners enregistrés pour cet event, on ignore
         if (!EventsController.registered_listeners[event.name]) {
             return;
         }
 
         const listeners = EventsController.registered_listeners[event.name];
-
-        if (!listeners) {
-            return;
-        }
-
         const listner_names = Object.keys(listeners);
 
         if ((!listner_names) || (!listner_names.length)) {
@@ -88,6 +86,22 @@ export default class EventsController {
 
                 EventsController.call_listener(listener, event);
                 continue;
+            }
+
+            // Si le listener est throttled, on doit stocker les params pour le prochain appel
+            if (listener.param_type == EventifyEventListenerConfVO.PARAM_TYPE_STACK) {
+                const stack = event.param ? (isArray(event.param) ? event.param : [event.param]) : [];
+                if (!listener.next_params_stack) {
+                    listener.next_params_stack = stack;
+                } else {
+                    listener.next_params_stack = listener.next_params_stack.concat(stack);
+                }
+            } else if (listener.param_type == EventifyEventListenerConfVO.PARAM_TYPE_MAP) {
+                if (!listener.next_params_map) {
+                    listener.next_params_map = event.param as { [param_id: string | number]: unknown };
+                } else {
+                    listener.next_params_map = Object.assign(listener.next_params_map, event.param);
+                }
             }
 
             /**
@@ -336,6 +350,15 @@ export default class EventsController {
                 }
 
                 listener.cb_is_running = true;
+
+                // On prépare les params du call
+                if (listener.throttled && (listener.param_type == EventifyEventListenerConfVO.PARAM_TYPE_STACK)) {
+                    listener.current_params_stack = listener.next_params_stack;
+                    listener.next_params_stack = null;
+                } else if (listener.throttled && (listener.param_type == EventifyEventListenerConfVO.PARAM_TYPE_MAP)) {
+                    listener.current_params_map = listener.next_params_map;
+                    listener.next_params_map = null;
+                }
 
                 try {
 

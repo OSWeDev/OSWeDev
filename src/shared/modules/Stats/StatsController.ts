@@ -57,7 +57,7 @@ export default class StatsController {
     public static new_stats_handler: (new_stats: StatClientWrapperVO[]) => Promise<boolean> = null;
 
     public static throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
-        StatsController.unstack_stats.bind(StatsController.getInstance()), 5000, { leading: false, trailing: true }); // defaults to 1 minute
+        StatsController.unstack_stats.bind(StatsController.getInstance()), 5000, false); // defaults to 1 minute
 
     private static instance: StatsController = null;
 
@@ -75,7 +75,7 @@ export default class StatsController {
     set UNSTACK_THROTTLE(throttle: number) {
         this.UNSTACK_THROTTLE_ = throttle;
         StatsController.throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
-            StatsController.unstack_stats.bind(StatsController.getInstance()), this.UNSTACK_THROTTLE_, { leading: false, trailing: true });
+            StatsController.unstack_stats.bind(StatsController.getInstance()), this.UNSTACK_THROTTLE_, false);
     }
 
     public static get_aggregator_extension(aggregator: number): string {

@@ -64,8 +64,8 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
     private send_email_with_export_notification: boolean = false;
 
     // Perform the action of update options
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
-    private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, false);
+    private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(this.update_visible_options.bind(this), 300, false);
 
     private last_launch_cpt: number = 0;
 

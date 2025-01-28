@@ -187,7 +187,6 @@ export default class VarsTabsSubsController {
             param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
             throttle_ms: 50,
             leading: true,
-            trailing: true,
         },
         null, // static
     )

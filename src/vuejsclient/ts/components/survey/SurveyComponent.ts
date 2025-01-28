@@ -42,7 +42,7 @@ export default class SurveyComponent extends VueComponentBase {
     private already_submitted: SurveyVO = null;
     private user: UserVO = null;
     private is_already_sending_survey: boolean = false;
-    private throttled_retry = throttle(this.define_survey, 100, { leading: false });
+    private throttled_retry = throttle(this.define_survey, 100, false);
     private display_survey: boolean = false;
 
     private smileys: any[] = [

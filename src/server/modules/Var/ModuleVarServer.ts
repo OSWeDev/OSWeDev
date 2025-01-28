@@ -102,9 +102,9 @@ export default class ModuleVarServer extends ModuleServerBase {
     public cpt_for_datasources: { [datasource_name: string]: number } = {}; // TEMP DEBUG JFE
 
     public update_varconf_from_cache = ThrottleHelper.declare_throttle_with_stackable_args(
-        this.update_varconf_from_cache_throttled.bind(this), 200, { leading: true, trailing: true });
+        this.update_varconf_from_cache_throttled.bind(this), 200);
 
-    private throttle_getVarParamFromContextFilters = ThrottleHelper.declare_throttle_with_stackable_args(this.throttled_getVarParamsFromContextFilters.bind(this), 10, { leading: true, trailing: true });
+    private throttle_getVarParamFromContextFilters = ThrottleHelper.declare_throttle_with_stackable_args(this.throttled_getVarParamsFromContextFilters.bind(this), 10);
 
     private limit_nb_ts_ranges_on_param_by_context_filter: number = null;
     private limit_nb_ts_ranges_on_param_by_context_filter_last_update: number = null;

@@ -50,7 +50,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_custom_filters: string[];
-    private throttled_emit_changes = ThrottleHelper.declare_throttle_without_args(this.emit_change.bind(this), 50, { leading: false, trailing: true });
+    private throttled_emit_changes = ThrottleHelper.declare_throttle_without_args(this.emit_change.bind(this), 50, false);
 
     private options_props: VarChartOptionsVO;
 
@@ -176,7 +176,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
             this.selected_var_name = this.var_id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.var_id));
         }
 
-        if(!this.detailed) {
+        if (!this.detailed) {
             this.border_width = 0;
         }
         this.options_props = this.options;

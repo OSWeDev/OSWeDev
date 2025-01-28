@@ -20,7 +20,7 @@ export default class VarsServerCallBackSubsController {
      *  - On force tout sur le main thread
      */
     public static notify_vardatas = ThrottleHelper.declare_throttle_with_stackable_args(
-        VarsServerCallBackSubsController.notify_vardatas_throttled.bind(this), 10, { leading: true, trailing: true });
+        VarsServerCallBackSubsController.notify_vardatas_throttled.bind(this), 10);
 
     public static get_var_data_indexed: <T extends VarDataBaseVO>(throttle_index: string, param_index: string) => Promise<T> = ThrottlePipelineHelper.declare_throttled_pipeline(
         'VarsServerCallBackSubsController.get_var_data_indexed',

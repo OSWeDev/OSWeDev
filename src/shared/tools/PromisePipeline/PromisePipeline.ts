@@ -1,6 +1,5 @@
 import EventsController from "../../modules/Eventify/EventsController";
 import EventifyEventInstanceVO from "../../modules/Eventify/vos/EventifyEventInstanceVO";
-import EventifyEventListenerInstanceVO from "../../modules/Eventify/vos/EventifyEventListenerInstanceVO";
 import Dates from "../../modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../../modules/Stats/StatsController";
 import ConsoleHandler from "../ConsoleHandler";
@@ -116,7 +115,7 @@ export default class PromisePipeline {
 
             EventsController.on_next_event(
                 this.free_slot_event_name,
-                (async (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO): Promise<any> => {
+                (async (): Promise<any> => {
                     if (this.stat_name) {
                         StatsController.register_stat_DUREE('PromisePipeline', this.stat_name, 'await_free_slot', Dates.now_ms() - time_in);
                     }

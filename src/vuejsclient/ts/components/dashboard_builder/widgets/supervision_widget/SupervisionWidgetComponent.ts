@@ -79,7 +79,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     private dashboard_page: DashboardPageVO;
 
     private throttled_update_visible_options = ThrottleHelper.declare_throttle_with_stackable_args(
-        this.handle_throttled_update_visible_options.bind(this), 100, { leading: false, trailing: true }
+        this.handle_throttled_update_visible_options.bind(this), 100, false
     );
 
     private pagination_count: number = 0;

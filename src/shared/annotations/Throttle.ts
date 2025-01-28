@@ -1,4 +1,3 @@
-import { throttle } from 'lodash';
 import ThrottleHelper from '../tools/ThrottleHelper';
 import StackContextWrapper from '../tools/StackContextWrapper';
 import 'reflect-metadata';
@@ -7,8 +6,19 @@ import 'reflect-metadata';
 export interface ThrottleOptions {
     param_type: THROTTLED_METHOD_PARAM_TYPE;
     throttle_ms: number;
+
+    /**
+     * Est-ce qu'on lance immédiatement le premier appel ? ou on debounce ?
+     * @default true
+     */
     leading?: boolean;
-    trailing?: boolean;
+
+    // On commente trailing car on ne l'utilise pas, on a toujours du trailing pour le moment
+    // /**
+    //  * Est-ce qu'on lance un dernier appel après le dernier appel demandé pendant le run ou le cooldown ?
+    //  * @default true
+    //  */
+    // trailing?: boolean;
 }
 
 // Enum pour les types de paramètres
@@ -110,8 +120,8 @@ export default function Throttle(options: ThrottleOptions) {
                             }
 
                         }), options.throttle_ms, {
-                            leading: options.leading ?? false,
-                            trailing: options.trailing ?? true,
+                            leading: options.leading ?? true,
+                            // trailing: options.trailing ?? true,
                         });
                         break;
 
@@ -133,8 +143,8 @@ export default function Throttle(options: ThrottleOptions) {
                             }
 
                         }), options.throttle_ms, {
-                            leading: options.leading ?? false,
-                            trailing: options.trailing ?? true,
+                            leading: options.leading ?? true,
+                            // trailing: options.trailing ?? true,
                         });
                         break;
 
@@ -152,8 +162,8 @@ export default function Throttle(options: ThrottleOptions) {
                             }
 
                         }), options.throttle_ms, {
-                            leading: options.leading ?? false,
-                            trailing: options.trailing ?? true,
+                            leading: options.leading ?? true,
+                            // trailing: options.trailing ?? true,
                         });
                         break;
                 }

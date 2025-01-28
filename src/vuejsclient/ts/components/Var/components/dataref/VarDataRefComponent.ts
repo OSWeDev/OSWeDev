@@ -109,7 +109,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     private can_explain_var: boolean = false;
 
     private var_data: VarDataValueResVO = null;
-    private throttled_var_data_updater = ThrottleHelper.declare_throttle_without_args(this.var_data_updater.bind(this), 200, { leading: true, trailing: true });
+    private throttled_var_data_updater = ThrottleHelper.declare_throttle_without_args(this.var_data_updater.bind(this), 200);
 
     // Pour éviter de rentrer en conflit avec le clic
     private debounced_on_cancel_input = debounce(this.on_cancel_input, 100);
@@ -122,8 +122,8 @@ export default class VarDataRefComponent extends VueComponentBase {
     private currently_registered_param: VarDataBaseVO = null;
     private semaphore_unregister: boolean = false;
     private semaphore_register: boolean = false;
-    private throttled_unregister = ThrottleHelper.declare_throttle_without_args(this.unregister.bind(this), 200, { leading: true, trailing: true });
-    private throttled_register = ThrottleHelper.declare_throttle_without_args(this.register.bind(this), 200, { leading: true, trailing: true });
+    private throttled_unregister = ThrottleHelper.declare_throttle_without_args(this.unregister.bind(this), 200);
+    private throttled_register = ThrottleHelper.declare_throttle_without_args(this.register.bind(this), 200);
 
     private var_data_value_is_imported: boolean = false;
     private var_data_value_is_denied: boolean = false;

@@ -18,6 +18,7 @@ import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage'
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import TaskResultForkMessage from './messages/TaskResultForkMessage';
 import { StatThisArrayLength } from '../../../shared/modules/Stats/annotations/StatThisArrayLength';
+import Throttle, { THROTTLED_METHOD_PARAM_TYPE } from '../../../shared/annotations/Throttle';
 
 export default class ForkMessageController {
 
@@ -156,6 +157,11 @@ export default class ForkMessageController {
         }
     }
 
+    @Throttle({
+        param_type: THROTTLED_METHOD_PARAM_TYPE.NONE,
+        throttle_ms: 500,
+
+    })
     public static retry() {
         if ((!ForkMessageController.stacked_msg_waiting) || (!ForkMessageController.stacked_msg_waiting.length)) {
             return;

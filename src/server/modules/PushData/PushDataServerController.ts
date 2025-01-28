@@ -85,7 +85,7 @@ export default class PushDataServerController {
             promises.push(PushDataServerController.notifyVarsDatasBySocket_(socket_id, params[socket_id]));
         }
         await all_promises(promises);
-    }, 100, { leading: false, trailing: true });
+    }, 100, false);
 
 
     private static PROMPT_UID: number = 0;

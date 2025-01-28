@@ -3,6 +3,7 @@ import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModulesManager from '../../ModulesManager';
 import EventsController from '../EventsController';
+import EventifyEventConfVO from './EventifyEventConfVO';
 import EventifyEventInstanceVO from './EventifyEventInstanceVO';
 import EventifyEventListenerConfVO from './EventifyEventListenerConfVO';
 
@@ -128,6 +129,42 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
      */
     public last_cb_run_start_date_ms: number;
 
+    /**
+     * Dans le cas où l'évènement fourni un paramètre, quel mode de paramétrage on utilise (EventifyEventListenerConfVO.PARAM_TYPE_*):
+     *  - STACKABLE : on stack les paramètres
+     *  - MAPPABLE : on map les paramètres
+     *  - NONE : on ne prend pas en compte les paramètres
+     */
+    public param_type: number;
+
+    /**
+     * Dans le callback, on a toujours le dernier event instancié avant le callback + le listener
+     *  et comme on a qu'un seul appel à la fois, on peut dans le listener instancié stocker les params de cet appel
+     * Donc on stocke en mode map ou stack, pour l'appel en cours et pour le prochain
+     */
+    public current_params_stack: unknown[];
+
+    /**
+     * Dans le callback, on a toujours le dernier event instancié avant le callback + le listener
+     *  et comme on a qu'un seul appel à la fois, on peut dans le listener instancié stocker les params de cet appel
+     * Donc on stocke en mode map ou stack, pour l'appel en cours et pour le prochain
+     */
+    public current_params_map: { [param_id: string | number]: unknown };
+
+    /**
+     * Dans le callback, on a toujours le dernier event instancié avant le callback + le listener
+     *  et comme on a qu'un seul appel à la fois, on peut dans le listener instancié stocker les params de cet appel
+     * Donc on stocke en mode map ou stack, pour l'appel en cours et pour le prochain
+     */
+    public next_params_stack: unknown[];
+
+    /**
+     * Dans le callback, on a toujours le dernier event instancié avant le callback + le listener
+     *  et comme on a qu'un seul appel à la fois, on peut dans le listener instancié stocker les params de cet appel
+     * Donc on stocke en mode map ou stack, pour l'appel en cours et pour le prochain
+     */
+    public next_params_map: { [param_id: string | number]: unknown };
+
     private _cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown;
 
     get cb(): (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown {
@@ -148,8 +185,10 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
         res.throttled = conf.throttled;
         res.throttle_triggered_event_during_cb = false;
         res.cb_module_name = conf.cb_module_name;
+        res.debounce_leading = conf.debounce_leading;
         res.cb_function_name = conf.cb_function_name;
         res.cb_is_running = false;
+        res.param_type = conf.param_type;
         res.cb_is_cooling_down = false;
         res.last_cb_run_start_date_ms = 0;
         res.last_cb_run_end_date_ms = 0;
@@ -181,6 +220,8 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
         res.cb_is_cooling_down = false;
         res.last_cb_run_start_date_ms = 0;
         res.last_cb_run_end_date_ms = 0;
+        res.debounce_leading = false;
+        res.param_type = EventifyEventListenerConfVO.PARAM_TYPE_NONE;
         res.run_as_soon_as_possible = false;
         res._cb = cb;
         return res;

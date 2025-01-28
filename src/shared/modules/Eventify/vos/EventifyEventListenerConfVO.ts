@@ -4,6 +4,15 @@ import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 export default class EventifyEventListenerConfVO implements IDistantVOBase, IVersionedVO {
     public static API_TYPE_ID: string = "eventify_event_listener_conf";
 
+    public static PARAM_TYPE_LABELS: string[] = [
+        "EventifyEventListenerConfVO.PARAM_TYPE_NONE",
+        "EventifyEventListenerConfVO.PARAM_TYPE_STACK",
+        "EventifyEventListenerConfVO.PARAM_TYPE_MAP"
+    ];
+    public static PARAM_TYPE_NONE: number = 0;
+    public static PARAM_TYPE_STACK: number = 1;
+    public static PARAM_TYPE_MAP: number = 2;
+
     public id: number;
     public _type: string = EventifyEventListenerConfVO.API_TYPE_ID;
 
@@ -50,6 +59,21 @@ export default class EventifyEventListenerConfVO implements IDistantVOBase, IVer
      * Si on est sur un type bgthread, qui run en permanence
      */
     public is_bgthread: boolean;
+
+    /**
+     * Dans le cadre d'un throttling, est-ce qu'on appel le cb dès le premier event, ou on applique le cooldown d'abord
+     *  A priori par défaut false
+     * Celà dit, si on a un cooldown de 0, ça revient au même
+     */
+    public debounce_leading: boolean;
+
+    /**
+     * Dans le cas où l'évènement fourni un paramètre, quel mode de paramétrage on utilise (EventifyEventListenerConfVO.PARAM_TYPE_*):
+     *  - STACKABLE : on stack les paramètres
+     *  - MAPPABLE : on map les paramètres
+     *  - NONE : on ne prend pas en compte les paramètres
+     */
+    public param_type: number;
 
     // /**
     //  * Dans le cadre d'un throttling, est-ce qu'on appel le cb dès le premier event, ou on applique le cooldown d'abord

@@ -607,7 +607,6 @@ export default class VarsDatasVoUpdateHandler {
             param_type: THROTTLED_METHOD_PARAM_TYPE.NONE,
             throttle_ms: 1000,
             leading: false,
-            trailing: true,
         },
         VarsBGThreadNameHolder.bgthread_name,
         null, // static
@@ -642,9 +641,8 @@ export default class VarsDatasVoUpdateHandler {
     @ThrottleExecAsServerRunsOnBgThread(
         {
             param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
-            leading: true,
-            trailing: true,
             throttle_ms: 20,
+            leading: true,
         },
         VarsBGThreadNameHolder.bgthread_name,
         null, // static
@@ -681,7 +679,6 @@ export default class VarsDatasVoUpdateHandler {
             param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
             throttle_ms: 20,
             leading: false,
-            trailing: true,
         },
         VarsBGThreadNameHolder.bgthread_name,
         null, // static
