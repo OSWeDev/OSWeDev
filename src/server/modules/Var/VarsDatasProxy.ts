@@ -224,15 +224,16 @@ export default class VarsDatasProxy {
     @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, null) // static
     private static async add_to_tree_and_return_datas_that_need_notification<T extends VarDataBaseVO>(indexs: string[]): Promise<T[]> {
 
-        if (VarsComputationHole.waiting_for_computation_hole) {
+        // Pourquoi on pourrait pas ajouter librement des noeuds dans l'arbre ?
+        // if (VarsComputationHole.waiting_for_computation_hole) {
 
-            if (ConfigurationService.node_configuration.debug_vars) {
-                ConsoleHandler.log('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification: waiting_for_computation_hole is active, not adding new elements to tree and waiting for next VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME event');
-            }
+        //     if (ConfigurationService.node_configuration.debug_vars) {
+        //         ConsoleHandler.log('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification: waiting_for_computation_hole is active, not adding new elements to tree and waiting for next VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME event');
+        //     }
 
-            await EventsController.await_next_event(VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME);
-            // await EventsController.await_next_event_semaphored(VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME, "add_to_tree_and_return_datas_that_need_notification"); // Pourquoi semaphored ??? on doit tout ajouter à l'arbre dès qu'on release....
-        }
+        //     await EventsController.await_next_event(VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME);
+        //     // await EventsController.await_next_event_semaphored(VarsComputationHole.waiting_for_computation_hole_RELEASED_EVENT_NAME, "add_to_tree_and_return_datas_that_need_notification"); // Pourquoi semaphored ??? on doit tout ajouter à l'arbre dès qu'on release....
+        // }
 
         const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
         const promise_pipeline = PromisePipeline.get_semaphore_pipeline('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification', max);

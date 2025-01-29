@@ -18,7 +18,7 @@ export default class ThrottleHelper {
 
         // Refonte, on passe par le système des évènements
         const UID = ThrottleHelper.get_next_UID();
-        const event_name = 'ThrottleHelper.throttle_' + UID;
+        const event_name = 'Throttle.throttle_' + UID;
         const listener = EventifyEventListenerInstanceVO.new_listener(
             event_name,
             func,
@@ -30,6 +30,7 @@ export default class ThrottleHelper {
         listener.param_type = EventifyEventListenerConfVO.PARAM_TYPE_NONE;
         listener.is_bgthread = false;
         listener.unlimited_calls = true;
+        EventsController.register_event_listener(listener);
         return () => EventsController.emit_event(EventifyEventInstanceVO.new_event(event_name));
     }
 
@@ -42,7 +43,7 @@ export default class ThrottleHelper {
 
         // Refonte, on passe par le système des évènements
         const UID = ThrottleHelper.get_next_UID();
-        const event_name = 'ThrottleHelper.throttle_' + UID;
+        const event_name = 'Throttle.throttle_' + UID;
         const listener = EventifyEventListenerInstanceVO.new_listener(
             event_name,
             async (event: EventifyEventInstanceVO, l: EventifyEventListenerInstanceVO) => {
@@ -56,6 +57,7 @@ export default class ThrottleHelper {
         listener.param_type = EventifyEventListenerConfVO.PARAM_TYPE_MAP;
         listener.is_bgthread = false;
         listener.unlimited_calls = true;
+        EventsController.register_event_listener(listener);
         return (mappable_args: { [map_elt_id: string]: unknown }) => EventsController.emit_event(EventifyEventInstanceVO.new_event(event_name, mappable_args));
     }
 
@@ -67,7 +69,7 @@ export default class ThrottleHelper {
 
         // Refonte, on passe par le système des évènements
         const UID = ThrottleHelper.get_next_UID();
-        const event_name = 'ThrottleHelper.throttle_' + UID;
+        const event_name = 'Throttle.throttle_' + UID;
         const listener = EventifyEventListenerInstanceVO.new_listener(
             event_name,
             async (event: EventifyEventInstanceVO, l: EventifyEventListenerInstanceVO) => {
@@ -78,9 +80,10 @@ export default class ThrottleHelper {
         listener.cooldown_ms = wait_ms;
         // On debounce leading si on est en leading false, sachant que par défaut le leading est true
         listener.debounce_leading = !leading;
-        listener.param_type = EventifyEventListenerConfVO.PARAM_TYPE_MAP;
+        listener.param_type = EventifyEventListenerConfVO.PARAM_TYPE_STACK;
         listener.is_bgthread = false;
         listener.unlimited_calls = true;
+        EventsController.register_event_listener(listener);
         return (stackable_args?: unknown | unknown[]) => EventsController.emit_event(EventifyEventInstanceVO.new_event(event_name, stackable_args));
     }
 

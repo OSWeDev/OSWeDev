@@ -81,6 +81,9 @@ export default class EnvParam implements IEnvParam {
     public debug_waiting_registered_task_result_wrappers_threshold?: number = 5;
     public debug_waiting_registered_task_result_wrappers_verbose_result_task_uid?: boolean = false;
 
+    public debug_slow_event_listeners?: boolean = false;
+    public debug_slow_event_listeners_ms_limit?: number = 1000;
+
     /**
      * Activate this to debug SLOW QUERIES in ModuleServiceBase
      */
@@ -126,6 +129,8 @@ export default class EnvParam implements IEnvParam {
     public debug_add_var_columns_values_for_xlsx_datas?: boolean = false;
 
     public block_teams_messages?: boolean = true;
+
+    public create_event_perf_report?: boolean = false;
 
     // TEAMS Webhooks
     public teams_webhook_send_message?: string = null;

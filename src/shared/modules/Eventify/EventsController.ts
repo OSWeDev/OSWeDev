@@ -1,12 +1,15 @@
 import { isArray } from "lodash";
+import ConfigurationService from "../../../server/env/ConfigurationService";
 import EventifyEventInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventInstanceVO";
 import EventifyEventListenerInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import ThreadHandler from "../../../shared/tools/ThreadHandler";
 import Dates from "../FormatDatesNombres/Dates/Dates";
 import { StatThisMapKeys } from "../Stats/annotations/StatThisMapKeys";
+import StatsController from "../Stats/StatsController";
 import EventifyEventConfVO from "./vos/EventifyEventConfVO";
 import EventifyEventListenerConfVO from "./vos/EventifyEventListenerConfVO";
+import EventifyPerfReportVO from "./vos/perfs/EventifyPerfReportVO";
 
 export default class EventsController {
 
@@ -20,6 +23,17 @@ export default class EventsController {
      */
     public static log_events_names: { [event_name: string]: boolean } = {};
 
+    /**
+     * Pour la gestion des perf reports
+     */
+    public static current_perf_report: EventifyPerfReportVO = null;
+
+    /**
+     * On stocke la date de début du listener pour pas log en boucle le même run
+     */
+    private static last_logged_duration_listener: { [listener_name: string]: number } = {};
+    private static last_stated_duration_listener: { [listener_name: string]: number } = {};
+
     @StatThisMapKeys('EventsController')
     public static registered_events_conf_by_name: { [event_conf_name: string]: EventifyEventConfVO } = {};
     @StatThisMapKeys('EventsController', null, 1)
@@ -28,6 +42,20 @@ export default class EventsController {
     @StatThisMapKeys('EventsController', null, 1, true)
     public static semaphored_await_next_promises: { [full_semaphore_name: string]: Array<Promise<unknown>> } = {};
 
+
+    public static init_events_controller(): void {
+        if (StatsController.ACTIVATED || ConfigurationService.node_configuration.debug_slow_event_listeners) {
+            // Si on a des stats ou des logs à faire, on active l'intervale pour checker les listeners lents
+            setInterval(() => {
+                if (ConfigurationService.node_configuration.debug_slow_event_listeners) {
+                    this.log_slow_listeners();
+                }
+                if (StatsController.ACTIVATED) {
+                    this.stats_listeners();
+                }
+            }, 10000);
+        }
+    }
 
     /**
      * Méthode qui gère l'impact de l'évènement sur les listeners
@@ -52,6 +80,21 @@ export default class EventsController {
         }
         for (const listner_name of listner_names) {
             const listener: EventifyEventListenerInstanceVO = listeners[listner_name];
+
+            // Gestion du perf report
+            if (EventsController.current_perf_report) {
+                if (!EventsController.current_perf_report.perf_datas[listner_name]) {
+                    EventsController.current_perf_report.perf_datas[listner_name] = {
+                        event_name: event.name,
+                        listener_name: listener.name,
+                        calls: [],
+                        cooldowns: [],
+                        events: [],
+                    };
+                }
+
+                EventsController.current_perf_report.perf_datas[listner_name].events.push(event.emission_date_ms);
+            }
 
             if (EventsController.log_events_names[event.name]) {
                 ConsoleHandler.log('Emitting event "' + event.name + '" - Listener "' + listener.name + '" - Logging listener current state pre-event :');
@@ -325,9 +368,29 @@ export default class EventsController {
                     ConsoleHandler.log('call_listener "' + event.name + '" - Listener "' + listener.name + '" - Debounce leading IN');
                 }
 
+                const pre_cb_date = Dates.now_ms();
                 listener.cb_is_cooling_down = true;
                 listener.cooling_down_timeout = await ThreadHandler.sleep(listener.cooldown_ms, 'EventsController.call_listener.cooldown_ms');
                 listener.cb_is_cooling_down = false;
+
+                // Gestion du perf report
+                if (EventsController.current_perf_report) {
+                    if (!EventsController.current_perf_report.perf_datas[listener.name]) {
+                        EventsController.current_perf_report.perf_datas[listener.name] = {
+                            event_name: event.name,
+                            listener_name: listener.name,
+                            calls: [],
+                            cooldowns: [],
+                            events: [],
+                        };
+                    }
+
+                    EventsController.current_perf_report.perf_datas[listener.name].cooldowns.push({
+                        start: pre_cb_date,
+                        end: Dates.now_ms(),
+                    });
+                }
+
 
                 if (EventsController.log_events_names[event.name]) {
                     ConsoleHandler.log('call_listener "' + event.name + '" - Listener "' + listener.name + '" - Debounce leading OUT');
@@ -375,6 +438,24 @@ export default class EventsController {
                     }
                     listener.last_cb_run_end_date_ms = Dates.now_ms();
 
+                    // Gestion du perf report
+                    if (EventsController.current_perf_report) {
+                        if (!EventsController.current_perf_report.perf_datas[listener.name]) {
+                            EventsController.current_perf_report.perf_datas[listener.name] = {
+                                event_name: event.name,
+                                listener_name: listener.name,
+                                calls: [],
+                                cooldowns: [],
+                                events: [],
+                            };
+                        }
+
+                        EventsController.current_perf_report.perf_datas[listener.name].calls.push({
+                            start: listener.last_cb_run_start_date_ms,
+                            end: listener.last_cb_run_end_date_ms,
+                        });
+                    }
+
                     if (EventsController.log_events_names[event.name]) {
                         ConsoleHandler.log('call_listener "' + event.name + '" - Listener "' + listener.name + '" - logging listener post-call');
                         listener.log();
@@ -405,9 +486,28 @@ export default class EventsController {
                         ConsoleHandler.log('call_listener "' + event.name + '" - Listener "' + listener.name + '" - Cooldown IN');
                     }
 
+                    const date_pre_cd = Dates.now_ms();
                     listener.cb_is_cooling_down = true;
                     listener.cooling_down_timeout = await ThreadHandler.sleep(listener.cooldown_ms, 'EventsController.call_listener.cooldown_ms');
                     listener.cb_is_cooling_down = false;
+
+                    // Gestion du perf report
+                    if (EventsController.current_perf_report) {
+                        if (!EventsController.current_perf_report.perf_datas[listener.name]) {
+                            EventsController.current_perf_report.perf_datas[listener.name] = {
+                                event_name: event.name,
+                                listener_name: listener.name,
+                                calls: [],
+                                cooldowns: [],
+                                events: [],
+                            };
+                        }
+
+                        EventsController.current_perf_report.perf_datas[listener.name].cooldowns.push({
+                            start: date_pre_cd,
+                            end: Dates.now_ms(),
+                        });
+                    }
 
                     if (EventsController.log_events_names[event.name]) {
                         ConsoleHandler.log('call_listener "' + event.name + '" - Listener "' + listener.name + '" - Cooldown OUT');
@@ -437,5 +537,73 @@ export default class EventsController {
             ConsoleHandler.log('call_listener "' + event.name + '" - Listener "' + listener.name + '" - logging listener call_listener OUT');
             listener.log();
         }
+    }
+
+    private static log_slow_listeners() {
+        for (const i in EventsController.registered_listeners) {
+            const listeners = EventsController.registered_listeners[i];
+
+            for (const j in listeners) {
+                const listener = listeners[j];
+
+                if (listener.cb_is_running) {
+                    if ((Dates.now_ms() - listener.last_cb_run_start_date_ms) > ConfigurationService.node_configuration.debug_slow_event_listeners_ms_limit) {
+                        ConsoleHandler.warn('Slow listener : ' + listener.name + ' for event ' + listener.event_conf_name + ' : ' + (Dates.now_ms() - listener.last_cb_run_start_date_ms) + 'ms (running, started at ' + listener.last_cb_run_start_date_ms + ')');
+                    }
+                } else {
+                    if (listener.last_cb_run_start_date_ms && listener.last_cb_run_end_date_ms) {
+                        if (EventsController.last_logged_duration_listener[listener.name] != listener.last_cb_run_start_date_ms) {
+                            EventsController.last_logged_duration_listener[listener.name] = listener.last_cb_run_start_date_ms;
+                            if ((listener.last_cb_run_end_date_ms - listener.last_cb_run_start_date_ms) > ConfigurationService.node_configuration.debug_slow_event_listeners_ms_limit) {
+                                ConsoleHandler.warn('Slow listener : ' + listener.name + ' for event ' + listener.event_conf_name + ' : ' + (listener.last_cb_run_end_date_ms - listener.last_cb_run_start_date_ms) + 'ms (ended, started at ' + listener.last_cb_run_start_date_ms + ')');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static stats_listeners() {
+
+        let nb_running = 0;
+        let nb_waiting_for_rerun = 0;
+        let nb_coolingdown = 0;
+        let nb_slow_listeners_picked = 0; // Pas réellement le nombre de slow listeneres, mais un indicateur qui peut être utilisé pour les stats
+        for (const i in EventsController.registered_listeners) {
+            const listeners = EventsController.registered_listeners[i];
+
+            for (const j in listeners) {
+                const listener = listeners[j];
+
+                if (listener.cb_is_cooling_down) {
+                    nb_coolingdown++;
+                }
+                if (listener.cb_is_running) {
+                    nb_running++;
+                    if ((Dates.now_ms() - listener.last_cb_run_start_date_ms) > ConfigurationService.node_configuration.debug_slow_event_listeners_ms_limit) {
+                        nb_slow_listeners_picked++;
+                    }
+
+                    if (listener.throttle_triggered_event_during_cb) {
+                        nb_waiting_for_rerun++;
+                    }
+                } else {
+                    if (listener.last_cb_run_start_date_ms && listener.last_cb_run_end_date_ms) {
+                        if (EventsController.last_stated_duration_listener[listener.name] != listener.last_cb_run_start_date_ms) {
+                            EventsController.last_stated_duration_listener[listener.name] = listener.last_cb_run_start_date_ms;
+                            if ((listener.last_cb_run_end_date_ms - listener.last_cb_run_start_date_ms) > ConfigurationService.node_configuration.debug_slow_event_listeners_ms_limit) {
+                                nb_slow_listeners_picked++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        StatsController.register_stat_QUANTITE('EventsController', 'stats_listeners', 'nb_running', nb_running);
+        StatsController.register_stat_QUANTITE('EventsController', 'stats_listeners', 'nb_waiting_for_rerun', nb_waiting_for_rerun);
+        StatsController.register_stat_QUANTITE('EventsController', 'stats_listeners', 'nb_coolingdown', nb_coolingdown);
+        StatsController.register_stat_QUANTITE('EventsController', 'stats_listeners', 'nb_slow_listeners_picked', nb_slow_listeners_picked);
     }
 }

@@ -94,19 +94,19 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(
         this.update_visible_options.bind(this),
         50,
-        { leading: false, trailing: true }
+        false
     );
 
     private throttled_load_filter_visible_options_count = ThrottleHelper.declare_throttle_without_args(
         this.load_filter_visible_options_count.bind(this),
         50,
-        { leading: false, trailing: true }
+        false
     );
 
     private throttled_reset_visible_options = ThrottleHelper.declare_throttle_without_args(
         this.reset_visible_options.bind(this),
         300,
-        { leading: false, trailing: true }
+        false
     );
 
 

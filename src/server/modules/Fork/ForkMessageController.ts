@@ -2,8 +2,11 @@ import { throttle } from 'lodash';
 import { isMainThread, MessagePort, parentPort, Worker } from 'worker_threads';
 
 import { performance } from 'perf_hooks';
+import Throttle from '../../../shared/annotations/Throttle';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { StatThisArrayLength } from '../../../shared/modules/Stats/annotations/StatThisArrayLength';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
@@ -17,8 +20,6 @@ import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMe
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import TaskResultForkMessage from './messages/TaskResultForkMessage';
-import { StatThisArrayLength } from '../../../shared/modules/Stats/annotations/StatThisArrayLength';
-import Throttle, { THROTTLED_METHOD_PARAM_TYPE } from '../../../shared/annotations/Throttle';
 
 export default class ForkMessageController {
 
@@ -157,41 +158,6 @@ export default class ForkMessageController {
         }
     }
 
-    @Throttle({
-        param_type: THROTTLED_METHOD_PARAM_TYPE.NONE,
-        throttle_ms: 500,
-
-    })
-    public static retry() {
-        if ((!ForkMessageController.stacked_msg_waiting) || (!ForkMessageController.stacked_msg_waiting.length)) {
-            return;
-        }
-
-        ConsoleHandler.warn("Retry messages... :" + ForkMessageController.stacked_msg_waiting.length + ':');
-
-        const stacked_msg_waiting = ForkMessageController.stacked_msg_waiting;
-        ForkMessageController.stacked_msg_waiting = [];
-        const self = ForkMessageController;
-
-        stacked_msg_waiting.forEach(async (msg_wrapper: IForkMessageWrapper) => {
-
-            if ((!msg_wrapper.send_handle) || (!msg_wrapper.send_handle.postMessage)) { // || (!msg_wrapper.send_handle.connected) ???
-                ConsoleHandler.error('ForkMessageController.retry: sendHandle is not connected - aborting retry');
-                return;
-            }
-
-            try {
-                msg_wrapper.send_handle.postMessage(msg_wrapper.message);
-            } catch (error) {
-                await self.handle_send_error(msg_wrapper, error);
-            }
-        });
-
-        if (ForkMessageController.stacked_msg_waiting && ForkMessageController.stacked_msg_waiting.length) {
-            ForkMessageController.throttled_retry();
-        }
-    }
-
     /**
      * On prend le contenu du message, et on applique les prototypes des objets qui ont été perdus lors du passage par le message
      * @param msg
@@ -291,6 +257,41 @@ export default class ForkMessageController {
                     ForkServerController.throttled_reload_unavailable_threads();
                 }
             }
+        }
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 500,
+
+    })
+    public static retry() {
+        if ((!ForkMessageController.stacked_msg_waiting) || (!ForkMessageController.stacked_msg_waiting.length)) {
+            return;
+        }
+
+        ConsoleHandler.warn("Retry messages... :" + ForkMessageController.stacked_msg_waiting.length + ':');
+
+        const stacked_msg_waiting = ForkMessageController.stacked_msg_waiting;
+        ForkMessageController.stacked_msg_waiting = [];
+        const self = ForkMessageController;
+
+        stacked_msg_waiting.forEach(async (msg_wrapper: IForkMessageWrapper) => {
+
+            if ((!msg_wrapper.send_handle) || (!msg_wrapper.send_handle.postMessage)) { // || (!msg_wrapper.send_handle.connected) ???
+                ConsoleHandler.error('ForkMessageController.retry: sendHandle is not connected - aborting retry');
+                return;
+            }
+
+            try {
+                msg_wrapper.send_handle.postMessage(msg_wrapper.message);
+            } catch (error) {
+                await self.handle_send_error(msg_wrapper, error);
+            }
+        });
+
+        if (ForkMessageController.stacked_msg_waiting && ForkMessageController.stacked_msg_waiting.length) {
+            ForkMessageController.throttled_retry();
         }
     }
 }

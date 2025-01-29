@@ -75,7 +75,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private throttled_update_colors_by_value_and_conditions = ThrottleHelper.declare_throttle_without_args(
         this.update_colors_by_value_and_conditions.bind(this),
         800,
-        { leading: false, trailing: true }
+        false
     );
 
     private throttled_update_enum_colors = ThrottleHelper.declare_throttle_without_args(this.update_enum_colors.bind(this), 800, false);

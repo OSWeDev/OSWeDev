@@ -37,7 +37,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
     private throttled_update_page_widget = ThrottleHelper.declare_throttle_without_args(
         this.update_page_widget.bind(this),
         50,
-        { leading: false, trailing: true }
+        false
     );
 
     private hide_filter: boolean = false;
@@ -81,7 +81,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
     private throttled_load_all_years_page_widgets = ThrottleHelper.declare_throttle_without_args(
         this.load_all_years_page_widgets.bind(this),
         50,
-        { leading: false, trailing: true }
+        false
     );
 
     private mounted() {

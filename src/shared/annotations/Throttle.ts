@@ -1,10 +1,14 @@
-import ThrottleHelper from '../tools/ThrottleHelper';
-import StackContextWrapper from '../tools/StackContextWrapper';
 import 'reflect-metadata';
+import EventsController from '../modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerConfVO from '../modules/Eventify/vos/EventifyEventListenerConfVO';
+import EventifyEventListenerInstanceVO from '../modules/Eventify/vos/EventifyEventListenerInstanceVO';
+import StackContextWrapper from '../tools/StackContextWrapper';
+import ThrottleHelper from '../tools/ThrottleHelper';
 
 // Types pour les paramètres du décorateur
 export interface ThrottleOptions {
-    param_type: THROTTLED_METHOD_PARAM_TYPE;
+    param_type: number; // de type EventifyEventListenerConfVO.PARAM_TYPE_NONE ou PARAM_TYPE_STACK ou PARAM_TYPE_MAP
     throttle_ms: number;
 
     /**
@@ -19,14 +23,6 @@ export interface ThrottleOptions {
     //  * @default true
     //  */
     // trailing?: boolean;
-}
-
-// Enum pour les types de paramètres
-export enum THROTTLED_METHOD_PARAM_TYPE {
-    STACKABLE = 'STACKABLE',
-    MAPPABLE = 'MAPPABLE',
-    NONE = 'NONE',
-    // Ajoutez d'autres types si nécessaire
 }
 
 /**
@@ -61,7 +57,7 @@ export default function Throttle(options: ThrottleOptions) {
         // Récupérer les indices des paramètres spéciaux
         const preThrottleIndex: number = Reflect.getMetadata('PreThrottleParam', target, propertyKey);
         const postThrottleIndex: number = Reflect.getMetadata('PostThrottleParam', target, propertyKey);
-        const has_no_param = (options.param_type == THROTTLED_METHOD_PARAM_TYPE.NONE);
+        const has_no_param = (options.param_type == EventifyEventListenerConfVO.PARAM_TYPE_NONE);
 
         if ((!has_no_param) && (preThrottleIndex === undefined)) {
             throw new Error('The pre-throttle parameter is not defined');
@@ -73,9 +69,12 @@ export default function Throttle(options: ThrottleOptions) {
 
         descriptor.value = function (...args: any[]) {
 
+            let needs_to_declare_throttle = false;
+
             // On checke qu'on a déjà déclaré le throttle
             if (!this[propertyKey + '___THROTTLE_UID']) {
                 this[propertyKey + '___THROTTLE_UID'] = ThrottleHelper.get_next_UID();
+                needs_to_declare_throttle = true;
             }
 
             const UID = this[propertyKey + '___THROTTLE_UID'];
@@ -96,91 +95,105 @@ export default function Throttle(options: ThrottleOptions) {
             }
 
             // On check l'existence du throttle
+            const event_name = 'Throttle.throttle_' + UID;
 
-            if (!ThrottleHelper.throttles[UID]) {
+            if (needs_to_declare_throttle) {
+
+                let listener: EventifyEventListenerInstanceVO = null;
 
                 // Préparer la fonction throttlée en fonction du type de paramètre
                 switch (options.param_type) {
-                    case THROTTLED_METHOD_PARAM_TYPE.STACKABLE:
+                    case EventifyEventListenerConfVO.PARAM_TYPE_NONE:
 
-                        ThrottleHelper.throttles[UID] = throttle((async () => {
-                            ThrottleHelper.throttles_semaphore[UID] = false;
-                            const params = ThrottleHelper.throttles_stackable_args[UID];
-                            ThrottleHelper.throttles_stackable_args[UID] = [];
-
-                            if (!!StackContextWrapper.instance) {
-                                await StackContextWrapper.instance.context_incompatible(
-                                    originalMethod,
-                                    self,
-                                    'Throttle.throttles_stackable_args',
-                                    null,
-                                    params);
-                            } else {
-                                await originalMethod.apply(self, params);
-                            }
-
-                        }), options.throttle_ms, {
-                            leading: options.leading ?? true,
-                            // trailing: options.trailing ?? true,
-                        });
+                        listener = EventifyEventListenerInstanceVO.new_listener(
+                            event_name,
+                            async (event: EventifyEventInstanceVO, l: EventifyEventListenerInstanceVO) => {
+                                if (!!StackContextWrapper.instance) {
+                                    await StackContextWrapper.instance.context_incompatible(
+                                        originalMethod,
+                                        self,
+                                        'Throttle.throttles_no_args');
+                                } else {
+                                    await originalMethod.apply(self, []);
+                                }
+                            },
+                        );
+                        listener.throttled = true;
+                        listener.cooldown_ms = options.throttle_ms;
+                        // On debounce leading si on est en leading false, sachant que par défaut le leading est true
+                        listener.debounce_leading = !(options.leading ?? true);
+                        listener.param_type = EventifyEventListenerConfVO.PARAM_TYPE_NONE;
+                        listener.is_bgthread = false;
+                        listener.unlimited_calls = true;
+                        EventsController.register_event_listener(listener);
                         break;
+                    case EventifyEventListenerConfVO.PARAM_TYPE_MAP:
 
-                    case THROTTLED_METHOD_PARAM_TYPE.MAPPABLE:
-                        ThrottleHelper.throttles[UID] = throttle((async () => {
-                            ThrottleHelper.throttles_semaphore[UID] = false;
-                            const params = ThrottleHelper.throttles_mappable_args[UID];
-                            ThrottleHelper.throttles_mappable_args[UID] = {};
-
-                            if (!!StackContextWrapper.instance) {
-                                await StackContextWrapper.instance.context_incompatible(
-                                    originalMethod,
-                                    self,
-                                    'Throttle.throttles_mappable_args',
-                                    null,
-                                    params);
-                            } else {
-                                await originalMethod.apply(self, [params]);
-                            }
-
-                        }), options.throttle_ms, {
-                            leading: options.leading ?? true,
-                            // trailing: options.trailing ?? true,
-                        });
+                        listener = EventifyEventListenerInstanceVO.new_listener(
+                            event_name,
+                            async (event: EventifyEventInstanceVO, l: EventifyEventListenerInstanceVO) => {
+                                if (!!StackContextWrapper.instance) {
+                                    await StackContextWrapper.instance.context_incompatible(
+                                        originalMethod,
+                                        self,
+                                        'Throttle.throttles_mappable_args',
+                                        null,
+                                        l.current_params_map as { [map_elt_id: string]: unknown });
+                                } else {
+                                    await originalMethod.apply(self, l.current_params_map as { [map_elt_id: string]: unknown });
+                                }
+                            },
+                        );
+                        listener.throttled = true;
+                        listener.cooldown_ms = options.throttle_ms;
+                        // On debounce leading si on est en leading false, sachant que par défaut le leading est true
+                        listener.debounce_leading = !(options.leading ?? true);
+                        listener.param_type = EventifyEventListenerConfVO.PARAM_TYPE_STACK;
+                        listener.is_bgthread = false;
+                        listener.unlimited_calls = true;
+                        EventsController.register_event_listener(listener);
                         break;
+                    case EventifyEventListenerConfVO.PARAM_TYPE_STACK:
 
-                    case THROTTLED_METHOD_PARAM_TYPE.NONE:
-                        ThrottleHelper.throttles[UID] = throttle((async () => {
-                            ThrottleHelper.throttles_semaphore[UID] = false;
-
-                            if (!!StackContextWrapper.instance) {
-                                await StackContextWrapper.instance.context_incompatible(
-                                    originalMethod,
-                                    self,
-                                    'Throttle.throttles_no_args');
-                            } else {
-                                await originalMethod.apply(self, []);
-                            }
-
-                        }), options.throttle_ms, {
-                            leading: options.leading ?? true,
-                            // trailing: options.trailing ?? true,
-                        });
+                        listener = EventifyEventListenerInstanceVO.new_listener(
+                            event_name,
+                            async (event: EventifyEventInstanceVO, l: EventifyEventListenerInstanceVO) => {
+                                if (!!StackContextWrapper.instance) {
+                                    await StackContextWrapper.instance.context_incompatible(
+                                        originalMethod,
+                                        self,
+                                        'Throttle.throttles_stackable_args',
+                                        null,
+                                        l.current_params_stack as unknown[]);
+                                } else {
+                                    await originalMethod.apply(self, [l.current_params_stack as unknown[]]);
+                                }
+                            },
+                        );
+                        listener.throttled = true;
+                        listener.cooldown_ms = options.throttle_ms;
+                        // On debounce leading si on est en leading false, sachant que par défaut le leading est true
+                        listener.debounce_leading = !(options.leading ?? true);
+                        listener.param_type = EventifyEventListenerConfVO.PARAM_TYPE_STACK;
+                        listener.is_bgthread = false;
+                        listener.unlimited_calls = true;
+                        EventsController.register_event_listener(listener);
                         break;
                 }
             }
 
             switch (options.param_type) {
-                case THROTTLED_METHOD_PARAM_TYPE.STACKABLE:
+                case EventifyEventListenerConfVO.PARAM_TYPE_STACK:
                     const stack = item ? (Array.isArray(item) ? item : [item]) : [];
-                    ThrottleHelper.throttle_with_stackable_args.call(this, UID, stack);
+                    EventsController.emit_event(EventifyEventInstanceVO.new_event(event_name, stack));
                     break;
 
-                case THROTTLED_METHOD_PARAM_TYPE.MAPPABLE:
-                    ThrottleHelper.throttle_with_mappable_args.call(this, UID, item);
+                case EventifyEventListenerConfVO.PARAM_TYPE_MAP:
+                    EventsController.emit_event(EventifyEventInstanceVO.new_event(event_name, item));
                     break;
 
-                case THROTTLED_METHOD_PARAM_TYPE.NONE:
-                    ThrottleHelper.throttle_without_args.call(this, UID);
+                case EventifyEventListenerConfVO.PARAM_TYPE_NONE:
+                    EventsController.emit_event(EventifyEventInstanceVO.new_event(event_name));
                     break;
             }
         };

@@ -259,10 +259,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private reset_targets = ThrottleHelper.declare_throttle_without_args(
         this.reset_targets_throttled.bind(this),
         100,
-        {
-            leading: false,
-            trailing: true
-        }
+        false
     );
 
     private fcSegment: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(

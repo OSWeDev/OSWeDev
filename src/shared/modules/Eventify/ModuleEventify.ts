@@ -3,12 +3,14 @@ import { field_names } from '../../tools/ObjectHandler';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import EventifyEventConfVO from './vos/EventifyEventConfVO';
 import EventifyEventInstanceVO from './vos/EventifyEventInstanceVO';
 import EventifyEventListenerConfVO from './vos/EventifyEventListenerConfVO';
 import EventifyEventListenerInstanceVO from './vos/EventifyEventListenerInstanceVO';
+import EventifyPerfReportVO from './vos/perfs/EventifyPerfReportVO';
 export default class ModuleEventify extends Module {
 
     public static MODULE_NAME: string = 'Eventify';
@@ -38,6 +40,8 @@ export default class ModuleEventify extends Module {
 
         this.initialize_EventifyEventInstanceVO();
         this.initialize_EventifyEventListenerInstanceVO();
+
+        this.initialize_EventifyPerfReportVO();
     }
 
     public initialize_EventifyEventInstanceVO() {
@@ -126,5 +130,15 @@ export default class ModuleEventify extends Module {
 
         ModuleTableController.create_new(this.name, EventifyEventListenerConfVO, label, 'Eventify - Event Listener Template');
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[EventifyEventListenerConfVO.API_TYPE_ID]);
+    }
+
+    private initialize_EventifyPerfReportVO() {
+        const label = ModuleTableFieldController.create_new(EventifyPerfReportVO.API_TYPE_ID, field_names<EventifyPerfReportVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du rapport', true).unique();
+        ModuleTableFieldController.create_new(EventifyPerfReportVO.API_TYPE_ID, field_names<EventifyPerfReportVO>().start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de début du rapport', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        ModuleTableFieldController.create_new(EventifyPerfReportVO.API_TYPE_ID, field_names<EventifyPerfReportVO>().end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin du rapport', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        ModuleTableFieldController.create_new(EventifyPerfReportVO.API_TYPE_ID, field_names<EventifyPerfReportVO>().start_date_perf_ms, ModuleTableFieldVO.FIELD_TYPE_float, 'Date de début du rapport (en ms)', true);
+        ModuleTableFieldController.create_new(EventifyPerfReportVO.API_TYPE_ID, field_names<EventifyPerfReportVO>().end_date_perf_ms, ModuleTableFieldVO.FIELD_TYPE_float, 'Date de fin du rapport (en ms)', true);
+        ModuleTableFieldController.create_new(EventifyPerfReportVO.API_TYPE_ID, field_names<EventifyPerfReportVO>().perf_datas, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Relevés de perf', false);
+        ModuleTableController.create_new(this.name, EventifyPerfReportVO, label, 'Eventify - Perf Report');
     }
 }

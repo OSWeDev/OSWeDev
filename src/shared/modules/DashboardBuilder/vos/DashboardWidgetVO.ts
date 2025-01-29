@@ -14,6 +14,7 @@ import DashboardBuilderController from "../DashboardBuilderController";
 export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem, INamedVO {
     public static API_TYPE_ID: string = "dashboard_widget";
 
+    public static WIDGET_NAME_perfreportgraph: string = 'perfreportgraph';
     public static WIDGET_NAME_bulkops: string = 'bulkops';
     public static WIDGET_NAME_checklist: string = 'checklist';
     public static WIDGET_NAME_supervision: string = 'supervision';

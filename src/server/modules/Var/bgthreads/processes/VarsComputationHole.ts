@@ -206,48 +206,48 @@ export default class VarsComputationHole {
             if (Math.floor(Dates.now() - start_date) > 10) {
                 ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT: ' + nb_secs + 's');
 
-                // Si on est sur la première attente, on rempli juste la map de last_check_waiting_for_hole_indexes_and_states et sinon on peut checker si la liste est identique
-                let reinsert_all = !first_timeout; // si first_timeout, on réinsère personne, sinon on check l'arbre pour savoir et par défaut si tout est identique on réinsère tout le monde
-                if (!first_timeout) {
+                // // Si on est sur la première attente, on rempli juste la map de last_check_waiting_for_hole_indexes_and_states et sinon on peut checker si la liste est identique
+                // let reinsert_all = !first_timeout; // si first_timeout, on réinsère personne, sinon on check l'arbre pour savoir et par défaut si tout est identique on réinsère tout le monde
+                // if (!first_timeout) {
 
-                    if (CurrentVarDAGHolder.current_vardag.nb_nodes != Object.keys(VarsComputationHole.last_check_waiting_for_hole_indexes_and_states).length) {
-                        reinsert_all = false;
-                    } else {
-                        for (const i in CurrentVarDAGHolder.current_vardag.nodes) {
-                            const node = CurrentVarDAGHolder.current_vardag.nodes[i];
-                            if (VarsComputationHole.last_check_waiting_for_hole_indexes_and_states[node.var_data.index] != node.current_step) {
-                                // Ya une évolution dans l'arbre, on attend encore
-                                reinsert_all = false;
-                                break;
-                            }
-                        }
-                    }
-                }
-                first_timeout = false;
+                //     if (CurrentVarDAGHolder.current_vardag.nb_nodes != Object.keys(VarsComputationHole.last_check_waiting_for_hole_indexes_and_states).length) {
+                //         reinsert_all = false;
+                //     } else {
+                //         for (const i in CurrentVarDAGHolder.current_vardag.nodes) {
+                //             const node = CurrentVarDAGHolder.current_vardag.nodes[i];
+                //             if (VarsComputationHole.last_check_waiting_for_hole_indexes_and_states[node.var_data.index] != node.current_step) {
+                //                 // Ya une évolution dans l'arbre, on attend encore
+                //                 reinsert_all = false;
+                //                 break;
+                //             }
+                //         }
+                //     }
+                // }
+                // first_timeout = false;
 
-                // C'est ptetre pas l'idée du siècle de réinsérer des noeuds, par ce que si on arrive pas à finir dans les temps, on se rajoute de la charge potentiellement.... typiquement l'insert en base qui prenait 11 secs => réinsert...
-                // et en même temps 11 secs c'est juste trop
-                if (reinsert_all) {
-                    StatsController.register_stat_COMPTEUR('VarsComputationHole', 'wait_for_everyone_to_be_ready', 'reinsert_all');
-                    ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:reinsert_all');
-                    const promises = [];
-                    for (const i in CurrentVarDAGHolder.current_vardag.nodes) {
-                        const node = CurrentVarDAGHolder.current_vardag.nodes[i];
-                        node.unlinkFromDAG(true);
-                        promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, node.var_data, false));
+                // // C'est ptetre pas l'idée du siècle de réinsérer des noeuds, par ce que si on arrive pas à finir dans les temps, on se rajoute de la charge potentiellement.... typiquement l'insert en base qui prenait 11 secs => réinsert...
+                // // et en même temps 11 secs c'est juste trop
+                // if (reinsert_all) {
+                //     StatsController.register_stat_COMPTEUR('VarsComputationHole', 'wait_for_everyone_to_be_ready', 'reinsert_all');
+                //     ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:reinsert_all');
+                //     const promises = [];
+                //     for (const i in CurrentVarDAGHolder.current_vardag.nodes) {
+                //         const node = CurrentVarDAGHolder.current_vardag.nodes[i];
+                //         node.unlinkFromDAG(true);
+                //         promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, node.var_data, false));
 
-                        if (ConfigurationService.node_configuration.debug_vars_current_tree) {
-                            ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:reinsert_all:node:' + node.var_data.index + ':' + Object.keys(node.tags).join(','));
-                        }
+                //         if (ConfigurationService.node_configuration.debug_vars_current_tree) {
+                //             ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:reinsert_all:node:' + node.var_data.index + ':' + Object.keys(node.tags).join(','));
+                //         }
 
-                    }
-                    await all_promises(promises);
+                //     }
+                //     await all_promises(promises);
 
-                    first_timeout = true;
-                    VarsComputationHole.last_check_waiting_for_hole_indexes_and_states = {};
-                    start_date = Dates.now();
-                    continue;
-                }
+                //     first_timeout = true;
+                //     VarsComputationHole.last_check_waiting_for_hole_indexes_and_states = {};
+                //     start_date = Dates.now();
+                //     continue;
+                // }
 
                 // On commence par mettre à jour la liste des états
                 VarsComputationHole.last_check_waiting_for_hole_indexes_and_states = {};

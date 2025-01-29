@@ -1,12 +1,12 @@
-import { PostThrottleParam, PreThrottleParam, THROTTLED_METHOD_PARAM_TYPE } from '../../../shared/annotations/Throttle';
+import { PostThrottleParam, PreThrottleParam } from '../../../shared/annotations/Throttle';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import EventsController from '../../../shared/modules/Eventify/EventsController';
 import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
-import StatsController from '../../../shared/modules/Stats/StatsController';
 import { StatThisArrayLength } from '../../../shared/modules/Stats/annotations/StatThisArrayLength';
 import { get_keys_length } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import VarsController from '../../../shared/modules/Var/VarsController';
@@ -604,7 +604,7 @@ export default class VarsDatasVoUpdateHandler {
      */
     @ThrottleExecAsServerRunsOnBgThread(
         {
-            param_type: THROTTLED_METHOD_PARAM_TYPE.NONE,
+            param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
             throttle_ms: 1000,
             leading: false,
         },
@@ -640,7 +640,7 @@ export default class VarsDatasVoUpdateHandler {
 
     @ThrottleExecAsServerRunsOnBgThread(
         {
-            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+            param_type: EventifyEventListenerConfVO.PARAM_TYPE_STACK,
             throttle_ms: 20,
             leading: true,
         },
@@ -676,7 +676,7 @@ export default class VarsDatasVoUpdateHandler {
     */
     @ThrottleExecAsServerRunsOnBgThread(
         {
-            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+            param_type: EventifyEventListenerConfVO.PARAM_TYPE_STACK,
             throttle_ms: 20,
             leading: false,
         },

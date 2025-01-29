@@ -98,7 +98,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private throttled_load_counter = ThrottleHelper.declare_throttle_without_args(
         this.load_counter.bind(this),
         50,
-        { leading: false, trailing: true }
+        false
     );
 
     get title_name_code_text() {

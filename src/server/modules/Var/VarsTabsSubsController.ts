@@ -1,4 +1,5 @@
-import { PostThrottleParam, PreThrottleParam, THROTTLED_METHOD_PARAM_TYPE } from '../../../shared/annotations/Throttle';
+import { PostThrottleParam, PreThrottleParam } from '../../../shared/annotations/Throttle';
+import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -184,7 +185,7 @@ export default class VarsTabsSubsController {
      */
     @ThrottleExecAsServerRunsOnMainThread(
         {
-            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+            param_type: EventifyEventListenerConfVO.PARAM_TYPE_STACK,
             throttle_ms: 50,
             leading: true,
         },

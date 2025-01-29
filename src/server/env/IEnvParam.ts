@@ -68,6 +68,11 @@ export default interface IEnvParam {
 
     debug_var_insert_with_copy?: boolean;
 
+    debug_slow_event_listeners?: boolean;
+    debug_slow_event_listeners_ms_limit?: number;
+
+    create_event_perf_report?: boolean;
+
     debug_var_get_instance_semaphored_db_loaded_var_data?: boolean;
 
     debug_waiting_registered_task_result_wrappers?: boolean;

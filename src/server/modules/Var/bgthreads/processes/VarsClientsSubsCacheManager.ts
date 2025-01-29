@@ -1,4 +1,5 @@
-import { PostThrottleParam, PreThrottleParam, THROTTLED_METHOD_PARAM_TYPE } from "../../../../../shared/annotations/Throttle";
+import { PostThrottleParam, PreThrottleParam } from "../../../../../shared/annotations/Throttle";
+import EventifyEventListenerConfVO from "../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
 import SemaphoreHandler from "../../../../../shared/tools/SemaphoreHandler";
 import ThreadHandler from "../../../../../shared/tools/ThreadHandler";
@@ -57,7 +58,7 @@ export default class VarsClientsSubsCacheManager {
 
     @ThrottleExecAsServerRunsOnBgThread(
         {
-            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+            param_type: EventifyEventListenerConfVO.PARAM_TYPE_STACK,
             throttle_ms: 10,
         },
         VarsBGThreadNameHolder.bgthread_name,
@@ -71,7 +72,7 @@ export default class VarsClientsSubsCacheManager {
 
     @ThrottleExecAsServerRunsOnBgThread(
         {
-            param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
+            param_type: EventifyEventListenerConfVO.PARAM_TYPE_STACK,
             throttle_ms: 10,
         },
         VarsBGThreadNameHolder.bgthread_name,

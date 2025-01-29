@@ -59,8 +59,9 @@ import CRUDCreateFormComponent from '../create/CRUDCreateFormComponent';
 import CRUDCreateFormController from '../create/CRUDCreateFormController';
 import CRUDFormServices from '../CRUDFormServices';
 import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
-import Throttle, { THROTTLED_METHOD_PARAM_TYPE } from '../../../../../../shared/annotations/Throttle';
+import Throttle from '../../../../../../shared/annotations/Throttle';
 import './CRUDComponentField.scss';
+import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 const debounce = require('lodash/debounce');
 
 @Component({
@@ -505,10 +506,9 @@ export default class CRUDComponentField extends VueComponentBase
      * @returns void
      */
     @Throttle({
-        param_type: THROTTLED_METHOD_PARAM_TYPE.NONE,
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
         throttle_ms: 300,
         leading: true,
-        trailing: true,
     })
     private async update_visible_options(): Promise<void> {
 

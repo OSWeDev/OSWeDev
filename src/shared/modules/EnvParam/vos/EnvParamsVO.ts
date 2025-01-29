@@ -181,6 +181,14 @@ export default class EnvParamsVO implements IDistantVOBase {
 
     public debug_throttle_uid: boolean;
 
+    public debug_slow_event_listeners: boolean;
+    public debug_slow_event_listeners_ms_limit: number;
+
+    /**
+     * Activate to start event perf reporting, deactivate to stop and save the report in DB
+     */
+    public create_event_perf_report: boolean;
+
     public debug_reruns_of_oselia: boolean;
 
     // DEBUG_CONTEXT_QUERY_build_select_query_not_count?: boolean;
