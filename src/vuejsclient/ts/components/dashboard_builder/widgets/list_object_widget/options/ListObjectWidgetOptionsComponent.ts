@@ -16,8 +16,10 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import './ListObjectWidgetOptionsComponent.scss';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../../../../../shared/tools/ObjectHandler';
 import { cloneDeep } from 'lodash';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 
 @Component({
     template: require('./ListObjectWidgetOptionsComponent.pug'),
@@ -68,6 +70,27 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
     private url: VOFieldRefVO = null;
     private blank?: boolean;
     private is_card_display_single: boolean = false;
+    private do_not_use_page_widget_ids: number[] = null;
+    private do_not_use_page_widgets: DashboardPageWidgetVO[] = [];
+    private page_widget_options: DashboardPageWidgetVO[] = [];
+    private show_message_no_data: boolean = false;
+    private message_no_data: string = null;
+
+    private optionsEditeur = {
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],      // Boutons pour le gras, italique, souligné, barré
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                [{ 'size': ['small', false, 'large', 'huge'] }],
+                [{ 'color': [] }, { 'background': [] }],        // dropdown with defaults from theme
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],  // Boutons pour les listes
+                [{ 'script': 'sub' }, { 'script': 'super' }],   // indice et exposant
+                [{ 'indent': '-1' }, { 'indent': '+1' }],       // outdent/indent
+                [{ 'align': [] }],                              // Bouton pour l'alignement (gauche, centre, droite, justifié)
+                ['clean']                                       // Bouton pour effacer la mise en forme
+            ]
+        }
+    };
 
     private next_update_options: ListObjectWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -175,11 +198,41 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
     @Watch('page_widget', { immediate: true, deep: true })
     private async onchange_page_widget() {
+
         await this.throttled_reload_options();
     }
 
+    @Watch('do_not_use_page_widgets')
+    private async onchange_do_not_use_page_widgets() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.do_not_use_page_widgets?.length != this.next_update_options.do_not_use_page_widget_ids?.length) {
+            this.next_update_options.do_not_use_page_widget_ids = this.do_not_use_page_widgets ? this.do_not_use_page_widgets.map((e) => e.id) : null;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('message_no_data')
+    private async onchange_message_no_data() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.message_no_data != this.message_no_data) {
+            this.next_update_options = cloneDeep(this.widget_options);
+            this.next_update_options.message_no_data = this.message_no_data;
+
+            this.throttled_update_options();
+        }
+    }
+
     @Watch('url')
-    private async onchange_limit_selectable() {
+    private async onchange_url() {
         if (!this.widget_options) {
             return;
         }
@@ -236,6 +289,9 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             null,
             null,
             false,
+            [],
+            false,
+            null,
         );
     }
 
@@ -258,7 +314,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
 
 
-    private reload_options() {
+    private async reload_options() {
         if (!this.page_widget) {
             this.widget_options = null;
         } else {
@@ -280,7 +336,10 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         (this.widget_options.surtitre == options.surtitre) &&
                         (this.widget_options.title == options.title) &&
                         (this.widget_options.url == options.url) &&
-                        (this.widget_options.is_card_display_single == options.is_card_display_single)
+                        (this.widget_options.is_card_display_single == options.is_card_display_single) &&
+                        (this.widget_options.show_message_no_data == options.show_message_no_data) &&
+                        (this.widget_options.message_no_data == options.message_no_data) &&
+                        (this.widget_options.do_not_use_page_widget_ids == options.do_not_use_page_widget_ids)
                     ) {
                         options = null;
                     }
@@ -300,6 +359,9 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         options.url,
                         options.blank,
                         options.is_card_display_single,
+                        options.do_not_use_page_widget_ids,
+                        options.show_message_no_data,
+                        options.message_no_data,
                     ) : null;
                 }
             } catch (error) {
@@ -333,6 +395,9 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.url = default_options.url;
             this.blank = default_options.blank;
             this.is_card_display_single = default_options.is_card_display_single;
+            this.do_not_use_page_widget_ids = default_options.do_not_use_page_widget_ids;
+            this.show_message_no_data = default_options.show_message_no_data;
+            this.message_no_data = default_options.message_no_data;
 
             this.widget_options = default_options;
             return;
@@ -380,10 +445,47 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         if (this.is_card_display_single != this.widget_options.is_card_display_single) {
             this.is_card_display_single = this.widget_options.is_card_display_single;
         }
+        if (this.do_not_use_page_widget_ids != this.widget_options.do_not_use_page_widget_ids) {
+            this.do_not_use_page_widget_ids = this.widget_options.do_not_use_page_widget_ids;
+        }
+        if (this.show_message_no_data != this.widget_options.show_message_no_data) {
+            this.show_message_no_data = this.widget_options.show_message_no_data;
+        }
+        if (this.message_no_data != this.widget_options.message_no_data) {
+            this.message_no_data = this.widget_options.message_no_data;
+        }
 
         if (this.next_update_options != this.widget_options) {
             this.next_update_options = this.widget_options;
         }
+
+        this.page_widget_options = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, this.page_widget.page_id)
+            .filter_by_num_not_eq(field_names<DashboardPageWidgetVO>().id, this.page_widget.id)
+            .filter_is_true(field_names<DashboardWidgetVO>().is_filter, DashboardWidgetVO.API_TYPE_ID)
+            .select_vos();
+
+        if (this.do_not_use_page_widget_ids?.length) {
+            this.do_not_use_page_widgets = this.page_widget_options.filter((page_widget) => {
+                return this.do_not_use_page_widget_ids.includes(page_widget.id);
+            });
+        }
+    }
+
+    private page_widget_label(p_widget: DashboardPageWidgetVO): string {
+        return "Widget ID: " + p_widget.id.toString();
+    }
+
+    private async switch_show_message_no_data() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.show_message_no_data = !this.next_update_options.show_message_no_data;
+
+        await this.throttled_update_options();
     }
 
     private async switch_button_for_elements() {

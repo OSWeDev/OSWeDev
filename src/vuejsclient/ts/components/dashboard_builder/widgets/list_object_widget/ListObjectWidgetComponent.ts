@@ -23,6 +23,10 @@ import { debounce } from 'lodash';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import TableWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 
 @Component({
     template: require('./ListObjectWidgetComponent.pug'),
@@ -100,6 +104,14 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         return ListObjectWidgetOptionsVO.TYPE_DISPLAY_LIST;
     }
 
+    get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+    }
+
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    }
+
     @Watch('widget_options')
     @Watch('get_active_field_filters', { immediate: true, deep: true })
     private onchange_widget_options() {
@@ -168,7 +180,13 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.number_of_elements)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(
+                    TableWidgetManager.get_active_field_filters(
+                        this.get_active_field_filters,
+                        this.widget_options.do_not_use_page_widget_ids,
+                        this.all_page_widgets_by_id,
+                        this.widgets_by_id,
+                    ))
             ));
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
@@ -195,7 +213,13 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.number_of_elements)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(
+                    TableWidgetManager.get_active_field_filters(
+                        this.get_active_field_filters,
+                        this.widget_options.do_not_use_page_widget_ids,
+                        this.all_page_widgets_by_id,
+                        this.widgets_by_id,
+                    ))
             ));
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
@@ -222,7 +246,13 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.number_of_elements)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(
+                    TableWidgetManager.get_active_field_filters(
+                        this.get_active_field_filters,
+                        this.widget_options.do_not_use_page_widget_ids,
+                        this.all_page_widgets_by_id,
+                        this.widgets_by_id,
+                    ))
             ));
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
@@ -248,7 +278,13 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.number_of_elements)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(
+                    TableWidgetManager.get_active_field_filters(
+                        this.get_active_field_filters,
+                        this.widget_options.do_not_use_page_widget_ids,
+                        this.all_page_widgets_by_id,
+                        this.widgets_by_id,
+                    ))
             ));
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
@@ -304,7 +340,13 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.number_of_elements)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(
+                    TableWidgetManager.get_active_field_filters(
+                        this.get_active_field_filters,
+                        this.widget_options.do_not_use_page_widget_ids,
+                        this.all_page_widgets_by_id,
+                        this.widgets_by_id,
+                    ))
             ));
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
@@ -330,7 +372,13 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.number_of_elements)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(
+                    TableWidgetManager.get_active_field_filters(
+                        this.get_active_field_filters,
+                        this.widget_options.do_not_use_page_widget_ids,
+                        this.all_page_widgets_by_id,
+                        this.widgets_by_id,
+                    ))
             ));
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);

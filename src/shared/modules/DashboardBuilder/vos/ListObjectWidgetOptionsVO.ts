@@ -33,6 +33,9 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
     public url: VOFieldRefVO;
     public blank: boolean;
     public is_card_display_single: boolean;
+    public do_not_use_page_widget_ids?: number[];
+    public show_message_no_data?: boolean;
+    public message_no_data?: string;
 
     public static createNew(
         type_display: number,
@@ -49,6 +52,9 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         url: VOFieldRefVO,
         blank: boolean,
         is_card_display_single: boolean,
+        do_not_use_page_widget_ids?: number[],
+        show_message_no_data?: boolean,
+        message_no_data?: string,
     ): ListObjectWidgetOptionsVO {
         const res = new ListObjectWidgetOptionsVO();
         res.type_display = type_display;
@@ -65,6 +71,9 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         res.url = url;
         res.blank = blank;
         res.is_card_display_single = is_card_display_single;
+        res.do_not_use_page_widget_ids = do_not_use_page_widget_ids;
+        res.show_message_no_data = show_message_no_data;
+        res.message_no_data = message_no_data;
 
         return res;
     }
