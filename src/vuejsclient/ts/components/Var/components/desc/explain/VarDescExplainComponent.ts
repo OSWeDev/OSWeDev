@@ -61,7 +61,9 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
     private aggregated_var_datas: { [var_data_index: string]: VarDataBaseVO } = {};
 
-    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(this.var_datas_updater.bind(this), 500, false);
+    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(
+        'VarDescExplainComponent.throttled_var_datas_updater',
+        this.var_datas_updater.bind(this), 500, false);
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)

@@ -52,7 +52,9 @@ export default class BlocTextWidgetOptionsComponent extends VueComponentBase {
     private bloc_text: string = null;
 
     private next_update_options: BlocTextWidgetOptionsVO = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, false);
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+        'BlocTextWidgetOptionsComponent.throttled_update_options',
+        this.update_options.bind(this), 50, false);
 
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {

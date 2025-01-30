@@ -33,21 +33,27 @@ export default class ThrottledQueryServerController {
 
     private static promise_pipeline: PromisePipeline = null;
 
-    private static throttled_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
-        if (ConfigurationService.node_configuration.debug_azure_memory_check) {
-            ConsoleHandler.warn('ModuleDAOServer:handle_groups_queries:dao_server_coef == 0');
-        }
-    }, 10000);
+    private static throttled_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(
+        'ThrottledQueryServerController.throttled_log_dao_server_coef_0',
+        () => {
+            if (ConfigurationService.node_configuration.debug_azure_memory_check) {
+                ConsoleHandler.warn('ModuleDAOServer:handle_groups_queries:dao_server_coef == 0');
+            }
+        }, 10000);
 
-    private static throttled_log_dao_server_coef_not_1 = ThrottleHelper.declare_throttle_without_args(() => {
-        if (ConfigurationService.node_configuration.debug_azure_memory_check) {
-            ConsoleHandler.log('ModuleDAOServer:handle_groups_queries:dao_server_coef < 0.5');
-        }
-    }, 10000);
+    private static throttled_log_dao_server_coef_not_1 = ThrottleHelper.declare_throttle_without_args(
+        'ThrottledQueryServerController.throttled_log_dao_server_coef_not_1',
+        () => {
+            if (ConfigurationService.node_configuration.debug_azure_memory_check) {
+                ConsoleHandler.log('ModuleDAOServer:handle_groups_queries:dao_server_coef < 0.5');
+            }
+        }, 10000);
 
-    private static throttled_shift_select_queries_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
-        ConsoleHandler.warn('ModuleDAOServer:shift_select_queries:dao_server_coef == 0');
-    }, 10000);
+    private static throttled_shift_select_queries_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(
+        'ThrottledQueryServerController.throttled_shift_select_queries_log_dao_server_coef_0',
+        () => {
+            ConsoleHandler.warn('ModuleDAOServer:shift_select_queries:dao_server_coef == 0');
+        }, 10000);
 
     /**
      * Les params du throttled_select_query

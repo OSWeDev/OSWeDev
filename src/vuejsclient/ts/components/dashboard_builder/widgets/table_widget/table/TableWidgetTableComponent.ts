@@ -218,7 +218,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private max_export_limit: number = null;
     private min_export_limit: number = null;
 
-    private throttle_update_query_strings = ThrottleHelper.declare_throttle_without_args(this.update_query_strings.bind(this), 100);
+    private throttle_update_query_strings = ThrottleHelper.declare_throttle_without_args(
+        'TableWidgetTableComponent.throttle_update_query_strings',
+        this.update_query_strings.bind(this), 100);
 
     get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
         return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);

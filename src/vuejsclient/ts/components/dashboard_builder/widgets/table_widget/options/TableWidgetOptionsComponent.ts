@@ -58,7 +58,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: TableWidgetOptionsVO = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, false);
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+        'TableWidgetOptionsComponent.throttled_update_options',
+        this.update_options.bind(this), 50, false);
 
     private crud_api_type_id_selected: string = null;
     private cb_bulk_actions: string[] = null;

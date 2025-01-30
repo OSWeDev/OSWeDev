@@ -50,7 +50,9 @@ export default class OseliaRunArboComponent extends VueComponentBase {
         [OseliaRunVO.STATE_WAITING_SPLITS_END]: true,
     };
 
-    private throttled_update_oselia_runs = ThrottleHelper.declare_throttle_without_args(this.update_oselia_runs.bind(this), 100);
+    private throttled_update_oselia_runs = ThrottleHelper.declare_throttle_without_args(
+        'OseliaRunArboComponent.throttled_update_oselia_runs',
+        this.update_oselia_runs.bind(this), 100);
 
     // get has_childrens(): boolean {
     //     return (!!this.oselia_runs) && this.oselia_runs.length > 0;

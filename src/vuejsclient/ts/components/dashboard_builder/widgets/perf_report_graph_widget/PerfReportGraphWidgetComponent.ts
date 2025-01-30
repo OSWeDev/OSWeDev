@@ -53,9 +53,11 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
     private selected_perf_report: EventifyPerfReportVO = null;
 
     private throttle_select_perf_report = ThrottleHelper.declare_throttle_without_args(
+        'PerfReportGraphWidgetComponent.throttle_select_perf_report',
         this.select_perf_report.bind(this), 200);
 
     private throttle_redraw = ThrottleHelper.declare_throttle_without_args(
+        'PerfReportGraphWidgetComponent.throttle_redraw',
         this.redraw.bind(this), 200);
 
     @Watch('selected_perf_report', { deep: true })
@@ -202,13 +204,13 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                              Start: ${start_date_formattee}<br>
                              End: ${end_date_formattee}`
                             )
-                            .style("left", event.pageX + 10 + "px")
-                            .style("top", event.pageY - 10 + "px");
+                            .style("left", (event.pageX - container.left + 10) + "px")
+                            .style("top", (event.pageY - container.top - 10) + "px");
                     })
                     .on("mousemove", (event) => {
                         tooltip
-                            .style("left", event.pageX + 10 + "px")
-                            .style("top", event.pageY - 10 + "px");
+                            .style("left", (event.pageX - container.left + 10) + "px")
+                            .style("top", (event.pageY - container.top - 10) + "px");
                     })
                     .on("mouseout", () => {
                         tooltip.style("visibility", "hidden");
@@ -243,13 +245,13 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                              Start: ${start_date_formattee}<br>
                              End: ${end_date_formattee}`
                             )
-                            .style("left", event.pageX + 10 + "px")
-                            .style("top", event.pageY - 10 + "px");
+                            .style("left", (event.pageX - container.left + 10) + "px")
+                            .style("top", (event.pageY - container.top - 10) + "px");
                     })
                     .on("mousemove", (event) => {
                         tooltip
-                            .style("left", event.pageX + 10 + "px")
-                            .style("top", event.pageY - 10 + "px");
+                            .style("left", (event.pageX - container.left + 10) + "px")
+                            .style("top", (event.pageY - container.top - 10) + "px");
                     })
                     .on("mouseout", () => {
                         tooltip.style("visibility", "hidden");
@@ -277,13 +279,13 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                                 `Listener: <b>${d.name}</b><br>
                              Date: ${date_formattee}`
                             )
-                            .style("left", event.pageX + 10 + "px")
-                            .style("top", event.pageY - 10 + "px");
+                            .style("left", (event.pageX - container.left + 10) + "px")
+                            .style("top", (event.pageY - container.top - 10) + "px");
                     })
                     .on("mousemove", (event) => {
                         tooltip
-                            .style("left", event.pageX + 10 + "px")
-                            .style("top", event.pageY - 10 + "px");
+                            .style("left", (event.pageX - container.left + 10) + "px")
+                            .style("top", (event.pageY - container.top - 10) + "px");
                     })
                     .on("mouseout", () => {
                         tooltip.style("visibility", "hidden");

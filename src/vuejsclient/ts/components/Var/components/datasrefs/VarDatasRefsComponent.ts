@@ -60,10 +60,16 @@ export default class VarDatasRefsComponent extends VueComponentBase {
     private been_destroyed: boolean = false;
 
     private var_datas: VarDataValueResVO[] = [];
-    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(this.var_datas_updater.bind(this), 200, false);
+    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(
+        'VarDatasRefsComponent.throttled_var_datas_updater',
+        this.var_datas_updater.bind(this), 200, false);
 
-    private throttled_unregister = ThrottleHelper.declare_throttle_without_args(this.unregister.bind(this), 200);
-    private throttled_register = ThrottleHelper.declare_throttle_without_args(this.register.bind(this), 200);
+    private throttled_unregister = ThrottleHelper.declare_throttle_without_args(
+        'VarDatasRefsComponent.throttled_unregister',
+        this.unregister.bind(this), 200);
+    private throttled_register = ThrottleHelper.declare_throttle_without_args(
+        'VarDatasRefsComponent.throttled_register',
+        this.register.bind(this), 200);
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(

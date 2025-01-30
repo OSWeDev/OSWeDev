@@ -63,7 +63,9 @@ export default class AccessPolicyComponent extends VueComponentBase {
     private visible_policies_by_group_id: { [group_id: number]: AccessPolicyVO[] } = {};
     private roles: { [id: number]: RoleVO } = {};
 
-    private throttled_update_component = ThrottleHelper.declare_throttle_without_args(this.update_component.bind(this), 500);
+    private throttled_update_component = ThrottleHelper.declare_throttle_without_args(
+        'AccessPolicyComponent.throttled_update_component',
+        this.update_component.bind(this), 500);
 
     public async beforeDestroy() {
         for (const i in this.dao_watchers) {

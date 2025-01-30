@@ -3,7 +3,9 @@ import ThrottleHelper from "../../../shared/tools/ThrottleHelper";
 import PushDataServerController from "../PushData/PushDataServerController";
 
 export default class ThrottledRefuseServerController {
-    public static throttled_refuse = ThrottleHelper.declare_throttle_with_mappable_args(ThrottledRefuseServerController.refuse, 1000, false);
+    public static throttled_refuse = ThrottleHelper.declare_throttle_with_mappable_args(
+        'ThrottledRefuseServerController.throttled_refuse',
+        ThrottledRefuseServerController.refuse, 1000, false);
 
     private static async refuse(params: { [uid: number]: { [CLIENT_TAB_ID: string]: boolean } }) {
 

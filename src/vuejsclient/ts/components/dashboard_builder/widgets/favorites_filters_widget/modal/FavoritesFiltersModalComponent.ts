@@ -101,12 +101,14 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
     private on_delete_callback: (props?: Partial<FavoritesFiltersVO>) => Promise<void> = null;
 
     private throttled_load_readable_field_filters = ThrottleHelper.declare_throttle_without_args(
+        'FavoritesFiltersModalComponent.throttled_load_readable_field_filters',
         this.load_readable_field_filters.bind(this),
         50,
         false
     );
 
     private throttled_load_all_dates_page_widgets = ThrottleHelper.declare_throttle_without_args(
+        'FavoritesFiltersModalComponent.throttled_load_all_dates_page_widgets',
         this.load_all_dates_page_widgets.bind(this),
         50,
         false

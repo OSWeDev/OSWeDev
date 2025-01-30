@@ -36,6 +36,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
     private next_update_options: MonthFilterWidgetOptionsVO = null;
 
     private throttled_update_page_widget = ThrottleHelper.declare_throttle_without_args(
+        'MonthFilterWidgetOptionsButtonSetterComponent.throttled_update_page_widget',
         this.update_page_widget.bind(this),
         50,
         false
@@ -80,6 +81,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
     private widget_options: MonthFilterWidgetOptionsVO = null;
 
     private throttled_load_all_months_page_widgets = ThrottleHelper.declare_throttle_without_args(
+        'MonthFilterWidgetOptionsButtonSetterComponent.throttled_load_all_months_page_widgets',
         this.load_all_months_page_widgets.bind(this),
         50,
         false

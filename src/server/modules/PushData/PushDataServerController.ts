@@ -61,31 +61,33 @@ export default class PushDataServerController {
 
     // public static TASK_NAME_notifyVarsTabsReload: string = 'PushDataServerController' + '.notifyVarsTabsReload';
 
-    private static throttled_notifyVarsDatasBySocket = ThrottleHelper.declare_throttle_with_stackable_args(async (stackable_args: any[]) => {
-        if (!stackable_args) {
-            return;
-        }
-
-        const params: { [socket_id: string]: VarDataValueResVO[] } = {};
-        stackable_args.forEach((stackable_arg: { socket_id: string, vos: VarDataValueResVO[] }) => {
-
-            if ((!stackable_arg.socket_id) || (!stackable_arg.vos) || (!stackable_arg.vos.length)) {
+    private static throttled_notifyVarsDatasBySocket = ThrottleHelper.declare_throttle_with_stackable_args(
+        'PushDataServerController.notifyVarsDatasBySocket_',
+        async (stackable_args: any[]) => {
+            if (!stackable_args) {
                 return;
             }
 
-            if (!params[stackable_arg.socket_id]) {
-                params[stackable_arg.socket_id] = stackable_arg.vos;
-                return;
-            }
-            params[stackable_arg.socket_id] = params[stackable_arg.socket_id].concat(stackable_arg.vos);
-        });
+            const params: { [socket_id: string]: VarDataValueResVO[] } = {};
+            stackable_args.forEach((stackable_arg: { socket_id: string, vos: VarDataValueResVO[] }) => {
 
-        const promises = [];
-        for (const socket_id in params) {
-            promises.push(PushDataServerController.notifyVarsDatasBySocket_(socket_id, params[socket_id]));
-        }
-        await all_promises(promises);
-    }, 100, false);
+                if ((!stackable_arg.socket_id) || (!stackable_arg.vos) || (!stackable_arg.vos.length)) {
+                    return;
+                }
+
+                if (!params[stackable_arg.socket_id]) {
+                    params[stackable_arg.socket_id] = stackable_arg.vos;
+                    return;
+                }
+                params[stackable_arg.socket_id] = params[stackable_arg.socket_id].concat(stackable_arg.vos);
+            });
+
+            const promises = [];
+            for (const socket_id in params) {
+                promises.push(PushDataServerController.notifyVarsDatasBySocket_(socket_id, params[socket_id]));
+            }
+            await all_promises(promises);
+        }, 100, false);
 
 
     private static PROMPT_UID: number = 0;

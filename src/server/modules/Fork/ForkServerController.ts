@@ -37,7 +37,9 @@ export default class ForkServerController {
     // On informe chaque thread de son identité auprès du parent pour permettre de faire des communications identifiées et plus tard inter-threads
     public static forks_uid_sent: { [uid: number]: boolean } = {};
 
-    public static throttled_reload_unavailable_threads = ThrottleHelper.declare_throttle_without_args(this.reload_unavailable_threads.bind(this), 500, false);
+    public static throttled_reload_unavailable_threads = ThrottleHelper.declare_throttle_without_args(
+        'ForkServerController.reload_unavailable_threads',
+        this.reload_unavailable_threads.bind(this), 500, false);
     public static fork_by_type_and_name: { [exec_type: string]: { [name: string]: IFork } } = {};
 
     public static forks: { [uid: number]: IFork } = {};

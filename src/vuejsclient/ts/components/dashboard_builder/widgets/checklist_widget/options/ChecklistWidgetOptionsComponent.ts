@@ -37,7 +37,9 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: ChecklistWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, false);
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+        'ChecklistWidgetOptionsComponent.throttled_update_options',
+        this.update_options.bind(this), 50, false);
 
     private checklist_selected: CheckListVO = null;
     private delete_all_button: boolean = false;

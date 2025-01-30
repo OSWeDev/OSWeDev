@@ -67,19 +67,28 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private new_header_columns: string = null;
 
     private column_width: number = 0;
-    private throttled_update_column_width = ThrottleHelper.declare_throttle_without_args(this.update_column_width.bind(this), 800, false);
+    private throttled_update_column_width = ThrottleHelper.declare_throttle_without_args(
+        'TableWidgetColumnOptionsComponent.throttled_update_column_width',
+        this.update_column_width.bind(this), 800, false);
 
     private default_sort_field: number = 0;
-    private throttled_update_default_sort_field = ThrottleHelper.declare_throttle_without_args(this.update_default_sort_field.bind(this), 800, false);
+    private throttled_update_default_sort_field = ThrottleHelper.declare_throttle_without_args(
+        'TableWidgetColumnOptionsComponent.throttled_update_default_sort_field',
+        this.update_default_sort_field.bind(this), 800, false);
 
     private throttled_update_colors_by_value_and_conditions = ThrottleHelper.declare_throttle_without_args(
+        'TableWidgetColumnOptionsComponent.throttled_update_colors_by_value_and_conditions',
         this.update_colors_by_value_and_conditions.bind(this),
         800,
         false
     );
 
-    private throttled_update_enum_colors = ThrottleHelper.declare_throttle_without_args(this.update_enum_colors.bind(this), 800, false);
-    private throttled_update_custom_filter = ThrottleHelper.declare_throttle_without_args(this.update_custom_filter.bind(this), 800, false);
+    private throttled_update_enum_colors = ThrottleHelper.declare_throttle_without_args(
+        'TableWidgetColumnOptionsComponent.throttled_update_enum_colors',
+        this.update_enum_colors.bind(this), 800, false);
+    private throttled_update_custom_filter = ThrottleHelper.declare_throttle_without_args(
+        'TableWidgetColumnOptionsComponent.throttled_update_custom_filter',
+        this.update_custom_filter.bind(this), 800, false);
 
     private filter_by_access_options: string[] = [];
 

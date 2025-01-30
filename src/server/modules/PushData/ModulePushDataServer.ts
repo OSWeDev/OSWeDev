@@ -39,8 +39,12 @@ export default class ModulePushDataServer extends ModuleServerBase {
     @StatThisMapKeys('ModulePushDataServer', ModulePushDataServer.getInstance)
     private registered_rooms: { [room_id: string]: any } = {};
 
-    private throttle_broadcast_registered_rooms = ThrottleHelper.declare_throttle_with_mappable_args(this.broadcast_registered_rooms, 1);
-    private throttle_broadcast_unregistered_rooms = ThrottleHelper.declare_throttle_with_mappable_args(this.broadcast_unregistered_rooms, 1);
+    private throttle_broadcast_registered_rooms = ThrottleHelper.declare_throttle_with_mappable_args(
+        'ModulePushDataServer.throttle_broadcast_registered_rooms',
+        this.broadcast_registered_rooms, 1);
+    private throttle_broadcast_unregistered_rooms = ThrottleHelper.declare_throttle_with_mappable_args(
+        'ModulePushDataServer.throttle_broadcast_unregistered_rooms',
+        this.broadcast_unregistered_rooms, 1);
 
     // istanbul ignore next: cannot test module constructor
     private constructor() {

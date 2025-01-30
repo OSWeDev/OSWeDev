@@ -153,8 +153,12 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     private functions_by_id: { [id: number]: GPTAssistantAPIFunctionVO } = {};
 
-    private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
-    private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
+    private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(
+        'OseliaThreadWidgetComponent.throttle_load_thread',
+        this.load_thread.bind(this), 10);
+    private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(
+        'OseliaThreadWidgetComponent.throttle_register_thread',
+        this.register_thread.bind(this), 10);
 
     get role_assistant_avatar_url() {
         return '/public/vuejsclient/img/avatars/oselia.png';

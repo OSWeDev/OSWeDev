@@ -38,8 +38,12 @@ export default class VarsClientController {
 
     public last_notif_received: number = 0;
 
-    public throttled_server_registration = ThrottleHelper.declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 50, false);
-    public throttled_server_unregistration = ThrottleHelper.declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 100, false);
+    public throttled_server_registration = ThrottleHelper.declare_throttle_with_mappable_args(
+        'VarsClientController.throttled_server_registration',
+        this.do_server_registration.bind(this), 50, false);
+    public throttled_server_unregistration = ThrottleHelper.declare_throttle_with_mappable_args(
+        'VarsClientController.throttled_server_unregistration',
+        this.do_server_unregistration.bind(this), 100, false);
 
     /**
      * Utilisé comme sémaphore pour l'édition inline des vars

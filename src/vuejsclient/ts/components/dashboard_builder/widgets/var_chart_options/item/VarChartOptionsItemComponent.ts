@@ -50,7 +50,9 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_custom_filters: string[];
-    private throttled_emit_changes = ThrottleHelper.declare_throttle_without_args(this.emit_change.bind(this), 50, false);
+    private throttled_emit_changes = ThrottleHelper.declare_throttle_without_args(
+        'VarChartOptionsItemComponent.throttled_emit_changes',
+        this.emit_change.bind(this), 50, false);
 
     private options_props: VarChartOptionsVO;
 

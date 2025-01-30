@@ -100,30 +100,30 @@ export default class PromisePipeline {
         }
     }
 
-    public async await_free_slot(): Promise<void> {
-        if (this.has_free_slot()) {
-            return;
-        }
+    // public async await_free_slot(): Promise<void> {
+    //     if (this.has_free_slot()) {
+    //         return;
+    //     }
 
-        if (this.stat_name) {
-            StatsController.register_stat_COMPTEUR('PromisePipeline', this.stat_name, 'await_free_slot');
-        }
+    //     if (this.stat_name) {
+    //         StatsController.register_stat_COMPTEUR('PromisePipeline', this.stat_name, 'await_free_slot');
+    //     }
 
-        const time_in = Dates.now_ms();
+    //     const time_in = Dates.now_ms();
 
-        return new Promise(async (resolve, reject) => {
+    //     return new Promise(async (resolve, reject) => {
 
-            EventsController.on_next_event(
-                this.free_slot_event_name,
-                (async (): Promise<any> => {
-                    if (this.stat_name) {
-                        StatsController.register_stat_DUREE('PromisePipeline', this.stat_name, 'await_free_slot', Dates.now_ms() - time_in);
-                    }
+    //         EventsController.on_next_event(
+    //             this.free_slot_event_name,
+    //             (async (): Promise<any> => {
+    //                 if (this.stat_name) {
+    //                     StatsController.register_stat_DUREE('PromisePipeline', this.stat_name, 'await_free_slot', Dates.now_ms() - time_in);
+    //                 }
 
-                    resolve();
-                }).bind(this));
-        });
-    }
+    //                 resolve();
+    //             }).bind(this));
+    //     });
+    // }
 
     /**
      * Objectif : Ajouter une promise au pipeline, mais uniquement quand on aura de la place dans le pipeline

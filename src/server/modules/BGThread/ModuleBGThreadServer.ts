@@ -184,7 +184,9 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
          *  Le throttle est appelé depuis n'importe quel thread, et s'exécutera au final le thread du bgthread
          */
         BGThreadServerController.force_run_asap_by_bgthread_name[bgthread.name] =
-            ThrottleHelper.declare_throttle_without_args(force_run_asap_throttled.bind(bgthread), 10);
+            ThrottleHelper.declare_throttle_without_args(
+                'BGThreadServerController.force_run_asap_by_bgthread_name.' + bgthread.name,
+                force_run_asap_throttled.bind(bgthread), 10);
         // On register ici la tache qui sera exécutée sur le BGthread - qui est par ailleurs throttled
         ForkedTasksController.register_task(bgthread_force_run_asap_throttled_task_name, BGThreadServerController.force_run_asap_by_bgthread_name[bgthread.name].bind(bgthread));
 

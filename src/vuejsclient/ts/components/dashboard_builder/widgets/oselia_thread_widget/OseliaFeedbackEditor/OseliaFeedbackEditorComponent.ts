@@ -36,8 +36,12 @@ export default class OseliaFeedbackEditorComponent extends VueComponentBase {
     private current_user_feedback_id: number;
 
     public current_user_feedback: OseliaThreadFeedbackVO | OseliaThreadMessageFeedbackVO = null;
-    private throttle_load_feedback = ThrottleHelper.declare_throttle_without_args(this.load_feedback, 10);
-    private throttle_save_feedback = ThrottleHelper.declare_throttle_without_args(this.save_feedback, 10);
+    private throttle_load_feedback = ThrottleHelper.declare_throttle_without_args(
+        'OseliaFeedbackEditorComponent.throttle_load_feedback',
+        this.load_feedback, 10);
+    private throttle_save_feedback = ThrottleHelper.declare_throttle_without_args(
+        'OseliaFeedbackEditorComponent.throttle_save_feedback',
+        this.save_feedback, 10);
 
     private has_modified_feedback: boolean = false;
 

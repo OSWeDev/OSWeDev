@@ -17,7 +17,9 @@ import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableCon
 export default class EnvParamsComponent extends VueComponentBase {
 
     private env_params: EnvParamsVO = null;
-    private throttle_get_env_params = ThrottleHelper.declare_throttle_without_args(this.get_env_params.bind(this), 10);
+    private throttle_get_env_params = ThrottleHelper.declare_throttle_without_args(
+        'EnvParamsComponent.throttle_get_env_params',
+        this.get_env_params.bind(this), 10);
 
     get module_table() {
         return ModuleTableController.module_tables_by_vo_type[EnvParamsVO.API_TYPE_ID];

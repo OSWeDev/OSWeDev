@@ -69,8 +69,12 @@ export default class ConsoleHandler {
     private static old_console_warn: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_error: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_debug: (message?: any, ...optionalParams: any[]) => void = null;
-    private static log_to_console_throttler = ThrottleHelper.declare_throttle_without_args(this.log_to_console.bind(this), 1000);
-    private static add_logs_client_throttler = ThrottleHelper.declare_throttle_without_args(this.add_logs_client.bind(this), 1000, false);
+    private static log_to_console_throttler = ThrottleHelper.declare_throttle_without_args(
+        'ConsoleHandler.log_to_console',
+        this.log_to_console.bind(this), 1000);
+    private static add_logs_client_throttler = ThrottleHelper.declare_throttle_without_args(
+        'ConsoleHandler.add_logs_client',
+        this.add_logs_client.bind(this), 1000, false);
     private static throttled_logs_counter: { [log: string]: number } = {};
 
     @StatThisArrayLength("ConsoleHandler")

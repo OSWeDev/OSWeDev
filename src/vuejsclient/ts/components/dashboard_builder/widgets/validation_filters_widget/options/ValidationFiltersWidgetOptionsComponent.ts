@@ -29,8 +29,12 @@ export default class ValidationFiltersWidgetOptionsComponent extends VueComponen
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: ValidationFiltersWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, false);
-    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(this.update_colors.bind(this), 800, false);
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+        'ValidationFiltersWidgetOptionsComponent.throttled_update_options',
+        this.update_options.bind(this), 50, false);
+    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(
+        'ValidationFiltersWidgetOptionsComponent.throttled_update_colors',
+        this.update_colors.bind(this), 800, false);
 
     private fg_color_text: string = null;
     private bg_color: string = null;

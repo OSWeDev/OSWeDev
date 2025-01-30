@@ -40,7 +40,9 @@ export default class VarDescComponent extends VueComponentBase {
     private show_last_update: boolean;
 
     private var_data: VarDataValueResVO = null;
-    private throttled_var_data_updater = ThrottleHelper.declare_throttle_without_args(this.var_data_updater.bind(this), 500, false);
+    private throttled_var_data_updater = ThrottleHelper.declare_throttle_without_args(
+        'VarDescComponent.throttled_var_data_updater',
+        this.var_data_updater.bind(this), 500, false);
 
     private var_data_value = null;
     private filtered_value = null;

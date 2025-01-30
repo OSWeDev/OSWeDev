@@ -257,6 +257,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private debounced_async_load = debounce(this.async_load, 100);
 
     private reset_targets = ThrottleHelper.declare_throttle_without_args(
+        'ProgramPlanComponent.reset_targets',
         this.reset_targets_throttled.bind(this),
         100,
         false

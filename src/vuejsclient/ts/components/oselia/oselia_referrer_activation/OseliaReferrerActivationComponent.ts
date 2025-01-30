@@ -24,7 +24,9 @@ export default class OseliaReferrerActivationComponent extends VueComponentBase 
     private referrer_name: string = null;
     private frame: HTMLElement = null;
 
-    private throttle_init = ThrottleHelper.declare_throttle_without_args(this.init, 100);
+    private throttle_init = ThrottleHelper.declare_throttle_without_args(
+        'OseliaReferrerActivationComponent.throttle_init',
+        this.init, 100);
 
     @Watch('referrer_user_ott', { immediate: true })
     private async on_referrer_user_ott_change() {

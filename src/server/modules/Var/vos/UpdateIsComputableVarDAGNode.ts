@@ -3,7 +3,9 @@ import VarDAGNode from "./VarDAGNode";
 
 export default class UpdateIsComputableVarDAGNode {
 
-    public static throttle_update_is_computable_var_dag_node = ThrottleHelper.declare_throttle_with_mappable_args(UpdateIsComputableVarDAGNode.update_is_computable_var_dag_node, 1);
+    public static throttle_update_is_computable_var_dag_node = ThrottleHelper.declare_throttle_with_mappable_args(
+        'UpdateIsComputableVarDAGNode.throttle_update_is_computable_var_dag_node',
+        UpdateIsComputableVarDAGNode.update_is_computable_var_dag_node, 1);
 
     private static update_is_computable_var_dag_node(nodes: { [node_name: string]: VarDAGNode }) {
 

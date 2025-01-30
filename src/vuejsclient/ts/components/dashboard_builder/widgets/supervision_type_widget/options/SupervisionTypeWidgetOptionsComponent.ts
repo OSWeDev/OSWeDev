@@ -40,7 +40,9 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: SupervisionTypeWidgetOptionsVO = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, false);
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+        'SupervisionTypeWidgetOptionsComponent.throttled_update_options',
+        this.update_options.bind(this), 50, false);
 
     private supervision_api_type_ids: string[] = [];
     private supervision_select_options: string[] = [];

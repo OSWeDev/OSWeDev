@@ -55,18 +55,21 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     private shared_filters_with_dashboard: SharedFiltersVO[] = [];
 
     private throttled_load_dashboard_pages = ThrottleHelper.declare_throttle_without_args(
+        'DashboardSharedFiltersComponent.load_dashboard_pages',
         this.load_dashboard_pages.bind(this),
         50,
         false
     );
 
     private throttled_load_all_shared_filters = ThrottleHelper.declare_throttle_with_stackable_args(
+        'DashboardSharedFiltersComponent.load_all_shared_filters',
         this.load_all_shared_filters.bind(this),
         50,
         false
     );
 
     private throttled_load_dashboard_pages_field_filters_map = ThrottleHelper.declare_throttle_without_args(
+        'DashboardSharedFiltersComponent.load_dashboard_pages_field_filters_map',
         this.load_dashboard_pages_field_filters_map.bind(this),
         50,
         false

@@ -61,7 +61,9 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
     private filtered_grilles: SuiviCompetencesGrilleVO[] = [];
     private all_filtered_grilles: SuiviCompetencesGrilleVO[] = [];
 
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, false);
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+        'SuiviCompetencesWidgetOptionsComponent.throttled_update_options',
+        this.update_options.bind(this), 50, false);
 
 
     get widget_options(): SuiviCompetencesWidgetOptionsVO {

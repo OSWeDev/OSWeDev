@@ -39,9 +39,15 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
     private get_custom_filters: string[];
 
     private next_update_options: VarRadarChartWidgetOptionsVO = null;
-    private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(this.reload_options.bind(this), 50, false);
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, false);
-    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(this.update_colors.bind(this), 800, false);
+    private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(
+        'VarRadarChartWidgetOptionsComponent.throttled_reload_options',
+        this.reload_options.bind(this), 50, false);
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+        'VarRadarChartWidgetOptionsComponent.throttled_update_options',
+        this.update_options.bind(this), 50, false);
+    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(
+        'VarRadarChartWidgetOptionsComponent.throttled_update_colors',
+        this.update_colors.bind(this), 800, false);
 
     private tmp_selected_var_name_1: string = null;
     private tmp_selected_var_name_2: string = null;

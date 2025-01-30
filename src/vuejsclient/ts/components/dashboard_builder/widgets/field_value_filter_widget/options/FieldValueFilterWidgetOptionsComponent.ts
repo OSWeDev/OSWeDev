@@ -155,9 +155,15 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private next_update_options: FieldValueFilterWidgetOptionsVO = null;
 
     // Perform the action of update colors
-    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(this.update_colors.bind(this), 800, false);
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, false);
-    private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(this.update_visible_options.bind(this), 300, false);
+    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(
+        'FieldValueFilterWidgetOptionsComponent.throttled_update_colors',
+        this.update_colors.bind(this), 800, false);
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+        'FieldValueFilterWidgetOptionsComponent.throttled_update_options',
+        this.update_options.bind(this), 50, false);
+    private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(
+        'FieldValueFilterWidgetOptionsComponent.throttled_update_visible_options',
+        this.update_visible_options.bind(this), 300, false);
 
     private crud_api_type_id_selected: string = null;
 

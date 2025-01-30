@@ -42,7 +42,9 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
 
     @Prop({ default: null })
     private get_var_name_code_text: (page_widget_id: number, var_id: number, chart_id: number) => string;
-    private throttled_emit_changes = ThrottleHelper.declare_throttle_without_args(this.emit_change.bind(this), 50, false);
+    private throttled_emit_changes = ThrottleHelper.declare_throttle_without_args(
+        'VarChartScalesOptionsItemComponent.throttled_emit_changes',
+        this.emit_change.bind(this), 50, false);
     private options_props: VarChartScalesOptionsVO = null;
     private show_scale_title: boolean = true;
     private scale_options: Partial<Scale> = null;

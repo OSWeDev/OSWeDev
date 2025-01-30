@@ -46,7 +46,9 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
 
     private default_values_changed: boolean = false; //Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
 
-    private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(this.update_visible_options.bind(this), 300, false);
+    private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(
+        'FieldValueFilterBooleanWidgetComponent.throttled_update_visible_options',
+        this.update_visible_options.bind(this), 300, false);
 
     private boolean_filter_types: number[] = [];
     private is_init: boolean = true;

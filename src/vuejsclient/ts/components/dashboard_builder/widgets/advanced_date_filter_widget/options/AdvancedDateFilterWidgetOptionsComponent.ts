@@ -61,7 +61,9 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     private auto_select_relative_date_max: number = null;
 
     private next_update_options: AdvancedDateFilterWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, false);
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+        'AdvancedDateFilterWidgetOptionsComponent.throttled_update_options',
+        this.update_options.bind(this), 50, false);
 
     private custom_filter_name: string = null;
     private is_vo_field_ref: boolean = true;

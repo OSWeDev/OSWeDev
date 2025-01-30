@@ -11,6 +11,7 @@ export default class ThrottleHelper {
     public static UID: number = 0;
 
     public static declare_throttle_without_args(
+        name: string, // Obligatoire pour permettre de nommer correctement les evenements et suivre les perfs proprement
         func: () => void | Promise<void>,
         wait_ms: number,
         leading: boolean = true,
@@ -18,7 +19,7 @@ export default class ThrottleHelper {
 
         // Refonte, on passe par le système des évènements
         const UID = ThrottleHelper.get_next_UID();
-        const event_name = 'Throttle.throttle_' + UID;
+        const event_name = 'Throttle.' + name + '.' + UID;
         const listener = EventifyEventListenerInstanceVO.new_listener(
             event_name,
             func,
@@ -36,6 +37,7 @@ export default class ThrottleHelper {
 
 
     public static declare_throttle_with_mappable_args(
+        name: string, // Obligatoire pour permettre de nommer correctement les evenements et suivre les perfs proprement
         func: (mappable_args: { [map_elt_id: string]: unknown }) => void | Promise<void>,
         wait_ms: number,
         leading: boolean = true,
@@ -43,7 +45,7 @@ export default class ThrottleHelper {
 
         // Refonte, on passe par le système des évènements
         const UID = ThrottleHelper.get_next_UID();
-        const event_name = 'Throttle.throttle_' + UID;
+        const event_name = 'Throttle.' + name + '.' + UID;
         const listener = EventifyEventListenerInstanceVO.new_listener(
             event_name,
             async (event: EventifyEventInstanceVO, l: EventifyEventListenerInstanceVO) => {
@@ -62,6 +64,7 @@ export default class ThrottleHelper {
     }
 
     public static declare_throttle_with_stackable_args(
+        name: string, // Obligatoire pour permettre de nommer correctement les evenements et suivre les perfs proprement
         func: (stackable_args: unknown[]) => void | Promise<void>,
         wait_ms: number,
         leading: boolean = true,
@@ -69,7 +72,7 @@ export default class ThrottleHelper {
 
         // Refonte, on passe par le système des évènements
         const UID = ThrottleHelper.get_next_UID();
-        const event_name = 'Throttle.throttle_' + UID;
+        const event_name = 'Throttle.' + name + '.' + UID;
         const listener = EventifyEventListenerInstanceVO.new_listener(
             event_name,
             async (event: EventifyEventInstanceVO, l: EventifyEventListenerInstanceVO) => {

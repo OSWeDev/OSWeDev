@@ -1,9 +1,9 @@
 import { isArray } from "lodash";
-import ConfigurationService from "../../../server/env/ConfigurationService";
 import EventifyEventInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventInstanceVO";
 import EventifyEventListenerInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import ThreadHandler from "../../../shared/tools/ThreadHandler";
+import { all_promises } from "../../tools/PromiseTools";
 import Dates from "../FormatDatesNombres/Dates/Dates";
 import { StatThisMapKeys } from "../Stats/annotations/StatThisMapKeys";
 import StatsController from "../Stats/StatsController";
@@ -13,10 +13,19 @@ import EventifyPerfReportVO from "./vos/perfs/EventifyPerfReportVO";
 
 export default class EventsController {
 
+    public static SMALL_TASKS_FAST_TRACK_PSEUDO_LISTENER_NAME_SUFFIX: string = 'SMALL_TASKS_FAST_TRACK';
+    public static SMALL_SEMAPHORED_TASKS_FAST_TRACK_PSEUDO_LISTENER_NAME_SUFFIX: string = 'SMALL_SEMAPHORED_TASKS_FAST_TRACK';
+
     /**
      * Hook initialisé au début du serveur pour pouvoir mettre un flag Context
      */
     public static hook_stack_incompatible: <T extends Array<unknown>, U>(callback: (...params: T) => U | Promise<U>, this_arg: unknown, reason_context_incompatible: string, ...params: T) => Promise<U> = null;
+
+    /**
+     * Mis à jour automatiquement depuis la valeur des ConfigurationService.node_configuration.debug_slow_event_listeners et ConfigurationService.node_configuration.debug_slow_event_listeners_ms_limit
+     */
+    public static debug_slow_event_listeners: boolean = false;
+    public static debug_slow_event_listeners_ms_limit: number = 1000;
 
     /**
      * Pour activer le log des emissions d'events et call de listeners liés à ces noms d'events
@@ -34,6 +43,25 @@ export default class EventsController {
     private static last_logged_duration_listener: { [listener_name: string]: number } = {};
     private static last_stated_duration_listener: { [listener_name: string]: number } = {};
 
+    /**
+     * On stocke les smalltasks, des cb - principalement des resolve de promises - qui doivent être lancés rapidement quand on reçoit un event
+     * La structure est par event_name :
+     *      - pour chaque event à venir (index 0 : le prochain, index 1 : le suivant, etc) :
+     *          - la liste des cbs à lancer. On les lance en parrallèle (comme les autres listeners en fait)
+     */
+    @StatThisMapKeys('EventsController', null, 1, true)
+    public static small_tasks_fast_track_cbs: { [event_conf_name: string]: Array<Array<(event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown>> } = {};
+
+    /**
+     * On stocke les smalltasks - mais par semaphore cette fois-, des cb - principalement des resolve de promises - qui doivent être lancés rapidement quand on reçoit un event
+     * La structure est par event_name :
+*           - pour chaque semaphore :
+     *          - pour chaque event à venir (index 0 : le prochain, index 1 : le suivant, etc) :
+     *              - le cb, puisqu'on est en semaphore il n'y en a qu'un, à lancer
+     */
+    @StatThisMapKeys('EventsController', null, 2, true)
+    public static small_semaphored_tasks_fast_track_cbs: { [event_conf_name: string]: { [semaphore_name: string]: Array<(event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown> } } = {};
+
     @StatThisMapKeys('EventsController')
     public static registered_events_conf_by_name: { [event_conf_name: string]: EventifyEventConfVO } = {};
     @StatThisMapKeys('EventsController', null, 1)
@@ -44,10 +72,10 @@ export default class EventsController {
 
 
     public static init_events_controller(): void {
-        if (StatsController.ACTIVATED || ConfigurationService.node_configuration.debug_slow_event_listeners) {
+        if (StatsController.ACTIVATED || EventsController.debug_slow_event_listeners) {
             // Si on a des stats ou des logs à faire, on active l'intervale pour checker les listeners lents
             setInterval(() => {
-                if (ConfigurationService.node_configuration.debug_slow_event_listeners) {
+                if (EventsController.debug_slow_event_listeners) {
                     this.log_slow_listeners();
                 }
                 if (StatsController.ACTIVATED) {
@@ -65,6 +93,16 @@ export default class EventsController {
 
         if (EventsController.log_events_names[event.name]) {
             ConsoleHandler.log('Emitting event "' + event.name + '" - ' + (event.param ? 'with param : ' + JSON.stringify(event.param) : 'without param'));
+        }
+
+        // On lance les small tasks fast track
+        if (EventsController.small_tasks_fast_track_cbs[event.name]) {
+            EventsController.handle_small_tasks_fast_track(event);
+        }
+
+        // ... et les small semaphored tasks fast track
+        if (EventsController.small_semaphored_tasks_fast_track_cbs[event.name]) {
+            EventsController.handle_small_semaphored_tasks_fast_track(event);
         }
 
         // Pas de listeners enregistrés pour cet event, on ignore
@@ -252,10 +290,16 @@ export default class EventsController {
             ConsoleHandler.log('on_next_event "' + event_name + '"');
         }
 
-        const listener: EventifyEventListenerInstanceVO = EventifyEventListenerInstanceVO.new_listener(event_name, cb);
-        listener.remaining_calls = 1;
-        listener.unlimited_calls = false;
-        EventsController.register_event_listener(listener);
+        // On se rajoute simplement sur le small tasks fast track
+        if (!EventsController.small_tasks_fast_track_cbs[event_name]) {
+            EventsController.small_tasks_fast_track_cbs[event_name] = [];
+        }
+
+        if (EventsController.small_tasks_fast_track_cbs[event_name][0]) {
+            EventsController.small_tasks_fast_track_cbs[event_name][0].push(cb);
+        } else {
+            EventsController.small_tasks_fast_track_cbs[event_name].push([cb]);
+        }
     }
 
     /**
@@ -294,34 +338,21 @@ export default class EventsController {
             EventsController.semaphored_await_next_promises[full_semaphore_name] = [];
         }
 
-        // On déclare la nouvelle promise dans la map
-        let resolve_promise = null;
-        const waiting_for_event_promise = new Promise((resolve, reject) => {
-
-            resolve_promise = () => {
-                // On supprime la promise de la map
-                EventsController.semaphored_await_next_promises[full_semaphore_name].shift();
-
-                if (EventsController.semaphored_await_next_promises[full_semaphore_name].length == 0) {
-                    delete EventsController.semaphored_await_next_promises[full_semaphore_name];
-                }
-
-                resolve(null);
-            };
-        });
-        EventsController.semaphored_await_next_promises[full_semaphore_name].push(waiting_for_event_promise);
-        // On attend la promise précédente dans la map
-        if (EventsController.semaphored_await_next_promises[full_semaphore_name].length > 1) {
-            await EventsController.semaphored_await_next_promises[full_semaphore_name][EventsController.semaphored_await_next_promises[full_semaphore_name].length - 2];
-
-            if (EventsController.log_events_names[event_name]) {
-                ConsoleHandler.log('await_next_event_semaphored "' + event_name + '" - Previous await_next_event_semaphored triggered - waiting for next event');
-            }
-
+        // On se rajoute simplement sur le small semaphored tasks fast track
+        if (!EventsController.small_semaphored_tasks_fast_track_cbs[event_name]) {
+            EventsController.small_semaphored_tasks_fast_track_cbs[event_name] = {};
         }
 
-        // On attend le prochain event
-        EventsController.on_next_event(event_name, resolve_promise);
+        if (!EventsController.small_semaphored_tasks_fast_track_cbs[event_name][full_semaphore_name]) {
+            EventsController.small_semaphored_tasks_fast_track_cbs[event_name][full_semaphore_name] = [];
+        }
+
+        let resolve_promise = null;
+        const waiting_for_event_promise = new Promise((resolve, reject) => {
+            resolve_promise = resolve;
+        });
+
+        EventsController.small_semaphored_tasks_fast_track_cbs[event_name][full_semaphore_name].push(resolve_promise);
         return waiting_for_event_promise;
     }
 
@@ -431,7 +462,8 @@ export default class EventsController {
                     }
 
                     listener.last_cb_run_start_date_ms = Dates.now_ms();
-                    if (EventsController.hook_stack_incompatible) {
+                    // Si on est throttled, on peut pas maintenir un contexte
+                    if (listener.throttled && EventsController.hook_stack_incompatible) {
                         await EventsController.hook_stack_incompatible(listener.cb, listener, 'EventsController.call_listener', event, listener);
                     } else {
                         await listener.cb(event, listener);
@@ -547,14 +579,14 @@ export default class EventsController {
                 const listener = listeners[j];
 
                 if (listener.cb_is_running) {
-                    if ((Dates.now_ms() - listener.last_cb_run_start_date_ms) > ConfigurationService.node_configuration.debug_slow_event_listeners_ms_limit) {
+                    if ((Dates.now_ms() - listener.last_cb_run_start_date_ms) > EventsController.debug_slow_event_listeners_ms_limit) {
                         ConsoleHandler.warn('Slow listener : ' + listener.name + ' for event ' + listener.event_conf_name + ' : ' + (Dates.now_ms() - listener.last_cb_run_start_date_ms) + 'ms (running, started at ' + listener.last_cb_run_start_date_ms + ')');
                     }
                 } else {
                     if (listener.last_cb_run_start_date_ms && listener.last_cb_run_end_date_ms) {
                         if (EventsController.last_logged_duration_listener[listener.name] != listener.last_cb_run_start_date_ms) {
                             EventsController.last_logged_duration_listener[listener.name] = listener.last_cb_run_start_date_ms;
-                            if ((listener.last_cb_run_end_date_ms - listener.last_cb_run_start_date_ms) > ConfigurationService.node_configuration.debug_slow_event_listeners_ms_limit) {
+                            if ((listener.last_cb_run_end_date_ms - listener.last_cb_run_start_date_ms) > EventsController.debug_slow_event_listeners_ms_limit) {
                                 ConsoleHandler.warn('Slow listener : ' + listener.name + ' for event ' + listener.event_conf_name + ' : ' + (listener.last_cb_run_end_date_ms - listener.last_cb_run_start_date_ms) + 'ms (ended, started at ' + listener.last_cb_run_start_date_ms + ')');
                             }
                         }
@@ -581,7 +613,7 @@ export default class EventsController {
                 }
                 if (listener.cb_is_running) {
                     nb_running++;
-                    if ((Dates.now_ms() - listener.last_cb_run_start_date_ms) > ConfigurationService.node_configuration.debug_slow_event_listeners_ms_limit) {
+                    if ((Dates.now_ms() - listener.last_cb_run_start_date_ms) > EventsController.debug_slow_event_listeners_ms_limit) {
                         nb_slow_listeners_picked++;
                     }
 
@@ -592,7 +624,7 @@ export default class EventsController {
                     if (listener.last_cb_run_start_date_ms && listener.last_cb_run_end_date_ms) {
                         if (EventsController.last_stated_duration_listener[listener.name] != listener.last_cb_run_start_date_ms) {
                             EventsController.last_stated_duration_listener[listener.name] = listener.last_cb_run_start_date_ms;
-                            if ((listener.last_cb_run_end_date_ms - listener.last_cb_run_start_date_ms) > ConfigurationService.node_configuration.debug_slow_event_listeners_ms_limit) {
+                            if ((listener.last_cb_run_end_date_ms - listener.last_cb_run_start_date_ms) > EventsController.debug_slow_event_listeners_ms_limit) {
                                 nb_slow_listeners_picked++;
                             }
                         }
@@ -605,5 +637,133 @@ export default class EventsController {
         StatsController.register_stat_QUANTITE('EventsController', 'stats_listeners', 'nb_waiting_for_rerun', nb_waiting_for_rerun);
         StatsController.register_stat_QUANTITE('EventsController', 'stats_listeners', 'nb_coolingdown', nb_coolingdown);
         StatsController.register_stat_QUANTITE('EventsController', 'stats_listeners', 'nb_slow_listeners_picked', nb_slow_listeners_picked);
+    }
+
+    private static async handle_small_tasks_fast_track(event: EventifyEventInstanceVO) {
+
+        const cbs = EventsController.small_tasks_fast_track_cbs[event.name].shift();
+        if (!cbs) {
+            delete EventsController.small_tasks_fast_track_cbs[event.name];
+            return;
+        }
+
+        if (!EventsController.small_tasks_fast_track_cbs[event.name].length) {
+            delete EventsController.small_tasks_fast_track_cbs[event.name];
+        }
+
+        const listener_name = event.name + '.' + EventsController.SMALL_TASKS_FAST_TRACK_PSEUDO_LISTENER_NAME_SUFFIX;
+        if (EventsController.log_events_names[event.name]) {
+            ConsoleHandler.log('call_listener "' + event.name + '" - Small Tasks Fast Track : ' + cbs.length + ' cbs - IN');
+        }
+
+        const promises = [];
+        for (const i in cbs) {
+            const cb = cbs[i];
+
+            promises.push((async () => {
+                const start_date_ms = Dates.now_ms();
+                await cb(event, null);
+                const end_date_ms = Dates.now_ms();
+
+                // Gestion du perf report
+                if (EventsController.current_perf_report) {
+                    if (!EventsController.current_perf_report.perf_datas[listener_name]) {
+                        EventsController.current_perf_report.perf_datas[listener_name] = {
+                            event_name: event.name,
+                            listener_name: listener_name,
+                            calls: [],
+                            cooldowns: [],
+                            events: [],
+                        };
+                    }
+
+                    EventsController.current_perf_report.perf_datas[listener_name].calls.push({
+                        start: start_date_ms,
+                        end: end_date_ms,
+                    });
+                }
+            })());
+        }
+
+        await all_promises(promises);
+
+        if (EventsController.log_events_names[event.name]) {
+            ConsoleHandler.log('call_listener "' + event.name + '" - Small Tasks Fast Track : ' + cbs.length + ' cbs - OUT');
+        }
+    }
+
+    private static async handle_small_semaphored_tasks_fast_track(event: EventifyEventInstanceVO) {
+
+        const semaphores = EventsController.small_semaphored_tasks_fast_track_cbs[event.name];
+        if (!semaphores) {
+            delete EventsController.small_semaphored_tasks_fast_track_cbs[event.name];
+            return;
+        }
+        const semaphore_names = Object.keys(semaphores);
+
+        if ((!semaphore_names) || (!semaphore_names.length)) {
+            delete EventsController.small_semaphored_tasks_fast_track_cbs[event.name];
+            return;
+        }
+
+        const listener_name = event.name + '.' + EventsController.SMALL_SEMAPHORED_TASKS_FAST_TRACK_PSEUDO_LISTENER_NAME_SUFFIX;
+        if (EventsController.log_events_names[event.name]) {
+            ConsoleHandler.log('call_listener "' + event.name + '" - Small Semaphored Tasks Fast Track : ' + semaphore_names.length + ' semaphores - IN');
+        }
+
+        const promises = [];
+        for (const i in semaphore_names) {
+            const semaphore_name = semaphore_names[i];
+            const semaphored_cbs = semaphores[semaphore_name];
+
+            if ((!semaphored_cbs) || (!semaphored_cbs.length)) {
+                delete EventsController.small_semaphored_tasks_fast_track_cbs[event.name][semaphore_name];
+                continue;
+            }
+
+            const cb = semaphored_cbs.shift();
+
+            if (!semaphored_cbs.length) {
+                delete EventsController.small_semaphored_tasks_fast_track_cbs[event.name][semaphore_name];
+
+                if (!Object.keys(EventsController.small_semaphored_tasks_fast_track_cbs[event.name]).length) {
+                    delete EventsController.small_semaphored_tasks_fast_track_cbs[event.name];
+                }
+            }
+
+            if (!cb) {
+                continue;
+            }
+
+            promises.push((async () => {
+                const start_date_ms = Dates.now_ms();
+                await cb(event, null);
+                const end_date_ms = Dates.now_ms();
+
+                // Gestion du perf report
+                if (EventsController.current_perf_report) {
+                    if (!EventsController.current_perf_report.perf_datas[listener_name]) {
+                        EventsController.current_perf_report.perf_datas[listener_name] = {
+                            event_name: event.name,
+                            listener_name: listener_name,
+                            calls: [],
+                            cooldowns: [],
+                            events: [],
+                        };
+                    }
+
+                    EventsController.current_perf_report.perf_datas[listener_name].calls.push({
+                        start: start_date_ms,
+                        end: end_date_ms,
+                    });
+                }
+            })());
+        }
+
+        await all_promises(promises);
+
+        if (EventsController.log_events_names[event.name]) {
+            ConsoleHandler.log('call_listener "' + event.name + '" - Small Semaphored Tasks Fast Track : ' + semaphore_names.length + ' semaphores - OUT');
+        }
     }
 }

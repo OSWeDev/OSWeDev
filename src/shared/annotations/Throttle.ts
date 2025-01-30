@@ -95,7 +95,7 @@ export default function Throttle(options: ThrottleOptions) {
             }
 
             // On check l'existence du throttle
-            const event_name = 'Throttle.throttle_' + UID;
+            const event_name = target.constructor.name + '.' + propertyKey + '.' + UID;
 
             if (needs_to_declare_throttle) {
 

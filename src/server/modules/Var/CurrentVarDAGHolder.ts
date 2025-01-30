@@ -21,7 +21,9 @@ export default class CurrentVarDAGHolder {
     public static has_initialized_stats_process: boolean = false;
     // public static last_check_current_vardag: number = null;
     // public static check_current_vardag_throttler = ThrottleHelper.declare_throttle_without_args(this.check_current_vardag.bind(this), 2000);
-    public static console_log_throttler = ThrottleHelper.declare_throttle_with_mappable_args(this.console_log, 10000);
+    public static console_log_throttler = ThrottleHelper.declare_throttle_with_mappable_args(
+        'CurrentVarDAGHolder.console_log',
+        this.console_log, 10000);
     public static has_send_kill_bgthread: boolean = false;
 
     /**

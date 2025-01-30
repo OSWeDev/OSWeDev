@@ -121,7 +121,9 @@ export default class DashboardBuilderOseliaChatComponent extends VueComponentBas
 
     private dragged = null;
 
-    private throttled_rebuild_page_layout = ThrottleHelper.declare_throttle_without_args(this.rebuild_page_layout.bind(this), 200);
+    private throttled_rebuild_page_layout = ThrottleHelper.declare_throttle_without_args(
+        'DashboardBuilderOseliaChatComponent.throttled_rebuild_page_layout',
+        this.rebuild_page_layout.bind(this), 200);
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
         const sorted_widgets = DashboardBuilderWidgetsController.getInstance().sorted_widgets;

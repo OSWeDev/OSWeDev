@@ -96,6 +96,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private selectedApitypeState: string = null;
 
     private throttled_load_counter = ThrottleHelper.declare_throttle_without_args(
+        'SupervisionTypeWidgetComponent.throttled_load_counter',
         this.load_counter.bind(this),
         50,
         false
