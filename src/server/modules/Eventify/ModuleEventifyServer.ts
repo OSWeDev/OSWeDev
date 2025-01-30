@@ -1,21 +1,17 @@
 import { isMainThread, threadId } from 'worker_threads';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import EnvParamsVO from '../../../shared/modules/EnvParam/vos/EnvParamsVO';
 import EventsController from '../../../shared/modules/Eventify/EventsController';
 import ModuleEventify from '../../../shared/modules/Eventify/ModuleEventify';
-import EventifyPerfReportVO from '../../../shared/modules/Eventify/vos/perfs/EventifyPerfReportVO';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
-import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-import ModuleServerBase from '../ModuleServerBase';
-import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
-import ModuleEnvParamServer from '../EnvParam/ModuleEnvParamServer';
-import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
+import EventifyPerfReportVO from '../../../shared/modules/Eventify/vos/perfs/EventifyPerfReportVO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { reflect } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ModuleEnvParamServer from '../EnvParam/ModuleEnvParamServer';
+import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleEventifyServer extends ModuleServerBase {
 

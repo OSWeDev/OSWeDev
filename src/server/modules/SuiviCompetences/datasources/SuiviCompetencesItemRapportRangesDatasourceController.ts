@@ -32,7 +32,7 @@ export default class SuiviCompetencesItemRapportRangesDatasourceController exten
 
     public async get_data(param: (SuiviCompetencesRapportGroupeDataRangesVO | SuiviCompetencesRapportSousGroupeDataRangesVO)): Promise<number> {
         let limit: number = ConfigurationService.node_configuration.max_pool / 2;
-        let promise_pipeline: PromisePipeline = new PromisePipeline(limit);
+        let promise_pipeline: PromisePipeline = new PromisePipeline(limit, 'SuiviCompetencesItemRapportRangesDatasourceController.get_data');
 
         let groupe_by_ids: { [groupe_id: number]: SuiviCompetencesGroupeVO } = {};
         let sous_groupe_by_ids: { [sous_groupe_id: number]: SuiviCompetencesSousGroupeVO } = {};

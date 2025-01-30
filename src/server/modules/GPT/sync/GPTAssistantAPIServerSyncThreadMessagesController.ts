@@ -321,7 +321,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                 }
             }
 
-            const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2);
+            const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'GPTAssistantAPIServerSyncThreadMessagesController.sync_thread_messages');
             for (const i in thread_messages) {
                 const thread_message = thread_messages[i];
 

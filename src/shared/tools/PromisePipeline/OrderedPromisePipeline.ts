@@ -39,19 +39,20 @@ export default class OrderedPromisePipeline {
     /**
      * Pipeline de promesses, qui permet de limiter le nombre de promesses en parallèle, mais d'en ajouter
      *  autant qu'on veut, et de les exécuter dès qu'il y a de la place dans le pipeline
-     * @param max_concurrent_promises Max number of concurrent promises. Defaults to 1
+     * @param max_concurrent_promises Max number of concurrent promises
      * @param stat_name Register stats for this Pipeline, using this sub category name
      * @param stat_worker Register a worker that records pipeline current size every 10 seconds. BEWARE: This worker is not stopped when the pipeline is destroyed. Use only on permanent pipelines
      */
     public constructor(
-        public max_concurrent_promises: number = 1,
-        public stat_name: string = null,
-        public stat_worker: boolean = true
+        public max_concurrent_promises: number,
+        public stat_name: string,
+        public stat_worker: boolean = false,
     ) {
         this.uid = OrderedPromisePipeline.GLOBAL_UID++;
 
-        if (this.stat_name) {
-            // Dès qu'on a une stat, on lance le worker. Si il est déjà lancé ça aura pas d'impact
+        if ((PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS || StatsController.ACTIVATED) && this.stat_name && this.stat_worker) {
+            // Si on a des stats ou des logs à faire on lance le worker. Si il est déjà lancé ça aura pas d'impact
+            // Si on veut update ces params à la volée (DEBUG_PROMISE_PIPELINE_WORKER_STATS, ACTIVATED), il faut ajouter des watchers
             ThreadHandler.set_interval(
                 'OrderedPromisePipeline.stat_all_ordered_promise_pipelines',
                 OrderedPromisePipeline.stat_all_ordered_promise_pipelines,
@@ -62,7 +63,7 @@ export default class OrderedPromisePipeline {
     }
 
     get free_slot_event_name(): string {
-        return 'OrderedPromisePipeline.free_slot_event_' + this.uid;
+        return 'OrderedPromisePipeline.free_slot_event.' + this.uid + '.' + this.stat_name;
     }
 
     private static stat_all_ordered_promise_pipelines() {
@@ -179,7 +180,7 @@ export default class OrderedPromisePipeline {
             ConsoleHandler.log('OrderedPromisePipeline.end():WAIT:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
-        await EventsController.await_next_event(OrderedPromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid);
+        await EventsController.await_next_event(OrderedPromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid + '.' + this.stat_name);
 
         // On libère la mémoire
         delete OrderedPromisePipeline.all_ordered_promise_pipelines_by_uid[this.uid];
@@ -262,7 +263,7 @@ export default class OrderedPromisePipeline {
 
                 if (this.nb_running_promises === 0) {
 
-                    EventsController.emit_event(EventifyEventInstanceVO.new_event(OrderedPromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid));
+                    EventsController.emit_event(EventifyEventInstanceVO.new_event(OrderedPromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid + '.' + this.stat_name));
                 }
             }
         } while (this.unstack_cb2s_needs_to_retry);

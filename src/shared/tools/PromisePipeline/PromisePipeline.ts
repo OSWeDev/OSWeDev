@@ -28,19 +28,19 @@ export default class PromisePipeline {
     /**
      * Pipeline de promesses, qui permet de limiter le nombre de promesses en parallèle, mais d'en ajouter
      *  autant qu'on veut, et de les exécuter dès qu'il y a de la place dans le pipeline
-     * @param max_concurrent_promises Max number of concurrent promises. Defaults to 1
+     * @param max_concurrent_promises Max number of concurrent promises
      * @param stat_name Register stats for this Pipeline, using this sub category name
      * @param stat_worker Register a worker that records pipeline current size every 10 seconds. BEWARE: This worker is not stopped when the pipeline is destroyed. Use only on permanent pipelines
      */
     public constructor(
-        public max_concurrent_promises: number = 1,
-        public stat_name: string = null,
+        public max_concurrent_promises: number,
+        public stat_name: string,
         public stat_worker: boolean = false,
     ) {
         this.uid = PromisePipeline.GLOBAL_UID++;
 
         // Dès qu'on a une stat, on lance le worker. Si il est déjà lancé ça aura pas d'impact
-        if (StatsController.ACTIVATED && this.stat_name && this.stat_worker) {
+        if ((PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS || StatsController.ACTIVATED) && this.stat_name && this.stat_worker) {
             ThreadHandler.set_interval(
                 'PromisePipeline.stat_all_promise_pipelines',
                 PromisePipeline.stat_all_promise_pipelines,
@@ -51,7 +51,7 @@ export default class PromisePipeline {
     }
 
     get free_slot_event_name(): string {
-        return 'PromisePipeline.free_slot_event_' + this.uid;
+        return 'PromisePipeline.free_slot_event.' + this.uid + '.' + this.stat_name;
     }
 
     get has_running_or_waiting_promises(): boolean {
@@ -229,7 +229,7 @@ export default class PromisePipeline {
 
             // Promise resolever declaration that
             // will be called when all promises are finished
-            await EventsController.await_next_event(PromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid);
+            await EventsController.await_next_event(PromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid + '.' + this.stat_name);
         }
 
         delete PromisePipeline.all_promise_pipelines_by_uid[this.uid];
@@ -277,7 +277,7 @@ export default class PromisePipeline {
                 ConsoleHandler.log('PromisePipeline.do_cb():END PROMISE:' + this.uid + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
-            EventsController.emit_event(EventifyEventInstanceVO.new_event(PromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid));
+            EventsController.emit_event(EventifyEventInstanceVO.new_event(PromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid + '.' + this.stat_name));
         }
     }
 }

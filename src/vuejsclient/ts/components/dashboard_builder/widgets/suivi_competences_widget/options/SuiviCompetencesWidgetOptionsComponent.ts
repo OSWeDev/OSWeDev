@@ -93,7 +93,7 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
         this.niveau_maturite_styles = NiveauMaturiteStyle.get_value(this.widget_options.niveau_maturite_styles);
 
         let limit = EnvHandler.max_pool / 2;
-        let promise_pipeline: PromisePipeline = new PromisePipeline(limit);
+        let promise_pipeline: PromisePipeline = new PromisePipeline(limit, 'SuiviCompetencesWidgetOptionsComponent.onchange_widget_options');
 
         await promise_pipeline.push(async () => {
             this.all_filtered_roles = await query(RoleVO.API_TYPE_ID).select_vos();

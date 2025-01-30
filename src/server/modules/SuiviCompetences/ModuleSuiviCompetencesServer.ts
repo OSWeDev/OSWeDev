@@ -258,7 +258,7 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         }
 
         let limit = ConfigurationService.node_configuration.max_pool / 2;
-        let promise_pipeline = new PromisePipeline(limit);
+        let promise_pipeline = new PromisePipeline(limit, 'SuiviCompetencesServer.get_all_suivi_competences_groupe');
 
         await promise_pipeline.push(async () => {
             groupes = await query(SuiviCompetencesGroupeVO.API_TYPE_ID)

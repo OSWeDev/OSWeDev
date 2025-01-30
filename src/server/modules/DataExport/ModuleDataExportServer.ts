@@ -433,13 +433,18 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         const api_type_id = context_query.base_api_type_id;
         const columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO } = {};
+        let nb_vars_columns = 0;
 
         for (const i in columns) {
             const column = columns[i];
             columns_by_field_id[column.datatable_field_uid] = column;
+
+            if (column.is_var) {
+                nb_vars_columns++;
+            }
         }
 
-        const ordered_promise_pipeline = new OrderedPromisePipeline(100, "do_exportContextQueryToXLSX_contextuid");
+        const ordered_promise_pipeline = new OrderedPromisePipeline(Math.max(Math.round(ConfigurationService.node_configuration.max_pool / (nb_vars_columns * 2)), 2), "do_exportContextQueryToXLSX_contextuid");
         const xlsx_datas = [];
         const has_query_limit = !!context_query.query_limit;
         const limit = has_query_limit ? context_query.query_limit : 25;
