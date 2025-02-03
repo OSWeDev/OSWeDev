@@ -61,7 +61,7 @@ include ../../../../../../views/mixins/loading.pug
                 .message_no_data.mt-3
                     .message_no_data(v-html="widget_options.message_no_data" class="ql-editor" style="word-wrap: break-word;")
             
-            tempalte(v-else)
+            template(v-else)
                 .table_wrapper
                     table.table-striped.table-hover(
                         :class='{"has_sticky_cols": has_sticky_cols}'

@@ -5,7 +5,7 @@ include ../../../../../views/mixins/loading.pug
         .message_no_data.mt-3
             .message_no_data(v-html="widget_options.message_no_data" class="ql-editor" style="word-wrap: break-word;")
     
-    tempalte(v-else)
+    template(v-else)
         .list_object_card_widget(:class="{'suppress_margin_list_object_widget': ((widget_options.is_card_display_single == true) && (widget_options.type_display == TYPE_DISPLAY_CARD))}")
             template(v-if="widget_options && (nb_elements?.length > 0)")
                 template(v-if="widget_options.type_display == TYPE_DISPLAY_LIST")
@@ -51,7 +51,7 @@ include ../../../../../views/mixins/loading.pug
                                 i.fa-solid.fa-chevron-left
 
                         .button_arrow.next
-                            .input(:id="prev_card" @click="next_card_single_display" type="button" v-if="current_element < (nb_elements.length - 1)")
+                            .input(:id="next_card" @click="next_card_single_display" type="button" v-if="current_element < (nb_elements.length - 1)")
                                 i.fa-solid.fa-chevron-right
 
                     template(v-else)
