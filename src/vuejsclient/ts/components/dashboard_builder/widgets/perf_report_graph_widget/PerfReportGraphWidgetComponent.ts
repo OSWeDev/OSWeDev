@@ -18,6 +18,7 @@ import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/Tr
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './PerfReportGraphWidgetComponent.scss';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 
 @Component({
     template: require('./PerfReportGraphWidgetComponent.pug'),
@@ -110,6 +111,8 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
             const perf_data = this.selected_perf_report.perf_datas[name];
             perfs.push({
                 name,
+                event_name: perf_data.event_name,
+                description: perf_data.description,
                 calls: perf_data.calls,
                 cooldowns: perf_data.cooldowns,
                 events: perf_data.events
@@ -196,13 +199,34 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                     .attr("height", yScale.bandwidth() / 2)
                     .attr("fill", "red")
                     .attr("stroke", "red")
+                    .on("click", async (event) => {
+                        await navigator.clipboard.writeText(
+                            'Listener: <b>' + d.name + '</b><br>' +
+                            ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                            (d.description ? d.description + '<br>' : '') +
+                            '<hr>' +
+                            'Start: ' + start_date_formattee + '<br>' +
+                            'End: ' + end_date_formattee
+                        );
+                        ConsoleHandler.debug(
+                            'Listener: <b>' + d.name + '</b><br>' +
+                            ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                            (d.description ? d.description + '<br>' : '') +
+                            '<hr>' +
+                            'Start: ' + start_date_formattee + '<br>' +
+                            'End: ' + end_date_formattee
+                        );
+                    })
                     .on("mouseover", (event) => {
                         tooltip
                             .style("visibility", "visible")
                             .html(
-                                `Listener: <b>${d.name}</b><br>
-                             Start: ${start_date_formattee}<br>
-                             End: ${end_date_formattee}`
+                                'Listener: <b>' + d.name + '</b><br>' +
+                                ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                                (d.description ? d.description + '<br>' : '') +
+                                '<hr>' +
+                                'Start: ' + start_date_formattee + '<br>' +
+                                'End: ' + end_date_formattee
                             )
                             .style("left", (event.pageX - container.left + 10) + "px")
                             .style("top", (event.pageY - container.top - 10) + "px");
@@ -237,13 +261,34 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                     .attr("height", yScale.bandwidth() / 2)
                     .attr("fill", "green")
                     .attr("stroke", "green")
+                    .on("click", async (event) => {
+                        await navigator.clipboard.writeText(
+                            'Listener: <b>' + d.name + '</b><br>' +
+                            ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                            (d.description ? d.description + '<br>' : '') +
+                            '<hr>' +
+                            'Start: ' + start_date_formattee + '<br>' +
+                            'End: ' + end_date_formattee
+                        );
+                        ConsoleHandler.debug(
+                            'Listener: <b>' + d.name + '</b><br>' +
+                            ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                            (d.description ? d.description + '<br>' : '') +
+                            '<hr>' +
+                            'Start: ' + start_date_formattee + '<br>' +
+                            'End: ' + end_date_formattee
+                        );
+                    })
                     .on("mouseover", (event) => {
                         tooltip
                             .style("visibility", "visible")
                             .html(
-                                `Listener: <b>${d.name}</b><br>
-                             Start: ${start_date_formattee}<br>
-                             End: ${end_date_formattee}`
+                                'Listener: <b>' + d.name + '</b><br>' +
+                                ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                                (d.description ? d.description + '<br>' : '') +
+                                '<hr>' +
+                                'Start: ' + start_date_formattee + '<br>' +
+                                'End: ' + end_date_formattee
                             )
                             .style("left", (event.pageX - container.left + 10) + "px")
                             .style("top", (event.pageY - container.top - 10) + "px");
@@ -272,12 +317,31 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                     .attr("cy", yScale(d.name)! + yScale.bandwidth() / 4)
                     .attr("r", 3)
                     .attr("fill", "black")
+                    .on("click", async (event) => {
+                        await navigator.clipboard.writeText(
+                            'Listener: <b>' + d.name + '</b><br>' +
+                            ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                            (d.description ? d.description + '<br>' : '') +
+                            '<hr>' +
+                            'Date: ' + date_formattee
+                        );
+                        ConsoleHandler.debug(
+                            'Listener: <b>' + d.name + '</b><br>' +
+                            ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                            (d.description ? d.description + '<br>' : '') +
+                            '<hr>' +
+                            'Date: ' + date_formattee
+                        );
+                    })
                     .on("mouseover", (event) => {
                         tooltip
                             .style("visibility", "visible")
                             .html(
-                                `Listener: <b>${d.name}</b><br>
-                             Date: ${date_formattee}`
+                                'Listener: <b>' + d.name + '</b><br>' +
+                                ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                                (d.description ? d.description + '<br>' : '') +
+                                '<hr>' +
+                                'Date: ' + date_formattee
                             )
                             .style("left", (event.pageX - container.left + 10) + "px")
                             .style("top", (event.pageY - container.top - 10) + "px");

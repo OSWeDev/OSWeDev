@@ -144,12 +144,14 @@ import ModuleAzureConnect from '../../shared/modules/AzureConnect/ModuleAzureCon
 import ModuleAzureConnectServer from './AzureConnect/ModuleAzureConnectServer';
 import ModuleEventifyServer from './Eventify/ModuleEventifyServer';
 import ModuleEventify from '../../shared/modules/Eventify/ModuleEventify';
+import EventsController from '../../shared/modules/Eventify/EventsController';
 
 export default abstract class ModuleServiceBase {
 
     public static db;
 
     private static instance: ModuleServiceBase;
+    private static query_uid: number = 1;
 
     /**
      * Local thread cache -----
@@ -816,6 +818,8 @@ export default abstract class ModuleServiceBase {
 
     private async db_query(query: string, values?: []) {
 
+        const query_uid: number = ModuleServiceBase.query_uid++;
+        const db_query_time_in = Dates.now_ms();
         let res = null;
         const time_in = Dates.now_ms();
 
@@ -850,7 +854,36 @@ export default abstract class ModuleServiceBase {
                 //     throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.max_union_all_per_query + ')');
             }
 
+            const query_start_ms = Dates.now_ms();
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
+
+
+            // Si on est en mode perf report, on enregistre le rapport de la requete
+            if (EventsController.current_perf_report) {
+                const perf_name = 'db_query.' + query_uid;
+                if (!EventsController.current_perf_report.perf_datas[perf_name]) {
+                    EventsController.current_perf_report.perf_datas[perf_name] = {
+                        event_name: perf_name,
+                        listener_name: perf_name,
+                        description: query,
+                        calls: [],
+                        cooldowns: [],
+                        events: [],
+                    };
+                }
+
+                // on ajoute un cooldown pour avant la requete, un pour après, un call pour la query et un event pour le début (la demande initiale)
+                EventsController.current_perf_report.perf_datas[perf_name].events.push(db_query_time_in);
+                EventsController.current_perf_report.perf_datas[perf_name].cooldowns.push({
+                    start: db_query_time_in,
+                    end: query_start_ms,
+                });
+                EventsController.current_perf_report.perf_datas[perf_name].calls.push({
+                    start: query_start_ms,
+                    end: Dates.now_ms(),
+                });
+            }
+
         } catch (error) {
 
             return this.handle_errors(error, 'db_query', this.db_query, [query, values]);
@@ -917,15 +950,19 @@ export default abstract class ModuleServiceBase {
 
     private debug_slow_queries(query: string, values: any[], duration: number) {
         duration = Math.round(duration);
-        let query_s = query + (values ? ' ------- ' + JSON.stringify(values) : '');
-        query_s = (ConfigurationService.node_configuration.debug_db_full_query_perf ? query_s : query_s.substring(0, 1000));
 
         if (ConfigurationService.node_configuration.debug_slow_queries &&
-            (duration > (10 * ConfigurationService.node_configuration.debug_slow_queries_ms_limit))) {
-            ConsoleHandler.warn('DEBUG_SLOW_QUERIES;VERYSLOW;' + duration + ' ms;' + query_s);
-        } else if (ConfigurationService.node_configuration.debug_slow_queries &&
             (duration > ConfigurationService.node_configuration.debug_slow_queries_ms_limit)) {
-            ConsoleHandler.log('DEBUG_SLOW_QUERIES;SLOW;' + duration + ' ms;' + query_s);
+
+            let query_s = query + (values ? ' ------- ' + JSON.stringify(values) : '');
+            query_s = (ConfigurationService.node_configuration.debug_db_full_query_perf ? query_s : query_s.substring(0, 1000));
+
+            if (ConfigurationService.node_configuration.debug_slow_queries &&
+                (duration > (10 * ConfigurationService.node_configuration.debug_slow_queries_ms_limit))) {
+                ConsoleHandler.warn('DEBUG_SLOW_QUERIES;VERYSLOW;' + duration + ' ms;' + query_s);
+            } else {
+                ConsoleHandler.log('DEBUG_SLOW_QUERIES;SLOW;' + duration + ' ms;' + query_s);
+            }
         }
     }
 

@@ -487,6 +487,8 @@ export default class ThrottledQueryServerController {
             ConsoleHandler.error('do_select_query:' + error);
         }
 
+        const query_time_out = Dates.now_ms();
+
         /**
          * On ventile les résultats par index
          */
@@ -548,6 +550,36 @@ export default class ThrottledQueryServerController {
                 StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'do_select_query', 'cbs_OUT');
                 StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'cbs_OUT', Dates.now_ms() - cbs_time_in);
                 StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'OUT', Dates.now_ms() - time_in);
+
+                // Si on est en mode perf report, on enregistre le rapport de la requete
+                if (EventsController.current_perf_report) {
+                    const perf_name = 'Throttled_select_query.' + param.index;
+                    if (!EventsController.current_perf_report.perf_datas[perf_name]) {
+                        EventsController.current_perf_report.perf_datas[perf_name] = {
+                            event_name: perf_name,
+                            listener_name: perf_name,
+                            description: param.parameterized_full_query,
+                            calls: [],
+                            cooldowns: [],
+                            events: [],
+                        };
+                    }
+
+                    // on ajoute un cooldown pour avant la requete, un pour après, un call pour la query et un event pour le début (la demande initiale)
+                    EventsController.current_perf_report.perf_datas[perf_name].events.push(param.time_in);
+                    EventsController.current_perf_report.perf_datas[perf_name].cooldowns.push({
+                        start: param.time_in,
+                        end: time_in,
+                    });
+                    EventsController.current_perf_report.perf_datas[perf_name].calls.push({
+                        start: time_in,
+                        end: query_time_out,
+                    });
+                    EventsController.current_perf_report.perf_datas[perf_name].cooldowns.push({
+                        start: query_time_out,
+                        end: Dates.now_ms(),
+                    });
+                }
 
                 await self.current_promise_resolvers[index](results_of_index);
                 delete self.current_promise_resolvers[index];
