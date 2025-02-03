@@ -31,10 +31,13 @@ export default class ContextFilterServerController {
 
     /**
      * Check injection : OK
+     * @param context_query can be null, used for logging errors
+     * @param query_result can be null, except for in ou not in, exists or not exists
      * @param where_conditions
      * @param context_filter
      * @param tables_aliases_by_type
      * @returns
+
      */
     public static async update_where_conditions(
         context_query: ContextQueryVO,
@@ -216,7 +219,7 @@ export default class ContextFilterServerController {
                         try {
                             const test_format = new RegExp(context_filter.param_text);
                         } catch (error) {
-                            context_query.log(true);
+                            context_query?.log(true);
                             throw new Error('Invalid regexp format:' + context_filter.param_text + ':' + JSON.stringify(error));
                         }
 
@@ -262,7 +265,7 @@ export default class ContextFilterServerController {
                         try {
                             const test_format = new RegExp(context_filter.param_text);
                         } catch (error) {
-                            context_query.log(true);
+                            context_query?.log(true);
                             throw new Error('Invalid regexp format:' + context_filter.param_text + ':' + JSON.stringify(error));
                         }
 
@@ -285,7 +288,7 @@ export default class ContextFilterServerController {
                         try {
                             const test_format = new RegExp(context_filter.param_text);
                         } catch (error) {
-                            context_query.log(true);
+                            context_query?.log(true);
                             throw new Error('Invalid regexp format:' + context_filter.param_text + ':' + JSON.stringify(error));
                         }
 
@@ -2998,7 +3001,7 @@ export default class ContextFilterServerController {
 
                 if (((!qr_TYPE_IN) || (!qr_TYPE_IN.query)) && (!qr_TYPE_IN.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:TYPE_IN:INFOS context_query:' + (qr_TYPE_IN ? (qr_TYPE_IN.query ? qr_TYPE_IN.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
-                    context_query.log(true);
+                    context_query?.log(true);
                     throw new Error('Invalid query:TYPE_IN');
                 }
 
@@ -3009,6 +3012,9 @@ export default class ContextFilterServerController {
                 }
 
                 if (qr_TYPE_IN.params && qr_TYPE_IN.params.length) {
+                    if (!query_result) {
+                        throw new Error('Not Implemented');
+                    }
                     query_result.params = query_result.params.concat(qr_TYPE_IN.params);
                 }
 
@@ -3084,7 +3090,7 @@ export default class ContextFilterServerController {
 
                 if (((!qr_TYPE_NOT_IN) || (!qr_TYPE_NOT_IN.query)) && (!qr_TYPE_NOT_IN.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:TYPE_NOT_IN:INFOS context_query:' + (qr_TYPE_NOT_IN ? (qr_TYPE_NOT_IN.query ? qr_TYPE_NOT_IN.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
-                    context_query.log(true);
+                    context_query?.log(true);
                     throw new Error('Invalid query:TYPE_NOT_IN');
                 }
 
@@ -3094,6 +3100,10 @@ export default class ContextFilterServerController {
                 }
 
                 if (qr_TYPE_NOT_IN.params && qr_TYPE_NOT_IN.params.length) {
+                    if (!query_result) {
+                        throw new Error('Not Implemented');
+                    }
+
                     query_result.params = query_result.params.concat(qr_TYPE_NOT_IN.params);
                 }
 
@@ -3110,7 +3120,7 @@ export default class ContextFilterServerController {
 
                 if (((!qr_TYPE_NOT_EXISTS) || (!qr_TYPE_NOT_EXISTS.query)) && (!qr_TYPE_NOT_EXISTS.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:TYPE_NOT_EXISTS:INFOS context_query:' + (qr_TYPE_NOT_EXISTS ? (qr_TYPE_NOT_EXISTS.query ? qr_TYPE_NOT_EXISTS.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
-                    context_query.log(true);
+                    context_query?.log(true);
                     throw new Error('Invalid query:TYPE_NOT_EXISTS');
                 }
 
@@ -3120,6 +3130,10 @@ export default class ContextFilterServerController {
                 }
 
                 if (qr_TYPE_NOT_EXISTS.params && qr_TYPE_NOT_EXISTS.params.length) {
+                    if (!query_result) {
+                        throw new Error('Not Implemented');
+                    }
+
                     query_result.params = query_result.params.concat(qr_TYPE_NOT_EXISTS.params);
                 }
 
@@ -3136,7 +3150,7 @@ export default class ContextFilterServerController {
 
                 if (((!qr_TYPE_EXISTS) || (!qr_TYPE_EXISTS.query)) && (!qr_TYPE_EXISTS.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:TYPE_EXISTS:INFOS context_query:' + (qr_TYPE_EXISTS ? (qr_TYPE_EXISTS.query ? qr_TYPE_EXISTS.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
-                    context_query.log(true);
+                    context_query?.log(true);
                     throw new Error('Invalid query:TYPE_EXISTS');
                 }
 
@@ -3147,6 +3161,10 @@ export default class ContextFilterServerController {
                 }
 
                 if (qr_TYPE_EXISTS.params && qr_TYPE_EXISTS.params.length) {
+                    if (!query_result) {
+                        throw new Error('Not Implemented');
+                    }
+
                     query_result.params = query_result.params.concat(qr_TYPE_EXISTS.params);
                 }
 

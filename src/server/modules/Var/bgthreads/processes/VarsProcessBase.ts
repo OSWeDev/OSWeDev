@@ -290,14 +290,14 @@ export default abstract class VarsProcessBase {
             node.remove_tag(this.TAG_IN_NAME);
             valid_nodes[node.var_data.index] = node;
 
-            // if (this.as_batch) {
-            //     nb_nodes++;
+            if (this.as_batch) {
+                nb_nodes++;
 
-            //     if (nb_nodes >= this.MAX_Workers) {
-            //         // Dans le cas d'un batch on limite le nombre de nodes à traiter pour pas tout bloquer le temps de résoudre l'ensemble
-            //         break;
-            //     }
-            // }
+                if (nb_nodes >= this.MAX_Workers) {
+                    // Dans le cas d'un batch on limite le nombre de nodes à traiter pour pas tout bloquer le temps de résoudre l'ensemble
+                    break;
+                }
+            }
         }
 
         /**

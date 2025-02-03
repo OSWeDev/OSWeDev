@@ -1,6 +1,7 @@
 import UserVO from '../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleTableController from '../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldController from '../../shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableCompositePartialIndexVO from '../../shared/modules/DAO/vos/ModuleTableCompositePartialIndexVO';
 import ModuleTableFieldVO from '../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../shared/modules/DAO/vos/ModuleTableVO';
 import IRange from '../../shared/modules/DataRender/interfaces/IRange';
@@ -11,6 +12,7 @@ import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ObjectHandler, { field_names } from '../../shared/tools/ObjectHandler';
 import RangeHandler from '../../shared/tools/RangeHandler';
 import ConfigurationService from '../env/ConfigurationService';
+import ContextFilterServerController from './ContextFilter/ContextFilterServerController';
 import DAOServerController from './DAO/DAOServerController';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
 import ModuleTableServerController from './DAO/ModuleTableServerController';
@@ -537,8 +539,7 @@ export default class ModuleTableDBService {
 
                     try {
                         await this.db.none('ALTER TABLE ' + full_name + ' DROP CONSTRAINT ' + actual_constraint_name + ';');
-                    } catch (error) {
-                    }
+                    } catch (error) { }
                 }
             }
 
@@ -800,7 +801,7 @@ export default class ModuleTableDBService {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'check_indexes', '-');
 
-        let res_: boolean = false;
+        let res_: boolean = await this.check_composite_partial_indexes(moduleTable, database_name, table_name);
         const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
 
         for (const i in fields) {
@@ -840,6 +841,65 @@ export default class ModuleTableDBService {
         }
 
         return res_;
+    }
+
+    /**
+     * @returns true if causes a change in the db structure
+     */
+    // istanbul ignore next: cannot test check_indexes
+    private async check_composite_partial_indexes(moduleTable: ModuleTableVO, database_name: string, table_name: string): Promise<boolean> {
+
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'check_composite_partial_indexes', '-');
+
+        let res_: boolean = false;
+        const indexs = moduleTable.composite_partial_indexes;
+
+        for (const i in indexs) {
+            const index = indexs[i];
+
+            const index_name = index.index_name;
+            const index_str = await this.get_composite_partial_index_string(index, database_name, table_name);
+
+            if (!index_str) {
+                continue;
+            }
+
+            const res: any[] = await this.db.query("SELECT * FROM pg_indexes WHERE tablename = '" + table_name + "' and schemaname = '" + database_name + "' and indexname = '" + index_name + "';");
+            if ((!!res) && (!!res.length)) {
+                continue;
+            }
+
+            ConsoleHandler.log('ADDING COMPOSITE PARTIAL INDEX:' + database_name + '.' + table_name + '.' + index_name + ':');
+            await this.db.query(index_str);
+            res_ = true;
+        }
+
+        return res_;
+    }
+
+    private async get_composite_partial_index_string(composite_partial_index: ModuleTableCompositePartialIndexVO, schema_name: string, table_name: string): Promise<string> {
+        let res = "CREATE INDEX IF NOT EXISTS " + composite_partial_index.index_name + " ON " + schema_name + '.' + table_name + "(" + composite_partial_index.field_names.join(', ') + ")";
+        if (composite_partial_index.context_filters) {
+            const conditions: string[] = [];
+            const tables_aliases_by_type: { [type: string]: string } = {
+                [composite_partial_index.vo_type]: table_name
+            };
+            for (const i in composite_partial_index.context_filters) {
+                const filter = composite_partial_index.context_filters[i];
+
+                await ContextFilterServerController.update_where_conditions(
+                    null,
+                    null,
+                    conditions,
+                    filter,
+                    tables_aliases_by_type,
+                );
+            }
+
+            res += (conditions.length ? (' WHERE (' + conditions.join(') AND (') + ')') : '');
+        }
+
+        return res;
     }
 
     // istanbul ignore next: cannot test create_new_datatable

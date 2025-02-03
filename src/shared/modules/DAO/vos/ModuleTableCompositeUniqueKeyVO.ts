@@ -19,6 +19,22 @@ export default class ModuleTableCompositeUniqueKeyVO implements IDistantVOBase {
     private _index: string;
 
     /**
+     * Attention : L'index est initialisé au premier appel au getter, et immuable par la suite. (cf index de VarDataBaseVO)
+     */
+    get index(): string {
+        return this.initial_getter_index();
+    }
+
+    /**
+     * On aimerait rajouter l'index en base pour les filtrages exactes mais ça veut dire un index définitivement unique et pour autant
+     *  si on ségmente mois janvier ou jour 01/01 au 31/01 c'est la même var mais pas les mêmes ranges donc un index pas réversible.
+     *  Est-ce qu'on parle d'un deuxième index dédié uniquement au filtrage en base du coup ?
+     */
+    get _bdd_only_index(): string {
+        return this.index;
+    }
+
+    /**
      * on demande le rebuild au prochain accès au getter
      */
     public rebuild_index() {
@@ -34,13 +50,6 @@ export default class ModuleTableCompositeUniqueKeyVO implements IDistantVOBase {
         this._index = ModuleTableCompositeUniqueKeyController.get_normalized_index(this);
     }
 
-    /**
-     * Attention : L'index est initialisé au premier appel au getter, et immuable par la suite. (cf index de VarDataBaseVO)
-     */
-    get index(): string {
-        return this.initial_getter_index();
-    }
-
     private initial_getter_index(): string {
 
         if (!this._index) {
@@ -54,14 +63,5 @@ export default class ModuleTableCompositeUniqueKeyVO implements IDistantVOBase {
         });
 
         return this._index;
-    }
-
-    /**
-     * On aimerait rajouter l'index en base pour les filtrages exactes mais ça veut dire un index définitivement unique et pour autant
-     *  si on ségmente mois janvier ou jour 01/01 au 31/01 c'est la même var mais pas les mêmes ranges donc un index pas réversible.
-     *  Est-ce qu'on parle d'un deuxième index dédié uniquement au filtrage en base du coup ?
-     */
-    get _bdd_only_index(): string {
-        return this.index;
     }
 }

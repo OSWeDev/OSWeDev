@@ -2,6 +2,7 @@ import ConsoleHandler from '../../../tools/ConsoleHandler';
 import { field_names } from '../../../tools/ObjectHandler';
 import RangeHandler from '../../../tools/RangeHandler';
 import ContextQueryInjectionCheckHandler from '../../ContextFilter/ContextQueryInjectionCheckHandler';
+import ContextFilterVO from '../../ContextFilter/vos/ContextFilterVO';
 import SortByVO from '../../ContextFilter/vos/SortByVO';
 import HourRange from '../../DataRender/vos/HourRange';
 import NumRange from '../../DataRender/vos/NumRange';
@@ -13,6 +14,7 @@ import DefaultTranslationManager from '../../Translation/DefaultTranslationManag
 import DefaultTranslationVO from '../../Translation/vos/DefaultTranslationVO';
 import ModuleTableController from '../ModuleTableController';
 import ModuleTableFieldController from '../ModuleTableFieldController';
+import ModuleTableCompositePartialIndexVO from './ModuleTableCompositePartialIndexVO';
 import ModuleTableFieldVO from './ModuleTableFieldVO';
 
 
@@ -65,6 +67,8 @@ export default class ModuleTableVO implements IDistantVOBase {
     public is_matroid_table: boolean;
 
     public any_to_many_default_behaviour_show: boolean;
+
+    public composite_partial_indexes: ModuleTableCompositePartialIndexVO[];
 
     /**
      * Mappings de traduction d'un Vo de ce type vers un Vo du type b
@@ -414,5 +418,27 @@ export default class ModuleTableVO implements IDistantVOBase {
      */
     public voConstructor(): IDistantVOBase {
         return new ModuleTableController.vo_constructor_by_vo_type[this.vo_type]();
+    }
+
+    /**
+     *
+     * @param field_names_
+     * @param context_filters
+     * @returns
+     */
+    public add_composite_partial_index(field_names_: string[], context_filters: ContextFilterVO[]): ModuleTableVO {
+
+        const composite_partial_index = new ModuleTableCompositePartialIndexVO();
+
+        composite_partial_index.vo_type = this.vo_type;
+        composite_partial_index.field_names = field_names_;
+        composite_partial_index.context_filters = context_filters;
+
+        if (!this.composite_partial_indexes) {
+            this.composite_partial_indexes = [];
+        }
+        this.composite_partial_indexes.push(composite_partial_index);
+
+        return this;
     }
 }
