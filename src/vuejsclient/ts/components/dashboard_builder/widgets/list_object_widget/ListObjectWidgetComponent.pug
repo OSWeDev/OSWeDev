@@ -47,11 +47,11 @@ include ../../../../../views/mixins/loading.pug
                                                 .number {{ numbers[i] }}
 
                         .button_arrow.prev 
-                            .input(:id="prev_card" @click="previous_card_single_display" type="button" v-if="current_element > 0")
+                            .input(@click="previous_card_single_display" type="button" v-if="current_element > 0")
                                 i.fa-solid.fa-chevron-left
 
                         .button_arrow.next
-                            .input(:id="next_card" @click="next_card_single_display" type="button" v-if="current_element < (nb_elements.length - 1)")
+                            .input(@click="next_card_single_display" type="button" v-if="current_element < (nb_elements.length - 1)")
                                 i.fa-solid.fa-chevron-right
 
                     template(v-else)
