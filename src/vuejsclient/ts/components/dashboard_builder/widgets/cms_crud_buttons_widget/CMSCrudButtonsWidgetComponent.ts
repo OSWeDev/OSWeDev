@@ -52,6 +52,10 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
     private show_add: boolean = false;
     private show_update: boolean = false;
     private show_delete: boolean = false;
+    private show_manual_vo_type: boolean = false;
+    private manual_vo_type: string;
+
+    private vo_type: string = null;
 
     private has_access_to_add: boolean = false;
     private has_access_to_update: boolean = false;
@@ -82,6 +86,8 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
         this.show_add = this.widget_options.show_add;
         this.show_update = this.widget_options.show_update;
         this.show_delete = this.widget_options.show_delete;
+        this.show_manual_vo_type = this.widget_options.show_manual_vo_type;
+        this.manual_vo_type = this.widget_options.manual_vo_type;
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
@@ -90,6 +96,8 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
             this.show_add = false;
             this.show_update = false;
             this.show_delete = false;
+            this.show_manual_vo_type = false;
+            this.manual_vo_type = null;
 
             return;
         }
@@ -97,27 +105,36 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
         this.show_add = this.widget_options.show_add;
         this.show_update = this.widget_options.show_update;
         this.show_delete = this.widget_options.show_delete;
+        this.show_manual_vo_type = this.widget_options.show_manual_vo_type;
+        this.manual_vo_type = this.widget_options.manual_vo_type;
     }
 
     private async mounted() {
         this.user = VueAppController.getInstance().data_user;
 
-        if (this.get_cms_vo?._type) {
+
+        if (this.show_manual_vo_type == true) {
+            this.vo_type = this.manual_vo_type;
+        } else {
+            this.vo_type = this.get_cms_vo?._type;
+        }
+
+        if (this.vo_type) {
             const promises = [];
 
             promises.push((async () => {
                 this.has_access_to_add = await ModuleAccessPolicy.getInstance().testAccess(
-                    DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.get_cms_vo._type));
+                    DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.vo_type));
             })());
 
             promises.push((async () => {
                 this.has_access_to_update = await ModuleAccessPolicy.getInstance().testAccess(
-                    DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.get_cms_vo._type));
+                    DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.vo_type));
             })());
 
             promises.push((async () => {
                 this.has_access_to_delete = await ModuleAccessPolicy.getInstance().testAccess(
-                    DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.get_cms_vo._type));
+                    DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.vo_type));
             })());
 
             await Promise.all(promises);
@@ -131,13 +148,14 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
     }
 
     private open_add_modal() {
-        if (this.get_cms_vo?._type) {
-            this.get_Crudcreatemodalcomponent.open_modal(this.get_cms_vo._type,
+        if (this.vo_type) {
+            this.get_Crudcreatemodalcomponent.open_modal(this.vo_type,
                 this.storeDatas,
                 this.update_visible_options.bind(this)
             );
         }
     }
+    // Update et delete uniquement en non manuel
     private open_update_modal() {
         this.get_Crudupdatemodalcomponent.open_modal(
             this.get_cms_vo,
@@ -146,8 +164,8 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
         );
     }
     private open_delete_modal() {
-        if (this.get_cms_vo?._type && this.get_cms_vo.id) {
-            CRUDHandler.getDeleteLink(this.get_cms_vo._type, this.get_cms_vo.id);
+        if (this.vo_type && this.get_cms_vo.id) {
+            CRUDHandler.getDeleteLink(this.vo_type, this.get_cms_vo.id);
         }
     }
 }

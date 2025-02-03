@@ -13,8 +13,8 @@ include ../../../../../views/mixins/loading.pug
                         template(v-for="i in nb_elements")
                             a.object(:href="urls[i]" :target="(widget_options.blank ? '_blank' : '')")
                                 .first_row
-                                    template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
-                                        .image 
+                                    .image 
+                                        template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
                                             img(:src='image_paths[i]' alt="")
                                     .title_and_sub
                                         template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
@@ -58,8 +58,8 @@ include ../../../../../views/mixins/loading.pug
                         .list_card_widget_component(:class="{['display_orientation_' + widget_options.display_orientation]: true}")
                             template(v-for="i in nb_elements")
                                 a.card(:href="urls[i]" :target="(widget_options.blank ? '_blank' : '')")
-                                    template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
-                                        .image 
+                                    .image 
+                                        template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
                                             img(:src='image_paths[i]' alt="")
                                     .card_content 
                                         template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")

@@ -4028,6 +4028,23 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Choisir le type d'objet manuellement" },
+            'cms_crud_buttons.widget_option.show_manual_vo_type.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'cms_crud_buttons.widget_option.show_manual_vo_type.true.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'cms_crud_buttons.widget_option.show_manual_vo_type.false.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Type d'objet" },
+            'cms_crud_buttons.widget_option.vo_type.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Boutons de CRUD" },
             'dashboards.widgets.icons_tooltips.crudbuttons.___LABEL___'
         ));
