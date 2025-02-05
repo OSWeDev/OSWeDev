@@ -370,10 +370,12 @@ export default class SupervisionTypeWidgetManager {
                     discarded_field_paths
                 );
 
+                api_type_context_query.query_distinct = true;
+
                 await promise_pipeline.push(async () => {
                     const count: number = await api_type_context_query.select_count();
 
-                    // console.log(await api_type_context_query.get_select_query_str());
+                    console.log(await api_type_context_query.get_select_query_str());
 
                     if (count >= 0) {
                         res[sup_api_type_id][si] = count;
