@@ -16,8 +16,15 @@ import ActionURLUserVO from '../../../shared/modules/ActionURL/vos/ActionURLUser
 import ActionURLVO from '../../../shared/modules/ActionURL/vos/ActionURLVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import EventifyEventConfVO from '../../../shared/modules/Eventify/vos/EventifyEventConfVO';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
+import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -36,6 +43,7 @@ import OseliaController from '../../../shared/modules/Oselia/OseliaController';
 import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
 import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
 import OseliaRunFunctionCallVO from '../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
+import OseliaRunTemplateVO from '../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
 import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
 import OseliaThreadCacheVO from '../../../shared/modules/Oselia/vos/OseliaThreadCacheVO';
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
@@ -79,6 +87,7 @@ import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import OseliaRunServerController from './OseliaRunServerController';
+import OseliaRunTemplateServerController from './OseliaRunTemplateServerController';
 import OseliaServerController from './OseliaServerController';
 import OseliaOldRunsResyncBGThread from './bgthreads/OseliaOldRunsResyncBGThread';
 import OseliaRunBGThread from './bgthreads/OseliaRunBGThread';
@@ -118,6 +127,8 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_get_screen_track, this.get_screen_track.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_create_thread, this.create_thread.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_replay_function_call, this.replay_function_call.bind(this));
+
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleOselia>().instantiate_oselia_run_from_event, this.instantiate_oselia_run_from_event.bind(this));
     }
 
     // istanbul ignore next: cannot test configure
@@ -706,12 +717,12 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
     public async open_oselia_db_from_action_url(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
 
-        if (!action_url.params_json) {
+        if (!action_url.params) {
             ConsoleHandler.error('Impossible de trouver la discussion Oselia pour l\'action URL: ' + action_url.action_name);
             return ActionURLServerTools.create_error_cr(action_url, 'Impossible de trouver la discussion Oselia');
         }
 
-        res.redirect('/f/oselia/' + action_url.params_json);
+        res.redirect('/f/oselia/' + action_url.params.toString());
         return ActionURLServerTools.create_info_cr(action_url, 'Redirection vers la discussion avec Osélia');
     }
 
@@ -1091,13 +1102,14 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
 
     public async accept_join_request(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
-        if (!action_url.params_json) {
+        if (!action_url.params) {
             ConsoleHandler.error('Impossible de trouver la discussion Oselia pour l\'action URL: ' + action_url.action_name);
             return ActionURLServerTools.create_error_cr(action_url, 'Impossible de trouver la discussion Oselia');
         }
-        const asking_user_id = JSON.parse(action_url.params_json).asking_user_id;
-        const target_thread_id = JSON.parse(action_url.params_json).target_thread_id;
-        const target_thread_message_id = JSON.parse(action_url.params_json).thread_message_id;
+        const params = action_url.params as { asking_user_id: number, target_thread_id: number, thread_message_id: number };
+        const asking_user_id = params.asking_user_id;
+        const target_thread_id = params.target_thread_id;
+        const target_thread_message_id = params.thread_message_id;
         if (!asking_user_id || !target_thread_id || !target_thread_message_id) {
             ConsoleHandler.error('Impossible de trouver l\'utilisateur demandeur, ou le thread visé pour l\'action URL: ' + action_url.action_name);
             return ActionURLServerTools.create_error_cr(action_url, 'Impossible d\'ajouter l\'utilisateur à la conversation Osélia');
@@ -1121,18 +1133,19 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         const current_message_action_urls: ActionURLVO[] = await query(ActionURLVO.API_TYPE_ID)
             .exec_as_server()
             .select_vos();
-        for (let action_url of current_message_action_urls) {
-            if (action_url.params_json && JSON.parse(action_url.params_json).thread_message_id == target_thread_message_id) {
-                action_url.action_remaining_counter = 0;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_url);
+        for (const current_message_action_url of current_message_action_urls) {
+            if (current_message_action_url.params && (current_message_action_url.params as { asking_user_id: number, target_thread_id: number, thread_message_id: number }).thread_message_id == target_thread_message_id) {
+                current_message_action_url.action_remaining_counter = 0;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(current_message_action_url);
             }
         }
         return ActionURLServerTools.create_info_cr(action_url, 'Ajout dans la conversation Osélia');
     }
 
     public async refuse_join_request(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
-        const asking_user_id = JSON.parse(action_url.params_json).asking_user_id;
-        const target_thread_message_id = JSON.parse(action_url.params_json).thread_message_id;
+        const params = action_url.params as { asking_user_id: number, target_thread_id: number, thread_message_id: number };
+        const asking_user_id = params.asking_user_id;
+        const target_thread_message_id = params.thread_message_id;
         if (!asking_user_id || !target_thread_message_id) {
             ConsoleHandler.error('Impossible de trouver l\'utilisateur demandeur pour l\'action URL: ' + action_url.action_name);
             return ActionURLServerTools.create_error_cr(action_url, 'Impossible de refuser l\'ajout à la conversation Osélia');
@@ -1145,7 +1158,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         );
 
         const current_message_action_urls: ActionURLVO[] = await query(ActionURLVO.API_TYPE_ID)
-            .filter_by_text_including(field_names<ActionURLVO>().params_json, 'thread_message_id: ' + target_thread_message_id.toString())
+            .filter_by_text_including(field_names<ActionURLVO>().params, 'thread_message_id: ' + target_thread_message_id.toString())
             .exec_as_server()
             .select_vos();
         for (const action_url_ of current_message_action_urls) {
@@ -1759,7 +1772,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
                         accept_action.action_callback_function_name = reflect<ModuleOseliaServer>().accept_join_request;
                         accept_action.action_callback_module_name = ModuleOseliaServer.getInstance().name;
-                        accept_action.params_json = JSON.stringify({ asking_user_id: asking_user.id, target_thread_id: target_thread.id, thread_message_id: new_thread_message.id });
+                        accept_action.params = { asking_user_id: asking_user.id, target_thread_id: target_thread.id, thread_message_id: new_thread_message.id };
                         accept_action.button_bootstrap_type = ActionURLVO.BOOTSTRAP_BUTTON_TYPE_SUCCESS;
                         accept_action.button_translatable_name = 'oselia.join_request.accept';
                         accept_action.button_translatable_name_params_json = null;
@@ -1792,7 +1805,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
                         deny_action.action_callback_function_name = reflect<ModuleOseliaServer>().refuse_join_request;
                         deny_action.action_callback_module_name = ModuleOseliaServer.getInstance().name;
-                        deny_action.params_json = JSON.stringify({ asking_user_id: asking_user.id, thread_message_id: new_thread_message.id });
+                        deny_action.params = { asking_user_id: asking_user.id, thread_message_id: new_thread_message.id };
 
                         deny_action.button_bootstrap_type = ActionURLVO.BOOTSTRAP_BUTTON_TYPE_DANGER;
                         deny_action.button_translatable_name = 'oselia.join_request.deny';
@@ -2654,5 +2667,183 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
     private async asap_oselia_run_bgthread() {
         await BGThreadServerController.force_run_asap_by_bgthread_name[OseliaRunBGThread.BGTHREAD_NAME]();
+    }
+
+    /**
+     * Cette action utilisable pour les events/listeners permet d'instancier directement un oseliarun à partir d'un event
+     */
+    private async instantiate_oselia_run_from_event(event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) {
+
+        if (!event || !listener) {
+            ConsoleHandler.error('instantiate_oselia_run_from_event:Missing event or listener');
+            return;
+        }
+
+        if (!listener.oselia_run_template_name) {
+            ConsoleHandler.error('instantiate_oselia_run_from_event:Missing listener.oselia_run_template_name');
+            return;
+        }
+
+        const run_template: OseliaRunTemplateVO = await query(OseliaRunTemplateVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaRunTemplateVO>().template_name, listener.oselia_run_template_name)
+            .exec_as_server()
+            .select_vo<OseliaRunTemplateVO>();
+
+        if (!run_template) {
+            ConsoleHandler.error('instantiate_oselia_run_from_event:No run_template found for name:' + listener.oselia_run_template_name);
+            return;
+        }
+
+        const run = await OseliaRunTemplateServerController.create_run_from_template(
+            run_template,
+            {},
+            {
+                [listener.oselia_run_param_cache_key ? listener.oselia_run_param_cache_key : 'PARAM']: JSON.stringify(event.param),
+            });
+
+        if (!run) {
+            ConsoleHandler.error('instantiate_oselia_run_from_event:No run created from template:' + listener.oselia_run_template_name);
+            return;
+        }
+
+        if (listener.oselia_run_link_to_event) {
+            await this.link_oselia_run_to_event(event, run);
+        }
+
+        if (listener.oselia_run_link_to_listener) {
+            await this.link_oselia_run_to_listener(listener, run);
+        }
+
+        if (listener.oselia_run_linked_to_param) {
+
+            await this.link_oselia_run_to_param(run, event, listener);
+        }
+
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run);
+    }
+
+    private async link_oselia_run_to_event(event: EventifyEventInstanceVO, run: OseliaRunVO) {
+
+        // Si l'event est pas encore en base, on l'insère, et on s'arrure que sa conf est aussi en base
+        let event_conf: EventifyEventConfVO = null;
+        if (!event.event_conf_id) {
+            // Si on a pas l'id de la conf on cherche par nom
+            event_conf = await query(EventifyEventConfVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<EventifyEventConfVO>().name, event.name)
+                .exec_as_server()
+                .select_vo<EventifyEventConfVO>();
+        } else {
+            event_conf = await query(EventifyEventConfVO.API_TYPE_ID)
+                .filter_by_id(event.event_conf_id)
+                .exec_as_server()
+                .select_vo<EventifyEventConfVO>();
+        }
+        if (!event_conf) {
+            event_conf = EventifyEventConfVO.from_instance(event);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(event_conf);
+        }
+
+        if (!event_conf.id) {
+            ConsoleHandler.error('instantiate_oselia_run_from_event:No event_conf.id found for event_conf:' + event_conf.name);
+            return;
+        }
+
+        event.event_conf_id = event_conf.id;
+
+        if (!event.id) {
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(event);
+        }
+        run.event_id = event.id;
+    }
+
+    private async link_oselia_run_to_listener(listener: EventifyEventListenerInstanceVO, run: OseliaRunVO) {
+
+        // Si l'listener est pas encore en base, on l'insère, et on s'arrure que sa conf est aussi en base
+        let listener_conf: EventifyEventListenerConfVO = null;
+        if (!listener.listener_conf_id) {
+            // Si on a pas l'id de la conf on cherche par nom
+            listener_conf = await query(EventifyEventListenerConfVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<EventifyEventListenerConfVO>().name, listener.name)
+                .exec_as_server()
+                .select_vo<EventifyEventListenerConfVO>();
+        } else {
+            listener_conf = await query(EventifyEventListenerConfVO.API_TYPE_ID)
+                .filter_by_id(listener.listener_conf_id)
+                .exec_as_server()
+                .select_vo<EventifyEventListenerConfVO>();
+        }
+        if (!listener_conf) {
+            listener_conf = EventifyEventListenerConfVO.from_instance(listener);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(listener_conf);
+        }
+
+        if (!listener_conf.id) {
+            ConsoleHandler.error('instantiate_oselia_run_from_listener:No listener_conf.id found for listener_conf:' + listener_conf.name);
+            return;
+        }
+
+        listener.listener_conf_id = listener_conf.id;
+
+        if (!listener.id) {
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(listener);
+        }
+        run.listener_id = listener.id;
+    }
+
+    private async link_oselia_run_to_param(
+        run: OseliaRunVO,
+        event: EventifyEventInstanceVO,
+        listener: EventifyEventListenerInstanceVO,
+    ) {
+
+        const param = event.param;
+
+        if (!param) {
+            return;
+        }
+
+        // Si on a un listener.oselia_run_linked_to_param_field_name, on set directement sans discuter
+        let has_modif = false;
+        if (listener.oselia_run_linked_to_param_field_name) {
+            param[listener.oselia_run_linked_to_param_field_name] = run.id;
+            has_modif = true;
+        } else {
+            // Sinon, si on est sur un vo avec un _type et un moduletable on cherche un champ valide pour la liaison (1 et 1 seul)
+            const vo_type = param['_type'];
+
+            if (!vo_type) {
+                return;
+            }
+
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type];
+            if (!fields) {
+                return;
+            }
+
+            let target_field_name: string = null;
+            for (const field_name in fields) {
+                const field = fields[field_name];
+
+                if (field.field_type == ModuleTableFieldVO.FIELD_TYPE_foreign_key) {
+                    if (field.foreign_ref_vo_type == OseliaRunVO.API_TYPE_ID) {
+
+                        if (target_field_name) {
+                            ConsoleHandler.error('link_oselia_run_to_param:More than 1 field found for linking run to param:' + vo_type + ':' + field_name);
+                            return;
+                        }
+
+                        target_field_name = field_name;
+                    }
+                }
+            }
+
+            param[target_field_name] = run.id;
+            has_modif = true;
+        }
+
+        // à la fin si on a fait des modifs et que c'est un vo avec un id, on update l'objet en base, sinon on n'insère pas un nouvel objet en base
+        if (has_modif && param['_type'] && param['id'] && ModuleTableController.module_tables_by_vo_type[param['_type']]) {
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(param as IDistantVOBase);
+        }
     }
 }

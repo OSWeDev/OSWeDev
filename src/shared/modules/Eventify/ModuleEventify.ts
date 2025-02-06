@@ -102,6 +102,13 @@ export default class ModuleEventify extends Module {
 
         ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().cooling_down_timeout, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Timeout de cooldown', false);
 
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().oselia_run_template_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du template oselia_run', false);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().oselia_run_param_cache_key, ModuleTableFieldVO.FIELD_TYPE_string, 'Clé de cache du param oselia_run', true, true, "PARAM");
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().oselia_run_link_to_event, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Lier l\'oselia_run à l\'event', true, true, true);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().oselia_run_link_to_listener, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Lier l\'oselia_run au listener', true, true, true);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().oselia_run_linked_to_param, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Lier l\'oselia_run au param - si possible', true, true, true);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().oselia_run_linked_to_param_field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Champ du param lié à l\'oselia_run', false);
+
         ModuleTableController.create_new(this.name, EventifyEventListenerInstanceVO, label, 'Eventify - Event Listener Instance');
     }
 
@@ -127,6 +134,13 @@ export default class ModuleEventify extends Module {
         ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().run_as_soon_as_possible_event_conf_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Event qui déclenche le run as soon as possible', false)
             .set_many_to_one_target_moduletable_name(EventifyEventConfVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().is_bgthread, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Is bgthread', true, true, false);
+
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().oselia_run_template_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du template oselia_run', false);
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().oselia_run_param_cache_key, ModuleTableFieldVO.FIELD_TYPE_string, 'Clé de cache du param oselia_run', true, true, "PARAM");
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().oselia_run_link_to_event, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Lier l\'oselia_run à l\'event', true, true, true);
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().oselia_run_link_to_listener, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Lier l\'oselia_run au listener', true, true, true);
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().oselia_run_linked_to_param, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Lier l\'oselia_run au param - si possible', true, true, true);
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().oselia_run_linked_to_param_field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Champ du param lié à l\'oselia_run', false);
 
         ModuleTableController.create_new(this.name, EventifyEventListenerConfVO, label, 'Eventify - Event Listener Template');
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[EventifyEventListenerConfVO.API_TYPE_ID]);

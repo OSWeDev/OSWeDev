@@ -367,6 +367,7 @@ export default class EventsController {
         cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown,
         cooldown_ms: number = 0,
         debounce_leading = false,
+        param_type: number = EventifyEventListenerConfVO.PARAM_TYPE_NONE,
     ): void {
 
         if (EventsController.log_events_names[event_name]) {
@@ -379,6 +380,7 @@ export default class EventsController {
         listener.throttled = true;
         listener.cooldown_ms = cooldown_ms;
         listener.debounce_leading = debounce_leading;
+        listener.param_type = param_type;
         EventsController.register_event_listener(listener);
     }
 

@@ -632,6 +632,7 @@ export default class GPTAssistantAPIServerController {
         oselia_run_function_call_vo.gpt_run_id = run_vo ? run_vo.id : null;
         oselia_run_function_call_vo.thread_id = thread_vo.id;
         oselia_run_function_call_vo.user_id = thread_vo.user_id;
+        oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_TODO;
 
         // Si la fonction est définie comme utilisant un PromisePipeline, on l'utilise, et on l'initialise si il est pas encore créé
         if (function_vo.use_promise_pipeline) {

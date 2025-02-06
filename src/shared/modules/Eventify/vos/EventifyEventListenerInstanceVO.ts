@@ -165,6 +165,41 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
      */
     public next_params_map: { [param_id: string | number]: unknown };
 
+    /**
+     * Nom du template oselia à instancier à chaque event
+     */
+    public oselia_run_template_name: string;
+
+    /**
+     * Clé de cache pour le param reçu
+     * @default "PARAM"
+     */
+    public oselia_run_param_cache_key: string;
+
+    /**
+     * Lier l'oselia_run à l'event
+     * @default true
+     */
+    public oselia_run_link_to_event: boolean;
+
+    /**
+     * Lier l'oselia_run au listener
+     * @default true
+     */
+    public oselia_run_link_to_listener: boolean;
+
+    /**
+     * Lier le param à l'oselia_run, si possible (si on a pas de champs défini et qu'on n'en trouve pas, ce n'est pas considéré comme une erreur)
+     * @default true
+     */
+    public oselia_run_linked_to_param: boolean;
+
+    /**
+     * Nom du champ du param qui contient l'id de l'oselia_run dans le param (si oselia_run_linked_to_param est true)
+     * @default null mais on chargera automatiquement le champ du param._type qui est lié au type oselia_run
+     */
+    public oselia_run_linked_to_param_field_name: string;
+
     private _cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown;
 
     get cb(): (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown {
@@ -194,6 +229,12 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
         res.last_cb_run_end_date_ms = 0;
         res.run_as_soon_as_possible = false;
         res.run_as_soon_as_possible_event_conf_id = conf.run_as_soon_as_possible_event_conf_id;
+        res.oselia_run_link_to_event = conf.oselia_run_link_to_event;
+        res.oselia_run_link_to_listener = conf.oselia_run_link_to_listener;
+        res.oselia_run_linked_to_param = conf.oselia_run_linked_to_param;
+        res.oselia_run_linked_to_param_field_name = conf.oselia_run_linked_to_param_field_name;
+        res.oselia_run_param_cache_key = conf.oselia_run_param_cache_key;
+        res.oselia_run_template_name = conf.oselia_run_template_name;
         res.is_bgthread = conf.is_bgthread;
         res.listener_conf_id = conf.id;
         return res;

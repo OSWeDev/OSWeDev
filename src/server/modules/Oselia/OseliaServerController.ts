@@ -13,8 +13,11 @@ import OseliaUserPromptVO from '../../../shared/modules/Oselia/vos/OseliaUserPro
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
+import ModuleTranslationServer from '../Translation/ModuleTranslationServer';
+import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 
 export default class OseliaServerController {
 
@@ -257,14 +260,26 @@ export default class OseliaServerController {
     }
 
     public static async get_self_referrer(): Promise<OseliaReferrerVO> {
-        const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
+        let referrer = await query(OseliaReferrerVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<OseliaReferrerVO>().referrer_origin, ConfigurationService.node_configuration.base_url)
             .exec_as_server()
             .select_vo<OseliaReferrerVO>();
 
         if (!referrer) {
-            ConsoleHandler.error('OseliaServerController:get_self_referrer:Referrer SELF not found !');
-            throw new Error('OseliaServerController:get_self_referrer:Referrer SELF not found !');
+            referrer = new OseliaReferrerVO();
+
+            referrer.referrer_origin = ConfigurationService.node_configuration.base_url;
+            referrer.user_id = await ModuleVersionedServer.getInstance().get_robot_user_id();
+            referrer.activate_trigger_hooks = false;
+            referrer.actif = true;
+            referrer.description = 'SELF - ' + ConfigurationService.node_configuration.base_url;
+            referrer.failed_open_oselia_db_target_url = ConfigurationService.node_configuration.base_url;
+            referrer.name = 'SELF - ' + ConfigurationService.node_configuration.base_url;
+            referrer.new_user_default_lang_id = ModuleTranslationServer.getInstance().default_lang?.id || 1;
+            referrer.new_user_default_role_id = AccessPolicyServerController.role_anonymous?.id;
+            referrer.referrer_code = ConfigurationService.node_configuration.start_maintenance_acceptation_code;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(referrer);
+            ConsoleHandler.error('OseliaServerController:get_self_referrer:Referrer SELF not found ! Added it automatically');
         }
 
         return referrer;

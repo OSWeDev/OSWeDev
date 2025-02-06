@@ -522,18 +522,19 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
-        const current_user = VueAppController.getInstance().data_user;
-        const current_user_role = await query(UserRoleVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<UserRoleVO>().user_id, current_user.id)
-            .select_vo<UserRoleVO>();
-        if (this.thread.user_id != 2) {
-            if (current_user.id != this.thread.user_id && current_user_role.role_id == 3) { // == 3 pas sûr mais pas trouvé de static avec le role admin, query du coup ?
-                // do something here
-                if (await ModuleOselia.getInstance().send_join_request(current_user.id, this.thread.id) == 'denied') {
-                    return;
-                }
-            }
-        }
+        // TODO FIXME : de JNE à MLE : à revoir, on peut pas mettre des trucs comme ça en dur et on a le droit d'avoir plusieurs rôles ...
+        // const current_user = VueAppController.getInstance().data_user;
+        // const current_user_role = await query(UserRoleVO.API_TYPE_ID)
+        //     .filter_by_num_eq(field_names<UserRoleVO>().user_id, current_user.id)
+        //     .select_vo<UserRoleVO>();
+        // if (this.thread.user_id != 2) {
+        //     if (current_user.id != this.thread.user_id && current_user_role.role_id == 3) { // == 3 pas sûr mais pas trouvé de static avec le role admin, query du coup ?
+        //         // do something here
+        //         if (await ModuleOselia.getInstance().send_join_request(current_user.id, this.thread.id) == 'denied') {
+        //             return;
+        //         }
+        //     }
+        // }
 
 
         await this.unregister_all_vo_event_callbacks();

@@ -1,3 +1,5 @@
+import EventsController from "../../../shared/modules/Eventify/EventsController";
+import EventifyEventInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventInstanceVO";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../../../shared/modules/Stats/StatsController";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
@@ -15,6 +17,10 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
      */
 
     constructor(public trigger_type_UID: string) {
+    }
+
+    public get_event_name(conditionUID: string): string {
+        return this.trigger_type_UID + '.' + conditionUID;
     }
 
     public unregisterHandlerOnThisThread(conditionUID: string, handler: (params: Params, exec_as_server?: boolean) => Promise<Out>) {
@@ -75,6 +81,9 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
 
         const time_out = Dates.now_ms();
         StatsController.register_stat_DUREE('TriggerHook', this.trigger_type_UID, conditionUID, time_out - time_in);
+
+        // on trigger un event correspondant, pour le Module Eventify
+        EventsController.emit_event(EventifyEventInstanceVO.new_event(this.get_event_name(conditionUID), params));
 
         return res;
     }

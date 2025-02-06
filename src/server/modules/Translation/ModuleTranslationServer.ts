@@ -12,7 +12,6 @@ import DefaultTranslationVO from '../../../shared/modules/Translation/vos/Defaul
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
@@ -21,7 +20,6 @@ import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
@@ -42,6 +40,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     /**
      * Local thread cache -----
      */
+    public default_lang: LangVO = null;
     public policy_group: AccessPolicyGroupVO = null;
     public flat_translations: { [code_lang: string]: { [code_text: string]: string } } = null;
     /**
@@ -68,6 +67,19 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        const langs = await query(LangVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<LangVO>();
+        for (const i in langs) {
+            const lang = langs[i];
+
+            if (lang.code_lang == ConfigurationService.node_configuration.default_locale) {
+                this.default_lang = lang;
+                break;
+            }
+        }
+
         const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
 

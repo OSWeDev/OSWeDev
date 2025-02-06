@@ -80,7 +80,7 @@ export default class ModuleActionURL extends Module {
         ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', true, true, ActionURLVO.STATE_ACTIVATED).setEnumValues(ActionURLVO.STATE_LABELS);
         ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_callback_module_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Module de callback', true);
         ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_callback_function_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Fonction de callback', true);
-        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().params_json, ModuleTableFieldVO.FIELD_TYPE_string, 'Paramètres', false);
+        ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().params, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Paramètres', false);
         ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_remaining_counter, ModuleTableFieldVO.FIELD_TYPE_int, 'Nombre d\'utilisations restantes', true, true, 1);
         ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().button_translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom du bouton', false).set_translatable_params_field_name(field_names<ActionURLVO>().button_translatable_name_params_json);
         ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().button_translatable_name_params_json, ModuleTableFieldVO.FIELD_TYPE_string, 'Paramètres du nom du bouton (JSON)', false);
