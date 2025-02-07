@@ -161,7 +161,9 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
             if (ConfigurationService.node_configuration.debug_vars) {
                 ConsoleHandler.log('VarsProcessDeployDeps:handle_deploy_deps:IN:' + node.var_data.index);
             }
-            await promise_pipeline.push(async () => VarsDeployDepsHandler.handle_deploy_deps(node, deps, nodes_to_unlock));
+            await promise_pipeline.push(async () => {
+                await VarsDeployDepsHandler.handle_deploy_deps(node, deps, nodes_to_unlock);
+            });
             if (ConfigurationService.node_configuration.debug_vars) {
                 ConsoleHandler.log('VarsProcessDeployDeps:handle_deploy_deps:OUT:' + node.var_data.index);
             }

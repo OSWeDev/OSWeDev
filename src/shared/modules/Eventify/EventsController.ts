@@ -37,9 +37,9 @@ export default class EventsController {
      */
     public static current_perf_report: EventifyPerfReportVO = null;
 
-    public static activate_module_perf_throttle_queries: boolean = true;
-    public static activate_module_perf_events: boolean = true;
-    public static activate_module_perf_var_dag_nodes: boolean = true;
+    public static activate_module_perf_throttle_queries: boolean = false;
+    public static activate_module_perf_events: boolean = false;
+    public static activate_module_perf_var_dag_nodes: boolean = false;
 
     /**
      * On stocke la date de début du listener pour pas log en boucle le même run

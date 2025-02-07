@@ -207,6 +207,30 @@ export default abstract class VarsProcessBase {
             StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker_failed", Dates.now_ms() - worker_time_in);
             node.add_tag(this.TAG_IN_NAME);
         }
+
+        this.handle_perf_report(node, worker_time_in);
+    }
+
+    private handle_perf_report(node: VarDAGNode, worker_time_in: number) {
+        // Gestion du perf report
+        if (EventsController.current_perf_report && EventsController.activate_module_perf_var_dag_nodes) {
+            if (!EventsController.current_perf_report.perf_datas[node.var_data.index]) {
+                EventsController.current_perf_report.perf_datas[node.var_data.index] = {
+                    event_name: "-",
+                    listener_name: node.var_data.index,
+                    calls: [],
+                    cooldowns: [],
+                    events: [],
+                };
+            }
+
+            const end = Dates.now_ms();
+            EventsController.current_perf_report.perf_datas[node.var_data.index].cooldowns.push({
+                start: worker_time_in,
+                end: end,
+                description: node.get_node_description_for_perfs(this.name),
+            });
+        }
     }
 
     private get_valid_nodes(): { [node_name: string]: VarDAGNode } {
@@ -354,6 +378,8 @@ export default abstract class VarsProcessBase {
                     node.add_tag(this.TAG_IN_NAME);
                 }
                 node.remove_tag(this.TAG_SELF_NAME);
+
+                this.handle_perf_report(node, worker_time_in);
             }
         }
 

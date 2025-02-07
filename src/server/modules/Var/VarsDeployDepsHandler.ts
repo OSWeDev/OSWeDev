@@ -1,5 +1,4 @@
 import { cloneDeep } from "lodash";
-import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleTableController from "../../../shared/modules/DAO/ModuleTableController";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
@@ -10,16 +9,15 @@ import VarDataBaseVO from "../../../shared/modules/Var/vos/VarDataBaseVO";
 import VarPixelFieldConfVO from "../../../shared/modules/Var/vos/VarPixelFieldConfVO";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import MatroidIndexHandler from "../../../shared/tools/MatroidIndexHandler";
+import { field_names } from "../../../shared/tools/ObjectHandler";
 import { all_promises } from "../../../shared/tools/PromiseTools";
 import RangeHandler from "../../../shared/tools/RangeHandler";
+import ThreadHandler from "../../../shared/tools/ThreadHandler";
 import ConfigurationService from "../../env/ConfigurationService";
+import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import PixelVarDataController from "./PixelVarDataController";
 import VarsImportsHandler from "./VarsImportsHandler";
 import VarsServerController from "./VarsServerController";
-import DataSourceControllerBase from "./datasource/DataSourceControllerBase";
-import DataSourcesController from "./datasource/DataSourcesController";
-import { field_names } from "../../../shared/tools/ObjectHandler";
-import ThreadHandler from "../../../shared/tools/ThreadHandler";
 
 export default class VarsDeployDepsHandler {
 
@@ -199,6 +197,31 @@ export default class VarsDeployDepsHandler {
         StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT', Dates.now_ms() - time_in);
 
         // A priori on doit déployer les deps du coup, que ce soit un aggrégat ou pas, mais c'est maintenant géré en amont pour charger les datas en groupe
+
+        // Sauf les aggrégats ...
+        if (node.is_aggregator) {
+            const aggregated_deps: { [dep_id: string]: VarDataBaseVO } = {};
+            let index = 0;
+
+            const promises = [];
+            for (const i in node.aggregated_datas) {
+                const data = node.aggregated_datas[i];
+                aggregated_deps['AGG_' + (index++)] = data;
+
+                promises.push((async () => {
+                    nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, data, true/*, true*/));
+                })());
+            }
+            await all_promises(promises);
+
+            StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator');
+            StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator', Dates.now_ms() - time_in);
+
+            if (aggregated_deps) {
+                await VarsDeployDepsHandler.handle_deploy_deps(node, aggregated_deps, nodes_to_unlock);
+            }
+            return true;
+        }
 
         return false;
 
@@ -569,63 +592,63 @@ export default class VarsDeployDepsHandler {
         aggregated_datas[cloned_var_data.index] = cloned_var_data;
     }
 
-    /**
-     *  - Pour identifier les deps :
-     *      - Chargement des ds predeps du noeud
-     *      - Chargement des deps
-     */
-    private static async get_node_deps(
-        node: VarDAGNode,
-        nodes_to_unlock: VarDAGNode[],
-    ): Promise<{ [dep_id: string]: VarDataBaseVO }> {
+    // /**
+    //  *  - Pour identifier les deps :
+    //  *      - Chargement des ds predeps du noeud
+    //  *      - Chargement des deps
+    //  */
+    // private static async get_node_deps(
+    //     node: VarDAGNode,
+    //     nodes_to_unlock: VarDAGNode[],
+    // ): Promise<{ [dep_id: string]: VarDataBaseVO }> {
 
-        const time_in = Dates.now_ms();
-        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'IN');
+    //     const time_in = Dates.now_ms();
+    //     StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'IN');
 
-        if (node.is_aggregator) {
-            const aggregated_deps: { [dep_id: string]: VarDataBaseVO } = {};
-            let index = 0;
+    //     if (node.is_aggregator) {
+    //         const aggregated_deps: { [dep_id: string]: VarDataBaseVO } = {};
+    //         let index = 0;
 
-            const promises = [];
-            for (const i in node.aggregated_datas) {
-                const data = node.aggregated_datas[i];
-                aggregated_deps['AGG_' + (index++)] = data;
+    //         const promises = [];
+    //         for (const i in node.aggregated_datas) {
+    //             const data = node.aggregated_datas[i];
+    //             aggregated_deps['AGG_' + (index++)] = data;
 
-                promises.push((async () => {
-                    nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, data, true/*, true*/));
-                })());
-            }
-            await all_promises(promises);
+    //             promises.push((async () => {
+    //                 nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, data, true/*, true*/));
+    //             })());
+    //         }
+    //         await all_promises(promises);
 
-            StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator');
-            StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator', Dates.now_ms() - time_in);
+    //         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator');
+    //         StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator', Dates.now_ms() - time_in);
 
-            return aggregated_deps;
-        }
+    //         return aggregated_deps;
+    //     }
 
-        const controller = VarsServerController.getVarControllerById(node.var_data.var_id);
+    //     const controller = VarsServerController.getVarControllerById(node.var_data.var_id);
 
-        /**
-         * On charge toutes les datas predeps
-         */
-        const predeps_dss: DataSourceControllerBase[] = controller.getDataSourcesPredepsDependencies();
-        if (predeps_dss && predeps_dss.length) {
+    //     /**
+    //      * On charge toutes les datas predeps
+    //      */
+    //     const predeps_dss: DataSourceControllerBase[] = controller.getDataSourcesPredepsDependencies();
+    //     if (predeps_dss && predeps_dss.length) {
 
-            // VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas_predep);
+    //         // VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas_predep);
 
-            await DataSourcesController.load_node_datas(predeps_dss, node);
+    //         await DataSourcesController.load_node_datas(predeps_dss, node);
 
-            // VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas_predeps);
-        }
+    //         // VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas_predeps);
+    //     }
 
-        /**
-         * On demande les deps
-         */
-        const res = controller.getParamDependencies(node);
+    //     /**
+    //      * On demande les deps
+    //      */
+    //     const res = controller.getParamDependencies(node);
 
-        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT');
-        StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT', Dates.now_ms() - time_in);
+    //     StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT');
+    //     StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT', Dates.now_ms() - time_in);
 
-        return res;
-    }
+    //     return res;
+    // }
 }

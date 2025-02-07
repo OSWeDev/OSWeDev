@@ -182,7 +182,7 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
 
         // Rects "calls"
         perfs.forEach((d) => {
-            d.calls.forEach((call) => {
+            d.calls.forEach((call: { start: number, end: number, description?: string }) => {
                 const start = Math.max(call.start, this.selected_perf_report.start_date_perf_ms);
                 const end = Math.min(call.end, this.selected_perf_report.end_date_perf_ms);
 
@@ -206,7 +206,8 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                             (d.description ? d.description + '<br>' : '') +
                             '<hr>' +
                             'Start: ' + start_date_formattee + '<br>' +
-                            'End: ' + end_date_formattee
+                            'End: ' + end_date_formattee +
+                            (call.description ? '<br>' + call.description : '')
                         );
                         ConsoleHandler.debug(
                             'Listener: <b>' + d.name + '</b><br>' +
@@ -214,7 +215,8 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                             (d.description ? d.description + '<br>' : '') +
                             '<hr>' +
                             'Start: ' + start_date_formattee + '<br>' +
-                            'End: ' + end_date_formattee
+                            'End: ' + end_date_formattee +
+                            (call.description ? '<br>' + call.description : '')
                         );
                     })
                     .on("mouseover", (event) => {
@@ -226,15 +228,16 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                                 (d.description ? d.description + '<br>' : '') +
                                 '<hr>' +
                                 'Start: ' + start_date_formattee + '<br>' +
-                                'End: ' + end_date_formattee
+                                'End: ' + end_date_formattee +
+                                (call.description ? '<br>' + call.description : '')
                             )
-                            .style("left", (event.pageX - container.left + 10) + "px")
-                            .style("top", (event.pageY - container.top - 10) + "px");
+                            .style("left", (event.pageX + 10 - 60) + "px")
+                            .style("top", (event.pageY - 10 - 280) + "px");
                     })
                     .on("mousemove", (event) => {
                         tooltip
-                            .style("left", (event.pageX - container.left + 10) + "px")
-                            .style("top", (event.pageY - container.top - 10) + "px");
+                            .style("left", (event.pageX + 10 - 60) + "px")
+                            .style("top", (event.pageY - 10 - 280) + "px");
                     })
                     .on("mouseout", () => {
                         tooltip.style("visibility", "hidden");
@@ -244,7 +247,7 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
 
         // Rects "cooldowns"
         perfs.forEach((d) => {
-            d.cooldowns.forEach((cooldown) => {
+            d.cooldowns.forEach((cooldown: { start: number, end: number, description?: string }) => {
                 const start = Math.max(cooldown.start, this.selected_perf_report.start_date_perf_ms);
                 const end = Math.min(cooldown.end, this.selected_perf_report.end_date_perf_ms);
 
@@ -268,7 +271,8 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                             (d.description ? d.description + '<br>' : '') +
                             '<hr>' +
                             'Start: ' + start_date_formattee + '<br>' +
-                            'End: ' + end_date_formattee
+                            'End: ' + end_date_formattee +
+                            (cooldown.description ? '<br>' + cooldown.description : '')
                         );
                         ConsoleHandler.debug(
                             'Listener: <b>' + d.name + '</b><br>' +
@@ -276,7 +280,8 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                             (d.description ? d.description + '<br>' : '') +
                             '<hr>' +
                             'Start: ' + start_date_formattee + '<br>' +
-                            'End: ' + end_date_formattee
+                            'End: ' + end_date_formattee +
+                            (cooldown.description ? '<br>' + cooldown.description : '')
                         );
                     })
                     .on("mouseover", (event) => {
@@ -288,15 +293,16 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                                 (d.description ? d.description + '<br>' : '') +
                                 '<hr>' +
                                 'Start: ' + start_date_formattee + '<br>' +
-                                'End: ' + end_date_formattee
+                                'End: ' + end_date_formattee +
+                                (cooldown.description ? '<br>' + cooldown.description : '')
                             )
-                            .style("left", (event.pageX - container.left + 10) + "px")
-                            .style("top", (event.pageY - container.top - 10) + "px");
+                            .style("left", (event.pageX + 10 - 60) + "px")
+                            .style("top", (event.pageY - 10 - 280) + "px");
                     })
                     .on("mousemove", (event) => {
                         tooltip
-                            .style("left", (event.pageX - container.left + 10) + "px")
-                            .style("top", (event.pageY - container.top - 10) + "px");
+                            .style("left", (event.pageX + 10 - 60) + "px")
+                            .style("top", (event.pageY - 10 - 280) + "px");
                     })
                     .on("mouseout", () => {
                         tooltip.style("visibility", "hidden");
@@ -313,7 +319,7 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
 
                 content
                     .append("circle")
-                    .attr("cx", xScale(evt))
+                    .attr("cx", xScale(evt.ts))
                     .attr("cy", yScale(d.name)! + yScale.bandwidth() / 4)
                     .attr("r", 3)
                     .attr("fill", "black")
@@ -324,7 +330,7 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                             (d.description ? d.description + '<br>' : '') +
                             '<hr>' +
                             'Date: ' + date_formattee +
-                            (d.description ? '<br>' + d.description : '')
+                            (evt.description ? '<br>' + evt.description : '')
                         );
                         ConsoleHandler.debug(
                             'Listener: <b>' + d.name + '</b><br>' +
@@ -332,7 +338,7 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                             (d.description ? d.description + '<br>' : '') +
                             '<hr>' +
                             'Date: ' + date_formattee +
-                            (d.description ? '<br>' + d.description : '')
+                            (evt.description ? '<br>' + evt.description : '')
                         );
                     })
                     .on("mouseover", (event) => {
@@ -344,15 +350,15 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                                 (d.description ? d.description + '<br>' : '') +
                                 '<hr>' +
                                 'Date: ' + date_formattee +
-                                (d.description ? '<br>' + d.description : '')
+                                (evt.description ? '<br>' + evt.description : '')
                             )
-                            .style("left", (event.pageX - container.left + 10) + "px")
-                            .style("top", (event.pageY - container.top - 10) + "px");
+                            .style("left", (event.pageX + 10 - 60) + "px")
+                            .style("top", (event.pageY - 10 - 280) + "px");
                     })
                     .on("mousemove", (event) => {
                         tooltip
-                            .style("left", (event.pageX - container.left + 10) + "px")
-                            .style("top", (event.pageY - container.top - 10) + "px");
+                            .style("left", (event.pageX + 10 - 60) + "px")
+                            .style("top", (event.pageY - 10 - 280) + "px");
                     })
                     .on("mouseout", () => {
                         tooltip.style("visibility", "hidden");

@@ -5,6 +5,7 @@ import EventsController from '../../../../shared/modules/Eventify/EventsControll
 import EventifyEventInstanceVO from '../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
+import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
 import DAGNodeBase from '../../../../shared/modules/Var/graph/dagbase/DAGNodeBase';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
@@ -458,6 +459,23 @@ export default class VarDAGNode extends DAGNodeBase {
     //     }
     // }
 
+    public get_node_description_for_perfs(text: string): string {
+        const incoming_deps = this.incoming_deps ? Object.keys(this.incoming_deps) : null;
+        const outgoing_deps = this.outgoing_deps ? Object.keys(this.outgoing_deps) : null;
+        const tags = this.tags ? Object.keys(this.tags) : null;
+        return text + '<br>' +
+            ((this.var_data.value == null) ? 'N/A' : this.var_data.value) + ' - ' + VarDataBaseVO.VALUE_TYPE_LABELS[this.var_data.value_type] + ' (' + this.var_data.value_type + ')<br>' +
+            'is_computable:' + this.is_computable + '<br>' +
+            'is_deletable:' + this.is_deletable + '<br>' +
+            'is_client_sub:' + this.is_client_sub + '<br>' +
+            'is_server_sub:' + this.is_server_sub + '<br>' +
+            'is_client_sub_dep:' + this.is_client_sub_dep + '<br>' +
+            'is_server_sub_dep:' + this.is_server_sub_dep + '<br>' +
+            (tags ? ('tags:' + tags.join(',') + '<br>') : '') +
+            (incoming_deps ? ('incoming_deps nb:' + incoming_deps.length + '<br>') : '') +
+            (outgoing_deps ? ('outgoing_deps nb:' + outgoing_deps.length + '<br>') : '');
+    }
+
     public lock() {
         this._lock_current_step++;
     }
@@ -659,6 +677,24 @@ export default class VarDAGNode extends DAGNodeBase {
         outgoing_node.is_client_sub_dep = outgoing_node.is_client_sub_dep || this.is_client_sub || this.is_client_sub_dep;
         outgoing_node.is_server_sub_dep = outgoing_node.is_server_sub_dep || this.is_server_sub || this.is_server_sub_dep;
 
+        // Gestion du perf report
+        if (EventsController.current_perf_report && EventsController.activate_module_perf_var_dag_nodes) {
+            if (!EventsController.current_perf_report.perf_datas[this.var_data.index]) {
+                EventsController.current_perf_report.perf_datas[this.var_data.index] = {
+                    event_name: "-",
+                    listener_name: this.var_data.index,
+                    calls: [],
+                    cooldowns: [],
+                    events: [],
+                };
+            }
+
+            EventsController.current_perf_report.perf_datas[this.var_data.index].events.push({
+                ts: Dates.now_ms(),
+                description: this.get_node_description_for_perfs("addOutgoingDep:" + dep.dep_name + ":" + (dep.outgoing_node as VarDAGNode).var_data.index),
+            });
+        }
+
         return true;
     }
 
@@ -788,12 +824,12 @@ export default class VarDAGNode extends DAGNodeBase {
             const end = Dates.now_ms();
             EventsController.current_perf_report.perf_datas[this.var_data.index].events.push({
                 ts: end,
-                description: "unlink",
+                description: this.get_node_description_for_perfs("unlink"),
             });
             EventsController.current_perf_report.perf_datas[this.var_data.index].calls.push({
                 start: this.linked_at,
                 end: end,
-                description: "from link to unlink",
+                description: this.get_node_description_for_perfs("from link to unlink"),
             });
         }
 
@@ -839,7 +875,7 @@ export default class VarDAGNode extends DAGNodeBase {
 
             EventsController.current_perf_report.perf_datas[this.var_data.index].events.push({
                 ts: this.linked_at,
-                description: "link",
+                description: this.get_node_description_for_perfs("link"),
             });
         }
 
@@ -930,7 +966,7 @@ export default class VarDAGNode extends DAGNodeBase {
             const end = Dates.now_ms();
             EventsController.current_perf_report.perf_datas[this.var_data.index].events.push({
                 ts: end,
-                description: "change current step to " + VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step] + " (" + this.current_step + ")",
+                description: this.get_node_description_for_perfs("change current step to " + VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step] + " (" + this.current_step + ")"),
             });
         }
 
