@@ -189,6 +189,10 @@ export default class EnvParamsVO implements IDistantVOBase {
      */
     public create_event_perf_report: boolean;
 
+    public activate_module_perf_throttle_queries: boolean;
+    public activate_module_perf_events: boolean;
+    public activate_module_perf_var_dag_nodes: boolean;
+
     public debug_reruns_of_oselia: boolean;
 
     // DEBUG_CONTEXT_QUERY_build_select_query_not_count?: boolean;

@@ -552,7 +552,7 @@ export default class ThrottledQueryServerController {
                 StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'OUT', Dates.now_ms() - time_in);
 
                 // Si on est en mode perf report, on enregistre le rapport de la requete
-                if (EventsController.current_perf_report) {
+                if (EventsController.current_perf_report && EventsController.activate_module_perf_throttle_queries) {
                     const perf_name = 'Throttled_select_query.' + param.index;
                     if (!EventsController.current_perf_report.perf_datas[perf_name]) {
                         EventsController.current_perf_report.perf_datas[perf_name] = {
@@ -566,7 +566,9 @@ export default class ThrottledQueryServerController {
                     }
 
                     // on ajoute un cooldown pour avant la requete, un pour après, un call pour la query et un event pour le début (la demande initiale)
-                    EventsController.current_perf_report.perf_datas[perf_name].events.push(param.time_in);
+                    EventsController.current_perf_report.perf_datas[perf_name].events.push({
+                        ts: param.time_in,
+                    });
                     EventsController.current_perf_report.perf_datas[perf_name].cooldowns.push({
                         start: param.time_in,
                         end: time_in,

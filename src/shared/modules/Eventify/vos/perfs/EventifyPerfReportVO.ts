@@ -58,12 +58,17 @@ export default class EventifyPerfReportVO implements IDistantVOBase {
             "calls": Array<{
                 "start": number, // perf time ms
                 "end": number, // perf time ms
+                "description"?: string,
             }>,
             "cooldowns": Array<{
                 "start": number, // perf time ms
                 "end": number, // perf time ms
+                "description"?: string,
             }>,
-            "events": number[], // perf time ms of each emitted events since creation of this listener
+            "events": Array<{
+                "ts": number, // perf time ms
+                "description"?: string,
+            }>,
         }
     };
 }

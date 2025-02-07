@@ -61,6 +61,24 @@ export default class ModuleEventifyServer extends ModuleServerBase {
             this.on_update_create_event_perf_report.bind(this)
         );
         EventsController.register_event_listener(create_event_perf_report_listener);
+
+        // et aux 3 modules pour le moment configurés
+        const activate_module_perf_throttle_queries_listener = EventifyEventListenerInstanceVO.new_listener(
+            ModuleEnvParamServer.UPDATE_ENVPARAM_EVENT_BASE_NAME + reflect<EnvParamsVO>().activate_module_perf_throttle_queries,
+            this.on_update_activate_module_perf_throttle_queries.bind(this)
+        );
+        EventsController.register_event_listener(activate_module_perf_throttle_queries_listener);
+        const activate_module_perf_events_listener = EventifyEventListenerInstanceVO.new_listener(
+            ModuleEnvParamServer.UPDATE_ENVPARAM_EVENT_BASE_NAME + reflect<EnvParamsVO>().activate_module_perf_events,
+            this.on_update_activate_module_perf_events.bind(this)
+        );
+        EventsController.register_event_listener(activate_module_perf_events_listener);
+        const activate_module_perf_var_dag_nodes_listener = EventifyEventListenerInstanceVO.new_listener(
+            ModuleEnvParamServer.UPDATE_ENVPARAM_EVENT_BASE_NAME + reflect<EnvParamsVO>().activate_module_perf_var_dag_nodes,
+            this.on_update_activate_module_perf_var_dag_nodes.bind(this)
+        );
+        EventsController.register_event_listener(activate_module_perf_var_dag_nodes_listener);
+
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -85,5 +103,17 @@ export default class ModuleEventifyServer extends ModuleServerBase {
             perf_report.end_date_perf_ms = Dates.now_ms();
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(perf_report);
         }
+    }
+
+    private async on_update_activate_module_perf_throttle_queries(event: EventifyEventInstanceVO) {
+        EventsController.activate_module_perf_throttle_queries = !!event.param;
+    }
+
+    private async on_update_activate_module_perf_events(event: EventifyEventInstanceVO) {
+        EventsController.activate_module_perf_events = !!event.param;
+    }
+
+    private async on_update_activate_module_perf_var_dag_nodes(event: EventifyEventInstanceVO) {
+        EventsController.activate_module_perf_var_dag_nodes = !!event.param;
     }
 }

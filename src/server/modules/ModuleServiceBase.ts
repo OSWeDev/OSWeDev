@@ -859,7 +859,7 @@ export default abstract class ModuleServiceBase {
 
 
             // Si on est en mode perf report, on enregistre le rapport de la requete
-            if (EventsController.current_perf_report) {
+            if (EventsController.current_perf_report && EventsController.activate_module_perf_throttle_queries) {
                 const perf_name = 'db_query.' + query_uid;
                 if (!EventsController.current_perf_report.perf_datas[perf_name]) {
                     EventsController.current_perf_report.perf_datas[perf_name] = {
@@ -873,7 +873,9 @@ export default abstract class ModuleServiceBase {
                 }
 
                 // on ajoute un cooldown pour avant la requete, un pour après, un call pour la query et un event pour le début (la demande initiale)
-                EventsController.current_perf_report.perf_datas[perf_name].events.push(db_query_time_in);
+                EventsController.current_perf_report.perf_datas[perf_name].events.push({
+                    ts: db_query_time_in,
+                });
                 EventsController.current_perf_report.perf_datas[perf_name].cooldowns.push({
                     start: db_query_time_in,
                     end: query_start_ms,

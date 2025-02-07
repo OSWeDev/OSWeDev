@@ -37,6 +37,10 @@ export default class EventsController {
      */
     public static current_perf_report: EventifyPerfReportVO = null;
 
+    public static activate_module_perf_throttle_queries: boolean = true;
+    public static activate_module_perf_events: boolean = true;
+    public static activate_module_perf_var_dag_nodes: boolean = true;
+
     /**
      * On stocke la date de début du listener pour pas log en boucle le même run
      */
@@ -120,7 +124,7 @@ export default class EventsController {
             const listener: EventifyEventListenerInstanceVO = listeners[listner_name];
 
             // Gestion du perf report
-            if (EventsController.current_perf_report) {
+            if (EventsController.current_perf_report && EventsController.activate_module_perf_events) {
                 if (!EventsController.current_perf_report.perf_datas[listner_name]) {
                     EventsController.current_perf_report.perf_datas[listner_name] = {
                         event_name: event.name,
@@ -131,7 +135,9 @@ export default class EventsController {
                     };
                 }
 
-                EventsController.current_perf_report.perf_datas[listner_name].events.push(event.emission_date_ms);
+                EventsController.current_perf_report.perf_datas[listner_name].events.push({
+                    ts: event.emission_date_ms,
+                });
             }
 
             if (EventsController.log_events_names[event.name]) {
@@ -407,7 +413,7 @@ export default class EventsController {
                 listener.cb_is_cooling_down = false;
 
                 // Gestion du perf report
-                if (EventsController.current_perf_report) {
+                if (EventsController.current_perf_report && EventsController.activate_module_perf_events) {
                     if (!EventsController.current_perf_report.perf_datas[listener.name]) {
                         EventsController.current_perf_report.perf_datas[listener.name] = {
                             event_name: event.name,
@@ -473,7 +479,7 @@ export default class EventsController {
                     listener.last_cb_run_end_date_ms = Dates.now_ms();
 
                     // Gestion du perf report
-                    if (EventsController.current_perf_report) {
+                    if (EventsController.current_perf_report && EventsController.activate_module_perf_events) {
                         if (!EventsController.current_perf_report.perf_datas[listener.name]) {
                             EventsController.current_perf_report.perf_datas[listener.name] = {
                                 event_name: event.name,
@@ -526,7 +532,7 @@ export default class EventsController {
                     listener.cb_is_cooling_down = false;
 
                     // Gestion du perf report
-                    if (EventsController.current_perf_report) {
+                    if (EventsController.current_perf_report && EventsController.activate_module_perf_events) {
                         if (!EventsController.current_perf_report.perf_datas[listener.name]) {
                             EventsController.current_perf_report.perf_datas[listener.name] = {
                                 event_name: event.name,
@@ -668,7 +674,7 @@ export default class EventsController {
                 const end_date_ms = Dates.now_ms();
 
                 // Gestion du perf report
-                if (EventsController.current_perf_report) {
+                if (EventsController.current_perf_report && EventsController.activate_module_perf_events) {
                     if (!EventsController.current_perf_report.perf_datas[listener_name]) {
                         EventsController.current_perf_report.perf_datas[listener_name] = {
                             event_name: event.name,
@@ -743,7 +749,7 @@ export default class EventsController {
                 const end_date_ms = Dates.now_ms();
 
                 // Gestion du perf report
-                if (EventsController.current_perf_report) {
+                if (EventsController.current_perf_report && EventsController.activate_module_perf_events) {
                     if (!EventsController.current_perf_report.perf_datas[listener_name]) {
                         EventsController.current_perf_report.perf_datas[listener_name] = {
                             event_name: event.name,

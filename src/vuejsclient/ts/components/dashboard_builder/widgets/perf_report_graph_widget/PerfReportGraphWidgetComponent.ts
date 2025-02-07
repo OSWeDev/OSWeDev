@@ -306,10 +306,10 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
 
         // Cercles "events"
         perfs.forEach((d) => {
-            d.events.forEach((evt) => {
+            d.events.forEach((evt: { ts: number, description?: string }) => {
                 // Convertir evt (ms) en date formatée
                 const date_formattee =
-                    Dates.format_segment(Math.floor(evt / 1000), TimeSegment.TYPE_SECOND) + "." + (evt % 1000);
+                    Dates.format_segment(Math.floor(evt.ts / 1000), TimeSegment.TYPE_SECOND) + "." + (evt.ts % 1000);
 
                 content
                     .append("circle")
@@ -323,14 +323,16 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                             ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
                             (d.description ? d.description + '<br>' : '') +
                             '<hr>' +
-                            'Date: ' + date_formattee
+                            'Date: ' + date_formattee +
+                            (d.description ? '<br>' + d.description : '')
                         );
                         ConsoleHandler.debug(
                             'Listener: <b>' + d.name + '</b><br>' +
                             ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
                             (d.description ? d.description + '<br>' : '') +
                             '<hr>' +
-                            'Date: ' + date_formattee
+                            'Date: ' + date_formattee +
+                            (d.description ? '<br>' + d.description : '')
                         );
                     })
                     .on("mouseover", (event) => {
@@ -341,7 +343,8 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                                 ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
                                 (d.description ? d.description + '<br>' : '') +
                                 '<hr>' +
-                                'Date: ' + date_formattee
+                                'Date: ' + date_formattee +
+                                (d.description ? '<br>' + d.description : '')
                             )
                             .style("left", (event.pageX - container.left + 10) + "px")
                             .style("top", (event.pageY - container.top - 10) + "px");

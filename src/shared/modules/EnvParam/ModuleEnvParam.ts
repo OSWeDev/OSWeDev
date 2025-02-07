@@ -201,6 +201,9 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_slow_event_listeners, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug slow event listeners', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_slow_event_listeners_ms_limit, ModuleTableFieldVO.FIELD_TYPE_int, 'Debug slow event listeners ms limit', true, true, 1000);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().create_event_perf_report, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Create event perf report', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_throttle_queries, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Throttle queries', true, true, true);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_events, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Events', true, true, true);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_var_dag_nodes, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Var dag nodes', true, true, true);
 
         // DEBUG_PROMISE_PIPELINE ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_promise_pipeline, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug promise pipeline', true);
