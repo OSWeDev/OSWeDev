@@ -1,6 +1,7 @@
 import EventsController from '../../../../../shared/modules/Eventify/EventsController';
 import EventifyEventInstanceVO from '../../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import PerfReportController from '../../../../../shared/modules/PerfReport/PerfReportController';
 import StatsController from '../../../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -212,25 +213,17 @@ export default abstract class VarsProcessBase {
     }
 
     private handle_perf_report(node: VarDAGNode, worker_time_in: number) {
-        // Gestion du perf report
-        if (EventsController.current_perf_report && EventsController.activate_module_perf_var_dag_nodes) {
-            if (!EventsController.current_perf_report.perf_datas[node.var_data.index]) {
-                EventsController.current_perf_report.perf_datas[node.var_data.index] = {
-                    event_name: "-",
-                    listener_name: node.var_data.index,
-                    calls: [],
-                    cooldowns: [],
-                    events: [],
-                };
-            }
-
-            const end = Dates.now_ms();
-            EventsController.current_perf_report.perf_datas[node.var_data.index].cooldowns.push({
-                start: worker_time_in,
-                end: end,
-                description: node.get_node_description_for_perfs(this.name),
-            });
-        }
+        const perf_name = node.var_data.index;
+        const perf_line_name = node.var_data.index;
+        PerfReportController.add_cooldown(
+            VarDAGNode.PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            null,
+            worker_time_in,
+            Dates.now_ms(),
+            node.get_node_description_for_perfs(this.name),
+        );
     }
 
     private get_valid_nodes(): { [node_name: string]: VarDAGNode } {

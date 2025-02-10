@@ -5,12 +5,11 @@ import EventsController from '../../../../shared/modules/Eventify/EventsControll
 import EventifyEventInstanceVO from '../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
-import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
+import PerfReportController from '../../../../shared/modules/PerfReport/PerfReportController';
 import DAGNodeBase from '../../../../shared/modules/Var/graph/dagbase/DAGNodeBase';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
-import ThreadHandler from '../../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ThrottledQueryServerController from '../../../modules/DAO/ThrottledQueryServerController';
 import VarsServerCallBackSubsController from '../../../modules/Var/VarsServerCallBackSubsController';
@@ -24,6 +23,8 @@ import VarDAG from './VarDAG';
 import VarDAGNodeDep from './VarDAGNodeDep';
 
 export default class VarDAGNode extends DAGNodeBase {
+
+    public static PERF_MODULE_NAME: string = 'var_dag_nodes';
 
     /**
      * Les tags pendant le traitement d'un noeud
@@ -677,23 +678,16 @@ export default class VarDAGNode extends DAGNodeBase {
         outgoing_node.is_client_sub_dep = outgoing_node.is_client_sub_dep || this.is_client_sub || this.is_client_sub_dep;
         outgoing_node.is_server_sub_dep = outgoing_node.is_server_sub_dep || this.is_server_sub || this.is_server_sub_dep;
 
-        // Gestion du perf report
-        if (EventsController.current_perf_report && EventsController.activate_module_perf_var_dag_nodes) {
-            if (!EventsController.current_perf_report.perf_datas[this.var_data.index]) {
-                EventsController.current_perf_report.perf_datas[this.var_data.index] = {
-                    event_name: "-",
-                    listener_name: this.var_data.index,
-                    calls: [],
-                    cooldowns: [],
-                    events: [],
-                };
-            }
-
-            EventsController.current_perf_report.perf_datas[this.var_data.index].events.push({
-                ts: Dates.now_ms(),
-                description: this.get_node_description_for_perfs("addOutgoingDep:" + dep.dep_name + ":" + (dep.outgoing_node as VarDAGNode).var_data.index),
-            });
-        }
+        const perf_name = this.var_data.index;
+        const perf_line_name = this.var_data.index;
+        PerfReportController.add_event(
+            VarDAGNode.PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            null,
+            Dates.now_ms(),
+            this.get_node_description_for_perfs("addOutgoingDep:" + dep.dep_name + ":" + (dep.outgoing_node as VarDAGNode).var_data.index),
+        );
 
         return true;
     }
@@ -809,29 +803,25 @@ export default class VarDAGNode extends DAGNodeBase {
             delete dag.roots[this.var_data.index];
         }
 
-        // Gestion du perf report
-        if (EventsController.current_perf_report && EventsController.activate_module_perf_var_dag_nodes) {
-            if (!EventsController.current_perf_report.perf_datas[this.var_data.index]) {
-                EventsController.current_perf_report.perf_datas[this.var_data.index] = {
-                    event_name: "-",
-                    listener_name: this.var_data.index,
-                    calls: [],
-                    cooldowns: [],
-                    events: [],
-                };
-            }
-
-            const end = Dates.now_ms();
-            EventsController.current_perf_report.perf_datas[this.var_data.index].events.push({
-                ts: end,
-                description: this.get_node_description_for_perfs("unlink"),
-            });
-            EventsController.current_perf_report.perf_datas[this.var_data.index].calls.push({
-                start: this.linked_at,
-                end: end,
-                description: this.get_node_description_for_perfs("from link to unlink"),
-            });
-        }
+        const perf_name = this.var_data.index;
+        const perf_line_name = this.var_data.index;
+        PerfReportController.add_event(
+            VarDAGNode.PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            null,
+            Dates.now_ms(),
+            this.get_node_description_for_perfs("unlink"),
+        );
+        PerfReportController.add_call(
+            VarDAGNode.PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            null,
+            this.linked_at,
+            Dates.now_ms(),
+            this.get_node_description_for_perfs("from link to unlink"),
+        );
 
         this.linked_at = null;
 
@@ -861,23 +851,16 @@ export default class VarDAGNode extends DAGNodeBase {
             this.linked_at = Dates.now_ms();
         }
 
-        // Gestion du perf report
-        if (EventsController.current_perf_report && EventsController.activate_module_perf_var_dag_nodes) {
-            if (!EventsController.current_perf_report.perf_datas[this.var_data.index]) {
-                EventsController.current_perf_report.perf_datas[this.var_data.index] = {
-                    event_name: "-",
-                    listener_name: this.var_data.index,
-                    calls: [],
-                    cooldowns: [],
-                    events: [],
-                };
-            }
-
-            EventsController.current_perf_report.perf_datas[this.var_data.index].events.push({
-                ts: this.linked_at,
-                description: this.get_node_description_for_perfs("link"),
-            });
-        }
+        const perf_name = this.var_data.index;
+        const perf_line_name = this.var_data.index;
+        PerfReportController.add_event(
+            VarDAGNode.PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            null,
+            this.linked_at,
+            this.get_node_description_for_perfs("link"),
+        );
 
         return this;
     }
@@ -951,24 +934,16 @@ export default class VarDAGNode extends DAGNodeBase {
      */
     private onchange_current_step() {
 
-        // Gestion du perf report
-        if (EventsController.current_perf_report && EventsController.activate_module_perf_var_dag_nodes) {
-            if (!EventsController.current_perf_report.perf_datas[this.var_data.index]) {
-                EventsController.current_perf_report.perf_datas[this.var_data.index] = {
-                    event_name: "-",
-                    listener_name: this.var_data.index,
-                    calls: [],
-                    cooldowns: [],
-                    events: [],
-                };
-            }
-
-            const end = Dates.now_ms();
-            EventsController.current_perf_report.perf_datas[this.var_data.index].events.push({
-                ts: end,
-                description: this.get_node_description_for_perfs("change current step to " + VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step] + " (" + this.current_step + ")"),
-            });
-        }
+        const perf_name = this.var_data.index;
+        const perf_line_name = this.var_data.index;
+        PerfReportController.add_event(
+            VarDAGNode.PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            null,
+            Dates.now_ms(),
+            this.get_node_description_for_perfs("change current step to " + VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step] + " (" + this.current_step + ")"),
+        );
 
         if (this.current_step == null) {
             return;

@@ -132,8 +132,9 @@ export default class EnvParam implements IEnvParam {
 
     public create_event_perf_report?: boolean = false;
     public activate_module_perf_throttle_queries?: boolean = false;
-    public activate_module_perf_events?: boolean = false;
+    public activate_module_perf_eventify?: boolean = false;
     public activate_module_perf_var_dag_nodes?: boolean = false;
+    public activate_module_perf_gpt_assistant_api?: boolean = false;
 
     // TEAMS Webhooks
     public teams_webhook_send_message?: string = null;

@@ -52,8 +52,7 @@ export default class EventifyPerfReportVO implements IDistantVOBase {
      */
     public perf_datas: {
         [event_listner_name: string]: {
-            "event_name": string,
-            "listener_name": string,
+            "line_name": string,
             "description"?: string,
             "calls": Array<{
                 "start": number, // perf time ms

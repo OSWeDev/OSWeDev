@@ -1,4 +1,3 @@
-import APIControllerWrapper from "../../../shared/modules/API/APIControllerWrapper";
 import ModuleAccessPolicy from "../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import AccessPolicyGroupVO from "../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO";
 import AccessPolicyVO from "../../../shared/modules/AccessPolicy/vos/AccessPolicyVO";
@@ -9,6 +8,7 @@ import AccessPolicyServerController from "../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from "../AccessPolicy/ModuleAccessPolicyServer";
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from "../ModulesManagerServer";
+import PerfReportServerController from "./PerfReportServerController";
 
 export default class ModulePerfReportServer extends ModuleServerBase {
 
@@ -33,6 +33,7 @@ export default class ModulePerfReportServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+        PerfReportServerController.configure();
     }
 
     // istanbul ignore next: cannot test registerAccessPolicies

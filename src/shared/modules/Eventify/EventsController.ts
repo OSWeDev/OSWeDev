@@ -9,9 +9,11 @@ import { StatThisMapKeys } from "../Stats/annotations/StatThisMapKeys";
 import StatsController from "../Stats/StatsController";
 import EventifyEventConfVO from "./vos/EventifyEventConfVO";
 import EventifyEventListenerConfVO from "./vos/EventifyEventListenerConfVO";
-import EventifyPerfReportVO from "./vos/perfs/EventifyPerfReportVO";
+import PerfReportController from "../PerfReport/PerfReportController";
 
 export default class EventsController {
+
+    public static PERF_MODULE_NAME: string = 'events';
 
     public static SMALL_TASKS_FAST_TRACK_PSEUDO_LISTENER_NAME_SUFFIX: string = 'SMALL_TASKS_FAST_TRACK';
     public static SMALL_SEMAPHORED_TASKS_FAST_TRACK_PSEUDO_LISTENER_NAME_SUFFIX: string = 'SMALL_SEMAPHORED_TASKS_FAST_TRACK';
@@ -31,15 +33,6 @@ export default class EventsController {
      * Pour activer le log des emissions d'events et call de listeners liés à ces noms d'events
      */
     public static log_events_names: { [event_name: string]: boolean } = {};
-
-    /**
-     * Pour la gestion des perf reports
-     */
-    public static current_perf_report: EventifyPerfReportVO = null;
-
-    public static activate_module_perf_throttle_queries: boolean = false;
-    public static activate_module_perf_events: boolean = false;
-    public static activate_module_perf_var_dag_nodes: boolean = false;
 
     /**
      * On stocke la date de début du listener pour pas log en boucle le même run
@@ -73,7 +66,6 @@ export default class EventsController {
 
     @StatThisMapKeys('EventsController', null, 1, true)
     public static semaphored_await_next_promises: { [full_semaphore_name: string]: Array<Promise<unknown>> } = {};
-
 
     public static init_events_controller(): void {
         if (StatsController.ACTIVATED || EventsController.debug_slow_event_listeners) {
@@ -123,22 +115,15 @@ export default class EventsController {
         for (const listner_name of listner_names) {
             const listener: EventifyEventListenerInstanceVO = listeners[listner_name];
 
-            // Gestion du perf report
-            if (EventsController.current_perf_report && EventsController.activate_module_perf_events) {
-                if (!EventsController.current_perf_report.perf_datas[listner_name]) {
-                    EventsController.current_perf_report.perf_datas[listner_name] = {
-                        event_name: event.name,
-                        listener_name: listener.name,
-                        calls: [],
-                        cooldowns: [],
-                        events: [],
-                    };
-                }
-
-                EventsController.current_perf_report.perf_datas[listner_name].events.push({
-                    ts: event.emission_date_ms,
-                });
-            }
+            const perf_name = listner_name;
+            const perf_line_name = listner_name;
+            PerfReportController.add_event(
+                EventsController.PERF_MODULE_NAME,
+                perf_name,
+                perf_line_name,
+                event.name,
+                event.emission_date_ms,
+            );
 
             if (EventsController.log_events_names[event.name]) {
                 ConsoleHandler.log('Emitting event "' + event.name + '" - Listener "' + listener.name + '" - Logging listener current state pre-event :');
@@ -412,24 +397,15 @@ export default class EventsController {
                 listener.cooling_down_timeout = await ThreadHandler.sleep(listener.cooldown_ms, 'EventsController.call_listener.cooldown_ms');
                 listener.cb_is_cooling_down = false;
 
-                // Gestion du perf report
-                if (EventsController.current_perf_report && EventsController.activate_module_perf_events) {
-                    if (!EventsController.current_perf_report.perf_datas[listener.name]) {
-                        EventsController.current_perf_report.perf_datas[listener.name] = {
-                            event_name: event.name,
-                            listener_name: listener.name,
-                            calls: [],
-                            cooldowns: [],
-                            events: [],
-                        };
-                    }
-
-                    EventsController.current_perf_report.perf_datas[listener.name].cooldowns.push({
-                        start: pre_cb_date,
-                        end: Dates.now_ms(),
-                    });
-                }
-
+                const perf_name = listener.name;
+                const perf_line_name = listener.name;
+                PerfReportController.add_cooldown(
+                    EventsController.PERF_MODULE_NAME,
+                    perf_name,
+                    perf_line_name,
+                    event.name,
+                    pre_cb_date,
+                );
 
                 if (EventsController.log_events_names[event.name]) {
                     ConsoleHandler.log('call_listener "' + event.name + '" - Listener "' + listener.name + '" - Debounce leading OUT');
@@ -478,23 +454,16 @@ export default class EventsController {
                     }
                     listener.last_cb_run_end_date_ms = Dates.now_ms();
 
-                    // Gestion du perf report
-                    if (EventsController.current_perf_report && EventsController.activate_module_perf_events) {
-                        if (!EventsController.current_perf_report.perf_datas[listener.name]) {
-                            EventsController.current_perf_report.perf_datas[listener.name] = {
-                                event_name: event.name,
-                                listener_name: listener.name,
-                                calls: [],
-                                cooldowns: [],
-                                events: [],
-                            };
-                        }
-
-                        EventsController.current_perf_report.perf_datas[listener.name].calls.push({
-                            start: listener.last_cb_run_start_date_ms,
-                            end: listener.last_cb_run_end_date_ms,
-                        });
-                    }
+                    const perf_name = listener.name;
+                    const perf_line_name = listener.name;
+                    PerfReportController.add_call(
+                        EventsController.PERF_MODULE_NAME,
+                        perf_name,
+                        perf_line_name,
+                        event.name,
+                        listener.last_cb_run_start_date_ms,
+                        listener.last_cb_run_end_date_ms,
+                    );
 
                     if (EventsController.log_events_names[event.name]) {
                         ConsoleHandler.log('call_listener "' + event.name + '" - Listener "' + listener.name + '" - logging listener post-call');
@@ -531,23 +500,15 @@ export default class EventsController {
                     listener.cooling_down_timeout = await ThreadHandler.sleep(listener.cooldown_ms, 'EventsController.call_listener.cooldown_ms');
                     listener.cb_is_cooling_down = false;
 
-                    // Gestion du perf report
-                    if (EventsController.current_perf_report && EventsController.activate_module_perf_events) {
-                        if (!EventsController.current_perf_report.perf_datas[listener.name]) {
-                            EventsController.current_perf_report.perf_datas[listener.name] = {
-                                event_name: event.name,
-                                listener_name: listener.name,
-                                calls: [],
-                                cooldowns: [],
-                                events: [],
-                            };
-                        }
-
-                        EventsController.current_perf_report.perf_datas[listener.name].cooldowns.push({
-                            start: date_pre_cd,
-                            end: Dates.now_ms(),
-                        });
-                    }
+                    const perf_name = listener.name;
+                    const perf_line_name = listener.name;
+                    PerfReportController.add_cooldown(
+                        EventsController.PERF_MODULE_NAME,
+                        perf_name,
+                        perf_line_name,
+                        event.name,
+                        date_pre_cd,
+                    );
 
                     if (EventsController.log_events_names[event.name]) {
                         ConsoleHandler.log('call_listener "' + event.name + '" - Listener "' + listener.name + '" - Cooldown OUT');
@@ -673,23 +634,16 @@ export default class EventsController {
                 await cb(event, null);
                 const end_date_ms = Dates.now_ms();
 
-                // Gestion du perf report
-                if (EventsController.current_perf_report && EventsController.activate_module_perf_events) {
-                    if (!EventsController.current_perf_report.perf_datas[listener_name]) {
-                        EventsController.current_perf_report.perf_datas[listener_name] = {
-                            event_name: event.name,
-                            listener_name: listener_name,
-                            calls: [],
-                            cooldowns: [],
-                            events: [],
-                        };
-                    }
-
-                    EventsController.current_perf_report.perf_datas[listener_name].calls.push({
-                        start: start_date_ms,
-                        end: end_date_ms,
-                    });
-                }
+                const perf_name = listener_name;
+                const perf_line_name = listener_name;
+                PerfReportController.add_call(
+                    EventsController.PERF_MODULE_NAME,
+                    perf_name,
+                    perf_line_name,
+                    event.name,
+                    start_date_ms,
+                    end_date_ms,
+                );
             })());
         }
 
@@ -748,23 +702,16 @@ export default class EventsController {
                 await cb(event, null);
                 const end_date_ms = Dates.now_ms();
 
-                // Gestion du perf report
-                if (EventsController.current_perf_report && EventsController.activate_module_perf_events) {
-                    if (!EventsController.current_perf_report.perf_datas[listener_name]) {
-                        EventsController.current_perf_report.perf_datas[listener_name] = {
-                            event_name: event.name,
-                            listener_name: listener_name,
-                            calls: [],
-                            cooldowns: [],
-                            events: [],
-                        };
-                    }
-
-                    EventsController.current_perf_report.perf_datas[listener_name].calls.push({
-                        start: start_date_ms,
-                        end: end_date_ms,
-                    });
-                }
+                const perf_name = listener_name;
+                const perf_line_name = listener_name;
+                PerfReportController.add_call(
+                    EventsController.PERF_MODULE_NAME,
+                    perf_name,
+                    perf_line_name,
+                    event.name,
+                    start_date_ms,
+                    end_date_ms,
+                );
             })());
         }
 

@@ -3,6 +3,7 @@ import ParameterizedQueryWrapperField from "../../../shared/modules/ContextFilte
 import EventsController from "../../../shared/modules/Eventify/EventsController";
 import EventifyEventInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventInstanceVO";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
+import PerfReportController from "../../../shared/modules/PerfReport/PerfReportController";
 import { StatThisMapKeys } from "../../../shared/modules/Stats/annotations/StatThisMapKeys";
 import StatsController from "../../../shared/modules/Stats/StatsController";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
@@ -18,6 +19,8 @@ import LogDBPerfServerController from "./LogDBPerfServerController";
 import ThrottledSelectQueryParam from "./vos/ThrottledSelectQueryParam";
 
 export default class ThrottledQueryServerController {
+
+    public static PERF_MODULE_NAME: string = "throttle_queries";
 
     /**
      * L'évènement indiquant qu'il y a des éléments dans throttled_select_query_params_by_fields_labels
@@ -551,37 +554,38 @@ export default class ThrottledQueryServerController {
                 StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'cbs_OUT', Dates.now_ms() - cbs_time_in);
                 StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'OUT', Dates.now_ms() - time_in);
 
-                // Si on est en mode perf report, on enregistre le rapport de la requete
-                if (EventsController.current_perf_report && EventsController.activate_module_perf_throttle_queries) {
-                    const perf_name = 'Throttled_select_query.' + param.index;
-                    if (!EventsController.current_perf_report.perf_datas[perf_name]) {
-                        EventsController.current_perf_report.perf_datas[perf_name] = {
-                            event_name: perf_name,
-                            listener_name: perf_name,
-                            description: param.parameterized_full_query,
-                            calls: [],
-                            cooldowns: [],
-                            events: [],
-                        };
-                    }
-
-                    // on ajoute un cooldown pour avant la requete, un pour après, un call pour la query et un event pour le début (la demande initiale)
-                    EventsController.current_perf_report.perf_datas[perf_name].events.push({
-                        ts: param.time_in,
-                    });
-                    EventsController.current_perf_report.perf_datas[perf_name].cooldowns.push({
-                        start: param.time_in,
-                        end: time_in,
-                    });
-                    EventsController.current_perf_report.perf_datas[perf_name].calls.push({
-                        start: time_in,
-                        end: query_time_out,
-                    });
-                    EventsController.current_perf_report.perf_datas[perf_name].cooldowns.push({
-                        start: query_time_out,
-                        end: Dates.now_ms(),
-                    });
-                }
+                const perf_name = 'Throttled_select_query.' + param.index;
+                const perf_line_name = 'Throttled query [' + param.index + ']';
+                PerfReportController.add_event(
+                    ThrottledQueryServerController.PERF_MODULE_NAME,
+                    perf_name,
+                    perf_line_name,
+                    param.parameterized_full_query,
+                    param.time_in,
+                );
+                PerfReportController.add_cooldown(
+                    ThrottledQueryServerController.PERF_MODULE_NAME,
+                    perf_name,
+                    perf_line_name,
+                    param.parameterized_full_query,
+                    param.time_in,
+                    time_in,
+                );
+                PerfReportController.add_call(
+                    ThrottledQueryServerController.PERF_MODULE_NAME,
+                    perf_name,
+                    perf_line_name,
+                    param.parameterized_full_query,
+                    time_in,
+                    query_time_out,
+                );
+                PerfReportController.add_cooldown(
+                    ThrottledQueryServerController.PERF_MODULE_NAME,
+                    perf_name,
+                    perf_line_name,
+                    param.parameterized_full_query,
+                    query_time_out,
+                );
 
                 await self.current_promise_resolvers[index](results_of_index);
                 delete self.current_promise_resolvers[index];

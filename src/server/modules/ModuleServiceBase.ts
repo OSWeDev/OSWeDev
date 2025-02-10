@@ -1,4 +1,4 @@
-import { Application, Express } from 'express';
+import { Application } from 'express';
 import { IDatabase } from 'pg-promise';
 import ModuleAPI from '../../shared/modules/API/ModuleAPI';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -6,6 +6,7 @@ import ModuleActionURL from '../../shared/modules/ActionURL/ModuleActionURL';
 import ModuleAjaxCache from '../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleAnimation from '../../shared/modules/Animation/ModuleAnimation';
 import ModuleAnonymization from '../../shared/modules/Anonymization/ModuleAnonymization';
+import ModuleAzureConnect from '../../shared/modules/AzureConnect/ModuleAzureConnect';
 import ModuleAzureMemoryCheck from '../../shared/modules/AzureMemoryCheck/ModuleAzureMemoryCheck';
 import ModuleBGThread from '../../shared/modules/BGThread/ModuleBGThread';
 import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
@@ -27,6 +28,7 @@ import ModuleDataRender from '../../shared/modules/DataRender/ModuleDataRender';
 import ModuleDataSource from '../../shared/modules/DataSource/ModuleDataSource';
 import ModuleDocument from '../../shared/modules/Document/ModuleDocument';
 import ModuleEnvParam from '../../shared/modules/EnvParam/ModuleEnvParam';
+import ModuleEventify from '../../shared/modules/Eventify/ModuleEventify';
 import ModuleEvolizAPI from '../../shared/modules/EvolizAPI/ModuleEvolizAPI';
 import ModuleExpressDBSessions from '../../shared/modules/ExpressDBSessions/ModuleExpressDBSessions';
 import ModuleFacturationProAPI from '../../shared/modules/FacturationProAPI/ModuleFacturationProAPI';
@@ -39,6 +41,7 @@ import ModuleGPT from '../../shared/modules/GPT/ModuleGPT';
 import ModuleGeneratePDF from '../../shared/modules/GeneratePDF/ModuleGeneratePDF';
 import ModuleImage from '../../shared/modules/Image/ModuleImage';
 import ModuleImageFormat from '../../shared/modules/ImageFormat/ModuleImageFormat';
+import ModuleLogger from '../../shared/modules/Logger/ModuleLogger';
 import ModuleMailer from '../../shared/modules/Mailer/ModuleMailer';
 import ModuleMaintenance from '../../shared/modules/Maintenance/ModuleMaintenance';
 import ModuleMenu from '../../shared/modules/Menu/ModuleMenu';
@@ -46,6 +49,8 @@ import Module from '../../shared/modules/Module';
 import ModuleNFCConnect from '../../shared/modules/NFCConnect/ModuleNFCConnect';
 import ModuleOselia from '../../shared/modules/Oselia/ModuleOselia';
 import ModuleParams from '../../shared/modules/Params/ModuleParams';
+import ParamsManager from '../../shared/modules/Params/ParamsManager';
+import PerfReportController from '../../shared/modules/PerfReport/PerfReportController';
 import ModulePlayWright from '../../shared/modules/PlayWright/ModulePlayWright';
 import ModulePopup from '../../shared/modules/Popup/ModulePopup';
 import ModulePowershell from '../../shared/modules/Powershell/ModulePowershell';
@@ -78,6 +83,7 @@ import ModuleActionURLServer from './ActionURL/ModuleActionURLServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
 import ModuleAnimationServer from './Animation/ModuleAnimationServer';
 import ModuleAnonymizationServer from './Anonymization/ModuleAnonymizationServer';
+import ModuleAzureConnectServer from './AzureConnect/ModuleAzureConnectServer';
 import ModuleAzureMemoryCheckServer from './AzureMemoryCheck/ModuleAzureMemoryCheckServer';
 import ModuleBGThreadServer from './BGThread/ModuleBGThreadServer';
 import ModuleCMSServer from './CMS/ModuleCMSServer';
@@ -91,12 +97,14 @@ import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
 import ModuleContextFilterServer from './ContextFilter/ModuleContextFilterServer';
 import ModuleCronServer from './Cron/ModuleCronServer';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
+import ThrottledQueryServerController from './DAO/ThrottledQueryServerController';
 import ModuleDashboardBuilderServer from './DashboardBuilder/ModuleDashboardBuilderServer';
 import ModuleDataExportServer from './DataExport/ModuleDataExportServer';
 import ModuleDataImportServer from './DataImport/ModuleDataImportServer';
 import ModuleDataRenderServer from './DataRender/ModuleDataRenderServer';
 import ModuleDocumentServer from './Document/ModuleDocumentServer';
 import ModuleEnvParamServer from './EnvParam/ModuleEnvParamServer';
+import ModuleEventifyServer from './Eventify/ModuleEventifyServer';
 import ModuleEvolizAPIServer from './EvolizAPI/ModuleEvolizAPIServer';
 import ModuleExpressDBSessionServer from './ExpressDBSessions/ModuleExpressDBSessionsServer';
 import ModuleFacturationProAPIServer from './FacturationProAPI/ModuleFacturationProAPIServer';
@@ -108,6 +116,7 @@ import ModuleGPTServer from './GPT/ModuleGPTServer';
 import ModuleGeneratePDFServer from './GeneratePDF/ModuleGeneratePDFServer';
 import ModuleImageServer from './Image/ModuleImageServer';
 import ModuleImageFormatServer from './ImageFormat/ModuleImageFormatServer';
+import ModuleLoggerServer from './Logger/ModuleLoggerServer';
 import ModuleMailerServer from './Mailer/ModuleMailerServer';
 import ModuleMaintenanceServer from './Maintenance/ModuleMaintenanceServer';
 import ModuleMenuServer from './Menu/ModuleMenuServer';
@@ -137,14 +146,8 @@ import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
-import ParamsManager from '../../shared/modules/Params/ParamsManager';
-import ModuleLogger from '../../shared/modules/Logger/ModuleLogger';
-import ModuleLoggerServer from './Logger/ModuleLoggerServer';
-import ModuleAzureConnect from '../../shared/modules/AzureConnect/ModuleAzureConnect';
-import ModuleAzureConnectServer from './AzureConnect/ModuleAzureConnectServer';
-import ModuleEventifyServer from './Eventify/ModuleEventifyServer';
-import ModuleEventify from '../../shared/modules/Eventify/ModuleEventify';
-import EventsController from '../../shared/modules/Eventify/EventsController';
+import ModulePerfReportServer from './PerfReport/ModulePerfReportServer';
+import ModulePerfReport from '../../shared/modules/PerfReport/ModulePerfReport';
 
 export default abstract class ModuleServiceBase {
 
@@ -719,6 +722,7 @@ export default abstract class ModuleServiceBase {
             ModuleLogger.getInstance(),
             ModuleAzureConnect.getInstance(),
             ModuleEventify.getInstance(),
+            ModulePerfReport.getInstance(),
         ];
     }
 
@@ -788,6 +792,7 @@ export default abstract class ModuleServiceBase {
             ModuleLoggerServer.getInstance(),
             ModuleAzureConnectServer.getInstance(),
             ModuleEventifyServer.getInstance(),
+            ModulePerfReportServer.getInstance(),
         ];
     }
 
@@ -858,33 +863,30 @@ export default abstract class ModuleServiceBase {
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
 
 
-            // Si on est en mode perf report, on enregistre le rapport de la requete
-            if (EventsController.current_perf_report && EventsController.activate_module_perf_throttle_queries) {
-                const perf_name = 'db_query.' + query_uid;
-                if (!EventsController.current_perf_report.perf_datas[perf_name]) {
-                    EventsController.current_perf_report.perf_datas[perf_name] = {
-                        event_name: perf_name,
-                        listener_name: perf_name,
-                        description: query,
-                        calls: [],
-                        cooldowns: [],
-                        events: [],
-                    };
-                }
-
-                // on ajoute un cooldown pour avant la requete, un pour après, un call pour la query et un event pour le début (la demande initiale)
-                EventsController.current_perf_report.perf_datas[perf_name].events.push({
-                    ts: db_query_time_in,
-                });
-                EventsController.current_perf_report.perf_datas[perf_name].cooldowns.push({
-                    start: db_query_time_in,
-                    end: query_start_ms,
-                });
-                EventsController.current_perf_report.perf_datas[perf_name].calls.push({
-                    start: query_start_ms,
-                    end: Dates.now_ms(),
-                });
-            }
+            const perf_name = 'db_query.' + query_uid;
+            const perf_line_name = 'Query [' + query_uid + ']';
+            PerfReportController.add_event(
+                ThrottledQueryServerController.PERF_MODULE_NAME,
+                perf_name,
+                perf_line_name,
+                query,
+                db_query_time_in,
+            );
+            PerfReportController.add_cooldown(
+                ThrottledQueryServerController.PERF_MODULE_NAME,
+                perf_name,
+                perf_line_name,
+                query,
+                db_query_time_in,
+                query_start_ms,
+            );
+            PerfReportController.add_call(
+                ThrottledQueryServerController.PERF_MODULE_NAME,
+                perf_name,
+                perf_line_name,
+                query,
+                db_query_time_in,
+            );
 
         } catch (error) {
 

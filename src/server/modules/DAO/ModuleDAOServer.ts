@@ -54,6 +54,7 @@ import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import { IRequestStackContext } from '../../ServerExpressController';
 import StackContext from '../../StackContext';
 import { ExecAsServer, ExecAsServerParam } from '../../annotations/ExecAsServer';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -65,6 +66,7 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModuleTableDBService from '../ModuleTableDBService';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ParamsServerController from '../Params/ParamsServerController';
+import PerfReportServerController from '../PerfReport/PerfReportServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
@@ -80,7 +82,6 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
-import { IRequestStackContext } from '../../ServerExpressController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -613,6 +614,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        PerfReportServerController.register_perf_module(ThrottledQueryServerController.PERF_MODULE_NAME);
 
         await DAOServerController.configure();
         // await this.create_or_replace_function_ref_get_user();

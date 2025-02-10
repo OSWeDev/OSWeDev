@@ -6,8 +6,13 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
+import IUserData from '../../../shared/modules/DAO/interface/IUserData';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
@@ -25,9 +30,12 @@ import GPTAssistantAPIVectorStoreFileVO from '../../../shared/modules/GPT/vos/GP
 import GPTAssistantAPIVectorStoreVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIVectorStoreVO';
 import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -42,6 +50,7 @@ import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ParamsServerController from '../Params/ParamsServerController';
+import PerfReportServerController from '../PerfReport/PerfReportServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import GPTAssistantAPIServerController from './GPTAssistantAPIServerController';
 import AssistantVoTypeDescription from './functions/get_vo_type_description/AssistantVoTypeDescription';
@@ -56,14 +65,6 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
-import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
-import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
-import IUserData from '../../../shared/modules/DAO/interface/IUserData';
-import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
-import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import { field_names } from '../../../shared/tools/ObjectHandler';
-import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -176,6 +177,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
     // istanbul ignore next: cannot test configure
     public async configure() {
 
+        PerfReportServerController.register_perf_module(GPTAssistantAPIServerController.PERF_MODULE_NAME);
         const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         const preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);

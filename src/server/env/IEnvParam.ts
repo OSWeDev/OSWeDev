@@ -73,8 +73,9 @@ export default interface IEnvParam {
 
     create_event_perf_report?: boolean;
     activate_module_perf_throttle_queries?: boolean;
-    activate_module_perf_events?: boolean;
+    activate_module_perf_eventify?: boolean;
     activate_module_perf_var_dag_nodes?: boolean;
+    activate_module_perf_gpt_assistant_api?: boolean;
 
     debug_var_get_instance_semaphored_db_loaded_var_data?: boolean;
 

@@ -65,6 +65,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ParamsServerController from '../Params/ParamsServerController';
+import PerfReportServerController from '../PerfReport/PerfReportServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import CurrentBatchDSCacheHolder from './CurrentBatchDSCacheHolder';
@@ -271,6 +272,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        PerfReportServerController.register_perf_module(VarDAGNode.PERF_MODULE_NAME);
 
         await this.init_auto_vars_confs();
 

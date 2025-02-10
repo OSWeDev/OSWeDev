@@ -605,6 +605,16 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
     }
 
     /**
+     * Filtrer un champ text par un sous-requête : field not in (subquery)
+     * @param query la sous requête qui doit renvoyer les texts acceptés en un unique field
+     */
+    public by_text_not_in(query: ContextQueryVO, this_query: ContextQueryVO = null): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NOT_IN;
+        this.set_sub_query(query, this_query);
+        return this;
+    }
+
+    /**
      * Filtrer en fonction d'un sub en exists
      * @param query la sous requête qui doit renvoyer aucune ligne pour être valide
      */

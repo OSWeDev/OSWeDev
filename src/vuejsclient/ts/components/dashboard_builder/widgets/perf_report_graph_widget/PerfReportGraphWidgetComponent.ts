@@ -110,8 +110,8 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
         for (const name in this.selected_perf_report.perf_datas) {
             const perf_data = this.selected_perf_report.perf_datas[name];
             perfs.push({
-                name,
-                event_name: perf_data.event_name,
+                perf_name: name,
+                label: perf_data.line_name,
                 description: perf_data.description,
                 calls: perf_data.calls,
                 cooldowns: perf_data.cooldowns,
@@ -173,8 +173,8 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
             .append("line")
             .attr("x1", 0)
             .attr("x2", width)
-            .attr("y1", (d) => yScale(d.name)! + yScale.bandwidth())
-            .attr("y2", (d) => yScale(d.name)! + yScale.bandwidth())
+            .attr("y1", (d) => yScale(d.perf_name)! + yScale.bandwidth())
+            .attr("y2", (d) => yScale(d.perf_name)! + yScale.bandwidth())
             .attr("stroke", "black");
 
         // Sélection du tooltip (assurez-vous d'avoir un <div id="tooltip"> dans votre HTML)
@@ -194,15 +194,14 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                 content
                     .append("rect")
                     .attr("x", xScale(start))
-                    .attr("y", yScale(d.name)!)
+                    .attr("y", yScale(d.perf_name)!)
                     .attr("width", xScale(end) - xScale(start))
                     .attr("height", yScale.bandwidth() / 2)
                     .attr("fill", "red")
                     .attr("stroke", "red")
                     .on("click", async (event) => {
                         await navigator.clipboard.writeText(
-                            'Listener: <b>' + d.name + '</b><br>' +
-                            ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                            '<b>' + d.label + '</b><br>' +
                             (d.description ? d.description + '<br>' : '') +
                             '<hr>' +
                             'Start: ' + start_date_formattee + '<br>' +
@@ -210,8 +209,7 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                             (call.description ? '<br>' + call.description : '')
                         );
                         ConsoleHandler.debug(
-                            'Listener: <b>' + d.name + '</b><br>' +
-                            ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                            '<b>' + d.label + '</b><br>' +
                             (d.description ? d.description + '<br>' : '') +
                             '<hr>' +
                             'Start: ' + start_date_formattee + '<br>' +
@@ -223,8 +221,7 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                         tooltip
                             .style("visibility", "visible")
                             .html(
-                                'Listener: <b>' + d.name + '</b><br>' +
-                                ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                                '<b>' + d.label + '</b><br>' +
                                 (d.description ? d.description + '<br>' : '') +
                                 '<hr>' +
                                 'Start: ' + start_date_formattee + '<br>' +
@@ -259,15 +256,14 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                 content
                     .append("rect")
                     .attr("x", xScale(start))
-                    .attr("y", yScale(d.name)! + yScale.bandwidth() / 2)
+                    .attr("y", yScale(d.perf_name)! + yScale.bandwidth() / 2)
                     .attr("width", xScale(end) - xScale(start))
                     .attr("height", yScale.bandwidth() / 2)
                     .attr("fill", "green")
                     .attr("stroke", "green")
                     .on("click", async (event) => {
                         await navigator.clipboard.writeText(
-                            'Listener: <b>' + d.name + '</b><br>' +
-                            ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                            '<b>' + d.label + '</b><br>' +
                             (d.description ? d.description + '<br>' : '') +
                             '<hr>' +
                             'Start: ' + start_date_formattee + '<br>' +
@@ -275,8 +271,7 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                             (cooldown.description ? '<br>' + cooldown.description : '')
                         );
                         ConsoleHandler.debug(
-                            'Listener: <b>' + d.name + '</b><br>' +
-                            ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                            '<b>' + d.label + '</b><br>' +
                             (d.description ? d.description + '<br>' : '') +
                             '<hr>' +
                             'Start: ' + start_date_formattee + '<br>' +
@@ -288,8 +283,7 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                         tooltip
                             .style("visibility", "visible")
                             .html(
-                                'Listener: <b>' + d.name + '</b><br>' +
-                                ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                                '<b>' + d.label + '</b><br>' +
                                 (d.description ? d.description + '<br>' : '') +
                                 '<hr>' +
                                 'Start: ' + start_date_formattee + '<br>' +
@@ -320,21 +314,19 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                 content
                     .append("circle")
                     .attr("cx", xScale(evt.ts))
-                    .attr("cy", yScale(d.name)! + yScale.bandwidth() / 4)
+                    .attr("cy", yScale(d.perf_name)! + yScale.bandwidth() / 4)
                     .attr("r", 3)
                     .attr("fill", "black")
                     .on("click", async (event) => {
                         await navigator.clipboard.writeText(
-                            'Listener: <b>' + d.name + '</b><br>' +
-                            ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                            '<b>' + d.label + '</b><br>' +
                             (d.description ? d.description + '<br>' : '') +
                             '<hr>' +
                             'Date: ' + date_formattee +
                             (evt.description ? '<br>' + evt.description : '')
                         );
                         ConsoleHandler.debug(
-                            'Listener: <b>' + d.name + '</b><br>' +
-                            ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                            '<b>' + d.label + '</b><br>' +
                             (d.description ? d.description + '<br>' : '') +
                             '<hr>' +
                             'Date: ' + date_formattee +
@@ -345,8 +337,7 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                         tooltip
                             .style("visibility", "visible")
                             .html(
-                                'Listener: <b>' + d.name + '</b><br>' +
-                                ((d.event_name != d.name) ? 'Event: ' + d.event_name + '<br>' : '') +
+                                '<b>' + d.label + '</b><br>' +
                                 (d.description ? d.description + '<br>' : '') +
                                 '<hr>' +
                                 'Date: ' + date_formattee +

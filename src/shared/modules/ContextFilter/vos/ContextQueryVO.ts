@@ -789,6 +789,14 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     }
 
     /**
+     * Filtrer un champ texte par un sous-requête : field not in (subquery)
+     * @param query la sous requête qui doit renvoyer les textes refusés en un unique field
+     */
+    public filter_by_text_not_in(field_id: string, query_: ContextQueryVO, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_not_in(query_, this)]);
+    }
+
+    /**
      * Filtrer par text en début de la valeur du champ
      * @param field_id le field qu'on veut filtrer
      * @param included le texte qu'on veut voir apparaître au début de la valeur du champs
