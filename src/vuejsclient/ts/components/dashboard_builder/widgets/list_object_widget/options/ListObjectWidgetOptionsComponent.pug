@@ -157,6 +157,24 @@
             .message_no_data
                 .input_label {{ label('listobject_widget.message_no_data') }}
                 Vuequilleditor(v-model='message_no_data', :options="optionsEditeur")
+        
+        .filter_on_cmv_vo
+            .input_label {{ label('listobject_widget.filter_on_cmv_vo') }}
+            toggle-button(
+                @change="switch_filter_on_cmv_vo" 
+                :value="filter_on_cmv_vo" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('listobject_widget.filter_on_cmv_vo.visible'), unchecked: label('listobject_widget.filter_on_cmv_vo.hidden')}")
+
+        template(v-if="filter_on_cmv_vo")
+            .field_filter_cmv_vo
+                .field_ref
+                    .input_wrapper
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="field_filter_cmv_vo_field_ref" @remove_field_ref="remove_field_filter_cmv_vo_field_ref" @add_field_ref="add_field_filter_cmv_vo_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
 
         .do_not_use_page_widget_ids
             .input_label {{ label('list_object_widget_options_component.do_not_use_page_widget_ids') }}

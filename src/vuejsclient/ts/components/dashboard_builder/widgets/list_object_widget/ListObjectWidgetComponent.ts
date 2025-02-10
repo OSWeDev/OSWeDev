@@ -55,6 +55,9 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
+    @ModuleDashboardPageGetter
+    private get_cms_vo: IDistantVOBase;
+
     private next_update_options: ListObjectWidgetOptionsVO = null;
 
     private titles: any[] = [];
@@ -189,6 +192,10 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
                     ))
             ));
 
+        if (this.get_cms_vo && this.widget_options?.filter_on_cmv_vo && this.widget_options?.field_filter_cmv_vo) {
+            query_.filter_by_num_eq(this.widget_options.field_filter_cmv_vo.field_id, this.get_cms_vo.id);
+        }
+
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
         if (this.widget_options.sort_dimension_by && this.widget_options.sort_field_ref) {
@@ -221,6 +228,10 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
                         this.widgets_by_id,
                     ))
             ));
+
+        if (this.get_cms_vo && this.widget_options?.filter_on_cmv_vo && this.widget_options?.field_filter_cmv_vo) {
+            query_.filter_by_num_eq(this.widget_options.field_filter_cmv_vo.field_id, this.get_cms_vo.id);
+        }
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
@@ -255,6 +266,10 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
                     ))
             ));
 
+        if (this.get_cms_vo && this.widget_options?.filter_on_cmv_vo && this.widget_options?.field_filter_cmv_vo) {
+            query_.filter_by_num_eq(this.widget_options.field_filter_cmv_vo.field_id, this.get_cms_vo.id);
+        }
+
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
         if (this.widget_options.sort_dimension_by && this.widget_options.sort_field_ref) {
@@ -286,6 +301,10 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
                         this.widgets_by_id,
                     ))
             ));
+
+        if (this.get_cms_vo && this.widget_options?.filter_on_cmv_vo && this.widget_options?.field_filter_cmv_vo) {
+            query_.filter_by_num_eq(this.widget_options.field_filter_cmv_vo.field_id, this.get_cms_vo.id);
+        }
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
@@ -349,6 +368,10 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
                     ))
             ));
 
+        if (this.get_cms_vo && this.widget_options?.filter_on_cmv_vo && this.widget_options?.field_filter_cmv_vo) {
+            query_.filter_by_num_eq(this.widget_options.field_filter_cmv_vo.field_id, this.get_cms_vo.id);
+        }
+
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
         if (this.widget_options.sort_dimension_by && this.widget_options.sort_field_ref) {
@@ -380,6 +403,10 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
                         this.widgets_by_id,
                     ))
             ));
+
+        if (this.get_cms_vo && this.widget_options?.filter_on_cmv_vo && this.widget_options?.field_filter_cmv_vo) {
+            query_.filter_by_num_eq(this.widget_options.field_filter_cmv_vo.field_id, this.get_cms_vo.id);
+        }
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 

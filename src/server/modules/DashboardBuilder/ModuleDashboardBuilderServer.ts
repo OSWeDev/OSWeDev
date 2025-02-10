@@ -4028,6 +4028,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Filtrage dynamique (pour les templates uniquement, filtre sur l'identifiant de l'objet de la page)" },
+            'listobject_widget.filter_on_cmv_vo.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'listobject_widget.filter_on_cmv_vo.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'listobject_widget.filter_on_cmv_vo.hidden.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Choisir le type d'objet manuellement" },
             'cms_crud_buttons.widget_option.show_manual_vo_type.___LABEL___'
         ));
