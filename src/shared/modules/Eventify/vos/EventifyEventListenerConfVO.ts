@@ -58,6 +58,7 @@ export default class EventifyEventListenerConfVO implements IDistantVOBase, IVer
      * On peut vouloir lancer le callback dès que possible, même si on est en cooldown => évènement qui a cet effet
      */
     public run_as_soon_as_possible_event_conf_id: number;
+    public run_as_soon_as_possible_event_conf_name: string;
 
     /**
      * Si on est sur un type bgthread, qui run en permanence
@@ -169,6 +170,7 @@ export default class EventifyEventListenerConfVO implements IDistantVOBase, IVer
         res.cooldown_ms = instance.cooldown_ms;
         res.throttled = instance.throttled;
         res.run_as_soon_as_possible_event_conf_id = instance.run_as_soon_as_possible_event_conf_id;
+        res.run_as_soon_as_possible_event_conf_name = instance.run_as_soon_as_possible_event_conf_name;
         res.is_bgthread = instance.is_bgthread;
         res.debounce_leading = instance.debounce_leading;
         res.param_type = instance.param_type;

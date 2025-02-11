@@ -5,11 +5,11 @@ import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import ThreadHandler from "../../../shared/tools/ThreadHandler";
 import { all_promises } from "../../tools/PromiseTools";
 import Dates from "../FormatDatesNombres/Dates/Dates";
+import PerfReportController from "../PerfReport/PerfReportController";
 import { StatThisMapKeys } from "../Stats/annotations/StatThisMapKeys";
 import StatsController from "../Stats/StatsController";
 import EventifyEventConfVO from "./vos/EventifyEventConfVO";
 import EventifyEventListenerConfVO from "./vos/EventifyEventListenerConfVO";
-import PerfReportController from "../PerfReport/PerfReportController";
 
 export default class EventsController {
 
@@ -115,6 +115,11 @@ export default class EventsController {
         for (const listner_name of listner_names) {
             const listener: EventifyEventListenerInstanceVO = listeners[listner_name];
 
+            // On touche à la map des listeners, on check donc l'existence au fur et à mesure
+            if (!listener) {
+                continue;
+            }
+
             const perf_name = listner_name;
             const perf_line_name = listner_name;
             PerfReportController.add_event(
@@ -132,7 +137,7 @@ export default class EventsController {
 
             // Si le nombre d'appels est déjà atteint, on devrait l'avoir supprimé avant, mais pas grave on le fait ici
             if ((!listener.unlimited_calls) && (listener.remaining_calls <= 0)) {
-                delete listeners[listner_name];
+                this.unregister_listener(listener);
                 ConsoleHandler.warn('Listener ' + listner_name + ' for event ' + event.name + ' has no more calls left and not deleted before (should have been)');
                 continue;
             }
@@ -148,7 +153,7 @@ export default class EventsController {
                             ConsoleHandler.log('Emitting event "' + event.name + '" - Listener "' + listener.name + '" - Not unlimited and is last remaining call - unregistering listener');
                         }
 
-                        delete EventsController.registered_listeners[event.name][listener.name];
+                        this.unregister_listener(listener);
                     }
                 }
 
@@ -191,7 +196,7 @@ export default class EventsController {
                             ConsoleHandler.log('Emitting event "' + event.name + '" - Listener "' + listener.name + '" - Not unlimited and is last remaining call - unregistering listener');
                         }
 
-                        delete EventsController.registered_listeners[event.name][listener.name];
+                        this.unregister_listener(listener);
                     }
                 }
 
@@ -219,26 +224,30 @@ export default class EventsController {
                     if (!listener.cooling_down_timeout) {
                         ConsoleHandler.error('Error in EventsController.emit_event for listener ' + listener.name + ' and event ' + event.name + ' : listener.cb_is_cooling_down is true but no cooling_down_timeout');
                     }
-                    clearTimeout(listener.cooling_down_timeout);
-                    listener.cb_is_cooling_down = false;
 
-                    if (!listener.unlimited_calls) {
-                        listener.remaining_calls--;
-                        if (listener.remaining_calls <= 0) {
+                    // Par définition si on run asap on est sur un bgthread ou à minima sur un throttle
+                    // Si ya un cooldown actif, il suffit d'indiquer un appel en attente et de couper le cooldown
+                    listener.cooling_down_timeout.cancel();
+                    // listener.cooling_down_timeout = null;
+                    // listener.cb_is_cooling_down = false;
 
-                            if (EventsController.log_events_names[event.name]) {
-                                ConsoleHandler.log('Emitting event "' + event.name + '" - Listener "' + listener.name + '" - Not unlimited and is last remaining call - unregistering listener');
-                            }
+                    // if (!listener.unlimited_calls) {
+                    //     listener.remaining_calls--;
+                    //     if (listener.remaining_calls <= 0) {
 
-                            delete EventsController.registered_listeners[event.name][listener.name];
-                        }
-                    }
+                    //         if (EventsController.log_events_names[event.name]) {
+                    //             ConsoleHandler.log('Emitting event "' + event.name + '" - Listener "' + listener.name + '" - Not unlimited and is last remaining call - unregistering listener');
+                    //         }
 
-                    if (EventsController.log_events_names[event.name]) {
-                        ConsoleHandler.log('Emitting event "' + event.name + '" - Listener "' + listener.name + '" - Is coolingdown But RUN ASAP - calling listener');
-                    }
+                    //         this.unregister_listener(listener);
+                    //     }
+                    // }
 
-                    EventsController.call_listener(listener, event);
+                    // if (EventsController.log_events_names[event.name]) {
+                    //     ConsoleHandler.log('Emitting event "' + event.name + '" - Listener "' + listener.name + '" - Is coolingdown But RUN ASAP - calling listener');
+                    // }
+
+                    // EventsController.call_listener(listener, event);
                     continue;
                 }
             }
@@ -262,6 +271,15 @@ export default class EventsController {
         }
 
         EventsController.registered_listeners[event_listener.event_conf_name][event_listener.name] = event_listener;
+
+        // Si on a un event asap associé, on ajoute la liaison vers ce listener aussi
+        if (event_listener.run_as_soon_as_possible_event_conf_name) {
+            if (!EventsController.registered_listeners[event_listener.run_as_soon_as_possible_event_conf_name]) {
+                EventsController.registered_listeners[event_listener.run_as_soon_as_possible_event_conf_name] = {};
+            }
+
+            EventsController.registered_listeners[event_listener.run_as_soon_as_possible_event_conf_name][event_listener.name] = event_listener;
+        }
 
         if (EventsController.log_events_names[event_listener.event_conf_name]) {
             ConsoleHandler.log('register_event_listener "' + event_listener.event_conf_name + '" - Listener "' + event_listener.name + '" - logging listener');
@@ -394,7 +412,8 @@ export default class EventsController {
 
                 const pre_cb_date = Dates.now_ms();
                 listener.cb_is_cooling_down = true;
-                listener.cooling_down_timeout = await ThreadHandler.sleep(listener.cooldown_ms, 'EventsController.call_listener.cooldown_ms');
+                listener.cooling_down_timeout = ThreadHandler.sleep(listener.cooldown_ms, 'EventsController.call_listener.cooldown_ms');
+                await listener.cooling_down_timeout; // On await la promise, mais elle peut être cancel (résolue plus vite) pour un ASAP par exemple
                 listener.cb_is_cooling_down = false;
 
                 const perf_name = listener.name;
@@ -497,7 +516,8 @@ export default class EventsController {
 
                     const date_pre_cd = Dates.now_ms();
                     listener.cb_is_cooling_down = true;
-                    listener.cooling_down_timeout = await ThreadHandler.sleep(listener.cooldown_ms, 'EventsController.call_listener.cooldown_ms');
+                    listener.cooling_down_timeout = ThreadHandler.sleep(listener.cooldown_ms, 'EventsController.call_listener.cooldown_ms');
+                    await listener.cooling_down_timeout; // On await la promise, mais elle peut être cancel (résolue plus vite) pour un ASAP par exemple
                     listener.cb_is_cooling_down = false;
 
                     const perf_name = listener.name;
@@ -719,6 +739,16 @@ export default class EventsController {
 
         if (EventsController.log_events_names[event.name]) {
             ConsoleHandler.log('call_listener "' + event.name + '" - Small Semaphored Tasks Fast Track : ' + semaphore_names.length + ' semaphores - OUT');
+        }
+    }
+
+    private static unregister_listener(listener: EventifyEventListenerInstanceVO): void {
+        if (!!EventsController.registered_listeners[listener.event_conf_name]) {
+            delete EventsController.registered_listeners[listener.event_conf_name][listener.name];
+        }
+
+        if (listener.run_as_soon_as_possible_event_conf_name && !!EventsController.registered_listeners[listener.run_as_soon_as_possible_event_conf_name]) {
+            delete EventsController.registered_listeners[listener.run_as_soon_as_possible_event_conf_name][listener.name];
         }
     }
 }

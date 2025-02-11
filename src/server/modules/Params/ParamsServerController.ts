@@ -12,9 +12,15 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 
 export default class ParamsServerController {
 
+    public static UPDATE_PARAM_EVENT_NAME_PREFIX: string = 'UPDATE_PARAM_EVENT_NAME__';
+
     private static throttled_param_cache_value: { [param_name: string]: any } = {};
     private static throttled_param_cache_lastupdate_ms: { [param_name: string]: number } = {};
     private static semaphore_param: { [param_name: string]: Promise<any> } = {};
+
+    public static get_update_param_event_name(param_name: string): string {
+        return ParamsServerController.UPDATE_PARAM_EVENT_NAME_PREFIX + param_name;
+    }
 
     /**
      * DELETE ME Post suppression StackContext: Does not need StackContext

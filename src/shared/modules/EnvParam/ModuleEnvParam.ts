@@ -205,6 +205,7 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_eventify, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Events', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_var_dag_nodes, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Var dag nodes', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_gpt_assistant_api, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - GPT assistant API', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_gpt_sync, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - GPT sync', true, true, false);
 
         // DEBUG_PROMISE_PIPELINE ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_promise_pipeline, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug promise pipeline', true);

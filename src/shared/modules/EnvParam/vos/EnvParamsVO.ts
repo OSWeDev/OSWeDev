@@ -193,6 +193,7 @@ export default class EnvParamsVO implements IDistantVOBase {
     public activate_module_perf_eventify: boolean;
     public activate_module_perf_var_dag_nodes: boolean;
     public activate_module_perf_gpt_assistant_api: boolean;
+    public activate_module_perf_gpt_sync: boolean;
 
     public debug_reruns_of_oselia: boolean;
 

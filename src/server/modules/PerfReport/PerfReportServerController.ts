@@ -11,6 +11,7 @@ import { reflect } from "../../../shared/tools/ObjectHandler";
 import ConfigurationService from "../../env/ConfigurationService";
 import ModuleDAOServer from "../DAO/ModuleDAOServer";
 import ModuleEnvParamServer from "../EnvParam/ModuleEnvParamServer";
+import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 
 export default class PerfReportServerController {
 
@@ -55,6 +56,13 @@ export default class PerfReportServerController {
             // on désactive le perf report, on doit le retirer du controller, et on le stocke en base
             const perf_report = PerfReportController.current_perf_report;
             PerfReportController.current_perf_report = null;
+
+            // Si le perf report est vide, on ne le stocke pas
+            if (!perf_report || !perf_report.perf_datas || !Object.keys(perf_report.perf_datas).length) {
+                ConsoleHandler.log('PerfReportServerController: perf report is empty, not storing it');
+                return;
+            }
+
             perf_report.end_date = Dates.now();
             perf_report.end_date_perf_ms = Dates.now_ms();
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(perf_report);

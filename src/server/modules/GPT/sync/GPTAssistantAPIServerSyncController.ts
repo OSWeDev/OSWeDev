@@ -11,6 +11,8 @@ import GPTAssistantAPIServerSyncVectorStoresController from "./GPTAssistantAPISe
 
 export default class GPTAssistantAPIServerSyncController {
 
+    public static PERF_MODULE_NAME: string = 'gpt_sync';
+
     public static async sync_all_datas(): Promise<void> {
 
         GPTAssistantAPIServerSyncThreadMessagesController.syncing_semaphores_promises = {};

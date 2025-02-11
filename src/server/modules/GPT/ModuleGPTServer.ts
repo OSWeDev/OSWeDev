@@ -178,6 +178,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
     public async configure() {
 
         PerfReportServerController.register_perf_module(GPTAssistantAPIServerController.PERF_MODULE_NAME);
+        PerfReportServerController.register_perf_module(GPTAssistantAPIServerSyncController.PERF_MODULE_NAME);
+
         const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         const preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);

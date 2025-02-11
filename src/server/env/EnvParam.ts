@@ -135,6 +135,7 @@ export default class EnvParam implements IEnvParam {
     public activate_module_perf_eventify?: boolean = false;
     public activate_module_perf_var_dag_nodes?: boolean = false;
     public activate_module_perf_gpt_assistant_api?: boolean = false;
+    public activate_module_perf_gpt_sync?: boolean = false;
 
     // TEAMS Webhooks
     public teams_webhook_send_message?: string = null;

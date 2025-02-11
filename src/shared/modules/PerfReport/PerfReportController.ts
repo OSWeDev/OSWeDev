@@ -1,13 +1,5 @@
-import { isArray } from "lodash";
-import EventifyEventInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventInstanceVO";
-import EventifyEventListenerInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO";
-import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
-import ThreadHandler from "../../../shared/tools/ThreadHandler";
-import { all_promises } from "../../tools/PromiseTools";
-import Dates from "../FormatDatesNombres/Dates/Dates";
-import { StatThisMapKeys } from "../Stats/annotations/StatThisMapKeys";
-import StatsController from "../Stats/StatsController";
 import EventifyPerfReportVO from "../Eventify/vos/perfs/EventifyPerfReportVO";
+import Dates from "../FormatDatesNombres/Dates/Dates";
 
 export default class PerfReportController {
 

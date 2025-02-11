@@ -53,6 +53,9 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
 
     private selected_perf_report: EventifyPerfReportVO = null;
 
+    // On crée juste une petite marge pour la zone brush
+    private brushHeight: number = 50;
+
     private throttle_select_perf_report = ThrottleHelper.declare_throttle_without_args(
         'PerfReportGraphWidgetComponent.throttle_select_perf_report',
         this.select_perf_report.bind(this), 200);
@@ -105,6 +108,7 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
 
         d3.select(this.$refs.d3_perf_report_graph_widget_graph).selectAll("*").remove();
 
+        // Préparation des données
         const listeners_names = Object.keys(this.selected_perf_report.perf_datas);
         const perfs = [];
         for (const name in this.selected_perf_report.perf_datas) {
@@ -119,53 +123,114 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
             });
         }
 
+        // Domaine total pour le brush
+        const fullStart = this.selected_perf_report.start_date_perf_ms;
+        const fullEnd = this.selected_perf_report.end_date_perf_ms;
+
+        // Dimensions
         const width = 800;
         const height = perfs.length * 50;
         const margin = { top: 20, right: 20, bottom: 30, left: 250 };
 
-        // Conteneur principal
+        // CHANGEMENT : SVG avec fond blanc
         const container = d3
             .select(this.$refs.d3_perf_report_graph_widget_graph)
             .append("svg")
             .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom);
+            .attr("height", height + margin.top + margin.bottom + this.brushHeight + 30)
+            .style("background", "#fff"); // <-- fond blanc
 
-        // Groupe pour la marge
         const svg = container
             .append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
 
-        // Échelles
+        // Échelle X (zoomable)
         const xScale = d3
             .scaleLinear()
-            .domain([this.selected_perf_report.start_date_perf_ms, this.selected_perf_report.end_date_perf_ms])
+            .domain([fullStart, fullEnd])
             .range([0, width]);
 
+        // Échelle Y (on utilise perf_name comme identifiant)
         const yScale = d3
             .scaleBand()
             .domain(listeners_names)
             .range([0, height])
             .padding(0.5);
 
-        // Axes
+        // Axe X principal
         const xAxis = d3
             .axisBottom(xScale)
             .tickFormat((d: number) =>
                 Dates.format_segment(Math.floor(d / 1000), TimeSegment.TYPE_SECOND) + "." + (Math.floor(d) % 1000)
             )
-            .ticks((xScale.domain()[1] - xScale.domain()[0]) / 1000);
+            .ticks(6);
 
-        svg
+        const xAxisGroup = svg
             .append("g")
+            .attr("class", "x-axis")
             .attr("transform", `translate(0,${height})`)
             .call(xAxis);
 
-        svg.append("g").call(d3.axisLeft(yScale));
+        // CHANGEMENT : Pivot des labels pour lisibilité
+        xAxisGroup
+            .selectAll("text")
+            .attr("transform", "rotate(-45)")
+            .style("text-anchor", "end")
+            .attr("dx", "-0.5em")
+            .attr("dy", "0.0em");
 
-        // Groupe qui contient les éléments
+        // AJOUT : on crée l’axe Y et on applique un troncage + déroulement au survol
+        const yAxis = d3.axisLeft(yScale);
+        const yAxisGroup = svg.append("g").call(yAxis);
+
+        // CHANGEMENT : gestion du label trop long + animation au survol
+        const MAX_LABEL_LENGTH = 18; // nombre de caractères avant …
+        yAxisGroup.selectAll(".tick text")
+            .each(function (d: string) {
+                const fullText = d; // la valeur d
+                const truncated = (fullText.length > MAX_LABEL_LENGTH)
+                    ? fullText.slice(0, MAX_LABEL_LENGTH) + "…"
+                    : fullText;
+
+                // On stocke texte original et tronqué en data-* pour y accéder au survol
+                d3.select(this)
+                    .attr("data-full-text", fullText)
+                    .attr("data-truncated", truncated)
+                    .text(truncated)
+                    .attr("fill", "#333") // couleur de texte
+                    .style("cursor", "pointer")
+                    .on("mouseover", function () {
+                        const textSel = d3.select(this);
+                        const original = textSel.attr("data-full-text")!;
+                        const short = textSel.attr("data-truncated")!;
+                        // On remplace le texte par la version longue
+                        textSel.text(original);
+                        // On calcule la largeur
+                        const textWidth = (textSel.node() as SVGTextElement).getComputedTextLength();
+                        // Si la largeur dépasse 250, on décale
+                        const shift = Math.max(0, textWidth - 1.0 * margin.left);
+
+                        // Animation pour le déroulement
+                        textSel
+                            .attr("x", 0) // on part de 0
+                            .transition()
+                            .duration(2000)
+                            .ease(d3.easeLinear)
+                            .attr("x", -shift); // on décale le texte vers la gauche
+                    })
+                    .on("mouseout", function () {
+                        const textSel = d3.select(this);
+                        const short = textSel.attr("data-truncated")!;
+                        textSel.interrupt();     // stop l'animation en cours
+                        textSel.attr("x", 0);    // on remet le texte à x=0
+                        textSel.text(short);     // on repasse en texte tronqué
+                    });
+            });
+
+        // Conteneur du contenu (rectangles, cercles...)
         const content = svg.append("g");
 
-        // Séparateurs
+        // Séparateurs horizontaux
         content
             .selectAll(".separator")
             .data(perfs)
@@ -175,187 +240,267 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
             .attr("x2", width)
             .attr("y1", (d) => yScale(d.perf_name)! + yScale.bandwidth())
             .attr("y2", (d) => yScale(d.perf_name)! + yScale.bandwidth())
-            .attr("stroke", "black");
+            .attr("stroke", "#ccc");
 
-        // Sélection du tooltip (assurez-vous d'avoir un <div id="tooltip"> dans votre HTML)
+        // Tooltip
         const tooltip = d3.select("#tooltip");
 
-        // Rects "calls"
-        perfs.forEach((d) => {
-            d.calls.forEach((call: { start: number, end: number, description?: string }) => {
-                const start = Math.max(call.start, this.selected_perf_report.start_date_perf_ms);
-                const end = Math.min(call.end, this.selected_perf_report.end_date_perf_ms);
+        // Fonction de (re)dessin des éléments (rectangles/cercles)
+        const drawShapes = () => {
 
-                const start_date_formattee =
-                    Dates.format_segment(Math.floor(call.start / 1000), TimeSegment.TYPE_SECOND) + "." + (call.start % 1000);
-                const end_date_formattee =
-                    Dates.format_segment(Math.floor(call.end / 1000), TimeSegment.TYPE_SECOND) + "." + (call.end % 1000);
+            // Rectangles "calls"
+            perfs.forEach((d) => {
+                d.calls.forEach((call: { start: number, end: number, description?: string }) => {
+                    const domainStart = xScale.domain()[0];
+                    const domainEnd = xScale.domain()[1];
+                    const start = Math.max(call.start, domainStart);
+                    const end = Math.min(call.end, domainEnd);
+                    if (end <= domainStart || start >= domainEnd) return;
 
-                content
-                    .append("rect")
-                    .attr("x", xScale(start))
-                    .attr("y", yScale(d.perf_name)!)
-                    .attr("width", xScale(end) - xScale(start))
-                    .attr("height", yScale.bandwidth() / 2)
-                    .attr("fill", "red")
-                    .attr("stroke", "red")
-                    .on("click", async (event) => {
-                        await navigator.clipboard.writeText(
-                            '<b>' + d.label + '</b><br>' +
-                            (d.description ? d.description + '<br>' : '') +
-                            '<hr>' +
-                            'Start: ' + start_date_formattee + '<br>' +
-                            'End: ' + end_date_formattee +
-                            (call.description ? '<br>' + call.description : '')
-                        );
-                        ConsoleHandler.debug(
-                            '<b>' + d.label + '</b><br>' +
-                            (d.description ? d.description + '<br>' : '') +
-                            '<hr>' +
-                            'Start: ' + start_date_formattee + '<br>' +
-                            'End: ' + end_date_formattee +
-                            (call.description ? '<br>' + call.description : '')
-                        );
-                    })
-                    .on("mouseover", (event) => {
-                        tooltip
-                            .style("visibility", "visible")
-                            .html(
+                    const start_date_formattee =
+                        Dates.format_segment(Math.floor(call.start / 1000), TimeSegment.TYPE_SECOND) + "." + (call.start % 1000);
+                    const end_date_formattee =
+                        Dates.format_segment(Math.floor(call.end / 1000), TimeSegment.TYPE_SECOND) + "." + (call.end % 1000);
+
+                    content
+                        .append("rect")
+                        .attr("x", xScale(start))
+                        .attr("y", yScale(d.perf_name)!)
+                        .attr("width", xScale(end) - xScale(start))
+                        .attr("height", yScale.bandwidth() / 2)
+                        .attr("fill", "#FF6F6F") // CHANGEMENT : couleur plus douce
+                        .attr("stroke", "#FF6F6F")
+                        .on("click", async (event) => {
+                            await navigator.clipboard.writeText(
                                 '<b>' + d.label + '</b><br>' +
                                 (d.description ? d.description + '<br>' : '') +
                                 '<hr>' +
                                 'Start: ' + start_date_formattee + '<br>' +
                                 'End: ' + end_date_formattee +
                                 (call.description ? '<br>' + call.description : '')
-                            )
-                            .style("left", (event.pageX + 10 - 60) + "px")
-                            .style("top", (event.pageY - 10 - 280) + "px");
-                    })
-                    .on("mousemove", (event) => {
-                        tooltip
-                            .style("left", (event.pageX + 10 - 60) + "px")
-                            .style("top", (event.pageY - 10 - 280) + "px");
-                    })
-                    .on("mouseout", () => {
-                        tooltip.style("visibility", "hidden");
-                    });
+                            );
+                            ConsoleHandler.debug(
+                                '<b>' + d.label + '</b><br>' +
+                                (d.description ? d.description + '<br>' : '') +
+                                '<hr>' +
+                                'Start: ' + start_date_formattee + '<br>' +
+                                'End: ' + end_date_formattee +
+                                (call.description ? '<br>' + call.description : '')
+                            );
+                        })
+                        .on("mouseover", (event) => {
+                            tooltip
+                                .style("visibility", "visible")
+                                .html(
+                                    '<b>' + d.label + '</b><br>' +
+                                    (d.description ? d.description + '<br>' : '') +
+                                    '<hr>' +
+                                    'Start: ' + start_date_formattee + '<br>' +
+                                    'End: ' + end_date_formattee +
+                                    (call.description ? '<br>' + call.description : '')
+                                )
+                                .style("left", (event.pageX + 10 - 270) + "px")
+                                .style("top", (event.pageY - 10 - 200) + "px");
+                        })
+                        .on("mousemove", (event) => {
+                            tooltip
+                                .style("left", (event.pageX + 10 - 270) + "px")
+                                .style("top", (event.pageY - 10 - 200) + "px");
+                        })
+                        .on("mouseout", () => {
+                            tooltip.style("visibility", "hidden");
+                        });
+                });
             });
-        });
 
-        // Rects "cooldowns"
-        perfs.forEach((d) => {
-            d.cooldowns.forEach((cooldown: { start: number, end: number, description?: string }) => {
-                const start = Math.max(cooldown.start, this.selected_perf_report.start_date_perf_ms);
-                const end = Math.min(cooldown.end, this.selected_perf_report.end_date_perf_ms);
+            // Rectangles "cooldowns"
+            perfs.forEach((d) => {
+                d.cooldowns.forEach((cooldown: { start: number, end: number, description?: string }) => {
+                    const domainStart = xScale.domain()[0];
+                    const domainEnd = xScale.domain()[1];
+                    const start = Math.max(cooldown.start, domainStart);
+                    const end = Math.min(cooldown.end, domainEnd);
+                    if (end <= domainStart || start >= domainEnd) return;
 
-                const start_date_formattee =
-                    Dates.format_segment(Math.floor(cooldown.start / 1000), TimeSegment.TYPE_SECOND) + "." + (cooldown.start % 1000);
-                const end_date_formattee =
-                    Dates.format_segment(Math.floor(cooldown.end / 1000), TimeSegment.TYPE_SECOND) + "." + (cooldown.end % 1000);
+                    const start_date_formattee =
+                        Dates.format_segment(Math.floor(cooldown.start / 1000), TimeSegment.TYPE_SECOND) + "." + (cooldown.start % 1000);
+                    const end_date_formattee =
+                        Dates.format_segment(Math.floor(cooldown.end / 1000), TimeSegment.TYPE_SECOND) + "." + (cooldown.end % 1000);
 
-                content
-                    .append("rect")
-                    .attr("x", xScale(start))
-                    .attr("y", yScale(d.perf_name)! + yScale.bandwidth() / 2)
-                    .attr("width", xScale(end) - xScale(start))
-                    .attr("height", yScale.bandwidth() / 2)
-                    .attr("fill", "green")
-                    .attr("stroke", "green")
-                    .on("click", async (event) => {
-                        await navigator.clipboard.writeText(
-                            '<b>' + d.label + '</b><br>' +
-                            (d.description ? d.description + '<br>' : '') +
-                            '<hr>' +
-                            'Start: ' + start_date_formattee + '<br>' +
-                            'End: ' + end_date_formattee +
-                            (cooldown.description ? '<br>' + cooldown.description : '')
-                        );
-                        ConsoleHandler.debug(
-                            '<b>' + d.label + '</b><br>' +
-                            (d.description ? d.description + '<br>' : '') +
-                            '<hr>' +
-                            'Start: ' + start_date_formattee + '<br>' +
-                            'End: ' + end_date_formattee +
-                            (cooldown.description ? '<br>' + cooldown.description : '')
-                        );
-                    })
-                    .on("mouseover", (event) => {
-                        tooltip
-                            .style("visibility", "visible")
-                            .html(
+                    content
+                        .append("rect")
+                        .attr("x", xScale(start))
+                        .attr("y", yScale(d.perf_name)! + yScale.bandwidth() / 2)
+                        .attr("width", xScale(end) - xScale(start))
+                        .attr("height", yScale.bandwidth() / 2)
+                        .attr("fill", "#6ECF68") // CHANGEMENT : joli vert
+                        .attr("stroke", "#6ECF68")
+                        .on("click", async (event) => {
+                            await navigator.clipboard.writeText(
                                 '<b>' + d.label + '</b><br>' +
                                 (d.description ? d.description + '<br>' : '') +
                                 '<hr>' +
                                 'Start: ' + start_date_formattee + '<br>' +
                                 'End: ' + end_date_formattee +
                                 (cooldown.description ? '<br>' + cooldown.description : '')
-                            )
-                            .style("left", (event.pageX + 10 - 60) + "px")
-                            .style("top", (event.pageY - 10 - 280) + "px");
-                    })
-                    .on("mousemove", (event) => {
-                        tooltip
-                            .style("left", (event.pageX + 10 - 60) + "px")
-                            .style("top", (event.pageY - 10 - 280) + "px");
-                    })
-                    .on("mouseout", () => {
-                        tooltip.style("visibility", "hidden");
-                    });
+                            );
+                            ConsoleHandler.debug(
+                                '<b>' + d.label + '</b><br>' +
+                                (d.description ? d.description + '<br>' : '') +
+                                '<hr>' +
+                                'Start: ' + start_date_formattee + '<br>' +
+                                'End: ' + end_date_formattee +
+                                (cooldown.description ? '<br>' + cooldown.description : '')
+                            );
+                        })
+                        .on("mouseover", (event) => {
+                            tooltip
+                                .style("visibility", "visible")
+                                .html(
+                                    '<b>' + d.label + '</b><br>' +
+                                    (d.description ? d.description + '<br>' : '') +
+                                    '<hr>' +
+                                    'Start: ' + start_date_formattee + '<br>' +
+                                    'End: ' + end_date_formattee +
+                                    (cooldown.description ? '<br>' + cooldown.description : '')
+                                )
+                                .style("left", (event.pageX + 10 - 270) + "px")
+                                .style("top", (event.pageY - 10 - 200) + "px");
+                        })
+                        .on("mousemove", (event) => {
+                            tooltip
+                                .style("left", (event.pageX + 10 - 270) + "px")
+                                .style("top", (event.pageY - 10 - 200) + "px");
+                        })
+                        .on("mouseout", () => {
+                            tooltip.style("visibility", "hidden");
+                        });
+                });
             });
-        });
 
-        // Cercles "events"
-        perfs.forEach((d) => {
-            d.events.forEach((evt: { ts: number, description?: string }) => {
-                // Convertir evt (ms) en date formatée
-                const date_formattee =
-                    Dates.format_segment(Math.floor(evt.ts / 1000), TimeSegment.TYPE_SECOND) + "." + (evt.ts % 1000);
+            // Cercles "events"
+            perfs.forEach((d) => {
+                d.events.forEach((evt: { ts: number, description?: string }) => {
+                    const domainStart = xScale.domain()[0];
+                    const domainEnd = xScale.domain()[1];
+                    if (evt.ts <= domainStart || evt.ts >= domainEnd) return;
 
-                content
-                    .append("circle")
-                    .attr("cx", xScale(evt.ts))
-                    .attr("cy", yScale(d.perf_name)! + yScale.bandwidth() / 4)
-                    .attr("r", 3)
-                    .attr("fill", "black")
-                    .on("click", async (event) => {
-                        await navigator.clipboard.writeText(
-                            '<b>' + d.label + '</b><br>' +
-                            (d.description ? d.description + '<br>' : '') +
-                            '<hr>' +
-                            'Date: ' + date_formattee +
-                            (evt.description ? '<br>' + evt.description : '')
-                        );
-                        ConsoleHandler.debug(
-                            '<b>' + d.label + '</b><br>' +
-                            (d.description ? d.description + '<br>' : '') +
-                            '<hr>' +
-                            'Date: ' + date_formattee +
-                            (evt.description ? '<br>' + evt.description : '')
-                        );
-                    })
-                    .on("mouseover", (event) => {
-                        tooltip
-                            .style("visibility", "visible")
-                            .html(
+                    const date_formattee =
+                        Dates.format_segment(Math.floor(evt.ts / 1000), TimeSegment.TYPE_SECOND) + "." + (evt.ts % 1000);
+
+                    content
+                        .append("circle")
+                        .attr("cx", xScale(evt.ts))
+                        .attr("cy", yScale(d.perf_name)! + yScale.bandwidth() / 4)
+                        .attr("r", 4)
+                        .attr("fill", "orange") // CHANGEMENT : cercle orange
+                        .on("click", async (event) => {
+                            await navigator.clipboard.writeText(
                                 '<b>' + d.label + '</b><br>' +
                                 (d.description ? d.description + '<br>' : '') +
                                 '<hr>' +
                                 'Date: ' + date_formattee +
                                 (evt.description ? '<br>' + evt.description : '')
-                            )
-                            .style("left", (event.pageX + 10 - 60) + "px")
-                            .style("top", (event.pageY - 10 - 280) + "px");
-                    })
-                    .on("mousemove", (event) => {
-                        tooltip
-                            .style("left", (event.pageX + 10 - 60) + "px")
-                            .style("top", (event.pageY - 10 - 280) + "px");
-                    })
-                    .on("mouseout", () => {
-                        tooltip.style("visibility", "hidden");
-                    });
+                            );
+                            ConsoleHandler.debug(
+                                '<b>' + d.label + '</b><br>' +
+                                (d.description ? d.description + '<br>' : '') +
+                                '<hr>' +
+                                'Date: ' + date_formattee +
+                                (evt.description ? '<br>' + evt.description : '')
+                            );
+                        })
+                        .on("mouseover", (event) => {
+                            tooltip
+                                .style("visibility", "visible")
+                                .html(
+                                    '<b>' + d.label + '</b><br>' +
+                                    (d.description ? d.description + '<br>' : '') +
+                                    '<hr>' +
+                                    'Date: ' + date_formattee +
+                                    (evt.description ? '<br>' + evt.description : '')
+                                )
+                                .style("left", (event.pageX + 10 - 270) + "px")
+                                .style("top", (event.pageY - 10 - 200) + "px");
+                        })
+                        .on("mousemove", (event) => {
+                            tooltip
+                                .style("left", (event.pageX + 10 - 270) + "px")
+                                .style("top", (event.pageY - 10 - 200) + "px");
+                        })
+                        .on("mouseout", () => {
+                            tooltip.style("visibility", "hidden");
+                        });
+                });
             });
-        });
+        };
+
+        // Premier dessin
+        drawShapes();
+
+        // BRUSH (slider) en bas
+        const brushGroup = container
+            .append("g")
+            .attr("class", "brush")
+            .attr("transform", `translate(${margin.left},${height + margin.top + 20})`);
+
+        const xScaleBrush = d3
+            .scaleLinear()
+            .domain([fullStart, fullEnd])
+            .range([0, width]);
+
+        const xAxisBrush = d3
+            .axisBottom(xScaleBrush)
+            .tickFormat((d: number) =>
+                Dates.format_segment(Math.floor(d / 1000), TimeSegment.TYPE_SECOND) + "." + (Math.floor(d) % 1000)
+            )
+            .ticks(6);
+
+        const xAxisBrushGroup = brushGroup
+            .append("g")
+            .attr("transform", `translate(0,${this.brushHeight})`)
+            .call(xAxisBrush);
+
+        // Labels inclinés aussi pour le brush
+        xAxisBrushGroup
+            .selectAll("text")
+            .attr("transform", "rotate(-45)")
+            .style("text-anchor", "end")
+            .attr("dx", "-0.5em")
+            .attr("dy", "0.0em");
+
+        const brush = d3
+            .brushX()
+            .extent([[0, 0], [width, this.brushHeight]])
+            .on("brush end", brushed);
+
+        brushGroup.call(brush);
+
+        function brushed(event: any) {
+            if (!event.selection) {
+                // Pas de sélection => vue complète
+                xScale.domain([fullStart, fullEnd]);
+            } else {
+                const [x0, x1] = event.selection;
+                xScale.domain([xScaleBrush.invert(x0), xScaleBrush.invert(x1)]);
+            }
+            // Mise à jour axe X
+            svg.select(".x-axis").call(xAxis);
+
+            // Re-rotation des labels
+            svg
+                .select(".x-axis")
+                .selectAll("text")
+                .attr("transform", "rotate(-45)")
+                .style("text-anchor", "end")
+                .attr("dx", "-0.5em")
+                .attr("dy", "0.0em");
+
+            // On efface et on redessine le contenu
+            content.selectAll("*").remove();
+            drawShapes();
+        }
     }
+
 
 }

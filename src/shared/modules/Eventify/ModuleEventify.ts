@@ -97,6 +97,7 @@ export default class ModuleEventify extends Module {
 
         ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().run_as_soon_as_possible_event_conf_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Event qui déclenche le run as soon as possible', false)
             .set_many_to_one_target_moduletable_name(EventifyEventConfVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().run_as_soon_as_possible_event_conf_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'event qui déclenche le run as soon as possible', false);
         ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().run_as_soon_as_possible, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Run as soon as possible', true, true, false);
         ModuleTableFieldController.create_new(EventifyEventListenerInstanceVO.API_TYPE_ID, field_names<EventifyEventListenerInstanceVO>().is_bgthread, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Is bgthread', true, true, false);
 
@@ -133,6 +134,7 @@ export default class ModuleEventify extends Module {
 
         ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().run_as_soon_as_possible_event_conf_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Event qui déclenche le run as soon as possible', false)
             .set_many_to_one_target_moduletable_name(EventifyEventConfVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().run_as_soon_as_possible_event_conf_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'event qui déclenche le run as soon as possible', false);
         ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().is_bgthread, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Is bgthread', true, true, false);
 
         ModuleTableFieldController.create_new(EventifyEventListenerConfVO.API_TYPE_ID, field_names<EventifyEventListenerConfVO>().oselia_run_template_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du template oselia_run', false);

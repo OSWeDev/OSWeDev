@@ -75,6 +75,7 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
      * On peut vouloir lancer le callback dès que possible, même si on est en cooldown => évènement qui a cet effet
      */
     public run_as_soon_as_possible_event_conf_id: number;
+    public run_as_soon_as_possible_event_conf_name: string;
 
     /**
      * Si on est sur un type bgthread, qui run en permanence
@@ -117,7 +118,11 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
     /**
      * On a besoin du timeout pour pouvoir le clear si on a une demande de run ASAP entre temps
      */
-    public cooling_down_timeout: NodeJS.Timeout;
+    public cooling_down_timeout: {
+        promise: Promise<unknown>,
+        cancel: () => void,
+        then: (resolve: (value: void) => void) => Promise<void>,
+    };
 
     /**
      * On a besoin de la date de fin du dernier appel pour gérer le throttling en ms
@@ -229,6 +234,7 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
         res.last_cb_run_end_date_ms = 0;
         res.run_as_soon_as_possible = false;
         res.run_as_soon_as_possible_event_conf_id = conf.run_as_soon_as_possible_event_conf_id;
+        res.run_as_soon_as_possible_event_conf_name = conf.run_as_soon_as_possible_event_conf_name;
         res.oselia_run_link_to_event = conf.oselia_run_link_to_event;
         res.oselia_run_link_to_listener = conf.oselia_run_link_to_listener;
         res.oselia_run_linked_to_param = conf.oselia_run_linked_to_param;

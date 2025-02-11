@@ -6,8 +6,11 @@ import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vo
 import { reflect } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleEnvParamServer from '../EnvParam/ModuleEnvParamServer';
+import ForkMessageController from '../Fork/ForkMessageController';
 import ModuleServerBase from '../ModuleServerBase';
 import PerfReportServerController from '../PerfReport/PerfReportServerController';
+import EventsServerController from './EventsServerController';
+import EmitEventThreadMessage from './vos/EmitEventThreadMessage';
 
 export default class ModuleEventifyServer extends ModuleServerBase {
 
@@ -33,6 +36,7 @@ export default class ModuleEventifyServer extends ModuleServerBase {
     public async configure() {
 
         PerfReportServerController.register_perf_module(this.name);
+        ForkMessageController.register_message_handler(EmitEventThreadMessage.FORK_MESSAGE_TYPE, EventsServerController.emit_event_thread_messsage_handler.bind(this));
 
         EventsController.debug_slow_event_listeners = ConfigurationService.node_configuration.debug_slow_event_listeners;
         EventsController.debug_slow_event_listeners_ms_limit = ConfigurationService.node_configuration.debug_slow_event_listeners_ms_limit;

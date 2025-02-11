@@ -739,13 +739,13 @@ export default class GPTAssistantAPIServerController {
         // Si la fonction est définie comme utilisant un PromisePipeline, on l'utilise, et on l'initialise si il est pas encore créé
         if (function_vo.use_promise_pipeline) {
 
+            if (!GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id]) {
+                GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id] = new PromisePipeline(function_vo.promise_pipeline_max_concurrency, 'Oselia-PromisePipeline-' + function_vo.gpt_function_name);
+            }
+
             if (!GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id].has_free_slot) {
                 // Si on sait qu'on va devoir attendre un slot on met à jour la base sinon osef on avance
                 await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
-            }
-
-            if (!GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id]) {
-                GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id] = new PromisePipeline(function_vo.promise_pipeline_max_concurrency, 'Oselia-PromisePipeline-' + function_vo.gpt_function_name);
             }
 
             // On attend non seulement le push mais la résolution de la méthode push

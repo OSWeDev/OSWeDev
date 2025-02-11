@@ -10,7 +10,6 @@ import EventifyEventConfVO from '../../../shared/modules/Eventify/vos/EventifyEv
 import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
@@ -56,9 +55,9 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     private static TASK_NAME_write_heap_snapshot_on_all_thread: string = 'ModuleBGThreadServer.write_heap_snapshot_on_all_thread';
     private static TASK_NAME_write_heap_snapshot_on_this_thread: string = 'ModuleBGThreadServer.write_heap_snapshot_on_this_thread';
 
-    public block_param_by_name: { [bgthread_name: string]: boolean } = {};
+    // public block_param_by_name: { [bgthread_name: string]: boolean } = {};
 
-    private block_param_reload_timeout_by_name: { [bgthread_name: string]: number } = {};
+    // private block_param_reload_timeout_by_name: { [bgthread_name: string]: number } = {};
 
     /**
      * Les évènements pour chaque bgthread qui permettent de lancer une éxécution du bgthread
@@ -216,6 +215,23 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             return;
         }
 
+        // On ajoute un listener pour la mise à jour du BLOCK_BGTHREAD => on force le reload du param + on asap le bgthread => si c'est false, ça run, sinon ça ne run pas puisque le bgthread est bloqué
+        const param_name = ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name;
+        const block_bgthread_listener = EventifyEventListenerInstanceVO.new_listener(
+            ParamsServerController.get_update_param_event_name(param_name),
+            async (event: EventifyEventInstanceVO) => {
+
+                // On force le rechargement par ce que le broadcast du vidage de cache n'est pas forcément encore arrivé
+                const param_value = await ParamsServerController.getParamValueAsBoolean_as_server(param_name, false, 0);
+                if (param_value) {
+                    return;
+                }
+
+                await BGThreadServerController.force_run_asap_by_bgthread_name[bgthread.name]();
+            }
+        );
+        EventsController.register_event_listener(block_bgthread_listener);
+
         ThreadHandler.sleep(bgthread.current_timeout, 'ModuleBGThreadServer.registerBGThread.' + bgthread.name).then(async () => {
             EventsController.emit_event(EventifyEventInstanceVO.instantiate(await this.get_EVENT_execute_bgthread(bgthread, false)));
         }).catch((error) => ConsoleHandler.error(error));
@@ -228,35 +244,37 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
      */
     public async execute_bgthread(event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO): Promise<void> {
 
-        const bgthread: IBGThread = BGThreadServerDataManager.registered_BGThreads[event.name.split('_').pop()];
+        const bgthread: IBGThread = BGThreadServerDataManager.registered_BGThreads[listener.event_conf_name.split('_').pop()];
 
         if (!bgthread) {
             ConsoleHandler.error('BGThread not found for event : ' + event.name);
             return;
         }
 
-        /**
-         * On check le bloquage par param toutes les 2 minutes
-         */
-        try {
+        // /**
+        //  * On check le bloquage par param toutes les 2 minutes
+        //  */
+        // try {
 
-            if ((!this.block_param_reload_timeout_by_name[bgthread.name]) ||
-                (this.block_param_reload_timeout_by_name[bgthread.name] < Dates.now())) {
+        //     if ((!this.block_param_reload_timeout_by_name[bgthread.name]) ||
+        //         (this.block_param_reload_timeout_by_name[bgthread.name] < Dates.now())) {
 
-                const new_param = await ParamsServerController.getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
+        //         const new_param = await ParamsServerController.getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
 
-                if (new_param != this.block_param_by_name[bgthread.name]) {
-                    ConsoleHandler.log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
-                }
+        //         if (new_param != this.block_param_by_name[bgthread.name]) {
+        //             ConsoleHandler.log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
+        //         }
 
-                this.block_param_by_name[bgthread.name] = new_param;
-                this.block_param_reload_timeout_by_name[bgthread.name] = Dates.now() + 60;
-            }
-        } catch (error) {
-            ConsoleHandler.error('OK at start, NOK if all nodes already started :execute_bgthread:block_param_by_name:' + error);
-        }
+        //         this.block_param_by_name[bgthread.name] = new_param;
+        //         this.block_param_reload_timeout_by_name[bgthread.name] = Dates.now() + 60;
+        //     }
+        // } catch (error) {
+        //     ConsoleHandler.error('OK at start, NOK if all nodes already started :execute_bgthread:block_param_by_name:' + error);
+        // }
 
-        if (this.block_param_by_name[bgthread.name]) {
+        const param_value = await ParamsServerController.getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
+        if (param_value) {
+            // if (this.block_param_by_name[bgthread.name]) {
             // Si on est bloqués, on ne fait rien, et on attend au moins les 2 minutes nécessaires pour recharger le param
             listener.cooldown_ms = Math.max(120000, listener.cooldown_ms);
             bgthread.current_timeout = listener.cooldown_ms;
@@ -364,6 +382,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             LISTENER_execute_bgthread_CONF.is_bgthread = true;
 
             LISTENER_execute_bgthread_CONF.run_as_soon_as_possible_event_conf_id = this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name].id;
+            LISTENER_execute_bgthread_CONF.run_as_soon_as_possible_event_conf_name = this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name].name;
 
             this.LISTENER_execute_bgthread_CONF_by_bgthread_name[bgthread_name] = LISTENER_execute_bgthread_CONF;
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(LISTENER_execute_bgthread_CONF);
