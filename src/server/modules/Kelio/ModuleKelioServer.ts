@@ -19,6 +19,7 @@ import KelioLightEmployeeAPI from '../../../shared/modules/Kelio/apis/KelioLight
 import { cloneDeep } from 'lodash';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ImportKelioEmployeeCronWorkersHandler from './ImportKelioEmployeeCronWorkersHandler';
 
 export default class ModuleKelioServer extends ModuleServerBase {
 
@@ -39,6 +40,10 @@ export default class ModuleKelioServer extends ModuleServerBase {
             ModuleKelioServer.instance = new ModuleKelioServer();
         }
         return ModuleKelioServer.instance;
+    }
+
+    public registerCrons(): void {
+        ImportKelioEmployeeCronWorkersHandler.getInstance();
     }
 
     // istanbul ignore next: cannot test registerAccessPolicies
