@@ -30,6 +30,7 @@ import ModuleEnvParam from '../../shared/modules/EnvParam/ModuleEnvParam';
 import ModuleEvolizAPI from '../../shared/modules/EvolizAPI/ModuleEvolizAPI';
 import ModuleExpressDBSessions from '../../shared/modules/ExpressDBSessions/ModuleExpressDBSessions';
 import ModuleFacturationProAPI from '../../shared/modules/FacturationProAPI/ModuleFacturationProAPI';
+import ModuleKelio from '../../shared/modules/Kelio/ModuleKelio';
 import ModuleFeedback from '../../shared/modules/Feedback/ModuleFeedback';
 import ModuleFile from '../../shared/modules/File/ModuleFile';
 import ModuleFork from '../../shared/modules/Fork/ModuleFork';
@@ -100,6 +101,7 @@ import ModuleEnvParamServer from './EnvParam/ModuleEnvParamServer';
 import ModuleEvolizAPIServer from './EvolizAPI/ModuleEvolizAPIServer';
 import ModuleExpressDBSessionServer from './ExpressDBSessions/ModuleExpressDBSessionsServer';
 import ModuleFacturationProAPIServer from './FacturationProAPI/ModuleFacturationProAPIServer';
+import ModuleKelioServer from './Kelio/ModuleKelioServer';
 import ModuleFeedbackServer from './Feedback/ModuleFeedbackServer';
 import ModuleFileServer from './File/ModuleFileServer';
 import ModuleForkServer from './Fork/ModuleForkServer';
@@ -662,6 +664,7 @@ export default abstract class ModuleServiceBase {
             ModuleClockifyAPI.getInstance(),
             ModuleEvolizAPI.getInstance(),
             ModuleFacturationProAPI.getInstance(),
+            ModuleKelio.getInstance(),
             ModulePowershell.getInstance(),
             ModuleNFCConnect.getInstance(),
             ModuleDashboardBuilder.getInstance(),
@@ -728,6 +731,7 @@ export default abstract class ModuleServiceBase {
             ModuleClockifyAPIServer.getInstance(),
             ModuleEvolizAPIServer.getInstance(),
             ModuleFacturationProAPIServer.getInstance(),
+            ModuleKelioServer.getInstance(),
             ModulePowershellServer.getInstance(),
             ModuleNFCConnectServer.getInstance(),
             ModuleDashboardBuilderServer.getInstance(),
