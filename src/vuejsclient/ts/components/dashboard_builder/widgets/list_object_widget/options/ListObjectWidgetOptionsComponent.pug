@@ -99,6 +99,18 @@
                         .input(:id="'DISPLAY_ORIENTATION_' + DISPLAY_ORIENTATION_VERTICAL" @click="change_display_orientation(DISPLAY_ORIENTATION_VERTICAL)" name="state-d" type="radio" :class="{'selected': (display_orientation==DISPLAY_ORIENTATION_VERTICAL) }" )
                             label(:for="'DISPLAY_ORIENTATION_' + DISPLAY_ORIENTATION_VERTICAL") {{ t(DISPLAY_ORIENTATION_LABELS[DISPLAY_ORIENTATION_VERTICAL]) }}
 
+        template(v-if="(type_display==TYPE_DISPLAY_CARD) && (display_orientation==DISPLAY_ORIENTATION_HORIZONTAL)")
+            .card_width
+                .input_label {{ label('list_object_widget_options_component.card_width') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_is_card_display_single" 
+                        :value="is_card_display_single" 
+                        :sync="false"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                    )
+
         .button_for_elements
             .input_label {{ label('list_object_widget_options_component.button_for_elements') }}
             .input_wrapper
@@ -131,3 +143,61 @@
                             :width="60"
                             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                         )
+
+        .show_message_no_data
+            .input_label {{ label('listobject_widget.show_message_no_data') }}
+            toggle-button(
+                @change="switch_show_message_no_data" 
+                :value="show_message_no_data" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('listobject_widget.show_message_no_data.visible'), unchecked: label('listobject_widget.show_message_no_data.hidden')}")
+
+        template(v-if="show_message_no_data")
+            .message_no_data
+                .input_label {{ label('listobject_widget.message_no_data') }}
+                Vuequilleditor(v-model='message_no_data', :options="optionsEditeur")
+        
+        .filter_on_cmv_vo
+            .input_label {{ label('listobject_widget.filter_on_cmv_vo') }}
+            toggle-button(
+                @change="switch_filter_on_cmv_vo" 
+                :value="filter_on_cmv_vo" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('listobject_widget.filter_on_cmv_vo.visible'), unchecked: label('listobject_widget.filter_on_cmv_vo.hidden')}")
+
+        template(v-if="filter_on_cmv_vo")
+            .field_filter_cmv_vo
+                .field_ref
+                    .input_wrapper
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="field_filter_cmv_vo_field_ref" @remove_field_ref="remove_field_filter_cmv_vo_field_ref" @add_field_ref="add_field_filter_cmv_vo_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
+
+        .do_not_use_page_widget_ids
+            .input_label {{ label('list_object_widget_options_component.do_not_use_page_widget_ids') }}
+            multiselect(
+                :preselect-first="false"
+                :multiple="true"
+                v-model="do_not_use_page_widgets"
+                :placeholder="label('list_object_widget_options_component.do_not_use_page_widget_ids')"
+                :options="page_widget_options"
+                :custom-label="page_widget_label"
+                :allow-empty="true",
+                autocomplete="off"
+
+                :searchable="true"
+                :internal-search="true"
+
+                track-by="id"
+
+                id="do_not_use_page_widgets"
+
+                :select-label='label("multiselect.selectLabel")'
+                :select-group-label='label("multiselect.selectGroupLabel")'
+                :selected-label='label("multiselect.selectedLabel")'
+                :deselect-label='label("multiselect.deselectLabel")'
+                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+            )

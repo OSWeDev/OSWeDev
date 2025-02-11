@@ -9,8 +9,9 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './CMSCrudButtonsWidgetOptionsComponent.scss';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./CMSCrudButtonsWidgetOptionsComponent.pug')
@@ -20,12 +21,17 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
+
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private show_add: boolean = false;
     private show_update: boolean = false;
     private show_delete: boolean = false;
+    private show_manual_vo_type: boolean = false;
+    private manual_vo_type: string = null;
 
     private next_update_options: CMSCrudButtonsWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -49,23 +55,33 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
         return options;
     }
 
+    get manual_vo_type_select_options(): string[] {
+        return this.get_dashboard_api_type_ids;
+    }
+
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.widget_options) {
             this.show_add = false;
             this.show_update = false;
             this.show_delete = false;
+            this.show_manual_vo_type = false;
+            this.manual_vo_type = null;
 
             return;
         }
         this.show_add = this.widget_options.show_add;
         this.show_update = this.widget_options.show_update;
         this.show_delete = this.widget_options.show_delete;
+        this.show_manual_vo_type = this.widget_options.show_manual_vo_type;
+        this.manual_vo_type = this.widget_options.manual_vo_type;
     }
 
     @Watch('show_add')
     @Watch('show_update')
     @Watch('show_delete')
+    @Watch('show_manual_vo_type')
+    @Watch('manual_vo_type')
     private async onchange_bloc_text() {
         if (!this.widget_options) {
             return;
@@ -73,11 +89,15 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
 
         if (this.widget_options.show_add != this.show_add ||
             this.widget_options.show_update != this.show_update ||
-            this.widget_options.show_delete != this.show_delete
+            this.widget_options.show_delete != this.show_delete ||
+            this.widget_options.show_manual_vo_type != this.show_manual_vo_type ||
+            this.widget_options.manual_vo_type != this.manual_vo_type
         ) {
             this.next_update_options.show_add = this.show_add;
             this.next_update_options.show_update = this.show_update;
             this.next_update_options.show_delete = this.show_delete;
+            this.next_update_options.show_manual_vo_type = this.show_manual_vo_type;
+            this.next_update_options.manual_vo_type = this.manual_vo_type;
 
             await this.throttled_update_options();
         }
@@ -101,6 +121,8 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
             false,
             false,
             false,
+            false,
+            null,
         );
     }
 
@@ -119,6 +141,10 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
 
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
+    }
+
+    private crud_api_type_id_select_label(api_type_id: string): string {
+        return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
     }
 
     private async switch_show_add() {
@@ -153,6 +179,18 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
         }
 
         this.next_update_options.show_delete = !this.next_update_options.show_delete;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_show_manual_vo_type() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.show_manual_vo_type = !this.next_update_options.show_manual_vo_type;
 
         await this.throttled_update_options();
     }

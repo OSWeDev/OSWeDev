@@ -32,6 +32,12 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
     public button_elements: boolean;
     public url: VOFieldRefVO;
     public blank: boolean;
+    public is_card_display_single: boolean;
+    public do_not_use_page_widget_ids?: number[];
+    public show_message_no_data?: boolean;
+    public message_no_data?: string;
+    public filter_on_cmv_vo: boolean;
+    public field_filter_cmv_vo: VOFieldRefVO;
 
     public static createNew(
         type_display: number,
@@ -46,7 +52,13 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         sort_field_ref: VOFieldRefVO,
         button_elements: boolean,
         url: VOFieldRefVO,
-        blank: boolean
+        blank: boolean,
+        is_card_display_single: boolean,
+        filter_on_cmv_vo: boolean,
+        field_filter_cmv_vo: VOFieldRefVO,
+        do_not_use_page_widget_ids?: number[],
+        show_message_no_data?: boolean,
+        message_no_data?: string,
     ): ListObjectWidgetOptionsVO {
         const res = new ListObjectWidgetOptionsVO();
         res.type_display = type_display;
@@ -62,6 +74,12 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         res.button_elements = button_elements;
         res.url = url;
         res.blank = blank;
+        res.is_card_display_single = is_card_display_single;
+        res.do_not_use_page_widget_ids = do_not_use_page_widget_ids;
+        res.show_message_no_data = show_message_no_data;
+        res.message_no_data = message_no_data;
+        res.filter_on_cmv_vo = filter_on_cmv_vo;
+        res.field_filter_cmv_vo = field_filter_cmv_vo;
 
         return res;
     }

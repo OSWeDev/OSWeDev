@@ -23,6 +23,10 @@ import { debounce } from 'lodash';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import TableWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 
 @Component({
     template: require('./ListObjectWidgetComponent.pug'),
@@ -51,6 +55,9 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
+    @ModuleDashboardPageGetter
+    private get_cms_vo: IDistantVOBase;
+
     private next_update_options: ListObjectWidgetOptionsVO = null;
 
     private titles: any[] = [];
@@ -60,6 +67,9 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     private numbers: any[] = [];
     private urls: any[] = [];
     private nb_elements: number[] = [];
+    private current_element: number = 0;
+
+    private is_card_display_single: boolean = false;
 
     private throttle_do_update_visible_options = debounce(this.do_update_visible_options.bind(this), 500);
 
@@ -95,6 +105,14 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
     get TYPE_DISPLAY_LIST() {
         return ListObjectWidgetOptionsVO.TYPE_DISPLAY_LIST;
+    }
+
+    get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+    }
+
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
     }
 
     @Watch('widget_options')
@@ -134,9 +152,27 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             this.urls = await this.get_urls();
         })());
 
+        this.is_card_display_single = this.widget_options.is_card_display_single;
+
         await Promise.all(promises);
 
         this.nb_elements = Array.from({ length: Math.max(...[this.titles.length, this.subtitles.length, this.surtitres.length, this.image_paths.length, this.numbers.length, this.urls.length]) }, (x, i) => i);
+    }
+
+    private previous_card_single_display() {
+        if (this.current_element > 0) {
+            this.current_element--;
+        }
+    }
+
+    private next_card_single_display() {
+        if (this.current_element < this.nb_elements.length - 1) {
+            this.current_element++;
+        }
+    }
+
+    private getTransformStyle(): string {
+        return "transform: translateX(-" + (this.current_element * 100) + "vw);";
     }
 
     private async get_titles() {
@@ -147,8 +183,18 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.number_of_elements)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(
+                    TableWidgetManager.get_active_field_filters(
+                        this.get_active_field_filters,
+                        this.widget_options.do_not_use_page_widget_ids,
+                        this.all_page_widgets_by_id,
+                        this.widgets_by_id,
+                    ))
             ));
+
+        if (this.get_cms_vo && this.widget_options?.filter_on_cmv_vo && this.widget_options?.field_filter_cmv_vo) {
+            query_.filter_by_num_eq(this.widget_options.field_filter_cmv_vo.field_id, this.get_cms_vo.id);
+        }
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
@@ -174,8 +220,18 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.number_of_elements)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(
+                    TableWidgetManager.get_active_field_filters(
+                        this.get_active_field_filters,
+                        this.widget_options.do_not_use_page_widget_ids,
+                        this.all_page_widgets_by_id,
+                        this.widgets_by_id,
+                    ))
             ));
+
+        if (this.get_cms_vo && this.widget_options?.filter_on_cmv_vo && this.widget_options?.field_filter_cmv_vo) {
+            query_.filter_by_num_eq(this.widget_options.field_filter_cmv_vo.field_id, this.get_cms_vo.id);
+        }
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
@@ -201,8 +257,18 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.number_of_elements)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(
+                    TableWidgetManager.get_active_field_filters(
+                        this.get_active_field_filters,
+                        this.widget_options.do_not_use_page_widget_ids,
+                        this.all_page_widgets_by_id,
+                        this.widgets_by_id,
+                    ))
             ));
+
+        if (this.get_cms_vo && this.widget_options?.filter_on_cmv_vo && this.widget_options?.field_filter_cmv_vo) {
+            query_.filter_by_num_eq(this.widget_options.field_filter_cmv_vo.field_id, this.get_cms_vo.id);
+        }
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
@@ -227,8 +293,18 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.number_of_elements)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(
+                    TableWidgetManager.get_active_field_filters(
+                        this.get_active_field_filters,
+                        this.widget_options.do_not_use_page_widget_ids,
+                        this.all_page_widgets_by_id,
+                        this.widgets_by_id,
+                    ))
             ));
+
+        if (this.get_cms_vo && this.widget_options?.filter_on_cmv_vo && this.widget_options?.field_filter_cmv_vo) {
+            query_.filter_by_num_eq(this.widget_options.field_filter_cmv_vo.field_id, this.get_cms_vo.id);
+        }
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
@@ -283,8 +359,18 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.number_of_elements)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(
+                    TableWidgetManager.get_active_field_filters(
+                        this.get_active_field_filters,
+                        this.widget_options.do_not_use_page_widget_ids,
+                        this.all_page_widgets_by_id,
+                        this.widgets_by_id,
+                    ))
             ));
+
+        if (this.get_cms_vo && this.widget_options?.filter_on_cmv_vo && this.widget_options?.field_filter_cmv_vo) {
+            query_.filter_by_num_eq(this.widget_options.field_filter_cmv_vo.field_id, this.get_cms_vo.id);
+        }
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
@@ -309,8 +395,18 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.number_of_elements)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(
+                    TableWidgetManager.get_active_field_filters(
+                        this.get_active_field_filters,
+                        this.widget_options.do_not_use_page_widget_ids,
+                        this.all_page_widgets_by_id,
+                        this.widgets_by_id,
+                    ))
             ));
+
+        if (this.get_cms_vo && this.widget_options?.filter_on_cmv_vo && this.widget_options?.field_filter_cmv_vo) {
+            query_.filter_by_num_eq(this.widget_options.field_filter_cmv_vo.field_id, this.get_cms_vo.id);
+        }
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 

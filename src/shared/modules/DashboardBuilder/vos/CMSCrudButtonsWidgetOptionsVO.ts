@@ -5,17 +5,23 @@ export default class CMSCrudButtonsWidgetOptionsVO extends AbstractVO {
     public show_add: boolean;
     public show_update: boolean;
     public show_delete: boolean;
+    public show_manual_vo_type: boolean;
+    public manual_vo_type: string;
 
     public static createNew(
         show_add: boolean,
         show_update: boolean,
         show_delete: boolean,
+        show_manual_vo_type: boolean,
+        manual_vo_type: string,
     ): CMSCrudButtonsWidgetOptionsVO {
         const res = new CMSCrudButtonsWidgetOptionsVO();
 
         res.show_add = show_add;
         res.show_update = show_update;
         res.show_delete = show_delete;
+        res.show_manual_vo_type = show_manual_vo_type;
+        res.manual_vo_type = manual_vo_type;
 
         return res;
     }

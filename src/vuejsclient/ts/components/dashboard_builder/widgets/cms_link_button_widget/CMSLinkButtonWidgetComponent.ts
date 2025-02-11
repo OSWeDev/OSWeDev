@@ -5,6 +5,8 @@ import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBui
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import './CMSLinkButtonWidgetComponent.scss';
+import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 
 @Component({
     template: require('./CMSLinkButtonWidgetComponent.pug'),
@@ -15,8 +17,13 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
+    @ModuleDashboardPageGetter
+    private get_cms_vo: IDistantVOBase;
+
     private url: string = null;
+    private is_url_field: boolean = false;
     private title: string = null;
+    private icone: string = null;
     private color: string = null;
     private text_color: string = null;
     private about_blank: boolean = null;
@@ -49,7 +56,9 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
     private async onchange_widget_options() {
         if (!this.widget_options) {
             this.url = null;
+            this.is_url_field = false;
             this.title = null;
+            this.icone = null;
             this.color = '#003c7d';
             this.text_color = '#ffffff';
             this.about_blank = false;
@@ -57,8 +66,12 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
 
             return;
         }
-        this.url = this.widget_options.url;
+        this.is_url_field = this.widget_options.is_url_field;
+        this.url = this.is_url_field
+            ? ((this.get_cms_vo && this.widget_options?.url_field_ref) ? this.get_cms_vo[this.widget_options.url_field_ref.field_id] : null)
+            : this.widget_options.url;
         this.title = this.widget_options.title;
+        this.icone = this.widget_options.icone;
         this.color = this.widget_options.color;
         this.text_color = this.widget_options.text_color;
         this.about_blank = this.widget_options.about_blank;

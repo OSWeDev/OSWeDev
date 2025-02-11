@@ -637,7 +637,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         BlocText.weight = 3;
         BlocText.default_background = '#f5f5f5';
         BlocText.icon_component = 'BlocTextwidgeticoncomponent';
-        BlocText.is_filter = true;
+        BlocText.is_filter = false;
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(BlocText, null, null);
 
@@ -761,7 +761,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSBlocText.weight = 3;
         CMSBlocText.default_background = '#f5f5f5';
         CMSBlocText.icon_component = 'CMSBlocTextwidgeticoncomponent';
-        CMSBlocText.is_filter = true;
+        CMSBlocText.is_filter = false;
         CMSBlocText.is_cms_compatible = true;
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSBlocText, null, null);
@@ -782,7 +782,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSImage.weight = 3;
         CMSImage.default_background = '#f5f5f5';
         CMSImage.icon_component = 'CMSImagewidgeticoncomponent';
-        CMSImage.is_filter = true;
+        CMSImage.is_filter = false;
         CMSImage.is_cms_compatible = true;
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSImage, null, null);
@@ -803,7 +803,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSLinkButton.weight = 3;
         CMSLinkButton.default_background = '#f5f5f5';
         CMSLinkButton.icon_component = 'CMSLinkButtonwidgeticoncomponent';
-        CMSLinkButton.is_filter = true;
+        CMSLinkButton.is_filter = false;
         CMSLinkButton.is_cms_compatible = true;
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSLinkButton, null, null);
@@ -824,7 +824,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSLikeButton.weight = 3;
         CMSLikeButton.default_background = '#f5f5f5';
         CMSLikeButton.icon_component = 'CMSLikeButtonwidgeticoncomponent';
-        CMSLikeButton.is_filter = true;
+        CMSLikeButton.is_filter = false;
         CMSLikeButton.is_cms_compatible = true;
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSLikeButton, null, null);
