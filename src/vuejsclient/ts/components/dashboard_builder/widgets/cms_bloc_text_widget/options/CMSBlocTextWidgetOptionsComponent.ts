@@ -38,6 +38,11 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
     private sous_titre_field_ref_for_template: VOFieldRefVO = null;
     private sur_titre_field_ref_for_template: VOFieldRefVO = null;
     private contenu_field_ref_for_template: VOFieldRefVO = null;
+    private titre_template_is_date: boolean = false;
+    private sous_titre_template_is_date: boolean = false;
+    private sur_titre_template_is_date: boolean = false;
+    private contenu_template_is_date: boolean = false;
+    private sous_titre_symbole: string = null;
 
     private optionsEditeur = {
         modules: {
@@ -85,10 +90,15 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
             this.sur_titre = null;
             this.contenu = null;
             this.use_for_template = false;
+            this.titre_template_is_date = false;
+            this.sous_titre_template_is_date = false;
+            this.sur_titre_template_is_date = false;
+            this.contenu_template_is_date = false;
             this.titre_field_ref_for_template = null;
             this.sous_titre_field_ref_for_template = null;
             this.sur_titre_field_ref_for_template = null;
             this.contenu_field_ref_for_template = null;
+            this.sous_titre_symbole = null;
 
             return;
         }
@@ -97,6 +107,11 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         this.sur_titre = this.widget_options.sur_titre;
         this.contenu = this.widget_options.contenu;
         this.use_for_template = this.widget_options.use_for_template;
+        this.titre_template_is_date = this.widget_options.titre_template_is_date;
+        this.sous_titre_template_is_date = this.widget_options.sous_titre_template_is_date;
+        this.sur_titre_template_is_date = this.widget_options.sur_titre_template_is_date;
+        this.contenu_template_is_date = this.widget_options.contenu_template_is_date;
+        this.sous_titre_symbole = this.widget_options.sous_titre_symbole;
         this.titre_field_ref_for_template = this.widget_options.titre_field_ref_for_template ? Object.assign(new VOFieldRefVO(), this.widget_options.titre_field_ref_for_template) : null;
         this.sous_titre_field_ref_for_template = this.widget_options.sous_titre_field_ref_for_template ? Object.assign(new VOFieldRefVO(), this.widget_options.sous_titre_field_ref_for_template) : null;
         this.sur_titre_field_ref_for_template = this.widget_options.sur_titre_field_ref_for_template ? Object.assign(new VOFieldRefVO(), this.widget_options.sur_titre_field_ref_for_template) : null;
@@ -107,7 +122,12 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
     @Watch('sous_titre')
     @Watch('sur_titre')
     @Watch('contenu')
+    @Watch('sous_titre_symbole')
     @Watch('use_for_template')
+    @Watch('titre_template_is_date')
+    @Watch('sous_titre_template_is_date')
+    @Watch('sur_titre_template_is_date')
+    @Watch('contenu_template_is_date')
     @Watch('titre_field_ref_for_template')
     @Watch('sous_titre_field_ref_for_template')
     @Watch('sur_titre_field_ref_for_template')
@@ -122,6 +142,11 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
             this.widget_options.sur_titre != this.sur_titre ||
             this.widget_options.contenu != this.contenu ||
             this.widget_options.use_for_template != this.use_for_template ||
+            this.widget_options.titre_template_is_date != this.titre_template_is_date ||
+            this.widget_options.sous_titre_template_is_date != this.sous_titre_template_is_date ||
+            this.widget_options.sur_titre_template_is_date != this.sur_titre_template_is_date ||
+            this.widget_options.contenu_template_is_date != this.contenu_template_is_date ||
+            this.widget_options.sous_titre_symbole != this.sous_titre_symbole ||
             !isEqual(this.widget_options.titre_field_ref_for_template, this.titre_field_ref_for_template) ||
             !isEqual(this.widget_options.sous_titre_field_ref_for_template, this.sous_titre_field_ref_for_template) ||
             !isEqual(this.widget_options.sur_titre_field_ref_for_template, this.sur_titre_field_ref_for_template) ||
@@ -132,10 +157,15 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
             this.next_update_options.sur_titre = this.sur_titre;
             this.next_update_options.contenu = this.contenu;
             this.next_update_options.use_for_template = this.use_for_template;
+            this.next_update_options.titre_template_is_date = this.titre_template_is_date;
+            this.next_update_options.sous_titre_template_is_date = this.sous_titre_template_is_date;
+            this.next_update_options.sur_titre_template_is_date = this.sur_titre_template_is_date;
+            this.next_update_options.contenu_template_is_date = this.contenu_template_is_date;
             this.next_update_options.titre_field_ref_for_template = this.titre_field_ref_for_template;
             this.next_update_options.sous_titre_field_ref_for_template = this.sous_titre_field_ref_for_template;
             this.next_update_options.sur_titre_field_ref_for_template = this.sur_titre_field_ref_for_template;
             this.next_update_options.contenu_field_ref_for_template = this.contenu_field_ref_for_template;
+            this.next_update_options.sous_titre_symbole = this.sous_titre_symbole;
 
             await this.throttled_update_options();
         }
@@ -165,6 +195,11 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
             null,
             null,
             null,
+            false,
+            false,
+            false,
+            false,
+            "",
         );
     }
 
@@ -183,6 +218,54 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
 
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
+    }
+
+    private async switch_titre_template_is_date() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.titre_template_is_date = !this.next_update_options.titre_template_is_date;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_sous_titre_template_is_date() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.sous_titre_template_is_date = !this.next_update_options.sous_titre_template_is_date;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_sur_titre_template_is_date() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.sur_titre_template_is_date = !this.next_update_options.sur_titre_template_is_date;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_contenu_template_is_date() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.contenu_template_is_date = !this.next_update_options.contenu_template_is_date;
+
+        await this.throttled_update_options();
     }
 
     private async switch_use_for_template() {

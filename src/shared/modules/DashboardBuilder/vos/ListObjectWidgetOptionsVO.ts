@@ -38,6 +38,9 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
     public message_no_data?: string;
     public filter_on_cmv_vo: boolean;
     public field_filter_cmv_vo: VOFieldRefVO;
+    public symbole_surtitre: string;
+    public filter_on_distant_vo: boolean;
+    public field_filter_distant_vo: VOFieldRefVO;
 
     public static createNew(
         type_display: number,
@@ -56,9 +59,12 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         is_card_display_single: boolean,
         filter_on_cmv_vo: boolean,
         field_filter_cmv_vo: VOFieldRefVO,
+        filter_on_distant_vo: boolean,
+        field_filter_distant_vo: VOFieldRefVO,
         do_not_use_page_widget_ids?: number[],
         show_message_no_data?: boolean,
         message_no_data?: string,
+        symbole_surtitre?: string,
     ): ListObjectWidgetOptionsVO {
         const res = new ListObjectWidgetOptionsVO();
         res.type_display = type_display;
@@ -80,6 +86,9 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         res.message_no_data = message_no_data;
         res.filter_on_cmv_vo = filter_on_cmv_vo;
         res.field_filter_cmv_vo = field_filter_cmv_vo;
+        res.symbole_surtitre = symbole_surtitre;
+        res.filter_on_distant_vo = filter_on_distant_vo;
+        res.field_filter_distant_vo = field_filter_distant_vo;
 
         return res;
     }

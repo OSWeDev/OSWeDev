@@ -10,10 +10,6 @@ import './MenuComponent.scss';
 })
 export default class MenuComponent extends VueComponentBase {
 
-    // On triche un peu mais il est sensé n'y avoir qu'un menu....
-    public static getInstance(): MenuComponent {
-        return MenuComponent.instance;
-    }
     private static instance: MenuComponent;
 
     @Prop()
@@ -30,6 +26,10 @@ export default class MenuComponent extends VueComponentBase {
     public constructor() {
         super();
         MenuComponent.instance = this;
+    }
+    // On triche un peu mais il est sensé n'y avoir qu'un menu....
+    public static getInstance(): MenuComponent {
+        return MenuComponent.instance;
     }
 
     public mounted() {

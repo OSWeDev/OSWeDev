@@ -12,6 +12,11 @@ export default class CMSBlocTextWidgetOptionsVO extends AbstractVO {
     public sous_titre_field_ref_for_template: VOFieldRefVO;
     public sur_titre_field_ref_for_template: VOFieldRefVO;
     public contenu_field_ref_for_template: VOFieldRefVO;
+    public titre_template_is_date: boolean;
+    public sous_titre_template_is_date: boolean;
+    public sur_titre_template_is_date: boolean;
+    public contenu_template_is_date: boolean;
+    public sous_titre_symbole: string;
 
     public static createNew(
         titre: string,
@@ -23,6 +28,11 @@ export default class CMSBlocTextWidgetOptionsVO extends AbstractVO {
         sous_titre_field_ref_for_template: VOFieldRefVO,
         sur_titre_field_ref_for_template: VOFieldRefVO,
         contenu_field_ref_for_template: VOFieldRefVO,
+        titre_template_is_date: boolean,
+        sous_titre_template_is_date: boolean,
+        sur_titre_template_is_date: boolean,
+        contenu_template_is_date: boolean,
+        sous_titre_symbole: string,
     ): CMSBlocTextWidgetOptionsVO {
         const res = new CMSBlocTextWidgetOptionsVO();
 
@@ -35,6 +45,11 @@ export default class CMSBlocTextWidgetOptionsVO extends AbstractVO {
         res.sous_titre_field_ref_for_template = sous_titre_field_ref_for_template;
         res.sur_titre_field_ref_for_template = sur_titre_field_ref_for_template;
         res.contenu_field_ref_for_template = contenu_field_ref_for_template;
+        res.titre_template_is_date = titre_template_is_date;
+        res.sous_titre_template_is_date = sous_titre_template_is_date;
+        res.sur_titre_template_is_date = sur_titre_template_is_date;
+        res.contenu_template_is_date = contenu_template_is_date;
+        res.sous_titre_symbole = sous_titre_symbole;
 
         return res;
     }

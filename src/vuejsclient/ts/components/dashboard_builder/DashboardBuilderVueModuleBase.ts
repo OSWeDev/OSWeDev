@@ -185,6 +185,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_CMSLinkButton();
         await this.initializeWidget_CMSLikeButton();
         await this.initializeWidget_CrudButtons();
+        await this.initializeWidget_CMSPrintParam();
     }
 
     private async initializeWidget_BulkOps() {
@@ -832,5 +833,26 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('CMSLikeButtonwidgetcomponent', () => import('./widgets/cms_like_button_widget/CMSLikeButtonWidgetComponent'));
         Vue.component('CMSLikeButtonwidgetoptionscomponent', () => import('./widgets/cms_like_button_widget/options/CMSLikeButtonWidgetOptionsComponent'));
         Vue.component('CMSLikeButtonwidgeticoncomponent', () => import('./widgets/cms_like_button_widget/icon/CMSLikeButtonWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSPrintParam() {
+        const CMSPrintParam = new DashboardWidgetVO();
+
+        CMSPrintParam.default_height = 5;
+        CMSPrintParam.default_width = 2;
+        CMSPrintParam.name = DashboardWidgetVO.WIDGET_NAME_cmsprintparam;
+        CMSPrintParam.widget_component = 'CMSPrintParamwidgetcomponent';
+        CMSPrintParam.options_component = 'CMSPrintParamwidgetoptionscomponent';
+        CMSPrintParam.weight = 3;
+        CMSPrintParam.default_background = '#f5f5f5';
+        CMSPrintParam.icon_component = 'CMSPrintParamwidgeticoncomponent';
+        CMSPrintParam.is_filter = false;
+        CMSPrintParam.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSPrintParam, null, null);
+
+        Vue.component('CMSPrintParamwidgetcomponent', () => import('./widgets/cms_print_param_widget/CMSPrintParamWidgetComponent'));
+        Vue.component('CMSPrintParamwidgetoptionscomponent', () => import('./widgets/cms_print_param_widget/options/CMSPrintParamWidgetOptionsComponent'));
+        Vue.component('CMSPrintParamwidgeticoncomponent', () => import('./widgets/cms_print_param_widget/icon/CMSPrintParamWidgetIconComponent'));
     }
 }

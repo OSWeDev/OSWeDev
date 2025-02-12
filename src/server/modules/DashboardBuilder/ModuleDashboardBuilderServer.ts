@@ -3780,6 +3780,31 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Afficher une seule carte (zoomée)" },
             'list_object_widget_options_component.card_width.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter un texte après le surtitre" },
+            'list_object_widget_options_component.symbole_surtitre.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Le titre est une date ?" },
+            'cms_bloc_text.widget_option.titre_template_is_date.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Le sous-titre est une date ?" },
+            'cms_bloc_text.widget_option.sous_titre_template_is_date.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Le sur-titre est une date ?" },
+            'cms_bloc_text.widget_option.sur_titre_template_is_date.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Le contenu est une date ?" },
+            'cms_bloc_text.widget_option.contenu_template_is_date.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter un texte après le sous-titre" },
+            'cms_bloc_text.widget_option.sous_titre_symbole.___LABEL___'
+        ));
 
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
@@ -4039,6 +4064,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Non" },
             'listobject_widget.filter_on_cmv_vo.hidden.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Filtrage dynamique (pour les templates uniquement, filtre sur une foreign key de l'objet courant)" },
+            'listobject_widget.filter_on_distant_vo.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'listobject_widget.filter_on_distant_vo.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'listobject_widget.filter_on_distant_vo.hidden.___LABEL___'
+        ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Choisir le type d'objet manuellement" },
@@ -4062,6 +4099,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboards.widgets.icons_tooltips.crudbuttons.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher un paramètre" },
+            'dashboards.widgets.icons_tooltips.cmsprintparam.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Type de contenu" },
             'cms_config.api_type_id.___LABEL___'
         ));
@@ -4072,6 +4113,49 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Affectation d'un template pour un type de contenu" },
             'cms_config.template_for_api_type_id.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "STRING" },
+            'cms_print_param.string.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "BOOLÉEN" },
+            'cms_print_param.boolean.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "ENTIER" },
+            'cms_print_param.int.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "DECIMAL" },
+            'cms_print_param.float.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "DATE" },
+            'cms_print_param.date.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "VRAI" },
+            'print_param.boolean.true.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "FAUX" },
+            'print_param.boolean.false.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Type de paramètre" },
+            'cms_print_param.widget_option.type_param.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Paramètre" },
+            'cms_print_param.widget_option.param.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Titre" },
+            'cms_print_param.widget_option.title.___LABEL___'
         ));
 
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

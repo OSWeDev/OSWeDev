@@ -10,7 +10,7 @@
                     :width="60"
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                 )
-
+        
         .sur_titre
             .input_label {{ label('cms_bloc_text.widget_option.sur_titre') }}
             .input_wrapper
@@ -23,6 +23,17 @@
                                 @remove_field_ref="remove_sur_titre_field_ref_for_template"
                                 @add_field_ref="add_sur_titre_field_ref_for_template"
                                 :page_widget_id='page_widget ? page_widget.id : null'
+                            )
+
+                    .sur_titre_template_is_date
+                        .input_label {{ label('cms_bloc_text.widget_option.sur_titre_template_is_date') }}
+                        .input_wrapper
+                            toggle-button(
+                                @change="switch_sur_titre_template_is_date" 
+                                :value="sur_titre_template_is_date" 
+                                :sync="false"
+                                :width="60"
+                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                             )
 
                 template(v-else)
@@ -41,6 +52,18 @@
                                 @add_field_ref="add_titre_field_ref_for_template"
                                 :page_widget_id='page_widget ? page_widget.id : null'
                             )
+
+                    .titre_template_is_date
+                        .input_label {{ label('cms_bloc_text.widget_option.titre_template_is_date') }}
+                        .input_wrapper
+                            toggle-button(
+                                @change="switch_titre_template_is_date" 
+                                :value="titre_template_is_date" 
+                                :sync="false"
+                                :width="60"
+                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                            )
+
                 template(v-else)
                     Vuequilleditor(v-model='titre', :options="optionsEditeur")
 
@@ -58,6 +81,20 @@
                                 :page_widget_id='page_widget ? page_widget.id : null'
                             )
 
+                    .sous_titre_template_is_date
+                        .input_label {{ label('cms_bloc_text.widget_option.sous_titre_template_is_date') }}
+                        .input_wrapper
+                            toggle-button(
+                                @change="switch_sous_titre_template_is_date" 
+                                :value="sous_titre_template_is_date" 
+                                :sync="false"
+                                :width="60"
+                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                            )
+
+                    .widget_sous_titre_symbole {{ label('cms_bloc_text.widget_option.sous_titre_symbole') }}
+                        input.form-control(type='text' v-model='sous_titre_symbole')
+
                 template(v-else)
                     Vuequilleditor(v-model='sous_titre', :options="optionsEditeur")
 
@@ -73,6 +110,17 @@
                                 @remove_field_ref="remove_contenu_field_ref_for_template"
                                 @add_field_ref="add_contenu_field_ref_for_template"
                                 :page_widget_id='page_widget ? page_widget.id : null'
+                            )
+
+                    .contenu_template_is_date
+                        .input_label {{ label('cms_bloc_text.widget_option.contenu_template_is_date') }}
+                        .input_wrapper
+                            toggle-button(
+                                @change="switch_contenu_template_is_date" 
+                                :value="contenu_template_is_date" 
+                                :sync="false"
+                                :width="60"
+                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                             )
 
                 template(v-else)

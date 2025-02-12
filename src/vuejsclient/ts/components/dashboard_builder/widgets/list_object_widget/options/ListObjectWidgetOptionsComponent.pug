@@ -10,6 +10,9 @@
                             :vo_field_ref="surtitre_field_ref" @remove_field_ref="remove_surtitre_field_ref" @add_field_ref="add_surtitre_field_ref"
                             :page_widget_id='page_widget ? page_widget.id : null'
                         )
+            .widget_surtitre_symbole {{ label('list_object_widget_options_component.symbole_surtitre') }}
+                input.form-control(type='text' v-model='symbole_surtitre')
+            
         .title
             .widget_title_label {{ label('list_object_widget_options_component.widget_title.title') }}
             .widget_title_wrapper
@@ -173,6 +176,24 @@
                     .input_wrapper
                         Singlevofieldrefholdercomponent(
                             :vo_field_ref="field_filter_cmv_vo_field_ref" @remove_field_ref="remove_field_filter_cmv_vo_field_ref" @add_field_ref="add_field_filter_cmv_vo_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
+        
+        .filter_on_distant_vo
+            .input_label {{ label('listobject_widget.filter_on_distant_vo') }}
+            toggle-button(
+                @change="switch_filter_on_distant_vo" 
+                :value="filter_on_distant_vo" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('listobject_widget.filter_on_distant_vo.visible'), unchecked: label('listobject_widget.filter_on_distant_vo.hidden')}")
+
+        template(v-if="filter_on_distant_vo")
+            .field_filter_distant_vo
+                .field_ref
+                    .input_wrapper
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="field_filter_distant_vo_field_ref" @remove_field_ref="remove_field_filter_distant_vo_field_ref" @add_field_ref="add_field_filter_distant_vo_field_ref"
                             :page_widget_id='page_widget ? page_widget.id : null'
                         )
 

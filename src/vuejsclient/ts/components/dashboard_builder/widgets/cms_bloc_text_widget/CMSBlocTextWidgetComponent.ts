@@ -63,10 +63,13 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
 
     @Watch('get_cms_vo')
     private onchange_get_cms_vo() {
-        this.titre = this.get_value(this.widget_options.titre, this.widget_options.titre_field_ref_for_template);
-        this.sous_titre = this.get_value(this.widget_options.sous_titre, this.widget_options.sous_titre_field_ref_for_template);
-        this.sur_titre = this.get_value(this.widget_options.sur_titre, this.widget_options.sur_titre_field_ref_for_template);
-        this.contenu = this.get_value(this.widget_options.contenu, this.widget_options.contenu_field_ref_for_template);
+        this.titre = this.get_value(this.widget_options.titre, this.widget_options.titre_field_ref_for_template, this.widget_options.titre_template_is_date);
+        this.sous_titre = this.get_value(this.widget_options.sous_titre, this.widget_options.sous_titre_field_ref_for_template, this.widget_options.sous_titre_template_is_date);
+        if (this.widget_options.sous_titre_symbole) {
+            this.sous_titre = this.sous_titre + ' ' + this.widget_options.sous_titre_symbole;
+        }
+        this.sur_titre = this.get_value(this.widget_options.sur_titre, this.widget_options.sur_titre_field_ref_for_template, this.widget_options.sur_titre_template_is_date);
+        this.contenu = this.get_value(this.widget_options.contenu, this.widget_options.contenu_field_ref_for_template, this.widget_options.contenu_template_is_date);
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
@@ -80,17 +83,24 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
             return;
         }
 
-        this.titre = this.get_value(this.widget_options.titre, this.widget_options.titre_field_ref_for_template);
-        this.sous_titre = this.get_value(this.widget_options.sous_titre, this.widget_options.sous_titre_field_ref_for_template);
-        this.sur_titre = this.get_value(this.widget_options.sur_titre, this.widget_options.sur_titre_field_ref_for_template);
-        this.contenu = this.get_value(this.widget_options.contenu, this.widget_options.contenu_field_ref_for_template);
+        this.titre = this.get_value(this.widget_options.titre, this.widget_options.titre_field_ref_for_template, this.widget_options.titre_template_is_date);
+        this.sous_titre = this.get_value(this.widget_options.sous_titre, this.widget_options.sous_titre_field_ref_for_template, this.widget_options.sous_titre_template_is_date);
+        if (this.widget_options.sous_titre_symbole) {
+            this.sous_titre = this.sous_titre + ' ' + this.widget_options.sous_titre_symbole;
+        }
+        this.sur_titre = this.get_value(this.widget_options.sur_titre, this.widget_options.sur_titre_field_ref_for_template, this.widget_options.sur_titre_template_is_date);
+        this.contenu = this.get_value(this.widget_options.contenu, this.widget_options.contenu_field_ref_for_template, this.widget_options.contenu_template_is_date);
     }
 
     private async mounted() {
         this.onchange_widget_options();
     }
 
-    private get_value(data: any, field_ref: VOFieldRefVO): string {
+    private get_value(data: any, field_ref: VOFieldRefVO, is_date: boolean): string {
+        if (this.widget_options.use_for_template && is_date && this.get_cms_vo && field_ref?.field_id) {
+            return Dates.format(this.get_cms_vo[field_ref.field_id], "DD/MM/YYYY");
+        }
+
         if (!this.widget_options.use_for_template) {
 
             if (data instanceof TSRange) {
