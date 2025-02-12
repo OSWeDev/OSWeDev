@@ -28,9 +28,6 @@ import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTa
 })
 export default class CRUDUpdateFormComponent extends VueComponentBase {
 
-    @ModuleDAOGetter
-    private getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
-
     @ModuleDAOAction
     private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
     @ModuleDAOAction
@@ -395,7 +392,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
                     // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
                     await CRUDFormServices.updateManyToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.removeData, self.storeData, self);
-                    await CRUDFormServices.updateOneToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.getStoredDatas, self.updateData);
+                    await CRUDFormServices.updateOneToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.updateData);
 
                     if (self.crud.postUpdate) {
                         await self.crud.postUpdate(self.editableVO);

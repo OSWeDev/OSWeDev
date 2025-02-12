@@ -65,12 +65,14 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
         return this;
     }
 
-    public dataToHumanReadableField(e: IDistantVOBase): any {
+    public async dataToHumanReadableField(e: IDistantVOBase): Promise<any> {
         let res = "";
 
         const dest_ids: number[] = [];
         const interTargetRefField = this.inter_target_ref_field_id ? this.interModuleTable.getFieldFromId(this.inter_target_ref_field_id) : this.interModuleTable.getRefFieldFromTargetVoType(this.target_module_table_type_id);
         const interSrcRefField = this.inter_src_ref_field_id ? this.interModuleTable.getFieldFromId(this.inter_src_ref_field_id) : this.interModuleTable.getRefFieldFromTargetVoType(this.vo_type_id);
+
+        TODO load from DB Query
         const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
         for (const interi in vos[this.interModuleTable.vo_type]) {
@@ -82,7 +84,7 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
         }
 
         for (const desti in dest_ids) {
-            const thisvalue: string = this.dataToHumanReadable(vos[this.target_module_table_type_id][dest_ids[desti]]);
+            const thisvalue: string = await this.dataToHumanReadable(vos[this.target_module_table_type_id][dest_ids[desti]]);
             res += (res != "") ? " " + thisvalue : thisvalue;
         }
         return res;

@@ -371,7 +371,7 @@ export default class ContextFilterVOHandler {
                         const ref_data: IDistantVOBase = await query(manyToOneField.targetModuleTable.vo_type)
                             .filter_by_id(raw_data[src_module_table_field_name])
                             .select_vo();
-                        resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
+                        resData[field.datatable_field_uid] = await manyToOneField.dataToHumanReadable(ref_data);
                         resData[field.datatable_field_uid + "___id___"] = raw_data[src_module_table_field_name];
                         resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
                     }
@@ -408,7 +408,7 @@ export default class ContextFilterVOHandler {
 
                                 resData[field.datatable_field_uid].push({
                                     id: ref_data.id,
-                                    label: manyToManyField.dataToHumanReadable(ref_data)
+                                    label: await manyToManyField.dataToHumanReadable(ref_data)
                                 });
                             })());
                         }
@@ -448,7 +448,7 @@ export default class ContextFilterVOHandler {
 
                                 resData[field.datatable_field_uid].push({
                                     id: ref_data.id,
-                                    label: manyToManyField.dataToHumanReadable(ref_data)
+                                    label: await manyToManyField.dataToHumanReadable(ref_data)
                                 });
                             })());
                         }
@@ -474,7 +474,7 @@ export default class ContextFilterVOHandler {
 
                         resData[field.datatable_field_uid].push({
                             id: id,
-                            label: refField.dataToHumanReadable(ref_data)
+                            label: await refField.dataToHumanReadable(ref_data)
                         });
                     });
                     break;

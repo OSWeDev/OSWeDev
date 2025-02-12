@@ -394,7 +394,6 @@ export default class CRUDFormServices {
      */
     public static async updateOneToMany(
         datatable_vo: IDistantVOBase, datatable: Datatable<IDistantVOBase>, db_vo: IDistantVOBase,
-        getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } },
         updateData: (vo: IDistantVOBase) => void,
     ) {
         try {
@@ -407,73 +406,142 @@ export default class CRUDFormServices {
 
                 const field: OneToManyReferenceDatatableFieldVO<any> = datatable.fields[i] as OneToManyReferenceDatatableFieldVO<any>;
 
-                const q = query(field.targetModuleTable.vo_type);
+                const q_actual_links = query(field.targetModuleTable.vo_type);
 
                 switch (field.destField.field_type) {
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
                     case ModuleTableFieldVO.FIELD_TYPE_file_ref:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
-                        q.filter_by_num_eq(
+                        q_actual_links.filter_by_num_eq(
                             field.destField.field_id,
                             db_vo.id);
                         break;
                     case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
-                        q.filter_by_num_x_ranges(
+                        q_actual_links.filter_by_num_x_ranges(
                             field.destField.field_id,
                             [RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT)]);
                         break;
                     default:
                         throw new Error('Type de champ non géré');
                 }
-                const actual_links: IDistantVOBase[] = await q.select_vos<IDistantVOBase>();
+                const actual_links: IDistantVOBase[] = await q_actual_links.select_vos<IDistantVOBase>();
                 const new_links_target_ids: number[] = cloneDeep(datatable_vo[field.module_table_field_id]);
+                let new_actual_links: IDistantVOBase[] = [];
 
-                const need_update_links: IDistantVOBase[] = [];
+                const updates_to_push: IDistantVOBase[] = [];
 
-                if (new_links_target_ids) {
-                    for (const j in actual_links) {
-                        const actual_link = actual_links[j];
+                if (new_links_target_ids && new_links_target_ids.length) {
 
-                        if (new_links_target_ids.indexOf(actual_link.id) < 0) {
+                    const q_new_links_target = query(field.targetModuleTable.vo_type);
+                    q_new_links_target.filter_by_ids(new_links_target_ids);
+                    new_actual_links = await q_new_links_target.select_vos<IDistantVOBase>();
+                }
 
-                            actual_link[field.destField.field_id] = null;
-                            need_update_links.push(actual_link);
-                            continue;
+                // On commence par supprimer les liaisons devenues inactives
+                for (const j in actual_links) {
+                    const actual_link = actual_links[j];
+
+                    if (new_actual_links.findIndex((new_link) => new_link.id == actual_link.id) < 0) {
+
+                        switch (field.destField.field_type) {
+                            case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                            case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                            case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                                actual_link[field.destField.field_id] = null;
+                                break;
+                            case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                                actual_link[field.destField.field_id] = RangeHandler.cut_ranges(RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT), actual_link[field.destField.field_id]).remaining_items;
+                                break;
+                            default:
+                                throw new Error('Type de champ non géré');
                         }
 
-                        new_links_target_ids.splice(new_links_target_ids.indexOf(actual_link.id), 1);
-                    }
-
-                    for (const j in new_links_target_ids) {
-                        const new_link_target_id = new_links_target_ids[j];
-
-                        if ((!getStoredDatas[field.targetModuleTable.vo_type]) || (!getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id])) {
-                            continue;
-                        }
-
-                        if (field.destField.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
-                            if (!getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id]) {
-                                getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = [];
-                            }
-                            if (!RangeHandler.elt_intersects_any_range(db_vo.id, getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id])) {
-                                getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id].push(RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT));
-                            }
-                            need_update_links.push(getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
-                        } else {
-                            getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = db_vo.id;
-                            need_update_links.push(getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
-                        }
+                        updates_to_push.push(actual_link);
                     }
                 }
 
-                if (need_update_links.length > 0) {
+                // Puis on ajoute les nouvelles liaisons
+                for (const j in new_actual_links) {
+                    const new_link = new_actual_links[j];
 
-                    await ModuleDAO.instance.insertOrUpdateVOs(need_update_links);
-                    for (const linki in need_update_links) {
+                    if (actual_links.findIndex((actual_link) => actual_link.id == new_link.id) < 0) {
 
-                        updateData(need_update_links[linki]);
+                        switch (field.destField.field_type) {
+                            case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                            case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                            case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                                new_link[field.destField.field_id] = db_vo.id;
+                                break;
+                            case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                                if (!new_link[field.destField.field_id]) {
+                                    new_link[field.destField.field_id] = [];
+                                }
+                                if (!RangeHandler.elt_intersects_any_range(db_vo.id, new_link[field.destField.field_id])) {
+                                    new_link[field.destField.field_id].push(RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT));
+                                }
+                                break;
+                            default:
+                                throw new Error('Type de champ non géré');
+                        }
+
+                        updates_to_push.push(new_link);
                     }
                 }
+
+                if (updates_to_push.length > 0) {
+
+                    await ModuleDAO.instance.insertOrUpdateVOs(updates_to_push);
+                    // On push aussi ces éléments dans le getStoredDatas
+                    for (const linki in updates_to_push) {
+
+                        updateData(updates_to_push[linki]);
+                    }
+                }
+
+                // if (new_links_target_ids) {
+                //     for (const j in actual_links) {
+                //         const actual_link = actual_links[j];
+
+                //         if (new_links_target_ids.indexOf(actual_link.id) < 0) {
+
+                //             actual_link[field.destField.field_id] = null;
+                //             need_update_links.push(actual_link);
+                //             continue;
+                //         }
+
+                //         new_links_target_ids.splice(new_links_target_ids.indexOf(actual_link.id), 1);
+                //     }
+
+                //     for (const j in new_links_target_ids) {
+                //         const new_link_target_id = new_links_target_ids[j];
+
+                //         if ((!getStoredDatas[field.targetModuleTable.vo_type]) || (!getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id])) {
+                //             continue;
+                //         }
+
+                //         if (field.destField.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
+                //             if (!getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id]) {
+                //                 getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = [];
+                //             }
+                //             if (!RangeHandler.elt_intersects_any_range(db_vo.id, getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id])) {
+                //                 getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id].push(RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT));
+                //             }
+                //             need_update_links.push(getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
+                //         } else {
+                //             getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = db_vo.id;
+                //             need_update_links.push(getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
+                //         }
+                //     }
+                // }
+
+                // if (need_update_links.length > 0) {
+
+                //     await ModuleDAO.instance.insertOrUpdateVOs(need_update_links);
+                //     for (const linki in need_update_links) {
+
+                //         updateData(need_update_links[linki]);
+                //     }
+                // }
             }
         } catch (error) {
             ConsoleHandler.error(error);

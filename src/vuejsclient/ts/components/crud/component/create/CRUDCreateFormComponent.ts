@@ -30,9 +30,6 @@ import "./CRUDCreateFormComponent.scss";
 })
 export default class CRUDCreateFormComponent extends VueComponentBase {
 
-    @ModuleDAOGetter
-    private getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
-
     @ModuleDAOAction
     private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
     @ModuleDAOAction
@@ -413,7 +410,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
                     // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
                     await CRUDFormServices.updateManyToMany(self.newVO, self.crud.createDatatable, createdVO, self.removeData, self.storeData, self);
-                    await CRUDFormServices.updateOneToMany(self.newVO, self.crud.createDatatable, createdVO, self.getStoredDatas, self.updateData);
+                    await CRUDFormServices.updateOneToMany(self.newVO, self.crud.createDatatable, createdVO, self.updateData);
 
                     if (self.crud.postCreate) {
                         await self.crud.postCreate(self.newVO);

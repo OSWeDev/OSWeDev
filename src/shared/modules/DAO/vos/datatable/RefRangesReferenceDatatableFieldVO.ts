@@ -95,7 +95,7 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
         return e as unknown as U;
     }
 
-    public dataToHumanReadableField(e: IDistantVOBase): any {
+    public async dataToHumanReadableField(e: IDistantVOBase): Promise<any> {
         let res = "";
 
         const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
@@ -103,16 +103,17 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
         if (!destvos) {
             return res;
         }
-        RangeHandler.foreach_ranges_sync(e[this.datatable_field_uid], (id: number) => {
-            const thisvalue: string = this.dataToHumanReadable(destvos[id]);
+        await RangeHandler.foreach_ranges(e[this.datatable_field_uid], async (id: number) => {
+            const thisvalue: string = await this.dataToHumanReadable(destvos[id]);
             res += (res != "") ? " " + thisvalue : thisvalue;
         });
         return res;
     }
 
-    public dataToReadIHM(e: number, vo: IDistantVOBase): any {
+    public async dataToReadIHM(e: number, vo: IDistantVOBase): Promise<any> {
         const dest_ids: number[] = [];
 
+        TODO load from DB Query
         const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
         const destvos = vos[this.targetModuleTable.vo_type];
 

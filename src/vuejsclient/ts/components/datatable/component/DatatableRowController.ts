@@ -18,6 +18,7 @@ export default class DatatableRowController {
     public static MULTISELECT_COLUMN_ID: string = "__multiselect_column__";
 
     public static cb_file_download: { [vo_type: string]: { [field_id: string]: (vo_id: number) => Promise<void> } } = {};
+    private static instance: DatatableRowController;
 
     // istanbul ignore next: nothing to test
     public static getInstance(): DatatableRowController {
@@ -27,7 +28,6 @@ export default class DatatableRowController {
         return DatatableRowController.instance;
     }
 
-    private static instance: DatatableRowController;
 
     public get_exportable_datatable_row_data(raw_data: IDistantVOBase, datatable: Datatable<any>, exportable_datatable_columns: string[] = null): any {
 
@@ -120,10 +120,10 @@ export default class DatatableRowController {
         return resData;
     }
 
-    public get_datatable_row_field_data(
+    public async get_datatable_row_field_data(
         raw_data: IDistantVOBase, resData: any, field: DatatableField<any, any>,
         getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } },
-        prepared_ref_fields_data_for_update: { [datatable_field_uid: string]: { [baseData_id: number]: { [dest_id: number]: IDistantVOBase } } }): any {
+        prepared_ref_fields_data_for_update: { [datatable_field_uid: string]: { [baseData_id: number]: { [dest_id: number]: IDistantVOBase } } }): Promise<any> {
 
         try {
 
@@ -151,9 +151,7 @@ export default class DatatableRowController {
                                 value = value.replace(/<br>/gi, '\n');
                                 value = value.replace(/<(?:.|\n)*?>/gm, '');
                                 // value = $("<p>" + value + "</p>").text();
-                            } catch (error) {
-                                value = value;
-                            }
+                            } catch (error) { /* empty */ }
 
                             if (value.length > 300) {
                                 value = value.substring(0, 300) + '...';
@@ -177,9 +175,7 @@ export default class DatatableRowController {
                                 v = v.replace(/<br>/gi, '\n');
                                 v = v.replace(/<(?:.|\n)*?>/gm, '');
                                 // v = $("<p>" + v + "</p>").text();
-                            } catch (error) {
-                                v = v;
-                            }
+                            } catch (error) { /* empty */ }
 
                             if (v.length > 300) {
                                 v = v.substring(0, 300) + '...';
@@ -211,7 +207,7 @@ export default class DatatableRowController {
                     // On va chercher la valeur du champs depuis la valeur de la donnée liée
                     if (getStoredDatas && getStoredDatas[manyToOneField.targetModuleTable.vo_type]) {
                         const ref_data: IDistantVOBase = getStoredDatas[manyToOneField.targetModuleTable.vo_type][raw_data[manyToOneField.srcField.field_id]];
-                        resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
+                        resData[field.datatable_field_uid] = await manyToOneField.dataToHumanReadable(ref_data);
                         resData[field.datatable_field_uid + "___id___"] = raw_data[manyToOneField.srcField.field_id];
                         resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
                     }
@@ -238,7 +234,7 @@ export default class DatatableRowController {
                         for (const oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id]) {
                             resData[field.datatable_field_uid].push({
                                 id: oneToManyTargetId,
-                                label: oneToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id][oneToManyTargetId])
+                                label: await oneToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id][oneToManyTargetId])
                             });
                         }
                     }
@@ -271,7 +267,7 @@ export default class DatatableRowController {
                         for (const oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id]) {
                             resData[field.datatable_field_uid].push({
                                 id: oneToManyTargetId,
-                                label: manyToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id][oneToManyTargetId])
+                                label: await manyToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id][oneToManyTargetId])
                             });
                         }
                     }
@@ -285,11 +281,11 @@ export default class DatatableRowController {
 
                     if (getStoredDatas && getStoredDatas[refField.targetModuleTable.vo_type]) {
 
-                        RangeHandler.foreach_ranges_sync(raw_data[refField.srcField.field_id], (id: number) => {
+                        await RangeHandler.foreach_ranges(raw_data[refField.srcField.field_id], async (id: number) => {
                             const ref_data: IDistantVOBase = getStoredDatas[refField.targetModuleTable.vo_type][id];
                             resData[field.datatable_field_uid].push({
                                 id: id,
-                                label: refField.dataToHumanReadable(ref_data)
+                                label: await refField.dataToHumanReadable(ref_data)
                             });
                         });
                     }
