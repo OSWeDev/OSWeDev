@@ -186,6 +186,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_CMSLikeButton();
         await this.initializeWidget_CrudButtons();
         await this.initializeWidget_CMSPrintParam();
+        await this.initializeWidget_CMSVisionneusePdf();
     }
 
     private async initializeWidget_BulkOps() {
@@ -854,5 +855,26 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('CMSPrintParamwidgetcomponent', () => import('./widgets/cms_print_param_widget/CMSPrintParamWidgetComponent'));
         Vue.component('CMSPrintParamwidgetoptionscomponent', () => import('./widgets/cms_print_param_widget/options/CMSPrintParamWidgetOptionsComponent'));
         Vue.component('CMSPrintParamwidgeticoncomponent', () => import('./widgets/cms_print_param_widget/icon/CMSPrintParamWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSVisionneusePdf() {
+        const CMSVisionneusePdf = new DashboardWidgetVO();
+
+        CMSVisionneusePdf.default_height = 5;
+        CMSVisionneusePdf.default_width = 2;
+        CMSVisionneusePdf.name = DashboardWidgetVO.WIDGET_NAME_cmsvisionneusepdf;
+        CMSVisionneusePdf.widget_component = 'CMSVisionneusePdfwidgetcomponent';
+        CMSVisionneusePdf.options_component = 'CMSVisionneusePdfwidgetoptionscomponent';
+        CMSVisionneusePdf.weight = 3;
+        CMSVisionneusePdf.default_background = '#f5f5f5';
+        CMSVisionneusePdf.icon_component = 'CMSVisionneusePdfwidgeticoncomponent';
+        CMSVisionneusePdf.is_filter = false;
+        CMSVisionneusePdf.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSVisionneusePdf, null, null);
+
+        Vue.component('CMSVisionneusePdfwidgetcomponent', () => import('./widgets/cms_visionneuse_pdf/CMSVisionneusePdfWidgetComponent'));
+        Vue.component('CMSVisionneusePdfwidgetoptionscomponent', () => import('./widgets/cms_visionneuse_pdf/options/CMSVisionneusePdfWidgetOptionsComponent'));
+        Vue.component('CMSVisionneusePdfwidgeticoncomponent', () => import('./widgets/cms_visionneuse_pdf/icon/CMSVisionneusePdfWidgetIconComponent'));
     }
 }

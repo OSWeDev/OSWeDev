@@ -306,7 +306,7 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
         const res = this.get_values_formatted(surtitres, this.widget_options.surtitre.field_id, this.widget_options.surtitre.api_type_id);
 
-        if (this.widget_options?.symbole_surtitre != '') {
+        if (this.widget_options?.symbole_surtitre != '' && this.widget_options?.symbole_surtitre != null && this.widget_options?.symbole_surtitre != undefined) {
             for (const i in res) {
                 res[i] = res[i] + ' ' + this.widget_options?.symbole_surtitre;
             }

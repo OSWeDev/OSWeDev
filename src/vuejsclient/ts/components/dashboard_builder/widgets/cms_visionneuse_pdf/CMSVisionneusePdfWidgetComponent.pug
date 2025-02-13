@@ -1,0 +1,6 @@
+include ../../../../../views/mixins/loading.pug
+
+.cms_visionneuse_pdf_widget_component_container
+    .text-center.col-md-12(v-if="file_path")
+        //- embed.embed_pdf(:src="file_path" type="application/pdf")
+        iframe(:src='file_path' width='100%' height='600' style='border: none;')

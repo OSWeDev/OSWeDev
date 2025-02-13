@@ -3942,6 +3942,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'cms_bloc_text.widget_option.use_for_template.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Utiliser en mode template (dynamique)" },
+            'cms_visionneuse_pdf.widget_option.use_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ contenu à utiliser pour le template (dynamique)" },
+            'cms_visionneuse_pdf.widget_option.field_ref_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Fichier" },
+            'cms_visionneuse_pdf.widget_option.file_id.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Champ contenu à utiliser pour le template (dynamique)" },
             'cms_image.widget_option.contenu_field_ref_for_template.___LABEL___'
         ));

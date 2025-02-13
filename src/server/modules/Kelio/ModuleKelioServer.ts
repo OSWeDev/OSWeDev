@@ -20,6 +20,8 @@ import { cloneDeep } from 'lodash';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ImportKelioEmployeeCronWorkersHandler from './ImportKelioEmployeeCronWorkersHandler';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class ModuleKelioServer extends ModuleServerBase {
 
@@ -97,6 +99,11 @@ export default class ModuleKelioServer extends ModuleServerBase {
         for (const i in api_employees) {
             const api_employee: KelioLightEmployeeAPI = api_employees[i];
 
+            if (!api_employee.employeeIdentificationNumber) {
+                ConsoleHandler.warn('Pas de matricule pour l\'employé : ' + JSON.stringify(api_employee));
+                continue;
+            }
+
             const bdd_employee: KelioEmployeeVO = bdd_employee_by_employee_identification_number[api_employee.employeeIdentificationNumber];
             let new_employee: KelioEmployeeVO = new KelioEmployeeVO();
 
@@ -126,7 +133,7 @@ export default class ModuleKelioServer extends ModuleServerBase {
         }
 
         if (to_save?.length) {
-            await ModuleDAO.getInstance().insertOrUpdateVOs(to_save);
+            await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(to_save);
         }
     }
 
