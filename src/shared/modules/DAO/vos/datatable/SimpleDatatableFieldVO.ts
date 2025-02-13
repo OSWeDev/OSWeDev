@@ -70,7 +70,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         return res;
     }
 
-    public dataToReadIHM(field_value: any, vo: IDistantVOBase): any {
+    public async dataToReadIHM(field_value: any, vo: IDistantVOBase): Promise<any> {
         if (DatatableField.computed_value && DatatableField.computed_value[this.datatable_field_uid]) {
             return DatatableField.computed_value[this.datatable_field_uid](field_value, this.moduleTableField, vo, this.datatable_field_uid);
         }
@@ -276,7 +276,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     if (isStringDateRangeFormat) {
                         const new_field_value = RangeHandler.parseRangeBDD(TSRange.RANGE_TYPE, field_value, (this.segmentation_type ?? TimeSegment.TYPE_SECOND));
-                        return this.dataToReadIHM(new_field_value, vo);
+                        return await this.dataToReadIHM(new_field_value, vo);
                     }
 
                     return none ? '∞' : res_tsrange.join(' - ');
@@ -344,7 +344,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         const tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
 
                         if (this.field_type == tableFieldTypeController.name) {
-                            return tableFieldTypeController.defaultDataToReadIHM(field_value, this.moduleTableField, vo);
+                            return await tableFieldTypeController.defaultDataToReadIHM(field_value, this.moduleTableField, vo);
                         }
                     }
 
@@ -356,7 +356,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         }
     }
 
-    public dataToUpdateIHM(field_value: any, vo: IDistantVOBase): any {
+    public async dataToUpdateIHM(field_value: any, vo: IDistantVOBase): Promise<any> {
         if ((field_value === null) || (typeof field_value == "undefined")) {
             return field_value;
         }
@@ -597,7 +597,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         }
     }
 
-    public dataToCreateIHM(e: T, vo: IDistantVOBase): U {
+    public async dataToCreateIHM(e: T, vo: IDistantVOBase): Promise<U> {
         return this.dataToUpdateIHM(e, vo);
     }
 
@@ -625,8 +625,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         return this.moduleTableField.getValidationTextCodeBase();
     }
 
-    public dataToHumanReadableField(e: IDistantVOBase): U {
-        const res = this.dataToReadIHM(e[this.datatable_field_uid], e);
+    public async dataToHumanReadableField(e: IDistantVOBase): Promise<U> {
+        const res = await this.dataToReadIHM(e[this.datatable_field_uid], e);
 
         if ((this.type == SimpleDatatableFieldVO.SIMPLE_FIELD_TYPE) && (this.field_type == ModuleTableFieldVO.FIELD_TYPE_boolean)) {
 

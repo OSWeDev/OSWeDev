@@ -429,7 +429,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      * A modifier pour gérer le dataToIHM en fonction des types d'entrée sortie.
      * Par défaut on renvoie sans modification. Attention au typage.
      */
-    public dataToReadIHM(e: T, vo: IDistantVOBase): U {
+    public async dataToReadIHM(e: T, vo: IDistantVOBase): Promise<U> {
         return e as any;
     }
 
@@ -437,7 +437,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      * A modifier pour gérer le dataToIHM en fonction des types d'entrée sortie.
      * Par défaut on renvoie comme le read.
      */
-    public dataToUpdateIHM(e: T, vo: IDistantVOBase): U {
+    public async dataToUpdateIHM(e: T, vo: IDistantVOBase): Promise<U> {
         return this.dataToReadIHM(e, vo);
     }
 
@@ -445,7 +445,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      * A modifier pour gérer le dataToIHM en fonction des types d'entrée sortie.
      * Par défaut on renvoie comme le read.
      */
-    public dataToCreateIHM(e: T, vo: IDistantVOBase): U {
+    public async dataToCreateIHM(e: T, vo: IDistantVOBase): Promise<U> {
         return this.dataToReadIHM(e, vo);
     }
 
@@ -478,7 +478,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     }
 
 
-    public dataToHumanReadableField(e: IDistantVOBase): U {
+    public async dataToHumanReadableField(e: IDistantVOBase): Promise<U | string> {
         return null;
     }
 

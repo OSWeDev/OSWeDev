@@ -1,7 +1,9 @@
+import { isArray } from 'lodash';
 import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import WeightHandler from '../../../../tools/WeightHandler';
+import { query } from '../../../ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../ModuleTableController';
 import ModuleTableFieldVO from '../ModuleTableFieldVO';
 
@@ -38,17 +40,19 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
         this._target_module_table_type_id = target_module_table_type_id;
     }
 
-    public voIdToHumanReadable: (id: number) => Promise<string> = async (id: number) => {
+    public voIdToHumanReadable: (id: number, vo?: Target) => Promise<string> = async (id: number, vo: Target = null) => {
         let res: string = "";
 
-        if ((id === null) || (typeof id == 'undefined')) {
+        if ((id === null) || (typeof id == 'undefined') || isArray(id)) {
             return '';
         }
 
-        const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        vo = vo ? vo : await query(this.target_module_table_type_id).filter_by_id(id).select_vo<Target>();
+        // const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
-        const data: Target = vos[this.targetModuleTable.vo_type] ? vos[this.targetModuleTable.vo_type][id] : null;
-        res = await this.dataToHumanReadable(data);
+        // const data: Target = vos[this.targetModuleTable.vo_type] ? vos[this.targetModuleTable.vo_type][id] : null;
+        // res = await this.dataToHumanReadable(data);
+        res = await this.dataToHumanReadable(vo);
         return res ? res : '';
     };
 

@@ -154,24 +154,24 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     }
 
     @Watch("selected_vo", { immediate: true })
-    private updateSelected_vo() {
+    private async updateSelected_vo() {
         if (!this.selected_vo) {
             this.editableVO = null;
             return;
         }
 
         const self = this;
-        const waiter = () => {
-            if (!self.dao_store_loaded) {
-                setTimeout(waiter, 300);
-            } else {
-                // On passe la traduction en IHM sur les champs
-                self.editableVO = CRUDFormServices.dataToIHM(self.selected_vo, self.crud.updateDatatable, true);
-                self.onChangeVO(self.editableVO);
-            }
-        };
+        // const waiter = async () => {
+        //     if (!self.dao_store_loaded) {
+        //         setTimeout(waiter, 300);
+        //     } else {
+        // On passe la traduction en IHM sur les champs
+        self.editableVO = await CRUDFormServices.dataToIHM(self.selected_vo, self.crud.updateDatatable, true);
+        self.onChangeVO(self.editableVO);
+        //     }
+        // };
 
-        waiter();
+        // await waiter();
     }
 
     public update_key() {

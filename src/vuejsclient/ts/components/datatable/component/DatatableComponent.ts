@@ -759,7 +759,7 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     @Watch('datatable')
-    private loadDatatable() {
+    private async loadDatatable() {
         this.selected_datas = {};
         this.loaded = false;
 
@@ -767,7 +767,7 @@ export default class DatatableComponent extends VueComponentBase {
 
         this.loaded = true;
 
-        this.update_datatable_data();
+        await this.update_datatable_data();
 
         for (const i in this.api_types_involved) {
             this.setWatcher(this.api_types_involved[i]);
@@ -775,7 +775,7 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     public async mounted() {
-        this.loadDatatable();
+        await this.loadDatatable();
 
         // Activate tooltip
         $('[data-toggle="tooltip"]').tooltip();
@@ -1283,7 +1283,7 @@ export default class DatatableComponent extends VueComponentBase {
         return res;
     }
 
-    private update_datatable_data() {
+    private async update_datatable_data() {
 
         if (!this.loaded) {
             return;
@@ -1309,7 +1309,7 @@ export default class DatatableComponent extends VueComponentBase {
         for (const j in baseDatas) {
             const baseData: IDistantVOBase = baseDatas[j];
 
-            const resData: IDistantVOBase = DatatableRowController.getInstance().get_datatable_row_data(baseData, this.datatable, this.getStoredDatas, prepared_ref_fields_data_for_update);
+            const resData: IDistantVOBase = await DatatableRowController.getInstance().get_datatable_row_data(baseData, this.datatable, prepared_ref_fields_data_for_update);
 
             // Les colonnes de contrôle
             if (this.multiselectable) {

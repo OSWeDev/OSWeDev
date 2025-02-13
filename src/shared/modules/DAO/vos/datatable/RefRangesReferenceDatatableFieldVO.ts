@@ -5,11 +5,52 @@ import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datat
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
+import { query } from '../../../ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../ModuleTableFieldController';
 
 export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
     public static API_TYPE_ID: string = "rr_dtf";
+    public _src_field_id: string;
+
+    public filterOptionsForUpdateOrCreateOnRefRanges: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target } = null;
+
+    public _type: string = RefRangesReferenceDatatableFieldVO.API_TYPE_ID;
+
+    get src_field_id(): string {
+        return this._src_field_id;
+    }
+
+    get srcField(): ModuleTableFieldVO {
+        if (!this.moduleTable) {
+            return null;
+        }
+
+        return this.moduleTable.getFieldFromId(this.src_field_id);
+    }
+
+    get translatable_title(): string {
+        if (!this.vo_type_full_name) {
+            return null;
+        }
+
+        if (this.translatable_title_custom) {
+            return this.translatable_title_custom;
+        }
+
+        const e = this.srcField.field_label.code_text;
+        if (this.module_table_field_id != this.datatable_field_uid) {
+            return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+        } else {
+            return e;
+        }
+    }
+
+    set src_field_id(src_field_id: string) {
+        this._src_field_id = src_field_id;
+
+        this.onupdateSrcField();
+    }
 
     public static createNew(
         datatable_field_uid: string,
@@ -32,30 +73,6 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
         return res;
     }
 
-    public filterOptionsForUpdateOrCreateOnRefRanges: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target } = null;
-
-    public _type: string = RefRangesReferenceDatatableFieldVO.API_TYPE_ID;
-
-    public _src_field_id: string;
-
-    get src_field_id(): string {
-        return this._src_field_id;
-    }
-
-    set src_field_id(src_field_id: string) {
-        this._src_field_id = src_field_id;
-
-        this.onupdateSrcField();
-    }
-
-    get srcField(): ModuleTableFieldVO {
-        if (!this.moduleTable) {
-            return null;
-        }
-
-        return this.moduleTable.getFieldFromId(this.src_field_id);
-    }
-
     public setModuleTable(moduleTable: ModuleTableVO): this {
         this.vo_type_full_name = moduleTable.full_name;
         this.vo_type_id = moduleTable.vo_type;
@@ -70,37 +87,24 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
         return this;
     }
 
-    get translatable_title(): string {
-        if (!this.vo_type_full_name) {
-            return null;
-        }
-
-        if (this.translatable_title_custom) {
-            return this.translatable_title_custom;
-        }
-
-        const e = this.srcField.field_label.code_text;
-        if (this.module_table_field_id != this.datatable_field_uid) {
-            return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-        } else {
-            return e;
-        }
-    }
-
-    public dataToUpdateIHM<T, U>(e: T, vo: IDistantVOBase): U {
+    public async dataToUpdateIHM<T, U>(e: T, vo: IDistantVOBase): Promise<U> {
         return e as unknown as U;
     }
 
-    public dataToCreateIHM<T, U>(e: T, vo: IDistantVOBase): U {
+    public async dataToCreateIHM<T, U>(e: T, vo: IDistantVOBase): Promise<U> {
         return e as unknown as U;
     }
 
     public async dataToHumanReadableField(e: IDistantVOBase): Promise<any> {
         let res = "";
 
-        const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
-        const destvos = vos[this.targetModuleTable.vo_type];
-        if (!destvos) {
+        const destvos = e[this.datatable_field_uid] ? await query(this.targetModuleTable.vo_type)
+            .filter_by_ids(e[this.datatable_field_uid])
+            .select_vos<Target>() : [];
+
+        // const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        // const destvos = vos[this.targetModuleTable.vo_type];
+        if ((!destvos) || (!destvos.length)) {
             return res;
         }
         await RangeHandler.foreach_ranges(e[this.datatable_field_uid], async (id: number) => {
@@ -113,9 +117,12 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
     public async dataToReadIHM(e: number, vo: IDistantVOBase): Promise<any> {
         const dest_ids: number[] = [];
 
-        TODO load from DB Query
-        const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
-        const destvos = vos[this.targetModuleTable.vo_type];
+        const destvos = e[this.datatable_field_uid] ? await query(this.targetModuleTable.vo_type)
+            .filter_by_ids(e[this.datatable_field_uid])
+            .select_vos<Target>() : [];
+
+        // const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        // const destvos = vos[this.targetModuleTable.vo_type];
 
         if (!destvos) {
             return dest_ids;

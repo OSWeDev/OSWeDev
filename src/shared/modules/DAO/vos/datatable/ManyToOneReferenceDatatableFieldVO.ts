@@ -95,7 +95,7 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
         return this.srcField.getValidationTextCodeBase();
     }
 
-    public dataToHumanReadableField(e: IDistantVOBase): any {
+    public async dataToHumanReadableField(e: IDistantVOBase): Promise<any> {
         return this.voIdToHumanReadable(e[this.datatable_field_uid]);
     }
 

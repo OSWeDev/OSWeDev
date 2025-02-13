@@ -66,8 +66,8 @@
         template(v-else)
             multiselect(
                 :class="{'valign-middle': show_pencil_btn}"
-                v-model="field_value",
-                :custom-label="field.voIdToHumanReadable",
+                v-model="async_load_options_field_value",
+                label="label",
                 :options="select_options",
                 autocomplete="off"
                 :placeholder="t(placeholder_string)",
@@ -80,6 +80,8 @@
                 :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))",
                 @search-change="asyncLoadOptions",
                 @input="onChangeField"
+
+                track-by="id",
 
                 :select-label='label("multiselect.selectLabel")'
                 :select-group-label='label("multiselect.selectGroupLabel")'

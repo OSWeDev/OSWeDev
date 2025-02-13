@@ -1442,7 +1442,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
                 if (field instanceof DatatableField) {
-                    dest_vo[dest_field_id] = field.dataToReadIHM(src_vo[src_field_id], src_vo);
+                    dest_vo[dest_field_id] = await field.dataToReadIHM(src_vo[src_field_id], src_vo);
                 } else {
                     dest_vo[dest_field_id] = Dates.format_segment(
                         src_vo[src_field_id],
@@ -1455,7 +1455,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                 if (field instanceof DatatableField) {
-                    dest_vo[dest_field_id] = field.dataToReadIHM(src_vo[src_field_id], src_vo);
+                    dest_vo[dest_field_id] = await field.dataToReadIHM(src_vo[src_field_id], src_vo);
                 } else if ((src_vo[src_field_id] === null) || (typeof src_vo[src_field_id] === 'undefined')) {
                     dest_vo[dest_field_id] = src_vo[src_field_id];
                 } else {

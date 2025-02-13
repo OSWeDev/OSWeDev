@@ -199,14 +199,14 @@ export default class CRUDComponent extends VueComponentBase {
     }
 
     @Watch("selectedVO")
-    private updateSelectedVO() {
+    private async updateSelectedVO() {
         if (!this.selectedVO) {
             this.editableVO = null;
             return;
         }
 
         // On passe la traduction en IHM sur les champs
-        this.editableVO = this.dataToIHM(this.selectedVO, this.crud.updateDatatable, true);
+        this.editableVO = await this.dataToIHM(this.selectedVO, this.crud.updateDatatable, true);
         this.onChangeVO(this.editableVO);
     }
 
@@ -495,7 +495,7 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         // On passe la traduction en IHM sur les champs
-        this.newVO = this.dataToIHM(obj, this.crud.createDatatable, false);
+        this.newVO = await this.dataToIHM(obj, this.crud.createDatatable, false);
 
         if (this.crud.hook_prepare_new_vo_for_creation) {
             await this.crud.hook_prepare_new_vo_for_creation(this.newVO);
@@ -504,7 +504,7 @@ export default class CRUDComponent extends VueComponentBase {
         this.onChangeVO(this.newVO);
     }
 
-    private dataToIHM(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): IDistantVOBase {
+    private async dataToIHM(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): Promise<IDistantVOBase> {
 
         const res = Object.assign({}, vo);
 
@@ -518,10 +518,10 @@ export default class CRUDComponent extends VueComponentBase {
 
             if (isUpdate) {
 
-                res[field.datatable_field_uid] = field.dataToUpdateIHM(res[field.datatable_field_uid], res);
+                res[field.datatable_field_uid] = await field.dataToUpdateIHM(res[field.datatable_field_uid], res);
             } else {
 
-                res[field.datatable_field_uid] = field.dataToCreateIHM(res[field.datatable_field_uid], res);
+                res[field.datatable_field_uid] = await field.dataToCreateIHM(res[field.datatable_field_uid], res);
             }
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
@@ -578,7 +578,7 @@ export default class CRUDComponent extends VueComponentBase {
                     const tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
 
                     if (simpleFieldType == tableFieldTypeController.name) {
-                        tableFieldTypeController.dataToIHM(vo, (field as SimpleDatatableFieldVO<any, any>), res, datatable, isUpdate);
+                        await tableFieldTypeController.dataToIHM(vo, (field as SimpleDatatableFieldVO<any, any>), res, datatable, isUpdate);
                     }
                 }
             }
@@ -821,66 +821,104 @@ export default class CRUDComponent extends VueComponentBase {
                 }
 
                 const field: OneToManyReferenceDatatableFieldVO<any> = datatable.fields[i] as OneToManyReferenceDatatableFieldVO<any>;
-
-                const q = query(field.targetModuleTable.vo_type);
-
-                switch (field.destField.field_type) {
-                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
-                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
-                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
-                        q.filter_by_num_eq(
-                            field.destField.field_id,
-                            db_vo.id);
-                        break;
-                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
-                        q.filter_by_num_x_ranges(
-                            field.destField.field_id,
-                            [RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT)]);
-                        break;
-                    default:
-                        throw new Error('Type de champ non géré');
-                }
-
-                const actual_links: IDistantVOBase[] = await q.select_vos<IDistantVOBase>();
-                const new_links_target_ids: number[] = datatable_vo[field.module_table_field_id];
+                const actual_links: IDistantVOBase[] = await query(field.targetModuleTable.vo_type)
+                    .filter_by_num_x_ranges(field.destField.field_name, [RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT)])
+                    .select_vos<IDistantVOBase>();
+                const new_links: IDistantVOBase[] = await query(field.targetModuleTable.vo_type)
+                    .filter_by_ids(datatable_vo[field.module_table_field_id])
+                    .select_vos<IDistantVOBase>();
 
                 const need_update_links: IDistantVOBase[] = [];
 
-                if (new_links_target_ids) {
-                    for (const j in actual_links) {
-                        const actual_link = actual_links[j];
+                for (const j in actual_links) {
+                    const actual_link = actual_links[j];
 
-                        if (new_links_target_ids.indexOf(actual_link.id) < 0) {
+                    if (datatable_vo[field.module_table_field_id].indexOf(actual_link.id) < 0) {
 
-                            actual_link[field.destField.field_id] = null;
-                            need_update_links.push(actual_link);
-                            continue;
-                        }
-
-                        new_links_target_ids.splice(new_links_target_ids.indexOf(actual_link.id), 1);
+                        actual_link[field.destField.field_name] = null;
+                        need_update_links.push(actual_link);
+                        continue;
                     }
 
-                    for (const j in new_links_target_ids) {
-                        const new_link_target_id = new_links_target_ids[j];
+                    datatable_vo[field.module_table_field_id].splice(datatable_vo[field.module_table_field_id].indexOf(actual_link.id), 1);
+                }
 
-                        if ((!this.getStoredDatas[field.targetModuleTable.vo_type]) || (!this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id])) {
-                            continue;
-                        }
+                for (const j in new_links) {
+                    const new_link = new_links[j];
 
-                        if (field.destField.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
-                            if (!this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id]) {
-                                this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = [];
-                            }
-                            if (!RangeHandler.elt_intersects_any_range(db_vo.id, this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id])) {
-                                this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id].push(RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT));
-                            }
-                            need_update_links.push(this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
-                        } else {
-                            this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = db_vo.id;
-                            need_update_links.push(this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
+                    if (field.destField.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
+                        if (!new_link[field.destField.field_name]) {
+                            new_link[field.destField.field_name] = [];
                         }
+                        if (!RangeHandler.elt_intersects_any_range(db_vo.id, new_link[field.destField.field_name])) {
+                            new_link[field.destField.field_name].push(RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT));
+                        }
+                        need_update_links.push(new_link);
+                    } else {
+                        new_link[field.destField.field_name] = db_vo.id;
+                        need_update_links.push(new_link);
                     }
                 }
+
+                // const q = query(field.targetModuleTable.vo_type);
+
+                // switch (field.destField.field_type) {
+                //     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                //     case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                //     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                //         q.filter_by_num_eq(
+                //             field.destField.field_id,
+                //             db_vo.id);
+                //         break;
+                //     case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                //         q.filter_by_num_x_ranges(
+                //             field.destField.field_id,
+                //             [RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT)]);
+                //         break;
+                //     default:
+                //         throw new Error('Type de champ non géré');
+                // }
+
+                // const actual_links: IDistantVOBase[] = await q.select_vos<IDistantVOBase>();
+                // const new_links_target_ids: number[] = datatable_vo[field.module_table_field_id];
+
+                // const need_update_links: IDistantVOBase[] = [];
+
+                // if (new_links_target_ids) {
+                //     for (const j in actual_links) {
+                //         const actual_link = actual_links[j];
+
+                //         if (new_links_target_ids.indexOf(actual_link.id) < 0) {
+
+                //             actual_link[field.destField.field_id] = null;
+                //             need_update_links.push(actual_link);
+                //             continue;
+                //         }
+
+                //         new_links_target_ids.splice(new_links_target_ids.indexOf(actual_link.id), 1);
+                //     }
+
+                //     for (const j in new_links_target_ids) {
+                //         const new_link_target_id = new_links_target_ids[j];
+
+                //         if ((!this.getStoredDatas[field.targetModuleTable.vo_type]) || (!this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id])) {
+                //             continue;
+                //         }
+
+                //         if (field.destField.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
+                //             if (!this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id]) {
+                //                 this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = [];
+                //             }
+                //             if (!RangeHandler.elt_intersects_any_range(db_vo.id, this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id])) {
+                //                 this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id].push(RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT));
+                //             }
+                //             need_update_links.push(this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
+                //         } else {
+                //             this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = db_vo.id;
+                //             need_update_links.push(this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
+                //         }
+                //     }
+                // }
 
                 if (need_update_links.length > 0) {
 
@@ -912,18 +950,14 @@ export default class CRUDComponent extends VueComponentBase {
 
                 const field: ManyToManyReferenceDatatableFieldVO<any, any> = datatable.fields[i] as ManyToManyReferenceDatatableFieldVO<any, any>;
                 const interSrcRefField = field.inter_src_ref_field_id ? field.interModuleTable.getFieldFromId(field.inter_src_ref_field_id) : field.interModuleTable.getRefFieldFromTargetVoType(db_vo._type);
-                const actual_links: IDistantVOBase[] = await query(field.interModuleTable.vo_type).filter_by_num_eq(interSrcRefField.field_id, db_vo.id).select_vos<IDistantVOBase>();
+                const actual_links: IDistantVOBase[] = await query(field.interModuleTable.vo_type)
+                    .filter_by_num_x_ranges(interSrcRefField.field_id, [RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT)])
+                    .select_vos<IDistantVOBase>();
                 const interDestRefField = field.inter_target_ref_field_id ? field.interModuleTable.getFieldFromId(field.inter_target_ref_field_id) : field.interModuleTable.getRefFieldFromTargetVoType(field.targetModuleTable.vo_type);
                 const new_links_target_ids: number[] = datatable_vo[field.module_table_field_id];
 
                 const need_add_links: IDistantVOBase[] = [];
                 const need_delete_links: IDistantVOBase[] = [];
-
-                const sample_vo: IDistantVOBase = {
-                    id: undefined,
-                    _type: field.interModuleTable.vo_type,
-                    [interSrcRefField.field_id]: db_vo.id,
-                };
 
                 if (new_links_target_ids) {
                     for (const j in actual_links) {
@@ -941,7 +975,11 @@ export default class CRUDComponent extends VueComponentBase {
                     for (const j in new_links_target_ids) {
                         const new_link_target_id = new_links_target_ids[j];
 
-                        const link_vo: IDistantVOBase = Object.assign({}, sample_vo);
+                        const link_vo: IDistantVOBase = {
+                            id: undefined,
+                            _type: field.interModuleTable.vo_type,
+                            [interSrcRefField.field_id]: db_vo.id,
+                        };
 
                         link_vo[interDestRefField.field_id] = new_link_target_id;
 

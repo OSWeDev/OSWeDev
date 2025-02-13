@@ -225,7 +225,7 @@ export default class CRUDFormServices {
         }
 
         // On passe la traduction en IHM sur les champs
-        const newVO = this.dataToIHM(obj, crud.createDatatable, false);
+        const newVO = await this.dataToIHM(obj, crud.createDatatable, false);
 
         if (crud.hook_prepare_new_vo_for_creation) {
             await crud.hook_prepare_new_vo_for_creation(newVO);
@@ -236,7 +236,7 @@ export default class CRUDFormServices {
         return newVO;
     }
 
-    public static dataToIHM(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): IDistantVOBase {
+    public static async dataToIHM(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): Promise<IDistantVOBase> {
 
         const res = Object.assign({}, vo);
 
@@ -250,10 +250,10 @@ export default class CRUDFormServices {
 
             if (isUpdate) {
 
-                res[field.datatable_field_uid] = field.dataToUpdateIHM(res[field.datatable_field_uid], res);
+                res[field.datatable_field_uid] = await field.dataToUpdateIHM(res[field.datatable_field_uid], res);
             } else {
 
-                res[field.datatable_field_uid] = field.dataToCreateIHM(res[field.datatable_field_uid], res);
+                res[field.datatable_field_uid] = await field.dataToCreateIHM(res[field.datatable_field_uid], res);
             }
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
@@ -315,7 +315,7 @@ export default class CRUDFormServices {
                     const tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
 
                     if (simpleFieldType == tableFieldTypeController.name) {
-                        tableFieldTypeController.dataToIHM(vo, (field as SimpleDatatableFieldVO<any, any>), res, datatable, isUpdate);
+                        await tableFieldTypeController.dataToIHM(vo, (field as SimpleDatatableFieldVO<any, any>), res, datatable, isUpdate);
                     }
                 }
             }

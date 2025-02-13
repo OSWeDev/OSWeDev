@@ -5,7 +5,9 @@ import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datat
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import RangeHandler from '../../../../tools/RangeHandler';
+import { query } from '../../../ContextFilter/vos/ContextQueryVO';
 import NumRange from '../../../DataRender/vos/NumRange';
+import NumSegment from '../../../DataRender/vos/NumSegment';
 import ModuleTableController from '../../ModuleTableController';
 import ModuleTableFieldController from '../../ModuleTableFieldController';
 
@@ -81,7 +83,7 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
         }
     }
 
-    public dataToReadIHM(e: number, vo: IDistantVOBase): any {
+    public async dataToReadIHM(e: number, vo: IDistantVOBase): Promise<any> {
 
         const res: number[] = [];
 
@@ -89,32 +91,35 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
             return res;
         }
 
-        const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        const vos = await query(this.target_module_table_type_id).filter_by_num_x_ranges(this.destField.field_id, [RangeHandler.create_single_elt_NumRange(vo.id, NumSegment.TYPE_INT)]).select_vos<Target>();
+        // const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
-        for (const oneToManyTargetId in vos[this.targetModuleTable.vo_type]) {
-            const targetVo = vos[this.targetModuleTable.vo_type][oneToManyTargetId];
+        // for (const oneToManyTargetId in vos[this.targetModuleTable.vo_type]) {
+        //     const targetVo = vos[this.targetModuleTable.vo_type][oneToManyTargetId];
 
-            // Cas particulier du refranges où on cherche l'intersection
-            if (this.destField.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
+        //     // Cas particulier du refranges où on cherche l'intersection
+        //     if (this.destField.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
 
-                if ((!targetVo) || (!targetVo[this.destField.field_id])) {
-                    continue;
-                }
+        //         if ((!targetVo) || (!targetVo[this.destField.field_id])) {
+        //             continue;
+        //         }
 
-                const targetVoRanges: NumRange[] = targetVo[this.destField.field_id];
-                if (RangeHandler.elt_intersects_any_range(vo.id, targetVoRanges)) {
-                    res.push(parseInt(oneToManyTargetId.toString()));
-                }
+        //         const targetVoRanges: NumRange[] = targetVo[this.destField.field_id];
+        //         if (RangeHandler.elt_intersects_any_range(vo.id, targetVoRanges)) {
+        //             res.push(parseInt(oneToManyTargetId.toString()));
+        //         }
 
-                continue;
-            }
+        //         continue;
+        //     }
 
-            if ((!!targetVo) && (targetVo[this.destField.field_id] == vo.id)) {
+        //     if ((!!targetVo) && (targetVo[this.destField.field_id] == vo.id)) {
 
-                res.push(parseInt(oneToManyTargetId.toString()));
-            }
-        }
-        return res;
+        //         res.push(parseInt(oneToManyTargetId.toString()));
+        //     }
+        // }
+        // return res;
+
+        return vos ? vos.map((a) => a.id) : [];
     }
 
     private onupdatedestField() {

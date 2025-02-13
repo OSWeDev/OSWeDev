@@ -20,7 +20,7 @@ export default class FileDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
     public parameter_datatable_field_uid: string;
 
-    public dataToReadIHM(e: T, vo: IDistantVOBase): U {
+    public async dataToReadIHM(e: T, vo: IDistantVOBase): Promise<U> {
         return null;
     }
 
@@ -36,7 +36,7 @@ export default class FileDatatableFieldVO<T, U> extends DatatableField<T, U> {
         return "fields.labels." + this.vo_type_full_name + ".__file__" + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
-    public dataToHumanReadableField(e: IDistantVOBase): U {
+    public async dataToHumanReadableField(e: IDistantVOBase): Promise<U> {
         return null;
     }
 }

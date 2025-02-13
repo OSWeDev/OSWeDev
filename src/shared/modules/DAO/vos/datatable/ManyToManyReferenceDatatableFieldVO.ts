@@ -3,6 +3,7 @@ import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/Data
 import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import { query } from '../../../ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../ModuleTableController';
 
 export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistantVOBase, Inter extends IDistantVOBase> extends ReferenceDatatableField<Target> {
@@ -65,23 +66,27 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
         return this;
     }
 
-    public async dataToHumanReadableField(e: IDistantVOBase): Promise<any> {
-        let res = "";
+    public async dataToHumanReadableField(e: IDistantVOBase): Promise<string> {
+        let res: string = "";
 
-        const dest_ids: number[] = [];
+        // const dest_ids: number[] = [];
         const interTargetRefField = this.inter_target_ref_field_id ? this.interModuleTable.getFieldFromId(this.inter_target_ref_field_id) : this.interModuleTable.getRefFieldFromTargetVoType(this.target_module_table_type_id);
         const interSrcRefField = this.inter_src_ref_field_id ? this.interModuleTable.getFieldFromId(this.inter_src_ref_field_id) : this.interModuleTable.getRefFieldFromTargetVoType(this.vo_type_id);
 
-        TODO load from DB Query
-        const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        const vos: IDistantVOBase[] = e.id ? await query(this.interModuleTable.vo_type)
+            .filter_by_num_eq(interSrcRefField.field_id, e.id)
+            .select_vos<IDistantVOBase>() : [];
+        const dest_ids: number[] = vos.map((inter) => inter[interTargetRefField.field_id]);
 
-        for (const interi in vos[this.interModuleTable.vo_type]) {
-            const intervo = vos[this.interModuleTable.vo_type][interi];
+        // const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
-            if (intervo && (intervo[interSrcRefField.field_id] == e.id) && (dest_ids.indexOf(intervo[interTargetRefField.field_id]) < 0)) {
-                dest_ids.push(intervo[interTargetRefField.field_id]);
-            }
-        }
+        // for (const interi in vos[this.interModuleTable.vo_type]) {
+        //     const intervo = vos[this.interModuleTable.vo_type][interi];
+
+        //     if (intervo && (intervo[interSrcRefField.field_id] == e.id) && (dest_ids.indexOf(intervo[interTargetRefField.field_id]) < 0)) {
+        //         dest_ids.push(intervo[interTargetRefField.field_id]);
+        //     }
+        // }
 
         for (const desti in dest_ids) {
             const thisvalue: string = await this.dataToHumanReadable(vos[this.target_module_table_type_id][dest_ids[desti]]);
@@ -90,25 +95,29 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
         return res;
     }
 
-    public dataToReadIHM(e: number, vo: IDistantVOBase): any {
+    public async dataToReadIHM(e: number, vo: IDistantVOBase): Promise<any> {
 
-        const dest_ids: number[] = [];
+        // const dest_ids: number[] = [];
 
         if (!vo.id) {
-            return dest_ids;
+            return [];
         }
 
         const interTargetRefField = this.inter_target_ref_field_id ? this.interModuleTable.getFieldFromId(this.inter_target_ref_field_id) : this.interModuleTable.getRefFieldFromTargetVoType(this.target_module_table_type_id);
         const interSrcRefField = this.inter_src_ref_field_id ? this.interModuleTable.getFieldFromId(this.inter_src_ref_field_id) : this.interModuleTable.getRefFieldFromTargetVoType(this.vo_type_id);
-        const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        // const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        const vos: IDistantVOBase[] = vo.id ? await query(this.interModuleTable.vo_type)
+            .filter_by_num_eq(interSrcRefField.field_id, vo.id)
+            .select_vos<IDistantVOBase>() : [];
+        const dest_ids: number[] = vos.map((inter) => inter[interTargetRefField.field_id]);
 
-        for (const interi in vos[this.interModuleTable.vo_type]) {
-            const intervo = vos[this.interModuleTable.vo_type][interi];
+        // for (const interi in vos[this.interModuleTable.vo_type]) {
+        //     const intervo = vos[this.interModuleTable.vo_type][interi];
 
-            if (intervo && (intervo[interSrcRefField.field_id] == vo.id) && (dest_ids.indexOf(intervo[interTargetRefField.field_id]) < 0)) {
-                dest_ids.push(intervo[interTargetRefField.field_id]);
-            }
-        }
+        //     if (intervo && (intervo[interSrcRefField.field_id] == vo.id) && (dest_ids.indexOf(intervo[interTargetRefField.field_id]) < 0)) {
+        //         dest_ids.push(intervo[interTargetRefField.field_id]);
+        //     }
+        // }
 
         return dest_ids;
     }

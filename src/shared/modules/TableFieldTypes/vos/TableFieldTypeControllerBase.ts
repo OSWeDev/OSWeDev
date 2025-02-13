@@ -21,12 +21,12 @@ export default abstract class TableFieldTypeControllerBase {
     public abstract getPGSqlFieldType(): string;
     public abstract defaultValidator(data: any, field: ModuleTableFieldVO): string;
 
-    public abstract dataToIHM<T extends IDistantVOBase, U extends IDistantVOBase>(vo: T, field: SimpleDatatableFieldVO<any, any>, res: U, datatable: Datatable<any>, isUpdate: boolean);
+    public abstract dataToIHM<T extends IDistantVOBase, U extends IDistantVOBase>(vo: T, field: SimpleDatatableFieldVO<any, any>, res: U, datatable: Datatable<any>, isUpdate: boolean): Promise<unknown>;
     public abstract IHMToData<T extends IDistantVOBase, U extends IDistantVOBase>(vo: T, field: SimpleDatatableFieldVO<any, any>, res: U, datatable: Datatable<any>, isUpdate: boolean);
 
     public abstract getIHMToExportString<T extends IDistantVOBase>(vo: T, field: SimpleDatatableFieldVO<any, any>, datatable: Datatable<any>): string;
 
-    public abstract defaultDataToReadIHM<T extends IDistantVOBase>(field_value: any, moduleTableField: ModuleTableFieldVO, vo: T): any;
+    public abstract defaultDataToReadIHM<T extends IDistantVOBase>(field_value: any, moduleTableField: ModuleTableFieldVO, vo: T): Promise<any>;
     public abstract defaultReadIHMToData<T extends IDistantVOBase>(value: any, moduleTableField: ModuleTableFieldVO, vo: T): any;
 
     public abstract defaultforceNumeric<T extends IDistantVOBase>(e: T, field: ModuleTableFieldVO);
