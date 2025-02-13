@@ -283,6 +283,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
             if (has_new_value) {
                 const moduletablefields = ModuleTableController.module_tables_by_vo_type[vo_update_handler.post_update_vo._type].get_fields();
+                let has_any_diff: boolean = false;
                 for (const i in moduletablefields) {
                     const moduletablefield = moduletablefields[i];
 
@@ -297,9 +298,17 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
                             break;
                         default:
                             if (vo_update_handler.pre_update_vo[moduletablefield.field_name] != vo_update_handler.post_update_vo[moduletablefield.field_name]) {
-                                has_new_value = false;
+                                has_any_diff = true;
                             }
                     }
+
+                    if (!!has_any_diff) {
+                        break;
+                    }
+                }
+
+                if (!has_any_diff) {
+                    has_new_value = false;
                 }
             }
         }
