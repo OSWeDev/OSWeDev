@@ -22,6 +22,8 @@ import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import ThreadHandler from '../../../../../../shared/tools/ThreadHandler';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import SupervisedProbeGroupVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeGroupVO';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleSupervision from '../../../../../../shared/modules/Supervision/ModuleSupervision';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
@@ -80,6 +82,8 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private loaded_once: boolean = false;
     private is_busy: boolean = false;
 
+    private has_access_pause: boolean = false;
+
     // Dictionnaire pour mémoriser l’état ouvert/fermé de chaque cat
     private isPanelOpenCat: { [catId: number]: boolean } = {};
 
@@ -88,8 +92,8 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         SupervisionController.STATE_ERROR_READ,
         SupervisionController.STATE_WARN,
         SupervisionController.STATE_WARN_READ,
-        SupervisionController.STATE_OK,
-        SupervisionController.STATE_PAUSED,
+        SupervisionController.STATE_OK
+        // SupervisionController.STATE_PAUSED,
         // SupervisionController.STATE_UNKOWN
     ];
 
@@ -334,6 +338,19 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     }
 
     private async mounted() {
+        this.has_access_pause = await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS);
+        const all_states_: number[] = [
+            SupervisionController.STATE_ERROR,
+            SupervisionController.STATE_ERROR_READ,
+            SupervisionController.STATE_WARN,
+            SupervisionController.STATE_WARN_READ,
+            SupervisionController.STATE_OK];
+
+        if (!!this.has_access_pause) {
+            all_states_.push(SupervisionController.STATE_PAUSED);
+        }
+
+        this.all_states = all_states_;
         const has_supervision_category_filters = (!!this.get_active_field_filters && !!this.get_active_field_filters[SupervisedCategoryVO.API_TYPE_ID]);
         const has_supervision_group_selection_filters = (!!this.get_active_field_filters && !!this.get_active_field_filters[SupervisedProbeGroupVO.API_TYPE_ID]);
 

@@ -47,7 +47,31 @@
 
 
         padding: 0;
-        width: 15%;
+
+        &.tt_states_6 {
+            width: 15%;
+        }
+
+        &.tt_states_5 {
+            width: 18.5%;
+        }
+
+        &.tt_states_4 {
+            width: 23%;
+        }
+
+        &.tt_states_3 {
+            width: 31.5%;
+        }
+
+        &.tt_states_2 {
+            width: 48%;
+        }
+
+        &.tt_states_1 {
+            width: 100%;
+        }
+
         // line-height: 0.9rem; ok si html 14px
         line-height: 14px;
         // font-size: 0.9rem; ok si html 14px

@@ -34,12 +34,13 @@
                     button.btn.btn-sm.m-1.btn-primary(@click="invalidate" v-tooltip='label("supervised_item_controls.desc_btn.invalidate")')
                         i.fa-duotone.fa-cogs
 
-                    template(v-if='is_paused')
-                        button.btn.btn-sm.m-1.btn-primary(@click="switch_paused" v-tooltip='label("supervised_item_controls.desc_btn.switch_paused_turn_off")')
-                            i.fa-duotone.fa-play
-                    template(v-else)
-                        button.btn.btn-sm.m-1.btn-primary(@click="switch_paused" v-tooltip='label("supervised_item_controls.desc_btn.switch_paused_turn_on")')
-                            i.fa-duotone.fa-pause
+                    template(v-if='has_access_pause')
+                        template(v-if='is_paused')
+                            button.btn.btn-sm.m-1.btn-primary(@click="switch_paused" v-tooltip='label("supervised_item_controls.desc_btn.switch_paused_turn_off")')
+                                i.fa-duotone.fa-play
+                        template(v-else)
+                            button.btn.btn-sm.m-1.btn-primary(@click="switch_paused" v-tooltip='label("supervised_item_controls.desc_btn.switch_paused_turn_on")')
+                                i.fa-duotone.fa-pause
 
                     template(v-if='!can_not_switch_read')
                         template(v-if='is_read')

@@ -19,6 +19,7 @@ import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWi
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import DAOController from '../../../../../shared/modules/DAO/DAOController';
+import ModuleSupervision from '../../../../../shared/modules/Supervision/ModuleSupervision';
 
 @Component({
     template: require('./SupervisionDashboardComponent.pug'),
@@ -115,6 +116,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
     private cpt: number = 1;
     private supervised_item_selected: { [id: number]: ISupervisedItem } = {};
+    private has_access_pause: boolean = false;
 
     /**
     * recupere les api_type_ids (liste des items) filtrés en fonction de la catégories selectionnée
@@ -189,6 +191,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     }
 
     private async created() {
+        this.has_access_pause = await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS);
         this.show_hide_modal();
         this.continue_reloading = true;
         this.filter_text = this.get_filter_text_lower_case;

@@ -1,4 +1,4 @@
-import { cloneDeep, isEqual, isEmpty } from 'lodash';
+import { cloneDeep, isEqual, isEmpty, has } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
@@ -34,6 +34,8 @@ import SupervisedProbeGroupVO from '../../../../../../shared/modules/Supervision
 import SupervisedProbeVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeVO';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleSupervision from '../../../../../../shared/modules/Supervision/ModuleSupervision';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -96,6 +98,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     private available_supervision_api_type_ids: string[] = [];
     private groups: SupervisedProbeGroupVO[] = [];
     private probes_by_ids: { [id: number]: SupervisedProbeVO } = {};
+    private has_access_pause: boolean = false;
 
     get refresh_button(): boolean {
         return this.widget_options && this.widget_options.refresh_button;
@@ -216,7 +219,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
     private async mounted() {
         this.stopLoading();
-
+        this.has_access_pause = await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS);
         if (this.widget_options && this.widget_options.auto_refresh) {
             await this.start_auto_refresh();
         }
@@ -375,7 +378,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     }
 
     private openModal(item: ISupervisedItem) {
-        this.get_Supervisionitemmodal.openmodal(item);
+        this.get_Supervisionitemmodal.openmodal(item, this.has_access_pause);
     }
 
     private get_date(item: ISupervisedItem): string {

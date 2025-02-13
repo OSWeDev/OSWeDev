@@ -249,9 +249,31 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         fo_access_dependency.src_pol_id = fo_access.id;
         fo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
         fo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(fo_access_dependency);
+
+        let action_pause_access: AccessPolicyVO = new AccessPolicyVO();
+        action_pause_access.group_id = group.id;
+        action_pause_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        action_pause_access.translatable_name = ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS;
+        action_pause_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(action_pause_access, DefaultTranslationVO.create_new({
+            'fr-fr': 'acces à la mise en pause des items de Supervision'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let action_pause_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        action_pause_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        action_pause_access_dependency.src_pol_id = action_pause_access.id;
+        action_pause_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+        action_pause_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(action_pause_access_dependency);
     }
 
     private async onPreU_SUP_ITEM_HISTORIZE(vo_update_handler: DAOUpdateVOHolder<ISupervisedItem>): Promise<boolean> {
+
+        // si on passe en pause : on rejete la modification si on a les pas droits de mise en pause
+        if ((vo_update_handler.pre_update_vo.state != SupervisionController.STATE_PAUSED) && (vo_update_handler.post_update_vo.state == SupervisionController.STATE_PAUSED)) {
+            const has_access_pause: boolean = await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS);
+            if (!has_access_pause) {
+                return false;
+            }
+        }
 
         /**
          * On veut changer la date et historiser que si on est en train de stocker une nouvelle valeur.

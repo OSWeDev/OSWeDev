@@ -36,7 +36,7 @@
                             div
                                 template(v-for="state in all_states")
                                     .sup_cnt.btn.btn-sm.mr-1(
-                                        :class="['STATE_' + state, { opacity_1:opacityApitypeState[cat.id + '_' + state]}]"
+                                        :class="['STATE_' + state, 'tt_states_' + all_states.length, { opacity_1:opacityApitypeState[cat.id + '_' + state]}]"
                                     )
                                         template(v-if="!!count_by_sup_by_cat && !!count_by_sup_by_cat[cat.id]")
                                             span {{ count_by_sup_by_cat[cat.id][state] }}
@@ -56,7 +56,7 @@
                                         template(v-for="state in all_states")
                                             .sup_cnt.btn.btn-sm.mr-1(
                                                 @click="handle_select_api_type_id_and_state(state, api_type_id, null)"
-                                                :class="['STATE_' + state, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
+                                                :class="['STATE_' + state, 'tt_states_' + all_states.length, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
                                             )
                                                 span {{ count_by_sup_api_type_ids[api_type_id][state] }}
 
@@ -75,7 +75,7 @@
                         template(v-for="state in all_states")
                             .sup_cnt.btn.btn-sm.mr-1(
                                 @click="handle_select_api_type_id_and_state(state, api_type_id, null)"
-                                :class="['STATE_' + state, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
+                                :class="['STATE_' + state, 'tt_states_' + all_states.length, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
                             )
                                 span {{ count_by_sup_api_type_ids[api_type_id][state] }}
 
