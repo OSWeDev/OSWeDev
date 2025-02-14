@@ -57,6 +57,8 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private set_filter_text_lower_case: (filter_text_lower_case: string) => void;
     @ModuleSupervisionAction
     private set_api_type_ids_by_category_ids: (api_type_ids_by_category_ids: { [id: number]: string[] }) => void;
+    @ModuleSupervisionAction
+    private set_has_access_pause: (has_access_pause: boolean) => void;
 
     @ModuleSupervisionGetter
     private get_show_errors: boolean;
@@ -88,6 +90,9 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private get_filter_text_lower_case: string;
     @ModuleSupervisionGetter
     private get_api_type_ids_by_category_ids: { [id: number]: string[] };
+    @ModuleSupervisionGetter
+    private get_has_access_pause: boolean;
+
     /** liste des items a effacer */
     private supervised_item_for_delete: { [name: string]: ISupervisedItem } = {};
 
@@ -116,7 +121,6 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
     private cpt: number = 1;
     private supervised_item_selected: { [id: number]: ISupervisedItem } = {};
-    private has_access_pause: boolean = false;
 
     /**
     * recupere les api_type_ids (liste des items) filtrés en fonction de la catégories selectionnée
@@ -191,7 +195,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     }
 
     private async created() {
-        this.has_access_pause = await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS);
+        this.set_has_access_pause(await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS));
         this.show_hide_modal();
         this.continue_reloading = true;
         this.filter_text = this.get_filter_text_lower_case;

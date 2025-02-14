@@ -1,5 +1,4 @@
 import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
 import 'vue-slider-component/theme/default.css';
 import ISupervisedItem from '../../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import SupervisedItemComponent from '../../../../supervision/item/SupervisedItemComponent';

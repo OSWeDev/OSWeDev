@@ -21,6 +21,9 @@ export default class SupervisionItemModalComponent extends VueComponentBase {
     @ModuleSupervisionGetter
     private get_selected_item: ISupervisedItem;
 
+    @ModuleSupervisionGetter
+    private get_has_access_pause: boolean;
+
     @Prop({ default: false })
     private noclick: boolean;
 

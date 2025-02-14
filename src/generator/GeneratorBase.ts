@@ -111,6 +111,7 @@ import Patch20241030SuiviCompetencesGroupeShortName from './patchs/postmodules/P
 import Patch20241224SupervisionFillProbe from './patchs/postmodules/Patch20241224SupervisionFillProbe';
 import Patch20250102AddRightsSupervisedProbe from './patchs/postmodules/Patch20250102AddRightsSupervisedProbe';
 import Patch20250106createTableSupProbe from './patchs/premodules/Patch20250106createTableSupProbe';
+import Patch20250214AddRightsSupervisedPAUSE from './patchs/postmodules/Patch20250214AddRightsSupervisedPAUSE';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -240,6 +241,7 @@ export default abstract class GeneratorBase {
             Patch20241030SuiviCompetencesGroupeShortName.getInstance(),
             Patch20241224SupervisionFillProbe.getInstance(),
             Patch20250102AddRightsSupervisedProbe.getInstance(),
+            Patch20250214AddRightsSupervisedPAUSE.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }

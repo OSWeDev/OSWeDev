@@ -24,18 +24,11 @@ export interface ISupervisionState {
     filter_text_lower_case: string;
     api_type_ids_by_category_ids: { [id: number]: string[] };
     selected_item_for_delete: any;
-
+    has_access_pause: boolean;
 }
 
 export default class SupervisionDashboardStore implements IStoreModule<ISupervisionState, SupervisionContext> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): SupervisionDashboardStore {
-        if (!SupervisionDashboardStore.instance) {
-            SupervisionDashboardStore.instance = new SupervisionDashboardStore();
-        }
-        return SupervisionDashboardStore.instance;
-    }
 
     private static instance: SupervisionDashboardStore;
 
@@ -73,6 +66,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
         set_dashboard_key: (state: ISupervisionState, dashboard_key: string): any => state.dashboard_key = dashboard_key,
         set_filter_text_lower_case: (state: ISupervisionState, filter_text_lower_case: string): any => state.filter_text_lower_case = filter_text_lower_case,
         set_api_type_ids_by_category_ids: (state: ISupervisionState, api_type_ids_by_category_ids: { [id: number]: string[] }): any => state.api_type_ids_by_category_ids = api_type_ids_by_category_ids,
+        set_has_access_pause: (state: ISupervisionState, has_access_pause: boolean): any => state.has_access_pause = has_access_pause,
     };
     public actions: ActionTree<ISupervisionState, SupervisionContext>;
     public namespaced: boolean = true;
@@ -98,6 +92,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             filter_text_lower_case: null,
             api_type_ids_by_category_ids: null,
             selected_item_for_delete: null,
+            has_access_pause: false,
         };
 
 
@@ -118,6 +113,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             get_dashboard_key: (state: ISupervisionState): string => state.dashboard_key,
             get_filter_text_lower_case: (state: ISupervisionState): string => state.filter_text_lower_case,
             get_api_type_ids_by_category_ids: (state: ISupervisionState): { [id: number]: string[] } => state.api_type_ids_by_category_ids,
+            get_has_access_pause: (state: ISupervisionState): boolean => state.has_access_pause,
         };
 
         this.actions = {
@@ -137,7 +133,16 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             set_dashboard_key: (context: SupervisionContext, dashboard_key: string): any => context.commit(store_mutations_names(this).set_dashboard_key, dashboard_key),
             set_filter_text_lower_case: (context: SupervisionContext, filter_text_lower_case: string): any => context.commit(store_mutations_names(this).set_filter_text_lower_case, filter_text_lower_case),
             set_api_type_ids_by_category_ids: (context: SupervisionContext, api_type_ids_by_category_ids: { [id: number]: string[] }): any => context.commit(store_mutations_names(this).set_api_type_ids_by_category_ids, api_type_ids_by_category_ids),
+            set_has_access_pause: (context: SupervisionContext, has_access_pause: boolean): any => context.commit(store_mutations_names(this).set_has_access_pause, has_access_pause),
         };
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): SupervisionDashboardStore {
+        if (!SupervisionDashboardStore.instance) {
+            SupervisionDashboardStore.instance = new SupervisionDashboardStore();
+        }
+        return SupervisionDashboardStore.instance;
     }
 }
 

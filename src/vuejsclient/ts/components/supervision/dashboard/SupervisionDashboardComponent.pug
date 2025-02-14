@@ -86,6 +86,6 @@
             .col-sm-12
                 .col-sm-12
                     template(v-for='(supervised_item, index) in ordered_supervised_items')
-                        Supervisiondashboarditemcomponent(:item='supervised_item' :coche='valide' @item_selected='select_item' :has_access_pause='has_access_pause')
+                        Supervisiondashboarditemcomponent(:item='supervised_item' :coche='valide' @item_selected='select_item' :has_access_pause='get_has_access_pause')
 
         Supervisionitemmodalcomponent
