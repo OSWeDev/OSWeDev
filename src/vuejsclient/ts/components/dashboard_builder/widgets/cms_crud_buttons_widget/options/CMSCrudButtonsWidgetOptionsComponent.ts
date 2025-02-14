@@ -32,6 +32,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
     private show_delete: boolean = false;
     private show_manual_vo_type: boolean = false;
     private manual_vo_type: string = null;
+    private show_add_edit_fk: boolean = true;
 
     private next_update_options: CMSCrudButtonsWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -67,6 +68,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
             this.show_delete = false;
             this.show_manual_vo_type = false;
             this.manual_vo_type = null;
+            this.show_add_edit_fk = true;
 
             return;
         }
@@ -75,6 +77,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
         this.show_delete = this.widget_options.show_delete;
         this.show_manual_vo_type = this.widget_options.show_manual_vo_type;
         this.manual_vo_type = this.widget_options.manual_vo_type;
+        this.show_add_edit_fk = this.widget_options.show_add_edit_fk;
     }
 
     @Watch('show_add')
@@ -82,6 +85,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
     @Watch('show_delete')
     @Watch('show_manual_vo_type')
     @Watch('manual_vo_type')
+    @Watch('show_add_edit_fk')
     private async onchange_bloc_text() {
         if (!this.widget_options) {
             return;
@@ -91,6 +95,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
             this.widget_options.show_update != this.show_update ||
             this.widget_options.show_delete != this.show_delete ||
             this.widget_options.show_manual_vo_type != this.show_manual_vo_type ||
+            this.widget_options.show_add_edit_fk != this.show_add_edit_fk ||
             this.widget_options.manual_vo_type != this.manual_vo_type
         ) {
             this.next_update_options.show_add = this.show_add;
@@ -98,6 +103,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
             this.next_update_options.show_delete = this.show_delete;
             this.next_update_options.show_manual_vo_type = this.show_manual_vo_type;
             this.next_update_options.manual_vo_type = this.manual_vo_type;
+            this.next_update_options.show_add_edit_fk = this.show_add_edit_fk;
 
             await this.throttled_update_options();
         }
@@ -123,6 +129,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
             false,
             false,
             null,
+            true,
         );
     }
 
@@ -145,6 +152,18 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
 
     private crud_api_type_id_select_label(api_type_id: string): string {
         return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
+    }
+
+    private async switch_show_add_edit_fk() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.show_add_edit_fk = !this.next_update_options.show_add_edit_fk;
+
+        await this.throttled_update_options();
     }
 
     private async switch_show_add() {

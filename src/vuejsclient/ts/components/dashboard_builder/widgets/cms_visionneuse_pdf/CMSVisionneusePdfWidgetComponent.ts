@@ -14,11 +14,17 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
-import VueAppController from '../../../../../VueAppController';
+import {
+    PdfViewerComponent, Toolbar, Magnification, Navigation, LinkAnnotation,
+    BookmarkView, ThumbnailView, Print, TextSelection, TextSearch,
+    Annotation, FormDesigner, FormFields, PageOrganizer
+} from '@syncfusion/ej2-vue-pdfviewer';
 
 @Component({
     template: require('./CMSVisionneusePdfWidgetComponent.pug'),
-    components: {}
+    components: {
+        "ejs-pdfviewer": PdfViewerComponent,
+    }
 })
 export default class CMSVisionneusePdfWidgetComponent extends VueComponentBase {
 

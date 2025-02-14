@@ -4105,6 +4105,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Type d'objet" },
             'cms_crud_buttons.widget_option.vo_type.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher les boutons d'ajout et de modification" },
+            'cms_crud_buttons.widget_option.show_add_edit_fk.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'cms_crud_buttons.widget_option.show_add_edit_fk.true.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'cms_crud_buttons.widget_option.show_add_edit_fk.false.___LABEL___'
+        ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Boutons de CRUD" },

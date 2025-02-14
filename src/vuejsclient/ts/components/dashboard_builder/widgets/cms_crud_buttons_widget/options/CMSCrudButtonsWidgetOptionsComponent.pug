@@ -1,6 +1,15 @@
 .cms_crud_buttons_widget_options_component
     .cms_crud_buttons_widget_options_component_wrapper
         
+        .show_add_edit_fk {{ label('cms_crud_buttons.widget_option.show_add_edit_fk') }}
+        toggle-button(
+            @change="switch_show_add_edit_fk"
+            :value="show_add_edit_fk" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('cms_crud_buttons.widget_option.show_add_edit_fk.true'), unchecked: label('cms_crud_buttons.widget_option.show_add_edit_fk.false')}"
+        )
+        
         .show_manual_vo_type {{ label('cms_crud_buttons.widget_option.show_manual_vo_type') }}
         toggle-button(
             @change="switch_show_manual_vo_type"

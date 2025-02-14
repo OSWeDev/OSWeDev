@@ -42,6 +42,8 @@
         "@godaddy/terminus": "4.4.1",
         "@growthbunker/vueflags": "0.0.6",
         "@maxgraph/core": "0.1.0",
+        "@syncfusion/ej2": "^28.2.5",
+        "@syncfusion/ej2-vue-pdfviewer": "^28.2.5",
         "@types/express-fileupload": "1.1.3",
         "@vue/composition-api": "1.7.2",
         "adm-zip": "0.5.9",

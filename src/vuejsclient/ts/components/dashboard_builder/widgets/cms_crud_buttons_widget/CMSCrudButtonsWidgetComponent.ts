@@ -53,6 +53,7 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
     private show_update: boolean = false;
     private show_delete: boolean = false;
     private show_manual_vo_type: boolean = false;
+    private show_add_edit_fk: boolean = true;
     private manual_vo_type: string;
 
     private vo_type: string = null;
@@ -88,6 +89,7 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
         this.show_delete = this.widget_options.show_delete;
         this.show_manual_vo_type = this.widget_options.show_manual_vo_type;
         this.manual_vo_type = this.widget_options.manual_vo_type;
+        this.show_add_edit_fk = this.widget_options.show_add_edit_fk;
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
@@ -98,6 +100,7 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
             this.show_delete = false;
             this.show_manual_vo_type = false;
             this.manual_vo_type = null;
+            this.show_add_edit_fk = true;
 
             return;
         }
@@ -107,6 +110,7 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
         this.show_delete = this.widget_options.show_delete;
         this.show_manual_vo_type = this.widget_options.show_manual_vo_type;
         this.manual_vo_type = this.widget_options.manual_vo_type;
+        this.show_add_edit_fk = this.widget_options.show_add_edit_fk;
     }
 
     private async mounted() {
@@ -151,7 +155,9 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
         if (this.vo_type) {
             this.get_Crudcreatemodalcomponent.open_modal(this.vo_type,
                 this.storeDatas,
-                this.update_visible_options.bind(this)
+                this.update_visible_options.bind(this),
+                null,
+                this.show_add_edit_fk
             );
         }
     }
@@ -160,7 +166,8 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
         this.get_Crudupdatemodalcomponent.open_modal(
             this.get_cms_vo,
             this.storeDatas,
-            this.update_visible_options.bind(this)
+            this.update_visible_options.bind(this),
+            this.show_add_edit_fk
         );
     }
     private open_delete_modal() {
