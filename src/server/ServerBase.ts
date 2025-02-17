@@ -71,7 +71,6 @@ import PingForkMessage from './modules/Fork/messages/PingForkMessage';
 import OseliaServerController from './modules/Oselia/OseliaServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
-import { registerLicense } from "@syncfusion/ej2-base";
 
 export default abstract class ServerBase {
 
@@ -286,8 +285,6 @@ export default abstract class ServerBase {
             ConsoleHandler.log('ServerExpressController:express:START');
         }
         this.app = express();
-
-        registerLicense('Ngo9BigBOggjHTQxAR8/V1NMaF5cXmBCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdmWX5fcHRcRGNYVERwW0Y=');
 
         const responseTime = require('response-time');
 

@@ -14,17 +14,10 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
-import {
-    PdfViewerComponent, Toolbar, Magnification, Navigation, LinkAnnotation,
-    BookmarkView, ThumbnailView, Print, TextSelection, TextSearch,
-    Annotation, FormDesigner, FormFields, PageOrganizer
-} from '@syncfusion/ej2-vue-pdfviewer';
 
 @Component({
     template: require('./CMSVisionneusePdfWidgetComponent.pug'),
-    components: {
-        "ejs-pdfviewer": PdfViewerComponent,
-    }
+    components: {}
 })
 export default class CMSVisionneusePdfWidgetComponent extends VueComponentBase {
 
@@ -47,6 +40,8 @@ export default class CMSVisionneusePdfWidgetComponent extends VueComponentBase {
     private file_path: string = null;
     private use_for_template: boolean = false;
     private field_ref_for_template: VOFieldRefVO = null;
+
+    private pdfjs_viewer: string = '/public/client/js/pdfjs/web/viewer.html?file=';
 
     get widget_options(): CMSVisionneusePdfWidgetOptionsVO {
         if (!this.page_widget) {
@@ -95,7 +90,7 @@ export default class CMSVisionneusePdfWidgetComponent extends VueComponentBase {
         if (!this.widget_options.use_for_template) {
             if (data) {
                 const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(data).select_vo();
-                return file ? file.path : null;
+                return file?.path ? (this.pdfjs_viewer + '' + file.path.replace('./', '/')) : null;
             }
 
             return null;
@@ -121,12 +116,12 @@ export default class CMSVisionneusePdfWidgetComponent extends VueComponentBase {
                     }
 
                     file = await query(field.foreign_ref_vo_type).filter_by_id(this.get_cms_vo[field_ref.field_id]).select_vo();
-                    return file ? file.path : null;
+                    return file?.path ? (this.pdfjs_viewer + '' + file.path.replace('./', '/')) : null;
 
                 case ModuleTableFieldVO.FIELD_TYPE_file_field:
                 case ModuleTableFieldVO.FIELD_TYPE_string:
                     // on retourne le chemin absolu du fichier base-url + path auquel on retire le ./
-                    return this.get_cms_vo[field_ref.field_id];
+                    return (this.pdfjs_viewer + '' + this.get_cms_vo[field_ref.field_id].replace('./', '/'));
             }
         }
 
