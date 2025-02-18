@@ -20,7 +20,7 @@ export default class InputDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
     public field_type: string;
 
-    public dataToReadIHM(e: T, vo: IDistantVOBase): U {
+    public async dataToReadIHM(e: T, vo: IDistantVOBase): Promise<U> {
         return null;
     }
 

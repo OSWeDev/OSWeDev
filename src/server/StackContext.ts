@@ -2,7 +2,7 @@
 
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import { reflect } from '../shared/tools/ObjectHandler';
-import cls from './CLSHooked';
+import { createNamespace, Namespace } from './CLSHooked';
 import ConfigurationService from './env/ConfigurationService';
 import { IRequestStackContext } from './ServerExpressController';
 
@@ -31,13 +31,13 @@ export function get_scope_overloads_for_context_incompatible(reason: string): Pa
 export default class StackContext {
 
     // public static nsid: string = 'oswedev-stack-context';
-    public static ns = cls.createNamespace('oswedev-stack-context');
+    public static namespace: Namespace = createNamespace('oswedev-stack-context');
 
     /**
      * Express.js middleware that is responsible for initializing the context for each request.
      */
     public static middleware(req, res, next) {
-        StackContext.ns.run(() => next());
+        StackContext.namespace.run(() => next());
     }
 
     /**
@@ -45,7 +45,7 @@ export default class StackContext {
      * @returns the active context
      */
     public static get_active_context(): IRequestStackContext {
-        return StackContext.ns.active;
+        return StackContext.namespace.active;
     }
 
     /**
@@ -91,11 +91,22 @@ export default class StackContext {
      */
     public static async runPromise<T extends Array<unknown>, U>(scope_overloads: Partial<IRequestStackContext>, callback: (...params: T) => U | Promise<U>, this_arg: unknown, ...params: T): Promise<U> {
 
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+        // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        //     ConsoleHandler.log('StackContext.runPromise:IN:' + JSON.stringify(StackContext.get_active_context()) + ':' + JSON.stringify(scope_overloads));
+        // }
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+
+
         let result = null;
 
         const old_context_values = {};
 
-        await StackContext.ns.runPromise(async () => {
+        await StackContext.namespace.runPromise(async () => {
 
             for (const field_name in scope_overloads) {
                 const field_value = scope_overloads[field_name];
@@ -115,6 +126,16 @@ export default class StackContext {
             }
         });
 
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+        // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        //     ConsoleHandler.log('StackContext.runPromise:OUT:' + JSON.stringify(StackContext.get_active_context()) + ':' + JSON.stringify(scope_overloads));
+        // }
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+
         return result;
     }
 
@@ -123,7 +144,7 @@ export default class StackContext {
      * @param {string} key
      */
     public static get(key: string, is_safely_asking_for_context_incompatible_fields: boolean = false) {
-        if (StackContext.ns && StackContext.ns.active) {
+        if (StackContext.namespace && StackContext.namespace.active) {
 
             // Juste un contrôle de cohérence :
             //  Si on est incompatible avec le contexte, on ne devrait pas pouvoir accéder à une valeur du contexte autre que IS_CLIENT, ou les questions d'incompatibilité
@@ -147,7 +168,7 @@ export default class StackContext {
                 }
             }
 
-            const res = StackContext.ns.get(key);
+            const res = StackContext.namespace.get(key);
             if (typeof res !== 'undefined') {
                 return res;
             }
@@ -157,12 +178,13 @@ export default class StackContext {
 
     /**
      * Adds a value to the context by key.  If the key already exists, its value will be overwritten.  No value will persist if the context has not yet been initialized.
+     * WARNING : this updates the current context, it does not create a new one
      * @param {string} key
      * @param {*} value
      */
     private static set(key: string, value) {
-        if (StackContext.ns && StackContext.ns.active) {
-            return StackContext.ns.set(key, value);
+        if (StackContext.namespace && StackContext.namespace.active) {
+            return StackContext.namespace.set(key, value);
         }
         return null;
     }

@@ -72,6 +72,7 @@ export default class ObjectHandler {
         }
 
         const res = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[e['_type']](), e);
+        // TEST AB FAIT PEU OU PAS D'INTERET const res = Object.create(ModuleTableController.vo_constructor_proto_by_vo_type[e['_type']], Object.getOwnPropertyDescriptors(e));
 
         for (const i in res) {
             if (res[i] && (typeof res[i] == 'object') || Array.isArray(res[i])) {

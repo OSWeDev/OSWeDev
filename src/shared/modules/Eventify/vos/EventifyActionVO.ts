@@ -15,7 +15,6 @@ export default class EventifyActionVO implements IDistantVOBase, IVersionedVO {
         "EventifyActionVO.STATE_NEEDS_RERUN",
         "EventifyActionVO.STATE_RERUN_ASKED"
     ];
-    public static STATE_: number = 0;
     public static STATE_TODO: number = 0;
     public static STATE_RUNNING: number = 1;
     public static STATE_RUN_ENDED: number = 2;

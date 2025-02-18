@@ -26,7 +26,9 @@ export default class OseliaThreadMessageActionURLComponent extends VueComponentB
     public action_url: ActionURLVO = null;
     public action_url_crs: ActionURLCRVO[] = [];
 
-    private throttle_load_action_url = ThrottleHelper.declare_throttle_without_args(this.load_action_url, 10);
+    private throttle_load_action_url = ThrottleHelper.declare_throttle_without_args(
+        'OseliaThreadMessageActionURLComponent.throttle_load_action_url',
+        this.load_action_url, 10);
 
     get last_action_url_cr() {
         if ((!this.action_url_crs) || (!this.action_url_crs.length)) {

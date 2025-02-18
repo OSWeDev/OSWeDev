@@ -24,7 +24,12 @@ export default interface IEnvParam {
 
     max_varsprocessdeploydeps?: number;
     max_varsprocessloaddatas?: number;
+    max_varsprocessdagcleaner?: number;
     max_vars_invalidators?: number;
+    max_varsprocessnotifyend?: number;
+    max_varsprocessnotifystart?: number;
+    max_varsprocessupdatedb?: number;
+
 
     max_size_per_query?: number;
     max_union_all_per_query?: number;
@@ -62,6 +67,16 @@ export default interface IEnvParam {
     debug_vo_events?: boolean;
 
     debug_var_insert_with_copy?: boolean;
+
+    debug_slow_event_listeners?: boolean;
+    debug_slow_event_listeners_ms_limit?: number;
+
+    create_event_perf_report?: boolean;
+    activate_module_perf_throttle_queries?: boolean;
+    activate_module_perf_eventify?: boolean;
+    activate_module_perf_var_dag_nodes?: boolean;
+    activate_module_perf_gpt_assistant_api?: boolean;
+    activate_module_perf_gpt_sync?: boolean;
 
     debug_var_get_instance_semaphored_db_loaded_var_data?: boolean;
 
@@ -121,7 +136,6 @@ export default interface IEnvParam {
     teams_message_max_size_auto_summarize?: boolean;
 
     block_teams_messages?: boolean;
-    unblock_realtime_api?: boolean;
 
     express_secret: string;
     logo_path?: string;
@@ -139,4 +153,8 @@ export default interface IEnvParam {
     silent_no_sort_by_but_query_limit?: boolean;
 
     log_login_redirects?: boolean;
+
+    activate_async_hook_for_promise_watch?: boolean;
+
+    debug_top_10_query_size?: boolean;
 }

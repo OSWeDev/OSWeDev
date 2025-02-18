@@ -55,30 +55,25 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     private shared_filters_with_dashboard: SharedFiltersVO[] = [];
 
     private throttled_load_dashboard_pages = ThrottleHelper.declare_throttle_without_args(
+        'DashboardSharedFiltersComponent.load_dashboard_pages',
         this.load_dashboard_pages.bind(this),
         50,
-        { leading: false, trailing: true }
+        false
     );
 
     private throttled_load_all_shared_filters = ThrottleHelper.declare_throttle_with_stackable_args(
+        'DashboardSharedFiltersComponent.load_all_shared_filters',
         this.load_all_shared_filters.bind(this),
         50,
-        { leading: false, trailing: true }
+        false
     );
 
     private throttled_load_dashboard_pages_field_filters_map = ThrottleHelper.declare_throttle_without_args(
+        'DashboardSharedFiltersComponent.load_dashboard_pages_field_filters_map',
         this.load_dashboard_pages_field_filters_map.bind(this),
         50,
-        { leading: false, trailing: true }
+        false
     );
-
-    /**
-     * mounted
-     * - Vue lifecycle hook
-     */
-    private mounted() {
-        this.set_Sharedfiltersmodalcomponent(this.$refs['Sharedfiltersmodalcomponent'] as SharedFiltersModalComponent);
-    }
 
     @Watch('dashboard', { immediate: true })
     private async onchange_dashboard() {
@@ -102,6 +97,15 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
         this.throttled_load_dashboard_pages_field_filters_map();
         this.throttled_load_all_shared_filters();
     }
+
+    /**
+     * mounted
+     * - Vue lifecycle hook
+     */
+    private mounted() {
+        this.set_Sharedfiltersmodalcomponent(this.$refs['Sharedfiltersmodalcomponent'] as SharedFiltersModalComponent);
+    }
+
 
     /**
      * load_dashboard_pages

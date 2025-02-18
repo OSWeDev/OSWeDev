@@ -25,6 +25,22 @@ export default class StatsController {
     public static ACTIVATED: boolean = false;
 
     /**
+     * Pour filtrer les stats qu'on active. Si c'est null pas de filtre. A modifier probablement plus tard pour voir comment on rend ce param flexible
+     */
+    public static FILTRER_STAT_CATEGORY: { [category: string]: boolean } = null;
+
+    /**
+     * Pour filtrer les stats qu'on active. Si c'est null pas de filtre. A modifier probablement plus tard pour voir comment on rend ce param flexible
+     */
+    public static FILTRER_STAT_SUB_CATEGORY: { [sub_category: string]: boolean } = null;
+
+    /**
+     * Pour filtrer les stats qu'on active. Si c'est null pas de filtre. A modifier probablement plus tard pour voir comment on rend ce param flexible
+     */
+    public static FILTRER_STAT_EVENT: { [event: string]: boolean } = null;
+
+
+    /**
      * Le server doit initialiser le THREAD_NAME en fonction du thread. Côté client on garde la valeur par défaut.
      */
 
@@ -37,12 +53,32 @@ export default class StatsController {
 
     public static UNSTACK_THROTTLE_PARAM_NAME: string = 'StatsController.UNSTACK_THROTTLE_CLIENT';
 
+    public static stacked_registered_stats_by_group_name: { [group_name: string]: StatClientWrapperVO[] } = {};
     public static new_stats_handler: (new_stats: StatClientWrapperVO[]) => Promise<boolean> = null;
 
-    public static stacked_registered_stats_by_group_name: { [group_name: string]: StatClientWrapperVO[] } = {};
-
     public static throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
-        StatsController.unstack_stats.bind(StatsController.getInstance()), 5000, { leading: false, trailing: true }); // defaults to 1 minute
+        'StatsController.throttled_unstack_stats',
+        StatsController.unstack_stats.bind(StatsController.getInstance()), 5000, false); // defaults to 1 minute
+
+    private static instance: StatsController = null;
+
+    private static first_unstacking_date: number = null;
+    private static is_unstacking: boolean = false;
+
+
+    private UNSTACK_THROTTLE_: number = 5000;
+    private constructor() { }
+
+    get UNSTACK_THROTTLE(): number {
+        return this.UNSTACK_THROTTLE_;
+    }
+
+    set UNSTACK_THROTTLE(throttle: number) {
+        this.UNSTACK_THROTTLE_ = throttle;
+        StatsController.throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
+            'StatsController.throttled_unstack_stats',
+            StatsController.unstack_stats.bind(StatsController.getInstance()), this.UNSTACK_THROTTLE_, false);
+    }
 
     public static get_aggregator_extension(aggregator: number): string {
         switch (aggregator) {
@@ -69,9 +105,9 @@ export default class StatsController {
 
     public static async init_params() {
 
-        if (!StatsController.ACTIVATED) {
-            return;
-        }
+        // if (!StatsController.ACTIVATED) {
+        //     return;
+        // }
 
         const default_value = 60000;
         if ((!!StatsController.getInstance().UNSTACK_THROTTLE) && (StatsController.getInstance().UNSTACK_THROTTLE !== default_value)) {
@@ -91,6 +127,10 @@ export default class StatsController {
         min_segment_type: number = TimeSegment.TYPE_MINUTE) {
 
         if (!StatsController.ACTIVATED) {
+            return;
+        }
+
+        if (!StatsController.filter_stat(category_name, sub_category_name, event_name)) {
             return;
         }
 
@@ -116,6 +156,10 @@ export default class StatsController {
             return;
         }
 
+        if (!StatsController.filter_stat(category_name, sub_category_name, event_name)) {
+            return;
+        }
+
         for (const i in StatVO.AGGREGATOR_LABELS) {
             StatsController.register_stat_agg(
                 category_name, sub_category_name, event_name, StatsTypeVO.TYPE_DUREE,
@@ -135,6 +179,10 @@ export default class StatsController {
         quantite: number, min_segment_type: number = TimeSegment.TYPE_MINUTE) {
 
         if (!StatsController.ACTIVATED) {
+            return;
+        }
+
+        if (!StatsController.filter_stat(category_name, sub_category_name, event_name)) {
             return;
         }
 
@@ -159,6 +207,10 @@ export default class StatsController {
         value: number, aggregator: number, min_segment_type: number, force_timestamp: number = null, force_thread_name: string = null) {
 
         if (!StatsController.ACTIVATED) {
+            return;
+        }
+
+        if (!StatsController.filter_stat(category_name, sub_category_name, event_name)) {
             return;
         }
 
@@ -194,11 +246,6 @@ export default class StatsController {
         StatsController.throttled_unstack_stats();
     }
 
-    private static instance: StatsController = null;
-
-    private static first_unstacking_date: number = null;
-    private static is_unstacking: boolean = false;
-
     private static async unstack_stats() {
 
         if (!StatsController.ACTIVATED) {
@@ -210,183 +257,197 @@ export default class StatsController {
         }
         StatsController.is_unstacking = true;
 
-        const to_unstack: { [group_name: string]: StatClientWrapperVO[] } = Object.assign({}, StatsController.stacked_registered_stats_by_group_name);
-        StatsController.stacked_registered_stats_by_group_name = {};
+        try {
 
-        const unstacking_date: number = Dates.now();
-        if (!StatsController.first_unstacking_date) {
-            StatsController.first_unstacking_date = unstacking_date;
-        }
-        const to_restack: { [group_name: string]: StatClientWrapperVO[] } = {};
+            const to_unstack: { [group_name: string]: StatClientWrapperVO[] } = Object.assign({}, StatsController.stacked_registered_stats_by_group_name);
+            StatsController.stacked_registered_stats_by_group_name = {};
 
-        if ((!to_unstack) || (!Object.keys(to_unstack).length)) {
-            StatsController.is_unstacking = false;
-            return;
-        }
-
-        if (!StatsController.new_stats_handler) {
-            /**
-             * Si l'appli est pas lancée depuis longtemps (<1 min) c'est peut-être normal, on restack rien on ignore juste pour le moment toutes les stats
-             */
-            if ((unstacking_date - StatsController.first_unstacking_date) > 60) {
-                StatsController.is_unstacking = false;
-                throw new Error('StatsController.new_stats_handler doit être défini');
+            const unstacking_date: number = Dates.now();
+            if (!StatsController.first_unstacking_date) {
+                StatsController.first_unstacking_date = unstacking_date;
             }
+            const to_restack: { [group_name: string]: StatClientWrapperVO[] } = {};
 
-            StatsController.is_unstacking = false;
-            return;
-        }
-
-        const all_new_stats: StatClientWrapperVO[] = [];
-
-        for (const group_name in to_unstack) {
-            const stats = to_unstack[group_name];
-
-            if (!stats || !stats.length) {
-                continue;
-            }
-
-            const sample_stat = stats[0];
-            if (!sample_stat) {
-                continue;
-            }
-            const stats_aggregator_min_segment_type = sample_stat.stats_aggregator_min_segment_type;
-            const stats_aggregator = sample_stat.stats_aggregator;
-
-            const current_segment_start = TimeSegmentHandler.getCorrespondingTimeSegment(unstacking_date, stats_aggregator_min_segment_type).index;
-
-            // On n'aggrège que les stats dont le segment est totalement terminé
-            const stats_to_aggregate_by_segment: { [segment_date: number]: StatClientWrapperVO[] } = {};
-            for (const i in stats) {
-                const stat = stats[i];
-
-                const stat_segment_start = TimeSegmentHandler.getCorrespondingTimeSegment(stat.timestamp_s, stats_aggregator_min_segment_type).index;
-                if (stat_segment_start >= current_segment_start) {
-                    if (!to_restack[group_name]) {
-                        to_restack[group_name] = [];
-                    }
-                    to_restack[group_name].push(stat);
-                    continue;
-                }
-
-                if (!stats_to_aggregate_by_segment[stat_segment_start]) {
-                    stats_to_aggregate_by_segment[stat_segment_start] = [];
-                }
-                stats_to_aggregate_by_segment[stat_segment_start].push(stat);
-            }
-
-            const aggregated_stats: { [segment_date: number]: StatClientWrapperVO } = {};
-
-            for (const i in stats_to_aggregate_by_segment) {
-                const segment_date = parseInt(i);
-                const segment_stats = stats_to_aggregate_by_segment[segment_date];
-
-                const aggregated_stat: StatClientWrapperVO = new StatClientWrapperVO();
-                aggregated_stat.timestamp_s = segment_date;
-                aggregated_stat.value = 0;
-
-                aggregated_stat.tmp_category_name = sample_stat.tmp_category_name;
-                aggregated_stat.tmp_sub_category_name = sample_stat.tmp_sub_category_name;
-                aggregated_stat.tmp_event_name = sample_stat.tmp_event_name;
-                aggregated_stat.tmp_stat_type_name = sample_stat.tmp_stat_type_name;
-                aggregated_stat.tmp_thread_name = sample_stat.tmp_thread_name;
-                aggregated_stat.stats_aggregator = sample_stat.stats_aggregator;
-                aggregated_stat.stats_aggregator_min_segment_type = stats_aggregator_min_segment_type;
-
-                aggregated_stats[segment_date] = aggregated_stat;
-
-                all_new_stats.push(aggregated_stat);
-
-                /**
-                 * L'aggrégat est fait en fonction de l'aggrégateur et du type de stat
-                 *  si c'est un compteur, on fait la somme des stats (comme on récupère des stats clients, potentiellement déjà aggrégées sur la minute, on peut sommer des datas de compteur qui sont différentes de 1)
-                 *  si c'est une quantité ou une durée, on applique l'aggrégateur
-                 */
-                switch (sample_stat.tmp_stat_type_name) {
-                    case StatsTypeVO.TYPE_COMPTEUR:
-
-                        let sum_COMPTEUR = 0;
-                        for (const j in segment_stats) {
-                            sum_COMPTEUR += segment_stats[j].value;
-                        }
-                        aggregated_stat.value = sum_COMPTEUR;
-                        break;
-                    case StatsTypeVO.TYPE_QUANTITE:
-                    case StatsTypeVO.TYPE_DUREE:
-
-                        if (stats_aggregator == StatVO.AGGREGATOR_MEAN) {
-                            // Moyenne
-                            let sum = 0;
-                            for (const j in segment_stats) {
-                                sum += segment_stats[j].value;
-                            }
-                            aggregated_stat.value = sum / segment_stats.length;
-                        } else if (stats_aggregator == StatVO.AGGREGATOR_SUM) {
-                            // Somme
-                            let sum = 0;
-                            for (const j in segment_stats) {
-                                sum += segment_stats[j].value;
-                            }
-                            aggregated_stat.value = sum;
-                        } else if (stats_aggregator == StatVO.AGGREGATOR_MIN) {
-                            // Min
-                            let min = null;
-                            for (const j in segment_stats) {
-                                if ((min === null) || (min > segment_stats[j].value)) {
-                                    min = segment_stats[j].value;
-                                }
-                            }
-                            aggregated_stat.value = min;
-                        } else if (stats_aggregator == StatVO.AGGREGATOR_MAX) {
-                            // Max
-                            let max = null;
-                            for (const j in segment_stats) {
-                                if ((max === null) || (max < segment_stats[j].value)) {
-                                    max = segment_stats[j].value;
-                                }
-                            }
-                            aggregated_stat.value = max;
-                        }
-                        break;
-                    default:
-                        StatsController.is_unstacking = false;
-                        throw new Error('Type de stat inconnu ' + sample_stat.tmp_stat_type_name);
-                }
-            }
-        }
-
-        if (all_new_stats && all_new_stats.length) {
-
-            if (!await StatsController.new_stats_handler(all_new_stats)) {
-                // on restack rien donc on ignore toutes les stats perdues
-                ConsoleHandler.error('StatsController.new_stats_handler a retourné false, on ignore toutes les stats perdues');
+            if ((!to_unstack) || (!Object.keys(to_unstack).length)) {
                 StatsController.is_unstacking = false;
                 return;
             }
+
+            if (!StatsController.new_stats_handler) {
+                /**
+                 * Si l'appli est pas lancée depuis longtemps (<1 min) c'est peut-être normal, on restack rien on ignore juste pour le moment toutes les stats
+                 */
+                if ((unstacking_date - StatsController.first_unstacking_date) > 60) {
+                    StatsController.is_unstacking = false;
+                    throw new Error('StatsController.new_stats_handler doit être défini');
+                }
+
+                StatsController.is_unstacking = false;
+                return;
+            }
+
+            const all_new_stats: StatClientWrapperVO[] = [];
+
+            for (const group_name in to_unstack) {
+                const stats = to_unstack[group_name];
+
+                if (!stats || !stats.length) {
+                    continue;
+                }
+
+                const sample_stat = stats[0];
+                if (!sample_stat) {
+                    continue;
+                }
+                const stats_aggregator_min_segment_type = sample_stat.stats_aggregator_min_segment_type;
+                const stats_aggregator = sample_stat.stats_aggregator;
+
+                const current_segment_start = TimeSegmentHandler.getCorrespondingTimeSegment(unstacking_date, stats_aggregator_min_segment_type).index;
+
+                // On n'aggrège que les stats dont le segment est totalement terminé
+                const stats_to_aggregate_by_segment: { [segment_date: number]: StatClientWrapperVO[] } = {};
+                for (const i in stats) {
+                    const stat = stats[i];
+
+                    const stat_segment_start = TimeSegmentHandler.getCorrespondingTimeSegment(stat.timestamp_s, stats_aggregator_min_segment_type).index;
+                    if (stat_segment_start >= current_segment_start) {
+                        if (!to_restack[group_name]) {
+                            to_restack[group_name] = [];
+                        }
+                        to_restack[group_name].push(stat);
+                        continue;
+                    }
+
+                    if (!stats_to_aggregate_by_segment[stat_segment_start]) {
+                        stats_to_aggregate_by_segment[stat_segment_start] = [];
+                    }
+                    stats_to_aggregate_by_segment[stat_segment_start].push(stat);
+                }
+
+                const aggregated_stats: { [segment_date: number]: StatClientWrapperVO } = {};
+
+                for (const i in stats_to_aggregate_by_segment) {
+                    const segment_date = parseInt(i);
+                    const segment_stats = stats_to_aggregate_by_segment[segment_date];
+
+                    const aggregated_stat: StatClientWrapperVO = new StatClientWrapperVO();
+                    aggregated_stat.timestamp_s = segment_date;
+                    aggregated_stat.value = 0;
+
+                    aggregated_stat.tmp_category_name = sample_stat.tmp_category_name;
+                    aggregated_stat.tmp_sub_category_name = sample_stat.tmp_sub_category_name;
+                    aggregated_stat.tmp_event_name = sample_stat.tmp_event_name;
+                    aggregated_stat.tmp_stat_type_name = sample_stat.tmp_stat_type_name;
+                    aggregated_stat.tmp_thread_name = sample_stat.tmp_thread_name;
+                    aggregated_stat.stats_aggregator = sample_stat.stats_aggregator;
+                    aggregated_stat.stats_aggregator_min_segment_type = stats_aggregator_min_segment_type;
+
+                    aggregated_stats[segment_date] = aggregated_stat;
+
+                    all_new_stats.push(aggregated_stat);
+
+                    /**
+                     * L'aggrégat est fait en fonction de l'aggrégateur et du type de stat
+                     *  si c'est un compteur, on fait la somme des stats (comme on récupère des stats clients, potentiellement déjà aggrégées sur la minute, on peut sommer des datas de compteur qui sont différentes de 1)
+                     *  si c'est une quantité ou une durée, on applique l'aggrégateur
+                     */
+                    switch (sample_stat.tmp_stat_type_name) {
+                        case StatsTypeVO.TYPE_COMPTEUR:
+
+                            let sum_COMPTEUR = 0;
+                            for (const j in segment_stats) {
+                                sum_COMPTEUR += segment_stats[j].value;
+                            }
+                            aggregated_stat.value = sum_COMPTEUR;
+                            break;
+                        case StatsTypeVO.TYPE_QUANTITE:
+                        case StatsTypeVO.TYPE_DUREE:
+
+                            if (stats_aggregator == StatVO.AGGREGATOR_MEAN) {
+                                // Moyenne
+                                let sum = 0;
+                                for (const j in segment_stats) {
+                                    sum += segment_stats[j].value;
+                                }
+                                aggregated_stat.value = sum / segment_stats.length;
+                            } else if (stats_aggregator == StatVO.AGGREGATOR_SUM) {
+                                // Somme
+                                let sum = 0;
+                                for (const j in segment_stats) {
+                                    sum += segment_stats[j].value;
+                                }
+                                aggregated_stat.value = sum;
+                            } else if (stats_aggregator == StatVO.AGGREGATOR_MIN) {
+                                // Min
+                                let min = null;
+                                for (const j in segment_stats) {
+                                    if ((min === null) || (min > segment_stats[j].value)) {
+                                        min = segment_stats[j].value;
+                                    }
+                                }
+                                aggregated_stat.value = min;
+                            } else if (stats_aggregator == StatVO.AGGREGATOR_MAX) {
+                                // Max
+                                let max = null;
+                                for (const j in segment_stats) {
+                                    if ((max === null) || (max < segment_stats[j].value)) {
+                                        max = segment_stats[j].value;
+                                    }
+                                }
+                                aggregated_stat.value = max;
+                            }
+                            break;
+                        default:
+                            StatsController.is_unstacking = false;
+                            throw new Error('Type de stat inconnu ' + sample_stat.tmp_stat_type_name);
+                    }
+                }
+            }
+
+            if (all_new_stats && all_new_stats.length) {
+
+                if (!await StatsController.new_stats_handler(all_new_stats)) {
+                    // on restack rien donc on ignore toutes les stats perdues
+                    ConsoleHandler.error('StatsController.new_stats_handler a retourné false, on ignore toutes les stats perdues');
+                    StatsController.is_unstacking = false;
+                    return;
+                }
+            }
+
+
+            StatsController.is_unstacking = false;
+            if (to_restack && Object.keys(to_restack).length) {
+                for (const group_name in to_restack) {
+                    if (!StatsController.stacked_registered_stats_by_group_name[group_name]) {
+                        StatsController.stacked_registered_stats_by_group_name[group_name] = [];
+                    }
+                    StatsController.stacked_registered_stats_by_group_name[group_name] = StatsController.stacked_registered_stats_by_group_name[group_name].concat(to_restack[group_name]);
+                }
+                StatsController.throttled_unstack_stats();
+            }
+            return;
+
+        } catch (error) {
+            ConsoleHandler.error('Erreur dans StatsController.unstack_stats : ' + error);
         }
 
         StatsController.is_unstacking = false;
-        if (to_restack && Object.keys(to_restack).length) {
-            for (const group_name in to_restack) {
-                if (!StatsController.stacked_registered_stats_by_group_name[group_name]) {
-                    StatsController.stacked_registered_stats_by_group_name[group_name] = [];
-                }
-                StatsController.stacked_registered_stats_by_group_name[group_name] = StatsController.stacked_registered_stats_by_group_name[group_name].concat(to_restack[group_name]);
-            }
-            StatsController.throttled_unstack_stats();
+    }
+
+    private static filter_stat(category_name: string, sub_category_name: string, event_name: string): boolean {
+
+        if (StatsController.FILTRER_STAT_CATEGORY && (!StatsController.FILTRER_STAT_CATEGORY[category_name])) {
+            return false;
         }
-    }
 
-    private UNSTACK_THROTTLE_: number = 5000;
-    private constructor() { }
+        if (StatsController.FILTRER_STAT_SUB_CATEGORY && (!StatsController.FILTRER_STAT_SUB_CATEGORY[sub_category_name])) {
+            return false;
+        }
 
-    get UNSTACK_THROTTLE(): number {
-        return this.UNSTACK_THROTTLE_;
-    }
+        if (StatsController.FILTRER_STAT_EVENT && (!StatsController.FILTRER_STAT_EVENT[event_name])) {
+            return false;
+        }
 
-    set UNSTACK_THROTTLE(throttle: number) {
-        this.UNSTACK_THROTTLE_ = throttle;
-        StatsController.throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
-            StatsController.unstack_stats.bind(StatsController.getInstance()), this.UNSTACK_THROTTLE_, { leading: false, trailing: true });
+        return true;
     }
 }

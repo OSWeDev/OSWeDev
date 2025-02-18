@@ -1,11 +1,15 @@
 import ParameterizedQueryWrapperField from '../../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField';
 import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../../shared/modules/DAO/ModuleTableFieldController';
+import EventsController from '../../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
+import PerfReportController from '../../../../shared/modules/PerfReport/PerfReportController';
 import DAGNodeBase from '../../../../shared/modules/Var/graph/dagbase/DAGNodeBase';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
-import ThreadHandler from '../../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ThrottledQueryServerController from '../../../modules/DAO/ThrottledQueryServerController';
 import VarsServerCallBackSubsController from '../../../modules/Var/VarsServerCallBackSubsController';
@@ -13,11 +17,14 @@ import VarsServerController from '../../../modules/Var/VarsServerController';
 import VarsClientsSubsCacheHolder from '../../../modules/Var/bgthreads/processes/VarsClientsSubsCacheHolder';
 import ModuleTableServerController from '../../DAO/ModuleTableServerController';
 import VarsComputationHole from '../bgthreads/processes/VarsComputationHole';
+import VarsProcessBase from '../bgthreads/processes/VarsProcessBase';
 import UpdateIsComputableVarDAGNode from './UpdateIsComputableVarDAGNode';
 import VarDAG from './VarDAG';
 import VarDAGNodeDep from './VarDAGNodeDep';
 
 export default class VarDAGNode extends DAGNodeBase {
+
+    public static PERF_MODULE_NAME: string = 'var_dag_nodes';
 
     /**
      * Les tags pendant le traitement d'un noeud
@@ -111,6 +118,11 @@ export default class VarDAGNode extends DAGNodeBase {
     private static getInstance_semaphores: { [var_dag_uid: number]: { [var_data_index: number]: Promise<VarDAGNode> } } = {};
 
     /**
+     * La date d'ajout dans l'arbre de ce noeud
+     */
+    public linked_at: number = null;
+
+    /**
      * Tous les noeuds sont déclarés / initialisés comme des noeuds de calcul. C'est uniquement en cas de split (sur un import ou précalcul partiel)
      *  qu'on va switcher sur un mode aggégateur et configurer des aggregated_nodes
      */
@@ -156,18 +168,27 @@ export default class VarDAGNode extends DAGNodeBase {
     public is_server_sub_dep: boolean = false;
 
     /**
+     * Permet de bloquer la mise à jour du current step, par exemple pour les noeuds en attente de connexion à d'autres noeuds (typiquement dans le deploy)
+     * Par défaut un noeud est locked et restera donc dans l'arbre à vie, il faut le délocker quand il est correctement configuré
+     */
+    private _lock_current_step: number = 1;
+
+    /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
      */
     private constructor(public var_dag: VarDAG, public var_data: VarDataBaseVO) {
         super();
     }
 
+    get lock_current_step(): boolean {
+        return this._lock_current_step > 0;
+    }
 
     /**
-     * On peut supprimer un noeud à condition qu'il n'ait pas de dépendances entrantes
+     * On peut supprimer un noeud à condition qu'il n'ait pas de dépendances entrantes, et qu'il ne soit pas marqué comme en attente de connexion à d'autres noeuds (typiquement dans le deploy)
      */
     get is_deletable(): boolean {
-        return !this.hasIncoming;
+        return (!this.hasIncoming);
     }
 
     /**
@@ -194,7 +215,20 @@ export default class VarDAGNode extends DAGNodeBase {
         return VarsServerController.has_valid_value(this.var_data);
     }
 
+    public static unlock_nodes(nodes: VarDAGNode[]) {
+        for (const i in nodes) {
+            nodes[i].unlock();
+        }
+    }
+
+    public static lock_nodes(nodes: VarDAGNode[]) {
+        for (const i in nodes) {
+            nodes[i].lock();
+        }
+    }
+
     /**
+     * ATTENTION : On renvoie le noeud en mode locked, pour pas faire instantannément des updates du current state avant qu'il soit correctement lié à ses deps / aggregated datas / ... donc il faut unlock quand c'est bon sinon il restera planté dans l'arbre ad vitam
      * Factory de noeuds en fonction du nom. Permet d'assurer l'unicité des params dans l'arbre
      *  La value du noeud est celle du var_data passé en param, et donc si undefined le noeud est non calculé
      *  Le nom du noeud est l'index du var_data
@@ -205,11 +239,27 @@ export default class VarDAGNode extends DAGNodeBase {
         var_dag: VarDAG,
         var_data: VarDataBaseVO,
         already_tried_load_cache_complet: boolean = false,
+
+        // // On ajoute le parent en param qui a demandé ce noeud et qui veut se connecter à lui, par ce que sinon si on trouve en db, on a une valid value, et on delete le noeud juste après l'avoir inséré puisque personne n'en dépend...
+        // parent_node: VarDAGNode = null,
+        // parent_dep_id: string = null,
+
         // ignore_waiting_for_computation_holes: boolean = false, TODO FIXME: il y a une difficulté avec cette logique, il faudrait la revoir. On est sur un sémaphore de création, donc on n'aura qu'une valeur prise en compte pour ce param, mais si c'est false la première fois et true la deuxième, on est bloqués à vie... car le deuxième est une dep dont on a besoin pour résoudre l'arbre et le premier est peut-etre une ligne d'un export qui va bloquer en attendant le hole...
     ): Promise<VarDAGNode> {
 
-        if (var_dag.nodes[var_data.index]) {
-            return var_dag.nodes[var_data.index];
+        const existing_node = var_dag.nodes[var_data.index];
+        if (existing_node) {
+
+            // if (parent_dep_id && parent_node) {
+            //     if (!parent_node.addOutgoingDep(parent_dep_id, existing_node)) {
+            //         ConsoleHandler.error('VarDAGNode.getInstance:parent_node.addOutgoingDep:false:' + parent_node.var_data.index + ':' + parent_dep_id + ':' + existing_node.var_data.index);
+            //     }
+            // }
+
+            // On lock le noeud pour limiter les traitements en parallèle sur un noeud donné
+            existing_node.lock();
+
+            return existing_node;
         }
 
         /**
@@ -220,7 +270,11 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         if (!VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index]) {
-            const promise = VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet/*, ignore_waiting_for_computation_holes*/);
+            const promise = VarDAGNode.getInstance_semaphored(
+                var_dag,
+                var_data,
+                already_tried_load_cache_complet,
+                /*, ignore_waiting_for_computation_holes*/);
             VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index] = promise.finally(() => {
                 delete VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index];
             });
@@ -228,7 +282,11 @@ export default class VarDAGNode extends DAGNodeBase {
             return promise;
         }
 
-        return VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index];
+        // si on arrive ici, on est pas le créateur du noeud/promise, donc il faut lock encore pour nous
+        const res: VarDAGNode = await VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index];
+        res.lock();
+
+        return res;
     }
 
     private static async load_from_db_if_exists(_type: string, index: string): Promise<VarDataBaseVO> {
@@ -246,7 +304,7 @@ export default class VarDAGNode extends DAGNodeBase {
         //     throw new Error('VarDAGNode.load_from_db_if_exists :: index not valid');
         // }
 
-        const base_moduletable_fields = table.get_fields();
+        const base_moduletable_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[table.vo_type];
         const parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[] = [];
 
         let fields: string = 't.id';
@@ -402,12 +460,51 @@ export default class VarDAGNode extends DAGNodeBase {
     //     }
     // }
 
+    public get_node_description_for_perfs(text: string): string {
+        const incoming_deps = this.incoming_deps ? Object.keys(this.incoming_deps) : null;
+        const outgoing_deps = this.outgoing_deps ? Object.keys(this.outgoing_deps) : null;
+        const tags = this.tags ? Object.keys(this.tags) : null;
+        return text + '<br>' +
+            ((this.var_data.value == null) ? 'N/A' : this.var_data.value) + ' - ' + VarDataBaseVO.VALUE_TYPE_LABELS[this.var_data.value_type] + ' (' + this.var_data.value_type + ')<br>' +
+            'is_computable:' + this.is_computable + '<br>' +
+            'is_deletable:' + this.is_deletable + '<br>' +
+            'is_client_sub:' + this.is_client_sub + '<br>' +
+            'is_server_sub:' + this.is_server_sub + '<br>' +
+            'is_client_sub_dep:' + this.is_client_sub_dep + '<br>' +
+            'is_server_sub_dep:' + this.is_server_sub_dep + '<br>' +
+            (tags ? ('tags:' + tags.join(',') + '<br>') : '') +
+            (incoming_deps ? ('incoming_deps nb:' + incoming_deps.length + '<br>') : '') +
+            (outgoing_deps ? ('outgoing_deps nb:' + outgoing_deps.length + '<br>') : '');
+    }
+
+    public lock() {
+        this._lock_current_step++;
+    }
+
+    public unlock() {
+        this._lock_current_step--;
+        if (this._lock_current_step < 0) {
+
+            try {
+                throw new Error('VarDAGNode.unlock:lock_current_step < 0:' + this.var_data.index + ':' + this._lock_current_step + ':' + this.current_step);
+            } catch (e) {
+                ConsoleHandler.error(e);
+            }
+
+            this._lock_current_step = 0;
+        }
+
+        if (this._lock_current_step == 0) {
+            this.update_current_step_tag();
+        }
+    }
+
     /**
      * Pour l'ajout des tags, on veille toujours à vérifier qu'on a pas un tag TO_DELETE, et la possibilité de supprimer le noeud.
      *  Sinon on refuse l'ajout. On a pas non plus le droit de remettre un Tag déjà passé. On peut mettre des tags à venir, mais pas < au current_step
      * @param tag Le tag à ajouter
      */
-    public add_tag(tag: string): boolean {
+    public add_tag(tag: string, force_update_even_when_inf_current_step: boolean = false): boolean {
 
         if (this.tags[tag]) {
 
@@ -421,7 +518,7 @@ export default class VarDAGNode extends DAGNodeBase {
             return true;
         }
 
-        if (VarDAGNode.STEP_TAGS_INDEXES[tag] < this.current_step) {
+        if ((!force_update_even_when_inf_current_step) && (VarDAGNode.STEP_TAGS_INDEXES[tag] < this.current_step)) {
 
             if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                 ConsoleHandler.log(
@@ -501,12 +598,11 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         delete this.tags[tag];
+        if (this.var_dag && this.var_dag.tags[tag]) {
+            delete this.var_dag.tags[tag][this.var_data.index];
+        }
 
         this.update_current_step_tag();
-        if (!this.var_dag) {
-            return;
-        }
-        delete this.var_dag.tags[tag][this.var_data.index];
     }
 
     /**
@@ -521,6 +617,21 @@ export default class VarDAGNode extends DAGNodeBase {
          */
         if (this.outgoing_deps && this.outgoing_deps[dep_name]) {
             return true;
+        }
+
+        /**
+         * Si le noeud de dep est marqué comme IS_DELETABLE, on doit le ramener à du UPDATED_IN_DB
+         */
+        if (outgoing_node.tags[VarDAGNode.TAG_7_IS_DELETABLE]) {
+            if (ConfigurationService.node_configuration.debug_vars_current_tree) {
+                ConsoleHandler.log(
+                    'VarDAGNode.addOutgoingDep:On doit unmark le noeud cible de la dep pour éviter sa suppression:' + this.var_data.index +
+                    ':outgoing_dep:' + dep_name +
+                    ':outgoing_node:' + (outgoing_node as VarDAGNode).var_data.index);
+            }
+
+            outgoing_node.remove_tag(VarDAGNode.TAG_7_IS_DELETABLE);
+            outgoing_node.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB, true);
         }
 
         /**
@@ -567,6 +678,17 @@ export default class VarDAGNode extends DAGNodeBase {
         outgoing_node.is_client_sub_dep = outgoing_node.is_client_sub_dep || this.is_client_sub || this.is_client_sub_dep;
         outgoing_node.is_server_sub_dep = outgoing_node.is_server_sub_dep || this.is_server_sub || this.is_server_sub_dep;
 
+        const perf_name = this.var_data.index;
+        const perf_line_name = this.var_data.index;
+        PerfReportController.add_event(
+            VarDAGNode.PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            null,
+            Dates.now_ms(),
+            this.get_node_description_for_perfs("addOutgoingDep:" + dep.dep_name + ":" + (dep.outgoing_node as VarDAGNode).var_data.index),
+        );
+
         return true;
     }
 
@@ -585,7 +707,7 @@ export default class VarDAGNode extends DAGNodeBase {
         if (this.hasIncoming && (!force_delete)) {
             this.remove_tag(VarDAGNode.TAG_7_IS_DELETABLE);
             this.remove_tag(VarDAGNode.TAG_7_DELETING);
-            this.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
+            this.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB, true); // On force, bien que le current_state soit >= 14 à ce stade. On vient de supprimer les tags au dessus mais on est en lock current state.
             return false;
         }
 
@@ -681,6 +803,28 @@ export default class VarDAGNode extends DAGNodeBase {
             delete dag.roots[this.var_data.index];
         }
 
+        const perf_name = this.var_data.index;
+        const perf_line_name = this.var_data.index;
+        PerfReportController.add_event(
+            VarDAGNode.PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            null,
+            Dates.now_ms(),
+            this.get_node_description_for_perfs("unlink"),
+        );
+        PerfReportController.add_call(
+            VarDAGNode.PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            null,
+            this.linked_at,
+            Dates.now_ms(),
+            this.get_node_description_for_perfs("from link to unlink"),
+        );
+
+        this.linked_at = null;
+
         return true;
     }
 
@@ -703,6 +847,21 @@ export default class VarDAGNode extends DAGNodeBase {
         this.var_dag.leafs[this.var_data.index] = this;
         this.var_dag.roots[this.var_data.index] = this;
 
+        if (!this.linked_at) {
+            this.linked_at = Dates.now_ms();
+        }
+
+        const perf_name = this.var_data.index;
+        const perf_line_name = this.var_data.index;
+        PerfReportController.add_event(
+            VarDAGNode.PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            null,
+            this.linked_at,
+            this.get_node_description_for_perfs("link"),
+        );
+
         return this;
     }
 
@@ -721,6 +880,11 @@ export default class VarDAGNode extends DAGNodeBase {
     }
 
     private update_current_step_tag() {
+
+        if (this._lock_current_step) {
+            return;
+        }
+
         let updated_current_step: number = null;
         let updated_current_step_tag_name: string = null;
         const current_step_tag_name: string = VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step];
@@ -770,6 +934,17 @@ export default class VarDAGNode extends DAGNodeBase {
      */
     private onchange_current_step() {
 
+        const perf_name = this.var_data.index;
+        const perf_line_name = this.var_data.index;
+        PerfReportController.add_event(
+            VarDAGNode.PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            null,
+            Dates.now_ms(),
+            this.get_node_description_for_perfs("change current step to " + VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step] + " (" + this.current_step + ")"),
+        );
+
         if (this.current_step == null) {
             return;
         }
@@ -806,6 +981,18 @@ export default class VarDAGNode extends DAGNodeBase {
         if (this.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_COMPUTED]) {
             // On impacte les parents sur un potentiel is_computable
             this.update_parent_is_computable_if_needed();
+        }
+
+        /**
+         * On ajoute la logique de déclenchement des processes si on est sur un TAG_IN, et pas dans un hole
+         */
+        const current_step_name = VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step];
+        if (VarsProcessBase.registered_processes_work_event_name_by_tag_in[current_step_name]) {
+            if (!VarsComputationHole.currently_in_a_hole_semaphore) {
+                EventsController.emit_event(EventifyEventInstanceVO.new_event(VarsProcessBase.registered_processes_work_event_name_by_tag_in[current_step_name]));
+            } else {
+                VarsComputationHole.events_to_emit_post_hole[VarsProcessBase.registered_processes_work_event_name_by_tag_in[current_step_name]] = true;
+            }
         }
     }
 }

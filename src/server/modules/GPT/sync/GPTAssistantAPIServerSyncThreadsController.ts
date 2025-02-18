@@ -213,7 +213,7 @@ export default class GPTAssistantAPIServerSyncThreadsController {
 
         const threads_vos: GPTAssistantAPIThreadVO[] = await query(GPTAssistantAPIThreadVO.API_TYPE_ID).exec_as_server().select_vos<GPTAssistantAPIThreadVO>();
 
-        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2);
+        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'GPTAssistantAPIServerSyncThreadsController.sync_threads');
         for (const i in threads_vos) {
             const thread_vo = threads_vos[i];
 

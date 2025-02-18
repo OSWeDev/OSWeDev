@@ -34,7 +34,7 @@ export default class ReponseTableFieldTypeController extends TableFieldTypeContr
         return null;
     }
 
-    public dataToIHM(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, res: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean) {
+    public async dataToIHM(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, res: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean) {
         res[field.datatable_field_uid] = vo[field.module_table_field_id];
     }
     public IHMToData(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, res: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean) {
@@ -64,7 +64,7 @@ export default class ReponseTableFieldTypeController extends TableFieldTypeContr
         return res;
     }
 
-    public defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase): any {
+    public async defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase): Promise<any> {
         return field_value;
     }
     public defaultReadIHMToData(value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase): any {

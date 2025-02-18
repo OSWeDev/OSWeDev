@@ -8,21 +8,6 @@ export default class DataImportColumnVO implements IDistantVOBase {
     public static TYPE_NUMBER: string = "number";
     public static TYPE_NUMBER_COMA_DECIMAL_CSV: string = "number_coma_csv";
 
-    public static createNew(
-        title: string, data_import_format_id: number,
-        type: string = DataImportColumnVO.TYPE_STRING = DataImportColumnVO.TYPE_STRING): DataImportColumnVO {
-        const res: DataImportColumnVO = new DataImportColumnVO();
-
-        res.title = title;
-        res.data_import_format_id = data_import_format_id;
-        res.type = type;
-        res.vo_field_name = title;
-        res.other_column_labels = [];
-        res.mandatory = false;
-
-        return res;
-    }
-
     public id: number;
     public _type: string = DataImportColumnVO.API_TYPE_ID;
 
@@ -35,6 +20,7 @@ export default class DataImportColumnVO implements IDistantVOBase {
     public data_import_format_id: number;
     public type: string;
 
+
     /**
      *
      * @param column_index 0 indexed
@@ -44,6 +30,22 @@ export default class DataImportColumnVO implements IDistantVOBase {
      * @param type The column type in the file (in case of data conversions between file and DB)
      */
     public constructor() { }
+
+    public static createNew(
+        title: string, data_import_format_id: number,
+        type: string = DataImportColumnVO.TYPE_STRING): DataImportColumnVO {
+        const res: DataImportColumnVO = new DataImportColumnVO();
+
+        res.title = title;
+        res.data_import_format_id = data_import_format_id;
+        res.type = type;
+        res.vo_field_name = title;
+        res.other_column_labels = [];
+        res.mandatory = false;
+
+        return res;
+    }
+
 
     public addColumnLabels(column_labels: string[]): DataImportColumnVO {
         this.other_column_labels = this.other_column_labels.concat(column_labels);

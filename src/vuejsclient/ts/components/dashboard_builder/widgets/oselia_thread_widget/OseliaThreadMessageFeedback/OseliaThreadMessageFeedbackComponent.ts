@@ -40,7 +40,9 @@ export default class OseliaThreadMessageFeedbackComponent extends VueComponentBa
     @Prop({ default: null })
     private thread_message: GPTAssistantAPIThreadMessageVO;
 
-    private throttle_load_feedback = ThrottleHelper.declare_throttle_without_args(this.load_feedback, 10);
+    private throttle_load_feedback = ThrottleHelper.declare_throttle_without_args(
+        'OseliaThreadMessageFeedbackComponent.throttle_load_feedback',
+        this.load_feedback, 10);
 
     @Watch('thread', { immediate: true })
     private async onchange_action_url_id() {

@@ -1,5 +1,4 @@
 import { cloneDeep } from "lodash";
-import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleTableController from "../../../shared/modules/DAO/ModuleTableController";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
@@ -10,18 +9,102 @@ import VarDataBaseVO from "../../../shared/modules/Var/vos/VarDataBaseVO";
 import VarPixelFieldConfVO from "../../../shared/modules/Var/vos/VarPixelFieldConfVO";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import MatroidIndexHandler from "../../../shared/tools/MatroidIndexHandler";
+import { field_names } from "../../../shared/tools/ObjectHandler";
 import { all_promises } from "../../../shared/tools/PromiseTools";
 import RangeHandler from "../../../shared/tools/RangeHandler";
+import ThreadHandler from "../../../shared/tools/ThreadHandler";
 import ConfigurationService from "../../env/ConfigurationService";
+import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import PixelVarDataController from "./PixelVarDataController";
 import VarsImportsHandler from "./VarsImportsHandler";
 import VarsServerController from "./VarsServerController";
-import DataSourceControllerBase from "./datasource/DataSourceControllerBase";
-import DataSourcesController from "./datasource/DataSourcesController";
-import { field_names } from "../../../shared/tools/ObjectHandler";
-import ThreadHandler from "../../../shared/tools/ThreadHandler";
 
 export default class VarsDeployDepsHandler {
+
+    public static async handle_deploy_deps(
+        node: VarDAGNode,
+        deps: { [index: string]: VarDataBaseVO },
+        nodes_to_unlock: VarDAGNode[],
+    ) {
+
+        const time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_deploy_deps', 'IN');
+        const deps_as_array = Object.values(deps);
+        StatsController.register_stat_QUANTITE('VarsDeployDepsHandler', 'handle_deploy_deps', 'deps', deps_as_array ? deps_as_array.length : 0);
+        const deps_ids_as_array = Object.keys(deps);
+
+        let start_time = Dates.now();
+        const real_start_time = start_time;
+
+        const promises = [];
+        for (const deps_i in deps_as_array) {
+
+            if ((!node.var_dag) || (!node.var_dag.nodes[node.var_data.index])) {
+                return;
+            }
+
+            const actual_time = Dates.now();
+
+            if (actual_time > (start_time + 60)) {
+                start_time = actual_time;
+                ConsoleHandler.warn('handle_deploy_deps:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+            }
+
+            const dep = deps_as_array[deps_i];
+            const dep_id = deps_ids_as_array[deps_i];
+
+            if (node.var_dag.nodes[dep.index]) {
+
+                if (ConfigurationService.node_configuration.debug_vars) {
+                    ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':already in tree, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
+                }
+
+                // Si on ne peut pas ajouter le lien, on doit attendre, sauf si le noeud n'est plus dans l'arbre entre temps
+                while (node.var_dag.nodes[dep.index] && !node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index])) {
+                    ConsoleHandler.throttle_log('handle_deploy_deps:dep already in tree:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
+                    await ThreadHandler.sleep(10, 'handle_deploy_deps:dep already in tree:add dep failed, waiting');
+                }
+                continue;
+            }
+
+            promises.push((async () => {
+
+                let dep_node = null;
+                let remaining_tries = 3;
+
+                do {
+                    dep_node = await VarDAGNode.getInstance(node.var_dag, dep, false/*, true*/);
+
+                    // On peut ne pas avoir de var_dag si le noeud a été supprimé/détaché de l'arbre entre temps.
+                    remaining_tries--;
+                } while (remaining_tries && ((!dep_node) || (!dep_node.var_dag)));
+
+                if (!dep_node || !dep_node.var_dag) {
+                    ConsoleHandler.error('handle_deploy_deps:dep:' + dep.index + ':no dep_node or no var_dag after 3 tries');
+                    return;
+                }
+
+                nodes_to_unlock.push(dep_node);
+
+                // dep_node.is_client_sub_dep = dep_node.is_client_sub_dep || node.is_client_sub || node.is_client_sub_dep;
+                // dep_node.is_server_sub_dep = dep_node.is_server_sub_dep || node.is_server_sub || node.is_server_sub_dep;
+
+                if (ConfigurationService.node_configuration.debug_vars) {
+                    ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':new node, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
+                }
+
+                // Si on ne peut pas ajouter le lien, on doit attendre
+                while (!node.addOutgoingDep(dep_id, dep_node)) {
+                    ConsoleHandler.throttle_log('handle_deploy_deps:dep new node:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
+                    await ThreadHandler.sleep(1, 'handle_deploy_deps:dep new node:add dep failed, waiting');
+                }
+            })());
+        }
+
+        await all_promises(promises);
+
+        StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'handle_deploy_deps', 'OUT', Dates.now_ms() - time_in);
+    }
 
     /**
      *  - On entame en vérifiant qu'on a testé le cas des imports parcellaires :
@@ -52,11 +135,13 @@ export default class VarsDeployDepsHandler {
      * ATTENTION FIXME : limit_to_aggregated_datas on doit faire très attention à ne pas créer des noeuds bizarres dans l'arbre du bgthread des vars
      *  juste pour afficher des deps dans la description... normalement les demandes clients arrivent pas sur ce thread, mais avec cette refonte
      *  il va falloir être vigilent sur l'impact sur cette option
+     * @returns {Promise<boolean>} true si tout a été fait sur le noeud, false si on doit charger les ds predeps encore et déployer les deps (donc on a passé le param limit_to_aggregated_datas, et on a pas résolu avec les données aggrégées)
      */
     public static async load_caches_and_imports_on_var_to_deploy(
         node: VarDAGNode,
-        limit_to_aggregated_datas: boolean = false
-    ) {
+        limit_to_aggregated_datas: boolean,
+        nodes_to_unlock: VarDAGNode[],
+    ): Promise<boolean> {
 
         const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'IN');
@@ -78,7 +163,7 @@ export default class VarsDeployDepsHandler {
              *  si on a des données parcellaires par définition on doit quand même déployer les deps
              */
 
-            await VarsImportsHandler.getInstance().load_imports_and_split_nodes(node);
+            await VarsImportsHandler.getInstance().load_imports_and_split_nodes(node, nodes_to_unlock);
 
             if (VarsServerController.has_valid_value(node.var_data)) {
 
@@ -92,7 +177,7 @@ export default class VarsDeployDepsHandler {
                 }
                 StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_has_valid_value');
                 StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_has_valid_value', Dates.now_ms() - time_in);
-                return;
+                return true;
             }
         }
 
@@ -101,33 +186,66 @@ export default class VarsDeployDepsHandler {
          */
         if (varconf.pixel_activated) {
 
-            if (await VarsDeployDepsHandler.handle_pixellisation(node, varconf, limit_to_aggregated_datas, DEBUG_VARS)) {
+            if (await VarsDeployDepsHandler.handle_pixellisation(node, varconf, limit_to_aggregated_datas, DEBUG_VARS, nodes_to_unlock)) {
                 StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_handle_pixellisation');
                 StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_handle_pixellisation', Dates.now_ms() - time_in);
-                return;
+                return true;
             }
-        }
-
-        if (limit_to_aggregated_datas) {
-
-            // Si on a des données aggrégées elles sont déjà ok à renvoyer si on ne veut que savoir les données aggrégées
-            return;
-        }
-
-        const deps: { [index: string]: VarDataBaseVO } = await VarsDeployDepsHandler.get_node_deps(node);
-
-        if (DEBUG_VARS) {
-            ConsoleHandler.log('deploy_deps:' + node.var_data.index + ':handle_deploy_deps:IN:');
-        }
-        if (deps) {
-            await VarsDeployDepsHandler.handle_deploy_deps(node, deps);
-        }
-        if (DEBUG_VARS) {
-            ConsoleHandler.log('deploy_deps:' + node.var_data.index + ':handle_deploy_deps:OUT:');
         }
 
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT');
         StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT', Dates.now_ms() - time_in);
+
+        // A priori on doit déployer les deps du coup, que ce soit un aggrégat ou pas, mais c'est maintenant géré en amont pour charger les datas en groupe
+
+        // Sauf les aggrégats ...
+        if (node.is_aggregator) {
+            const aggregated_deps: { [dep_id: string]: VarDataBaseVO } = {};
+            let index = 0;
+
+            const promises = [];
+            for (const i in node.aggregated_datas) {
+                const data = node.aggregated_datas[i];
+                aggregated_deps['AGG_' + (index++)] = data;
+
+                promises.push((async () => {
+                    nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, data, true/*, true*/));
+                })());
+            }
+            await all_promises(promises);
+
+            StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator');
+            StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator', Dates.now_ms() - time_in);
+
+            if (aggregated_deps) {
+                await VarsDeployDepsHandler.handle_deploy_deps(node, aggregated_deps, nodes_to_unlock);
+            }
+            return true;
+        }
+
+        return false;
+
+        // if (limit_to_aggregated_datas) {
+
+        //     // Si on a des données aggrégées elles sont déjà ok à renvoyer si on ne veut que savoir les données aggrégées
+        //     return true;
+        // }
+
+        // const deps: { [index: string]: VarDataBaseVO } = await VarsDeployDepsHandler.get_node_deps(node, nodes_to_unlock);
+
+        // if (DEBUG_VARS) {
+        //     ConsoleHandler.log('deploy_deps:' + node.var_data.index + ':handle_deploy_deps:IN:');
+        // }
+        // if (deps) {
+        //     await VarsDeployDepsHandler.handle_deploy_deps(node, deps, nodes_to_unlock);
+        // }
+        // if (DEBUG_VARS) {
+        //     ConsoleHandler.log('deploy_deps:' + node.var_data.index + ':handle_deploy_deps:OUT:');
+        // }
+
+        // StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT');
+        // StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT', Dates.now_ms() - time_in);
+        // return false;
     }
 
     /**
@@ -135,7 +253,13 @@ export default class VarsDeployDepsHandler {
      * sinon, on fait la fameuse requête de count + aggrégat et suivant que le count correspond bien au produit des cardinaux des dimensions
      *  pixellisées, on découpe en pixel, ou pas. (En chargeant du coup la liste des pixels)
      */
-    private static async handle_pixellisation(node: VarDAGNode, varconf: VarConfVO, limit_to_aggregated_datas: boolean, DEBUG_VARS: boolean): Promise<boolean> {
+    private static async handle_pixellisation(
+        node: VarDAGNode,
+        varconf: VarConfVO,
+        limit_to_aggregated_datas: boolean,
+        DEBUG_VARS: boolean,
+        nodes_to_unlock: VarDAGNode[],
+    ): Promise<boolean> {
 
         const prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
 
@@ -259,9 +383,9 @@ export default class VarsDeployDepsHandler {
         const can_not_use_known_pixels = (varconf.aggregator == VarConfVO.AVG_AGGREGATOR);
 
         if (can_not_use_known_pixels) {
-            await this.do_not_use_known_pixels(node, varconf, pixellised_fields_by_id, pixel_cache, prod_cardinaux, DEBUG_VARS);
+            await this.do_not_use_known_pixels(node, varconf, pixellised_fields_by_id, pixel_cache, prod_cardinaux, DEBUG_VARS, nodes_to_unlock);
         } else {
-            await this.use_known_pixels(node, varconf, pixellised_fields_by_id, pixel_cache, prod_cardinaux, DEBUG_VARS);
+            await this.use_known_pixels(node, varconf, pixellised_fields_by_id, pixel_cache, prod_cardinaux, DEBUG_VARS, nodes_to_unlock);
         }
 
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_pixellisation', 'OUT_PIXELED');
@@ -274,7 +398,8 @@ export default class VarsDeployDepsHandler {
         pixellised_fields_by_id: { [param_field_name: string]: VarPixelFieldConfVO },
         pixel_cache: { counter: number, aggregated_value: number },
         prod_cardinaux: number,
-        DEBUG_VARS: boolean
+        DEBUG_VARS: boolean,
+        nodes_to_unlock: VarDAGNode[],
     ) {
 
         const aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
@@ -293,7 +418,9 @@ export default class VarsDeployDepsHandler {
         const promises = [];
         for (const depi in aggregated_datas) {
             const aggregated_data = aggregated_datas[depi];
-            promises.push(VarDAGNode.getInstance(node.var_dag, aggregated_data, false/*, true*/));
+            promises.push((async () => {
+                nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, aggregated_data, false/*, true*/));
+            })());
         }
         await all_promises(promises);
 
@@ -311,7 +438,8 @@ export default class VarsDeployDepsHandler {
         pixellised_fields_by_id: { [param_field_name: string]: VarPixelFieldConfVO },
         pixel_cache: { counter: number, aggregated_value: number },
         prod_cardinaux: number,
-        DEBUG_VARS: boolean
+        DEBUG_VARS: boolean,
+        nodes_to_unlock: VarDAGNode[],
     ) {
 
         const known_pixels_query = query(varconf.var_data_vo_type);
@@ -384,7 +512,9 @@ export default class VarsDeployDepsHandler {
         const promises = [];
         for (const depi in aggregated_datas) {
             const aggregated_data = aggregated_datas[depi];
-            promises.push(VarDAGNode.getInstance(node.var_dag, aggregated_data, true/*, true*/));
+            promises.push((async () => {
+                nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, aggregated_data, true/*, true*/));
+            })());
         }
         await all_promises(promises);
 
@@ -462,129 +592,63 @@ export default class VarsDeployDepsHandler {
         aggregated_datas[cloned_var_data.index] = cloned_var_data;
     }
 
-    /**
-     *  - Pour identifier les deps :
-     *      - Chargement des ds predeps du noeud
-     *      - Chargement des deps
-     */
-    private static async get_node_deps(node: VarDAGNode): Promise<{ [dep_id: string]: VarDataBaseVO }> {
+    // /**
+    //  *  - Pour identifier les deps :
+    //  *      - Chargement des ds predeps du noeud
+    //  *      - Chargement des deps
+    //  */
+    // private static async get_node_deps(
+    //     node: VarDAGNode,
+    //     nodes_to_unlock: VarDAGNode[],
+    // ): Promise<{ [dep_id: string]: VarDataBaseVO }> {
 
-        const time_in = Dates.now_ms();
-        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'IN');
+    //     const time_in = Dates.now_ms();
+    //     StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'IN');
 
-        if (node.is_aggregator) {
-            const aggregated_deps: { [dep_id: string]: VarDataBaseVO } = {};
-            let index = 0;
+    //     if (node.is_aggregator) {
+    //         const aggregated_deps: { [dep_id: string]: VarDataBaseVO } = {};
+    //         let index = 0;
 
-            const promises = [];
-            for (const i in node.aggregated_datas) {
-                const data = node.aggregated_datas[i];
-                aggregated_deps['AGG_' + (index++)] = data;
+    //         const promises = [];
+    //         for (const i in node.aggregated_datas) {
+    //             const data = node.aggregated_datas[i];
+    //             aggregated_deps['AGG_' + (index++)] = data;
 
-                promises.push(VarDAGNode.getInstance(node.var_dag, data, true/*, true*/));
-            }
-            await all_promises(promises);
+    //             promises.push((async () => {
+    //                 nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, data, true/*, true*/));
+    //             })());
+    //         }
+    //         await all_promises(promises);
 
-            StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator');
-            StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator', Dates.now_ms() - time_in);
+    //         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator');
+    //         StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator', Dates.now_ms() - time_in);
 
-            return aggregated_deps;
-        }
+    //         return aggregated_deps;
+    //     }
 
-        const controller = VarsServerController.getVarControllerById(node.var_data.var_id);
+    //     const controller = VarsServerController.getVarControllerById(node.var_data.var_id);
 
-        /**
-         * On charge toutes les datas predeps
-         */
-        const predeps_dss: DataSourceControllerBase[] = controller.getDataSourcesPredepsDependencies();
-        if (predeps_dss && predeps_dss.length) {
+    //     /**
+    //      * On charge toutes les datas predeps
+    //      */
+    //     const predeps_dss: DataSourceControllerBase[] = controller.getDataSourcesPredepsDependencies();
+    //     if (predeps_dss && predeps_dss.length) {
 
-            // VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas_predep);
+    //         // VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas_predep);
 
-            await DataSourcesController.load_node_datas(predeps_dss, node);
+    //         await DataSourcesController.load_node_datas(predeps_dss, node);
 
-            // VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas_predeps);
-        }
+    //         // VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas_predeps);
+    //     }
 
-        /**
-         * On demande les deps
-         */
-        const res = controller.getParamDependencies(node);
+    //     /**
+    //      * On demande les deps
+    //      */
+    //     const res = controller.getParamDependencies(node);
 
-        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT');
-        StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT', Dates.now_ms() - time_in);
+    //     StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT');
+    //     StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT', Dates.now_ms() - time_in);
 
-        return res;
-    }
-
-    private static async handle_deploy_deps(
-        node: VarDAGNode,
-        deps: { [index: string]: VarDataBaseVO }) {
-
-        const time_in = Dates.now_ms();
-        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_deploy_deps', 'IN');
-        const deps_as_array = Object.values(deps);
-        StatsController.register_stat_QUANTITE('VarsDeployDepsHandler', 'handle_deploy_deps', 'deps', deps_as_array ? deps_as_array.length : 0);
-        const deps_ids_as_array = Object.keys(deps);
-
-        let start_time = Dates.now();
-        const real_start_time = start_time;
-
-        const promises = [];
-        for (const deps_i in deps_as_array) {
-
-            if ((!node.var_dag) || (!node.var_dag.nodes[node.var_data.index])) {
-                return;
-            }
-
-            const actual_time = Dates.now();
-
-            if (actual_time > (start_time + 60)) {
-                start_time = actual_time;
-                ConsoleHandler.warn('handle_deploy_deps:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
-            }
-
-            const dep = deps_as_array[deps_i];
-            const dep_id = deps_ids_as_array[deps_i];
-
-            if (node.var_dag.nodes[dep.index]) {
-
-                if (ConfigurationService.node_configuration.debug_vars) {
-                    ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':already in tree, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
-                }
-
-                // Si on ne peut pas ajouter le lien, on doit attendre
-                while (!node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index])) {
-                    ConsoleHandler.throttle_log('handle_deploy_deps:dep already in tree:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
-                    await ThreadHandler.sleep(1, 'handle_deploy_deps:dep already in tree:add dep failed, waiting');
-                }
-                continue;
-            }
-
-            promises.push((async () => {
-
-                const dep_node = await VarDAGNode.getInstance(node.var_dag, dep, false/*, true*/);
-                if (!dep_node) {
-                    return;
-                }
-
-                // dep_node.is_client_sub_dep = dep_node.is_client_sub_dep || node.is_client_sub || node.is_client_sub_dep;
-                // dep_node.is_server_sub_dep = dep_node.is_server_sub_dep || node.is_server_sub || node.is_server_sub_dep;
-
-                if (ConfigurationService.node_configuration.debug_vars) {
-                    ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':new node, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
-                }
-
-                // Si on ne peut pas ajouter le lien, on doit attendre
-                while (!node.addOutgoingDep(dep_id, dep_node)) {
-                    ConsoleHandler.throttle_log('handle_deploy_deps:dep new node:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
-                    await ThreadHandler.sleep(1, 'handle_deploy_deps:dep new node:add dep failed, waiting');
-                }
-            })());
-        }
-
-        await all_promises(promises);
-
-        StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'handle_deploy_deps', 'OUT', Dates.now_ms() - time_in);
-    }
+    //     return res;
+    // }
 }

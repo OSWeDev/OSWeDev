@@ -13,7 +13,7 @@ import FakeDataVO from './fakes/vos/FakeDataVO';
 import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
 import ConfigurationService from '../../../src/server/env/ConfigurationService';
 
-ConsoleHandler.init();
+ConsoleHandler.init('test');
 ConfigurationService.setEnvParams({});
 ConfigurationService.IS_UNIT_TEST_MODE = true;
 

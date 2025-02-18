@@ -88,8 +88,12 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
         typographer: true,
     };
     private oselia_certitude: number = null;
-    private throttle_load_thread_message = ThrottleHelper.declare_throttle_without_args(this.load_thread_message.bind(this), 10);
-    private throttle_load_thread_message_attachments = ThrottleHelper.declare_throttle_without_args(this.load_thread_message_attachments.bind(this), 10);
+    private throttle_load_thread_message = ThrottleHelper.declare_throttle_without_args(
+        'OseliaThreadMessageComponent.throttle_load_thread_message',
+        this.load_thread_message.bind(this), 10);
+    private throttle_load_thread_message_attachments = ThrottleHelper.declare_throttle_without_args(
+        'OseliaThreadMessageComponent.throttle_load_thread_message_attachments',
+        this.load_thread_message_attachments.bind(this), 10);
 
     get is_default_avatar() {
         return (!this.avatar_url) || (this.avatar_url == ModuleAccessPolicy.AVATAR_DEFAULT_URL);

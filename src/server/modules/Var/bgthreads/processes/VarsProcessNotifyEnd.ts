@@ -9,6 +9,21 @@ import VarsProcessBase from './VarsProcessBase';
 
 export default class VarsProcessNotifyEnd extends VarsProcessBase {
 
+
+    private static instance: VarsProcessNotifyEnd = null;
+
+    private constructor() {
+        super(
+            'VarsProcessNotifyEnd',
+            VarDAGNode.TAG_4_COMPUTED,
+            VarDAGNode.TAG_5_NOTIFYING_END,
+            VarDAGNode.TAG_5_NOTIFIED_END,
+            // 2,
+            true,
+            ConfigurationService.node_configuration.max_varsprocessnotifyend,
+        );
+    }
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!VarsProcessNotifyEnd.instance) {
@@ -17,20 +32,14 @@ export default class VarsProcessNotifyEnd extends VarsProcessBase {
         return VarsProcessNotifyEnd.instance;
     }
 
-    private static instance: VarsProcessNotifyEnd = null;
-
-    private constructor() {
-        super('VarsProcessNotifyEnd', VarDAGNode.TAG_4_COMPUTED, VarDAGNode.TAG_5_NOTIFYING_END, VarDAGNode.TAG_5_NOTIFIED_END, 2, true);
-    }
-
-    protected worker_sync(node: VarDAGNode): boolean {
+    protected worker_sync(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): boolean {
         return false;
     }
-    protected async worker_async(node: VarDAGNode): Promise<boolean> {
+    protected async worker_async(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
         return false;
     }
 
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
 
         const notifVardatasParams: NotifVardatasParam[] = [];
         const vardatas: VarDataBaseVO[] = [];
@@ -48,8 +57,8 @@ export default class VarsProcessNotifyEnd extends VarsProcessBase {
         }
 
         if (!ConfigurationService.IS_UNIT_TEST_MODE) {
-            await VarsTabsSubsController.notify_vardatas(notifVardatasParams);
-            await VarsServerCallBackSubsController.notify_vardatas(vardatas);
+            VarsTabsSubsController.notify_vardatas(notifVardatasParams);
+            VarsServerCallBackSubsController.notify_vardatas(vardatas);
         }
         return true;
     }

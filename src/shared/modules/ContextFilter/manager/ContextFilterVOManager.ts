@@ -153,9 +153,15 @@ export default class ContextFilterVOManager {
         active_field_filters: FieldFiltersVO
     ): ContextFilterVO[] {
         const context_filters: ContextFilterVO[] = [];
-
+        if (!ObjectHandler.hasAtLeastOneAttribute(active_field_filters)) {
+            return context_filters;
+        }
         for (const key_i in active_field_filters) {
             const field_filters = active_field_filters[key_i];
+
+            if (!ObjectHandler.hasAtLeastOneAttribute(field_filters)) {
+                return context_filters;
+            }
 
             for (const key_j in field_filters) {
                 let context_filter = field_filters[key_j];

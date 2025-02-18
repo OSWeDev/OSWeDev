@@ -13,6 +13,7 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import APIBGThread from '../API/bgthreads/APIBGThread';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 
 const session = expressSession as any;
 const Store = session.Store || session.session.Store;
@@ -29,14 +30,16 @@ export default class ExpressDBSessionsServerController extends Store {
      * On ajoute un cache de session pour éviter de faire des requêtes SQL inutiles
      *  (on ne fait pas de requête SQL si on a déjà la session en cache et qu'elle est valide)
      */
+    @StatThisMapKeys('ExpressDBSessionsServerController')
     private static session_cache: { [session_id: string]: ExpressSessionVO } = {};
+    @StatThisMapKeys('ExpressDBSessionsServerController')
     private static parsed_session_cache: { [session_id: string]: IServerUserSession } = {};
 
     public constructor(options) {
         super(options);
     }
 
-    public static getInstance(options): ExpressDBSessionsServerController {
+    public static getInstance(options?): ExpressDBSessionsServerController {
         if (!ExpressDBSessionsServerController.instance) {
             ExpressDBSessionsServerController.instance = new ExpressDBSessionsServerController(options);
         }
@@ -49,7 +52,7 @@ export default class ExpressDBSessionsServerController extends Store {
      * @param session_id
      * @returns
      */
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name, true)
+    @RunsOnBgThread(APIBGThread.BGTHREAD_name, ExpressDBSessionsServerController.getInstance, true)
     private async get_session_from_db(session_id: string): Promise<ExpressSessionVO> {
         return query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq(field_names<ExpressSessionVO>().session_id, session_id).exec_as_server().select_vo<ExpressSessionVO>();
     }
@@ -61,9 +64,9 @@ export default class ExpressDBSessionsServerController extends Store {
      * @param session_id
      * @returns
      */
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name, true)
-    private async create_session_in_db(session: ExpressSessionVO): Promise<InsertOrDeleteQueryResult> {
-        return ModuleDAOServer.instance.insertOrUpdateVO_as_server(session);
+    @RunsOnBgThread(APIBGThread.BGTHREAD_name, ExpressDBSessionsServerController.getInstance, true)
+    private async create_session_in_db(sessionvo: ExpressSessionVO): Promise<InsertOrDeleteQueryResult> {
+        return ModuleDAOServer.instance.insertOrUpdateVO_as_server(sessionvo);
     }
 
     /**
@@ -72,10 +75,10 @@ export default class ExpressDBSessionsServerController extends Store {
      * @param session_id
      * @returns
      */
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name, true)
-    private async update_session_in_db(session: ExpressSessionVO): Promise<InsertOrDeleteQueryResult[]> {
-        return query(ExpressSessionVO.API_TYPE_ID).filter_by_id(session.id).exec_as_server().update_vos<ExpressSessionVO>(
-            ModuleTableController.translate_vos_to_api(session, false)
+    @RunsOnBgThread(APIBGThread.BGTHREAD_name, ExpressDBSessionsServerController.getInstance, true)
+    private async update_session_in_db(sessionvo: ExpressSessionVO): Promise<InsertOrDeleteQueryResult[]> {
+        return query(ExpressSessionVO.API_TYPE_ID).filter_by_id(sessionvo.id).exec_as_server().update_vos<ExpressSessionVO>(
+            ModuleTableController.translate_vos_to_api(sessionvo, false)
         );
     }
 
@@ -85,7 +88,7 @@ export default class ExpressDBSessionsServerController extends Store {
      * @param session_id
      * @returns
      */
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name, true)
+    @RunsOnBgThread(APIBGThread.BGTHREAD_name, ExpressDBSessionsServerController.getInstance, true)
     private async delete_session_in_db(session_id: number): Promise<InsertOrDeleteQueryResult[]> {
         return query(ExpressSessionVO.API_TYPE_ID).filter_by_id(session_id).exec_as_server().delete_vos();
     }
@@ -176,8 +179,8 @@ export default class ExpressDBSessionsServerController extends Store {
                     cache_sess_obj,
                     [
                         reflect<IServerUserSession>().id, // On ne compare pas l'id car celui issu de la bdd ou préparé pour ne peut pas avoir le même
-                        reflect<IServerUserSession>().last_check_blocked_or_expired,
-                        reflect<IServerUserSession>().last_check_session_validity,
+                        // reflect<IServerUserSession>().last_check_blocked_or_expired, // Si on met pas à jour les dates de check, on check tout le temps....
+                        // reflect<IServerUserSession>().last_check_session_validity, // Si on met pas à jour les dates de check, on check tout le temps....
                         reflect<IServerUserSession>().last_load_date_unix,
                         reflect<IServerUserSession>().regenerate, // On ne compare pas les fonctions
                         reflect<IServerUserSession>().reload, // On ne compare pas les fonctions

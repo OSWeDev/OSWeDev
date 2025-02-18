@@ -18,10 +18,10 @@ Draggablewindowcomponent.alerts_list_component(
 )
     .slot_header(slot='icons')
         i.fa-solid.fa-times.pull-right(aria-hidden="true" @click='close')
+        span.title.pull-left {{ label(title_code_trad) }}
 
     .alerts_list_container.col-sm-12
         .alerts_list_header
-            h1 {{ label(title_code_trad) }}
             p(v-if="!!desc_code_trad") {{ label(desc_code_trad) }}
 
         .alerts_list_content

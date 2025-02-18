@@ -109,7 +109,9 @@ export default class VarDataRefComponent extends VueComponentBase {
     private can_explain_var: boolean = false;
 
     private var_data: VarDataValueResVO = null;
-    private throttled_var_data_updater = ThrottleHelper.declare_throttle_without_args(this.var_data_updater.bind(this), 200, { leading: true, trailing: true });
+    private throttled_var_data_updater = ThrottleHelper.declare_throttle_without_args(
+        'VarDataRefComponent.throttled_var_data_updater',
+        this.var_data_updater.bind(this), 200);
 
     // Pour éviter de rentrer en conflit avec le clic
     private debounced_on_cancel_input = debounce(this.on_cancel_input, 100);
@@ -122,8 +124,12 @@ export default class VarDataRefComponent extends VueComponentBase {
     private currently_registered_param: VarDataBaseVO = null;
     private semaphore_unregister: boolean = false;
     private semaphore_register: boolean = false;
-    private throttled_unregister = ThrottleHelper.declare_throttle_without_args(this.unregister.bind(this), 200, { leading: true, trailing: true });
-    private throttled_register = ThrottleHelper.declare_throttle_without_args(this.register.bind(this), 200, { leading: true, trailing: true });
+    private throttled_unregister = ThrottleHelper.declare_throttle_without_args(
+        'VarDataRefComponent.throttled_unregister',
+        this.unregister.bind(this), 200);
+    private throttled_register = ThrottleHelper.declare_throttle_without_args(
+        'VarDataRefComponent.throttled_register',
+        this.register.bind(this), 200);
 
     private var_data_value_is_imported: boolean = false;
     private var_data_value_is_denied: boolean = false;
@@ -725,13 +731,6 @@ export default class VarDataRefComponent extends VueComponentBase {
             return;
         }
 
-
-        //vvvvvv! DEBUG DELETE ME !vvvvvv
-        if (var_param && var_param.index && var_param.index.startsWith('4W|') && var_param.index.endsWith('|1&3|P5@A;&PR:qo')) {
-            ConsoleHandler.warn('VarDataRefComponent:register:' + var_param.index);
-        }
-        //^^^^^^! DEBUG DELETE ME !^^^^^^
-
         // De manière générale, si on est destroyed, on ne fait rien
         if (this.been_destroyed) {
             this.semaphore_register = false;
@@ -777,12 +776,6 @@ export default class VarDataRefComponent extends VueComponentBase {
 
         const currently_registered_param = this.currently_registered_param;
         this.currently_registered_param = null;
-
-        //vvvvvv! DEBUG DELETE ME !vvvvvv
-        if (currently_registered_param && currently_registered_param.index && currently_registered_param.index.startsWith('4W|') && currently_registered_param.index.endsWith('|1&3|P5@A;&PR:qo')) {
-            ConsoleHandler.warn('VarDataRefComponent:unregister:' + currently_registered_param.index);
-        }
-        //^^^^^^! DEBUG DELETE ME !^^^^^^
 
         VarsClientController.getInstance().unRegisterParams(
             [currently_registered_param],
@@ -830,13 +823,10 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     private set_is_being_updated() {
 
-        //vvvvvv! DEBUG DELETE ME !vvvvvv
-        if (this.var_param && this.var_data && this.var_param.index && this.var_param.index.startsWith('4W|') && this.var_param.index.endsWith('|1&3|P5@A;&PR:qo')) {
-            ConsoleHandler.log('set_is_being_updated:' + this.var_param.index + ':' + this.var_data.value + ':' + this.var_data.value_ts + ':' + this.var_data.value_type + ':' + this.var_data.is_computing);
+        const new_is_being_updated = (!this.var_data) || (typeof this.var_data.value === 'undefined') || (this.var_data.is_computing);
+        if (this.is_being_updated != new_is_being_updated) {
+            this.is_being_updated = new_is_being_updated;
         }
-        //^^^^^^! DEBUG DELETE ME !^^^^^^
-
-        this.is_being_updated = (!this.var_data) || (typeof this.var_data.value === 'undefined') || (this.var_data.is_computing);
     }
 
     private set_var_data_value() {

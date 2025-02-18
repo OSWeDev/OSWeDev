@@ -1,5 +1,5 @@
 import pg_promise, { IDatabase } from 'pg-promise';
-import { parentPort, workerData } from 'worker_threads';
+import { parentPort, threadId, workerData } from 'worker_threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import EventsController from '../../../shared/modules/Eventify/EventsController';
 import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
@@ -33,6 +33,7 @@ import ForkedTasksController from './ForkedTasksController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
 import StackContextWrapper from '../../../shared/tools/StackContextWrapper';
+import AsyncHookPromiseWatchController from '../Stats/AsyncHookPromiseWatchController';
 
 export default abstract class ForkedProcessWrapperBase {
 
@@ -68,7 +69,7 @@ export default abstract class ForkedProcessWrapperBase {
         DBDisconnectionManager.instance = new DBDisconnectionServerHandler();
         EventsController.hook_stack_incompatible = ConfigurationService.node_configuration.activate_incompatible_stack_context ? StackContext.context_incompatible : null;
 
-        ConsoleHandler.init();
+        ConsoleHandler.init('thread ' + threadId);
         FileLoggerHandler.getInstance().prepare().then(() => {
             ConsoleHandler.logger_handler = FileLoggerHandler.getInstance();
             ConsoleHandler.log("Forked Process starting");
@@ -115,7 +116,7 @@ export default abstract class ForkedProcessWrapperBase {
         thread_name += Object.keys(BGThreadServerDataManager.valid_bgthreads_names).join('_').replace(/ \./g, '_');
         StatsController.THREAD_NAME = thread_name;
         StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
-        StatsController.getInstance().UNSTACK_THROTTLE = 60000;
+        StatsController.getInstance().UNSTACK_THROTTLE = 10000;
         StatsController.new_stats_handler = StatsServerController.new_stats_handler;
         StatsController.register_stat_COMPTEUR('ServerBase', 'START', '-');
     }
@@ -164,6 +165,8 @@ export default abstract class ForkedProcessWrapperBase {
 
         // Derniers chargements
         await this.modulesService.late_server_modules_configurations(false);
+
+        AsyncHookPromiseWatchController.init();
 
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');

@@ -1,10 +1,24 @@
-import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
-import CurrentVarDAGHolder from '../../CurrentVarDAGHolder';
+import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import VarsProcessBase from './VarsProcessBase';
 
 export default class VarsProcessDagCleaner extends VarsProcessBase {
+
+    private static instance: VarsProcessDagCleaner = null;
+
+    // Cas particulier de la suppression de noeud, si le noeud existe encore en post traitement, on doit le tagguer à supprimer pour le prochain tour
+    private constructor() {
+        super(
+            'VarsProcessDagCleaner',
+            VarDAGNode.TAG_7_IS_DELETABLE,
+            VarDAGNode.TAG_7_DELETING,
+            VarDAGNode.TAG_6_UPDATED_IN_DB,
+            // 2,
+            true,
+            ConfigurationService.node_configuration.max_varsprocessdagcleaner,
+        );
+    }
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -14,14 +28,8 @@ export default class VarsProcessDagCleaner extends VarsProcessBase {
         return VarsProcessDagCleaner.instance;
     }
 
-    private static instance: VarsProcessDagCleaner = null;
 
-    // Cas particulier de la suppression de noeud, si le noeud existe encore en post traitement, on doit le tagguer à supprimer pour le prochain tour
-    private constructor() {
-        super('VarsProcessDagCleaner', VarDAGNode.TAG_7_IS_DELETABLE, VarDAGNode.TAG_7_DELETING, VarDAGNode.TAG_6_UPDATED_IN_DB, 2, true);
-    }
-
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
         // //FIXME DELETE
         // this.check_dag();
 
@@ -60,11 +68,11 @@ export default class VarsProcessDagCleaner extends VarsProcessBase {
         return true;
     }
 
-    protected worker_sync(node: VarDAGNode): boolean {
+    protected worker_sync(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): boolean {
         return false;
     }
 
-    protected async worker_async(node: VarDAGNode): Promise<boolean> {
+    protected async worker_async(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
         return false;
     }
 }

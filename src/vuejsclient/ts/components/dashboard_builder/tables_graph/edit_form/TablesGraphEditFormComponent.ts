@@ -106,7 +106,7 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
                 discarded_field_paths[vo_type][field_id] = true;
             }
         }
-        this.$emit('update_discarded_field_paths', edges);
+        this.$emit('update_discarded_field_paths', discarded_field_paths);
     }
 
     private async confirm_delete_cell() {

@@ -1,14 +1,27 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import ModuleEnvParam from '../../../shared/modules/EnvParam/ModuleEnvParam';
 import EnvParamsVO from '../../../shared/modules/EnvParam/vos/EnvParamsVO';
+import EventsController from '../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import EnvHandler from '../../../shared/tools/EnvHandler';
 import ConfigurationService from '../../env/ConfigurationService';
+import ForkMessageController from '../Fork/ForkMessageController';
 import ModuleServerBase from '../ModuleServerBase';
+import SetEnvParamThreadMessage from './vos/SetEnvParamThreadMessage';
 
 export default class ModuleEnvParamServer extends ModuleServerBase {
+
+    public static UPDATE_ENVPARAM_EVENT_BASE_NAME: string = 'ModuleEnvParamServer.UPDATE_ENVPARAM.';
+
+    private static instance: ModuleEnvParamServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleEnvParam.getInstance().name);
+    }
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -18,18 +31,13 @@ export default class ModuleEnvParamServer extends ModuleServerBase {
         return ModuleEnvParamServer.instance;
     }
 
-    private static instance: ModuleEnvParamServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleEnvParam.getInstance().name);
-    }
-
     // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> { }
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        ForkMessageController.register_message_handler(SetEnvParamThreadMessage.FORK_MESSAGE_TYPE, this.set_env_param.bind(this));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification du paramètre..."
@@ -60,32 +68,40 @@ export default class ModuleEnvParamServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleEnvParam.APINAME_get_env_params, this.get_env_params.bind(this));
     }
 
+    public set_env_param(msg: SetEnvParamThreadMessage): void {
+        ConfigurationService.node_configuration[msg.message_content.env_param_name] = msg.message_content.env_param_value;
+        EnvHandler[msg.message_content.env_param_name] = msg.message_content.env_param_value;
+        EventsController.emit_event(EventifyEventInstanceVO.new_event(
+            ModuleEnvParamServer.UPDATE_ENVPARAM_EVENT_BASE_NAME + msg.message_content.env_param_name, msg.message_content.env_param_value));
+    }
+
     public async set_env_param_string(code: string, value: string): Promise<boolean> {
-        ConfigurationService.node_configuration[code] = value;
-        EnvHandler[code] = value;
+        this.broadcast_set_env_param(code, value);
         return true;
     }
 
     public async set_env_param_boolean(code: string, value: boolean): Promise<boolean> {
-        ConfigurationService.node_configuration[code] = value;
-        EnvHandler[code] = value;
+        this.broadcast_set_env_param(code, value);
         return true;
     }
 
     public async set_env_param_number(code: string, value: number): Promise<boolean> {
-        ConfigurationService.node_configuration[code] = value;
-        EnvHandler[code] = value;
+        this.broadcast_set_env_param(code, value);
         return true;
     }
 
     public async get_env_params(): Promise<EnvParamsVO> {
         const res: EnvParamsVO = new EnvParamsVO();
 
-        const fields = ModuleTableController.module_tables_by_vo_type[EnvParamsVO.API_TYPE_ID].get_fields();
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[EnvParamsVO.API_TYPE_ID];
         for (const i in fields) {
             const field = fields[i];
             res[field.field_id] = ConfigurationService.node_configuration[field.field_id];
         }
         return res;
+    }
+
+    private async broadcast_set_env_param(code: string, value: boolean | string | number) {
+        await ForkMessageController.broadcast(new SetEnvParamThreadMessage({ env_param_name: code, env_param_value: value }));
     }
 }

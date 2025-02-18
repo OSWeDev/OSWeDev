@@ -18,6 +18,21 @@ import ParamsServerController from '../../../Params/ParamsServerController';
 
 export default class VarsProcessUpdateDB extends VarsProcessBase {
 
+
+    private static instance: VarsProcessUpdateDB = null;
+
+    private constructor() {
+        super(
+            'VarsProcessUpdateDB',
+            VarDAGNode.TAG_5_NOTIFIED_END,
+            VarDAGNode.TAG_6_UPDATING_IN_DB,
+            VarDAGNode.TAG_6_UPDATED_IN_DB,
+            // 2,
+            true,
+            ConfigurationService.node_configuration.max_varsprocessupdatedb,
+        );
+    }
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!VarsProcessUpdateDB.instance) {
@@ -26,20 +41,14 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
         return VarsProcessUpdateDB.instance;
     }
 
-    private static instance: VarsProcessUpdateDB = null;
-
-    private constructor() {
-        super('VarsProcessUpdateDB', VarDAGNode.TAG_5_NOTIFIED_END, VarDAGNode.TAG_6_UPDATING_IN_DB, VarDAGNode.TAG_6_UPDATED_IN_DB, 2, true);
-    }
-
-    protected worker_sync(node: VarDAGNode): boolean {
+    protected worker_sync(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): boolean {
         return false;
     }
-    protected async worker_async(node: VarDAGNode): Promise<boolean> {
+    protected async worker_async(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
         return false;
     }
 
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
 
         let nodes_by_type_and_index: { [type: string]: { [index: string]: VarDAGNode } } = {};
         let printed_tree: boolean = false;
@@ -125,6 +134,9 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
     /**
      * Check la taille des champs de type ranges au format texte pour parer au bug de postgresql 13 :
      *  'exceeds btree version 4 maximum 2704 for index'
+     * Mise à jour le 28/01/2025 : j(JNE)'ai fait des recherches avec GPT sur les solutions. A priori pour le moment la seule solution est de développer notre propre extension postgresql
+     * pour être compatible avec les tableaux de ranges. Comme les tableaux sont normalisés dans oswedev, on doit pouvoir le faire et le faire bien. Mais c'est un boulot monstre
+     * et surtout je ne sais pas si on pourra intégrer nos extensions persos sur Azure... donc à bien réfléchir avant de se lancer là dedans
      * @param vardatas
      * @returns
      */

@@ -2,14 +2,17 @@
 
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
+import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import ModuleFeedback from '../../../../shared/modules/Feedback/ModuleFeedback';
 import FeedbackVO from '../../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import VueAppController from '../../../VueAppController';
-import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import ConsoleLog from '../console_logger/ConsoleLog';
 import ConsoleLogLogger from '../console_logger/ConsoleLogLogger';
 import FileComponent from '../file/FileComponent';
@@ -17,7 +20,6 @@ import ScreenshotComponent from '../screenshot/ScreenshotComponent';
 import VueComponentBase from '../VueComponentBase';
 import './FeedbackHandlerComponent.scss';
 import { ModuleFeedbackAction, ModuleFeedbackGetter } from './store/FeedbackStore';
-const { parse, stringify } = require('flatted/cjs');
 
 @Component({
     template: require('./FeedbackHandlerComponent.pug'),
@@ -58,11 +60,14 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
     private is_already_sending_feedback: boolean = false;
 
+    private file_path_field: DatatableField<any, any> = null;
+
     private mounted() {
         this.reload();
     }
 
     private reload() {
+        this.file_path_field = SimpleDatatableFieldVO.createNew(field_names<FileVO>().path).setModuleTable(ModuleTableController.module_tables_by_vo_type[FileVO.API_TYPE_ID]);
         this.tmp_user = VueAppController.getInstance().data_user ? VueAppController.getInstance().data_user.name : null;
         this.tmp_email = VueAppController.getInstance().data_user ? VueAppController.getInstance().data_user.email : null;
         this.tmp_phone = VueAppController.getInstance().data_user ? VueAppController.getInstance().data_user.phone : null;

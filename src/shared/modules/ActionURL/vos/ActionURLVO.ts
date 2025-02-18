@@ -59,7 +59,7 @@ export default class ActionURLVO implements IDistantVOBase {
     public action_callback_module_name: string;
     public action_callback_function_name: string;
 
-    public params_json: string;
+    public params: unknown;
 
     public action_remaining_counter: number;
 

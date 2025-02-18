@@ -60,7 +60,9 @@ export default class AlertComponent extends VueComponentBase {
     @Prop({ default: () => ({}) })
     private title_translation_params: { [param_name: string]: any };
 
-    private throttle_update = ThrottleHelper.declare_throttle_without_args(this.update, 100);
+    private throttle_update = ThrottleHelper.declare_throttle_without_args(
+        'AlertComponent.throttle_update',
+        this.update, 100);
     private v_pop_id: string = 'AlertComponent__' + (AlertComponent.VPOP_UID++).toString();
 
 

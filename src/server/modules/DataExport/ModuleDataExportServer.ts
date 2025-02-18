@@ -433,13 +433,18 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         const api_type_id = context_query.base_api_type_id;
         const columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO } = {};
+        let nb_vars_columns = 0;
 
         for (const i in columns) {
             const column = columns[i];
             columns_by_field_id[column.datatable_field_uid] = column;
+
+            if (column.is_var) {
+                nb_vars_columns++;
+            }
         }
 
-        const ordered_promise_pipeline = new OrderedPromisePipeline(100, "do_exportContextQueryToXLSX_contextuid");
+        const ordered_promise_pipeline = new OrderedPromisePipeline(Math.max(Math.round(ConfigurationService.node_configuration.max_pool / (nb_vars_columns * 2)), 2), "do_exportContextQueryToXLSX_contextuid");
         const xlsx_datas = [];
         const has_query_limit = !!context_query.query_limit;
         const limit = has_query_limit ? context_query.query_limit : 25;
@@ -786,7 +791,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 datas.push(vo);
             }
         }
-        const fields = modultable.get_fields();
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[modultable.vo_type];
         for (const i in fields) {
             const field = fields[i];
             ordered_column_list.push(field.field_id);
@@ -1315,7 +1320,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         const res = {};
-        const fields = module_table.get_fields();
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[module_table.vo_type];
 
         if (!fields) {
             return cloneDeep(e);
@@ -1437,7 +1442,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
                 if (field instanceof DatatableField) {
-                    dest_vo[dest_field_id] = field.dataToReadIHM(src_vo[src_field_id], src_vo);
+                    dest_vo[dest_field_id] = await field.dataToReadIHM(src_vo[src_field_id], src_vo);
                 } else {
                     dest_vo[dest_field_id] = Dates.format_segment(
                         src_vo[src_field_id],
@@ -1450,7 +1455,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                 if (field instanceof DatatableField) {
-                    dest_vo[dest_field_id] = field.dataToReadIHM(src_vo[src_field_id], src_vo);
+                    dest_vo[dest_field_id] = await field.dataToReadIHM(src_vo[src_field_id], src_vo);
                 } else if ((src_vo[src_field_id] === null) || (typeof src_vo[src_field_id] === 'undefined')) {
                     dest_vo[dest_field_id] = src_vo[src_field_id];
                 } else {

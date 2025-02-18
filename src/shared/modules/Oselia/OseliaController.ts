@@ -10,6 +10,8 @@ import OseliaChatVO from './vos/OseliaChatVO';
 
 export default class OseliaController {
 
+    public static PARAM_NAME_UNBLOCK_REALTIME_API: string = 'OseliaController.unblock_realtime_api';
+
     public static async get_referrer_id(url: string): Promise<number> {
         const vos: OseliaChatVO[] = await query(OseliaChatVO.API_TYPE_ID).select_vos<OseliaChatVO>()
         for (const i in vos) {

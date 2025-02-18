@@ -90,11 +90,15 @@ export default class VarMixedChartComponent extends VueComponentBase {
     private current_mixed_charts_data: any = null;
     private current_mixed_charts_options: any = null;
 
-    private throttled_update_chart_js = ThrottleHelper.declare_throttle_without_args(this.update_chart_js, 500, { leading: false, trailing: true });
+    private throttled_update_chart_js = ThrottleHelper.declare_throttle_without_args(
+        'VarMixedChartComponent.throttled_update_chart_js',
+        this.update_chart_js, 500, false);
     private debounced_render_or_update_chart_js = debounce(this.render_or_update_chart_js, 100);
 
     private charts_var_datas: { [chart_index: string]: { [index: string]: VarDataValueResVO } } = {};
-    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(this.var_datas_updater.bind(this), 100, { leading: false, trailing: true });
+    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(
+        'VarMixedChartComponent.throttled_var_datas_updater',
+        this.var_datas_updater.bind(this), 100, false);
     private temp_current_dataset_descriptor: VarMixedChartDataSetDescriptor = null;
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
@@ -516,6 +520,9 @@ export default class VarMixedChartComponent extends VueComponentBase {
                     anchor: 'end',
                     clamp: true,
                     formatter: this.get_var_ticks_callback(chart_var_dataset_descriptor),
+                    font: {
+                        size: chart_var_dataset_descriptor.value_label_size
+                    }
                 }
             };
             if (yAxisID != null) {
@@ -533,7 +540,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
         if (current_var.filters_types == 'none') {
             return value;
         }
-        if(this.hide_values) {
+        if (this.hide_values) {
             if (this.hide_values[index.dataIndex] && this.hide_values[index.dataIndex].hide) {
                 return '';
             }

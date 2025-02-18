@@ -34,14 +34,6 @@ export default class ModuleStats extends Module {
 
     public static APINAME_register_client_stats: string = "register_client_stats";
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleStats {
-        if (!ModuleStats.instance) {
-            ModuleStats.instance = new ModuleStats();
-        }
-        return ModuleStats.instance;
-    }
-
     private static instance: ModuleStats = null;
 
     public register_client_stats: (
@@ -53,6 +45,14 @@ export default class ModuleStats extends Module {
 
         super("stats", ModuleStats.MODULE_NAME);
         this.forceActivationOnInstallation();
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleStats {
+        if (!ModuleStats.instance) {
+            ModuleStats.instance = new ModuleStats();
+        }
+        return ModuleStats.instance;
     }
 
 
@@ -295,7 +295,7 @@ export default class ModuleStats extends Module {
 
     /* istanbul ignore next: nothing to test here */
     private async initializeasync() {
-        ModuleParams.getInstance().getParamValueAsInt(StatsController.UNSTACK_THROTTLE_PARAM_NAME, 60000, 180000).then((res: number) => {
+        ModuleParams.getInstance().getParamValueAsInt(StatsController.UNSTACK_THROTTLE_PARAM_NAME, 10000, 180000).then((res: number) => {
             StatsController.getInstance().UNSTACK_THROTTLE = res;
         });
     }

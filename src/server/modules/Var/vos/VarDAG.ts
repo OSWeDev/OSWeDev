@@ -1,4 +1,7 @@
+import EventsController from "../../../../shared/modules/Eventify/EventsController";
 import DAG from "../../../../shared/modules/Var/graph/dagbase/DAG";
+import VarsComputationHole from "../bgthreads/processes/VarsComputationHole";
+import VarsProcessBase from "../bgthreads/processes/VarsProcessBase";
 import VarDAGNode from "./VarDAGNode";
 
 export default class VarDAG extends DAG<VarDAGNode> {

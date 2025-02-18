@@ -1,11 +1,13 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ModuleFile from '../../../../shared/modules/File/ModuleFile';
-import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
+import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
+import FileVO from '../../../../shared/modules/File/vos/FileVO';
 
 @Component({
     template: require('./FileComponent.pug'),
@@ -25,7 +27,10 @@ export default class FileComponent extends VueComponentBase {
     protected readonly: boolean;
 
     @Prop({ default: null })
-    protected filevo: FileVO;
+    protected filevo: IDistantVOBase;
+
+    @Prop({ default: () => SimpleDatatableFieldVO.createNew(field_names<FileVO>().path) })
+    protected field: DatatableField<any, any>;
 
     @Prop({ default: null })
     protected options: any;
@@ -42,49 +47,7 @@ export default class FileComponent extends VueComponentBase {
     // protected uploading: boolean = false;
     // protected datafile = null;
 
-    protected has_valid_file_linked: boolean = false;
-
     protected uid: number = null;
-
-    @Watch('filevo', { immediate: true })
-    public async updateFileVo() {
-        this.has_valid_file_linked = false;
-        if (this.filevo && this.filevo.id) {
-            this.has_valid_file_linked = await ModuleFile.getInstance().testFileExistenz(this.filevo.id);
-        }
-
-        const dropzone = (this.$refs['filedropzone' + this.uid] as any);
-
-        if (!dropzone) {
-            return;
-        }
-        dropzone.removeAllFiles();
-        if (!this.filevo || !this.filevo.path) {
-            return;
-        }
-
-        const mock = {
-            accepted: true,
-            name: this.filevo.path.replace(/^.*[\\/]([^\\/]+)$/, '$1'),
-            url: this.filevo.path
-        };
-
-        mock.accepted = true;
-
-        // On ajoute pas le fichier dans le DropZone car on a déjà un lien vers le fichier
-        // dropzone.manuallyAddFile(mock, mock.url);
-        // dropzone.emit('addedfile', mock);
-        // dropzone.createThumbnailFromUrl(mock, mock.url);
-        // dropzone.emit('complete', mock);
-    }
-
-    public async mounted() {
-        this.uid = FileComponent.__UID++;
-    }
-
-    private removeFile() {
-        this.$emit('uploaded', null);
-    }
 
     get dropzoneOptions() {
         const self = this;
@@ -155,15 +118,52 @@ export default class FileComponent extends VueComponentBase {
     }
 
     get uri_compatible_file_path(): string {
-        if (!this.filevo || !this.filevo.path) {
+        if (!this.filevo || !this.filevo[this.field.module_table_field_id]) {
             return null;
         }
 
+        const file_path: string = this.filevo[this.field.module_table_field_id];
+
         // On remplace tous les caractères spéciaux, comme dièse, par leur code URI
         // On garde le slash pour les dossiers
-        const path = this.filevo.path.lastIndexOf('/') > 0 ? this.filevo.path.substring(0, this.filevo.path.lastIndexOf('/') + 1) : '';
-        const filename = this.filevo.path.lastIndexOf('/') > 0 ? this.filevo.path.substring(this.filevo.path.lastIndexOf('/') + 1) : this.filevo.path;
+        const path = file_path.lastIndexOf('/') > 0 ? file_path.substring(0, file_path.lastIndexOf('/') + 1) : '';
+        const filename = file_path.lastIndexOf('/') > 0 ? file_path.substring(file_path.lastIndexOf('/') + 1) : file_path;
 
         return path + encodeURIComponent(filename);
+    }
+
+    @Watch('filevo', { immediate: true })
+    public updateFileVo() {
+        const dropzone = (this.$refs['filedropzone' + this.uid] as any);
+
+        if (!dropzone) {
+            return;
+        }
+        dropzone.removeAllFiles();
+        if (!this.filevo || !this.filevo[this.field.module_table_field_id]) {
+            return;
+        }
+
+        const mock = {
+            accepted: true,
+            name: this.filevo[this.field.module_table_field_id].replace(/^.*[\\/]([^\\/]+)$/, '$1'),
+            url: this.filevo[this.field.module_table_field_id]
+        };
+
+        mock.accepted = true;
+
+        // On ajoute pas le fichier dans le DropZone car on a déjà un lien vers le fichier
+        // dropzone.manuallyAddFile(mock, mock.url);
+        // dropzone.emit('addedfile', mock);
+        // dropzone.createThumbnailFromUrl(mock, mock.url);
+        // dropzone.emit('complete', mock);
+    }
+
+    public async mounted() {
+        this.uid = FileComponent.__UID++;
+    }
+
+    private removeFile() {
+        this.$emit('uploaded', null);
     }
 }

@@ -157,7 +157,7 @@ export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
         }
 
         const vector_store_file_batch_vos: GPTAssistantAPIVectorStoreFileBatchVO[] = await query(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID).exec_as_server().select_vos<GPTAssistantAPIVectorStoreFileBatchVO>();
-        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2);
+        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'GPTAssistantAPIServerSyncVectorStoreFileBatchesController.sync_vector_store_file_batches');
 
         for (const i in vector_store_file_batch_vos) {
             const vector_store_file_batch_vo = vector_store_file_batch_vos[i];

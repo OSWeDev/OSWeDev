@@ -1,70 +1,63 @@
-.supervised_item
+.supervised_item(:class="{embedded: embed}")
     template(v-if='!!supervised_item')
         .row
-            .supervised_item_header.mb-3(class='col-sm-12')
-                Supervisiondashboarditemcomponent(:item='supervised_item' :noclick='true')
+            .supervised_item_header.mb-2.col-sm-12
+                Supervisiondashboarditemcomponent(:item='supervised_item' :noclick='true' :nameabove="embed")
 
-        .row.mb-3
-            div(class="col-sm-12")
-                .row
-                    .col-sm-8
-                        //- options d'affichage du graphique
-                        .col-sm-12
-                            .row.supervised_item_graph_segmentations
-                                toggle-button.m-1(
-                                    @change="toggle_show_hide_graph"
-                                    :value="show_graph"
-                                    :sync="true"
-                                    :width="150"
-                                    :labels="{checked: label('supervision.item.graph.on'), unchecked: label('supervision.item.graph.off')}"
-                                )
-                                .btn-group.d-print-none
-                                    template(v-if="show_graph")
-                                        template(v-for='graph_segmentation in supervised_item_graph_segmentation')
-                                            template(v-if='active_graph_segmentation && (active_graph_segmentation.segmentation_name == graph_segmentation.segmentation_name)')
-                                                button.btn.btn-sm.btn-info.m-1(:disabled="true") {{ graph_segmentation.segmentation_name }}
-                                            template(v-else)
-                                                button.btn.btn-sm.btn-primary.m-1(@click="activate_segmentation(graph_segmentation)") {{ graph_segmentation.segmentation_name }}
+        .row
+            //- div(class="col-sm-12")
+            .col-sm-6
+                //- options d'affichage du graphique
+                .supervised_item_graph_segmentations
+                    toggle-button.m-1(
+                        @change="toggle_show_hide_graph"
+                        :value="show_graph"
+                        :sync="true"
+                        :width="150"
+                        :labels="{checked: label('supervision.item.graph.on'), unchecked: label('supervision.item.graph.off')}"
+                    )
+                    .btn-group.d-print-none
+                        template(v-if="show_graph")
+                            template(v-for='graph_segmentation in supervised_item_graph_segmentation')
+                                template(v-if='active_graph_segmentation && (active_graph_segmentation.segmentation_name == graph_segmentation.segmentation_name)')
+                                    button.btn.btn-sm.btn-info.m-1(:disabled="true") {{ graph_segmentation.segmentation_name }}
+                                template(v-else)
+                                    button.btn.btn-sm.btn-primary.m-1(@click="activate_segmentation(graph_segmentation)") {{ graph_segmentation.segmentation_name }}
 
-                        //- liens si renseignés
-                        .col-sm-12
-                            .row(v-if='supervised_item_controller')
-                                template(v-for='supervised_item_url in supervised_item_urls')
-                                    .supervised_item_url
-                                        button.btn.btn-sm.btn-primary.m-1(@click="open_url(supervised_item_url.url)") {{ supervised_item_url.label }}
+                //- option de de traitement de la ligne de supervision
+            .supervised_item_controls.col-sm-6
 
+                .btn-group.d-print-none.pull-right
+                    button.btn.btn-sm.m-1.btn-primary(@click="reload" v-tooltip='label("supervised_item_controls.desc_btn.reload")')
+                        i.fa-duotone.fa-refresh
 
-                    //- option de de traitement de la ligne de supervision
-                    .col-sm-4.supervised_item_controls
-                        .btn-group.d-print-none.pull-right
-                            button.btn.btn-sm.m-1.btn-primary(@click="reload" v-tooltip='label("supervised_item_controls.desc_btn.reload")')
-                                i.fa-duotone.fa-refresh
+                    button.btn.btn-sm.m-1.btn-primary(@click="invalidate" v-tooltip='label("supervised_item_controls.desc_btn.invalidate")')
+                        i.fa-duotone.fa-cogs
 
-                            button.btn.btn-sm.m-1.btn-primary(@click="invalidate" v-tooltip='label("supervised_item_controls.desc_btn.invalidate")')
-                                i.fa-duotone.fa-cogs
+                    template(v-if='is_paused')
+                        button.btn.btn-sm.m-1.btn-primary(@click="switch_paused" v-tooltip='label("supervised_item_controls.desc_btn.switch_paused_turn_off")')
+                            i.fa-duotone.fa-play
+                    template(v-else)
+                        button.btn.btn-sm.m-1.btn-primary(@click="switch_paused" v-tooltip='label("supervised_item_controls.desc_btn.switch_paused_turn_on")')
+                            i.fa-duotone.fa-pause
 
-                            template(v-if='is_paused')
-                                button.btn.btn-sm.m-1.btn-primary(@click="switch_paused" v-tooltip='label("supervised_item_controls.desc_btn.switch_paused_turn_off")')
-                                    i.fa-duotone.fa-play
-                            template(v-else)
-                                button.btn.btn-sm.m-1.btn-primary(@click="switch_paused" v-tooltip='label("supervised_item_controls.desc_btn.switch_paused_turn_on")')
-                                    i.fa-duotone.fa-pause
+                    template(v-if='!can_not_switch_read')
+                        template(v-if='is_read')
+                            button.btn.btn-sm.m-1.btn-primary(@click="switch_read" v-tooltip='label("supervised_item_controls.desc_btn.switch_read_turn_off")')
+                                i.fa-duotone.fa-envelope-open
+                        template(v-if='!is_read')
+                            button.btn.btn-sm.m-1.btn-primary(@click="switch_read" v-tooltip='label("supervised_item_controls.desc_btn.switch_read_turn_on")')
+                                i.fa-duotone.fa-envelope
+                    template(v-else)
+                        button.btn.btn-sm.m-1.btn-default(@click="switch_read" :disabled="true" v-tooltip='label("supervised_item_controls.desc_btn.switch_read_disabled")')
+                            i.fa-duotone.fa-envelope-open
 
-                            template(v-if='!can_not_switch_read')
-                                template(v-if='is_read')
-                                    button.btn.btn-sm.m-1.btn-primary(@click="switch_read" v-tooltip='label("supervised_item_controls.desc_btn.switch_read_turn_off")')
-                                        i.fa-duotone.fa-envelope-open
-                                template(v-if='!is_read')
-                                    button.btn.btn-sm.m-1.btn-primary(@click="switch_read" v-tooltip='label("supervised_item_controls.desc_btn.switch_read_turn_on")')
-                                        i.fa-duotone.fa-envelope
-                            template(v-else)
-                                button.btn.btn-sm.m-1.btn-default(@click="switch_read" :disabled="true" v-tooltip='label("supervised_item_controls.desc_btn.switch_read_disabled")')
-                                    i.fa-duotone.fa-envelope-open
+                //- liens si renseignés
 
         .row
             .supervised_item_graph(
                 v-if="show_graph"
-                class='col-sm-7 col-sm-offset-2 mx-auto mb-4'
+                :class="get_css_supervised_item_graph"
             )
                 Superviseditemhistchartcomponent(
                     :filter='supervised_item_client_controller.get_graph_filter(supervised_item)'
@@ -75,6 +68,14 @@
                     :label_translatable_code='supervised_item_client_controller.get_graph_label_translatable_code(supervised_item)'
                     :historiques='historiques'
                 )
+
+        .row.mb-3
+            .col-sm-12(v-if='supervised_item_controller')
+                template(v-for='supervised_item_url in supervised_item_urls')
+                    .supervised_item_url
+                        button.btn.btn-sm.btn-primary.m-1(@click="open_url(supervised_item_url.url)") {{ supervised_item_url.label }}
+
+        .row
 
             div(
                 v-if='supervised_item_controller'

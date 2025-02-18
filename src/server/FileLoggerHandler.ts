@@ -16,6 +16,7 @@ import ModuleLogger from '../shared/modules/Logger/ModuleLogger';
 import StackContext from './StackContext';
 import { reflect } from '../shared/tools/ObjectHandler';
 import { IRequestStackContext } from './ServerExpressController';
+import { isMainThread, threadId } from 'worker_threads';
 
 export default class FileLoggerHandler implements ILoggerHandler {
 
@@ -27,7 +28,9 @@ export default class FileLoggerHandler implements ILoggerHandler {
     private is_prepared: boolean = false;
 
     private log_to_file_cache: LogVO[] = [];
-    private log_to_file_throttler = ThrottleHelper.declare_throttle_without_args(this.log_to_file.bind(this), 1000);
+    private log_to_file_throttler = ThrottleHelper.declare_throttle_without_args(
+        'FileLoggerHandler.log_to_file',
+        this.log_to_file.bind(this), 1000);
 
     private constructor() { }
 
@@ -76,13 +79,13 @@ export default class FileLoggerHandler implements ILoggerHandler {
 
     private set_log_file() {
         if (ConfigurationService.node_configuration.console_log_to_file && this.is_prepared) {
-            this.log_file = FileServerController.getInstance().getWriteStream('./nodes_logs/node_log_' + process.pid + '_' + Dates.now() + '.txt', 'a');
+            this.log_file = FileServerController.getInstance().getWriteStream('./nodes_logs/node_log_' + (isMainThread ? 'main' : threadId) + '_' + Dates.now() + '.txt', 'a');
         }
     }
 
     private log_to_file() {
         const logs_by_log_type_id: { [log_type_id: number]: LogVO[] } = {};
-        const logs: LogVO[] = cloneDeep(this.log_to_file_cache);
+        const logs: LogVO[] = this.log_to_file_cache;
         this.log_to_file_cache = [];
 
         for (const i in logs) {

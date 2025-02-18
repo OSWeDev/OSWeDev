@@ -19,5 +19,6 @@ export default class SupervisedCRONVO implements ISupervisedItem {
     public state: number;
     public state_before_pause: number;
     public category_id: number;
+    public probe_id: number;
     public invalid: boolean;
 }

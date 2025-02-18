@@ -57,7 +57,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
      * @param returnvalue
      * @returns
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAPIServer.getInstance)
     private async try_send_notif_result(
         notif_result_uid: number,
         notif_result_tab_id: string,
@@ -117,7 +117,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
      * @param res
      * @returns
      */
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name, true)
+    @RunsOnBgThread(APIBGThread.BGTHREAD_name, ModuleAPIServer.getInstance, true)
     private async exec_api<T, U>(
         api_name: string,
         session_id: string,
@@ -377,7 +377,10 @@ export default class ModuleAPIServer extends ModuleServerBase {
         try {
             let api_res = null;
 
-            api_res = await this.exec_api(
+            api_res = await StackContext.runPromise(
+                await ServerExpressController.getInstance().getStackContextFromReq(req, req.session.id, req.session.sid, req.session.uid),
+                this.exec_api,
+                this,
                 api.api_name,
                 req.session.id,
                 req.session.sid,
@@ -391,6 +394,22 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 notif_result_tab_id,
                 api_call_id,
             );
+
+
+            // api_res = await this.exec_api(
+            //     api.api_name,
+            //     req.session.id,
+            //     req.session.sid,
+            //     req.session.uid,
+            //     req.method,
+            //     req.body,
+            //     req.headers,
+            //     req.params,
+            //     do_notif_result,
+            //     notif_result_uid,
+            //     notif_result_tab_id,
+            //     api_call_id,
+            // );
 
             res.json(api_res);
         } catch (error) {

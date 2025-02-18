@@ -137,7 +137,9 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
         AdvancedRefFieldFilter.FILTER_TYPE_NEST_PAS_NULL,
     ];
 
-    private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.declare_throttle_without_args(this.update_visible_options.bind(this), timeout, { leading: false, trailing: true }))();
+    private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.declare_throttle_without_args(
+        'FieldValueFilterRefFieldWidgetComponent.throttled_update_visible_options',
+        this.update_visible_options.bind(this), timeout, false))();
 
     @Watch('filter_visible_options', { deep: true, immediate: true })
     private async try_apply_query_params() {

@@ -112,7 +112,9 @@ export default class DatatableComponentField extends VueComponentBase {
 
     private custom_style: string = null;
 
-    private throttle_init_custom_style = ThrottleHelper.declare_throttle_without_args(this.init_custom_style.bind(this), 50, { leading: false });
+    private throttle_init_custom_style = ThrottleHelper.declare_throttle_without_args(
+        'DatatableComponentField.throttle_init_custom_style',
+        this.init_custom_style.bind(this), 50, false);
 
     get field_type(): string {
         return this.field?.field_type || ModuleTableFieldVO.FIELD_TYPE_int; // Pour le cas de l'id

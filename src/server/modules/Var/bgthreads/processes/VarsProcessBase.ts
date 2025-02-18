@@ -1,26 +1,31 @@
+import EventsController from '../../../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import PerfReportController from '../../../../../shared/modules/PerfReport/PerfReportController';
 import StatsController from '../../../../../shared/modules/Stats/StatsController';
-import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../../../shared/tools/PromisePipeline/PromisePipeline';
-import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
-import BGThreadServerController from '../../../BGThread/BGThreadServerController';
+import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import CurrentVarDAGHolder from '../../CurrentVarDAGHolder';
-import VarsBGThreadNameHolder from '../../VarsBGThreadNameHolder';
 import VarsClientsSubsCacheHolder from './VarsClientsSubsCacheHolder';
 import VarsComputationHole from './VarsComputationHole';
 
 export default abstract class VarsProcessBase {
+
+    public static registered_processes_work_event_name_by_tag_in: { [tag_in: string]: string } = {};
 
     /**
      * Quand on sélectionne trop de noeuds et qu'on timeout, on les met en attente pour le prochain run
      */
     protected waiting_valid_nodes: { [node_name: string]: VarDAGNode } = null;
 
-    protected thread_sleep_coef: number = 1;
-    protected thread_sleep_max_coef: number = 10;
-    protected thread_sleep_evol_coef: number = 1.1;
+    // protected thread_sleep_coef: number = 1;
+    // protected thread_sleep_max_coef: number = 100;
+    // protected thread_sleep_evol_coef: number = 1.5;
+
+    protected promise_pipeline: PromisePipeline = null;
+    protected work_event_name: string = null;
 
     /**
      * Si on a 0 workers, on ne fait pas de traitement en parallèle on part du principe que le traitement est synchrone (donc sans await, sans pipeline, ...)
@@ -31,9 +36,22 @@ export default abstract class VarsProcessBase {
         protected TAG_IN_NAME: string,
         protected TAG_SELF_NAME: string,
         protected TAG_OUT_NAME: string,
-        protected thread_sleep: number,
+        // protected thread_sleep: number,
         protected as_batch: boolean = false,
-        protected MAX_Workers: number = 0) { }
+        protected MAX_Workers: number = 0) {
+
+        this.work_event_name = 'VarsProcessBase.work_event.' + this.name;
+        VarsProcessBase.registered_processes_work_event_name_by_tag_in[this.TAG_IN_NAME] = this.work_event_name;
+
+        EventsController.on_every_event_throttle_cb(
+            VarsProcessBase.registered_processes_work_event_name_by_tag_in[this.TAG_IN_NAME],
+            this.work.bind(this),
+            1,
+            true,
+        );
+
+        this.promise_pipeline = (this.as_batch || !this.MAX_Workers) ? null : new PromisePipeline(this.MAX_Workers, 'VarsProcessBase.' + this.name, true);
+    }
 
     get has_nodes_to_process_in_current_tree() {
         return !!CurrentVarDAGHolder.current_vardag && !!CurrentVarDAGHolder.current_vardag.nb_nodes;
@@ -41,62 +59,71 @@ export default abstract class VarsProcessBase {
 
     public async work(): Promise<void> {
 
-        const promise_pipeline = this.as_batch ? null : new PromisePipeline(ConfigurationService.node_configuration.max_varsprocessdeploydeps, 'VarsProcessBase.' + this.name, true);
-
         if (ConfigurationService.node_configuration.debug_vars_processes) {
             ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:IN');
         }
 
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
+        // if (ConfigurationService.node_configuration.debug_vars_processes) {
+        //     ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:LOOP:IN:');
+        // }
 
-            if (ConfigurationService.node_configuration.debug_vars_processes) {
-                ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:LOOP:IN:');
-            }
+        // let did_something = false;
 
-            let did_something = false;
+        // // Particularité on doit s'enregistrer sur le main thread pour dire qu'on est en vie puisque le bgthread lui est plus vraiment adapté pour le faire
+        // BGThreadServerController.register_alive_on_main_thread({ [VarsBGThreadNameHolder.bgthread_name]: true });
 
-            // // Particularité on doit s'enregistrer sur le main thread pour dire qu'on est en vie puisque le bgthread lui est plus vraiment adapté pour le faire
-            // BGThreadServerController.register_alive_on_main_thread({ [VarsBGThreadNameHolder.bgthread_name]: true });
+        // Le get_valid_nodes block le noeud le temps du traitement, on doit donc unlock par la suite
+        const valid_nodes: { [node_name: string]: VarDAGNode } = this.waiting_valid_nodes ? this.waiting_valid_nodes : this.get_valid_nodes();
+        this.waiting_valid_nodes = null;
 
-            const valid_nodes: { [node_name: string]: VarDAGNode } = this.waiting_valid_nodes ? this.waiting_valid_nodes : this.get_valid_nodes();
-            this.waiting_valid_nodes = null;
+        // On lock le node pour éviter la mise à jour trop rapide du current_step, et on delock en fin de traitement
+        const nodes_to_unlock: VarDAGNode[] = valid_nodes ? Object.values(valid_nodes) : [];
 
-            if (valid_nodes && Object.keys(valid_nodes).length) {
-                // Si on a des nodes dans l'arbre, on va regarder si le process n'est pas bloqué
-                CurrentVarDAGHolder.check_current_vardag_throttler();
+        if (valid_nodes && Object.keys(valid_nodes).length) {
+            // A voir si on peut faire ce check sans baisser la perf globale, surtout depuis qu'on passe en events
+            // // Si on a des nodes dans l'arbre, on va regarder si le process n'est pas bloqué
+            // CurrentVarDAGHolder.check_current_vardag_throttler();
 
-                if (!this.as_batch) {
-                    did_something = await this.handle_individual_worker(promise_pipeline, valid_nodes);
-                } else {
-                    did_something = await this.handle_batch_worker(valid_nodes);
-                }
-            }
-
-            if (!did_something) {
-                if (ConfigurationService.node_configuration.debug_vars_processes) {
-                    ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:LOOP:did_something:false');
-                }
-
-                this.thread_sleep_coef = Math.min(this.thread_sleep_max_coef, this.thread_sleep_coef * this.thread_sleep_evol_coef);
+            if (!this.as_batch) {
+                // did_something = await this.handle_individual_worker(this.promise_pipeline, valid_nodes);
+                await this.handle_individual_worker(this.promise_pipeline, valid_nodes, nodes_to_unlock);
             } else {
-                this.thread_sleep_coef = 1;
+                // did_something = await this.handle_batch_worker(valid_nodes);
+                await this.handle_batch_worker(valid_nodes, nodes_to_unlock);
             }
+        }
 
-            await ThreadHandler.sleep(this.thread_sleep * this.thread_sleep_coef, this.name);
+        VarDAGNode.unlock_nodes(nodes_to_unlock);
 
-            // On attend d'avoir un slot de disponible si besoin avant de refaire une boucle
-            if (promise_pipeline) {
-                await promise_pipeline.await_free_slot();
-            }
+        // if (!did_something) {
+        //     if (ConfigurationService.node_configuration.debug_vars_processes) {
+        //         ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:LOOP:did_something:false');
+        //     }
 
-            if (ConfigurationService.node_configuration.debug_vars_processes) {
-                ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:LOOP:did_something:true');
-            }
+        //     this.thread_sleep_coef = Math.min(this.thread_sleep_max_coef, this.thread_sleep_coef * this.thread_sleep_evol_coef);
+        // } else {
+        //     this.thread_sleep_coef = 1;
+        // }
+
+        // await ThreadHandler.sleep(this.thread_sleep * this.thread_sleep_coef, this.name);
+
+        // // On attend d'avoir un slot de disponible si besoin avant de refaire une boucle
+        // if (this.promise_pipeline) {
+        //     await this.promise_pipeline.await_free_slot();
+        // }
+
+        if (ConfigurationService.node_configuration.debug_vars_processes) {
+            // ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:LOOP:did_something:true');
+            ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:OUT');
         }
     }
 
-    private async handle_individual_worker(promise_pipeline: PromisePipeline, valid_nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
+    private async handle_individual_worker(
+        promise_pipeline: PromisePipeline,
+        valid_nodes: { [node_name: string]: VarDAGNode },
+        nodes_to_unlock: VarDAGNode[],
+    ): Promise<boolean> {
+
         const self = this;
 
         const time_in = Dates.now_ms();
@@ -132,7 +159,7 @@ export default abstract class VarsProcessBase {
                     }
 
                     const worker_time_in = Dates.now_ms();
-                    const res = await self.worker_async(node);
+                    const res = await self.worker_async(node, nodes_to_unlock);
                     did_something = did_something || res;
                     StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
@@ -150,7 +177,7 @@ export default abstract class VarsProcessBase {
                 }
 
                 const worker_time_in = Dates.now_ms();
-                const res = this.worker_sync(node);
+                const res = this.worker_sync(node, nodes_to_unlock);
                 did_something = did_something || res;
                 StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
@@ -181,6 +208,22 @@ export default abstract class VarsProcessBase {
             StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker_failed", Dates.now_ms() - worker_time_in);
             node.add_tag(this.TAG_IN_NAME);
         }
+
+        this.handle_perf_report(node, worker_time_in);
+    }
+
+    private handle_perf_report(node: VarDAGNode, worker_time_in: number) {
+        const perf_name = node.var_data.index;
+        const perf_line_name = node.var_data.index;
+        PerfReportController.add_cooldown(
+            VarDAGNode.PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            null,
+            worker_time_in,
+            Dates.now_ms(),
+            node.get_node_description_for_perfs(this.name),
+        );
     }
 
     private get_valid_nodes(): { [node_name: string]: VarDAGNode } {
@@ -207,6 +250,7 @@ export default abstract class VarsProcessBase {
          * Sinon on prend toutes les vars qui ont le tag in
          */
         let nodes: { [node_name: string]: VarDAGNode } = CurrentVarDAGHolder.current_vardag.current_step_tags[this.TAG_IN_NAME];
+        const nb_valid_nodes = nodes ? Object.keys(nodes).length : 0;
 
         if ((!nodes) || (!Object.keys(nodes).length)) {
 
@@ -228,6 +272,7 @@ export default abstract class VarsProcessBase {
         }
 
         const valid_nodes: { [node_name: string]: VarDAGNode } = {};
+        let nb_nodes = 0;
 
         for (const i in nodes) {
             const node = nodes[i];
@@ -248,15 +293,35 @@ export default abstract class VarsProcessBase {
                 continue;
             }
 
+            // On lock le noeud pour limiter les traitements en parallèle sur un noeud donné
+            node.lock();
+
             if (!node.add_tag(this.TAG_SELF_NAME)) {
                 // On a un refus, lié à une suppression en attente sur ce noeud, on arrête les traitements
                 node.remove_tag(this.TAG_IN_NAME);
+                node.unlock();
                 continue;
             }
 
             // On remove_tag après le add_tag sinon si on a déjà tag une étape >, on peut plus tagger < à current_step
             node.remove_tag(this.TAG_IN_NAME);
             valid_nodes[node.var_data.index] = node;
+
+            if (this.as_batch) {
+                nb_nodes++;
+
+                if (nb_nodes >= this.MAX_Workers) {
+                    // Dans le cas d'un batch on limite le nombre de nodes à traiter pour pas tout bloquer le temps de résoudre l'ensemble
+                    break;
+                }
+            }
+        }
+
+        /**
+         * Cas des évènements, avec une sélection de noeuds qui ne contient pas tous les noeuds valides, on doit prévoir une boucle, via l'appel de l'event work de ce process
+         */
+        if (nb_valid_nodes > Object.keys(valid_nodes).length) {
+            EventsController.emit_event(EventifyEventInstanceVO.new_event(this.work_event_name));
         }
 
         if (ConfigurationService.node_configuration.debug_vars_processes) {
@@ -266,7 +331,10 @@ export default abstract class VarsProcessBase {
         return valid_nodes;
     }
 
-    private async handle_batch_worker(batch_nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
+    private async handle_batch_worker(
+        batch_nodes: { [node_name: string]: VarDAGNode },
+        nodes_to_unlock: VarDAGNode[],
+    ): Promise<boolean> {
 
         const has_something_to_do = batch_nodes ? Object.keys(batch_nodes).length > 0 : false;
 
@@ -282,7 +350,7 @@ export default abstract class VarsProcessBase {
 
             // On peut vouloir traiter en mode batch
             const worker_time_in = Dates.now_ms();
-            const res = await this.worker_async_batch(batch_nodes);
+            const res = await this.worker_async_batch(batch_nodes, nodes_to_unlock);
             StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
             if (ConfigurationService.node_configuration.debug_vars_processes) {
@@ -303,6 +371,8 @@ export default abstract class VarsProcessBase {
                     node.add_tag(this.TAG_IN_NAME);
                 }
                 node.remove_tag(this.TAG_SELF_NAME);
+
+                this.handle_perf_report(node, worker_time_in);
             }
         }
 
@@ -357,8 +427,8 @@ export default abstract class VarsProcessBase {
         return filtered_nodes;
     }
 
-    protected abstract worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean>;
+    protected abstract worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: VarDAGNode[]): Promise<boolean>;
 
-    protected abstract worker_async(node: VarDAGNode): Promise<boolean>;
-    protected abstract worker_sync(node: VarDAGNode): boolean;
+    protected abstract worker_async(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): Promise<boolean>;
+    protected abstract worker_sync(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): boolean;
 }

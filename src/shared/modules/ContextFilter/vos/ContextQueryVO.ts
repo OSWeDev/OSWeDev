@@ -20,6 +20,7 @@ import ContextQueryFieldVO from "./ContextQueryFieldVO";
 import ContextQueryJoinOnFieldVO from "./ContextQueryJoinOnFieldVO";
 import ContextQueryJoinVO from "./ContextQueryJoinVO";
 import SortByVO from "./SortByVO";
+import CachedQueryHandler from "../../../tools/cache/CachedQueryHandler";
 
 /**
  * Encapsuler la définition d'une requête ou d'une sous-requête (qu'on liera à la requête principale par un filtre)
@@ -788,6 +789,14 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     }
 
     /**
+     * Filtrer un champ texte par un sous-requête : field not in (subquery)
+     * @param query la sous requête qui doit renvoyer les textes refusés en un unique field
+     */
+    public filter_by_text_not_in(field_id: string, query_: ContextQueryVO, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_not_in(query_, this)]);
+    }
+
+    /**
      * Filtrer par text en début de la valeur du champ
      * @param field_id le field qu'on veut filtrer
      * @param included le texte qu'on veut voir apparaître au début de la valeur du champs
@@ -1067,6 +1076,16 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      */
     public add_filters(filters: ContextFilterVO[]): ContextQueryVO {
 
+        if (!filters) {
+            return this;
+        }
+
+        filters = filters.filter((f) => !!f);
+
+        if (!filters.length) {
+            return this;
+        }
+
         if (!this.filters) {
             this.filters = [];
         }
@@ -1216,6 +1235,29 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * @returns le vo issu de la requête => Throws si on a + de 1 résultat
      */
     public async select_vo<T extends IDistantVOBase>(): Promise<T> {
+
+        /**
+         * On insère la logique de cache potentiel ici
+         */
+        if (this.max_age_ms) {
+            // Si on a une requete simple, sans filtrage de fields, avec un seul filtre sur l'id, en exec_as_server, pas de using, sans sort/limit/..., on peut utiliser le cache directement
+            if (
+                (this.filters.length == 1) && (this.filters[0].field_name == 'id') && (this.filters[0].filter_type == ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL) && (this.filters[0].vo_type == this.base_api_type_id) && (!!this.filters[0].param_numeric) &&
+                (!this.sort_by) && (!this.query_limit) && (!this.query_offset) && (this.is_server) &&
+                (this.active_api_type_ids.length == 1) && (!this.fields)
+            ) {
+                const res: T = await CachedQueryHandler.get<T>(
+                    CachedQueryHandler.get_basic_select_vo_query_type_UID(this.base_api_type_id),
+                    this.filters[0].param_numeric.toString(),
+                    this.max_age_ms,
+                    async () => {
+                        this.max_age_ms = null;
+                        return this.select_vo();
+                    });
+                return res;
+            }
+        }
+
         const res: T[] = await ModuleContextFilter.instance.select_vos(this);
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_vo is not allowed  : ' + this.base_api_type_id);

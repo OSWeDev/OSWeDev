@@ -332,7 +332,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
             assistants_vos_by_gpt_id[assistant_vo.gpt_assistant_id] = assistant_vo;
         }
 
-        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2);
+        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'GPTAssistantAPIServerSyncAssistantsController.sync_assistants');
         for (const i in assistants) {
             const assistant = assistants[i];
 
@@ -403,7 +403,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
         const res: GPTAssistantAPIToolResourcesVO = new GPTAssistantAPIToolResourcesVO();
 
-        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2);
+        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'GPTAssistantAPIServerSyncAssistantsController.tool_resources_from_openai_api');
         if (data.code_interpreter && data.code_interpreter.file_ids && data.code_interpreter.file_ids.length) {
             res.code_interpreter_gpt_file_ids = cloneDeep(data.code_interpreter.file_ids);
 

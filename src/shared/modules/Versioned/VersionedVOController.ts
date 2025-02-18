@@ -113,6 +113,7 @@ export default class VersionedVOController implements IVOController {
                     return res;
                 }
             });
+            ModuleTableController.vo_constructor_proto_by_vo_type[vo_type] = Object.getPrototypeOf(new ModuleTableController.vo_constructor_by_vo_type[vo_type]());
 
             // TODO FIXME le constructeur est clairement pas bon, on utilise le constructeur du main vo, pour les versioned. a priori pas d'impact aujourd'hui, mais c'est complètement faux
             const newTable: ModuleTableVO = ModuleTableController.create_new(moduleTable.module_name, ModuleTableController.vo_constructor_by_vo_type[vo_type], null, vo_type);

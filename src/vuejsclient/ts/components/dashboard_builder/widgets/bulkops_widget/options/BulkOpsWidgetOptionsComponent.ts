@@ -40,7 +40,9 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: BulkOpsWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+        'BulkOpsWidgetOptionsComponent.throttled_update_options',
+        this.update_options.bind(this), 50, false);
 
     private api_type_id_selected: string = null;
 

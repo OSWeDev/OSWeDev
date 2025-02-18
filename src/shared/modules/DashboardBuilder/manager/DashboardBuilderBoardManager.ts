@@ -2,6 +2,7 @@ import { field_names } from "../../../tools/ObjectHandler";
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
+import { StatThisMapKeys } from "../../Stats/annotations/StatThisMapKeys";
 import DashboardGraphVORefVO from "../vos/DashboardGraphVORefVO";
 import DashboardVO from "../vos/DashboardVO";
 
@@ -9,6 +10,15 @@ import DashboardVO from "../vos/DashboardVO";
  * Dashboard Builder Board Manager
  */
 export default class DashboardBuilderBoardManager {
+
+    protected static instance: DashboardBuilderBoardManager = null;
+
+    /**
+     * JNE : @Manuel Pas convaincu par ce cache : comment il est invalidé ? Comment on le rafraichit ? Si on change la conf du dashboard pour changer un discarded path, on rafraichit le cache ?
+     */
+    @StatThisMapKeys('DashboardBuilderBoardManager', null, 2)
+    public discarded_field_paths_by_dashboard_id: { [dashboard_id: number]: { [vo_type: string]: { [field_id: string]: boolean } } } = {};
+    public api_type_ids_by_dashboard_id: { [dashboard_id: number]: string[] } = {};
 
     /**
      * Load api_type_ids and discarded field paths for a dashboard
@@ -89,12 +99,4 @@ export default class DashboardBuilderBoardManager {
         }
         return DashboardBuilderBoardManager.instance;
     }
-
-    protected static instance: DashboardBuilderBoardManager = null;
-
-    /**
-     * JNE : @Manuel Pas convaincu par ce cache : comment il est invalidé ? Comment on le rafraichit ? Si on change la conf du dashboard pour changer un discarded path, on rafraichit le cache ?
-     */
-    public discarded_field_paths_by_dashboard_id: { [dashboard_id: number]: { [vo_type: string]: { [field_id: string]: boolean } } } = {};
-    public api_type_ids_by_dashboard_id: { [dashboard_id: number]: string[] } = {};
 }

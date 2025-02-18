@@ -262,6 +262,16 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
      */
     public childrens_are_multithreaded: boolean;
 
+    /**
+     * Le lien vers l'évènement qui a instancié ce run (si il y en a un)
+     */
+    public event_id: number;
+
+    /**
+     * Le lien vers le listener qui a instancié ce run (si il y en a un)
+     */
+    public listener_id: number;
+
     public error_msg: string;
 
     public rerun_reason: string;

@@ -11,14 +11,28 @@ export default class SupervisionTypeWidgetOptionsVO extends AbstractVO {
     public static TITLE_CODE_PREFIX: string = "SupervisionTypeWidgetOptionsVO.title.";
     public static FIELD_ID_INDICATOR: string = 'id';
 
-    public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
-        return {};
-    }
-
     public constructor(
-        public supervision_api_type_ids?: string[], // Used to filter the supervision items (sondes) from each datatable
+        /**
+         * Used to filter the supervision probes from each datatable
+         */
+        public supervision_api_type_ids?: string[],
+        /**
+         * if true, the supervision probes will be ordered by categories
+         */
+        public order_by_categories?: boolean,
+        /***
+         *  if true, the supervision probes will display a counter
+         */
+        public show_counter?: boolean,
+        public refresh_button?: boolean,
+        public auto_refresh?: boolean,
+        public auto_refresh_seconds?: number,
     ) {
         super();
+    }
+
+    public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
+        return {};
     }
 
     public get_title_name_code_text(page_widget_id: number): string {

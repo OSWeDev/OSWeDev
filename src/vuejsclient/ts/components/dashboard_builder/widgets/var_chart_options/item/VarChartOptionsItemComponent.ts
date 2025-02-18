@@ -50,7 +50,9 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_custom_filters: string[];
-    private throttled_emit_changes = ThrottleHelper.declare_throttle_without_args(this.emit_change.bind(this), 50, { leading: false, trailing: true });
+    private throttled_emit_changes = ThrottleHelper.declare_throttle_without_args(
+        'VarChartOptionsItemComponent.throttled_emit_changes',
+        this.emit_change.bind(this), 50, false);
 
     private options_props: VarChartOptionsVO;
 
@@ -66,6 +68,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     private bg_color: string = '#666';
     private border_color: string = '#666';
     private border_width: number = 0;
+    private value_label_size: number = 18;
     private has_gradient: boolean = false;
     private show_values: boolean = false;
     private show_zeros: boolean = true;
@@ -175,7 +178,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
             this.selected_var_name = this.var_id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.var_id));
         }
 
-        if(!this.detailed) {
+        if (!this.detailed) {
             this.border_width = 0;
         }
         this.options_props = this.options;
@@ -224,6 +227,18 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
 
     @Watch('border_width')
     private async on_changborder_width() {
+        await this.throttled_emit_changes();
+    }
+
+    @Watch('value_label_size')
+    private async on_change_value_label_size() {
+        if (this.value_label_size < 0) {
+            this.value_label_size = 0;
+        }
+
+        if (this.value_label_size > 35) {
+            this.value_label_size = 35;
+        }
         await this.throttled_emit_changes();
     }
 
@@ -307,6 +322,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         this.options_props.bg_color = this.bg_color;
         this.options_props.border_color = this.border_color;
         this.options_props.border_width = this.border_width;
+        this.options_props.value_label_size = this.value_label_size;
         this.options_props.custom_filter_names = this.custom_filter_names;
         this.options_props.has_gradient = this.has_gradient;
         this.options_props.show_values = this.show_values;

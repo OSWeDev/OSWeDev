@@ -90,19 +90,22 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private last_calculation_cpt: number = 0;
 
     private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(
+        'ShowFavoritesFiltersWidgetComponent.update_visible_options',
         this.update_visible_options.bind(this),
         50,
-        { leading: false, trailing: true }
+        false
     );
     private throttled_update_active_field_filters = ThrottleHelper.declare_throttle_without_args(
+        'ShowFavoritesFiltersWidgetComponent.update_active_field_filters',
         this.update_active_field_filters.bind(this),
         50,
-        { leading: false, trailing: true }
+        false
     );
     private throttled_open_favorites_filters_modal = ThrottleHelper.declare_throttle_with_stackable_args(
+        'ShowFavoritesFiltersWidgetComponent.open_favorites_filters_modal',
         this.open_favorites_filters_modal.bind(this),
         1000,
-        { leading: false, trailing: true }
+        false
     );
 
     /**

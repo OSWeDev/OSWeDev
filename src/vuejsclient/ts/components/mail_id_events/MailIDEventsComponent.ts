@@ -24,7 +24,9 @@ export default class MailIDEventsComponent extends VueComponentBase {
 
     private is_loading: boolean = true;
 
-    private throttled_update_datas = ThrottleHelper.declare_throttle_without_args(this.update_datas.bind(this), 200, { leading: false, trailing: true });
+    private throttled_update_datas = ThrottleHelper.declare_throttle_without_args(
+        'MailIDEventsComponent.throttled_update_datas',
+        this.update_datas.bind(this), 200, false);
 
     @Watch('mail_id', { immediate: true })
     private onchange_category_name() {

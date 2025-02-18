@@ -125,6 +125,11 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_varsprocessdeploydeps, ModuleTableFieldVO.FIELD_TYPE_int, 'Max VarsProcess DeployDeps', false);
         // MAX_VarsProcessLoadDatas ?: number;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_varsprocessloaddatas, ModuleTableFieldVO.FIELD_TYPE_int, 'Max VarsProcess LoadDatas', false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_varsprocessdagcleaner, ModuleTableFieldVO.FIELD_TYPE_int, 'Max VarsProcess DagCleaner', false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_varsprocessnotifyend, ModuleTableFieldVO.FIELD_TYPE_int, 'Max VarsProcess NotifyEnd', false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_varsprocessnotifystart, ModuleTableFieldVO.FIELD_TYPE_int, 'Max VarsProcess NotifyStart', false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_varsprocessupdatedb, ModuleTableFieldVO.FIELD_TYPE_int, 'Max VarsProcess UpdateDB', false);
+
         // MAX_Vars_invalidators ?: number;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_vars_invalidators, ModuleTableFieldVO.FIELD_TYPE_int, 'Max Vars invalidators', false);
 
@@ -190,6 +195,17 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_io_rooms, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug IO rooms', true);
         // DEBUG_VO_EVENTS ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_vo_events, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug VO events', true);
+
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_top_10_query_size, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug top 10 query size', true, true, false);
+
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_slow_event_listeners, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug slow event listeners', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_slow_event_listeners_ms_limit, ModuleTableFieldVO.FIELD_TYPE_int, 'Debug slow event listeners ms limit', true, true, 1000);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().create_event_perf_report, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Create event perf report', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_throttle_queries, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Throttle queries', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_eventify, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Events', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_var_dag_nodes, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Var dag nodes', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_gpt_assistant_api, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - GPT assistant API', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_gpt_sync, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - GPT sync', true, true, false);
 
         // DEBUG_PROMISE_PIPELINE ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_promise_pipeline, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug promise pipeline', true);
@@ -275,7 +291,6 @@ export default class ModuleEnvParam extends Module {
 
         // BLOCK_TEAMS_MESSAGES ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().block_teams_messages, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Bloquer les messages Teams', true);
-        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().unblock_realtime_api, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Débloquer l\'API temps réel', false, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().logo_path, ModuleTableFieldVO.FIELD_TYPE_string, 'URL du logo');
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_openai_sync, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug OpenAI Sync', true, true, true);
@@ -293,6 +308,8 @@ export default class ModuleEnvParam extends Module {
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_vars_notifs, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug Vars Notifs', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().log_login_redirects, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Log Login Redirects', true, true, false);
+
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_async_hook_for_promise_watch, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activer async hook pour promise watch', true, true, false);
 
         ModuleTableController.create_new(this.name, EnvParamsVO, null, 'Static Env Params');
     }

@@ -38,7 +38,11 @@ export default class VarsController {
         include_index: boolean = true): string {
 
         return (invalidator && !!invalidator.var_data) ?
-            invalidator.var_data.var_id + '_' + (invalidator.invalidate_denied ? '1' : '0') + '_' + (invalidator.invalidate_imports ? '1' : '0')
+            invalidator.var_data.var_id
+            + '_' + (invalidator.invalidate_denied ? '1' : '0')
+            + '_' + (invalidator.invalidate_imports ? '1' : '0')
+            + '_' + invalidator.invalidator_type
+            + '_' + (invalidator.propagate_to_parents ? '1' : '0')
             + (include_index ? '_' + invalidator.var_data.index : '') :
             null;
     }

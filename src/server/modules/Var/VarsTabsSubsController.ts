@@ -1,5 +1,7 @@
-import { PostThrottleParam, PreThrottleParam, THROTTLED_METHOD_PARAM_TYPE } from '../../../shared/annotations/Throttle';
+import { PostThrottleParam, PreThrottleParam } from '../../../shared/annotations/Throttle';
+import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -21,13 +23,15 @@ export default class VarsTabsSubsController {
     public static PARAM_NAME_SUBS_CLEAN_THROTTLE: string = 'VarsTabsSubsController.SUBS_CLEAN_THROTTLE';
     public static PARAM_NAME_SUBS_CLEAN_DELAY: string = 'VarsTabsSubsController.SUBS_CLEAN_DELAY';
 
+    private static last_subs_clean: number = 0;
+
     /**
      * Les client_tab_ids abonnés à chaque var_index
      * On stocke la date de la dernière demande pour pouvoir faire un nettoyage
      */
+    @StatThisMapKeys('VarsTabsSubsController', null, 2)
     private static _tabs_subs: { [var_index: string]: { [user_id: number]: { [client_tab_id: string]: { last_notif_value_ts: number, last_registration_ts: number } } } } = {};
 
-    private static last_subs_clean: number = 0;
 
     public static init() {
         // istanbul ignore next: nothing to test : register_task
@@ -36,7 +40,7 @@ export default class VarsTabsSubsController {
         // ForkedTasksController.register_task(VarsTabsSubsController.TASK_NAME_get_subs_indexs, this.get_subs_indexs.bind(this));
     }
 
-    @RunsOnMainThread
+    @RunsOnMainThread(null)
     public static async get_subs_indexs(force_update: boolean = false): Promise<string[]> {
 
         if (ConfigurationService.node_configuration.debug_vars) {
@@ -77,7 +81,7 @@ export default class VarsTabsSubsController {
     /**
      * WARN : Only on main thread (express).
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(null)
     public static register_sub(user_id: number, client_tab_id: string, param_indexs: string[]) {
 
         user_id = ((user_id == null) ? 0 : user_id);
@@ -119,7 +123,7 @@ export default class VarsTabsSubsController {
     /**
      * WARN : Only on main thread (express).
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(null)
     public static unregister_sub(user_id: number, client_tab_id: string, param_indexs: string[]) {
 
         user_id = ((user_id == null) ? 0 : user_id);
@@ -179,12 +183,14 @@ export default class VarsTabsSubsController {
      * @param var_datas Tableau ou map (sur index) des vars datas
      * @param is_computing true indique au client de ne pas prendre en compte les valeurs envoyées uniquement le fait q'un calcul est en cours
      */
-    @ThrottleExecAsServerRunsOnMainThread({
-        param_type: THROTTLED_METHOD_PARAM_TYPE.STACKABLE,
-        throttle_ms: 100,
-        leading: true,
-        trailing: true,
-    })
+    @ThrottleExecAsServerRunsOnMainThread(
+        {
+            param_type: EventifyEventListenerConfVO.PARAM_TYPE_STACK,
+            throttle_ms: 50,
+            leading: true,
+        },
+        null, // static
+    )
     public static async notify_vardatas(
         @PreThrottleParam pre_param: NotifVardatasParam | NotifVardatasParam[],
         @PostThrottleParam params: NotifVardatasParam[] = null,
@@ -344,7 +350,7 @@ export default class VarsTabsSubsController {
     /**
      * On nettoie les subs qui sont trop anciens, mais on ne fait le checke qu'une fois toutes les X minutes max
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(null)
     private static async clean_old_subs(force_update: boolean = false) {
 
         const now = Dates.now();

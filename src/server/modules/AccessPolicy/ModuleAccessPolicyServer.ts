@@ -65,6 +65,7 @@ import UserRecapture from './UserRecapture/UserRecapture';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import APIBGThread from '../API/bgthreads/APIBGThread';
 import { IRequestStackContext } from '../../ServerExpressController';
+import CachedQueryHandler from '../../../shared/tools/cache/CachedQueryHandler';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -91,8 +92,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     /**
-     *
-     * @deprecated se base sur le StackContext et on veut supprimer ce module
      */
     public static getLoggedUserId(): number {
 
@@ -122,8 +121,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     /**
-     * On ajoute un cache au sein de la session pour éviter de faire des requêtes inutiles
-     * @deprecated se base sur le StackContext et on veut supprimer ce module
+     * Cette méthode n'a pas vocation à renvoyer une donnée extremmement fraiche sur le user, mais simplement un user qui est en cache et relativement frais
      */
     public static async getSelfUser(): Promise<UserVO> {
 
@@ -135,7 +133,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        return query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_server().select_vo<UserVO>();
+        return query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_server().set_max_age_ms(10000).select_vo<UserVO>(); // On veut pas faire 1000 requêtes par seconde, on peut utiliser une data de compte de quelques secondes sans que ce soit un drame a priori
     }
 
     public static async getMyLang(): Promise<LangVO> {
@@ -144,7 +142,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if (!user) {
             return null;
         }
-        return query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
+        return query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).set_max_age_ms(10000).select_vo<LangVO>(); // On veut pas faire 1000 requêtes par seconde, on peut utiliser une data de compte de quelques secondes sans que ce soit un drame a priori
     }
 
     /**
@@ -152,7 +150,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param sids Les sids à invalider
      * @returns
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     public async delete_sessions_from_sids(sids: string[]) {
         if (!sids || !sids.length) {
             return;
@@ -169,7 +167,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * Fonction qui détruit les sessions de l'utilisateur que l'on est en train de bloquer - exécutée sur le main process
      * @param uid
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     public async onBlockOrInvalidateUserDeleteSessions(uid: number) {
 
         try {
@@ -200,7 +198,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     /**
      * DELETE ME Post suppression StackContext: Does not need StackContext
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     public async logout_sid(sid: string) {
 
         let session = PushDataServerController.registered_sessions_by_sid[sid];
@@ -265,7 +263,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @returns
      * @deprecated utilise StackContext que l'on souhaite supprimer. Utiliser plutôt logout_session
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     public async logout(req: Request, res: Response) {
 
         return this.logout_sid(req.session.sid);
@@ -277,7 +275,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param uid
      * @returns
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     public async login_sid(uid: number, sid: string): Promise<boolean> {
 
         try {
@@ -320,14 +318,21 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 });
             }
 
+            let session_is_saved_resolver = null;
+            const session_is_saved = new Promise((accept) => {
+                session_is_saved_resolver = accept;
+            });
+
             session.uid = user.id;
             session.user_vo = user;
             session.save((error) => {
                 if (error) {
                     ConsoleHandler.error('ModuleAccessPolicyServer.login_session:session.save:' + error);
                 }
+                session_is_saved_resolver();
             });
 
+            await session_is_saved;
             await PushDataServerController.registerSession(session);
 
             // On stocke le log de connexion en base
@@ -338,9 +343,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await this.insert_or_update_uselog(user_log);
+            this.insert_or_update_uselog(user_log);
 
-            await PushDataServerController.notify_user_and_redirect(session.sid);
+            PushDataServerController.notify_user_and_redirect(session.sid);
 
             return true;
         } catch (error) {
@@ -356,7 +361,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @returns
      * @deprecated utilise StackContext que l'on souhaite supprimer. Utiliser plutôt login_session
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     public async login(uid: number): Promise<boolean> {
 
         const sid = StackContext.get('SID');
@@ -364,7 +369,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return this.login_sid(uid, sid);
     }
 
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     public isLogedAs(): boolean {
 
         try {
@@ -386,7 +391,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * Renvoie le UID de l'admin qui utilise la fonction logAs
      *  On remonte à la racine des logas
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     public getAdminLogedUserId(): number {
 
         try {
@@ -413,7 +418,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     /**
      * Renvoie la session de l'admin qui utilise la fonction logAs
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     public getAdminLogedUserSession(): IServerUserSession {
 
         try {
@@ -435,7 +440,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     public getUserSession(): IServerUserSession {
 
         try {
@@ -453,7 +458,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     /**
      * DELETE ME Post suppression StackContext: Does not need StackContext
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     private async do_delete_session(sid: string) {
 
         let session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
@@ -517,7 +522,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         });
     }
 
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     private async signinAndRedirect(nom: string, email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
@@ -629,7 +634,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return null;
     }
 
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     private async loginAndRedirect(email: string, password: string, redirect_to: string, sso: boolean): Promise<number> {
 
         try {
@@ -725,7 +730,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param context_query la requete qui permet de récupérer le user à impersonate
      * @returns l'id de l'utilisateur qui a été impersoné
      */
-    @RunsOnMainThread
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     private async do_impersonate(context_query: ContextQueryVO): Promise<number> {
         const sid = StackContext.get('SID');
         const session = PushDataServerController.registered_sessions_by_sid[sid];
@@ -794,7 +799,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * Attention le user_log n'a pas d'id du coup puisque le moduledao est lancé sur un autre thread
      * INFO : On peut lancer en local si le bgthread est pas encore dispo
      */
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name, true)
+    @RunsOnBgThread(APIBGThread.BGTHREAD_name, ModuleAccessPolicyServer.getInstance, true)
     private async insert_or_update_uselog(user_log: UserLogVO) {
         return ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
     }

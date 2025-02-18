@@ -1,9 +1,15 @@
 import { io } from "socket.io-client";
 import { SnotifyToast } from 'vue-snotify';
-import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
+import ModuleAccessPolicy from "../../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import TimeSegment from "../../../../shared/modules/DataRender/vos/TimeSegment";
+import ModuleEnvParam from "../../../../shared/modules/EnvParam/ModuleEnvParam";
+import EnvParamsVO from "../../../../shared/modules/EnvParam/vos/EnvParamsVO";
+import FileVO from "../../../../shared/modules/File/vos/FileVO";
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleGPT from "../../../../shared/modules/GPT/ModuleGPT";
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import OseliaController from "../../../../shared/modules/Oselia/OseliaController";
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
 import APINotifTypeResultVO from "../../../../shared/modules/PushData/vos/APINotifTypeResultVO";
@@ -14,30 +20,23 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import ThreadHandler from "../../../../shared/tools/ThreadHandler";
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import VueAppBase from '../../../VueAppBase';
+import VueAppController from "../../../VueAppController";
 import VarsClientController from '../../components/Var/VarsClientController';
 import ClientAPIController from "../API/ClientAPIController";
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
 import VOEventRegistrationsHandler from "./VOEventRegistrationsHandler";
-import ThreadHandler from "../../../../shared/tools/ThreadHandler";
-import TimeSegment from "../../../../shared/modules/DataRender/vos/TimeSegment";
-import EnvParamsVO from "../../../../shared/modules/EnvParam/vos/EnvParamsVO";
-import ModuleEnvParam from "../../../../shared/modules/EnvParam/ModuleEnvParam";
-import ModuleAccessPolicy from "../../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
-import ModuleOselia from "../../../../shared/modules/Oselia/ModuleOselia";
-import OseliaController from "../../../../shared/modules/Oselia/OseliaController";
-import ModuleGPT from "../../../../shared/modules/GPT/ModuleGPT";
-import VueAppController from "../../../VueAppController";
-import FileVO from "../../../../shared/modules/File/vos/FileVO";
 
 export default class PushDataVueModule extends VueModuleBase {
 
     private static instance: PushDataVueModule = null;
 
     public throttled_notifications_handler = ThrottleHelper.declare_throttle_with_stackable_args(
-        this.notifications_handler.bind(this), 100, { leading: true, trailing: true });
+        'PushDataVueModule.throttled_notifications_handler',
+        this.notifications_handler.bind(this), 100);
 
     public env_params: EnvParamsVO = null;
     public var_debug_notif_id: number = 0;

@@ -181,6 +181,21 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
         return this.force_index || this.is_unique || !!this.foreign_ref_vo_type;
     }
 
+    /**
+     * Si on est sur un champs texte et qu'on veut faire des recherches dessus, on va utiliser un index GIN avec l'extension trgm plutôt qu'un index btree
+     */
+    get is_indexed_using_gin_trgm(): boolean {
+        return this.is_indexed && (
+            (this.field_type == ModuleTableFieldVO.FIELD_TYPE_string) ||
+            (this.field_type == ModuleTableFieldVO.FIELD_TYPE_textarea) ||
+            (this.field_type == ModuleTableFieldVO.FIELD_TYPE_html) ||
+            (this.field_type == ModuleTableFieldVO.FIELD_TYPE_html_array) ||
+            (this.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text) ||
+            (this.field_type == ModuleTableFieldVO.FIELD_TYPE_string_array) ||
+            (this.field_type == ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj)
+        );
+    }
+
     get field_default(): any {
         return this.field_default_value ? this.field_default_value.value : null;
     }
@@ -425,6 +440,10 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
 
         if (!this.is_indexed) {
             return null;
+        }
+
+        if (this.is_indexed_using_gin_trgm) {
+            return "CREATE INDEX " + this.get_index_name(table_name) + " ON " + database_name + "." + table_name + " USING gin(" + this.field_name + " gin_trgm_ops);";
         }
 
         return "CREATE INDEX " + this.get_index_name(table_name) + " ON " + database_name + "." + table_name + "(" + this.field_name + " ASC NULLS LAST);";

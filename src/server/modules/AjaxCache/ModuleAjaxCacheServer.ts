@@ -7,10 +7,15 @@ import ModuleAjaxCache from '../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import RequestsWrapperResult from '../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
+import { all_promises } from '../../../shared/tools/PromiseTools';
+import { IRequestStackContext } from '../../ServerExpressController';
+import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -59,13 +64,42 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
-    public async requests_wrapper(requests: LightWeightSendableRequestVO[], response: Response, req: Request): Promise<RequestsWrapperResult> {
+    // /**
+    //  * FIXME DELETE ME DEBUG ONLY JNE
+    //  */
+    // private static requests_wrapper_uid: number = 0;
+    // /**
+    //  * !FIXME DELETE ME DEBUG ONLY JNE
+    //  */
+
+
+    public async requests_wrapper(requests: LightWeightSendableRequestVO[], req: Request): Promise<RequestsWrapperResult> {
+
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+        // const uid = ModuleAjaxCacheServer.requests_wrapper_uid++;
+        // let puid = 0;
+        // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        //     StackContext['set']('REQUEST_WRAPPER_UID', uid);
+        // }
+        // ConsoleHandler.log('requests_wrapper:IN:' + uid + ':' + JSON.stringify(StackContext.get_active_context()));
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+
+        // /**
+        //  * ! FIXME DELETE ME DEBUG ONLY JNE
+        //  */
 
         const res: RequestsWrapperResult = new RequestsWrapperResult();
         res.requests_results = {};
 
-        const limit = ConfigurationService.node_configuration.max_pool / 2;
-        const promise_pipeline = new PromisePipeline(limit, 'ModuleAjaxCacheServer.requests_wrapper');
+        // On tente sans promise pipeline par ce qu'en réalité je suis pas sur de l'intéret ici. On promisepipeline les appels à la base de données, mais pas les appels à des APIs
+        // à creuser. En l'occurrence ce pipeline explose bien avant celui des requetes en base de données.
+        // const limit = ConfigurationService.node_configuration.max_pool / 2;
+        // const promise_pipeline = PromisePipeline.get_semaphore_pipeline('ModuleAjaxCacheServer.requests_wrapper', limit);
+        const promises = [];
 
         for (const i in requests) {
             const wrapped_request: LightWeightSendableRequestVO = requests[i];
@@ -74,7 +108,20 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 continue;
             }
 
-            await promise_pipeline.push(async () => {
+            promises.push((async () => {
+                // await promise_pipeline.push(async () => {
+
+                // /**
+                //  * FIXME DELETE ME DEBUG ONLY JNE
+                //  */
+                // const this_puid = puid++;
+                // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+                //     StackContext['set']('REQUEST_WRAPPER_PUID', this_puid);
+                // }
+                // ConsoleHandler.log('requests_wrapper:promise_pipeline:IN:' + uid + ':' + this_puid + ':' + wrapped_request.url + ':' + JSON.stringify(StackContext.get_active_context()));
+                // /**
+                //  * ! FIXME DELETE ME DEBUG ONLY JNE
+                //  */
 
                 let apiDefinition: APIDefinition<any, any> = null;
 
@@ -129,18 +176,42 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                 const params = (param && apiDefinition.param_translator) ? apiDefinition.param_translator.getAPIParams(param) : [param];
                 try {
+
+                    StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'api.SERVER_HANDLER', apiDefinition.api_name);
+                    const date_in_ms = Dates.now_ms();
+
                     const api_res = await apiDefinition.SERVER_HANDLER(...params);
                     res.requests_results[wrapped_request.index] = (typeof api_res === 'undefined') ? null : api_res;
+
+                    StatsController.register_stat_DUREE('ModuleAPIServer', 'api.SERVER_HANDLER', apiDefinition.api_name, Dates.now_ms() - date_in_ms);
                 } catch (error) {
                     const session: IServerUserSession = (req as any).session;
                     ConsoleHandler.error('Erreur API:requests_wrapper:' + apiDefinition.api_name + ':' + ' sessionID:' + (req as any).sessionID + ": UID:" + (session ? session.uid : "null") + ":error:" + error + ':');
                     res.requests_results[wrapped_request.index] = null;
                 }
-            });
 
+                // /**
+                //  * FIXME DELETE ME DEBUG ONLY JNE
+                //  */
+                // ConsoleHandler.log('requests_wrapper:promise_pipeline:OUT:' + uid + ':' + this_puid + ':' + wrapped_request.url + ':' + JSON.stringify(StackContext.get_active_context()));
+                // /**
+                //  * ! FIXME DELETE ME DEBUG ONLY JNE
+                //  */
+
+                // });
+            })());
         }
 
-        await promise_pipeline.end();
+        // await promise_pipeline.end();
+        await all_promises(promises);
+
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+        // ConsoleHandler.log('requests_wrapper:OUT:' + uid + ':' + JSON.stringify(StackContext.get_active_context()));
+        // /**
+        //  * ! FIXME DELETE ME DEBUG ONLY JNE
+        //  */
 
         return res;
     }

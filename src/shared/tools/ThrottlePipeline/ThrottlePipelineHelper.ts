@@ -169,7 +169,7 @@ export default class ThrottlePipelineHelper {
                     const index = ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
 
                     // FIXME : TODO: Est-ce qu'on devrait pas restore l'ancien context pré appel à throttle ?
-                    promises.push(ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id](func_result ? func_result[index] : null));
+                    promises.push(ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id]((func_result && (typeof func_result[index] !== 'undefined')) ? func_result[index] : null));
 
                     delete ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id];
                     delete ThrottlePipelineHelper.throttled_pipeline_call_rejecters_by_call_id[UID][call_id];

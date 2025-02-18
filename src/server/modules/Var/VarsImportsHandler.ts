@@ -41,6 +41,7 @@ export default class VarsImportsHandler {
      */
     public async load_imports_and_split_nodes(
         node: VarDAGNode,
+        nodes_to_unlock: VarDAGNode[],
         FOR_TU_imports: VarDataBaseVO[] = null) {
 
         const imports: VarDataBaseVO[] = FOR_TU_imports ? FOR_TU_imports : (ConfigurationService.IS_UNIT_TEST_MODE ? [] : await ModuleDAO.instance.getVarImportsByMatroidParams(node.var_data._type, [node.var_data], null));
@@ -50,7 +51,7 @@ export default class VarsImportsHandler {
         }
 
         const var_conf = VarsController.var_conf_by_id[node.var_data.var_id];
-        await this.split_nodes(node, imports, var_conf.optimization__has_only_atomic_imports);
+        await this.split_nodes(node, imports, var_conf.optimization__has_only_atomic_imports, nodes_to_unlock);
     }
 
     /**
@@ -62,7 +63,9 @@ export default class VarsImportsHandler {
     public async split_nodes(
         node: VarDAGNode,
         imports: VarDataBaseVO[],
-        optimization__has_only_atomic_imports: boolean) {
+        optimization__has_only_atomic_imports: boolean,
+        nodes_to_unlock: VarDAGNode[],
+    ) {
 
         if ((!imports) || (!imports.length)) {
             return;
@@ -123,7 +126,7 @@ export default class VarsImportsHandler {
         }
 
         // Pour chaque noeud restant, un fils à calculer, pour chaque noeud importé, un fils avec la valeur de l'import
-        await this.aggregate_imports_and_remaining_datas(node, imports_valides, cut_result);
+        await this.aggregate_imports_and_remaining_datas(node, imports_valides, cut_result, nodes_to_unlock);
     }
 
     /**
@@ -179,7 +182,12 @@ export default class VarsImportsHandler {
         return imports_valides;
     }
 
-    public async aggregate_imports_and_remaining_datas(node: VarDAGNode, imported_datas: VarDataBaseVO[], remaining_computations: VarDataBaseVO[]) {
+    public async aggregate_imports_and_remaining_datas(
+        node: VarDAGNode,
+        imported_datas: VarDataBaseVO[],
+        remaining_computations: VarDataBaseVO[],
+        nodes_to_unlock: VarDAGNode[],
+    ) {
 
         /**
          * Si on a pas de remaining, et un seul import, on est sur un var_data dont l'import couvre complètement (possible si c'est aussi dans vars_datas)
@@ -205,7 +213,9 @@ export default class VarsImportsHandler {
             /**
              * On indique qu'on a déjà fait un chargement du cache complet
              */
-            promises.push(VarDAGNode.getInstance(node.var_dag, imported_data, true/*, true*/));
+            promises.push((async () => {
+                nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, imported_data, true/*, true*/));
+            })());
         }
 
         for (const i in remaining_computations) {
@@ -215,7 +225,9 @@ export default class VarsImportsHandler {
             /**
              * On indique qu'on a pas encore fait de chargement du cache complet
              */
-            promises.push(VarDAGNode.getInstance(node.var_dag, remaining_computation, false/*, true*/));
+            promises.push((async () => {
+                nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, remaining_computation, false/*, true*/));
+            })());
         }
         await all_promises(promises);
 

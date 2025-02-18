@@ -1,43 +1,41 @@
 import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
-import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
-import VarMixedChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
-import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
+import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import VarChartOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
+import VarChartScalesOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
+import VarMixedChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarMixedChartDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarMixedChartDataSetDescriptor';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import Filters from '../../../../../../shared/tools/Filters';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
+import { IChartOptions } from '../../../Var/components/mixed-chart/VarMixedChartComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
+import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import './VarMixedChartsWidgetComponent.scss';
-import { IChartOptions } from '../../../Var/components/mixed-chart/VarMixedChartComponent';
-import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
-import VarChartScalesOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
-import VarChartOptionsItemComponent from '../var_chart_options/item/VarChartOptionsItemComponent';
-import Filters from '../../../../../../shared/tools/Filters';
-import VarChartOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
-import { enabled } from 'screenfull';
 
 @Component({
     template: require('./VarMixedChartsWidgetComponent.pug')
@@ -143,9 +141,9 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
          */
     get options(): IChartOptions {
 
+        let scales = {};
+        let var_chart_scales_options = this.widget_options?.var_chart_scales_options;
         if (this.widget_options.detailed) {
-            const scales = {};
-            const var_chart_scales_options = this.widget_options.var_chart_scales_options;
             if (var_chart_scales_options && var_chart_scales_options.length > 0) {
                 for (const i in this.current_charts_scales_options) {
                     const current_scale = new VarChartScalesOptionsVO().from(this.current_charts_scales_options[i]);
@@ -233,13 +231,16 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     },
                 },
 
-                scales: scales
+                tooltip: {
+                    enabled: true,
+                    axis: 'xy',
+                    mode: this.widget_options.tooltip_by_index ? 'index' : 'nearest',
+                    scales: scales
+                },
             };
 
             return Object.assign({}, obj, interaction_option);
         } else {
-            const scales = {};
-
             scales['x'] = {
                 display: true,
                 grid: {
@@ -253,7 +254,6 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 },
             };
 
-            const var_chart_scales_options = this.widget_options.var_chart_scales_options;
             if (var_chart_scales_options && var_chart_scales_options.length > 0) {
                 for (const i in this.current_charts_scales_options) {
                     const current_scale = new VarChartScalesOptionsVO().from(this.current_charts_scales_options[i]);
@@ -261,12 +261,12 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     const title = this.t(current_scale.get_title_name_code_text(current_scale.page_widget_id, current_scale.chart_id));
                     if (title) {
                         scales[title] = {
-                            display:false,
+                            display: false,
                             title: {
                                 display: false
                             },
                             grid: {
-                                display:false,
+                                display: false,
                                 drawOnChartArea: false
                             },
                             type: current_scale.scale_options ? current_scale.scale_options.type : 'linear',
@@ -275,6 +275,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                             },
                             axis: 'y',
                             position: current_scale.selected_position ? current_scale.selected_position : 'left',
+                            fill: this.widget_options.var_charts_options.some((option) => option.type == 'line') ? (current_scale.fill ? current_scale.fill : false) : false,
                         };
                     }
                 }
@@ -284,7 +285,6 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 inflateAmount: true,
                 borderRadius: 10,
                 responsive: true,
-                fill: this.widget_options.var_charts_options.some((option) => option.type == 'line') ? true : false,
                 tension: this.widget_options.var_charts_options.some((option) => option.type == 'line') ? 0.2 : 0,
                 maintainAspectRatio: false,
                 plugins: {
@@ -335,7 +335,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
         const res = {};
 
-        if(this.widget_options.detailed) {
+        if (this.widget_options.detailed) {
             for (const j in this.datasets) {
                 const dataset = this.datasets[j];
                 for (let i = 0; i < this.widget_options.var_charts_options.length; i++) {
@@ -362,7 +362,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     const current_scale = new VarChartScalesOptionsVO().from(this.widget_options.var_chart_scales_options.find((scale) => scale.chart_id == var_chart_option.selected_filter_id));
                     const var_chart_id_dataset = var_chart_option.chart_id + '_' + dataset;
                     current_scale.show_scale_title = false;
-                    current_scale.fill = this.widget_options.var_charts_options.some((option) => option.type == 'line') ? true : false;
+                    // current_scale.fill = this.widget_options.var_charts_options.some((option) => option.type == 'line') ? true : false;
                     if (res[var_chart_id_dataset] == undefined) {
                         res[var_chart_id_dataset] = current_scale;
                     }
@@ -448,6 +448,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                         .set_gradients([var_chart_options.has_gradient])
                         .set_bordercolors([borderColor])
                         .set_borderwidths([var_chart_options.border_width])
+                        .set_value_label_size(var_chart_options.value_label_size)
                         .set_type(var_chart_options.type)
                         .set_filters_type(var_chart_options.filter_type)
                         .set_filters_additional_params(var_chart_options.filter_additional_params)
@@ -478,7 +479,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 let is_rbga = true;
                 let colors = [];
 
-                if (var_chart_options.has_gradient && var_chart_options.type!= 'line') {
+                if (var_chart_options.has_gradient && var_chart_options.type != 'line') {
                     // tentative de faire un dégradé automatique de couleur pour les dimensions.
                     // à voir comment on peut proposer de paramétrer cette partie
 
@@ -591,6 +592,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     .set_backgrounds(colors)
                     .set_bordercolors(border_color)
                     .set_borderwidths([var_chart_options.border_width])
+                    .set_value_label_size(var_chart_options.value_label_size)
                     .set_type(var_chart_options.type)
                     .set_filters_type(var_chart_options.filter_type)
                     .set_filters_additional_params(var_chart_options.filter_additional_params)

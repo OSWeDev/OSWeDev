@@ -5,7 +5,7 @@ import ContextFilterVO, { filter } from "../../../src/shared/modules/ContextFilt
 import ConsoleHandler from "../../../src/shared/tools/ConsoleHandler";
 
 let instance: ContextQueryServerController;
-ConsoleHandler.init();
+ConsoleHandler.init('test');
 
 test('QueryFilterVO: Build a simple tree with and', () => {
     instance = ContextQueryServerController;

@@ -4,7 +4,7 @@ import ContextQueryServerController from "../../../src/server/modules/ContextFil
 import ConsoleHandler from "../../../src/shared/tools/ConsoleHandler";
 
 let instance: ContextQueryServerController;
-ConsoleHandler.init();
+ConsoleHandler.init('test');
 
 test('get_arbo_ET: should return null when filter type is not TYPE_FILTER_AND', () => {
     instance = ContextQueryServerController;

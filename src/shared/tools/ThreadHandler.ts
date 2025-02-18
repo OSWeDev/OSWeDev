@@ -2,6 +2,7 @@
 
 import EventsController from "../modules/Eventify/EventsController";
 import Dates from "../modules/FormatDatesNombres/Dates/Dates";
+import { StatThisMapKeys } from "../modules/Stats/annotations/StatThisMapKeys";
 import StatsController from "../modules/Stats/StatsController";
 import DBDisconnectionManager from "./DBDisconnectionManager";
 
@@ -15,6 +16,7 @@ interface IIntervalConf {
 
 export default class ThreadHandler {
 
+    @StatThisMapKeys('ThreadHandler')
     private static intervals_confs: { [uid: string]: IIntervalConf } = {};
 
     private constructor() {
@@ -24,16 +26,17 @@ export default class ThreadHandler {
      * @param timeout en ms
      * @param reason_ID La raison de l'attente, pour les stats
      * @param pause_on_db_disconnection Si true, on attend que la DB soit reconnectée avant de faire le sleep
+     * @returns Un objet contenant une promesse et une fonction `cancel` pour annuler le sleep
      */
-    public static async sleep(timeout: number, reason_ID: string, pause_on_db_disconnection: boolean = false): Promise<NodeJS.Timeout> {
-
+    public static sleep(timeout: number, reason_ID: string, pause_on_db_disconnection: boolean = false) {
         StatsController.register_stat_COMPTEUR('ThreadHandler', 'sleep', reason_ID);
 
         const date_in_ms = Dates.now_ms();
-        return new Promise<NodeJS.Timeout>((resolve) => {
-            const timeout_obj = setTimeout(async () => {
+        let cancel: (() => void) | null = null;
 
-                if (pause_on_db_disconnection && DBDisconnectionManager.instance && DBDisconnectionManager.instance.db_is_disconnected) {
+        const promise = new Promise<void>((resolve) => {
+            const timeout_obj = setTimeout(async () => {
+                if (pause_on_db_disconnection && DBDisconnectionManager.instance?.db_is_disconnected) {
                     await DBDisconnectionManager.instance.wait_for_reconnection();
                     await ThreadHandler.sleep(timeout, 'sleep.pause_on_db_disconnection', pause_on_db_disconnection);
                 }
@@ -41,9 +44,20 @@ export default class ThreadHandler {
                 const date_out_ms = Dates.now_ms();
                 StatsController.register_stat_DUREE('ThreadHandler', 'sleep', reason_ID, date_out_ms - date_in_ms);
 
-                resolve(timeout_obj);
+                resolve();
             }, timeout);
+
+            cancel = () => {
+                clearTimeout(timeout_obj);
+                resolve();
+            };
         });
+
+        return {
+            promise,
+            cancel: () => cancel?.(), // permet de cancel le sleep et donc de resolve la promesse asap
+            then: (resolve: (value: void) => void) => promise.then(resolve) // Permet la compatibilité avec le await directement sur le sleep
+        };
     }
 
     /**

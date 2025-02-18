@@ -133,7 +133,29 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_ShowFavoritesFilters();
 
         await this.initializeWidget_OseliaThread();
+
+        await this.initializeWidget_PerfReportGraph();
     }
+
+    private async initializeWidget_PerfReportGraph() {
+        const PerfReportGraph = new DashboardWidgetVO();
+
+        PerfReportGraph.default_height = 35;
+        PerfReportGraph.default_width = 12;
+        PerfReportGraph.name = DashboardWidgetVO.WIDGET_NAME_perfreportgraph;
+        PerfReportGraph.widget_component = 'Perfreportgraphwidgetcomponent';
+        PerfReportGraph.options_component = 'Perfreportgraphwidgetoptionscomponent';
+        PerfReportGraph.weight = 50;
+        PerfReportGraph.default_background = '#f5f5f5';
+        PerfReportGraph.icon_component = 'Perfreportgraphwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(PerfReportGraph, null, null);
+
+        Vue.component('Perfreportgraphwidgetcomponent', () => import('./widgets/perf_report_graph_widget/PerfReportGraphWidgetComponent'));
+        Vue.component('Perfreportgraphwidgetoptionscomponent', () => import('./widgets/perf_report_graph_widget/options/PerfReportGraphWidgetOptionsComponent'));
+        Vue.component('Perfreportgraphwidgeticoncomponent', () => import('./widgets/perf_report_graph_widget/icon/PerfReportGraphWidgetIconComponent'));
+    }
+
 
     private async initializeWidget_BulkOps() {
         const BulkOps = new DashboardWidgetVO();

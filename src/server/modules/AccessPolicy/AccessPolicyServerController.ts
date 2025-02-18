@@ -89,7 +89,9 @@ export default class AccessPolicyServerController {
 
     private static instance: AccessPolicyServerController = null;
 
-    private static throttled_reload_access_matrix_computation = ThrottleHelper.declare_throttle_without_args(AccessPolicyServerController.reload_access_matrix_computation.bind(this), 1000);
+    private static throttled_reload_access_matrix_computation = ThrottleHelper.declare_throttle_without_args(
+        'AccessPolicyServerController.throttled_reload_access_matrix_computation',
+        AccessPolicyServerController.reload_access_matrix_computation.bind(this), 1000);
 
     private constructor() { }
 

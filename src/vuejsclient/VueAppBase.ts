@@ -1,6 +1,12 @@
 import VueFlags from "@growthbunker/vueflags";
 import 'bootstrap';
+
 import $ from 'jquery';
+import 'jquery-ui-dist/jquery-ui';
+import 'jquery-ui-dist/jquery-ui.css';
+// import 'jquery-ui-themes/themes/base/jquery-ui.min.css';
+
+// import $ from 'jquery';
 import moment from 'moment';
 
 import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
@@ -91,7 +97,11 @@ export default abstract class VueAppBase {
 
     public async runApp() {
 
-        ConsoleHandler.init();
+        $(document).on('click', function () {
+            $('.ui-tooltip').remove();
+        });
+
+        ConsoleHandler.init('client');
         ModulesManager.initialize();
 
         // Chargement des données des modules.
@@ -385,7 +395,7 @@ export default abstract class VueAppBase {
                 code_google_analytics,
             );
 
-            if (VueAppController.getInstance().routes_log.length >= VueAppController.getInstance().routes_log_limit) {
+            while (VueAppController.getInstance().routes_log.length >= VueAppController.getInstance().routes_log_limit) {
                 VueAppController.getInstance().routes_log.shift();
             }
             VueAppController.getInstance().routes_log.push(route);

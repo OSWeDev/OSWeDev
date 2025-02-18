@@ -104,7 +104,7 @@ export default class ModuleVar extends Module {
     public getVarParamDatas: (param: VarDataBaseVO) => Promise<{ [ds_name: string]: string }> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamDatas);
     public getAggregatedVarDatas: (param: VarDataBaseVO) => Promise<{ [var_data_index: string]: VarDataBaseVO }> = APIControllerWrapper.sah(ModuleVar.APINAME_getAggregatedVarDatas);
     public register_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleVar>().register_params, (params: VarDataBaseVO[]) => {
-        return params.filter((e) => e.index != null);
+        return [params.filter((e) => e.index != null)];
     });
     public update_params_registration: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_update_params_registration);
     public unregister_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_unregister_params);

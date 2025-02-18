@@ -1,6 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import RangeHandler from '../../tools/RangeHandler';
 import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import IRange from '../DataRender/interfaces/IRange';
@@ -84,10 +85,13 @@ export default class MatroidController {
         return res;
     }
 
-    // FIXME Algo naif certainement très mauvais mais simple
-    //  on regarde si on trouve des matroids identiques, on ignore le second,
-    //  si on trouve des matroids qui n'ont qu'une base différente, on fait une union des bases sur le premier et on ignore le second,
-    //  si on trouve plus d'une base différente
+    /**
+     * ATTENTION : le var_id doit être identique !!!
+     * FIXME Algo naif certainement très mauvais mais simple
+     *  on regarde si on trouve des matroids identiques, on ignore le second,
+     *  si on trouve des matroids qui n'ont qu'une base différente, on fait une union des bases sur le premier et on ignore le second,
+     *  si on trouve plus d'une base différente
+     */
     public static union<T extends IMatroid>(matroids: T[]): T[] {
         const res: T[] = [];
 
@@ -169,7 +173,7 @@ export default class MatroidController {
         }
 
         const matroid_fields: ModuleTableFieldVO[] = [];
-        const mt_fields = moduleTable.get_fields();
+        const mt_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
         for (const i in mt_fields) {
             const field = mt_fields[i];
 
@@ -566,6 +570,8 @@ export default class MatroidController {
         const moduletable_to = ModuleTableController.module_tables_by_vo_type[_type];
 
         const res: U = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[_type]() as U, static_fields);
+        static_fields = static_fields ? static_fields : {};
+        // TEST AB FAIT PEU OU PAS D'INTERET const res: U = Object.create(ModuleTableController.vo_constructor_proto_by_vo_type[_type], Object.getOwnPropertyDescriptors(static_fields));
         res._type = _type;
 
         // Compatibilité avec les vars

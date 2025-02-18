@@ -1,4 +1,4 @@
-import { cloneDeep, isArray } from "lodash";
+import { cloneDeep } from "lodash";
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleTableController from "../../../shared/modules/DAO/ModuleTableController";
 import ModuleTableFieldController from "../../../shared/modules/DAO/ModuleTableFieldController";
@@ -24,7 +24,7 @@ export default class ModuleTableServerController {
             return null;
         }
 
-        if (isArray(e)) {
+        if (Array.isArray(e)) {
             for (const i in e) {
                 e[i] = ModuleTableServerController.translate_vos_from_db(e[i]);
             }
@@ -47,6 +47,7 @@ export default class ModuleTableServerController {
         }
 
         const res: T = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[moduleTable.vo_type](), e as T);
+        // TEST AB FAIT PEU OU PAS D'INTERET const res = Object.create(ModuleTableController.vo_constructor_proto_by_vo_type[moduleTable.vo_type], Object.getOwnPropertyDescriptors(e));
         res.id = ConversionHandler.forceNumber(e.id);
 
         const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[e._type];
@@ -73,7 +74,7 @@ export default class ModuleTableServerController {
             return null;
         }
 
-        if (isArray(e)) {
+        if (Array.isArray(e)) {
             for (const i in e) {
                 e[i] = ModuleTableServerController.translate_vos_to_db(e[i], inside_plain_vo_obj);
             }

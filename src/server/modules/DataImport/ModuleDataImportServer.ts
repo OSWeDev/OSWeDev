@@ -8,6 +8,7 @@ import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFi
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
@@ -1195,7 +1196,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         res.nb_row_unvalidated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
         query_res = await ModuleDAOServer.instance.query('SELECT COUNT(1) a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
         res.nb_row_validated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
-        const fields = moduletable.get_fields().map((field: ModuleTableFieldVO) => field.field_name).join(') + COUNT(');
+        const fields = Object.keys(ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduletable.vo_type]).join(') + COUNT(');
         query_res = await ModuleDAOServer.instance.query('SELECT COUNT(' + fields + ') a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
         res.nb_fields_validated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
 
@@ -1205,6 +1206,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     private countValidatedDataAndColumns(vos: IImportedData[], moduleTable: ModuleTableVO, data_import_format_id: number): FormattedDatasStats {
         const res: FormattedDatasStats = new FormattedDatasStats();
         res.format_id = data_import_format_id;
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
 
         for (const i in vos) {
             const vo = vos[i];
@@ -1216,8 +1218,8 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
             res.nb_row_validated++;
 
-            for (const j in moduleTable.get_fields()) {
-                const field = moduleTable.get_fields()[j];
+            for (const j in fields) {
+                const field = fields[j];
 
                 if (vo[field.field_name]) {
                     res.nb_fields_validated++;
@@ -1295,11 +1297,11 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
             for (const i in vos) {
                 const vo = vos[i];
+                const vo_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo._type];
 
                 /**
                  * On cherche les deps vers d'autres objets
                  */
-                const vo_fields = ModuleTableController.module_tables_by_vo_type[vo._type].get_fields();
                 let need_ref = false;
                 for (const j in vo_fields) {
 
@@ -1449,7 +1451,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         const reg_exp = /(.*)\{\{IMPORT:([^:]+):([0-9]+)\}\}(.*)/g;
         const table = ModuleTableController.module_tables_by_vo_type[vo._type];
-        const fields = table.get_fields();
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[table.vo_type];
         for (const i in fields) {
             const field = fields[i];
 

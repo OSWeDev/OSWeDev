@@ -32,7 +32,7 @@ export default class SuiviCompetencesWidgetController {
 
                     let html_content: string = $('.suivi_competences_widget_component_container')[0].outerHTML;
                     let limit = EnvHandler.max_pool / 2; // front
-                    let promise_pipeline = new PromisePipeline(limit);
+                    let promise_pipeline = new PromisePipeline(limit, 'SuiviCompetencesWidgetController.download_rapport_pdf');
 
                     let rapport: SuiviCompetencesRapportVO = null;
                     let user: UserVO = null;

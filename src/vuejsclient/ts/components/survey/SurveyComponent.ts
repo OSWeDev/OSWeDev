@@ -17,8 +17,6 @@ import ScreenshotComponent from '../screenshot/ScreenshotComponent';
 import './SurveyComponent.scss';
 import { ModuleSurveyAction, ModuleSurveyGetter } from './store/SurveyStore';
 
-const { parse, stringify } = require('flatted/cjs');
-
 @Component({
     template: require('./SurveyComponent.pug'),
     components: {

@@ -246,6 +246,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_mixed_charts_widget_options_component.separator.multiple_dataset.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Condition du survol'
+        }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Par abscisse'
+        }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.index.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Par valeur proche'
+        }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.nearest.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
         }, 'var_radar_chart_widget_options_component.has_dimension.___LABEL___'));
 
@@ -615,6 +627,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Afficher les 0'
         }, 'var_chart_options_item_component.show_zeros.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Taille des valeurs'
+        }, 'var_chart_options_item_component.value_label_size.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Il n\'y a aucune donnée à afficher'
@@ -3644,6 +3660,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Masquer le filtre" },
             'var_pie_chart_widget_options_component.hide_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher le bouton de rechargement manuel" },
+            'supervision_type_widget_component.refresh_button.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Rechargement automatique" },
+            'supervision_type_widget_component.auto_refresh.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Recharger toutes les (en secondes)" },
+            'supervision_type_widget_component.auto_refresh_seconds.___LABEL___'
         ));
 
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

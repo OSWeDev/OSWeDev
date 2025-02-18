@@ -15,11 +15,17 @@ import GPTAssistantAPIThreadMessageContentTextVO from '../../../shared/modules/G
 import GPTAssistantAPIThreadMessageContentVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
 import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
+import IModuleBase from '../../../shared/modules/IModuleBase';
 import ModulesManager from '../../../shared/modules/ModulesManager';
+import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
 import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
 import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
+import OseliaRunFunctionCallVO from '../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
+import OseliaThreadRoleVO from '../../../shared/modules/Oselia/vos/OseliaThreadRoleVO';
+import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
+import PerfReportController from '../../../shared/modules/PerfReport/PerfReportController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -34,19 +40,12 @@ import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
-import GPTAssistantAPIThreadMessageContentImageURLVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentImageURLVO';
-import { readFileSync } from 'fs';
-import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
-import OseliaThreadRoleVO from '../../../shared/modules/Oselia/vos/OseliaThreadRoleVO';
-import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
-import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
-import GPTRealtimeAPIConversationItemVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIConversationItemVO';
-import GPTRealtimeAPISessionVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO';
-import OseliaRunFunctionCallVO from '../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 
 export default class GPTAssistantAPIServerController {
 
     public static promise_pipeline_by_function: { [function_id: number]: PromisePipeline } = {};
+
+    public static PERF_MODULE_NAME: string = 'gpt_assistant_api';
 
     /**
      * Cette méthode a pour but de wrapper l'appel aux APIs OpenAI
@@ -508,6 +507,30 @@ export default class GPTAssistantAPIServerController {
         referrer_external_api_by_name: { [api_name: string]: OseliaReferrerExternalAPIVO },
     ): Promise<string> {
 
+        const function_perf_name = 'Osélia Run Function Call - ' + function_vo.gpt_function_name;
+        const function_perf_description = 'Osélia Run Function Call - ' + function_vo.gpt_function_description;
+
+        const thread_perf_name = 'Osélia Run Thread [' + thread_vo.id + ']';
+        const thread_perf_description = 'Osélia Run Thread [' + thread_vo.id + '] - ' + (((!thread_vo.needs_thread_title_build) && thread_vo.thread_title) ? thread_vo.thread_title : '');
+        PerfReportController.add_event(
+            GPTAssistantAPIServerController.PERF_MODULE_NAME,
+            function_perf_name,
+            function_perf_name,
+            function_perf_description,
+            Dates.now_ms(),
+            'For thread [' + thread_vo.id + ']' + (((!thread_vo.needs_thread_title_build) && thread_vo.thread_title) ? ' - ' + thread_vo.thread_title : ''),
+        );
+        PerfReportController.add_event(
+            GPTAssistantAPIServerController.PERF_MODULE_NAME,
+            thread_perf_name,
+            thread_perf_name,
+            thread_perf_description,
+            Dates.now_ms(),
+            'Run function - ' + function_vo.gpt_function_name + ' - ' + function_vo.gpt_function_description,
+        );
+
+        const in_ts_ms = Dates.now_ms();
+
         let function_response = null;
 
         if (!function_vo) {
@@ -572,6 +595,7 @@ export default class GPTAssistantAPIServerController {
                         break;
                 }
 
+                let post_api_ts_ms = Dates.now_ms();
                 await all_promises([
                     (async () => {
                         // On stocke l'info qu'on a lancé un appel de fonction externe
@@ -589,6 +613,31 @@ export default class GPTAssistantAPIServerController {
                         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
                     })(),
                     (async () => {
+
+                        const pre_api_ts_ms = Dates.now_ms();
+                        PerfReportController.add_cooldown(
+                            GPTAssistantAPIServerController.PERF_MODULE_NAME,
+                            function_perf_name,
+                            function_perf_name,
+                            function_perf_description,
+                            in_ts_ms,
+                            pre_api_ts_ms,
+                            'For thread [' + thread_vo.id + ']' + (((!thread_vo.needs_thread_title_build) && thread_vo.thread_title) ? ' - ' + thread_vo.thread_title : '') +
+                            '<br>' +
+                            'External API Call - ' + method + ' - ' + external_api_url + ' - ' + JSON.stringify(function_args),
+                        );
+                        PerfReportController.add_cooldown(
+                            GPTAssistantAPIServerController.PERF_MODULE_NAME,
+                            thread_perf_name,
+                            thread_perf_name,
+                            thread_perf_description,
+                            in_ts_ms,
+                            pre_api_ts_ms,
+                            'Run function - ' + function_vo.gpt_function_name + ' - ' + function_vo.gpt_function_description +
+                            '<br>' +
+                            'External API Call - ' + method + ' - ' + external_api_url + ' - ' + JSON.stringify(function_args),
+                        );
+
                         function_response = await ExternalAPIServerController.call_external_api(
                             method,
                             external_api_url,
@@ -596,6 +645,30 @@ export default class GPTAssistantAPIServerController {
                             referrer_external_api.external_api_authentication_id,
                             referrer_external_api.accept,
                             referrer_external_api.content_type,
+                        );
+
+                        post_api_ts_ms = Dates.now_ms();
+                        PerfReportController.add_call(
+                            GPTAssistantAPIServerController.PERF_MODULE_NAME,
+                            function_perf_name,
+                            function_perf_name,
+                            function_perf_description,
+                            pre_api_ts_ms,
+                            post_api_ts_ms,
+                            'For thread [' + thread_vo.id + ']' + (((!thread_vo.needs_thread_title_build) && thread_vo.thread_title) ? ' - ' + thread_vo.thread_title : '') +
+                            '<br>' +
+                            'External API Call - ' + method + ' - ' + external_api_url + ' - ' + JSON.stringify(function_args),
+                        );
+                        PerfReportController.add_call(
+                            GPTAssistantAPIServerController.PERF_MODULE_NAME,
+                            thread_perf_name,
+                            thread_perf_name,
+                            thread_perf_description,
+                            pre_api_ts_ms,
+                            post_api_ts_ms,
+                            'Run function - ' + function_vo.gpt_function_name + ' - ' + function_vo.gpt_function_description +
+                            '<br>' +
+                            'External API Call - ' + method + ' - ' + external_api_url + ' - ' + JSON.stringify(function_args),
                         );
                     })()
                 ]);
@@ -608,6 +681,30 @@ export default class GPTAssistantAPIServerController {
                 if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
                     ConsoleHandler.log('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - REFERRER ExternalAPI Call - answer - ' + JSON.stringify(function_response));
                 }
+
+                const post_ts_ms = Dates.now_ms();
+                PerfReportController.add_cooldown(
+                    GPTAssistantAPIServerController.PERF_MODULE_NAME,
+                    function_perf_name,
+                    function_perf_name,
+                    function_perf_description,
+                    post_api_ts_ms,
+                    post_ts_ms,
+                    'For thread [' + thread_vo.id + ']' + (((!thread_vo.needs_thread_title_build) && thread_vo.thread_title) ? ' - ' + thread_vo.thread_title : '') +
+                    '<br>' +
+                    'External API Call - ' + method + ' - ' + external_api_url + ' - ' + JSON.stringify(function_args),
+                );
+                PerfReportController.add_cooldown(
+                    GPTAssistantAPIServerController.PERF_MODULE_NAME,
+                    thread_perf_name,
+                    thread_perf_name,
+                    thread_perf_description,
+                    post_api_ts_ms,
+                    post_ts_ms,
+                    'Run function - ' + function_vo.gpt_function_name + ' - ' + function_vo.gpt_function_description +
+                    '<br>' +
+                    'External API Call - ' + method + ' - ' + external_api_url + ' - ' + JSON.stringify(function_args),
+                );
 
                 return function_response;
 
@@ -627,7 +724,7 @@ export default class GPTAssistantAPIServerController {
 
         const module_of_function_to_call = ModulesManager.getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
         const function_to_call: () => Promise<any> = module_of_function_to_call[function_vo.module_function];
-        const ordered_args = function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread_vo, function_args, availableFunctionsParameters[function_vo.id]);
+        const ordered_args: any[] = function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread_vo, function_args, availableFunctionsParameters[function_vo.id]);
 
         oselia_run_function_call_vo.creation_date = Dates.now();
         oselia_run_function_call_vo.oselia_run_id = oselia_run ? oselia_run.id : null;
@@ -637,34 +734,61 @@ export default class GPTAssistantAPIServerController {
         oselia_run_function_call_vo.gpt_run_id = run_vo ? run_vo.id : null;
         oselia_run_function_call_vo.thread_id = thread_vo.id;
         oselia_run_function_call_vo.user_id = thread_vo.user_id;
+        oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_TODO;
 
         // Si la fonction est définie comme utilisant un PromisePipeline, on l'utilise, et on l'initialise si il est pas encore créé
         if (function_vo.use_promise_pipeline) {
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
             if (!GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id]) {
                 GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id] = new PromisePipeline(function_vo.promise_pipeline_max_concurrency, 'Oselia-PromisePipeline-' + function_vo.gpt_function_name);
             }
 
+            if (!GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id].has_free_slot) {
+                // Si on sait qu'on va devoir attendre un slot on met à jour la base sinon osef on avance
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+            }
+
             // On attend non seulement le push mais la résolution de la méthode push
             await (await GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id].push(async () => {
                 try {
-                    oselia_run_function_call_vo.start_date = Dates.now();
-                    oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;
-                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+                    function_response = await this.call_function_and_perf_report(
+                        function_vo,
+                        oselia_run_function_call_vo,
+                        function_to_call,
+                        module_of_function_to_call,
+                        ordered_args,
 
-                    function_response = await function_to_call.call(module_of_function_to_call, ...ordered_args);
+                        function_perf_name,
+                        function_perf_description,
+
+                        thread_vo,
+                        thread_perf_name,
+                        thread_perf_description,
+
+                        in_ts_ms,
+                    );
                 } catch (error) {
                     ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - PromisePipeline inner promise - error: ' + error);
                     function_response = "TECHNICAL MALFUNCTION : submit_tool_outputs - error: " + error;
                 }
             }))();
         } else {
-            oselia_run_function_call_vo.start_date = Dates.now();
-            oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+            function_response = await this.call_function_and_perf_report(
+                function_vo,
+                oselia_run_function_call_vo,
+                function_to_call,
+                module_of_function_to_call,
+                ordered_args,
 
-            function_response = await function_to_call.call(module_of_function_to_call, ...ordered_args);
+                function_perf_name,
+                function_perf_description,
+
+                thread_vo,
+                thread_perf_name,
+                thread_perf_description,
+
+                in_ts_ms,
+            );
         }
 
         oselia_run_function_call_vo.end_date = Dates.now();
@@ -1413,5 +1537,88 @@ export default class GPTAssistantAPIServerController {
         }
 
         return { availableFunctions, availableFunctionsParameters };
+    }
+
+    private static async call_function_and_perf_report(
+        oselia_function: GPTAssistantAPIFunctionVO,
+        oselia_run_function_call_vo: OseliaRunFunctionCallVO,
+        function_to_call: () => Promise<any>,
+        module_of_function_to_call: IModuleBase,
+        ordered_args: any[],
+
+        function_perf_name: string,
+        function_perf_description: string,
+
+        thread_vo: GPTAssistantAPIThreadVO,
+        thread_perf_name: string,
+        thread_perf_description: string,
+
+        in_ts_ms: number,
+
+    ): Promise<unknown> {
+
+        let function_response = null;
+
+        await all_promises([
+            (async () => {
+                oselia_run_function_call_vo.start_date = Dates.now();
+                oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+            })(),
+            (async () => {
+
+                const pre_ts_ms = Dates.now_ms();
+                PerfReportController.add_cooldown(
+                    GPTAssistantAPIServerController.PERF_MODULE_NAME,
+                    function_perf_name,
+                    function_perf_name,
+                    function_perf_description,
+                    in_ts_ms,
+                    pre_ts_ms,
+                    'For thread [' + thread_vo.id + ']' + (((!thread_vo.needs_thread_title_build) && thread_vo.thread_title) ? ' - ' + thread_vo.thread_title : '') +
+                    '<br>' +
+                    'Internal - ' + oselia_function.module_name + '.' + oselia_function.module_function + ' - ' + JSON.stringify(ordered_args),
+                );
+                PerfReportController.add_cooldown(
+                    GPTAssistantAPIServerController.PERF_MODULE_NAME,
+                    thread_perf_name,
+                    thread_perf_name,
+                    thread_perf_description,
+                    in_ts_ms,
+                    pre_ts_ms,
+                    'Run function - ' + oselia_function.gpt_function_name + ' - ' + oselia_function.gpt_function_description +
+                    '<br>' +
+                    'Internal - ' + oselia_function.module_name + '.' + oselia_function.module_function + ' - ' + JSON.stringify(ordered_args),
+                );
+
+                function_response = await function_to_call.call(module_of_function_to_call, ...ordered_args);
+
+                const post_ts_ms = Dates.now_ms();
+                PerfReportController.add_call(
+                    GPTAssistantAPIServerController.PERF_MODULE_NAME,
+                    function_perf_name,
+                    function_perf_name,
+                    function_perf_description,
+                    pre_ts_ms,
+                    post_ts_ms,
+                    'For thread [' + thread_vo.id + ']' + (((!thread_vo.needs_thread_title_build) && thread_vo.thread_title) ? ' - ' + thread_vo.thread_title : '') +
+                    '<br>' +
+                    'Internal - ' + oselia_function.module_name + '.' + oselia_function.module_function + ' - ' + JSON.stringify(ordered_args),
+                );
+                PerfReportController.add_call(
+                    GPTAssistantAPIServerController.PERF_MODULE_NAME,
+                    thread_perf_name,
+                    thread_perf_name,
+                    thread_perf_description,
+                    pre_ts_ms,
+                    post_ts_ms,
+                    'Run function - ' + oselia_function.gpt_function_name + ' - ' + oselia_function.gpt_function_description +
+                    '<br>' +
+                    'Internal - ' + oselia_function.module_name + '.' + oselia_function.module_function + ' - ' + JSON.stringify(ordered_args),
+                );
+            })(),
+        ]);
+
+        return function_response;
     }
 }

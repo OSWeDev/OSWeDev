@@ -76,9 +76,16 @@ export default class EnvParamsVO implements IDistantVOBase {
     // MAX_VarsProcessLoadDatas?: number;
     public max_varsprocessloaddatas: number;
 
+    public max_varsprocessdagcleaner: number;
+
+    public max_varsprocessnotifyend: number;
+    public max_varsprocessnotifystart: number;
+    public max_varsprocessupdatedb: number;
+
     // MAX_Vars_invalidators?: number;
     public max_vars_invalidators: number;
 
+    public activate_async_hook_for_promise_watch: boolean;
 
     // MAX_SIZE_PER_QUERY?: number;
     public max_size_per_query: number;
@@ -174,6 +181,20 @@ export default class EnvParamsVO implements IDistantVOBase {
 
     public debug_throttle_uid: boolean;
 
+    public debug_slow_event_listeners: boolean;
+    public debug_slow_event_listeners_ms_limit: number;
+
+    /**
+     * Activate to start event perf reporting, deactivate to stop and save the report in DB
+     */
+    public create_event_perf_report: boolean;
+
+    public activate_module_perf_throttle_queries: boolean;
+    public activate_module_perf_eventify: boolean;
+    public activate_module_perf_var_dag_nodes: boolean;
+    public activate_module_perf_gpt_assistant_api: boolean;
+    public activate_module_perf_gpt_sync: boolean;
+
     public debug_reruns_of_oselia: boolean;
 
     // DEBUG_CONTEXT_QUERY_build_select_query_not_count?: boolean;
@@ -245,7 +266,6 @@ export default class EnvParamsVO implements IDistantVOBase {
     // BLOCK_TEAMS_MESSAGES?: boolean;
     public block_teams_messages: boolean;
 
-    public unblock_realtime_api: boolean = false;
     // logo_path?: string;
     public logo_path: string;
 
@@ -263,4 +283,6 @@ export default class EnvParamsVO implements IDistantVOBase {
 
     public debug_vars_notifs: boolean;
     public log_login_redirects: boolean;
+
+    public debug_top_10_query_size: boolean;
 }

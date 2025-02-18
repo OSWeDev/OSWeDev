@@ -59,8 +59,9 @@
 
     template(v-else)
         multiselect(
-            v-model="field_value",
-            :custom-label="field.voIdToHumanReadable",
+            v-model="async_load_options_field_value",
+
+            label="label",
             :options="select_options",
             :placeholder="t(placeholder_string)",
             :loading="isLoadingOptions",
@@ -75,6 +76,7 @@
             @input="onChangeField",
             :multiple="true"
             :close-on-select="false"
+            track-by="id",
 
             :select-label='label("multiselect.selectLabel")'
             :select-group-label='label("multiselect.selectGroupLabel")'

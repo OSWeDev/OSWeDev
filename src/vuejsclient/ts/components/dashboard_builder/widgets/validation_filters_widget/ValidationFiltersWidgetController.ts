@@ -18,7 +18,9 @@ export default class ValidationFiltersWidgetController {
     public updaters: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: Array<{ validator_page_widget_id: number, updater: () => Promise<void> }> } } } = {};
     public is_init: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: boolean } } } = {};
 
-    public throttle_call_updaters = ThrottleHelper.declare_throttle_with_stackable_args(this.throttled_call_updaters.bind(this), 50);
+    public throttle_call_updaters = ThrottleHelper.declare_throttle_with_stackable_args(
+        'ValidationFiltersWidgetController.throttle_call_updaters',
+        this.throttled_call_updaters.bind(this), 50);
 
     private constructor() { }
 

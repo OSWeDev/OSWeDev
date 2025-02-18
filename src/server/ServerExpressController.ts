@@ -38,7 +38,7 @@ export default class ServerExpressController {
      * @param api_key
      * @returns
      */
-    @RunsOnBgThread('APIBGThread', true)
+    @RunsOnBgThread('APIBGThread', ServerExpressController.getInstance, true)
     private async get_user_by_api_key(api_key: string): Promise<UserVO> {
         return query(UserVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<UserAPIVO>().api_key, api_key, UserAPIVO.API_TYPE_ID)

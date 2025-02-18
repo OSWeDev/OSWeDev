@@ -1,4 +1,5 @@
 
+import { closeSync, existsSync, mkdirSync, openSync, unlinkSync, writeFileSync } from 'fs';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleStats from '../../../shared/modules/Stats/ModuleStats';
@@ -6,13 +7,26 @@ import StatsController from '../../../shared/modules/Stats/StatsController';
 import StatClientWrapperVO from '../../../shared/modules/Stats/vos/StatClientWrapperVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleServerBase from '../ModuleServerBase';
+import ModuleServiceBase from '../ModuleServiceBase';
 import StatsInvalidatorBGThread from './bgthreads/StatsInvalidatorBGThread';
 import StatsUnstackerBGThread from './bgthreads/StatsUnstackerBGThread';
 import VarSecStatsGroupeController from './vars/controllers/VarSecStatsGroupeController';
+import axios from 'axios';
+import ConfigurationService from '../../env/ConfigurationService';
+import StatsServerController from './StatsServerController';
+import { threadId } from 'worker_threads';
 
 export default class ModuleStatsServer extends ModuleServerBase {
+
+    private static instance: ModuleStatsServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleStats.getInstance().name);
+    }
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -20,13 +34,6 @@ export default class ModuleStatsServer extends ModuleServerBase {
             ModuleStatsServer.instance = new ModuleStatsServer();
         }
         return ModuleStatsServer.instance;
-    }
-
-    private static instance: ModuleStatsServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleStats.getInstance().name);
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -45,6 +52,22 @@ export default class ModuleStatsServer extends ModuleServerBase {
         if (StatsController.ACTIVATED) {
             ModuleBGThreadServer.getInstance().registerBGThread(StatsInvalidatorBGThread.getInstance());
             ModuleBGThreadServer.getInstance().registerBGThread(StatsUnstackerBGThread.getInstance());
+        }
+
+        if (StatsController.ACTIVATED) {
+            ConsoleHandler.log('Activation des stats de requête PGSQL');
+            ThreadHandler.set_interval('ModuleStatsServer.STAT_REQUETE_PGSQL', this.do_stat_requete_pgsql.bind(this), 10000, 'ModuleStatsServer.STAT_REQUETE_PGSQL', true);
+
+            ConsoleHandler.log('Activation des stats d\'I/O');
+            ThreadHandler.set_interval('ModuleStatsServer.STAT_I/O', this.do_stat_io.bind(this), 10000, 'ModuleStatsServer.STAT_I/O', true);
+
+            ConsoleHandler.log('Activation des stats de requête réseau');
+            ThreadHandler.set_interval('ModuleStatsServer.STAT_REQUETE_RESEAU', this.do_stat_requete_latence_reseau.bind(this), 10000, 'ModuleStatsServer.STAT_REQUETE_RESEAU', true);
+
+            if (ConfigurationService.node_configuration.debug_top_10_query_size) {
+                ConsoleHandler.log('Activation du TOP 10 des requêtes PGSQL par taille du résultat');
+                ThreadHandler.set_interval('ModuleStatsServer.STAT_TOP_10_QUERY_SIZE', this.do_stat_top_10_query_size.bind(this), 10000, 'ModuleStatsServer.STAT_TOP_10_QUERY_SIZE', true);
+            }
         }
     }
 
@@ -99,6 +122,95 @@ export default class ModuleStatsServer extends ModuleServerBase {
             StatsController.register_stat_agg(
                 stat_client.tmp_category_name, stat_client.tmp_sub_category_name, stat_client.tmp_event_name, stat_client.tmp_stat_type_name,
                 stat_client.value, stat_client.stats_aggregator, stat_client.stats_aggregator_min_segment_type, stat_client.timestamp_s, stat_client.tmp_thread_name);
+        }
+    }
+
+    /**
+     * On fait une requete bidon (Cloudflare CDN) pour vérifier que la latence réseau actuelle
+     */
+    private async do_stat_requete_latence_reseau() {
+        try {
+            StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'do_stat_requete_latence_reseau', 'IN');
+
+            const start = Dates.now_ms();
+            await axios.get('https://1.1.1.1');
+
+            StatsController.register_stat_DUREE('ModuleStatsServer', 'do_stat_requete_latence_reseau', 'success', Dates.now_ms() - start);
+        } catch (error) {
+            StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'do_stat_requete_latence_reseau', 'error');
+            ConsoleHandler.error('do_stat_requete_latence_reseau error:', error);
+        }
+    }
+
+    /**
+     * On fait une requete bidon (SELECT 1) pour vérifier que la base de données est bien accessible et surtout pour connaître le temps de réponse actuel
+     */
+    private async do_stat_requete_pgsql() {
+        try {
+            StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'do_stat_requete_pgsql', 'IN');
+
+            const start = Dates.now_ms();
+            await ModuleServiceBase.db.query('SELECT 1');
+
+            StatsController.register_stat_DUREE('ModuleStatsServer', 'do_stat_requete_pgsql', 'success', Dates.now_ms() - start);
+        } catch (error) {
+            StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'do_stat_requete_pgsql', 'error');
+            ConsoleHandler.error('do_stat_requete_pgsql error:', error);
+        }
+    }
+
+    /**
+     * On ouvre un fichier bidon (aléatoire) dans le répertoire tmp si il existe sinon on le crée, on insère une ligne toujours la même, on ferme le fichier et on le supprime
+     */
+    private async do_stat_io() {
+        try {
+            StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'do_stat_io', 'IN');
+
+            const start = Dates.now_ms();
+            if (!existsSync('./tmp')) {
+                mkdirSync('./tmp');
+            }
+            const fd = openSync('./tmp/stats_io_test_' + threadId + '.txt', 'w');
+            writeFileSync(fd, '1');
+            closeSync(fd);
+            unlinkSync('./tmp/stats_io_test_' + threadId + '.txt');
+
+            StatsController.register_stat_DUREE('ModuleStatsServer', 'do_stat_io', 'success', Dates.now_ms() - start);
+        } catch (error) {
+            StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'do_stat_io', 'error');
+            ConsoleHandler.error('do_stat_io error:', error);
+        }
+    }
+
+    /**
+     * On dépile les requetes stockées dans le statsservercontroller pour identifier le top 10 des requêtes par taille de résultat
+     */
+    private async do_stat_top_10_query_size() {
+        try {
+            StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'do_stat_top_10_query_size', 'IN');
+
+            const start = Dates.now_ms();
+            const queries = StatsServerController.pgsql_queries_log;
+            StatsServerController.pgsql_queries_log = [];
+
+            queries.sort((a, b) => b.size_ko - a.size_ko);
+            const top_10 = queries.slice(0, 10);
+
+            // On stat le numéro 1 pour avoir une évolution/suivi des tailles max
+            if (top_10.length) {
+                StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'do_stat_top_10_query_size', 'top_1', top_10[0].size_ko);
+            }
+
+            // On ConsoleHandler.log le top 10 proprement avec une ligne par query, et on limite la taille à 1000 caractères pour la query
+            ConsoleHandler.log('Top 10 des requêtes PGSQL par taille de résultat : ===>');
+            for (const i in top_10) {
+                const i_int = parseInt(i) + 1;
+                ConsoleHandler.log('    ' + ((i_int == 10) ? i : ' ' + i) + ' : ' + top_10[i].size_ko + ' ko : ' + top_10[i].query.substring(0, 1000));
+            }
+            ConsoleHandler.log('<=== : Top 10 des requêtes PGSQL par taille de résultat');
+        } catch (error) {
+            StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'do_stat_top_10_query_size', 'error');
+            ConsoleHandler.error('do_stat_top_10_query_size error:', error);
         }
     }
 }

@@ -6,7 +6,7 @@ import ModuleLogger from '../modules/Logger/ModuleLogger';
 import LogVO from '../modules/Logger/vos/LogVO';
 import ModulesManager from '../modules/ModulesManager';
 import ParamsManager from '../modules/Params/ParamsManager';
-import { reflect } from './ObjectHandler';
+import { StatThisArrayLength } from '../modules/Stats/annotations/StatThisArrayLength';
 import ThrottleHelper from './ThrottleHelper';
 import ILoggerHandler from './interfaces/ILoggerHandler';
 
@@ -63,23 +63,34 @@ export default class ConsoleHandler {
 
     public static logger_handler: ILoggerHandler = null;
 
+    public static thread_name: string = null;
+
     private static old_console_log: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_warn: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_error: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_debug: (message?: any, ...optionalParams: any[]) => void = null;
-
-    private static log_to_console_cache: Array<{ msg: string, date: number, params: any[], log_type: number, url: string }> = [];
-    private static log_to_console_throttler = ThrottleHelper.declare_throttle_without_args(this.log_to_console.bind(this), 1000);
-    private static add_logs_client_throttler = ThrottleHelper.declare_throttle_without_args(this.add_logs_client.bind(this), 1000, { leading: false, trailing: true });
-
+    private static log_to_console_throttler = ThrottleHelper.declare_throttle_without_args(
+        'ConsoleHandler.log_to_console',
+        this.log_to_console.bind(this), 1000);
+    private static add_logs_client_throttler = ThrottleHelper.declare_throttle_without_args(
+        'ConsoleHandler.add_logs_client',
+        this.add_logs_client.bind(this), 1000, false);
     private static throttled_logs_counter: { [log: string]: number } = {};
+
+    @StatThisArrayLength("ConsoleHandler")
     private static throttled_add_logs_client: LogVO[] = [];
 
-    public static init() {
+    @StatThisArrayLength("ConsoleHandler")
+    private static log_to_console_cache: Array<{ msg: string, date: number, params: any[], log_type: number, url: string }> = [];
+
+
+    public static init(thread_name: string) {
 
         if (ConsoleHandler.old_console_log) {
             return;
         }
+
+        ConsoleHandler.thread_name = thread_name;
 
         // DO NOT DELETE : USED to debug Promises when there are multiple resolves =>
         // (global as any).Promise = MonitoredPromise;
@@ -222,7 +233,7 @@ export default class ConsoleHandler {
                     break;
             }
 
-            ConsoleHandler['old_console_' + log_type_str]('[' + log_type_str.toUpperCase() + ' ' + this.get_formatted_timestamp(log.date) + '] ' + log.msg, ...log.params);
+            ConsoleHandler['old_console_' + log_type_str]('[' + log_type_str.toUpperCase() + ' ' + this.get_formatted_timestamp(log.date) + '] (' + ConsoleHandler.thread_name + ') ' + log.msg, ...log.params);
         }
 
         // On ne log pas les logs du generator en BDD, sinon ça plante car tout n'est pas initialisé

@@ -15,7 +15,6 @@ import LocaleManager from '../shared/tools/LocaleManager';
 import { all_promises } from '../shared/tools/PromiseTools';
 import MenuController from './ts/components/menu/MenuController';
 import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
-import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../shared/tools/ThrottleHelper';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 
@@ -53,7 +52,9 @@ export default abstract class VueAppController {
     public has_access_to_feedback: boolean = false;
     public has_access_to_survey: boolean = false;
 
-    public throttled_register_translation = ThrottleHelper.declare_throttle_with_stackable_args(this.register_translation.bind(this), 1000);
+    public throttled_register_translation = ThrottleHelper.declare_throttle_with_stackable_args(
+        'VueAppController.throttled_register_translation',
+        this.register_translation.bind(this), 1000);
 
     protected constructor(public app_name: "client" | "admin" | "login") {
         VueAppController.instance_ = this;
@@ -81,13 +82,6 @@ export default abstract class VueAppController {
         promises.push((async () => {
             self.base_url = await ModuleDAO.instance.getBaseUrl();
         })());
-
-        if (this.app_name !== VueAppController.APP_NAME_LOGIN) {
-            promises.push((async () => {
-                await MenuController.getInstance().reload_from_db();
-            })());
-        }
-
 
         promises.push((async () => {
             self.data_user_roles = await ModuleAccessPolicy.getInstance().getMyRoles();

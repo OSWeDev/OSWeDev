@@ -30,8 +30,12 @@ export default class ImpersonateComponent extends VueComponentBase {
     private uid: number = null;
     private user_vo: UserVO = null;
 
-    private throttle_onVoChange = ThrottleHelper.declare_throttle_without_args(this.throttled_onVoChange, 10);
-    private throttle_onUidChange = ThrottleHelper.declare_throttle_without_args(this.throttled_onUidChange, 10);
+    private throttle_onVoChange = ThrottleHelper.declare_throttle_without_args(
+        'ImpersonateComponent.throttle_onVoChange',
+        this.throttled_onVoChange, 10);
+    private throttle_onUidChange = ThrottleHelper.declare_throttle_without_args(
+        'ImpersonateComponent.throttle_onUidChange',
+        this.throttled_onUidChange, 10);
 
     get can_impersonate() {
         if ((!this.user_vo) || this.user_vo.invalidated || this.user_vo.archived || this.user_vo.blocked) {

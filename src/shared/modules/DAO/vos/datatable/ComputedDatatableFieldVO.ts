@@ -28,7 +28,7 @@ export default class ComputedDatatableFieldVO<T, U, V extends IDistantVOBase> ex
 
     public compute_function_uid: string;
 
-    public dataToReadIHM(e: T, vo: V): U {
+    public async dataToReadIHM(e: T, vo: V): Promise<U> {
         if (!ComputedDatatableFieldVO.compute_functions[this.compute_function_uid]) {
             return null;
         }
@@ -47,7 +47,7 @@ export default class ComputedDatatableFieldVO<T, U, V extends IDistantVOBase> ex
         return "fields.labels." + this.vo_type_full_name + ".__computed__" + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
-    public dataToHumanReadableField(e: V): U {
+    public async dataToHumanReadableField(e: V): Promise<U> {
         return this.dataToReadIHM(e[this.datatable_field_uid], e);
     }
 }

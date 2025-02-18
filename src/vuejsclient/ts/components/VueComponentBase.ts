@@ -783,7 +783,7 @@ export default class VueComponentBase extends Vue
     }
 
     protected addClassName(className: string, el) {
-        if (!el.className) {
+        if (!el?.className) {
             el.className = className;
             return;
         }
@@ -808,7 +808,7 @@ export default class VueComponentBase extends Vue
     }
 
     protected removeClassName(className: string, el) {
-        if (!el.className) {
+        if (!el?.className) {
             return;
         }
 

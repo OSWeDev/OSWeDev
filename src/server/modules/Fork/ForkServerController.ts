@@ -37,7 +37,9 @@ export default class ForkServerController {
     // On informe chaque thread de son identité auprès du parent pour permettre de faire des communications identifiées et plus tard inter-threads
     public static forks_uid_sent: { [uid: number]: boolean } = {};
 
-    public static throttled_reload_unavailable_threads = ThrottleHelper.declare_throttle_without_args(this.reload_unavailable_threads.bind(this), 500, { leading: false, trailing: true });
+    public static throttled_reload_unavailable_threads = ThrottleHelper.declare_throttle_without_args(
+        'ForkServerController.reload_unavailable_threads',
+        this.reload_unavailable_threads.bind(this), 500, false);
     public static fork_by_type_and_name: { [exec_type: string]: { [name: string]: IFork } } = {};
 
     public static forks: { [uid: number]: IFork } = {};
@@ -83,75 +85,7 @@ export default class ForkServerController {
         for (const i in ForkServerController.forks) {
             const forked: IFork = ForkServerController.forks[i];
 
-            if (ForkServerController.forks_availability[i]) {
-                continue;
-            }
-
-            ForkServerController.forks_availability[i] = Dates.now();
-            const workerPath = path.resolve(process.cwd(), './dist/server/ForkedProcessWrapper.js');
-
-            if (ConfigurationService.node_configuration.debug_forks && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
-                forked.worker = new Worker(
-                    workerPath,
-                    {
-                        workerData: ForkServerController.get_argv(forked),
-                        execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), /*'--max-old-space-size=4096', '--expose-gc'*/],
-                    }
-                );
-            } else {
-                forked.worker = new Worker(
-                    workerPath,
-                    {
-                        workerData: ForkServerController.get_argv(forked),
-                        execArgv: [/*'--max-old-space-size=4096', '--expose-gc'*/],
-                    }
-                );
-            }
-
-            if (ForkMessageController.stacked_msg_waiting && ForkMessageController.stacked_msg_waiting.length) {
-                for (const j in ForkMessageController.stacked_msg_waiting) {
-                    const stacked_msg_waiting = ForkMessageController.stacked_msg_waiting[j];
-
-                    if (stacked_msg_waiting.forked_target && (stacked_msg_waiting.forked_target.uid == forked.uid)) {
-                        stacked_msg_waiting.send_handle = forked.worker;
-                    }
-                }
-            }
-
-            forked.worker.on('error', (error) => {
-                ConsoleHandler.error('Erreur du worker uid:' + forked.uid + ' qui gère les processus : ' + Object.keys(forked.processes).join(', ') + ' : ' + error);
-            });
-
-            forked.worker.on('exit', (code) => {
-                ConsoleHandler.error(`Le worker uid:${forked.uid} s'est arrêté avec le code ${code}. Il gérait les processus : ${Object.keys(forked.processes).join(', ')}`);
-            });
-
-            forked.worker.on('message', async (msg: IForkMessage) => {
-                msg = ForkMessageController.reapply_prototypes_on_msg(msg);
-                await ForkMessageController.message_handler(msg, forked.worker);
-            });
-
-
-            // /**
-            //  * On attend le alive du fork avant de continuer
-            //  */
-            // let max_timeout = 300;
-            // while (!ForkServerController.forks_alive[i]) {
-            //     await ThreadHandler.sleep(1000, 'reload_unavailable_threads.!forks_alive.' + forked.uid);
-            //     max_timeout--;
-            //     if (!(max_timeout % 10)) {
-            //         ConsoleHandler.log('Waiting for ALIVE SIGNAL from fork ' + forked.uid);
-            //     }
-
-            //     if (max_timeout == 60) {
-            //         ConsoleHandler.warn('60 secs until timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
-            //     }
-
-            //     if (max_timeout <= 0) {
-            //         ConsoleHandler.error('Timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
-            //         break;
-            //     }
-            // }
+            ForkServerController.load_worker(forked);
         }
 
         /**
@@ -186,6 +120,68 @@ export default class ForkServerController {
             });
         }
         await promises_pipeline.end();
+    }
+
+    private static load_worker(forked: IFork) {
+
+        if (ForkServerController.forks_availability[forked.uid]) {
+            return;
+        }
+
+        ForkServerController.forks_availability[forked.uid] = Dates.now();
+        const workerPath = path.resolve(process.cwd(), './dist/server/ForkedProcessWrapper.js');
+
+        if (ConfigurationService.node_configuration.debug_forks && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
+            forked.worker = new Worker(
+                workerPath,
+                {
+                    workerData: ForkServerController.get_argv(forked),
+                    execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), /*'--max-old-space-size=4096', '--expose-gc'*/],
+                }
+            );
+        } else {
+            forked.worker = new Worker(
+                workerPath,
+                {
+                    workerData: ForkServerController.get_argv(forked),
+                    execArgv: [/*'--max-old-space-size=4096', '--expose-gc'*/],
+                }
+            );
+        }
+
+        if (forked.worker.threadId != forked.uid) {
+            ForkServerController.forks_availability[forked.worker.threadId] = ForkServerController.forks_availability[forked.uid];
+            ForkServerController.forks_alive[forked.worker.threadId] = ForkServerController.forks_alive[forked.uid];
+            delete ForkServerController.forks_availability[forked.uid];
+            delete ForkServerController.forks_alive[forked.uid];
+            forked.uid = forked.worker.threadId;
+        }
+
+        if (ForkMessageController.stacked_msg_waiting && ForkMessageController.stacked_msg_waiting.length) {
+            for (const j in ForkMessageController.stacked_msg_waiting) {
+                const stacked_msg_waiting = ForkMessageController.stacked_msg_waiting[j];
+
+                if (stacked_msg_waiting.forked_target && (stacked_msg_waiting.forked_target.uid == forked.uid)) {
+                    stacked_msg_waiting.send_handle = forked.worker;
+                }
+            }
+        }
+
+        forked.worker.on('error', (error) => {
+            ConsoleHandler.error('Erreur du worker uid:' + forked.uid + ' qui gère les processus : ' + Object.keys(forked.processes).join(', ') + ' : ' + error);
+        });
+
+        forked.worker.on('exit', (code) => {
+            ConsoleHandler.error(`Le worker uid:${forked.uid} s'est arrêté avec le code ${code}. Il gérait les processus : ${Object.keys(forked.processes).join(', ')}`);
+            ForkServerController.forks_availability[forked.uid] = 0;
+            ForkServerController.forks_alive[forked.uid] = false;
+            ForkServerController.load_worker(forked);
+        });
+
+        forked.worker.on('message', async (msg: IForkMessage) => {
+            msg = ForkMessageController.reapply_prototypes_on_msg(msg);
+            return ForkMessageController.message_handler(msg, forked.worker);
+        });
     }
 
     private static get_argv(forked: IFork): string[] {

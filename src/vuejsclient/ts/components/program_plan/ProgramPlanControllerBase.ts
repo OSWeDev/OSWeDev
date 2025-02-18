@@ -1,4 +1,3 @@
-import { EventInput, ViewApi } from 'fullcalendar';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
@@ -15,6 +14,7 @@ import WeightHandler from '../../../../shared/tools/WeightHandler';
 import VueAppBase from '../../../VueAppBase';
 import ContextQueryVO from '../../../../../dist/shared/modules/ContextFilter/vos/ContextQueryVO';
 import { field_names } from '../../../../shared/tools/ObjectHandler';
+import { EventInput, ViewApi } from '@fullcalendar/core';
 
 export default abstract class ProgramPlanControllerBase {
 

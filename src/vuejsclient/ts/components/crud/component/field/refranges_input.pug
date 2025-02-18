@@ -33,8 +33,8 @@
         :preselect-first="false",
         :multiple="true",
         :close-on-select="false"
-        v-model="field_value_refranges_selected_ids",
-        :custom-label="field.voIdToHumanReadable",
+        v-model="field_value_refranges_selected_ids_datafilteroptions",
+        label="label",
         :options="select_options",
         :placeholder="t(placeholder_string)",
         :loading="isLoadingOptions",
@@ -46,6 +46,8 @@
         :disabled="is_readonly",
         @search-change="asyncLoadOptions",
         @input="onChangeField"
+
+        track-by="id",
 
         :select-label='label("multiselect.selectLabel")'
         :select-group-label='label("multiselect.selectGroupLabel")'

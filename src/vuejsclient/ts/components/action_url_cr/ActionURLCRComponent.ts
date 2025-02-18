@@ -22,7 +22,9 @@ export default class ActionURLCRComponent extends VueComponentBase {
     private action_crs: ActionURLCRVO[] = null;
     private error_message: string = null;
 
-    private throttle_load_action_url: () => void = ThrottleHelper.declare_throttle_without_args(this.load_action_url, 100);
+    private throttle_load_action_url: () => void = ThrottleHelper.declare_throttle_without_args(
+        'ActionURLCRComponent.throttle_load_action_url',
+        this.load_action_url, 100);
 
     @Watch('action_url_id', { immediate: true })
     private async onchange_action_url_id() {

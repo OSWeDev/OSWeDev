@@ -32,7 +32,7 @@ export default class TeamsAPIServerController {
         action.action_name = 'En parler avec Osélia [' + thread_id + ']';
         action.action_code = ActionURLServerTools.get_unique_code_from_text(action.action_name);
         action.action_remaining_counter = -1; // infini
-        action.params_json = thread_id.toString();
+        action.params = thread_id;
         action.valid_ts_range = RangeHandler.createNew(TSRange.RANGE_TYPE, Dates.now(), Dates.add(Dates.now(), 60, TimeSegment.TYPE_DAY), true, true, TimeSegment.TYPE_DAY);
 
         action.action_callback_function_name = reflect<ModuleOseliaServer>().open_oselia_db_from_action_url;
@@ -327,7 +327,9 @@ export default class TeamsAPIServerController {
     // istanbul ignore next: nothing to test : send_teams
     private static get_throttle_send_teams_level() {
         if (!TeamsAPIServerController.throttle_send_teams) {
-            TeamsAPIServerController.throttle_send_teams = ThrottleHelper.declare_throttle_with_stackable_args(TeamsAPIServerController.throttled_send_teams_level, ConfigurationService.node_configuration.teams_throttle_ms);
+            TeamsAPIServerController.throttle_send_teams = ThrottleHelper.declare_throttle_with_stackable_args(
+                'TeamsAPIServerController.throttle_send_teams',
+                TeamsAPIServerController.throttled_send_teams_level, ConfigurationService.node_configuration.teams_throttle_ms);
         }
         return TeamsAPIServerController.throttle_send_teams;
     }

@@ -4,25 +4,30 @@ import IAPIController from '../../../../shared/modules/API/interfaces/IAPIContro
 import IAPIParamTranslator from '../../../../shared/modules/API/interfaces/IAPIParamTranslator';
 import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
 import APINotifTypeResultVO from '../../../../shared/modules/PushData/vos/APINotifTypeResultVO';
+import { StatThisMapKeys } from '../../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 
 export default class ClientAPIController implements IAPIController {
 
+    private static instance: ClientAPIController = null;
+
     /**
      * Les promises à attendre pour avoir le résultat de la notif sur une API de type res notif
      */
+    @StatThisMapKeys('ClientAPIController')
     public static api_waiting_for_result_notif_promises: { [api_call_id: number]: Promise<any> } = {};
     /**
      * Les solvers des promises qui sont stockées dans api_waiting_for_result_notif_promises, appelées par PushDataVueModule
      */
+    @StatThisMapKeys('ClientAPIController')
     public static api_waiting_for_result_notif_solvers: { [api_call_id: number]: (value: unknown) => void } = {};
     /**
      * Les fonctions en attente de promises - Si la notif de résultat arrive avant la première réponse de l'api avec le call_id
      */
+    @StatThisMapKeys('ClientAPIController')
     public static api_waiting_for_result_notif_waiting_for_solvers: { [api_call_id: number]: () => void } = {};
 
-    private static instance: ClientAPIController = null;
 
     // istanbul ignore next: nothing to test
     public static getInstance(): ClientAPIController {
@@ -51,7 +56,7 @@ export default class ClientAPIController implements IAPIController {
             }
 
             if (sanitize_params) {
-                params = [sanitize_params(...params)]; // on déréférence le tableau, donc on le remet dans un tableau
+                params = sanitize_params(...params);
             }
 
             if (precondition && !precondition(...params)) {

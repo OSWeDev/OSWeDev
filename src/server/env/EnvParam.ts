@@ -30,7 +30,11 @@ export default class EnvParam implements IEnvParam {
 
     public max_varsprocessdeploydeps?: number = 100;
     public max_varsprocessloaddatas?: number = 100;
+    public max_varsprocessdagcleaner?: number = 1000;
     public max_vars_invalidators?: number = 200;
+    public max_varsprocessnotifyend?: number = 1000;
+    public max_varsprocessnotifystart?: number = 1000;
+    public max_varsprocessupdatedb?: number = 100;
 
     public max_size_per_query?: number = 10000000;
     public max_union_all_per_query?: number = 1000;
@@ -77,6 +81,9 @@ export default class EnvParam implements IEnvParam {
     public debug_waiting_registered_task_result_wrappers_threshold?: number = 5;
     public debug_waiting_registered_task_result_wrappers_verbose_result_task_uid?: boolean = false;
 
+    public debug_slow_event_listeners?: boolean = false;
+    public debug_slow_event_listeners_ms_limit?: number = 1000;
+
     /**
      * Activate this to debug SLOW QUERIES in ModuleServiceBase
      */
@@ -122,7 +129,13 @@ export default class EnvParam implements IEnvParam {
     public debug_add_var_columns_values_for_xlsx_datas?: boolean = false;
 
     public block_teams_messages?: boolean = true;
-    public unblock_realtime_api?: boolean = false;
+
+    public create_event_perf_report?: boolean = false;
+    public activate_module_perf_throttle_queries?: boolean = false;
+    public activate_module_perf_eventify?: boolean = false;
+    public activate_module_perf_var_dag_nodes?: boolean = false;
+    public activate_module_perf_gpt_assistant_api?: boolean = false;
+    public activate_module_perf_gpt_sync?: boolean = false;
 
     // TEAMS Webhooks
     public teams_webhook_send_message?: string = null;
@@ -164,4 +177,8 @@ export default class EnvParam implements IEnvParam {
     public silent_no_sort_by_but_query_limit?: boolean = true;
 
     public log_login_redirects?: boolean = false;
+
+    public activate_async_hook_for_promise_watch?: boolean = false;
+
+    public debug_top_10_query_size?: boolean = false;
 }

@@ -364,7 +364,12 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
     }
 
     private static chain_cond(filters: ContextFilterVO[], type: number): ContextFilterVO {
-        if ((!filters) || (!filters.length)) {
+        if (!filters) {
+            return null;
+        }
+
+        filters = filters.filter((filter) => filter != null);
+        if (!filters.length) {
             return null;
         }
 
@@ -594,6 +599,16 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
      * @param query la sous requête qui doit renvoyer les nums acceptés en un unique field
      */
     public by_num_not_in(query: ContextQueryVO, this_query: ContextQueryVO = null): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NOT_IN;
+        this.set_sub_query(query, this_query);
+        return this;
+    }
+
+    /**
+     * Filtrer un champ text par un sous-requête : field not in (subquery)
+     * @param query la sous requête qui doit renvoyer les texts acceptés en un unique field
+     */
+    public by_text_not_in(query: ContextQueryVO, this_query: ContextQueryVO = null): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_NOT_IN;
         this.set_sub_query(query, this_query);
         return this;

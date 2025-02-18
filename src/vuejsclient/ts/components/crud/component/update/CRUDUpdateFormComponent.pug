@@ -40,8 +40,8 @@ include ../../../../../views/mixins/loading.pug
                                 .btn.btn-danger.btn-block.btn-flat(@click="add_removed_crud_field_id(field.module_table_field_id)") {{ label('crud_update_form_body.add_removed_crud_field_id', {field_id: field.module_table_field_id}) }}
 
 
-                template(v-else)
-                    p {{ label('crud.update.modal.content.selection_failure') }}
+                //- template(v-else)
+                //-     p {{ label('crud.update.modal.content.selection_failure') }}
 
             .crud_update_form_footer
                 template(v-if="selected_vo && editableVO && !updating_vo && !is_only_readable && show_delete_button")

@@ -1,4 +1,4 @@
-import 'jqueryui';
+/// <reference types="jqueryui" />
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import TemplateComponentVO from '../../../../../../shared/modules/CMS/vos/TemplateComponentVO';

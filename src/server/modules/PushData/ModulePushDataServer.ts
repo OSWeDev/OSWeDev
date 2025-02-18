@@ -5,12 +5,14 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
+import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../shared/tools/EnvHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
+import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
@@ -28,6 +30,28 @@ import UnRegisterIORoomsThreadMessage from './vos/UnRegisterIORoomsThreadMessage
 
 export default class ModulePushDataServer extends ModuleServerBase {
 
+
+    private static instance: ModulePushDataServer = null;
+
+    /**
+     * En clé le nom de la room IO, en valeur l'objet de filtrage
+     */
+    @StatThisMapKeys('ModulePushDataServer', ModulePushDataServer.getInstance)
+    private registered_rooms: { [room_id: string]: any } = {};
+
+    private throttle_broadcast_registered_rooms = ThrottleHelper.declare_throttle_with_mappable_args(
+        'ModulePushDataServer.throttle_broadcast_registered_rooms',
+        this.broadcast_registered_rooms, 1);
+    private throttle_broadcast_unregistered_rooms = ThrottleHelper.declare_throttle_with_mappable_args(
+        'ModulePushDataServer.throttle_broadcast_unregistered_rooms',
+        this.broadcast_unregistered_rooms, 1);
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModulePushData.getInstance().name);
+    }
+
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ModulePushDataServer {
         if (!ModulePushDataServer.instance) {
@@ -36,19 +60,107 @@ export default class ModulePushDataServer extends ModuleServerBase {
         return ModulePushDataServer.instance;
     }
 
-    private static instance: ModulePushDataServer = null;
+    @RunsOnMainThread(ModulePushDataServer.getInstance)
+    private join_io_room(room_vo_fields: string[]) {
 
-    /**
-     * En clé le nom de la room IO, en valeur l'objet de filtrage
-     */
-    private registered_rooms: { [room_id: string]: any } = {};
+        if ((!room_vo_fields) || (!room_vo_fields.length) || (room_vo_fields.length % 2 == 1)) {
+            ConsoleHandler.error('Impossible de parser la room IO:' + room_vo_fields);
+            return;
+        }
 
-    private throttle_broadcast_registered_rooms = ThrottleHelper.declare_throttle_with_mappable_args(this.broadcast_registered_rooms, 1);
-    private throttle_broadcast_unregistered_rooms = ThrottleHelper.declare_throttle_with_mappable_args(this.broadcast_unregistered_rooms, 1);
+        let room: string = null;
+        let room_vo: any = null;
+        try {
+            for (let i = 0; i < room_vo_fields.length; i += 2) {
+                const field_name = room_vo_fields[i];
+                const field_value = room_vo_fields[i + 1];
 
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModulePushData.getInstance().name);
+                if (i == 0) {
+                    room = '{';
+                } else {
+                    room += ',';
+                }
+
+                room += '"' + field_name + '":' + field_value;
+            }
+            room += '}';
+            room_vo = JSON.parse(room);
+        } catch (error) {
+            ConsoleHandler.error('Impossible de parser la room IO:' + room);
+        }
+
+        if (!room) {
+            ConsoleHandler.error('Impossible de récuperer la room IO:' + room);
+            return;
+        }
+
+        if (!this.registered_rooms[room]) {
+
+            this.registered_rooms[room] = room_vo;
+        }
+
+        const uid = StackContext.get('UID');
+        const client_tab_id = StackContext.get('CLIENT_TAB_ID');
+
+        const sockets: SocketWrapper[] = PushDataServerController.getUserSockets(parseInt(uid.toString()), client_tab_id);
+
+        try {
+
+            for (const i in sockets) {
+                sockets[i].socket.join(room);
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @RunsOnMainThread(ModulePushDataServer.getInstance)
+    private leave_io_room(room_vo_fields: string[]) {
+
+        if ((!room_vo_fields) || (!room_vo_fields.length) || (room_vo_fields.length % 2 == 1)) {
+            ConsoleHandler.error('Impossible de parser la room IO:' + room_vo_fields);
+            return;
+        }
+
+        let room: string = null;
+        let room_vo: any = null;
+        try {
+            for (let i = 0; i < room_vo_fields.length; i += 2) {
+                const field_name = room_vo_fields[i];
+                const field_value = room_vo_fields[i + 1];
+
+                if (i == 0) {
+                    room = '{';
+                } else {
+                    room += ',';
+                }
+
+                room += '"' + field_name + '":' + field_value;
+            }
+            room += '}';
+            room_vo = JSON.parse(room);
+        } catch (error) {
+            ConsoleHandler.error('Impossible de parser la room IO:' + room);
+        }
+
+        if (!room) {
+            ConsoleHandler.error('Impossible de récuperer la room IO:' + room);
+            return;
+        }
+
+        const uid = StackContext.get('UID');
+        const client_tab_id = StackContext.get('CLIENT_TAB_ID');
+
+        const sockets: SocketWrapper[] = PushDataServerController.getUserSockets(parseInt(uid.toString()), client_tab_id);
+
+        try {
+
+            for (const i in sockets) {
+                sockets[i].socket.leave(room);
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
     }
 
     // istanbul ignore next: cannot test registerCrons
@@ -254,6 +366,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
             }
         }
     }
+
     private async handlePostDelete_io_rooms(vo: IDistantVOBase) {
         for (const room_id in this.registered_rooms) {
             const vo_filter = this.registered_rooms[room_id];
@@ -275,107 +388,6 @@ export default class ModulePushDataServer extends ModuleServerBase {
             }
 
             PushDataServerController.notify_vo_deletion(room_id, vo);
-        }
-    }
-
-    private join_io_room(room_vo_fields: string[]) {
-
-        if ((!room_vo_fields) || (!room_vo_fields.length) || (room_vo_fields.length % 2 == 1)) {
-            ConsoleHandler.error('Impossible de parser la room IO:' + room_vo_fields);
-            return;
-        }
-
-        let room: string = null;
-        let room_vo: any = null;
-        try {
-            for (let i = 0; i < room_vo_fields.length; i += 2) {
-                const field_name = room_vo_fields[i];
-                const field_value = room_vo_fields[i + 1];
-
-                if (i == 0) {
-                    room = '{';
-                } else {
-                    room += ',';
-                }
-
-                room += '"' + field_name + '":' + field_value;
-            }
-            room += '}';
-            room_vo = JSON.parse(room);
-        } catch (error) {
-            ConsoleHandler.error('Impossible de parser la room IO:' + room);
-        }
-
-        if (!room) {
-            ConsoleHandler.error('Impossible de récuperer la room IO:' + room);
-            return;
-        }
-
-        if (!this.registered_rooms[room]) {
-
-            this.registered_rooms[room] = room_vo;
-        }
-
-        const uid = StackContext.get('UID');
-        const client_tab_id = StackContext.get('CLIENT_TAB_ID');
-
-        const sockets: SocketWrapper[] = PushDataServerController.getUserSockets(parseInt(uid.toString()), client_tab_id);
-
-        try {
-
-            for (const i in sockets) {
-                sockets[i].socket.join(room);
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    private leave_io_room(room_vo_fields: string[]) {
-
-        if ((!room_vo_fields) || (!room_vo_fields.length) || (room_vo_fields.length % 2 == 1)) {
-            ConsoleHandler.error('Impossible de parser la room IO:' + room_vo_fields);
-            return;
-        }
-
-        let room: string = null;
-        let room_vo: any = null;
-        try {
-            for (let i = 0; i < room_vo_fields.length; i += 2) {
-                const field_name = room_vo_fields[i];
-                const field_value = room_vo_fields[i + 1];
-
-                if (i == 0) {
-                    room = '{';
-                } else {
-                    room += ',';
-                }
-
-                room += '"' + field_name + '":' + field_value;
-            }
-            room += '}';
-            room_vo = JSON.parse(room);
-        } catch (error) {
-            ConsoleHandler.error('Impossible de parser la room IO:' + room);
-        }
-
-        if (!room) {
-            ConsoleHandler.error('Impossible de récuperer la room IO:' + room);
-            return;
-        }
-
-        const uid = StackContext.get('UID');
-        const client_tab_id = StackContext.get('CLIENT_TAB_ID');
-
-        const sockets: SocketWrapper[] = PushDataServerController.getUserSockets(parseInt(uid.toString()), client_tab_id);
-
-        try {
-
-            for (const i in sockets) {
-                sockets[i].socket.leave(room);
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
         }
     }
 

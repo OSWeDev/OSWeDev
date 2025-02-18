@@ -7,6 +7,23 @@ import TimeSegment from "../../DataRender/vos/TimeSegment";
 export default class Dates {
 
     /**
+     * @param date Date
+     * @returns timestamp in secs
+     */
+    public static from_date(date: Date): number {
+        return date ? Math.floor(date.getTime() / 1000) : 0;
+    }
+
+    /**
+     *
+     * @param ts_in_sec
+     * @returns
+     */
+    public static to_date(ts_in_sec: number): Date {
+        return new Date(ts_in_sec * 1000);
+    }
+
+    /**
      * @param date String or Date
      * @param format default null
      * @param localized_src default true. If false, the date is considered as UTC, else it is considered as local
@@ -42,7 +59,7 @@ export default class Dates {
     }
 
     /**
-     * @returns current timestamp in secs
+     * @returns current timestamp in ms
      */
     public static now_ms(localized_src: boolean = true): number {
         if (!Dates.p) {

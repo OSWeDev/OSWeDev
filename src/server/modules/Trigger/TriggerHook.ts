@@ -1,3 +1,5 @@
+import EventsController from "../../../shared/modules/Eventify/EventsController";
+import EventifyEventInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventInstanceVO";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../../../shared/modules/Stats/StatsController";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
@@ -15,6 +17,10 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
      */
 
     constructor(public trigger_type_UID: string) {
+    }
+
+    public get_event_name(conditionUID: string): string {
+        return this.trigger_type_UID + '.' + conditionUID;
     }
 
     public unregisterHandlerOnThisThread(conditionUID: string, handler: (params: Params, exec_as_server?: boolean) => Promise<Out>) {
@@ -49,9 +55,9 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
     }
 
     public async trigger(conditions: Conditions, params: Params, exec_as_server: boolean = false): Promise<Out[]> {
-        const noconditionHandlers: [(params: Params, exec_as_server?: boolean) => Promise<Out>] = this.registered_handlers[TriggerHook.NO_CONDITION_UID];
+        const noconditionHandlers: [(_params: Params, _exec_as_server?: boolean) => Promise<Out>] = this.registered_handlers[TriggerHook.NO_CONDITION_UID];
         const conditionUID: string = this.getConditionUID_from_Conditions(conditions);
-        const conditionalHandlers: [(params: Params, exec_as_server?: boolean) => Promise<Out>] = conditionUID ? this.registered_handlers[conditionUID] : null;
+        const conditionalHandlers: [(_params: Params, _exec_as_server?: boolean) => Promise<Out>] = conditionUID ? this.registered_handlers[conditionUID] : null;
 
         const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('TriggerHook', this.trigger_type_UID, conditionUID);
@@ -75,6 +81,9 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
 
         const time_out = Dates.now_ms();
         StatsController.register_stat_DUREE('TriggerHook', this.trigger_type_UID, conditionUID, time_out - time_in);
+
+        // on trigger un event correspondant, pour le Module Eventify
+        EventsController.emit_event(EventifyEventInstanceVO.new_event(this.get_event_name(conditionUID), params));
 
         return res;
     }

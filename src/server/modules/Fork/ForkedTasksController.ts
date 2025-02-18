@@ -14,6 +14,7 @@ import MainProcessForwardToBGThreadForkMessage from './messages/MainProcessForwa
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import RegisteredForkedTasksController from './RegisteredForkedTasksController';
 import ForkMessageCallbackWrapper from './vos/ForkMessageCallbackWrapper';
+import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 
 /**
  * ForkedTasksController
@@ -26,12 +27,13 @@ export default class ForkedTasksController {
     /**
      * Local thread cache -----
      */
-    public static registered_task_result_wrappers: { [result_task_uid: number]: ForkMessageCallbackWrapper } = {};
-
     public static broadexec_with_valid_promise_for_await_TASK_UID: string = 'ForkedTasksController.broadexec_with_valid_promise_for_await';
-
     private static result_task_prefix_thread_uid: number = process.pid;
+
     private static result_task_uid: number = 1;
+
+    @StatThisMapKeys('ForkedTasksController')
+    public static registered_task_result_wrappers: { [result_task_uid: number]: ForkMessageCallbackWrapper } = {};
 
     public static init() {
         ThreadHandler.set_interval(
@@ -307,6 +309,12 @@ export default class ForkedTasksController {
 
                 if ((!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType]) ||
                     (!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread])) {
+
+                    // Sauf si on peut defaults_to_this_thread
+                    if (defaults_to_this_thread) {
+                        return true;
+                    }
+
                     delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
                     ConsoleHandler.error("Unable to find target for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
                     thrower("Unable to find target for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));

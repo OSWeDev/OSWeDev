@@ -16,6 +16,7 @@ import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePip
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../../shared/tools/ThreadHandler';
 import PushDataVueModule from '../PushData/PushDataVueModule';
+import { StatThisArrayLength } from '../../../../shared/modules/Stats/annotations/StatThisArrayLength';
 
 /**
  * Refonte du AjaxCacheClientController :
@@ -37,6 +38,12 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     private static instance: AjaxCacheClientController = null;
 
     /**
+     * Les requêtes pour le prochain batch d'envoi
+     */
+    @StatThisArrayLength('AjaxCacheClientController', AjaxCacheClientController.getInstance)
+    private waitingForRequest: RequestResponseCacheVO[] = [];
+
+    /**
      * This is used to identify the tab the app is running in to send appropriate notifications to the corresponding tab
      */
     public client_tab_id: string = Dates.now() + '_' + Math.floor(Math.random() * 100000);
@@ -48,10 +55,6 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     private cache: RequestsCacheVO = new RequestsCacheVO();
     private invalidationRules: CacheInvalidationRulesVO = new CacheInvalidationRulesVO();
 
-    /**
-     * Les requêtes pour le prochain batch d'envoi
-     */
-    private waitingForRequest: RequestResponseCacheVO[] = [];
 
     private disableCache = false;
     private defaultInvalidationTimeout: number = 300; //seconds

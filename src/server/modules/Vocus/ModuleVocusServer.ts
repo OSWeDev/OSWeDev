@@ -5,6 +5,7 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
@@ -141,7 +142,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
             //     continue;
             // }
 
-            const fields = table.get_fields();
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[table.vo_type];
             for (const j in fields) {
                 const field = fields[j];
 

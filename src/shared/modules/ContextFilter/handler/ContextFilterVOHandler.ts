@@ -334,7 +334,7 @@ export default class ContextFilterVOHandler {
                                 const value = raw_value[i];
                                 raw_data[module_table_field_name + '__raw'] = value;
                                 raw_data[module_table_field_name] = value;
-                                res_data.push(ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_name, raw_data));
+                                res_data.push(await ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_name, raw_data));
                             }
 
                             raw_data[module_table_field_name + '__raw'] = saved_raw_data_field;
@@ -344,11 +344,11 @@ export default class ContextFilterVOHandler {
                         }
                     }
 
-                    resData[field.datatable_field_uid] = ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_name, raw_data);
+                    resData[field.datatable_field_uid] = await ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_name, raw_data);
                     break;
 
                 case DatatableField.COMPUTED_FIELD_TYPE:
-                    resData[field.datatable_field_uid] = field.dataToReadIHM(null, raw_data);
+                    resData[field.datatable_field_uid] = await field.dataToReadIHM(null, raw_data);
                     break;
 
                 case DatatableField.COMPONENT_FIELD_TYPE:
@@ -371,7 +371,7 @@ export default class ContextFilterVOHandler {
                         const ref_data: IDistantVOBase = await query(manyToOneField.targetModuleTable.vo_type)
                             .filter_by_id(raw_data[src_module_table_field_name])
                             .select_vo();
-                        resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
+                        resData[field.datatable_field_uid] = await manyToOneField.dataToHumanReadable(ref_data);
                         resData[field.datatable_field_uid + "___id___"] = raw_data[src_module_table_field_name];
                         resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
                     }
@@ -408,7 +408,7 @@ export default class ContextFilterVOHandler {
 
                                 resData[field.datatable_field_uid].push({
                                     id: ref_data.id,
-                                    label: manyToManyField.dataToHumanReadable(ref_data)
+                                    label: await manyToManyField.dataToHumanReadable(ref_data)
                                 });
                             })());
                         }
@@ -448,7 +448,7 @@ export default class ContextFilterVOHandler {
 
                                 resData[field.datatable_field_uid].push({
                                     id: ref_data.id,
-                                    label: manyToManyField.dataToHumanReadable(ref_data)
+                                    label: await manyToManyField.dataToHumanReadable(ref_data)
                                 });
                             })());
                         }
@@ -474,7 +474,7 @@ export default class ContextFilterVOHandler {
 
                         resData[field.datatable_field_uid].push({
                             id: id,
-                            label: refField.dataToHumanReadable(ref_data)
+                            label: await refField.dataToHumanReadable(ref_data)
                         });
                     });
                     break;
@@ -1291,13 +1291,13 @@ export default class ContextFilterVOHandler {
         }
     }
 
-    private static get_simple_field_value(simpleField: SimpleDatatableFieldVO<any, any>, module_table_field_name: string, raw_data: IDistantVOBase) {
+    private static async get_simple_field_value(simpleField: SimpleDatatableFieldVO<any, any>, module_table_field_name: string, raw_data: IDistantVOBase) {
         if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) {
             const raw_value = raw_data[module_table_field_name + '__raw'];
             return RangeHandler.humanizeRanges(raw_value);
         }
 
-        let value = simpleField.dataToReadIHM(raw_data[module_table_field_name], raw_data);
+        let value = await simpleField.dataToReadIHM(raw_data[module_table_field_name], raw_data);
         // Limite à 300 cars si c'est du html et strip html
         if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_html) {
 
@@ -1341,7 +1341,7 @@ export default class ContextFilterVOHandler {
                     v = v.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script *>/gi, "");
                     // v = $("<p>" + v + "</p>").text();
                 } catch (error) {
-                    v = v;
+                    //
                 }
 
                 if (v.length > 300) {

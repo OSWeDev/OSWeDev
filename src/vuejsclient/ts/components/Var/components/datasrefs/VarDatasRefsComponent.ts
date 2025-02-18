@@ -60,10 +60,16 @@ export default class VarDatasRefsComponent extends VueComponentBase {
     private been_destroyed: boolean = false;
 
     private var_datas: VarDataValueResVO[] = [];
-    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(this.var_datas_updater.bind(this), 200, { leading: false, trailing: true });
+    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(
+        'VarDatasRefsComponent.throttled_var_datas_updater',
+        this.var_datas_updater.bind(this), 200, false);
 
-    private throttled_unregister = ThrottleHelper.declare_throttle_without_args(this.unregister.bind(this), 200, { leading: true, trailing: true });
-    private throttled_register = ThrottleHelper.declare_throttle_without_args(this.register.bind(this), 200, { leading: true, trailing: true });
+    private throttled_unregister = ThrottleHelper.declare_throttle_without_args(
+        'VarDatasRefsComponent.throttled_unregister',
+        this.unregister.bind(this), 200);
+    private throttled_register = ThrottleHelper.declare_throttle_without_args(
+        'VarDatasRefsComponent.throttled_register',
+        this.register.bind(this), 200);
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(
@@ -225,12 +231,6 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             return;
         }
 
-        //vvvvvv! DEBUG DELETE ME !vvvvvv
-        if (var_params[1] && var_params[1].index && var_params[1].index.startsWith('4W|') && var_params[1].index.endsWith('|1&3|P5@A;&PR:qo')) {
-            ConsoleHandler.warn('VarDatasRefsComponent:register:' + var_params[1].index);
-        }
-        //^^^^^^! DEBUG DELETE ME !^^^^^^
-
         // De manière générale, si on est destroyed, on ne fait rien
         if (this.been_destroyed) {
             this.semaphore_register = false;
@@ -260,12 +260,6 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             this.semaphore_unregister = false;
             return;
         }
-
-        //vvvvvv! DEBUG DELETE ME !vvvvvv
-        if (currently_registered_params[1] && currently_registered_params[1].index && currently_registered_params[1].index.startsWith('4W|') && currently_registered_params[1].index.endsWith('|1&3|P5@A;&PR:qo')) {
-            ConsoleHandler.warn('VarDatasRefsComponent:unregister:' + currently_registered_params[1].index);
-        }
-        //^^^^^^! DEBUG DELETE ME !^^^^^^
 
         VarsClientController.getInstance().unRegisterParams(currently_registered_params, this.varUpdateCallbacks);
         this.var_datas = null;

@@ -1,5 +1,6 @@
 import IDistantVOBase from '../../IDistantVOBase';
 import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
+import EventifyEventInstanceVO from './EventifyEventInstanceVO';
 
 export default class EventifyEventConfVO implements IDistantVOBase, IVersionedVO {
     public static API_TYPE_ID: string = "eventify_event_conf";
@@ -19,4 +20,12 @@ export default class EventifyEventConfVO implements IDistantVOBase, IVersionedVO
     public version_timestamp: number;
     public version_edit_author_id: number;
     public version_edit_timestamp: number;
+
+    public static from_instance(instance: EventifyEventInstanceVO): EventifyEventConfVO {
+        const res: EventifyEventConfVO = new EventifyEventConfVO();
+
+        res.name = instance.name;
+
+        return res;
+    }
 }

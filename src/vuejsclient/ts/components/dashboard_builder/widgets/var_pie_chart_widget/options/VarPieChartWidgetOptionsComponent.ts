@@ -41,9 +41,15 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     private get_custom_filters: string[];
 
     private next_update_options: VarPieChartWidgetOptionsVO = null;
-    private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(this.reload_options.bind(this), 50, { leading: false, trailing: true });
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
-    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
+    private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(
+        'VarPieChartWidgetOptionsComponent.throttled_reload_options',
+        this.reload_options.bind(this), 50, false);
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+        'VarPieChartWidgetOptionsComponent.throttled_update_options',
+        this.update_options.bind(this), 50, false);
+    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(
+        'VarPieChartWidgetOptionsComponent.throttled_update_colors',
+        this.update_colors.bind(this), 800, false);
 
     private tmp_selected_var_name_1: string = null;
     private tmp_selected_var_name_2: string = null;
@@ -53,7 +59,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     private custom_filter_names_2: { [field_id: string]: string } = {};
     private dimension_custom_filter_name: string = null;
     private color_palettes_labels: string[] = [];
-    private color_palettes : DashboardGraphColorPaletteVO[] = [];
+    private color_palettes: DashboardGraphColorPaletteVO[] = [];
 
     private bg_color_1: string = null;
     private bg_color_2: string = null;
@@ -1206,10 +1212,10 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
 
         if (((!this.widget_options.border_width_1) && this.border_width_1) || (this.widget_options.border_width_1 && (this.border_width_1 != this.widget_options.border_width_1))) {
-            this.border_width_1 = this.widget_options.border_width_1 ? this.widget_options.border_width_1: null;
+            this.border_width_1 = this.widget_options.border_width_1 ? this.widget_options.border_width_1 : null;
         }
         if (((!this.widget_options.border_width_2) && this.border_width_2) || (this.widget_options.border_width_2 && (this.border_width_2 != this.widget_options.border_width_2))) {
-            this.border_width_2 = this.widget_options.border_width_2 ? this.widget_options.border_width_2: null;
+            this.border_width_2 = this.widget_options.border_width_2 ? this.widget_options.border_width_2 : null;
         }
         if (this.max_is_sum_of_var_1_and_2 != this.widget_options.max_is_sum_of_var_1_and_2) {
             this.max_is_sum_of_var_1_and_2 = this.widget_options.max_is_sum_of_var_1_and_2;

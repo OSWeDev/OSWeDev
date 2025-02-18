@@ -3,7 +3,6 @@ import INamedVO from '../../interfaces/INamedVO';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names, reflect } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import APIDefinition from '../API/vos/APIDefinition';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
@@ -23,6 +22,7 @@ import APIDAOTypeLimitOffsetVO, { APIDAOTypeLimitOffsetVOStatic } from './vos/AP
 import APIDAOselectUsersForCheckUnicityVO, { APIDAOselectUsersForCheckUnicityVOStatic } from './vos/APIDAOselectUsersForCheckUnicityVO';
 import CRUDFieldRemoverConfVO from './vos/CRUDFieldRemoverConfVO';
 import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
+import ModuleTableCompositePartialIndexVO from './vos/ModuleTableCompositePartialIndexVO';
 import ModuleTableCompositeUniqueKeyVO from './vos/ModuleTableCompositeUniqueKeyVO';
 import ComputedDatatableFieldVO from './vos/datatable/ComputedDatatableFieldVO';
 
@@ -330,6 +330,7 @@ export default class ModuleDAO extends Module {
         this.init_CRUDFieldRemoverConfVO();
         this.init_ModuleTableVO();
         this.init_ModuleTableFieldVO();
+        this.init_ModuleTableCompositePartialIndexVO();
         this.init_ModuleTableCompositeUniqueKeyVO();
     }
 
@@ -371,6 +372,14 @@ export default class ModuleDAO extends Module {
         ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Vo Type', true, false);
         ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().module_table_field_ids, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Types', false);
         ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().is_update, ModuleTableFieldVO.FIELD_TYPE_boolean, 'CRUD update ?', true, true, true);
+    }
+
+    private init_ModuleTableCompositePartialIndexVO() {
+        ModuleTableController.create_new(this.name, ModuleTableCompositePartialIndexVO, null, "Indexs composites partielles");
+
+        ModuleTableFieldController.create_new(ModuleTableCompositePartialIndexVO.API_TYPE_ID, field_names<ModuleTableCompositePartialIndexVO>().field_names, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Champs - Noms', true);
+        ModuleTableFieldController.create_new(ModuleTableCompositePartialIndexVO.API_TYPE_ID, field_names<ModuleTableCompositePartialIndexVO>().vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Table - Nom', true);
+        ModuleTableFieldController.create_new(ModuleTableCompositePartialIndexVO.API_TYPE_ID, field_names<ModuleTableCompositePartialIndexVO>().context_filters, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Filtres pour clé partielle', false);
     }
 
     private init_ModuleTableCompositeUniqueKeyVO() {
@@ -453,5 +462,6 @@ export default class ModuleDAO extends Module {
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().mapping_by_api_type_ids, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Mapping des champs par APIType', false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().sort_by_field, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champ de tri', false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().composite_partial_indexes, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Indexs composites partiels', false);
     }
 }

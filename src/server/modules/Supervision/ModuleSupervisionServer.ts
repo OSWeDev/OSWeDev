@@ -7,13 +7,15 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemURL from '../../../shared/modules/Supervision/interfaces/ISupervisedItemURL';
 import ModuleSupervision from '../../../shared/modules/Supervision/ModuleSupervision';
 import SupervisionController from '../../../shared/modules/Supervision/SupervisionController';
 import SupervisedCategoryVO from '../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
+import SupervisedProbeVO from '../../../shared/modules/Supervision/vos/SupervisedProbeVO';
 import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO';
 import TeamsWebhookContentAdaptiveCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAdaptiveCardVO';
 import TeamsWebhookContentAttachmentsVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAttachmentsVO';
@@ -25,6 +27,7 @@ import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWeb
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -185,6 +188,15 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Etat lu non disponible"
         }, 'supervised_item_controls.desc_btn.switch_read_disabled.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Ordonner par catégorie"
+        }, 'supervision_type_widget_component.order_by_categories.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Afficher les compteurs d'état"
+        }, 'supervision_type_widget_component.show_counter.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Supervision selectionnée"
+        }, 'supervision.item_drag_panel.title.___LABEL___'));
 
         /**
          * On gère l'historique des valeurs
@@ -271,7 +283,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             }
 
             if (has_new_value) {
-                const moduletablefields = ModuleTableController.module_tables_by_vo_type[vo_update_handler.post_update_vo._type].get_fields();
+                const moduletablefields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_update_handler.post_update_vo._type];
                 for (const i in moduletablefields) {
                     const moduletablefield = moduletablefields[i];
 
@@ -318,7 +330,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
              */
             const historique: ISupervisedItem = new ModuleTableController.vo_constructor_by_vo_type[vo_update_handler.post_update_vo._type]() as ISupervisedItem;
 
-            const moduletablefields = ModuleTableController.module_tables_by_vo_type[vo_update_handler.post_update_vo._type].get_fields();
+            const moduletablefields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_update_handler.post_update_vo._type];
             for (const i in moduletablefields) {
                 const moduletablefield = moduletablefields[i];
 
@@ -333,6 +345,31 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     private async onpreC_SUP_ITEM(supervised_item: ISupervisedItem): Promise<boolean> {
+
+        if (!supervised_item.probe_id) {
+            // Dirty JFE : je ne sais pas comment automatiser ou forcer ceci autrement
+            // si la sonde (necessaire au fonctionnement du compteur d'item par status) n'existe pas encore on la cree
+            let probe: SupervisedProbeVO = await query(SupervisedProbeVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<SupervisedProbeVO>().sup_item_api_type_id, supervised_item._type)
+                .select_vo<SupervisedProbeVO>();
+
+            if (!probe) {
+                probe = new SupervisedProbeVO();
+                probe.sup_item_api_type_id = supervised_item._type;
+                probe.category_id = supervised_item.category_id;
+                const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(probe);
+
+                if (!res) {
+                    ConsoleHandler.error(' Impossible de créer la sonde pour le type ' + supervised_item._type);
+                }
+                probe.id = res.id;
+            }
+
+            if (!!probe?.id && supervised_item.probe_id != probe.id) {
+                supervised_item.probe_id = probe.id;
+            }
+        }
+
         supervised_item.creation_date = Dates.now();
         if (supervised_item.state == null) {
             supervised_item.state = SupervisionController.STATE_UNKOWN;

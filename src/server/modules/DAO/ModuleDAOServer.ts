@@ -54,6 +54,7 @@ import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import { IRequestStackContext } from '../../ServerExpressController';
 import StackContext from '../../StackContext';
 import { ExecAsServer, ExecAsServerParam } from '../../annotations/ExecAsServer';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -65,6 +66,7 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModuleTableDBService from '../ModuleTableDBService';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ParamsServerController from '../Params/ParamsServerController';
+import PerfReportServerController from '../PerfReport/PerfReportServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
@@ -80,7 +82,6 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
-import { IRequestStackContext } from '../../ServerExpressController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -92,6 +93,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public static instance: ModuleDAOServer = null;
 
     public check_foreign_keys: boolean = true;
+
+    // Déclarer le pool de copy UNE SEULE FOIS:
+    private pool_for_copies = new Pool({
+        connectionString: ConfigurationService.node_configuration.connection_string,
+        max: 10, // Ajuster si besoin
+    });
 
     // private copy_dedicated_pool = null;
 
@@ -422,7 +429,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             const setters = [];
-            const fields = moduleTable.get_fields();
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
             for (const i in fields) {
                 const field: ModuleTableFieldVO = fields[i];
 
@@ -485,8 +492,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             const tableFields = [];
             const placeHolders = [];
-            for (const f in moduleTable.get_fields()) {
-                const field: ModuleTableFieldVO = moduleTable.get_fields()[f];
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
+            for (const f in fields) {
+                const field: ModuleTableFieldVO = fields[f];
 
                 if (typeof vo[field.field_name] == "undefined") {
                     if (!field.has_default || !field.field_default_value) {
@@ -520,24 +528,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             if (moduleTable.is_segmented) {
                 // Si on est sur une table segmentée on adapte le comportement
-                const name = moduleTable.get_segmented_name_from_vo(vo);
                 full_name = moduleTable.get_segmented_full_name_from_vo(vo);
 
-                // Si on est sur du segmented en insert on doit vérifier l'existence de la table, sinon il faut la créer avant d'insérer la première donnée
-                if ((!DAOServerController.segmented_known_databases[moduleTable.database]) || (!DAOServerController.segmented_known_databases[moduleTable.database][name])) {
-
-                    const queries_to_try_after_creation: string[] = [];
-                    await ModuleTableDBService.getInstance(null).create_or_update_datatable(
-                        moduleTable,
-                        [RangeHandler.create_single_elt_range(moduleTable.table_segmented_field_range_type, moduleTable.get_segmented_field_value_from_vo(vo), moduleTable.table_segmented_field_segment_type)],
-                        queries_to_try_after_creation,
-                    );
-
-                    if (queries_to_try_after_creation && queries_to_try_after_creation.length) {
-                        ConsoleHandler.error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
-                        throw new Error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
-                    }
-                }
+                await this.check_or_create_segmented_table(moduleTable, moduleTable.get_segmented_field_value_from_vo(vo));
             } else {
                 full_name = moduleTable.full_name;
             }
@@ -621,6 +614,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        PerfReportServerController.register_perf_module(ThrottledQueryServerController.PERF_MODULE_NAME);
 
         await DAOServerController.configure();
         // await this.create_or_replace_function_ref_get_user();
@@ -1194,8 +1189,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     const vo_values = [];
 
-                    for (const f in moduleTable.get_fields()) {
-                        const field: ModuleTableFieldVO = moduleTable.get_fields()[f];
+                    for (const f in fields) {
+                        const field: ModuleTableFieldVO = fields[f];
 
                         let fieldValue = vo[field.field_name];
 
@@ -1408,6 +1403,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
 
+        // Si on est sur une table segmentées, on check / crée le segment si besoin
+        if (segmented_value) {
+            // On a donc une seule table cible, et un seul segment
+            const module_table = ModuleTableController.module_tables_by_vo_type[vos[0]._type];
+            await this.check_or_create_segmented_table(module_table, segmented_value);
+        }
 
         // for (let api_type in check_pixel_update_vos_by_type) {
         //     let check_pixel_update_vos = check_pixel_update_vos_by_type[api_type];
@@ -1456,7 +1457,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         const tableFields: string[] = [];
-        const fields = moduleTable.get_fields();
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
 
         for (const i in fields) {
             const field: ModuleTableFieldVO = fields[i];
@@ -1601,26 +1602,26 @@ export default class ModuleDAOServer extends ModuleServerBase {
         //     });
         // }
 
-        const copy_dedicated_pool: any = new Pool({
-            connectionString: ConfigurationService.node_configuration.connection_string,
-            max: 1,
-        });
+        // const copy_dedicated_pool: any = new Pool({
+        //     connectionString: ConfigurationService.node_configuration.connection_string,
+        //     max: 1,
+        // });
 
         let result = true;
         const self = this;
         return new Promise(async (resolve, reject) => {
 
             // self.copy_dedicated_pool.connect(function (err, client, done) {
-            copy_dedicated_pool.connect(async (err, client, done) => {
+            this.pool_for_copies.connect(async (err, client, done) => {
 
                 const cb = async () => {
                     if (debug_insert_without_triggers_using_COPY) {
                         ConsoleHandler.log('insert_without_triggers_using_COPY:end');
                     }
                     await done();
-                    if (!!client) {
-                        client.end();
-                    }
+                    // if (!!client) {
+                    //     client.release(); // Throws on double release .....
+                    // }
                     await resolve(result);
                 };
 
@@ -1677,9 +1678,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                                 }
                             }
 
-                            const duplicates_by_index: { [index: string]: VarDataBaseVO } = {};
+                            let duplicates_by_index: { [index: string]: VarDataBaseVO } = {};
                             for (const i in packets) {
-                                const packet: VarDataBaseVO[] = packets[i];
+                                packet = packets[i];
                                 const pack_duplicates: VarDataBaseVO[] = await query(moduleTable.vo_type).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, packet.map((vo: VarDataBaseVO) => vo._bdd_only_index)).exec_as_server().select_vos();
 
                                 for (const j in pack_duplicates) {
@@ -1694,7 +1695,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                                 ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a trouvé des doublons (' + duplicates.length + '), on les mets à jour plutôt');
                                 ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: Index des doublons trouvés en base : ' + JSON.stringify(duplicates.map((vo: VarDataBaseVO) => vo._bdd_only_index)));
 
-                                const duplicates_by_index: { [index: string]: VarDataBaseVO } = {};
+                                duplicates_by_index = {};
                                 const filtered_not_imported_vos: VarDataBaseVO[] = [];
                                 for (const i in duplicates) {
                                     const duplicate: VarDataBaseVO = duplicates[i];
@@ -1735,9 +1736,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                                 throw new Error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a pas trouvé de doublons ce qui ne devrait jamais arriver');
                             }
 
-                        } catch (error) {
+                        } catch (error__) {
 
-                            ConsoleHandler.error('ERROR in insert_without_triggers_using_COPY: ' + error);
+                            ConsoleHandler.error('ERROR in insert_without_triggers_using_COPY: ' + error__);
                             try {
 
                                 const query_res = await self.insertOrUpdateVOs_without_triggers(vos, null, exec_as_server);
@@ -1754,8 +1755,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         try {
                             const query_res = await self.insertOrUpdateVOs_without_triggers(vos, null, exec_as_server);
                             result = (!!query_res) && (query_res.length == vos.length);
-                        } catch (error) {
-                            ConsoleHandler.error('insert_without_triggers_using_COPY:' + error);
+                        } catch (err_) {
+                            ConsoleHandler.error('insert_without_triggers_using_COPY:' + err_);
                             result = false;
                         }
                     }
@@ -1869,7 +1870,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let request: string = null;
 
             let fields_select: string = 't.id';
-            const fields = moduleTable.get_fields();
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
             for (const i in fields) {
                 const field = fields[i];
 
@@ -2249,7 +2250,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         const res: T[] = [];
 
         const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
-        const promise_pipeline = new PromisePipeline(max, 'ModuleDAOServer.filterByForeignKeys');
+        const promise_pipeline = PromisePipeline.get_semaphore_pipeline('ModuleDAOServer.filterByForeignKeys', max);
+        const promises = [];
 
         for (const i in vos) {
             const vo = vos[i];
@@ -2263,16 +2265,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 continue;
             }
 
-            await promise_pipeline.push(async () => {
+            promises.push((await promise_pipeline.push(async () => {
                 const refuse: boolean = await this.refuseVOByForeignKeys(vo);
 
                 if (!refuse) {
                     res.push(vo);
                 }
-            });
+            }))());
         }
 
-        await promise_pipeline.end();
+        await all_promises(promises);
 
         StatsController.register_stat_QUANTITE('ModuleDAOServer', 'filterByForeignKeys', '-', vos.length);
         StatsController.register_stat_DUREE('ModuleDAOServer', 'filterByForeignKeys', '-', Dates.now_ms() - time_in);
@@ -2302,7 +2304,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return true;
         }
 
-        const fields = moduleTable.get_fields();
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
         let refuse: boolean = false;
         const promises = [];
 
@@ -2706,8 +2708,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         if (vo && !DAOServerController.checkAccessSync(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
             // a priori on a accès en list labels, mais pas en read. Donc on va filtrer tous les champs, sauf le label et id et _type
-            for (const i in datatable.get_fields()) {
-                const field: ModuleTableFieldVO = datatable.get_fields()[i];
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[datatable.vo_type];
+            for (const i in fields) {
+                const field: ModuleTableFieldVO = fields[i];
 
                 if (datatable.default_label_field &&
                     (field.field_name == datatable.default_label_field.field_name)) {
@@ -3198,5 +3201,25 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         return false;
+    }
+
+    private async check_or_create_segmented_table(module_table: ModuleTableVO, segment_value: number): Promise<void> {
+        const name = module_table.get_segmented_name(segment_value);
+
+        // Si on est sur du segmented en insert on doit vérifier l'existence de la table, sinon il faut la créer avant d'insérer la première donnée
+        if ((!DAOServerController.segmented_known_databases[module_table.database]) || (!DAOServerController.segmented_known_databases[module_table.database][name])) {
+
+            const queries_to_try_after_creation: string[] = [];
+            await ModuleTableDBService.getInstance(null).create_or_update_datatable(
+                module_table,
+                [RangeHandler.create_single_elt_range(module_table.table_segmented_field_range_type, segment_value, module_table.table_segmented_field_segment_type)],
+                queries_to_try_after_creation,
+            );
+
+            if (queries_to_try_after_creation && queries_to_try_after_creation.length) {
+                ConsoleHandler.error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
+                throw new Error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
+            }
+        }
     }
 }

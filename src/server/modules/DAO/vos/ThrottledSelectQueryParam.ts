@@ -17,9 +17,9 @@ export default class ThrottledSelectQueryParam {
     public parameterized_full_query: string;
     public fields_labels: string = null;
 
-    private time_in: number = null;
-    private post_unstack_time_in: number = null;
-    private pre_cbs_time_in: number = null;
+    public time_in: number = null;
+    public post_unstack_time_in: number = null;
+    public pre_cbs_time_in: number = null;
 
     public constructor(
         public cbs: Array<(...any) => void>,

@@ -25,7 +25,7 @@ include ../../../../../views/mixins/loading.pug
                         template(v-else)
                             span {{ filtered_value }}
                     template(v-else)
-                        span {{ field.voIdToHumanReadable(field_value) }}
+                        span {{ vo_id_to_human_readable_field_value }}
 
             template(v-else)
                 template(v-if="field.type == 'Simple' || field.type == 'INPUT'")

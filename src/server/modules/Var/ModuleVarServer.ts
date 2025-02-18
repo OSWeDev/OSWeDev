@@ -50,6 +50,7 @@ import VarDAG from '../../modules/Var/vos/VarDAG';
 import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import ContextQueryServerController from '../ContextFilter/ContextQueryServerController';
 import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -64,6 +65,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ParamsServerController from '../Params/ParamsServerController';
+import PerfReportServerController from '../PerfReport/PerfReportServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import CurrentBatchDSCacheHolder from './CurrentBatchDSCacheHolder';
@@ -83,8 +85,8 @@ import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarsClientsSubsCacheHolder from './bgthreads/processes/VarsClientsSubsCacheHolder';
 import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCacheManager';
 import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
+import VarsProcessLoadDatas from './bgthreads/processes/VarsProcessLoadDatas';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
-import DataSourcesController from './datasource/DataSourcesController';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
 
 export default class ModuleVarServer extends ModuleServerBase {
@@ -96,18 +98,17 @@ export default class ModuleVarServer extends ModuleServerBase {
     public static TASK_NAME_update_varcacheconf_from_cache = 'Var.update_varcacheconf_from_cache';
     public static TASK_NAME_force_delete_all_cache_except_imported_data = 'Var.force_delete_all_cache_except_imported_data';
 
-    public static TASK_NAME_invalidate_imports_for_u = 'VarsDatasProxy.invalidate_imports_for_u';
-    public static TASK_NAME_invalidate_imports_for_c = 'VarsDatasProxy.invalidate_imports_for_c';
-    public static TASK_NAME_invalidate_imports_for_d = 'VarsDatasProxy.invalidate_imports_for_d';
-
     private static instance: ModuleVarServer = null;
 
     public cpt_for_datasources: { [datasource_name: string]: number } = {}; // TEMP DEBUG JFE
 
     public update_varconf_from_cache = ThrottleHelper.declare_throttle_with_stackable_args(
-        this.update_varconf_from_cache_throttled.bind(this), 200, { leading: true, trailing: true });
+        'ModuleVarServer.update_varconf_from_cache',
+        this.update_varconf_from_cache_throttled.bind(this), 200);
 
-    private throttle_getVarParamFromContextFilters = ThrottleHelper.declare_throttle_with_stackable_args(this.throttled_getVarParamsFromContextFilters.bind(this), 10, { leading: true, trailing: true });
+    private throttle_getVarParamFromContextFilters = ThrottleHelper.declare_throttle_with_stackable_args(
+        'ModuleVarServer.getVarParamFromContextFilters',
+        this.throttled_getVarParamsFromContextFilters.bind(this), 10);
 
     private limit_nb_ts_ranges_on_param_by_context_filter: number = null;
     private limit_nb_ts_ranges_on_param_by_context_filter_last_update: number = null;
@@ -123,6 +124,54 @@ export default class ModuleVarServer extends ModuleServerBase {
             ModuleVarServer.instance = new ModuleVarServer();
         }
         return ModuleVarServer.instance;
+    }
+
+    /**
+     * Objectif : vider tout le cache des vars, y compris les pixels qu'on supprime théoriquement pas
+     */
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, ModuleVarServer.getInstance)
+    public async force_delete_all_cache_except_imported_data(): Promise<void> {
+
+        await VarsComputationHole.exec_in_computation_hole(this.force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole.bind(this));
+    }
+
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, ModuleVarServer.getInstance)
+    public async invalidate_imports_for_d(vo: VarDataBaseVO) {
+
+        // Si on delete une data en import, on doit forcer le recalcul, sinon osef
+        if (vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+
+            await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
+        }
+    }
+
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, ModuleVarServer.getInstance)
+    public async invalidate_imports_for_u(vo_update_handler: DAOUpdateVOHolder<VarDataBaseVO>) {
+
+        // Si on modifier la valeur d'un import, ou si on change le type de valeur, on doit invalider l'arbre
+        if ((vo_update_handler.post_update_vo.value_type != vo_update_handler.pre_update_vo.value_type) ||
+            ((vo_update_handler.post_update_vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (vo_update_handler.post_update_vo.value != vo_update_handler.pre_update_vo.value))) {
+
+            // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
+            VarsTabsSubsController.notify_vardatas([new NotifVardatasParam([vo_update_handler.post_update_vo])]);
+            VarsServerCallBackSubsController.notify_vardatas([vo_update_handler.post_update_vo]);
+
+            await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo_update_handler.post_update_vo]);
+        }
+    }
+
+    @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, ModuleVarServer.getInstance)
+    public async invalidate_imports_for_c(vo: VarDataBaseVO) {
+
+        // Si on crée une data en import, on doit forcer le recalcul, si on crée en calcul aucun impact
+        if (vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+
+            // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
+            VarsTabsSubsController.notify_vardatas([new NotifVardatasParam([vo])]);
+            VarsServerCallBackSubsController.notify_vardatas([vo]);
+
+            await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
+        }
     }
 
     /**
@@ -223,6 +272,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        PerfReportServerController.register_perf_module(VarDAGNode.PERF_MODULE_NAME);
 
         await this.init_auto_vars_confs();
 
@@ -489,13 +540,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_force_delete_all_cache_except_imported_data, this.force_delete_all_cache_except_imported_data.bind(this));
 
-        // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_u, this.invalidate_imports_for_u.bind(this));
-        // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_c, this.invalidate_imports_for_c.bind(this));
-        // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_d, this.invalidate_imports_for_d.bind(this));
-
         ModuleServiceBase.getInstance().post_modules_installation_hooks.push(async () => {
 
             /**
@@ -556,85 +600,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         } catch (error) {
             ConsoleHandler.error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
         }
-    }
-
-    public async invalidate_imports_for_c(vo: VarDataBaseVO): Promise<string> {
-
-        return new Promise(async (resolve, reject) => {
-
-            if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
-                false,
-                reject,
-                VarsBGThreadNameHolder.bgthread_name,
-                ModuleVarServer.TASK_NAME_invalidate_imports_for_c,
-                resolve,
-                vo)) {
-                return;
-            }
-
-            // Si on crée une data en import, on doit forcer le recalcul, si on crée en calcul aucun impact
-            if (vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
-
-                // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
-                await VarsTabsSubsController.notify_vardatas([new NotifVardatasParam([vo])]);
-                await VarsServerCallBackSubsController.notify_vardatas([vo]);
-
-                await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
-            }
-            resolve('invalidate_imports_for_c');
-        });
-    }
-
-    public async invalidate_imports_for_d(vo: VarDataBaseVO): Promise<string> {
-
-        return new Promise(async (resolve, reject) => {
-
-            if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
-                false,
-                reject,
-                VarsBGThreadNameHolder.bgthread_name,
-                ModuleVarServer.TASK_NAME_invalidate_imports_for_d,
-                resolve,
-                vo)) {
-                return;
-            }
-
-            // Si on delete une data en import, on doit forcer le recalcul, sinon osef
-            if (vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
-
-                await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
-            }
-            resolve('invalidate_imports_for_d');
-        });
-    }
-
-
-    public async invalidate_imports_for_u(vo_update_handler: DAOUpdateVOHolder<VarDataBaseVO>): Promise<string> {
-
-        return new Promise(async (resolve, reject) => {
-
-            if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
-                false,
-                reject,
-                VarsBGThreadNameHolder.bgthread_name,
-                ModuleVarServer.TASK_NAME_invalidate_imports_for_u,
-                resolve,
-                vo_update_handler)) {
-                return;
-            }
-
-            // Si on modifier la valeur d'un import, ou si on change le type de valeur, on doit invalider l'arbre
-            if ((vo_update_handler.post_update_vo.value_type != vo_update_handler.pre_update_vo.value_type) ||
-                ((vo_update_handler.post_update_vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (vo_update_handler.post_update_vo.value != vo_update_handler.pre_update_vo.value))) {
-
-                // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
-                await VarsTabsSubsController.notify_vardatas([new NotifVardatasParam([vo_update_handler.post_update_vo])]);
-                await VarsServerCallBackSubsController.notify_vardatas([vo_update_handler.post_update_vo]);
-
-                await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo_update_handler.post_update_vo]);
-            }
-            resolve('invalidate_imports_for_u');
-        });
     }
 
     public async prepare_bdd_index_for_c(vo: VarDataBaseVO) {
@@ -930,20 +895,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         return this.limit_nb_ts_ranges_on_param_by_context_filter;
     }
 
-    /**
-     * Objectif : vider tout le cache des vars, y compris les pixels qu'on supprime théoriquement pas
-     */
-    public async force_delete_all_cache_except_imported_data(): Promise<void> {
-
-        if (!await ForkedTasksController.exec_self_on_bgthread(
-            VarsBGThreadNameHolder.bgthread_name,
-            ModuleVarServer.TASK_NAME_force_delete_all_cache_except_imported_data)) {
-            return;
-        }
-
-        await VarsComputationHole.exec_in_computation_hole(this.force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole.bind(this));
-    }
-
     public async force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole(): Promise<void> {
 
         ConsoleHandler.warn('ModuleVarServer:force_delete_all_cache_except_imported_data:IN');
@@ -961,6 +912,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         CurrentVarDAGHolder.current_vardag = new VarDAG();
         CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
+        CurrentBatchDSCacheHolder.semaphore_event_listener_promise = {};
+        CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
 
         ConsoleHandler.warn('ModuleVarServer:force_delete_all_cache_except_imported_data:re_register_all_subs');
 
@@ -1263,9 +1216,12 @@ export default class ModuleVarServer extends ModuleServerBase {
                 return null;
             }
 
+            varDAGNode.unlock();
+
             const predeps = var_controller.getDataSourcesPredepsDependencies();
             if (predeps && predeps.length) {
-                await DataSourcesController.load_node_datas(predeps, varDAGNode);
+                await VarsProcessLoadDatas.load_nodes_datas({ [varDAGNode.var_data.index]: varDAGNode }, true);
+                // await DataSourcesController.load_node_datas(predeps, varDAGNode);
             }
 
             // TEMP DEBUG JFE :
@@ -1293,9 +1249,14 @@ export default class ModuleVarServer extends ModuleServerBase {
                 return null;
             }
 
+            const nodes_to_unlock: VarDAGNode[] = [node];
+
             await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(
                 node,
-                true);
+                true,
+                nodes_to_unlock);
+
+            VarDAGNode.unlock_nodes(nodes_to_unlock);
 
             return node.aggregated_datas ? node.aggregated_datas : {};
         }, false);
@@ -1366,22 +1327,18 @@ export default class ModuleVarServer extends ModuleServerBase {
                 return null;
             }
 
+            varDAGNode.unlock();
+
             // On doit vider le cache des datasources, sinon on recharge pas les datas en vrai
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
             CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
+            CurrentBatchDSCacheHolder.semaphore_event_listener_promise = {};
+
+            await VarsProcessLoadDatas.load_nodes_datas({ [varDAGNode.var_data.index]: varDAGNode }, false);
 
             for (const i in datasources_deps) {
                 const datasource_dep = datasources_deps[i];
 
-                if (!CurrentBatchDSCacheHolder.current_batch_ds_cache[datasource_dep.name]) {
-                    CurrentBatchDSCacheHolder.current_batch_ds_cache[datasource_dep.name] = {};
-                }
-
-                if (!CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[datasource_dep.name]) {
-                    CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[datasource_dep.name] = {};
-                }
-
-                await datasource_dep.load_node_data(varDAGNode);
                 const data = varDAGNode.datasources[datasource_dep.name];
 
                 let data_jsoned: string = null;
@@ -1856,6 +1813,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         subs.push(...Object.keys(VarsClientsSubsCacheHolder.clients_subs_indexes_cache));
 
         const all_vardagnode_promises: Array<Promise<any>> = [];
+        const nodes_to_unlock: VarDAGNode[] = [];
         for (const j in subs) {
 
             const index = subs[j];
@@ -1865,9 +1823,13 @@ export default class ModuleVarServer extends ModuleServerBase {
             }
 
             // on vient de supprimer => ok mais les imports ???
-            all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false/*, has_deleted_all_cache_right_before_and_in_same_hole*/));
+            all_vardagnode_promises.push((async () => {
+                nodes_to_unlock.push(await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false));
+            })());
         }
 
         await all_promises(all_vardagnode_promises);
+
+        VarDAGNode.unlock_nodes(nodes_to_unlock);
     }
 }

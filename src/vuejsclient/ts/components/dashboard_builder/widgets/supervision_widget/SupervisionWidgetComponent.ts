@@ -16,7 +16,6 @@ import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dat
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import ThreadHandler from '../../../../../../shared/tools/ThreadHandler';
@@ -32,6 +31,10 @@ import './SupervisionWidgetComponent.scss';
 import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
+import SupervisedProbeGroupVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeGroupVO';
+import SupervisedProbeVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeVO';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -76,7 +79,8 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     private dashboard_page: DashboardPageVO;
 
     private throttled_update_visible_options = ThrottleHelper.declare_throttle_with_stackable_args(
-        this.handle_throttled_update_visible_options.bind(this), 100, { leading: false, trailing: true }
+        'SupervisionWidgetComponent.throttled_update_visible_options',
+        this.handle_throttled_update_visible_options.bind(this), 100, false
     );
 
     private pagination_count: number = 0;
@@ -92,6 +96,92 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     private old_widget_options: SupervisionWidgetOptionsVO = null;
 
     private available_supervision_api_type_ids: string[] = [];
+    private groups: SupervisedProbeGroupVO[] = [];
+    private probes_by_ids: { [id: number]: SupervisedProbeVO } = {};
+
+    get refresh_button(): boolean {
+        return this.widget_options && this.widget_options.refresh_button;
+    }
+
+    get show_bulk_edit(): boolean {
+        return this.widget_options && this.widget_options.show_bulk_edit;
+    }
+
+    get limit(): number {
+        if (!this.widget_options) {
+            return 100;
+        }
+
+        return this.widget_options.limit;
+    }
+
+    get widget_options(): SupervisionWidgetOptionsVO {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: SupervisionWidgetOptionsVO = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as SupervisionWidgetOptionsVO;
+                options = options ? new SupervisionWidgetOptionsVO().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    /**
+     * supervision_api_type_ids
+     *
+     * @returns {string[]}
+     */
+    get supervision_api_type_ids(): string[] {
+        return this.widget_options?.supervision_api_type_ids ?? [];
+    }
+
+    get title_name_code_text() {
+        if (!this.widget_options) {
+            return null;
+        }
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    get checklist_header_title(): string {
+        if ((!this.widget_options) || (!this.page_widget)) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.widget_options.get_title_name_code_text(this.page_widget.id)];
+    }
+
+    get is_all_selected(): boolean {
+        if (isEmpty(this.selected_items)) {
+            return false;
+        }
+
+        for (const i in this.items_by_identifier) {
+            if (!this.selected_items[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    get has_one_selected(): boolean {
+        if (isEmpty(this.selected_items)) {
+            return false;
+        }
+
+        for (const i in this.items_by_identifier) {
+            if (this.selected_items[i]) {
+                return true;
+            }
+        }
+    }
 
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
@@ -190,6 +280,11 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
         this.is_busy = true;
 
+        const has_supervision_group_selection_filters = (!!this.get_active_field_filters && !!this.get_active_field_filters[SupervisedProbeGroupVO.API_TYPE_ID]);
+        if (has_supervision_group_selection_filters && !this.groups?.length) {
+            await this.load_all_supervised_probe_groups();
+        }
+
         if (!(this.supervision_api_type_ids?.length > 0)) {
             this.pagination_count = 0;
             this.loaded_once = true;
@@ -204,10 +299,12 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             this.widget_options,
             this.get_active_field_filters,
             this.get_active_api_type_ids,
+            this.groups,
+            this.probes_by_ids,
             {
                 offset: this.pagination_offset,
                 limit: this.limit,
-                sorts: [new SortByVO(null, 'name', true)]
+                sorts: [new SortByVO(null, 'name', true)],
             },
         );
 
@@ -380,87 +477,12 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         return item._type + '_' + item.id;
     }
 
-    get refresh_button(): boolean {
-        return this.widget_options && this.widget_options.refresh_button;
-    }
-
-    get show_bulk_edit(): boolean {
-        return this.widget_options && this.widget_options.show_bulk_edit;
-    }
-
-    get limit(): number {
-        if (!this.widget_options) {
-            return 100;
-        }
-
-        return this.widget_options.limit;
-    }
-
-    get widget_options(): SupervisionWidgetOptionsVO {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: SupervisionWidgetOptionsVO = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as SupervisionWidgetOptionsVO;
-                options = options ? new SupervisionWidgetOptionsVO().from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
-    }
-
     /**
-     * supervision_api_type_ids
-     *
-     * @returns {string[]}
+     * Load all supervised probes
+     * @returns {Promise<void>}
      */
-    get supervision_api_type_ids(): string[] {
-        return this.widget_options?.supervision_api_type_ids ?? [];
-    }
-
-    get title_name_code_text() {
-        if (!this.widget_options) {
-            return null;
-        }
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get checklist_header_title(): string {
-        if ((!this.widget_options) || (!this.page_widget)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.widget_options.get_title_name_code_text(this.page_widget.id)];
-    }
-
-    get is_all_selected(): boolean {
-        if (isEmpty(this.selected_items)) {
-            return false;
-        }
-
-        for (const i in this.items_by_identifier) {
-            if (!this.selected_items[i]) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    get has_one_selected(): boolean {
-        if (isEmpty(this.selected_items)) {
-            return false;
-        }
-
-        for (const i in this.items_by_identifier) {
-            if (this.selected_items[i]) {
-                return true;
-            }
-        }
+    private async load_all_supervised_probe_groups(): Promise<void> {
+        this.groups = await query(SupervisedProbeGroupVO.API_TYPE_ID).select_vos<SupervisedProbeGroupVO>();
+        this.probes_by_ids = VOsTypesManager.vosArray_to_vosByIds(await query(SupervisedProbeVO.API_TYPE_ID).select_vos<SupervisedProbeVO>());
     }
 }

@@ -1,6 +1,5 @@
 import IAPIParamTranslator from "../../../API/interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../../../API/interfaces/IAPIParamTranslatorStatic";
-import FileVO from "../../../File/vos/FileVO";
 
 export default class OseliaScreenshotParamVO implements IAPIParamTranslator<OseliaScreenshotParamVO> {
 

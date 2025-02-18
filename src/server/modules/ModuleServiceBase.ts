@@ -1,4 +1,4 @@
-import { Application, Express } from 'express';
+import { Application } from 'express';
 import { IDatabase } from 'pg-promise';
 import ModuleAPI from '../../shared/modules/API/ModuleAPI';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -6,6 +6,7 @@ import ModuleActionURL from '../../shared/modules/ActionURL/ModuleActionURL';
 import ModuleAjaxCache from '../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleAnimation from '../../shared/modules/Animation/ModuleAnimation';
 import ModuleAnonymization from '../../shared/modules/Anonymization/ModuleAnonymization';
+import ModuleAzureConnect from '../../shared/modules/AzureConnect/ModuleAzureConnect';
 import ModuleAzureMemoryCheck from '../../shared/modules/AzureMemoryCheck/ModuleAzureMemoryCheck';
 import ModuleBGThread from '../../shared/modules/BGThread/ModuleBGThread';
 import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
@@ -27,6 +28,7 @@ import ModuleDataRender from '../../shared/modules/DataRender/ModuleDataRender';
 import ModuleDataSource from '../../shared/modules/DataSource/ModuleDataSource';
 import ModuleDocument from '../../shared/modules/Document/ModuleDocument';
 import ModuleEnvParam from '../../shared/modules/EnvParam/ModuleEnvParam';
+import ModuleEventify from '../../shared/modules/Eventify/ModuleEventify';
 import ModuleEvolizAPI from '../../shared/modules/EvolizAPI/ModuleEvolizAPI';
 import ModuleExpressDBSessions from '../../shared/modules/ExpressDBSessions/ModuleExpressDBSessions';
 import ModuleFacturationProAPI from '../../shared/modules/FacturationProAPI/ModuleFacturationProAPI';
@@ -39,6 +41,7 @@ import ModuleGPT from '../../shared/modules/GPT/ModuleGPT';
 import ModuleGeneratePDF from '../../shared/modules/GeneratePDF/ModuleGeneratePDF';
 import ModuleImage from '../../shared/modules/Image/ModuleImage';
 import ModuleImageFormat from '../../shared/modules/ImageFormat/ModuleImageFormat';
+import ModuleLogger from '../../shared/modules/Logger/ModuleLogger';
 import ModuleMailer from '../../shared/modules/Mailer/ModuleMailer';
 import ModuleMaintenance from '../../shared/modules/Maintenance/ModuleMaintenance';
 import ModuleMenu from '../../shared/modules/Menu/ModuleMenu';
@@ -46,6 +49,8 @@ import Module from '../../shared/modules/Module';
 import ModuleNFCConnect from '../../shared/modules/NFCConnect/ModuleNFCConnect';
 import ModuleOselia from '../../shared/modules/Oselia/ModuleOselia';
 import ModuleParams from '../../shared/modules/Params/ModuleParams';
+import ParamsManager from '../../shared/modules/Params/ParamsManager';
+import PerfReportController from '../../shared/modules/PerfReport/PerfReportController';
 import ModulePlayWright from '../../shared/modules/PlayWright/ModulePlayWright';
 import ModulePopup from '../../shared/modules/Popup/ModulePopup';
 import ModulePowershell from '../../shared/modules/Powershell/ModulePowershell';
@@ -78,6 +83,7 @@ import ModuleActionURLServer from './ActionURL/ModuleActionURLServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
 import ModuleAnimationServer from './Animation/ModuleAnimationServer';
 import ModuleAnonymizationServer from './Anonymization/ModuleAnonymizationServer';
+import ModuleAzureConnectServer from './AzureConnect/ModuleAzureConnectServer';
 import ModuleAzureMemoryCheckServer from './AzureMemoryCheck/ModuleAzureMemoryCheckServer';
 import ModuleBGThreadServer from './BGThread/ModuleBGThreadServer';
 import ModuleCMSServer from './CMS/ModuleCMSServer';
@@ -91,12 +97,14 @@ import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
 import ModuleContextFilterServer from './ContextFilter/ModuleContextFilterServer';
 import ModuleCronServer from './Cron/ModuleCronServer';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
+import ThrottledQueryServerController from './DAO/ThrottledQueryServerController';
 import ModuleDashboardBuilderServer from './DashboardBuilder/ModuleDashboardBuilderServer';
 import ModuleDataExportServer from './DataExport/ModuleDataExportServer';
 import ModuleDataImportServer from './DataImport/ModuleDataImportServer';
 import ModuleDataRenderServer from './DataRender/ModuleDataRenderServer';
 import ModuleDocumentServer from './Document/ModuleDocumentServer';
 import ModuleEnvParamServer from './EnvParam/ModuleEnvParamServer';
+import ModuleEventifyServer from './Eventify/ModuleEventifyServer';
 import ModuleEvolizAPIServer from './EvolizAPI/ModuleEvolizAPIServer';
 import ModuleExpressDBSessionServer from './ExpressDBSessions/ModuleExpressDBSessionsServer';
 import ModuleFacturationProAPIServer from './FacturationProAPI/ModuleFacturationProAPIServer';
@@ -108,6 +116,7 @@ import ModuleGPTServer from './GPT/ModuleGPTServer';
 import ModuleGeneratePDFServer from './GeneratePDF/ModuleGeneratePDFServer';
 import ModuleImageServer from './Image/ModuleImageServer';
 import ModuleImageFormatServer from './ImageFormat/ModuleImageFormatServer';
+import ModuleLoggerServer from './Logger/ModuleLoggerServer';
 import ModuleMailerServer from './Mailer/ModuleMailerServer';
 import ModuleMaintenanceServer from './Maintenance/ModuleMaintenanceServer';
 import ModuleMenuServer from './Menu/ModuleMenuServer';
@@ -137,19 +146,15 @@ import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
-import ParamsManager from '../../shared/modules/Params/ParamsManager';
-import ModuleLogger from '../../shared/modules/Logger/ModuleLogger';
-import ModuleLoggerServer from './Logger/ModuleLoggerServer';
-import ModuleAzureConnect from '../../shared/modules/AzureConnect/ModuleAzureConnect';
-import ModuleAzureConnectServer from './AzureConnect/ModuleAzureConnectServer';
-import ModuleEventifyServer from './Eventify/ModuleEventifyServer';
-import ModuleEventify from '../../shared/modules/Eventify/ModuleEventify';
+import ModulePerfReportServer from './PerfReport/ModulePerfReportServer';
+import ModulePerfReport from '../../shared/modules/PerfReport/ModulePerfReport';
 
 export default abstract class ModuleServiceBase {
 
     public static db;
 
     private static instance: ModuleServiceBase;
+    private static query_uid: number = 1;
 
     /**
      * Local thread cache -----
@@ -169,6 +174,14 @@ export default abstract class ModuleServiceBase {
     private server_base_modules: ModuleServerBase[] = [];
 
     private db_: IDatabase<any>;
+
+    private cooldown_retries_ms: number = 100;
+    private min_cooldown_retries_ms: number = 100;
+    private max_cooldown_retries_ms: number = 10000;
+    private coef_cooldown_retries_ms: number = 2;
+    private timeout_cooldown_retries_ms: number = 60000; // Si ça fait 1 minute qu'il n'y a plus d'erreur, on diminue le cooldown
+    private last_update_cooldown_retries_ms: number = 0;
+
     /**
      * ----- Local thread cache
      */
@@ -506,11 +519,21 @@ export default abstract class ModuleServiceBase {
 
         if (compteur_id && sleep_id) {
             StatsController.register_stat_COMPTEUR(func_name, 'error', compteur_id);
-            ConsoleHandler.error(error + ' - retrying in 100 ms');
+
+            const now_ms = Dates.now_ms();
+            if (now_ms - this.last_update_cooldown_retries_ms > this.timeout_cooldown_retries_ms) {
+                this.cooldown_retries_ms = this.min_cooldown_retries_ms;
+            } else {
+                this.cooldown_retries_ms = Math.min(this.cooldown_retries_ms * this.coef_cooldown_retries_ms, this.max_cooldown_retries_ms);
+            }
+
+            this.last_update_cooldown_retries_ms = now_ms;
+
+            ConsoleHandler.error(error + ' - retrying in ' + this.cooldown_retries_ms + ' ms');
 
             return new Promise(async (resolve, reject) => {
 
-                await ThreadHandler.sleep(100, sleep_id, true);
+                await ThreadHandler.sleep(this.cooldown_retries_ms, sleep_id, true);
                 if (DBDisconnectionManager.instance) {
                     await DBDisconnectionManager.instance.wait_for_reconnection();
                 }
@@ -699,6 +722,7 @@ export default abstract class ModuleServiceBase {
             ModuleLogger.getInstance(),
             ModuleAzureConnect.getInstance(),
             ModuleEventify.getInstance(),
+            ModulePerfReport.getInstance(),
         ];
     }
 
@@ -768,6 +792,7 @@ export default abstract class ModuleServiceBase {
             ModuleLoggerServer.getInstance(),
             ModuleAzureConnectServer.getInstance(),
             ModuleEventifyServer.getInstance(),
+            ModulePerfReportServer.getInstance(),
         ];
     }
 
@@ -798,6 +823,8 @@ export default abstract class ModuleServiceBase {
 
     private async db_query(query: string, values?: []) {
 
+        const query_uid: number = ModuleServiceBase.query_uid++;
+        const db_query_time_in = Dates.now_ms();
         let res = null;
         const time_in = Dates.now_ms();
 
@@ -832,7 +859,35 @@ export default abstract class ModuleServiceBase {
                 //     throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.max_union_all_per_query + ')');
             }
 
+            const query_start_ms = Dates.now_ms();
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
+
+
+            const perf_name = 'db_query.' + query_uid;
+            const perf_line_name = 'Query [' + query_uid + ']';
+            PerfReportController.add_event(
+                ThrottledQueryServerController.PERF_MODULE_NAME,
+                perf_name,
+                perf_line_name,
+                query,
+                db_query_time_in,
+            );
+            PerfReportController.add_cooldown(
+                ThrottledQueryServerController.PERF_MODULE_NAME,
+                perf_name,
+                perf_line_name,
+                query,
+                db_query_time_in,
+                query_start_ms,
+            );
+            PerfReportController.add_call(
+                ThrottledQueryServerController.PERF_MODULE_NAME,
+                perf_name,
+                perf_line_name,
+                query,
+                db_query_time_in,
+            );
+
         } catch (error) {
 
             return this.handle_errors(error, 'db_query', this.db_query, [query, values]);
@@ -899,15 +954,19 @@ export default abstract class ModuleServiceBase {
 
     private debug_slow_queries(query: string, values: any[], duration: number) {
         duration = Math.round(duration);
-        let query_s = query + (values ? ' ------- ' + JSON.stringify(values) : '');
-        query_s = (ConfigurationService.node_configuration.debug_db_full_query_perf ? query_s : query_s.substring(0, 1000));
 
         if (ConfigurationService.node_configuration.debug_slow_queries &&
-            (duration > (10 * ConfigurationService.node_configuration.debug_slow_queries_ms_limit))) {
-            ConsoleHandler.warn('DEBUG_SLOW_QUERIES;VERYSLOW;' + duration + ' ms;' + query_s);
-        } else if (ConfigurationService.node_configuration.debug_slow_queries &&
             (duration > ConfigurationService.node_configuration.debug_slow_queries_ms_limit)) {
-            ConsoleHandler.warn('DEBUG_SLOW_QUERIES;SLOW;' + duration + ' ms;' + query_s);
+
+            let query_s = query + (values ? ' ------- ' + JSON.stringify(values) : '');
+            query_s = (ConfigurationService.node_configuration.debug_db_full_query_perf ? query_s : query_s.substring(0, 1000));
+
+            if (ConfigurationService.node_configuration.debug_slow_queries &&
+                (duration > (10 * ConfigurationService.node_configuration.debug_slow_queries_ms_limit))) {
+                ConsoleHandler.warn('DEBUG_SLOW_QUERIES;VERYSLOW;' + duration + ' ms;' + query_s);
+            } else {
+                ConsoleHandler.log('DEBUG_SLOW_QUERIES;SLOW;' + duration + ' ms;' + query_s);
+            }
         }
     }
 

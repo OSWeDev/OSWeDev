@@ -1,20 +1,22 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import { field_names } from '../../tools/ObjectHandler';
+import { field_names, reflect } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import ExternalAPIAuthentificationVO from '../API/vos/ExternalAPIAuthentificationVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import DefaultParamTranslatorVO, { DefaultParamTranslatorVOStatic } from '../API/vos/apis/DefaultParamTranslatorVO';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import UserParamVO, { UserParamStatic } from '../API/vos/apis/UserParamVO';
 import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleTableCompositeUniqueKeyController from '../DAO/ModuleTableCompositeUniqueKeyController';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableCompositeUniqueKeyVO from '../DAO/vos/ModuleTableCompositeUniqueKeyVO';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import EventifyEventInstanceVO from '../Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerInstanceVO from '../Eventify/vos/EventifyEventListenerInstanceVO';
 import FileVO from '../File/vos/FileVO';
-import GPTAssistantAPIAssistantFunctionVO from '../GPT/vos/GPTAssistantAPIAssistantFunctionVO';
 import GPTAssistantAPIAssistantVO from '../GPT/vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIFunctionVO from '../GPT/vos/GPTAssistantAPIFunctionVO';
 import GPTAssistantAPIRunVO from '../GPT/vos/GPTAssistantAPIRunVO';
@@ -35,16 +37,14 @@ import OseliaRunTemplateVO from './vos/OseliaRunTemplateVO';
 import OseliaRunVO from './vos/OseliaRunVO';
 import OseliaThreadCacheVO from './vos/OseliaThreadCacheVO';
 import OseliaThreadReferrerVO from './vos/OseliaThreadReferrerVO';
+import OseliaThreadRoleVO from './vos/OseliaThreadRoleVO';
+import OseliaThreadUserVO from './vos/OseliaThreadUserVO';
 import OseliaTokenPriceVO from './vos/OseliaTokenPriceVO';
 import OseliaUserReferrerOTTVO from './vos/OseliaUserReferrerOTTVO';
 import OseliaUserReferrerVO from './vos/OseliaUserReferrerVO';
 import OseliaVisionPriceVO from './vos/OseliaVisionPriceVO';
 import OpenOseliaDBParamVO, { OpenOseliaDBParamVOStatic } from './vos/apis/OpenOseliaDBParamVO';
 import OseliaScreenshotParamVO, { OseliaScreenshotParamVOStatic } from './vos/apis/OseliaScreenshotParamVO';
-import UserParamVO, { UserParamStatic } from '../API/vos/apis/UserParamVO';
-import OseliaThreadUsersVO from './vos/OseliaThreadUserVO';
-import OseliaThreadUserVO from './vos/OseliaThreadUserVO';
-import OseliaThreadRoleVO from './vos/OseliaThreadRoleVO';
 import RequestOseliaUserConnectionParamVO, { RequestOseliaUserConnectionParamVOStatic } from './vos/apis/RequestOseliaUserConnectionParamVO';
 export default class ModuleOselia extends Module {
 
@@ -108,6 +108,9 @@ export default class ModuleOselia extends Module {
     public get_screen_track: () => Promise<MediaStreamTrack | null> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_screen_track);
     public account_waiting_link_status: (referrer_user_ott: string) => Promise<'validated' | 'waiting' | 'none'> = APIControllerWrapper.sah(ModuleOselia.APINAME_account_waiting_link_status);
     public send_join_request: (asking_user_id: number, thread_id: number) => Promise<'accepted' | 'denied' | 'timed out'> = APIControllerWrapper.sah(ModuleOselia.APINAME_send_join_request);
+
+    public instantiate_oselia_run_from_event: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<void> =
+        APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleOselia>().replay_function_call);
 
     public replay_function_call: (function_call_id: number) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_replay_function_call);
 
@@ -298,6 +301,11 @@ export default class ModuleOselia extends Module {
             .set_many_to_one_target_moduletable_name(OseliaRunTemplateVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().for_each_parent_thread_id_cache_key, ModuleTableFieldVO.FIELD_TYPE_string, 'Cache key - for each parent thread id', true, true, 'PARENT_THREAD_ID');
 
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().event_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Event source du run', false)
+            .set_many_to_one_target_moduletable_name(EventifyEventInstanceVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().listener_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Listener source du run', false)
+            .set_many_to_one_target_moduletable_name(EventifyEventListenerInstanceVO.API_TYPE_ID);
+
         ModuleTableController.create_new(this.name, OseliaRunVO, null, 'Oselia - Run');
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[OseliaRunVO.API_TYPE_ID]);
 
@@ -359,6 +367,14 @@ export default class ModuleOselia extends Module {
             null,
             ModuleOselia.APINAME_get_screen_track,
             null
+        ));
+
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<DefaultParamTranslatorVO<[EventifyEventInstanceVO, EventifyEventListenerInstanceVO]>, void>(
+            ModuleOselia.POLICY_BO_ACCESS,
+            this.name,
+            reflect<ModuleOselia>().instantiate_oselia_run_from_event,
+            null, // On peut toucher à tout type d'objet en fait via le link sur le param
+            DefaultParamTranslatorVOStatic,
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<RequestOseliaUserConnectionParamVO, string>(
@@ -678,7 +694,7 @@ export default class ModuleOselia extends Module {
     }
 
     private initializeOseliaThreadRoleVO() {
-        ModuleTableFieldController.create_new(OseliaThreadRoleVO.API_TYPE_ID, field_names<OseliaThreadRoleVO>().translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true)
+        ModuleTableFieldController.create_new(OseliaThreadRoleVO.API_TYPE_ID, field_names<OseliaThreadRoleVO>().translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true);
 
         VersionedVOController.getInstance().registerModuleTable(
             ModuleTableController.create_new(

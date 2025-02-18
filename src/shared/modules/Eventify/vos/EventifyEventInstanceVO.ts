@@ -1,3 +1,4 @@
+import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../IDistantVOBase';
 import EventifyEventConfVO from './EventifyEventConfVO';
 
@@ -20,21 +21,35 @@ export default class EventifyEventInstanceVO implements IDistantVOBase {
 
     public event_conf_id: number;
 
-    public static instantiate(event_conf: EventifyEventConfVO): EventifyEventInstanceVO {
+    /**
+     * Date d'émission de l'évènement (en ms)
+     */
+    public emission_date_ms: number;
+
+    /**
+     * Le paramètre de l'évènement - un objet, ou un type primitif
+     */
+    public param: unknown;
+
+    public static instantiate(event_conf: EventifyEventConfVO, param: unknown = null): EventifyEventInstanceVO {
         const res: EventifyEventInstanceVO = new EventifyEventInstanceVO();
 
         res.event_conf_id = event_conf.id;
         res.name = event_conf.name;
         res.instance_uid = event_conf.name + '_' + (EventifyEventInstanceVO.UID++);
+        res.emission_date_ms = Dates.now_ms();
+        res.param = param;
         return res;
     }
 
-    public static new_event(event_name: string): EventifyEventInstanceVO {
+    public static new_event(event_name: string, param: unknown = null): EventifyEventInstanceVO {
         const res: EventifyEventInstanceVO = new EventifyEventInstanceVO();
 
         res.event_conf_id = null;
         res.name = event_name;
         res.instance_uid = event_name + '_' + (EventifyEventInstanceVO.UID++);
+        res.emission_date_ms = Dates.now_ms();
+        res.param = param;
         return res;
     }
 }

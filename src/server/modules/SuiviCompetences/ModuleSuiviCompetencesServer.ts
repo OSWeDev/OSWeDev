@@ -226,6 +226,9 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": "Délais"
         }, 'suivi_competences_widget_component.delais.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            "fr-fr": "Bilan M-1"
+        }, 'suivi_competences_widget_component.bilan_precedent.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
 
         await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations(true);
     }
@@ -255,7 +258,7 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         }
 
         let limit = ConfigurationService.node_configuration.max_pool / 2;
-        let promise_pipeline = new PromisePipeline(limit);
+        let promise_pipeline = new PromisePipeline(limit, 'SuiviCompetencesServer.get_all_suivi_competences_groupe');
 
         await promise_pipeline.push(async () => {
             groupes = await query(SuiviCompetencesGroupeVO.API_TYPE_ID)

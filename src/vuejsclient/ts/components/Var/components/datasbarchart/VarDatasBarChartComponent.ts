@@ -44,7 +44,9 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     // private debounced_render_chart_js = debounce(this.render_chart_js, 1000);
 
     private var_datas: { [index: string]: VarDataValueResVO } = {};
-    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false, trailing: true });
+    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(
+        'VarDatasBarChartComponent.throttled_var_datas_updater',
+        this.var_datas_updater.bind(this), 500, false);
     private debounced_var_datas_updater = debounce(this.var_datas_updater.bind(this), 500);
 
     private current_chart_data: any = null;
@@ -307,6 +309,13 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
             } else {
                 dataset['label'] = this.t(VarsController.get_translatable_name_code(var_dataset_descriptor.var_name));
             }
+
+            // JNE : Je rajoute ça par ce que là, par défaut tous les graphs ont des textes en rab.
+            // if (var_dataset_descriptor.activate_datalabels) {
+            dataset['datalabels'] = {
+                display: false,
+            };
+            // }
 
             if (var_dataset_descriptor.bg_color) {
                 dataset['backgroundColor'] = var_dataset_descriptor.bg_color;

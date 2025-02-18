@@ -1,5 +1,16 @@
+import EnvParamsVO from '../../../shared/modules/EnvParam/vos/EnvParamsVO';
+import EventsController from '../../../shared/modules/Eventify/EventsController';
 import ModuleEventify from '../../../shared/modules/Eventify/ModuleEventify';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
+import { reflect } from '../../../shared/tools/ObjectHandler';
+import ConfigurationService from '../../env/ConfigurationService';
+import ModuleEnvParamServer from '../EnvParam/ModuleEnvParamServer';
+import ForkMessageController from '../Fork/ForkMessageController';
 import ModuleServerBase from '../ModuleServerBase';
+import PerfReportServerController from '../PerfReport/PerfReportServerController';
+import EventsServerController from './EventsServerController';
+import EmitEventThreadMessage from './vos/EmitEventThreadMessage';
 
 export default class ModuleEventifyServer extends ModuleServerBase {
 
@@ -23,6 +34,28 @@ export default class ModuleEventifyServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        PerfReportServerController.register_perf_module(this.name);
+        ForkMessageController.register_message_handler(EmitEventThreadMessage.FORK_MESSAGE_TYPE, EventsServerController.emit_event_thread_messsage_handler.bind(this));
+
+        EventsController.debug_slow_event_listeners = ConfigurationService.node_configuration.debug_slow_event_listeners;
+        EventsController.debug_slow_event_listeners_ms_limit = ConfigurationService.node_configuration.debug_slow_event_listeners_ms_limit;
+        // On s'intéresse à la modif des params de debug slow event listeners
+        const debug_slow_event_listeners_listener = EventifyEventListenerInstanceVO.new_listener(
+            ModuleEnvParamServer.UPDATE_ENVPARAM_EVENT_BASE_NAME + reflect<EnvParamsVO>().debug_slow_event_listeners,
+            (event: EventifyEventInstanceVO) => {
+                EventsController.debug_slow_event_listeners = event.param as boolean;
+            }
+        );
+        EventsController.register_event_listener(debug_slow_event_listeners_listener);
+
+        const debug_slow_event_listeners_ms_limit_listener = EventifyEventListenerInstanceVO.new_listener(
+            ModuleEnvParamServer.UPDATE_ENVPARAM_EVENT_BASE_NAME + reflect<EnvParamsVO>().debug_slow_event_listeners_ms_limit,
+            (event: EventifyEventInstanceVO) => {
+                EventsController.debug_slow_event_listeners_ms_limit = event.param as number;
+            }
+        );
+        EventsController.register_event_listener(debug_slow_event_listeners_ms_limit_listener);
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers

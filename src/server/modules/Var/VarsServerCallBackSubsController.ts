@@ -1,3 +1,4 @@
+import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
@@ -10,12 +11,6 @@ import VarsDatasProxy from './VarsDatasProxy';
 
 export default class VarsServerCallBackSubsController {
 
-    /**
-     * Les callbacks à appeler dès que possible
-     *  ATTENTION les callbacks sont sur le thread des vars obligatoirement !!
-     */
-    public static cb_subs: { [var_index: string]: Array<(var_data: VarDataBaseVO) => any> } = {};
-
     public static TASK_NAME_notify_vardatas: string = 'VarsServerCallBackSubsController.notify_vardatas';
     public static TASK_NAME_get_vars_datas: string = 'VarsServerCallBackSubsController.get_vars_datas';
     public static TASK_NAME_get_var_data: string = 'VarsServerCallBackSubsController.get_var_data';
@@ -25,12 +20,21 @@ export default class VarsServerCallBackSubsController {
      *  - On force tout sur le main thread
      */
     public static notify_vardatas = ThrottleHelper.declare_throttle_with_stackable_args(
-        VarsServerCallBackSubsController.notify_vardatas_throttled.bind(this), 10, { leading: true, trailing: true });
+        'VarsServerCallBackSubsController.notify_vardatas',
+        VarsServerCallBackSubsController.notify_vardatas_throttled.bind(this), 10);
 
     public static get_var_data_indexed: <T extends VarDataBaseVO>(throttle_index: string, param_index: string) => Promise<T> = ThrottlePipelineHelper.declare_throttled_pipeline(
         'VarsServerCallBackSubsController.get_var_data_indexed',
         this._get_vars_datas.bind(this), 10, 500, 20
     );
+
+    /**
+     * Les callbacks à appeler dès que possible
+     *  ATTENTION les callbacks sont sur le thread des vars obligatoirement !!
+     */
+    @StatThisMapKeys('VarsServerCallBackSubsController')
+    public static cb_subs: { [var_index: string]: Array<(var_data: VarDataBaseVO) => any> } = {};
+
 
     public static init() {
         // istanbul ignore next: nothing to test : register_task
@@ -242,7 +246,7 @@ export default class VarsServerCallBackSubsController {
                 if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                     ConsoleHandler.log("get_vars_datas:notify_vardatas:IN:" + nb_params);
                 }
-                await VarsServerCallBackSubsController.notify_vardatas(notifyable_vars);
+                VarsServerCallBackSubsController.notify_vardatas(notifyable_vars);
                 if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                     ConsoleHandler.log("get_vars_datas:notify_vardatas:OUT:" + nb_params);
                 }

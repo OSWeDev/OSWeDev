@@ -39,7 +39,9 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: SupervisionWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+        'SupervisionWidgetOptionsComponent.throttled_update_options',
+        this.update_options.bind(this), 50, false);
 
     private supervision_api_type_ids: string[] = [];
     private refresh_button: boolean = true;
@@ -49,6 +51,43 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
     private auto_refresh_seconds: number = 30;
 
     private supervision_select_options: string[] = [];
+
+    get title_name_code_text(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    get default_title_translation(): string {
+        return 'Supervision#' + this.page_widget.id;
+    }
+
+    get widget_options(): SupervisionWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: SupervisionWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as SupervisionWidgetOptions;
+                options = options ? new SupervisionWidgetOptions(
+                    options.limit,
+                    options.supervision_api_type_ids,
+                    options.refresh_button,
+                    options.auto_refresh,
+                    options.auto_refresh_seconds,
+                    options.show_bulk_edit,
+                ) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
 
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
@@ -231,40 +270,5 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
 
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get default_title_translation(): string {
-        return 'Supervision#' + this.page_widget.id;
-    }
-
-    get widget_options(): SupervisionWidgetOptions {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: SupervisionWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as SupervisionWidgetOptions;
-                options = options ? new SupervisionWidgetOptions(
-                    options.limit,
-                    options.supervision_api_type_ids,
-                    options.refresh_button,
-                    options.auto_refresh,
-                    options.auto_refresh_seconds,
-                    options.show_bulk_edit,
-                ) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
-    }
 }

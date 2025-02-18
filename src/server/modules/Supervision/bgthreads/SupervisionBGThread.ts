@@ -17,6 +17,7 @@ import ParamsServerController from '../../Params/ParamsServerController';
 
 export default class SupervisionBGThread implements IBGThread {
 
+
     public static MAX_timeout_PARAM_NAME: string = 'SupervisionBGThread.MAX_timeout';
     public static MIN_timeout_PARAM_NAME: string = 'SupervisionBGThread.MIN_timeout';
 

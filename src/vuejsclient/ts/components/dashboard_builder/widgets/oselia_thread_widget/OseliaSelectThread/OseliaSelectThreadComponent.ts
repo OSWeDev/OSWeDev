@@ -34,7 +34,9 @@ export default class OseliaSelectThreadComponent extends VueComponentBase {
     private wait_for_data: boolean = false;
     private data_received: any = null;
     private has_access: boolean = false;
-    private throttle_test_access = ThrottleHelper.declare_throttle_without_args(this.get_access, 1)
+    private throttle_test_access = ThrottleHelper.declare_throttle_without_args(
+        'OseliaSelectThreadComponent.throttle_test_access',
+        this.get_access, 1);
 
     @Watch('data_received')
     private async onchange_data_receieved() {

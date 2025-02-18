@@ -3,8 +3,9 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import EventsController from '../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import ParamsManager from '../../../shared/modules/Params/ParamsManager';
 import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
@@ -14,6 +15,7 @@ import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import EventsServerController from '../Eventify/EventsServerController';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -23,13 +25,11 @@ import ParamsServerController from './ParamsServerController';
 export default class ModuleParamsServer extends ModuleServerBase {
 
     public static TASK_NAME_delete_params_cache = 'ModuleAccessPolicyServer.delete_params_cache';
-    private static instance: ModuleParamsServer = null;
+    public static instance: ModuleParamsServer = null;
 
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleParams.getInstance().name);
-
-        ForkedTasksController.register_task(ModuleParamsServer.TASK_NAME_delete_params_cache, ParamsServerController.delete_params_cache);
     }
 
     // istanbul ignore next: nothing to test : getInstance
@@ -42,6 +42,8 @@ export default class ModuleParamsServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        ForkedTasksController.register_task(ModuleParamsServer.TASK_NAME_delete_params_cache, ParamsServerController.delete_params_cache);
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Paramètres' },
@@ -98,15 +100,23 @@ export default class ModuleParamsServer extends ModuleServerBase {
     }
 
     private async handleTriggerPostCreateParam(vo: ParamVO) {
-        return ForkedTasksController.broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, vo) as any as Promise<void>;
+        EventsServerController.broadcast_event(EventifyEventInstanceVO.new_event(ParamsServerController.get_update_param_event_name(vo.name), vo));
+        ForkedTasksController.broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, vo) as any as Promise<void>;
     }
 
     private async handleTriggerPostUpdateParam(update: DAOUpdateVOHolder<ParamVO>) {
-        await ForkedTasksController.broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, update.pre_update_vo);
-        await ForkedTasksController.broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, update.post_update_vo);
+
+        // Si on change le nom on doit envoyer un event pour le nom précédent
+        if (update.pre_update_vo.name != update.post_update_vo.name) {
+            EventsServerController.broadcast_event(EventifyEventInstanceVO.new_event(ParamsServerController.get_update_param_event_name(update.pre_update_vo.name), update.pre_update_vo));
+            ForkedTasksController.broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, update.pre_update_vo);
+        }
+        EventsServerController.broadcast_event(EventifyEventInstanceVO.new_event(ParamsServerController.get_update_param_event_name(update.post_update_vo.name), update.post_update_vo));
+        ForkedTasksController.broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, update.post_update_vo);
     }
 
     private async handleTriggerPostDeleteParam(vo: ParamVO) {
-        return ForkedTasksController.broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, vo) as any as Promise<void>;
+        EventsServerController.broadcast_event(EventifyEventInstanceVO.new_event(ParamsServerController.get_update_param_event_name(vo.name), vo));
+        ForkedTasksController.broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, vo) as any as Promise<void>;
     }
 }

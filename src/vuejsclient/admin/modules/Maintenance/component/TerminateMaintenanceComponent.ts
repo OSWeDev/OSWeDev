@@ -1,8 +1,6 @@
 import { Component, Prop } from 'vue-property-decorator';
-import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleMaintenance from '../../../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../../../shared/modules/Maintenance/vos/MaintenanceVO';
-import { ModuleDAOGetter } from '../../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import "./TerminateMaintenanceComponent.scss";
 
@@ -10,9 +8,6 @@ import "./TerminateMaintenanceComponent.scss";
     template: require('./TerminateMaintenanceComponent.pug')
 })
 export default class TerminateMaintenanceComponent extends VueComponentBase {
-
-    @ModuleDAOGetter
-    public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
     @Prop()
     private vo: MaintenanceVO;

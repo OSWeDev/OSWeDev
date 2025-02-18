@@ -57,6 +57,7 @@ export default class ModuleTableController {
      * Les constructeurs des vos par vo_type
      */
     public static vo_constructor_by_vo_type: { [vo_type: string]: new () => IDistantVOBase } = {};
+    public static vo_constructor_proto_by_vo_type: { [vo_type: string]: new () => IDistantVOBase } = {};
     /**
      * Les vo_types déclarés par module
      */
@@ -135,6 +136,7 @@ export default class ModuleTableController {
 
         res.sort_by_field = sort_by_field ? new SortByVO(vo_type, sort_by_field, sort_by_asc) : null;
         ModuleTableController.vo_constructor_by_vo_type[vo_type] = ModuleTableController.vo_constructor_wrapper(vo_constructor);
+        ModuleTableController.vo_constructor_proto_by_vo_type[vo_type] = vo_constructor.prototype;
 
         res.default_label_field = label_field;
 

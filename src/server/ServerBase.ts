@@ -1,6 +1,6 @@
 import child_process from 'child_process';
-import compression from 'compression';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 import csrf from 'csurf';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import createLocaleMiddleware from 'express-locale';
@@ -10,7 +10,7 @@ import fs from 'fs';
 import helmet from 'helmet';
 import path from 'path';
 import pg from 'pg';
-import pg_promise, { IDatabase } from 'pg-promise';
+import pg_promise, { IDatabase, IEventContext, IResultExt, ITaskContext } from 'pg-promise';
 import socketIO from 'socket.io';
 import winston from 'winston';
 import winston_daily_rotate_file from 'winston-daily-rotate-file';
@@ -73,6 +73,7 @@ import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 import APIDefinition from '../shared/modules/API/vos/APIDefinition';
 import expressStaticGzip from 'express-static-gzip';
 import StackContextWrapper from '../shared/tools/StackContextWrapper';
+import AsyncHookPromiseWatchController from './modules/Stats/AsyncHookPromiseWatchController';
 
 export default abstract class ServerBase {
 
@@ -114,7 +115,7 @@ export default abstract class ServerBase {
 
         // INIT Stats Server side
         StatsController.THREAD_NAME = 'main';
-        StatsController.getInstance().UNSTACK_THROTTLE = 60000;
+        StatsController.getInstance().UNSTACK_THROTTLE = 10000;
         StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
         StatsController.new_stats_handler = StatsServerController.new_stats_handler;
         StatsController.register_stat_COMPTEUR('ServerBase', 'START', '-');
@@ -127,7 +128,7 @@ export default abstract class ServerBase {
         DBDisconnectionManager.instance = new DBDisconnectionServerHandler();
         EventsController.hook_stack_incompatible = ConfigurationService.node_configuration.activate_incompatible_stack_context ? StackContext.context_incompatible : null;
 
-        ConsoleHandler.init();
+        ConsoleHandler.init('main');
         FileLoggerHandler.getInstance().prepare().then(() => {
             ConsoleHandler.logger_handler = FileLoggerHandler.getInstance();
             ConsoleHandler.log("Main Process starting");
@@ -217,15 +218,62 @@ export default abstract class ServerBase {
         // this.jwtSecret = 'This is the jwt secret for the rest part';
 
         const pgp: pg_promise.IMain = pg_promise({
-            async connect(e: { client: IClient, dc: any, useCount: number }) {
-                StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'connect');
-            },
-            async disconnect(e: { client: IClient, dc: any }) {
-                StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'disconnect');
-            },
-            async query(e) {
-                StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'query');
-            },
+            receive: StatsController.ACTIVATED ?
+                (e: { data: any[]; result: void | IResultExt<unknown>; ctx: IEventContext<IClient>; }) => {
+
+                    StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'receive');
+
+                    if (ConfigurationService.node_configuration.debug_top_10_query_size) {
+                        /**
+                         * On stocke l'info de la taille des requetes si en plus d'etre en stats on est en debug_top_10_query_size
+                         */
+                        const size_ko = Buffer.byteLength(JSON.stringify(e.data), 'utf8');
+                        StatsServerController.pgsql_queries_log.push({
+                            query: e.ctx.query,
+                            size_ko: size_ko
+                        });
+                    }
+
+                } : null,
+            connect: StatsController.ACTIVATED ?
+                async (e: { client: IClient, dc: any, useCount: number }) => {
+                    StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'connect');
+
+                    // /**
+                    //  * FIXME : JNE DELETE : only for debug
+                    //  */
+                    // e.client['__connectStart'] = Dates.now_ms();
+                    // /**
+                    //  * ! FIXME : JNE DELETE : only for debug
+                    //  */
+
+                } : undefined,
+            disconnect: StatsController.ACTIVATED ?
+                async (e: { client: IClient, dc: any }) => {
+                    StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'disconnect');
+
+                    // const totalConnTime = Dates.now_ms() - e.client['__connectStart'];
+                    // console.log('DISCONNECT EVENT: durée depuis l’obtention de la connexion =', totalConnTime, 'ms');
+                } : undefined,
+            query: StatsController.ACTIVATED ?
+                async (e: IEventContext<IClient>) => {
+                    StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'query');
+
+                    // /**
+                    //  * FIXME : JNE DELETE : only for debug
+                    //  */
+                    // if (!e.ctx) {
+                    //     e.ctx = {} as ITaskContext;
+                    // }
+                    // e.ctx['queryStart'] = Dates.now_ms();
+                    // /**
+                    //  * ! FIXME : JNE DELETE : only for debug
+                    //  */
+                } : undefined,
+            // async receive(e: { data: any[], result: IResultExt | void, ctx: IEventContext<IClient> }) {
+            // const queryTime = e.ctx['queryStart'] ? Dates.now_ms() - e.ctx['queryStart'] : 'N/A';
+            // console.log('RECEIVE EVENT: durée exécution côté serveur = ' + queryTime + 'ms, rows = ' + e.data.length);
+            // },
             async error(err, e) {
                 StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'error');
                 ConsoleHandler.error(
@@ -286,6 +334,22 @@ export default abstract class ServerBase {
 
         this.app = express();
         this.app.disable('x-powered-by'); // On ne veut pas communiquer la techno utilisée
+
+        if (this.envParam.compress) {
+            const shouldCompress = function (req, res) {
+                if (req.headers['x-no-compression']) {
+                    // don't compress responses with this request header
+                    return false;
+                }
+
+                // fallback to standard filter function
+                return compression.filter(req, res);
+            };
+            this.app.use(compression({
+                filter: shouldCompress,
+                threshold: 1024, // Taille min avant compression
+            }));
+        }
 
         // On déclare le middleware session
         this.session = expressSession({
@@ -426,20 +490,6 @@ export default abstract class ServerBase {
         };
         this.apply_middlewares(middlewares_by_urls_and_methd);
 
-        // // TODO opti pré-compression des fichiers statiques
-        // if (this.envParam.compress) {
-        //     const shouldCompress = function (req, res) {
-        //         if (req.headers['x-no-compression']) {
-        //             // don't compress responses with this request header
-        //             return false;
-        //         }
-
-        //         // fallback to standard filter function
-        //         return compression.filter(req, res);
-        //     };
-        //     this.app.use(compression({ filter: shouldCompress }));
-        // }
-
 
         if (ConfigurationService.node_configuration.activate_long_john) {
             require('longjohn');
@@ -509,6 +559,8 @@ export default abstract class ServerBase {
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:late_server_modules_configurations:END');
         }
+
+        AsyncHookPromiseWatchController.init();
 
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');
@@ -1198,7 +1250,7 @@ export default abstract class ServerBase {
 
                 // old session - on check qu'on doit pas invalider
                 if ((!session.last_check_session_validity) ||
-                    (Dates.now() >= session.last_check_session_validity + 10)) {
+                    (Dates.now() >= session.last_check_session_validity + 60)) {
 
                     session.last_check_session_validity = Dates.now();
 
@@ -1220,8 +1272,10 @@ export default abstract class ServerBase {
                 (Dates.now() >= (session.last_check_blocked_or_expired + 60))) {
 
                 session.last_check_blocked_or_expired = Dates.now();
+                session.save(() => { });
+
                 // On doit vérifier que le compte est ni bloqué ni expiré
-                const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
+                const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().set_max_age_ms(60000).select_vo<UserVO>();
 
                 if ((!user) || user.blocked || user.invalidated) {
 
@@ -1263,7 +1317,7 @@ export default abstract class ServerBase {
             const uid: number = session.uid;
 
             // On doit vérifier que le compte est ni bloqué ni expiré
-            const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
+            const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().set_max_age_ms(60000).select_vo<UserVO>();
             if ((!user) || user.blocked || user.invalidated) {
 
                 await ConsoleHandler.warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));

@@ -56,6 +56,7 @@ export default class DataImportBGThread implements IBGThread {
     public async work(): Promise<number> {
 
         const time_in = Dates.now_ms();
+        let dih: DataImportHistoricVO = null;
 
         try {
 
@@ -95,7 +96,6 @@ export default class DataImportBGThread implements IBGThread {
             // Si un import est en cours et doit être continué, on le récupère et on continue, sinon on en cherche un autre
             const importing_dih_id_param: string = await ParamsServerController.getParamValueAsString(DataImportBGThread.importing_dih_id_param_name);
             let importing_dih_id: number = null;
-            let dih: DataImportHistoricVO = null;
             if (importing_dih_id_param) {
                 importing_dih_id = parseInt(importing_dih_id_param);
                 dih = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(importing_dih_id).select_vo<DataImportHistoricVO>();
@@ -186,6 +186,17 @@ export default class DataImportBGThread implements IBGThread {
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {
             ConsoleHandler.error(error);
+
+            // Si on sort en erreur avec un dih sélectionné, on le met en erreur directement
+            try {
+
+                dih.state = ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION;
+                await ModuleDataImportServer.getInstance().updateImportHistoric(dih);
+                return ModuleBGThreadServer.TIMEOUT_COEF_RUN; // On y retourne vite, par ce qu'on sait pas si ya des choses à faire après
+            } catch (error_) {
+                ConsoleHandler.error(error_);
+                // Plus gênant on a même plus la possibilité de mettre ce dih en erreur et de passer au suivant....
+            }
         }
 
         this.stats_out('throws', time_in);
