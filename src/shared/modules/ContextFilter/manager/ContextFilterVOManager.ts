@@ -96,13 +96,17 @@ export default class ContextFilterVOManager {
         switch (field_type) {
             case ModuleTableFieldVO.FIELD_TYPE_int:
             case ModuleTableFieldVO.FIELD_TYPE_geopoint:
-            case ModuleTableFieldVO.FIELD_TYPE_float:
             case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
             case ModuleTableFieldVO.FIELD_TYPE_amount:
             case ModuleTableFieldVO.FIELD_TYPE_prct:
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
                 context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
                 context_filter.param_numranges = RangeHandler.get_ids_ranges_from_list([active_option.numeric_value]);
+                break;
+
+            case ModuleTableFieldVO.FIELD_TYPE_float:
+                context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
+                context_filter.param_numeric = active_option.numeric_value;
                 break;
 
             case ModuleTableFieldVO.FIELD_TYPE_html:

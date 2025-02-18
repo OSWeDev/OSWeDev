@@ -85,8 +85,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         AdvancedStringFilter.FILTER_TYPE_EST_VIDE,
         AdvancedStringFilter.FILTER_TYPE_NEST_PAS,
         AdvancedStringFilter.FILTER_TYPE_NEST_PAS_NULL,
-        AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE,
-        AdvancedStringFilter.FILTER_TYPE_REGEXP,
+        AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE
     ];
     private ref_field_filter_type_options: number[] = [
         AdvancedRefFieldFilter.FILTER_TYPE_EQ,
@@ -169,7 +168,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
     private placeholder_advanced_string_filter: string = null;
     private last_calculation_cpt: number = 0;
-
 
     get default_placeholder_translation(): string {
         return this.label('FieldValueFilterWidget.filter_placeholder');
@@ -606,50 +604,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id);
     }
 
-    @Watch('relative_to_other_filter_id')
-    private async onchange_relative_to_other_filter_id() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (this.widget_options.relative_to_other_filter_id != this.relative_to_other_filter_id) {
-            this.next_update_options = this.widget_options;
-            this.next_update_options.relative_to_other_filter_id = this.relative_to_other_filter_id;
-
-            await this.throttled_update_options();
-        }
-    }
-
-    @Watch('auto_select_date_min')
-    private async onchange_auto_select_date_min() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        const date = (this.auto_select_date_min == null) ? null : parseInt(this.auto_select_date_min.toString());
-        if (this.widget_options.auto_select_date_min != date) {
-            this.next_update_options = this.widget_options;
-            this.next_update_options.auto_select_date_min = date;
-
-            await this.throttled_update_options();
-        }
-    }
-
-    @Watch('auto_select_date_max')
-    private async onchange_auto_select_date_max() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        const date = (this.auto_select_date_max == null) ? null : parseInt(this.auto_select_date_max.toString());
-        if (this.widget_options.auto_select_date_max != date) {
-            this.next_update_options = this.widget_options;
-            this.next_update_options.auto_select_date_max = date;
-
-            await this.throttled_update_options();
-        }
-    }
-
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.widget_options) {
@@ -922,6 +876,50 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options.enum_fg_colors = this.enum_fg_colors;
 
         await this.throttled_update_options();
+    }
+
+    @Watch('relative_to_other_filter_id')
+    private async onchange_relative_to_other_filter_id() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.relative_to_other_filter_id != this.relative_to_other_filter_id) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.relative_to_other_filter_id = this.relative_to_other_filter_id;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('auto_select_date_min')
+    private async onchange_auto_select_date_min() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        const date = (this.auto_select_date_min == null) ? null : parseInt(this.auto_select_date_min.toString());
+        if (this.widget_options.auto_select_date_min != date) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.auto_select_date_min = date;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('auto_select_date_max')
+    private async onchange_auto_select_date_max() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        const date = (this.auto_select_date_max == null) ? null : parseInt(this.auto_select_date_max.toString());
+        if (this.widget_options.auto_select_date_max != date) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.auto_select_date_max = date;
+
+            await this.throttled_update_options();
+        }
     }
 
     /**
@@ -1253,7 +1251,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         } catch (error) {
             ConsoleHandler.error(error);
         }
-        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
         // this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
@@ -1523,7 +1521,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         } else {
             const api_type_id = this.vo_field_ref.api_type_id;
 
-            const access_policy_name = ModuleDAO.instance.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+            const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
             const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
 
             if (!has_access) {
@@ -1569,7 +1567,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 }
             }
 
-            data_filters = await ModuleContextFilter.instance.select_filter_visible_options(
+            data_filters = await ModuleContextFilter.getInstance().select_filter_visible_options(
                 context_query,
                 this.actual_query,
             );
