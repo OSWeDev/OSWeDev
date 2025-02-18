@@ -1,20 +1,18 @@
 import Component from 'vue-class-component';
-import VueComponentBase from '../../../../VueComponentBase';
-import './OseliaSelectThreadComponent.scss';
-import OseliaLastThreadsComponent from '../OseliaLastThreads/OseliaLastThreadsComponent';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Watch } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVO, { filter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
+import GPTAssistantAPIThreadVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import ModuleOselia from '../../../../../../../shared/modules/Oselia/ModuleOselia';
 import ModuleParams from '../../../../../../../shared/modules/Params/ModuleParams';
-import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
-import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import GPTAssistantAPIThreadVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
-import { ModuleOseliaAction } from '../OseliaStore';
-import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
+import VueComponentBase from '../../../../VueComponentBase';
+import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
+import OseliaLastThreadsComponent from '../OseliaLastThreads/OseliaLastThreadsComponent';
+import { ModuleOseliaAction } from '../OseliaStore';
+import './OseliaSelectThreadComponent.scss';
 
 @Component({
     template: require('./OseliaSelectThreadComponent.pug'),

@@ -1,0 +1,53 @@
+@import "skin-variables.scss";
+
+.ModuleTablesComponent {
+
+    .uml-table-viewer {
+        width: 100%;
+        height: 100%;
+        position: relative;
+
+        .uml-diagram {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ccc;
+        }
+
+        .table-node {
+            cursor: pointer;
+        }
+
+        .table-rect {
+            fill: #f9f9f9;
+            stroke: #333;
+            stroke-width: 1;
+            width: 150px;
+            height: auto; // Calculé ou ajusté au runtime selon le contenu
+
+            &.folded {
+                // Style différent pour la table "repliée"
+                fill: #e2e2e2;
+            }
+        }
+
+        .table-title {
+            font-weight: bold;
+            font-size: 14px;
+            dominant-baseline: hanging;
+            fill: #333;
+            pointer-events: none;
+        }
+
+        .table-field {
+            font-size: 12px;
+            dominant-baseline: hanging;
+            fill: #555;
+            pointer-events: none;
+        }
+
+        .link {
+            stroke: #999;
+            stroke-width: 1.5px;
+        }
+    }
+}
