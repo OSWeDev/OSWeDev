@@ -1,0 +1,403 @@
+/*****************************
+ * Variables de thème (SCSS) *
+ *****************************/
+$primary-color: #002454;
+$primary-hover-color: rgba(0, 36, 84, 0.5);
+$gray-bg: #f0f0f0;
+$white-bg: #fff;
+$border-color: #ccc;
+$default-font: 'Open Sans',
+sans-serif;
+$accent-color: #27ae60; // pour .btn-save
+
+/******************
+ *  Styles généraux
+ ******************/
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: $default-font;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    background-color: $gray-bg;
+}
+
+/********************
+ * Palette à gauche *
+ ********************/
+#sidebar {
+    width: 200px;
+    background-color: $white-bg;
+    border-right: 1px solid $border-color;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+
+    h2 {
+        margin: 0 0 10px 0;
+        font-size: 1.1rem;
+    }
+
+    .palette-item {
+        margin: 8px 0;
+        padding: 8px;
+        background: $white-bg;
+        border: 1px solid $border-color;
+        border-radius: 4px;
+        cursor: grab;
+        user-select: none;
+        display: block;
+    }
+}
+
+/********************
+ * Zone de contenu  *
+ ********************/
+#main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#controls {
+    padding: 8px;
+    background: #fafafa;
+    border-bottom: 1px solid $border-color;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#page-select {
+    min-width: 120px;
+    padding: 4px;
+}
+
+/* Boutons */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background-color: $primary-color;
+    border: 1px solid $primary-color;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+
+    &:hover {
+        background-color: $primary-hover-color;
+    }
+}
+
+.btn-secondary {
+    background: #bbb;
+    border: 1px solid #bbb;
+    color: #000;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.btn-save {
+    background: $accent-color;
+    border: 1px solid $accent-color;
+    color: #fff;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    &:not(:disabled):hover {
+        background-color: darken($accent-color, 5%);
+    }
+}
+
+/********************
+ * Canvas container *
+ ********************/
+#canvas-container {
+    position: relative;
+    flex: 1;
+    background: #eef;
+    overflow: hidden;
+}
+
+#canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: 0 0;
+}
+
+svg#connections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+
+    line {
+        pointer-events: stroke;
+        cursor: pointer;
+        stroke: #666;
+        stroke-width: 2;
+    }
+}
+
+/* Rectangle de sélection */
+#selection-rect {
+    position: absolute;
+    border: 2px dashed #3498db;
+    background-color: rgba(52, 152, 219, 0.1);
+    pointer-events: none;
+
+    &.hidden {
+        display: none;
+    }
+}
+
+/********************
+ *  Styles des blocs
+ ********************/
+.block {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    font-family: $default-font;
+    text-align: center;
+    padding: 4px;
+    box-sizing: border-box;
+    border: 2px solid transparent;
+
+    &.highlight {
+        border-color: #f39c12;
+    }
+}
+
+.block-start {
+    width: 70px;
+    height: 70px;
+    background-color: #27ae60;
+    border-radius: 50%;
+}
+
+.block-end {
+    width: 70px;
+    height: 70px;
+    background-color: #e74c3c;
+    border-radius: 50%;
+}
+
+/* Condition = losange */
+.block-condition {
+    width: 80px;
+    height: 80px;
+    background-color: #3498db;
+    transform: rotate(45deg);
+
+    .block-label {
+        transform: rotate(-45deg);
+        display: inline-block;
+    }
+}
+
+/* Loop = hexagone violet */
+.block-loop {
+    width: 80px;
+    height: 40px;
+    background-color: #8e44ad;
+    position: relative;
+
+    &::before,
+    &::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        border-left: 40px solid transparent;
+        border-right: 40px solid transparent;
+    }
+
+    &::before {
+        bottom: 100%;
+        border-bottom: 20px solid #8e44ad;
+    }
+
+    &::after {
+        top: 100%;
+        border-top: 20px solid #8e44ad;
+    }
+}
+
+/* While = octogone approx. */
+.block-while {
+    width: 80px;
+    height: 40px;
+    background-color: #2c3e50;
+    position: relative;
+
+    &::before,
+    &::after {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+    }
+
+    &::before {
+        top: -10px;
+        border-bottom: 10px solid #2c3e50;
+    }
+
+    &::after {
+        bottom: -10px;
+        border-top: 10px solid #2c3e50;
+    }
+}
+
+/* EndLoop = rectangle gris */
+.block-endLoop {
+    width: 80px;
+    height: 40px;
+    background-color: #7f8c8d;
+    border-radius: 4px;
+}
+
+/* Action = rectangle gris clair */
+.block-action {
+    width: 100px;
+    height: 50px;
+    background-color: #95a5a6;
+    border-radius: 4px;
+}
+
+/* Badge en bas à droite */
+.order-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: #fff;
+    color: #000;
+    font-size: 0.8rem;
+    border: 1px solid #aaa;
+    border-radius: 4px 0 0 0;
+    padding: 1px 4px;
+    pointer-events: none;
+}
+
+/********************
+ * Panneau de droite
+ ********************/
+#right-panel {
+    width: 350px;
+    border-left: 1px solid $border-color;
+    display: flex; // On empile verticalement log + config
+    flex-direction: column;
+    background-color: #fafafa;
+}
+
+#log-panel,
+#block-config-panel {
+    display: flex;
+    flex-direction: column;
+    transition: height 0.2s ease;
+    border-bottom: 1px solid $border-color;
+    // on pourra faire du collapsible
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ddd;
+    padding: 4px 8px;
+
+    h3 {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    button {
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+}
+
+#log-content {
+    flex: 1;
+    padding: 8px;
+    overflow-y: auto;
+    background: #fff;
+
+    .log-line {
+        margin: 4px 0;
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 4px 8px;
+        border-radius: 4px;
+        line-height: 1.2;
+        font-family: $default-font;
+        font-size: 0.9rem;
+    }
+}
+
+#config-content {
+    padding: 8px;
+    background: #fff;
+    min-height: 150px;
+    border-top: 1px solid #bbb;
+    flex: 1;
+    overflow-y: auto;
+
+    label {
+        display: block;
+        margin: 4px 0 2px;
+        font-weight: bold;
+        font-size: 0.85rem;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+        width: 100%;
+        padding: 4px;
+        margin-bottom: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+}
+
+/* .collapsed => on réduit la hauteur */
+.collapsed {
+    height: 32px !important;
+    overflow: hidden;
+
+    #log-content,
+    #config-content {
+        display: none !important;
+    }
+}

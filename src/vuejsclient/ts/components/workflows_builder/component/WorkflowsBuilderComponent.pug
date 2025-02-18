@@ -1,0 +1,76 @@
+#sidebar
+    h2 Palette
+    div.palette-item(draggable="true" data-block-type="start")
+    i.fas.fa-play-circle
+    |  Start
+    div.palette-item(draggable="true" data-block-type="end")
+    i.fas.fa-stop-circle
+    |  End
+    div.palette-item(draggable="true" data-block-type="condition")
+    i.fas.fa-question-circle
+    |  Condition
+    div.palette-item(draggable="true" data-block-type="loop")
+    i.fas.fa-sync-alt
+    |  Loop (For)
+    div.palette-item(draggable="true" data-block-type="while")
+    i.fas.fa-redo-alt
+    |  While
+    div.palette-item(draggable="true" data-block-type="endLoop")
+    i.fas.fa-times-circle
+    |  End Loop
+    div.palette-item(draggable="true" data-block-type="action")
+    i.fas.fa-cog
+    |  Action
+
+// Zone principale
+#main
+    // Barre de contrôles
+    #controls
+    select#page-select
+    button#add-page.btn-secondary + Add Page
+
+    button#zoom-in.btn-primary
+        i.fas.fa-search-plus
+    button#zoom-out.btn-primary
+        i.fas.fa-search-minus
+    button#zoom-reset.btn-primary
+        i.fas.fa-compress
+
+    button#clear-canvas.btn-primary
+        i.fas.fa-trash-alt
+    button#run-workflow.btn-primary
+        i.fas.fa-play
+
+    button#save-workflow.btn-save(disabled)
+        i.fas.fa-save
+        |  Save
+
+    button#clear-logs.btn-primary
+        i.fas.fa-eraser
+
+    // Conteneur du canvas et SVG
+    #canvas-container
+    svg#connections
+    #canvas
+    // Rectangle de sélection
+    #selection-rect.hidden
+
+// Panneau de droite (empilé verticalement)
+#right-panel
+    // Log panel
+    #log-panel
+    .panel-header
+        h3 Execution Log
+        button#toggle-log
+        i.fas.fa-chevron-up
+    #log-content
+
+    // Config panel
+    #block-config-panel
+    .panel-header
+        h3 Block Config
+        button#toggle-config
+        i.fas.fa-chevron-up
+    #config-content
+        p Double-cliquez un bloc pour le configurer.
+
