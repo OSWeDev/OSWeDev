@@ -84,7 +84,7 @@ export default class VarsCacheController {
                 }))());
             }
         }
-        await all_promises(this_call_promises);
+        await all_promises(this_call_promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         const res_invalidators: VarDataInvalidatorVO[] = [];
         for (const var_id in intersectors_res_by_var_id) {

@@ -645,6 +645,7 @@ export default class EventsController {
             ConsoleHandler.log('call_listener "' + event.name + '" - Small Tasks Fast Track : ' + cbs.length + ' cbs - IN');
         }
 
+        // FIXME CHECKER : Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client ?
         const promises = [];
         for (const i in cbs) {
             const cb = cbs[i];
@@ -735,7 +736,7 @@ export default class EventsController {
             })());
         }
 
-        await all_promises(promises);
+        await all_promises(promises); // FIXME CHECKER : Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client ?
 
         if (EventsController.log_events_names[event.name]) {
             ConsoleHandler.log('call_listener "' + event.name + '" - Small Semaphored Tasks Fast Track : ' + semaphore_names.length + ' semaphores - OUT');

@@ -106,7 +106,7 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
             }
         }
 
-        await all_promises(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
         await promise_pipeline.end();
 
         return true;

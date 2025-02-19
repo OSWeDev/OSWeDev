@@ -28,7 +28,7 @@ export default class PromisePipeline {
     /**
      * Pipeline de promesses, qui permet de limiter le nombre de promesses en parallèle, mais d'en ajouter
      *  autant qu'on veut, et de les exécuter dès qu'il y a de la place dans le pipeline
-     * @param max_concurrent_promises Max number of concurrent promises
+     * @param max_concurrent_promises Max number of concurrent promises. 0 infinite, 1 sequential, >1 parallel
      * @param stat_name Register stats for this Pipeline, using this sub category name
      * @param stat_worker Register a worker that records pipeline current size every 10 seconds. BEWARE: This worker is not stopped when the pipeline is destroyed. Use only on permanent pipelines
      */
@@ -51,7 +51,7 @@ export default class PromisePipeline {
     }
 
     get free_slot_event_name(): string {
-        return 'PromisePipeline.free_slot_event.' + this.uid + '.' + this.stat_name;
+        return 'PromisePipeline.free_slot_event.' + this.uid + (this.stat_name ? '.' + this.stat_name : '');
     }
 
     get has_running_or_waiting_promises(): boolean {
@@ -70,6 +70,10 @@ export default class PromisePipeline {
         stat_worker: boolean = false,
     ): PromisePipeline {
 
+        if (!stat_name) {
+            throw new Error('PromisePipeline.get_semaphore_pipeline(): stat_name is mandatory');
+        }
+
         if (!PromisePipeline.promise_pipeline_semaphores_by_stat_name[stat_name]) {
             const this_pipeline = new PromisePipeline(max_concurrent_promises, stat_name, stat_worker);
             PromisePipeline.promise_pipeline_semaphores_by_stat_name[stat_name] = this_pipeline;
@@ -86,7 +90,11 @@ export default class PromisePipeline {
 
             if (!!promise_pipeline.stat_name) {
                 StatsController.register_stat_QUANTITE('PromisePipeline', promise_pipeline.stat_name, 'RUNNING', promise_pipeline.nb_running_promises);
-                StatsController.register_stat_QUANTITE('PromisePipeline', promise_pipeline.stat_name, 'EMPTY_SLOTS', promise_pipeline.max_concurrent_promises - promise_pipeline.nb_running_promises);
+
+                if (promise_pipeline.max_concurrent_promises) {
+                    StatsController.register_stat_QUANTITE('PromisePipeline', promise_pipeline.stat_name, 'EMPTY_SLOTS', promise_pipeline.max_concurrent_promises - promise_pipeline.nb_running_promises);
+                }
+
                 if (PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS) {
                     ConsoleHandler.log('PromisePipeline:STATS:' + promise_pipeline.stat_name + ':' + promise_pipeline.uid + ':' + promise_pipeline.nb_running_promises);
                 }
@@ -209,7 +217,7 @@ export default class PromisePipeline {
     }
 
     public has_free_slot(): boolean {
-        return (this.nb_running_promises < this.max_concurrent_promises);
+        return (!this.max_concurrent_promises) || (this.nb_running_promises < this.max_concurrent_promises);
     }
 
     /**
@@ -229,7 +237,7 @@ export default class PromisePipeline {
 
             // Promise resolever declaration that
             // will be called when all promises are finished
-            await EventsController.await_next_event(PromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid + '.' + this.stat_name);
+            await EventsController.await_next_event(PromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid + (this.stat_name ? '.' + this.stat_name : ''));
         }
 
         delete PromisePipeline.all_promise_pipelines_by_uid[this.uid];
@@ -277,7 +285,7 @@ export default class PromisePipeline {
                 ConsoleHandler.log('PromisePipeline.do_cb():END PROMISE:' + this.uid + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
-            EventsController.emit_event(EventifyEventInstanceVO.new_event(PromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid + '.' + this.stat_name));
+            EventsController.emit_event(EventifyEventInstanceVO.new_event(PromisePipeline.EMPTY_PIPELINE_EVENT_NAME_PREFIX + this.uid + (this.stat_name ? '.' + this.stat_name : '')));
         }
     }
 }

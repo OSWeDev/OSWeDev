@@ -233,7 +233,7 @@ export default class VarsProcessInvalidator {
     }
 
     private async update_params() {
-        await all_promises([
+        await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
             (async () => {
                 VarsProcessInvalidator.max_invalidators = await ParamsServerController.getParamValueAsInt(VarsProcessInvalidator.max_invalidators_param_name, 500, 120000);
             })(),

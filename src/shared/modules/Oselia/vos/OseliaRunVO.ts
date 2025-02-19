@@ -50,9 +50,19 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
     public _type: string = OseliaRunVO.API_TYPE_ID;
 
     /**
+     * Nom du template
+     */
+    public template_name: string;
+
+    /**
      * Nom de l'étape - pour affichage dans l'interface
      */
     public name: string;
+
+    /**
+     * Le template associé à ce run
+     */
+    public template_id: number;
 
     /**
      * Le lien vers le RUN GPT qui découle de ce run Osélia pour la partie SPLIT

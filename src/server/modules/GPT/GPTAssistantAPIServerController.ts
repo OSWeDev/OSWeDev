@@ -596,7 +596,7 @@ export default class GPTAssistantAPIServerController {
                 }
 
                 let post_api_ts_ms = Dates.now_ms();
-                await all_promises([
+                await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
                     (async () => {
                         // On stocke l'info qu'on a lancé un appel de fonction externe
                         oselia_run_function_call_vo.creation_date = Dates.now();
@@ -829,7 +829,7 @@ export default class GPTAssistantAPIServerController {
         let assistant_vo: GPTAssistantAPIAssistantVO = null;
         let thread_vo: GPTAssistantAPIThreadVO = null;
 
-        await all_promises([
+        await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
             (async () => {
                 assistant_vo = await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(gpt_assistant_id);
             })(),
@@ -932,7 +932,7 @@ export default class GPTAssistantAPIServerController {
                         availableFunctionsParameters[tool.id] = funct_params;
                     })());
                 }
-                await all_promises(promises);
+                await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
             }
 
             // On ajoute la possibilité de rajouter des fonctions dédiées à un run - en complément des fonctions de l'assistant
@@ -1394,7 +1394,7 @@ export default class GPTAssistantAPIServerController {
                             })());
                         }
 
-                        await all_promises(promises);
+                        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
                         // // On doit vérifier que les outputs sont bien limités à 512kb comme demandé par OpenAI
                         // // (512kb et non kB donc a priori en nombre de lettres ça fait plutôt 512 / 8 = 64k lettres)
@@ -1559,7 +1559,7 @@ export default class GPTAssistantAPIServerController {
 
         let function_response = null;
 
-        await all_promises([
+        await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
             (async () => {
                 oselia_run_function_call_vo.start_date = Dates.now();
                 oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;

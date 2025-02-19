@@ -24,6 +24,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import { field_names } from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -251,7 +252,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
         promises = [];
 
         promises.push((async () => {
@@ -271,7 +272,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         })());
         promises.push(this.registerFrontVisibilityAccessPolicies(group, fo_access));
         promises.push(this.registerFrontEditionAccessPolicies(group, fo_edit));
-        await Promise.all(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
     }
 
     public async getPrepsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDVPrep[]> {

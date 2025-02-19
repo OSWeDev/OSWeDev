@@ -127,7 +127,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
             let prefix: string = null;
             let suffix: string = null;
-            await all_promises([
+            await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
                 (async () => {
                     mailOptions.from = await ParamsServerController.getParamValueAsString(ModuleMailer.PARAM_NAME_FROM, ModuleMailer.DEFAULT_FROM, 1000 * 60 * 5); // 5 minutes
                 })(),
@@ -236,7 +236,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
         let host: string = null;
         let port: number = null;
         let secure: boolean = null;
-        await all_promises([
+        await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
             (async () => {
                 user = await ParamsServerController.getParamValueAsString(ModuleMailer.PARAM_NAME_AUTH_USER, ModuleMailer.DEFAULT_AUTH_USER, 1000 * 60 * 5); // 5 minutes
             })(),

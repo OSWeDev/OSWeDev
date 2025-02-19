@@ -229,7 +229,7 @@ export default class VarsImportsHandler {
                 nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, remaining_computation, false/*, true*/));
             })());
         }
-        await all_promises(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         node.is_aggregator = true;
         node.aggregated_datas = aggregated_datas;

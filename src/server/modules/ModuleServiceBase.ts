@@ -433,7 +433,7 @@ export default abstract class ModuleServiceBase {
 
             if (server_module.actif) {
 
-                await all_promises([
+                await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
                     server_module.registerAccessPolicies(is_generator),
                     server_module.registerAccessRoles(),
                     server_module.registerImport(),

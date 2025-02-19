@@ -1875,7 +1875,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         // Si on est en affichage du formulaire inline, on met à jour le vo
         if (this.show_inline_form_in_crud) {
-            this.set_show_inline_form_in_crud(this.show_inline_form_in_crud_is_create);
+            await this.set_show_inline_form_in_crud(this.show_inline_form_in_crud_is_create);
         }
     }
 
@@ -2439,7 +2439,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
     }
 
-    private set_show_inline_form_in_crud(to_create: boolean) {
+    private async set_show_inline_form_in_crud(to_create: boolean) {
         if ((this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
@@ -2472,10 +2472,10 @@ export default class CRUDComponentField extends VueComponentBase
                 }
 
                 if (!this.getStoredDatas[(this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type]) {
-                    ConsoleHandler.error('set_show_inline_form_in_crud : Might not be implemented for all cases - can use async load options for example');
-                    return;
+                    this.vo_of_field_value = await query((this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type).filter_by_id(this.field_value).select_vo();
+                } else {
+                    this.vo_of_field_value = this.getStoredDatas[(this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type][this.field_value];
                 }
-                this.vo_of_field_value = this.getStoredDatas[(this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type][this.field_value];
             }
         }
 

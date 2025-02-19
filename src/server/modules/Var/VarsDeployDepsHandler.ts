@@ -101,7 +101,7 @@ export default class VarsDeployDepsHandler {
             })());
         }
 
-        await all_promises(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'handle_deploy_deps', 'OUT', Dates.now_ms() - time_in);
     }
@@ -212,7 +212,7 @@ export default class VarsDeployDepsHandler {
                     nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, data, true/*, true*/));
                 })());
             }
-            await all_promises(promises);
+            await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
             StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator');
             StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator', Dates.now_ms() - time_in);
@@ -422,7 +422,7 @@ export default class VarsDeployDepsHandler {
                 nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, aggregated_data, false/*, true*/));
             })());
         }
-        await all_promises(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         node.is_aggregator = true;
         node.aggregated_datas = aggregated_datas;
@@ -516,7 +516,7 @@ export default class VarsDeployDepsHandler {
                 nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, aggregated_data, true/*, true*/));
             })());
         }
-        await all_promises(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         const nb_known_pixels = known_pixels ? known_pixels.length : 0;
         const nb_unknown_pixels = Object.values(aggregated_datas).length - (known_pixels ? known_pixels.length : 0);

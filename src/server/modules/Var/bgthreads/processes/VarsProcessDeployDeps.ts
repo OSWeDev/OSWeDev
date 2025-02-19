@@ -107,7 +107,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
                             nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, data, true/*, true*/));
                         })());
                     }
-                    await all_promises(promises);
+                    await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
                     StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator');
                     StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator', Dates.now_ms() - time_in);

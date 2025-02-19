@@ -2677,12 +2677,14 @@ export default class ContextQueryServerController {
                 user_roles = ObjectHandler.hasAtLeastOneAttribute(user_roles_by_role_id) ? Object.values(user_roles_by_role_id) : null;
             }
 
-            const promises = [];
+            // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline.
+            const promise_pipeline = new PromisePipeline(0, null);
             const hook_cbs = DAOServerController.context_access_hooks[vo_type];
             for (const j in hook_cbs) {
                 const hook_cb = hook_cbs[j];
 
-                promises.push((async () => {
+                await promise_pipeline.push(async () => {
+                    // promises.push((async () => {
                     const query_ = await hook_cb(module_table, uid, user, null, user_roles);
 
                     if (!query_) {
@@ -2693,10 +2695,12 @@ export default class ContextQueryServerController {
                         context_access_hooks[alias] = [];
                     }
                     context_access_hooks[alias].push(query_.set_query_distinct());
-                })());
+                    // })());
+                });
             }
 
-            await all_promises(promises);
+            // await all_promises(promises);
+            await promise_pipeline.end();
         }
 
         const context_query_fields_by_api_type_id: { [api_type_id: string]: ContextQueryFieldVO[] } = {};

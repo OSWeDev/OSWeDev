@@ -32,7 +32,7 @@ export default class ModuleUserLogVarsServer extends ModuleServerBase {
 
     private async configure_vars() {
 
-        await all_promises([
+        await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
             VarMinCSRFCountController.getInstance().initialize(),
             VarMinLoginCountController.getInstance().initialize(),
             VarMinLogoutCountController.getInstance().initialize(),

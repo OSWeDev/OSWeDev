@@ -332,7 +332,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         const event_name = this.get_EVENT_execute_bgthread_NAME(bgthread_name);
         const ASAP_event_name = event_name + '_ASAP';
 
-        await all_promises([
+        await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
             (async () => {
                 this.EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name] = await query(EventifyEventConfVO.API_TYPE_ID)
                     .filter_by_text_eq(field_names<EventifyEventConfVO>().name, event_name)

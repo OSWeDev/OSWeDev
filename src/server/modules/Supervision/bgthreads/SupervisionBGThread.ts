@@ -103,7 +103,7 @@ export default class SupervisionBGThread implements IBGThread {
                 })());
             }
 
-            await all_promises(promises);
+            await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
             this.stats_out('ok', time_in);
             return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
         } catch (error) {

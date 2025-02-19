@@ -414,7 +414,7 @@ export default class ModuleFormatDatesNombres extends Module {
 
     /* istanbul ignore next: nothing to test here */
     public async initializeasync() {
-        await all_promises([
+        await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF
             (async () => {
                 ModuleFormatDatesNombres.CACHE_date_format_fullyear = await ModuleParams.getInstance().getParamValueAsString(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear, 'YYYY', 1000 * 60 * 60);
             })(),

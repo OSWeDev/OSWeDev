@@ -3,7 +3,6 @@ import EventifyEventInstanceVO from '../../modules/Eventify/vos/EventifyEventIns
 import EventifyEventListenerInstanceVO from '../../modules/Eventify/vos/EventifyEventListenerInstanceVO';
 import ConsoleHandler from '../ConsoleHandler';
 import PromisePipeline from '../PromisePipeline/PromisePipeline';
-import { all_promises } from '../PromiseTools';
 import StackContextWrapper from '../StackContextWrapper';
 import ThrottlePipelineConf from './ThrottlePipelineConf';
 
@@ -163,36 +162,48 @@ export default class ThrottlePipelineHelper {
                         ) : await func(params_by_index);
 
                 // On repart des params, ce qui permet de ne pas avoir de résultat pour un index plutôt que d'envoyer null ou undefined
-                const promises = [];
+                // FIXME CHECKER : Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client ?
+                // const promises = [];
+                const pp = new PromisePipeline(0, null);
                 for (const i in params_by_call_id) {
                     const call_id = parseInt(i);
                     const index = ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
 
                     // FIXME : TODO: Est-ce qu'on devrait pas restore l'ancien context pré appel à throttle ?
-                    promises.push(ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id]((func_result && (typeof func_result[index] !== 'undefined')) ? func_result[index] : null));
+                    // promises.push(ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id]((func_result && (typeof func_result[index] !== 'undefined')) ? func_result[index] : null));
+                    await pp.push(async () => {
+                        return ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id]((func_result && (typeof func_result[index] !== 'undefined')) ? func_result[index] : null);
+                    });
 
                     delete ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id];
                     delete ThrottlePipelineHelper.throttled_pipeline_call_rejecters_by_call_id[UID][call_id];
                     delete ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
                 }
-                await all_promises(promises);
+                // await all_promises(promises);
+                await pp.end();
             } catch (error) {
 
                 ConsoleHandler.error('ThrottlePipelineHelper.handle_throttled_pipeline_call:' + error);
 
                 // On repart des params, ce qui permet de ne pas avoir de résultat pour un index plutôt que d'envoyer null ou undefined
-                const promises = [];
+                // FIXME CHECKER : Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client ?
+                // const promises = [];
+                const pp2 = new PromisePipeline(0, null);
                 for (const i in params_by_call_id) {
                     const call_id = parseInt(i);
 
                     // FIXME : TODO: Est-ce qu'on devrait pas restore l'ancien context pré appel à throttle ?
-                    promises.push(ThrottlePipelineHelper.throttled_pipeline_call_rejecters_by_call_id[UID][call_id](error));
+                    // promises.push(ThrottlePipelineHelper.throttled_pipeline_call_rejecters_by_call_id[UID][call_id](error));
+                    await pp2.push(async () => {
+                        return ThrottlePipelineHelper.throttled_pipeline_call_rejecters_by_call_id[UID][call_id](error);
+                    });
 
                     delete ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id];
                     delete ThrottlePipelineHelper.throttled_pipeline_call_rejecters_by_call_id[UID][call_id];
                     delete ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
                 }
-                await all_promises(promises);
+                // await all_promises(promises);
+                await pp2.end();
             }
         });
     }

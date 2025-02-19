@@ -133,7 +133,7 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
             }
         }
 
-        await all_promises(promises_to_await);
+        await all_promises(promises_to_await); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         RangeHandler.foreach_ranges_sync(data_indexs, (data_index: number) => {
 

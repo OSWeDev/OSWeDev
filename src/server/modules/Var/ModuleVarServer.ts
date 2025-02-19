@@ -855,7 +855,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 'fr-fr': 'Configuration des types de vars'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
-        await Promise.all(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
         promises = [];
 
         promises.push((async () => {
@@ -881,7 +881,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             access_dependency.depends_on_pol_id = bo_access.id;
             access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
         })());
-        await Promise.all(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
     }
 
     public async get_limit_nb_ts_ranges_on_param_by_context_filter(): Promise<number> {
@@ -908,7 +908,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             const moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
             promises.push(ModuleDAOServer.instance.query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';'));
         }
-        await all_promises(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         CurrentVarDAGHolder.current_vardag = new VarDAG();
         CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
@@ -1601,7 +1601,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             })(matroid_field_));
         }
 
-        await all_promises(field_promises);
+        await all_promises(field_promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         if (ConfigurationService.node_configuration.debug_vars_db_param_builder) {
             ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':OUT');
@@ -1828,7 +1828,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             })());
         }
 
-        await all_promises(all_vardagnode_promises);
+        await all_promises(all_vardagnode_promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         VarDAGNode.unlock_nodes(nodes_to_unlock);
     }

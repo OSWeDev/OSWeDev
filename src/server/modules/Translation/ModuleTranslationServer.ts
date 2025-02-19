@@ -727,7 +727,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
                 'fr-fr': 'Outil - Choix de la langue'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
-        await Promise.all(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -825,7 +825,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             translatableTexts_by_id = VOsTypesManager.vosArray_to_vosByIds(translatableTexts);
         })());
 
-        await all_promises(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
 
         await this.add_locale_flat_translations(translatableTexts_by_id, lang_translations, res);
@@ -898,7 +898,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             }
         })());
 
-        await all_promises(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         let res: { [code_lang: string]: any } = {};
 

@@ -99,7 +99,7 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
             azure_mem_size = res;
         }));
 
-        await all_promises(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         if (!activated || !clientId || !clientSecret || !tenantId || !subscriptionId || !resourceGroupName || !serverName || !memory_usage_data_max_size || !azure_mem_size) {
 

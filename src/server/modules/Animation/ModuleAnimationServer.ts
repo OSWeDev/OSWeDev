@@ -153,7 +153,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             admin_access_dependency_fo_reporting = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_fo_reporting);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
     }
 
     // istanbul ignore next: cannot test registerAccessHooks
@@ -804,7 +804,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     private async configure_vars() {
-        await all_promises([
+        await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
             VarDayPrctAvancementAnimationController.getInstance().initialize(),
             VarDayPrctReussiteAnimationController.getInstance().initialize(),
             VarDayPrctAtteinteSeuilAnimationController.getInstance().initialize(),

@@ -815,7 +815,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         this.rights_have_been_preloaded = true;
         // On preload ce qui l'a pas été et on complète les listes avec les données en base qui peuvent
         //  avoir été ajoutée en parralèle des déclarations dans le source
-        await all_promises([
+        await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
             AccessPolicyServerController.preload_registered_roles(), // init registered_roles, registered_roles_by_ids
             AccessPolicyServerController.preload_registered_policies(), // init registered_policies, registered_policies_by_ids
@@ -912,7 +912,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
         promises = [];
 
         promises.push((async () => {
@@ -977,7 +977,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             dependency.depends_on_pol_id = users_list_access.id;
             dependency = await this.registerPolicyDependency(dependency);
         })());
-        await Promise.all(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
     }
 
     /**

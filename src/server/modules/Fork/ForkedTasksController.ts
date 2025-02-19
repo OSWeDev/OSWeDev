@@ -15,6 +15,8 @@ import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import RegisteredForkedTasksController from './RegisteredForkedTasksController';
 import ForkMessageCallbackWrapper from './vos/ForkMessageCallbackWrapper';
 import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
+import { all_promises } from '../../../shared/tools/PromiseTools';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 
 /**
  * ForkedTasksController
@@ -100,7 +102,9 @@ export default class ForkedTasksController {
                         [task_uid, ...task_params]);
                 } else {
 
-                    const promises = [];
+                    // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline.
+                    // const promises = [];
+                    const promise_pipeline = new PromisePipeline(0, null);
                     const done_bgt_uid: { [uid: number]: boolean } = {};
                     const forks = ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType];
 
@@ -121,21 +125,29 @@ export default class ForkedTasksController {
                             continue;
                         }
 
-                        promises.push(new Promise(async (res, rej) => {
+                        // promises.push(new Promise(async (res, rej) => {
+                        await promise_pipeline.push(async () => {
 
-                            await ForkedTasksController.exec_self_on_bgthread_and_return_value(
-                                false,
-                                rej,
-                                fork_name,
-                                task_uid,
-                                res,
-                                ...task_params
-                            );
-                        }));
+                            return new Promise(async (res, rej) => {
+                                await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                                    false,
+                                    rej,
+                                    fork_name,
+                                    task_uid,
+                                    res,
+                                    ...task_params
+                                );
+                            });
+                            // }));
+                        });
                     }
-                    promises.push(RegisteredForkedTasksController.registered_tasks[task_uid](...task_params));
+                    // promises.push(RegisteredForkedTasksController.registered_tasks[task_uid](...task_params));
+                    await promise_pipeline.push(async () => {
+                        await RegisteredForkedTasksController.registered_tasks[task_uid](...task_params);
+                    });
 
-                    await Promise.all(promises);
+                    // await all_promises(promises);
+                    await promise_pipeline.end();
 
                     resolve();
                 }

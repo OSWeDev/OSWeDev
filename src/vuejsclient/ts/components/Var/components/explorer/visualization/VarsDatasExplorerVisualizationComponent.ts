@@ -1,12 +1,10 @@
 import { Component, Watch } from 'vue-property-decorator';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../../store/VarStore';
-import VarsClientController from '../../../VarsClientController';
 import { ModuleVarsDatasExplorerVuexAction, ModuleVarsDatasExplorerVuexGetter } from '../VarsDatasExplorerVuexStore';
 import './VarsDatasExplorerVisualizationComponent.scss';
 

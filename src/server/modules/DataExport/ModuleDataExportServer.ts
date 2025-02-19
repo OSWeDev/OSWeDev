@@ -1328,14 +1328,20 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         res['_type'] = e._type;
         res['id'] = e.id;
-        const promises = [];
+        // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline.
+        // const promises = [];
+        const promise_pipeline = new PromisePipeline(0, null);
         for (const i in fields) {
             const field = fields[i];
 
-            promises.push(this.field_to_xlsx(field, e, res, target_user_id));
+            // promises.push(this.field_to_xlsx(field, e, res, target_user_id));
+            await promise_pipeline.push(async () => {
+                this.field_to_xlsx(field, e, res, target_user_id);
+            });
         }
 
-        await all_promises(promises);
+        // await all_promises(promises);
+        await promise_pipeline.end();
 
         return res;
     }

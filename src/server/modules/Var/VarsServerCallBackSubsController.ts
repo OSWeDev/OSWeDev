@@ -100,7 +100,7 @@ export default class VarsServerCallBackSubsController {
             })());
         }
 
-        await all_promises(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         return res;
     }
@@ -156,7 +156,7 @@ export default class VarsServerCallBackSubsController {
                 promises.push(cb(var_data));
             }
         }
-        await all_promises(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
             ConsoleHandler.log("notify_vardatas_throttled:OUT:" + var_datas.length);

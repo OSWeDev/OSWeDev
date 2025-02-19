@@ -292,7 +292,7 @@ export default class VarsComputationHole {
                     ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:node:' + node.var_data.index + ':reinsert');
                     promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, node.var_data, false));
                 }
-                await all_promises(promises);
+                await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
                 for (const event_name in event_to_call) {
                     ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:FORCING EVENT:' + event_name);

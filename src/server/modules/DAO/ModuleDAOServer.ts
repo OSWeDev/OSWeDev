@@ -192,7 +192,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }));
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
         promises = [];
 
         promises.push((async () => {
@@ -227,7 +227,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
         promises = [];
 
         // On doit déclarer les access policies de tous les VO
@@ -302,7 +302,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  */
                 let vo_delete: AccessPolicyVO = null;
 
-                await all_promises([
+                await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
                     (async () => {
                         vo_list = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                             DAOServerController.get_dao_policy(
@@ -337,7 +337,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     })(),
                 ]);
 
-                await all_promises([
+                await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
                     ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
                         DAOServerController.get_dao_dependency_default_granted(vo_list, global_access)),
                     ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
@@ -380,7 +380,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         if (promises && promises.length) {
-            await all_promises(promises);
+            await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
         }
     }
 
@@ -2306,7 +2306,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
         let refuse: boolean = false;
-        const promises = [];
+        // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline.
+        // const promises = [];
+        const promise_pipeline = new PromisePipeline(0, null);
 
         for (const j in fields) {
             const field = fields[j];
@@ -2330,7 +2332,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         break;
                     }
 
-                    promises.push((async () => {
+                    await promise_pipeline.push(async () => {
+                        // promises.push((async () => {
                         try {
                             const nb: number = await this.countVosByIdsRanges(field.foreign_ref_vo_type, vo[field.field_name]);
                             if (nb != RangeHandler.getCardinalFromArray(vo[field.field_name])) {
@@ -2340,7 +2343,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             ConsoleHandler.error(error);
                             refuse = true;
                         }
-                    })());
+                        // })());
+                    });
                     break;
                 default:
                     StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'refuseVOByForeignKeys', 'FILTERED_FIELD_TYPE');
@@ -2348,7 +2352,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
 
-        await all_promises(promises);
+        // await all_promises(promises);
+        await promise_pipeline.end();
         StatsController.register_stat_DUREE('ModuleDAOServer', 'refuseVOByForeignKeys', '-', Dates.now_ms() - time_in);
 
         return refuse;

@@ -11,18 +11,21 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler, { reflect } from '../../../shared/tools/ObjectHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import { all_promises } from '../../../shared/tools/PromiseTools';
-import { IRequestStackContext } from '../../ServerExpressController';
-import StackContext from '../../StackContext';
-import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleAjaxCacheServer extends ModuleServerBase {
+
+    private static instance: ModuleAjaxCacheServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleAjaxCache.getInstance().name);
+    }
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -32,12 +35,6 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         return ModuleAjaxCacheServer.instance;
     }
 
-    private static instance: ModuleAjaxCacheServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleAjaxCache.getInstance().name);
-    }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
@@ -99,7 +96,10 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         // à creuser. En l'occurrence ce pipeline explose bien avant celui des requetes en base de données.
         // const limit = ConfigurationService.node_configuration.max_pool / 2;
         // const promise_pipeline = PromisePipeline.get_semaphore_pipeline('ModuleAjaxCacheServer.requests_wrapper', limit);
-        const promises = [];
+
+        // JNE 19/02/2025 : On repasse en PromisePipeline, par ce que le maintien du StackContext est ok en PromisePipeline et pas en Promise[]...
+        // const promises = [];
+        const promise_pipeline = new PromisePipeline(0, null); // on ne limite pas le pipeline et on ne log/stat rien
 
         for (const i in requests) {
             const wrapped_request: LightWeightSendableRequestVO = requests[i];
@@ -108,7 +108,8 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 continue;
             }
 
-            promises.push((async () => {
+            await promise_pipeline.push(async () => {
+                // promises.push((async () => {
                 // await promise_pipeline.push(async () => {
 
                 // /**
@@ -199,11 +200,12 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 //  */
 
                 // });
-            })());
+                // })());
+            });
         }
 
-        // await promise_pipeline.end();
-        await all_promises(promises);
+        await promise_pipeline.end();
+        // await all_promises(promises);
 
         // /**
         //  * FIXME DELETE ME DEBUG ONLY JNE

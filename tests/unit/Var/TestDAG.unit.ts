@@ -15,6 +15,7 @@ import FakeVarsInit from './fakes/FakeVarsInit';
 import FakeTriangularValidDataHandler from './fakes/vars_triangular_dag/FakeTriangularValidDataHandler';
 import FakeTriangularVarsInit from './fakes/vars_triangular_dag/FakeTriangularVarsInit';
 import FakeDataVO from './fakes/vos/FakeDataVO';
+import { all_promises } from '../../../src/shared/tools/PromiseTools';
 
 ConfigurationService.setEnvParams({});
 ConfigurationService.IS_UNIT_TEST_MODE = true;
@@ -59,7 +60,7 @@ test('DAG: test semaphore getInstance()', async () => {
         })()
     ];
 
-    await Promise.all(promises);
+    await all_promises(promises);
 
     expect(dagnodeA.var_data.index).toStrictEqual("1|LmreE");
     expect(dagnodeA.aggregated_datas).toStrictEqual({});

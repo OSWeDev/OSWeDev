@@ -617,7 +617,7 @@ export default class VarsDatasVoUpdateHandler {
         const new_tag_value = VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0);
         let old_tag_value = null;
 
-        await all_promises([
+        await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
             (async () => {
                 old_tag_value = await ParamsServerController.getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
             })(),
@@ -881,7 +881,7 @@ export default class VarsDatasVoUpdateHandler {
             })());
         }
 
-        await all_promises(all_vardagnode_promises);
+        await all_promises(all_vardagnode_promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         VarDAGNode.unlock_nodes(nodes_to_unlock);
 

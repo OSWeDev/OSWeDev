@@ -2213,19 +2213,27 @@ export default class RangeHandler {
             return;
         }
 
-        const promises = [];
+        // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline.
+        // const promises = [];
+        const promise_pipeline = new PromisePipeline(0, null);
         switch (range.range_type) {
 
             case NumRange.RANGE_TYPE:
                 for (let i = min; i <= max; (i)++) {
-                    promises.push(callback(i));
+                    // promises.push(callback(i));
+                    await promise_pipeline.push(async () => {
+                        await callback(i);
+                    });
                 }
                 break;
 
             case HourRange.RANGE_TYPE:
                 while (min && RangeHandler.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
-                    promises.push(callback(min));
+                    // promises.push(callback(min));
+                    await promise_pipeline.push(async () => {
+                        await callback(min);
+                    });
                     min = Dates.add(min, 1, segment_type);
                 }
                 break;
@@ -2233,12 +2241,16 @@ export default class RangeHandler {
             case TSRange.RANGE_TYPE:
                 while (min && RangeHandler.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
-                    promises.push(callback(min));
+                    // promises.push(callback(min));
+                    await promise_pipeline.push(async () => {
+                        await callback(min);
+                    });
                     min = Dates.add(min, 1, segment_type);
                 }
                 break;
         }
-        await all_promises(promises);
+        // await all_promises(promises);
+        await promise_pipeline.end();
     }
 
     /**

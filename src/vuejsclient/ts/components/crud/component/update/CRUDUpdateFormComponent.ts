@@ -19,6 +19,8 @@ import CRUDFormServices from '../CRUDFormServices';
 import "./CRUDUpdateFormComponent.scss";
 import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
+import Throttle from '../../../../../../shared/annotations/Throttle';
+import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 
 @Component({
     template: require('./CRUDUpdateFormComponent.pug'),
@@ -150,14 +152,21 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
         if (this.crud) {
             await this.reload_datas();
+            await this.updateSelected_vo();
         }
     }
 
-    @Watch("selected_vo", { immediate: true })
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 100,
+    })
     private async updateSelected_vo() {
         if (!this.selected_vo) {
             this.editableVO = null;
             return;
+        }
+        if (!this.crud) {
+            return null;
         }
 
         const self = this;
@@ -172,6 +181,11 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
         // };
 
         // await waiter();
+    }
+
+    @Watch("selected_vo", { immediate: true })
+    private async on_change_selected_vo() {
+        await this.updateSelected_vo();
     }
 
     public update_key() {
@@ -226,6 +240,10 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     }
 
     private async add_removed_crud_field_id(module_table_field_id: string) {
+        if (!this.crud) {
+            return null;
+        }
+
         let crud_field_remover_conf = this.crud_field_remover_conf;
 
         if (!crud_field_remover_conf) {
@@ -291,6 +309,9 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
      * @param fields les champs à supprimer du CRUD
      */
     private remove_fields(fields) {
+        if (!this.crud) {
+            return null;
+        }
 
         if (this.crud.updateDatatable == this.crud.readDatatable) {
             this.crud.updateDatatable = CRUD.copy_datatable(this.crud.readDatatable);
@@ -299,6 +320,10 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     }
 
     private async updateVO() {
+
+        if (!this.crud) {
+            return null;
+        }
 
         const self = this;
         self.snotify.async(self.label('crud.update.starting'), () =>
@@ -322,6 +347,9 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                 }
 
                 try {
+                    if (!self.crud) {
+                        return null;
+                    }
 
                     if (!CRUDFormServices.checkForm(self.editableVO, self.crud.updateDatatable, self.clear_alerts, self.register_alerts)) {
                         self.updating_vo = false;
@@ -438,6 +466,10 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     }
 
     private onChangeVO(vo: IDistantVOBase) {
+        if (!this.crud) {
+            return null;
+        }
+
         if (this.crud_updateDatatable_key != this.crud.updateDatatable.key) {
             this.crud_updateDatatable_key = this.crud.updateDatatable.key;
         }

@@ -82,7 +82,7 @@ export default abstract class PlayWrightServerController {
         let test_user_phone: string = null;
         let test_user: UserVO = null;
 
-        await all_promises([
+        await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
             (async () => {
                 test_user_name = await ParamsServerController.getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_NAME, null, 60000);
             })(),

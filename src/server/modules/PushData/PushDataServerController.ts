@@ -86,7 +86,7 @@ export default class PushDataServerController {
             for (const socket_id in params) {
                 promises.push(PushDataServerController.notifyVarsDatasBySocket_(socket_id, params[socket_id]));
             }
-            await all_promises(promises);
+            await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
         }, 100, false);
 
 

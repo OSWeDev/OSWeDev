@@ -1139,7 +1139,7 @@ export default class ModuleVar extends Module {
             }
         }
 
-        await all_promises(promises);
+        await all_promises(promises); // FIXME CHECKER : Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client ?
 
         return all_page_widget_by_id;
     }

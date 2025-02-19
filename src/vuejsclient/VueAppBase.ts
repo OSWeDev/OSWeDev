@@ -8,6 +8,10 @@ import 'jquery-ui-dist/jquery-ui.css';
 
 // import $ from 'jquery';
 import moment from 'moment';
+import "moment/locale/fr";
+import 'moment/locale/en-gb';
+import 'moment/locale/de';
+import 'moment/locale/es';
 
 import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import { ColorPanel, ColorPicker } from 'one-colorpicker';

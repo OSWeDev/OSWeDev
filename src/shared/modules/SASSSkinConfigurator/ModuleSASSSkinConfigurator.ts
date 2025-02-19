@@ -279,7 +279,7 @@ export default class ModuleSASSSkinConfigurator extends Module {
 
     /* istanbul ignore next: nothing to test here */
     public async initializeasync() {
-        await all_promises([
+        await all_promises([ // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client ?
             (async () => {
                 ModuleSASSSkinConfigurator.CACHE_danger_color = await ModuleParams.getInstance().getParamValueAsString(ModuleSASSSkinConfigurator.PARAM_NAME_danger_color, ModuleSASSSkinConfigurator.DEFAULT_danger_color, 1000 * 60 * 60);
             })(),

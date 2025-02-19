@@ -102,7 +102,7 @@ export default class ForkMessageController {
                     promises.push(ForkMessageController.send(msg, forked.worker, forked));
                 }
             }
-            await all_promises(promises);
+            await all_promises(promises);// Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
             // Les messages de type BGThreadProcessTaskForkMessage sont envoyés uniquement au thread concerné, donc pas sur le main
             if (msg.message_type == BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE) {

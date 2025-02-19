@@ -413,7 +413,7 @@ export default class ContextFilterVOHandler {
                             })());
                         }
 
-                        await all_promises(promises);
+                        await all_promises(promises); // FIXME CHECKER : Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client ?
                     }
                     break;
 
@@ -453,7 +453,7 @@ export default class ContextFilterVOHandler {
                             })());
                         }
 
-                        await all_promises(promises);
+                        await all_promises(promises); // FIXME CHECKER : Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client ?
                     }
 
                     break;

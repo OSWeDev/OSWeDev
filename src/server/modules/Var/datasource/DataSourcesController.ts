@@ -36,7 +36,7 @@ export default class DataSourcesController {
             promises.push(ds.load_node_data(node));
         }
 
-        await all_promises(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
     }
 
     public static registerDataSource(

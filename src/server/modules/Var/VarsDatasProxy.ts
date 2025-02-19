@@ -146,7 +146,7 @@ export default class VarsDatasProxy {
             })());
         }
 
-        await all_promises(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
         return result;
     }
@@ -271,7 +271,7 @@ export default class VarsDatasProxy {
                 }))());
             }
 
-            await all_promises(this_call_instance_promises);
+            await all_promises(this_call_instance_promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
             return vars_to_notify;
         } catch (error) {
 

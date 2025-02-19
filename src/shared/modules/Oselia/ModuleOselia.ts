@@ -232,7 +232,10 @@ export default class ModuleOselia extends Module {
 
     public initializeOseliaRunVO() {
 
+        const label = ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().template_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du template', true, true, 'N/A');
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'étape', true);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().template_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template', false)
+            .set_many_to_one_target_moduletable_name(OseliaRunTemplateVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', false)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().oselia_thread_default_assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant Osélia par défaut', false)
@@ -306,7 +309,7 @@ export default class ModuleOselia extends Module {
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().listener_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Listener source du run', false)
             .set_many_to_one_target_moduletable_name(EventifyEventListenerInstanceVO.API_TYPE_ID);
 
-        ModuleTableController.create_new(this.name, OseliaRunVO, null, 'Oselia - Run');
+        ModuleTableController.create_new(this.name, OseliaRunVO, label, 'Oselia - Run');
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[OseliaRunVO.API_TYPE_ID]);
 
         // On ajoute le lien vers OseliaRunVO dans le ThreadGPT

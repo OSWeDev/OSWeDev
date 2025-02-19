@@ -392,16 +392,21 @@ export default class ThrottledQueryServerController {
 
             same_field_labels_param.register_precbs_stats();
 
-            const promises = [];
+            // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline.
+            // const promises = [];
+            const promise_pipeline = new PromisePipeline(0, null);
             for (const cbi in same_field_labels_param.cbs) {
                 const cb = same_field_labels_param.cbs[cbi];
 
-                promises.push((async () => {
+                // promises.push((async () => {
+                await promise_pipeline.push(async () => {
                     await cb(res);
-                })());
+                    // })());
+                });
             }
 
-            await all_promises(promises);
+            // await all_promises(promises);
+            await promise_pipeline.end();
             same_field_labels_param.register_postcbs_stats();
         };
     }
@@ -439,15 +444,21 @@ export default class ThrottledQueryServerController {
                 force_freeze[param.parameterized_full_query] = true;
                 const results = await ThrottledQueryServerController.current_select_query_promises[param.parameterized_full_query];
                 param.register_precbs_stats();
-                const promises = [];
+                // const promises = [];
+                // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline.
+                const promise_pipeline = new PromisePipeline(0, null);
                 for (const cbi in param.cbs) {
                     const cb = param.cbs[cbi];
 
-                    promises.push((async () => {
+                    // promises.push((async () => {
+                    await promise_pipeline.push(async () => {
                         await cb(results);
-                    })());
+                        // })());
+                    });
                 }
-                await all_promises(promises);
+                // await all_promises(promises);
+                await promise_pipeline.end();
+                param.register_postcbs_stats();
                 resolve("dedoublonnage");
             });
 
@@ -542,6 +553,7 @@ export default class ThrottledQueryServerController {
 
                 param.register_precbs_stats();
                 const cbs_time_in = Dates.now_ms();
+                // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client ?
 
                 for (const cbi in param.cbs) {
                     const cb = param.cbs[cbi];
@@ -549,6 +561,7 @@ export default class ThrottledQueryServerController {
                     this_param_promises.push(cb(results_of_index ? results_of_index : null));
                 }
                 await all_promises(this_param_promises);
+                param.register_postcbs_stats();
 
                 StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'do_select_query', 'cbs_OUT');
                 StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'cbs_OUT', Dates.now_ms() - cbs_time_in);

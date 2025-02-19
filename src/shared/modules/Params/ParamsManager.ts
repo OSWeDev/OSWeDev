@@ -21,7 +21,7 @@ export default class ParamsManager {
             promises.push(this.reloadPreloadParam(param_name));
         }
 
-        await all_promises(promises);
+        await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client
     }
 
     public static async reloadPreloadParam(param_name: string): Promise<void> {
