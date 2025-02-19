@@ -1,40 +1,5 @@
 .ModuleTablesComponent
+    // Conteneur principal pour le diagramme JointJS
     .uml-table-viewer
-        svg.uml-diagram(ref="svgContainer")
-            g(ref="zoomLayer")
-                // Rendu des liens
-                line.link(
-                    v-for="(link, index) in links"
-                    :key="index"
-                    :x1="link.x1"
-                    :y1="link.y1"
-                    :x2="link.x2"
-                    :y2="link.y2"
-                )
-
-                // Rendu des tables (noeuds)
-                g.table-node(
-                    v-for="(node, idx) in nodes"
-                    :key="idx"
-                    :transform="'translate(' + node.x + ',' + node.y + ')'"
-                    @click="toggleFold(node)"
-                )
-                    rect(
-                        :class="['table-rect', { folded: node.folded }]"
-                        rx="4"
-                        ry="4"
-                        :height="getRectHeight(node)"
-                        width="150"
-                    )
-                    text.table-title
-                        | {{ node.tableName }}
-
-                    // Si la table n'est pas "pliée", on affiche les champs
-                    g(
-                        v-if="!node.folded"
-                        v-for="(field, fidx) in node.fields"
-                        :key="fidx"
-                        :transform="'translate(0,' + ((fidx+1)*20) + ')'"
-                    )
-                        text.table-field
-                            | {{ field.field_name }} ({{ field.field_type }})
+        // Élément HTML qui accueillera le "paper" JointJS
+        div#joint-container(ref="jointContainer")

@@ -1,32 +1,34 @@
 import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './ModuleTablesComponent.scss';
 
+// JointJS (Core)
+import * as joint from 'jointjs';
+// Au besoin : import "jointjs/dist/joint.layout.DirectedGraph"; // si vous utilisez le layout DirectedGraph
+
 // Ex. si on utilise d3 (optionnel, juste un squelette pour l'auto-placement)
-import * as d3 from 'd3';
-import ModuleTableFieldVO from '../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldController from '../../../../shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
 
-interface DiagramNode {
-    tableId: number;
-    tableName: string;
+/**
+ * Représente les données minimales pour un nœud (table)
+ * On y stocke le "folded" pour savoir si on masque ou affiche les fields
+ */
+interface TableNodeData {
+    id: number;                               // table.id
+    tableName: string;                        // table.table_name
     fields: ModuleTableFieldVO[];
     folded: boolean;
-    x: number;
-    y: number;
 }
 
-interface DiagramLink {
+/**
+ * Représente un lien entre 2 tables
+ */
+interface TableLinkData {
     sourceId: number;
     targetId: number;
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
 }
 
 @Component({
@@ -37,10 +39,8 @@ export default class ModuleTablesComponent extends VueComponentBase {
     // @Prop({ default: () => [] }) readonly tables!: ModuleTableVO[];
     // @Prop({ default: () => [] }) readonly fields!: ModuleTableFieldVO[];
 
-    public nodes: DiagramNode[] = [];
-    public links: DiagramLink[] = [];
-
-    private simulation: d3.Simulation<DiagramNode, undefined> | null = null;
+    private graph: joint.dia.Graph | null = null;
+    private paper: joint.dia.Paper | null = null;
 
     get tables(): ModuleTableVO[] {
         return Object.values(ModuleTableController.module_tables_by_vo_type);
@@ -59,139 +59,170 @@ export default class ModuleTablesComponent extends VueComponentBase {
         return res;
     }
 
-    // Calcule la hauteur du rect en fonction du nombre de champs
-    public getRectHeight(node: DiagramNode): number {
-        if (node.folded) {
-            // Table pliée : juste la place du titre
-            return 25;
-        }
-        // 25px pour le titre + (20px * nb de champs) + 5px de marge
-        return 25 + (node.fields.length * 20) + 5;
-    }
-
     mounted() {
-        this.buildNodes();
-        this.buildLinks();
-        this.initForceLayout();
-
-        // Active le zoom sur le <svg>, mais applique la transformation au <g ref="zoomLayer">
-        const svg = d3.select(this.$refs.svgContainer as SVGElement);
-        svg.call(d3.zoom<SVGSVGElement, unknown>()
-            .on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
-                d3.select(this.$refs.zoomLayer as SVGGElement)
-                    .attr('transform', event.transform);
-            })
-        );
+        this.initDiagram();
+        this.loadDataIntoDiagram();
+        this.autoLayout();
     }
 
     /**
-     * Permet de plier/déplier une table
+     * Initialise la structure de base du diagramme (graph, paper, options).
      */
-    public toggleFold(node: DiagramNode) {
-        node.folded = !node.folded;
-    }
+    private initDiagram() {
+        // 1. Crée un graph JointJS
+        this.graph = new joint.dia.Graph();
 
-    /**
-     * Méthodes de zoom (ex. via molette, boutons, etc.) si besoin
-     */
-    public zoomIn() {
-        // Exemple très simplifié : on modifie juste un scale global
-        const svg = d3.select(this.$refs.svgContainer as SVGElement);
-        svg.transition().call(
-            d3.zoom<SVGSVGElement, unknown>().scaleBy as any,
-            1.2
-        );
-    }
-
-    public zoomOut() {
-        const svg = d3.select(this.$refs.svgContainer as SVGElement);
-        svg.transition().call(
-            d3.zoom<SVGSVGElement, unknown>().scaleBy as any,
-            0.8
-        );
-    }
-
-    /**
-     * Construit la liste des noeuds du diagramme
-     */
-    private buildNodes() {
-        // Chaque table est un noeud
-        this.nodes = this.tables.map((table, index) => {
-            // On récupère les fields associées à cette table
-            const relatedFields = this.fields.filter(f => f.module_table_vo_type === table.vo_type);
-
-            return {
-                tableId: table.id,
-                tableName: table.table_name,
-                fields: relatedFields,
-                folded: false,
-                // Position initiale aléatoire ou fixe
-                x: Math.random() * 500,
-                y: Math.random() * 500,
-            };
+        // 2. Crée un "paper" (rendu) et l'attache au conteneur #joint-container
+        this.paper = new joint.dia.Paper({
+            el: this.$refs.jointContainer as HTMLElement,
+            model: this.graph,
+            width: '100%',
+            height: '100%',
+            gridSize: 1,
+            drawGrid: false,
+            background: { color: '#ffffff' }, // Fond éventuel
+            // Permet la navigation pan/zoom si besoin :
+            // interactive: false, // si on veut désactiver tout drag des éléments
         });
     }
 
     /**
-     * Construit la liste des liens entre les tables
+     * Transforme nos tables/fields en "cells" (Rectangles + Links) JointJS et les ajoute au graph.
      */
-    private buildLinks() {
-        // Exemple basique : on relie deux tables si l'une a un champ "foreign_ref_vo_type" qui pointe sur l'autre
-        let result: DiagramLink[] = [];
+    private loadDataIntoDiagram() {
+        if (!this.graph) return;
 
+        // Construit la liste des nœuds (un par table)
+        const nodes: joint.dia.Element[] = [];
+        // Construit la liste des liens
+        const links: joint.dia.Link[] = [];
+
+        // Map <table.id, data> pour accéder facilement
+        const tableNodeDataArray: TableNodeData[] = this.tables.map((table) => {
+            const relatedFields = this.fields.filter(f => f.module_table_vo_type === table.vo_type);
+            return {
+                id: table.id,
+                tableName: table.table_name,
+                fields: relatedFields,
+                folded: false
+            };
+        });
+
+        // 1. Crée les "Rectangles" pour chaque table
+        tableNodeDataArray.forEach((nodeData) => {
+            // On crée un "shape" standard rectangle
+            const element = new joint.shapes.standard.Rectangle({
+                // id unique
+                id: 'table_' + nodeData.id,
+                // On stocke toutes nos infos dans un attribut custom "nodeData"
+                // pour y accéder facilement (ex: pliage)
+                data: nodeData,
+                size: {
+                    width: 180, // Largeur fixe
+                    height: this.getNodeHeight(nodeData) // Calculé
+                },
+                attrs: {
+                    body: {
+                        fill: '#f9f9f9',
+                        stroke: '#333'
+                    },
+                    label: {
+                        text: this.buildNodeLabel(nodeData),
+                        fontSize: 12,
+                        fill: '#000',
+                        // Pour un label multi-lignes, JointJS gère \n
+                        textAnchor: 'middle',
+                        textVerticalAnchor: 'middle'
+                    }
+                }
+            });
+
+            // Ajout d'un event "element:click" (ou "element:pointerdown") pour toggler le fold
+            element.on('element:pointerclick', (elementView: joint.dia.ElementView) => {
+                const cell = elementView.model;
+                const data = cell.get('data') as TableNodeData;
+                data.folded = !data.folded;
+                // On met à jour le label + la hauteur
+                cell.attr('label/text', this.buildNodeLabel(data));
+                cell.resize(180, this.getNodeHeight(data));
+            });
+
+            nodes.push(element);
+        });
+
+        // 2. Crée les liens "Link" pour chaque foreign_key
         this.fields.forEach((f) => {
             if (f.field_type === ModuleTableFieldVO.FIELD_TYPE_foreign_key && f.foreign_ref_vo_type) {
                 const sourceTable = this.tables.find(t => t.vo_type === f.module_table_vo_type);
                 const targetTable = this.tables.find(t => t.vo_type === f.foreign_ref_vo_type);
-
                 if (sourceTable && targetTable) {
-                    result.push({
-                        sourceId: sourceTable.id,
-                        targetId: targetTable.id,
-                        x1: 0, y1: 0, x2: 0, y2: 0 // MàJ dynamiquement via d3
-                    });
+                    links.push(new joint.shapes.standard.Link({
+                        source: { id: 'table_' + sourceTable.id },
+                        target: { id: 'table_' + targetTable.id },
+                        attrs: {
+                            line: {
+                                stroke: '#999',
+                                strokeWidth: 1.5,
+                                targetMarker: {
+                                    'type': 'path',
+                                    'stroke': '#999',
+                                    'fill': '#999',
+                                    'd': 'M 10 -5 0 0 10 5 z'
+                                }
+                            }
+                        }
+                    }));
                 }
             }
         });
 
-        this.links = result;
+        // 3. Ajoute tous les cells au graph
+        this.graph.resetCells([...nodes, ...links]);
     }
 
     /**
-     * Mise à jour des coordonnées (x1,y1,x2,y2) des liens et positionnement des noeuds
+     * Calcule la hauteur du rectangle en fonction du nombre de champs et du titre
      */
-    private onTick() {
-        this.nodes.forEach((node) => {
-            // On reste dans les limites d'une zone 600x600 (exemple)
-            node.x = Math.max(50, Math.min(550, node.x));
-            node.y = Math.max(50, Math.min(550, node.y));
-        });
-
-        this.links.forEach((link) => {
-            const source = this.nodes.find(n => n.tableId === link.sourceId);
-            const target = this.nodes.find(n => n.tableId === link.targetId);
-            if (source && target) {
-                link.x1 = source.x;
-                link.y1 = source.y;
-                link.x2 = target.x;
-                link.y2 = target.y;
-            }
-        });
+    private getNodeHeight(nodeData: TableNodeData): number {
+        // Hauteur de base pour le titre
+        const base = 40; // un peu de marge
+        if (nodeData.folded) {
+            return base;
+        }
+        // Ajoute ~ 15px par champ
+        return base + (nodeData.fields.length * 15);
     }
 
-    private initForceLayout() {
-        this.simulation = d3.forceSimulation(this.nodes)
-            // Augmente la force de répulsion
-            .force('charge', d3.forceManyBody().strength(-800))
-            .force('center', d3.forceCenter(300, 300))
-            // Agrandit la collision
-            .force('collision', d3.forceCollide(80))
-            // Définit un lien avec une distance minimale
-            .force('link', d3.forceLink()
-                .id((d: any) => d.tableId)
-                .links(this.links as any)
-                .distance(150)
-            )
-            .on('tick', () => this.onTick());
+    /**
+     * Construit le texte à afficher dans le label (tableName + fields si pas plié)
+     */
+    private buildNodeLabel(nodeData: TableNodeData): string {
+        const title = nodeData.tableName;
+        if (nodeData.folded) {
+            // Juste le titre
+            return title;
+        }
+        // Ajoutons chaque field en nouvelle ligne
+        const fieldsList = nodeData.fields.map(
+            f => `${f.field_name} (${f.field_type})`
+        );
+        // Saut de ligne => JointJS l'interprétera pour du multiline
+        return title + '\n' + fieldsList.join('\n');
+    }
+
+    /**
+     * Applique un layout "automatique" (ex: DirectedGraph) pour organiser les éléments
+     */
+    private autoLayout() {
+        if (!this.graph) return;
+
+        // JointJS Core propose un layout "joint.layout.DirectedGraph" (Dagre-like).
+        // => Il faut s'assurer d'importer la version qui inclut "joint.layout.DirectedGraph" (selon la doc).
+        joint.layout.DirectedGraph.layout(this.graph, {
+            setLinkVertices: false,
+            rankDir: 'LR', // LR = de gauche à droite, TB = top to bottom, etc.
+            marginX: 50,
+            marginY: 50
+        });
     }
 }
