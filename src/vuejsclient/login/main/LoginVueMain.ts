@@ -1,5 +1,4 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { Component } from "vue-property-decorator";
 import "vue-snotify/styles/material.scss";
 import OnPageTranslation from '../../ts/components/OnPageTranslation/component/OnPageTranslation';

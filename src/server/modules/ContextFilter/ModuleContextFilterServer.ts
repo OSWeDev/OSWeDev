@@ -55,7 +55,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
 
     public async count_valid_segmentations(api_type_id: string, context_query: ContextQueryVO, ignore_self_filter: boolean = true): Promise<number> {
 
-        return StackContext.exec_as_server(ContextQueryServerController.count_valid_segmentations, ContextQueryServerController, context_query.is_server, api_type_id, context_query, ignore_self_filter);
+        return await StackContext.exec_as_server(ContextQueryServerController.count_valid_segmentations, ContextQueryServerController, context_query.is_server, api_type_id, context_query, ignore_self_filter);
     }
 
 
@@ -67,7 +67,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         context_query: ContextQueryVO
     ): Promise<number> {
 
-        return StackContext.exec_as_server(ContextQueryServerController.select_count, ContextQueryServerController, context_query.is_server, context_query);
+        return await StackContext.exec_as_server(ContextQueryServerController.select_count, ContextQueryServerController, context_query.is_server, context_query);
     }
 
     /**
@@ -84,7 +84,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     ): Promise<InsertOrDeleteQueryResult[]> {
 
         // On encapsule au besoin l'appel pour strip le context client (is_server)
-        return StackContext.exec_as_server(
+        return await StackContext.exec_as_server(
             ContextQueryServerController.update_vos,
             ContextQueryServerController,
             context_query.is_server,
@@ -104,7 +104,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     ): Promise<InsertOrDeleteQueryResult[]> {
 
         // On encapsule au besoin l'appel pour strip le context client (is_server)
-        return StackContext.exec_as_server(ContextQueryServerController.delete_vos, ContextQueryServerController, context_query.is_server, context_query);
+        return await StackContext.exec_as_server(ContextQueryServerController.delete_vos, ContextQueryServerController, context_query.is_server, context_query);
     }
 
     /**
@@ -158,7 +158,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     ): Promise<ParameterizedQueryWrapper> {
 
         // On encapsule au besoin l'appel pour strip le context client (is_server)
-        return StackContext.exec_as_server(ContextQueryServerController.build_select_query, ContextQueryServerController, context_query.is_server, context_query);
+        return await StackContext.exec_as_server(ContextQueryServerController.build_select_query, ContextQueryServerController, context_query.is_server, context_query);
     }
 
     /**
@@ -170,7 +170,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     ): Promise<T[]> {
 
         // On encapsule au besoin l'appel pour strip le context client (is_server)
-        return StackContext.exec_as_server(ContextQueryServerController.select_vos<T>, ContextQueryServerController, context_query.is_server, context_query);
+        return await StackContext.exec_as_server(ContextQueryServerController.select_vos<T>, ContextQueryServerController, context_query.is_server, context_query);
     }
 
     /**
@@ -179,7 +179,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
      */
     private async select(context_query: ContextQueryVO): Promise<any[]> {
 
-        return StackContext.exec_as_server(ContextQueryServerController.select, ContextQueryServerController, context_query.is_server, context_query);
+        return await StackContext.exec_as_server(ContextQueryServerController.select, ContextQueryServerController, context_query.is_server, context_query);
     }
 
     /**
@@ -191,7 +191,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
         fields: { [datatable_field_uid: string]: DatatableField<any, any> }): Promise<any[]> {
 
-        return StackContext.exec_as_server(ContextQueryServerController.select_datatable_rows, ContextQueryServerController, context_query.is_server, context_query, columns_by_field_id, fields);
+        return await StackContext.exec_as_server(ContextQueryServerController.select_datatable_rows, ContextQueryServerController, context_query.is_server, context_query, columns_by_field_id, fields);
     }
 
     /**
@@ -203,6 +203,6 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         actual_query: string
     ): Promise<DataFilterOption[]> {
 
-        return StackContext.exec_as_server(ContextQueryServerController.select_filter_visible_options, ContextQueryServerController, context_query.is_server, context_query, actual_query);
+        return await StackContext.exec_as_server(ContextQueryServerController.select_filter_visible_options, ContextQueryServerController, context_query.is_server, context_query, actual_query);
     }
 }

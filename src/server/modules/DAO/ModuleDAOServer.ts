@@ -414,11 +414,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après modification.
                 //  Attention si un des output est false avant modification, on annule la modification
-                // On exécute les triggers as_admin toujours
                 const res: boolean[] = await StackContext.exec_as_server(
                     DAOServerController.pre_update_trigger_hook.trigger,
                     DAOServerController.pre_update_trigger_hook,
-                    true,
+                    exec_as_server,
                     vo._type,
                     new DAOUpdateVOHolder(pre_update_vo, vo),
                     exec_as_server);
@@ -476,11 +475,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après modification.
                 //  Attention si un des output est false avant modification, on annule la modification
-                // On exécute les triggers as_admin toujours
                 const res: boolean[] = await StackContext.exec_as_server(
                     DAOServerController.pre_create_trigger_hook.trigger,
                     DAOServerController.pre_create_trigger_hook,
-                    true,
+                    exec_as_server,
                     vo._type,
                     vo,
                     exec_as_server);
@@ -2544,11 +2542,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après suppression.
                 //  Attention si un des output est false avant suppression, on annule la suppression
-                // On exécute les triggers as_admin toujours
                 const res: boolean[] = await StackContext.exec_as_server(
                     DAOServerController.pre_delete_trigger_hook.trigger,
                     DAOServerController.pre_delete_trigger_hook,
-                    true,
+                    exec_as_server,
                     vo._type,
                     vo,
                     exec_as_server);
@@ -2626,11 +2623,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                 }
 
-                // On exécute les triggers as_admin toujours
                 await StackContext.exec_as_server(
                     DAOServerController.post_delete_trigger_hook.trigger,
                     DAOServerController.post_delete_trigger_hook,
-                    true,
+                    exec_as_server,
                     deleted_vo._type,
                     deleted_vo,
                     exec_as_server);
@@ -3100,11 +3096,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     vo.id = parseInt(results[i].id.toString());
 
                     try {
-                        // On exécute les triggers as_admin toujours
                         await StackContext.exec_as_server(
                             DAOServerController.post_create_trigger_hook.trigger,
                             DAOServerController.post_create_trigger_hook,
-                            true,
+                            exec_as_server,
                             vo._type,
                             vo,
                             exec_as_server);

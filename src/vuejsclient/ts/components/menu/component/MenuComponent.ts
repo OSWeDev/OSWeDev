@@ -80,7 +80,7 @@ export default class MenuComponent extends VueComponentBase {
                     my: 'left+10 center',
                     at: 'right center'
                 }
-            });
+            } as any);
 
         });
     }

@@ -1519,7 +1519,6 @@ export default class CRUDComponentField extends VueComponentBase
 
                     if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[id] != null)) {
                         newOptions.push(id);
-
                     }
                 }
                 if (this.isLoadingOptions) {
