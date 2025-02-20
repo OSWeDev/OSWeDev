@@ -3784,6 +3784,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Ajouter un texte après le surtitre" },
             'list_object_widget_options_component.symbole_surtitre.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter un texte après le sous titre" },
+            'list_object_widget_options_component.symbole_sous_titre.___LABEL___'
+        ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Le titre est une date ?" },

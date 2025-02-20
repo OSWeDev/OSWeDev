@@ -39,6 +39,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
     public filter_on_cmv_vo: boolean;
     public field_filter_cmv_vo: VOFieldRefVO;
     public symbole_surtitre: string;
+    public symbole_sous_titre: string;
     public filter_on_distant_vo: boolean;
     public field_filter_distant_vo: VOFieldRefVO;
 
@@ -65,6 +66,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         show_message_no_data?: boolean,
         message_no_data?: string,
         symbole_surtitre?: string,
+        symbole_sous_titre?: string,
     ): ListObjectWidgetOptionsVO {
         const res = new ListObjectWidgetOptionsVO();
         res.type_display = type_display;
@@ -87,6 +89,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         res.filter_on_cmv_vo = filter_on_cmv_vo;
         res.field_filter_cmv_vo = field_filter_cmv_vo;
         res.symbole_surtitre = symbole_surtitre;
+        res.symbole_sous_titre = symbole_sous_titre;
         res.filter_on_distant_vo = filter_on_distant_vo;
         res.field_filter_distant_vo = field_filter_distant_vo;
 

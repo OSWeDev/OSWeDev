@@ -259,7 +259,15 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
         const subtitles = await query_.select_vos();
 
-        return this.get_values_formatted(subtitles, this.widget_options.subtitle.field_id, this.widget_options.subtitle.api_type_id);
+        const res = this.get_values_formatted(subtitles, this.widget_options.subtitle.field_id, this.widget_options.subtitle.api_type_id);
+
+        if (this.widget_options?.symbole_sous_titre != '' && this.widget_options?.symbole_sous_titre != null && this.widget_options?.symbole_sous_titre != undefined) {
+            for (const i in res) {
+                res[i] = res[i] + ' ' + this.widget_options?.symbole_sous_titre;
+            }
+        }
+
+        return res;
     }
 
     private async get_surtitres() {

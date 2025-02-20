@@ -80,6 +80,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
     private filter_on_distant_vo: boolean = false;
     private field_filter_distant_vo: VOFieldRefVO = null;
     private symbole_surtitre: string = null;
+    private symbole_sous_titre: string = null;
 
     private optionsEditeur = {
         modules: {
@@ -242,6 +243,20 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
+    @Watch('symbole_sous_titre')
+    private async onchange_symbole_sous_titre() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.symbole_sous_titre != this.symbole_sous_titre) {
+            this.next_update_options = cloneDeep(this.widget_options);
+            this.next_update_options.symbole_sous_titre = this.symbole_sous_titre;
+
+            this.throttled_update_options();
+        }
+    }
+
     @Watch('symbole_surtitre')
     private async onchange_symbole_surtitre() {
         if (!this.widget_options) {
@@ -384,6 +399,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         (this.widget_options.message_no_data == options.message_no_data) &&
                         (this.widget_options.do_not_use_page_widget_ids == options.do_not_use_page_widget_ids) &&
                         (this.widget_options.symbole_surtitre == options.symbole_surtitre) &&
+                        (this.widget_options.symbole_sous_titre == options.symbole_sous_titre) &&
                         (this.widget_options.filter_on_cmv_vo == options.filter_on_cmv_vo) &&
                         (this.widget_options.field_filter_cmv_vo == options.field_filter_cmv_vo) &&
                         (this.widget_options.filter_on_distant_vo == options.filter_on_distant_vo) &&
@@ -415,6 +431,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         options.show_message_no_data,
                         options.message_no_data,
                         options.symbole_surtitre,
+                        options.symbole_sous_titre,
                     ) : null;
                 }
             } catch (error) {
@@ -454,6 +471,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.filter_on_cmv_vo = default_options.filter_on_cmv_vo;
             this.field_filter_cmv_vo = default_options.field_filter_cmv_vo;
             this.symbole_surtitre = default_options.symbole_surtitre;
+            this.symbole_sous_titre = default_options.symbole_sous_titre;
             this.filter_on_distant_vo = default_options.filter_on_distant_vo;
             this.field_filter_distant_vo = default_options.field_filter_distant_vo;
 
@@ -520,6 +538,9 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.symbole_surtitre != this.widget_options.symbole_surtitre) {
             this.symbole_surtitre = this.widget_options.symbole_surtitre;
+        }
+        if (this.symbole_sous_titre != this.widget_options.symbole_sous_titre) {
+            this.symbole_sous_titre = this.widget_options.symbole_sous_titre;
         }
         if (this.filter_on_distant_vo != this.widget_options.filter_on_distant_vo) {
             this.filter_on_distant_vo = this.widget_options.filter_on_distant_vo;
