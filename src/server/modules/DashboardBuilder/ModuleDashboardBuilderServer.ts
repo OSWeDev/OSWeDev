@@ -258,6 +258,43 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.nearest.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options du filtre'
+        }, 'var_mixed_charts_widget_options_component.section.filter.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Titre du widget'
+        }, 'var_mixed_charts_widget_options_component.section.widget_title.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de base'
+        }, 'var_mixed_charts_widget_options_component.section.chart_basic.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Titre du graphique'
+        }, 'var_mixed_charts_widget_options_component.section.chart_title.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de légende'
+        }, 'var_mixed_charts_widget_options_component.section.legend_options.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de données'
+        }, 'var_mixed_charts_widget_options_component.section.data_options.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Multi dataset'
+        }, 'var_mixed_charts_widget_options_component.section.multiple_dataset.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de l’échelle X'
+        }, 'var_mixed_charts_widget_options_component.section.scale_options_x.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de l’échelle Y'
+        }, 'var_mixed_charts_widget_options_component.section.y_axis_options.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
         }, 'var_radar_chart_widget_options_component.has_dimension.___LABEL___'));
 

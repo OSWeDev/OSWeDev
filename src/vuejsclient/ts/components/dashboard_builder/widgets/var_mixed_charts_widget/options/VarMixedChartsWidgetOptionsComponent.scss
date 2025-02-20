@@ -1,38 +1,91 @@
+@import 'skin-variables.scss';
+
 .var_mixed_charts_widget_options_component {
+    background-color: $input_editable_bg_color; 
+    border: $table_border; 
+    border-radius: 8px;
+    padding: 1rem;
+
+    // ======================================================
+    // Les blocs section
+    // ======================================================
+    .section {
+        border: $table_border;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+        background-color: $input_editable_bg_color;
+
+        .section-header {
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            background-color: $button_primary_bg_color; // Couleur brand
+            color: $button_text_color;                  // Texte en blanc ou autre
+            border-radius: 6px 6px 0 0;
+            display: flex;
+            align-items: center;
+
+            h4 {
+                flex-grow: 1;
+                margin: 0;
+                font-size: 1rem;
+            }
+            i.icon {
+                margin-left: 0.5rem;
+            }
+        }
+
+        .section-content {
+            padding: 1rem;
+            background-color: $input_editable_bg_color;
+            border-radius: 0 0 6px 6px;
+        }
+    }
+
+    // ======================================================
+    // Titles, labels, inputs
+    // ======================================================
     .options_separator_lvl1 {
-        font-size: medium;
+        font-size: 1rem;
         margin-top: 1em;
-        background: white;
+        background-color: $input_editable_bg_color;
         text-align: center;
         border-radius: 1em;
         padding: 0.5em;
         font-weight: bold;
         margin-bottom: 0.3em;
-        color: #333;
+        color: $header_text_color; // ou $light_warning, selon ce que tu veux
     }
 
     .options_separator_lvl2 {
         margin-top: 1em;
         text-align: center;
         text-decoration: underline;
+        color: $header_text_color;
+        font-weight: 600;
     }
 
     > div {
         margin-bottom: 0.5em;
 
         .input_label {
-            font-size: small;
-            color: #555;
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+            display: inline-block;
         }
 
-        input[type="text"] {
+        input[type="text"],
+        input[type="number"],
+        .multiselect__input {
             width: 100%;
-            padding: 0.3em;
-            border: solid 1px #bbb;
-            border-radius: 2px;
+            padding: 0.5em;
+            border: $table_border;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: border-color 0.2s ease;
 
-            &.multiselect__input {
-                border: none;
+            &:focus {
+                outline: none;
+                border-color: $light_warning; // Pour un focus coloré
             }
         }
     }

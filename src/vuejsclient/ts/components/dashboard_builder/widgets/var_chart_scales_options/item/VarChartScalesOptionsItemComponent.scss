@@ -1,27 +1,83 @@
+@import 'skin-variables.scss';
+
 .var_chart_scales_options_item_component {
-    .options_separator_lvl2 {
-        margin-top: 1em;
-        text-align: center;
-        text-decoration: underline;
+    background-color: $input_editable_bg_color;
+    border: $table_border;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+
+    .var_chart_scales_options_item_component_wrapper {
+        margin-bottom: 0.5em;
     }
 
-    > div {
-        margin-bottom: 0.5em;
+    .section {
+        border: $table_border;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+        background-color: $input_editable_bg_color;
 
-        .input_label {
-            font-size: small;
-            color: #555;
+        .section-header {
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            background-color: $button_primary_bg_color;
+            color: $button_text_color;
+            border-radius: 6px 6px 0 0;
+            display: flex;
+            align-items: center;
+
+            h4 {
+                flex-grow: 1;
+                margin: 0;
+                font-size: 1rem;
+            }
+            i.icon {
+                margin-left: 0.5rem;
+            }
         }
 
-        input[type="text"] {
-            width: 100%;
-            padding: 0.3em;
-            border: solid 1px #bbb;
-            border-radius: 2px;
+        .section-content {
+            padding: 1rem;
+            background-color: $input_editable_bg_color;
+            border-radius: 0 0 6px 6px;
+        }
+    }
 
-            &.multiselect__input {
-                border: none;
-            }
+    .options_separator_lvl2 {
+        margin-top: 1em;
+        margin-bottom: 1em;
+        background-color: $button_primary_bg_color;
+        color: $button_text_color;
+        text-align: center;
+        border-radius: 12px;
+        padding: 0.5rem 1rem;
+        font-weight: bold;
+        font-size: 1rem;
+    }
+
+    .input_label {
+        font-size: 0.9rem;
+        color: $header_text_color;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+        display: inline-block;
+    }
+
+    .input_wrapper {
+        margin-bottom: 0.75rem;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+        width: 100%;
+        padding: 0.5rem;
+        border: $table_border;
+        border-radius: 4px;
+        font-size: 0.9rem;
+
+        &:focus {
+            outline: none;
+            border-color: $light_warning;
         }
     }
 }

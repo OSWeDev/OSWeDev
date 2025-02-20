@@ -1,51 +1,71 @@
+@import 'skin-variables.scss';
+
 .var_charts_scales_options_component {
-    .var_charts_scales_options_selector {
-        .input_wrapper {
-            .btn-primary.closer {
-                width: 100%;
-                height: 30px;
-                margin-top: 10px;
-                border-radius: 5px;
-                background-color: #87949f !important;
-                border-color: #00000000 !important;
-                box-shadow: inset 0px -2px 0px rgb(0 0 0 / 45%);
-            }
-        }
-    }        
-    .options_separator_lvl1 {
-        font-size: medium;
-        margin-top: 1em;
-        background: white;
-        text-align: center;
-        border-radius: 1em;
-        padding: 0.5em;
-        font-weight: bold;
-        margin-bottom: 0.3em;
-        color: #333;
-    }
+    background-color: $input_editable_bg_color;
+    padding: 1rem;
+    border: $table_border;
+    border-radius: 4px;
+    margin-bottom: 1rem;
 
     .options_separator_lvl2 {
-        margin-top: 1em;
+        margin-top: 0.5rem;
+        margin-bottom: 1rem;
+        background-color: $button_primary_bg_color;
+        color: $button_text_color;
         text-align: center;
-        text-decoration: underline;
+        border-radius: 12px;
+        padding: 0.5rem 1rem;
+        font-weight: bold;
+        font-size: 1rem;
     }
 
-    > div {
-        margin-bottom: 0.5em;
+    .var_charts_scales_options_selector {
+        .add_var_chart_scales_options_button_wrapper {
+            margin-bottom: 1rem;
 
-        .input_label {
-            font-size: small;
-            color: #555;
+            .add_var_chart_scales_options_button {
+                font-size: 1rem;
+                font-weight: 600;
+                background-color: $success_color;  // ou $button_primary_bg_color
+                border-color: $success_color;
+                color: $button_text_color;
+
+                &:hover {
+                    background-color: $button_primary_active_bg_color; // ex: un "hover" plus clair
+                }
+            }
         }
 
-        input[type="text"] {
-            width: 100%;
-            padding: 0.3em;
-            border: solid 1px #bbb;
-            border-radius: 2px;
+        .input_wrapper {
+            margin-bottom: 1.5rem;
 
-            &.multiselect__input {
+            .closer {
+                display: block;
+                margin: 0.5rem auto;
+                width: fit-content; 
+                height: 40px;
+                text-align: center;
+                background-color: $light_warning; 
                 border: none;
+                box-shadow: inset 0px -2px 0px rgba(0, 0, 0, 0.45);
+                color: $button_text_color;
+                font-weight: 600;
+
+                &:hover {
+                    background-color: $button_primary_active_bg_color;
+                }
+            }
+
+            .remove_var_chart_scales_options_button {
+                margin-top: 0.75rem;
+                font-weight: 600;
+                background-color: $danger_color;
+                color: $button_text_color;
+                border: none;
+
+                &:hover {
+                    background-color: rgba($danger_color, 0.8); 
+                }
             }
         }
     }

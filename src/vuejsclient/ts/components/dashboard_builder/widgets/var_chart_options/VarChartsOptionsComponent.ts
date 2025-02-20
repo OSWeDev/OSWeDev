@@ -100,9 +100,6 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         }
 
         this.options_props = this.options;
-        if (this.opened_prop_index.length == 0) {
-            this.opened_prop_index = Array.from({ length: this.options_props.length }, (x, i) => i);
-        }
         this.color_palettes_labels = await this.get_color_palettes_labels();
         this.use_palette = this.options_props.some(option_prop => option_prop.color_palette);
         this.tmp_selected_color_palette = this.use_palette ? this.color_palettes_labels[this.searchIndexOfArray(this.options_props[0].color_palette, this.color_palettes)] : null;
