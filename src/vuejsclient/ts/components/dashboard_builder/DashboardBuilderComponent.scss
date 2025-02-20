@@ -264,6 +264,7 @@
             width: 600px;
         }
     }
+
     .collapse_fields_wrapper_2 {
         padding: 0.2em;
         margin: 0em;
@@ -276,6 +277,7 @@
         box-shadow: 1px 1px 5px grey;
         top: 150px;
     }
+
     .collapse_fields_wrapper_2:hover {
         background: #9c9c9c;
         box-shadow: 1px 1px 5px rgb(167, 167, 167);
@@ -308,13 +310,5 @@
     .grid_item_wrapper.shaded {
         display: block;
         opacity: 0.4;
-    }
-}
-
-body.sidenav-toggled .navbar-sidenav {
-    overflow: hidden !important;
-
-    .sidenav-second-level a {
-        padding-left: 1.6em !important;
     }
 }

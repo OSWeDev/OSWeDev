@@ -777,8 +777,8 @@ export default class DatatableComponent extends VueComponentBase {
     public async mounted() {
         await this.loadDatatable();
 
-        // Activate tooltip
-        $('[data-toggle="tooltip"]').tooltip();
+        // Activate tooltip => attention si on réactive on doit le faire
+        // $('[data-toggle="tooltip"]').tooltip();
 
         // Select/Deselect checkboxes
         const checkbox = $('table tbody input[type="checkbox"]');

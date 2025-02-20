@@ -3,6 +3,12 @@ import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO'
 import VueComponentBase from '../../VueComponentBase';
 import MenuController from '../MenuController';
 import './MenuComponent.scss';
+// import $ from 'jquery';
+// import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
+// // Récupération et renommage du plugin tooltip de Bootstrap
+// const bootstrapTooltip = $.fn.tooltip['noConflict']();
+// $.fn['bootstrapTooltip'] = bootstrapTooltip;
 
 @Component({
     template: require('./MenuComponent.pug'),
@@ -61,6 +67,22 @@ export default class MenuComponent extends VueComponentBase {
 
         this.childrenElementsById = MenuController.getInstance().menus_by_parent_id;
         this.access_by_name = MenuController.getInstance().access_by_name;
+
+        this.$nextTick(() => {
+            // $('.menucomponent ul#mainmenu.navbar-nav.navbar-sidenav [data-toggle="tooltip"]')['bootstrapTooltip']({
+            //     template: '<div class="tooltip menucomponent-tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
+            // });
+            $('.menucomponent ul#mainmenu.navbar-nav.navbar-sidenav [data-toggle="tooltip"]').tooltip({
+                classes: {
+                    'ui-tooltip': 'menucomponent-tooltip'
+                },
+                position: {
+                    my: 'left+10 center',
+                    at: 'right center'
+                }
+            });
+
+        });
     }
 
     private get_name_menus(menuElement: MenuElementVO) {
@@ -87,5 +109,11 @@ export default class MenuComponent extends VueComponentBase {
         }
 
         return res;
+    }
+
+    private submenuIsOpen(element: any): boolean {
+        // Exemple : on considère ouvert si l'ID HTML correspondant est .show
+        const el = document.getElementById(element.name);
+        return !!el && el.classList.contains('show');
     }
 }

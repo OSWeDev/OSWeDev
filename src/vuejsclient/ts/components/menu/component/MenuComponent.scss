@@ -1,5 +1,9 @@
+@import 'skin-variables.scss';
+
 .menucomponent {
     #mainmenu.navbar-nav.navbar-sidenav {
+
+
         overflow: auto;
 
         ul li a {
@@ -18,4 +22,132 @@
             padding-top: 2px;
         }
     }
+}
+
+.menucomponent-tooltip {
+    display: none !important;
+}
+
+.sidenav-toggled {
+
+    .navbar-sidenav .nav-item:after,
+    .navbar-sidenav .nav-link:after {
+        display: block !important;
+        position: relative;
+        top: -1.7em;
+        right: -.7em;
+    }
+
+    #mainNav .navbar-collapse,
+    #mainNav .navbar-collapsing {
+
+        .menucomponent #mainmenu.navbar-nav.navbar-sidenav {
+            overflow: hidden;
+            overflow-y: auto;
+            max-height: 100vh;
+            width: 55px;
+            // position: relative;
+
+            ul,
+            li[data-toggle="tooltip"] {
+                width: 55px !important;
+            }
+
+            &::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: rgba(0, 0, 0, 0.1);
+                border-radius: 10px;
+                transition: background 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            }
+
+            &:hover::-webkit-scrollbar-thumb {
+                background: rgba(0, 0, 0, 0.6);
+            }
+
+            // ul li a {
+            //     display: flex !important;
+            //     align-items: center;
+            // }
+
+            // .nav-item i {
+            //     width: 2em;
+            //     text-align: left;
+            //     font-size: large;
+            // }
+
+            // .nav-link-collapse:after {
+            //     margin-left: .3em;
+            //     padding-top: 2px;
+            // }
+
+            .sidenav-second-level a {
+                padding-left: 1em !important;
+                border-left: solid 3px $button_primary_bg_color !important;
+            }
+
+            .nav-item i {
+                width: 1.1em !important;
+                text-align: center !important;
+                font-size: large !important;
+            }
+
+            .nav-item .nav-link {
+                padding-left: 1.2em !important;
+            }
+        }
+    }
+
+    .menucomponent-tooltip {
+        background-color: #222 !important;
+        /* Fond sombre */
+        color: #fff !important;
+        /* Texte clair */
+        border-radius: 3px;
+        box-shadow: none !important;
+        /* Pas d'ombre */
+        font-size: 13px;
+        padding: 5px 8px;
+        display: initial !important;
+        border: none;
+
+        .ui-tooltip-content {
+            /* jQuery UI insère le texte dans un .ui-tooltip-content */
+            color: #fff !important;
+        }
+    }
+
+    // .menucomponent-tooltip {
+    //     font-size: 12px;
+    //     font-weight: 500;
+    //     padding: 5px 8px;
+    //     background-color: #222 !important;
+    //     /* Fond sombre */
+    //     color: #fff !important;
+    //     /* Texte clair */
+    //     border-radius: 4px;
+    //     box-shadow: none !important;
+    //     /* Pas d'ombre */
+    //     opacity: 1 !important;
+    //     display: initial;
+
+    //     .tooltip-inner {
+    //         background-color: #222 !important;
+    //         color: #fff !important;
+    //         border-radius: 4px;
+    //         padding: 5px 8px;
+    //     }
+
+    // }
+
+    // .bs-tooltip-right .arrow::before {
+    //     border-right-color: #222 !important;
+    //     /* Ajuste la flèche */
+    // }
 }
