@@ -57,9 +57,9 @@ export default class FileComponent extends VueComponentBase {
         const onSuccess = (this.options) ? this.options.success : null;
         const dropoptions = {
             url: '/ModuleFileServer/upload',
-            headers: {
-                'X-CSRF-Token': AjaxCacheClientController.getInstance().csrf_token,
-            },
+            // headers: {
+            //     'X-CSRF-Token': AjaxCacheClientController.getInstance().csrf_token,
+            // },
             createImageThumbnails: true,
             maxFiles: 1,
             clickable: true,

@@ -1,4 +1,4 @@
-import { Application, Express, Request, Response } from 'express';
+import { Application, Request, Response } from 'express';
 import zlib from 'zlib';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
@@ -18,15 +18,17 @@ import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
+import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
+import ServerAPIController from './ServerAPIController';
 import APIBGThread from './bgthreads/APIBGThread';
 import APIAccessDenied from './exceptions/APIAccessDenied';
 import APIGunZipError from './exceptions/APIGunZipError';
 import APIParamTranslatorError from './exceptions/APIParamTranslatorError';
 import APIServerHandlerError from './exceptions/APIServerHandlerError';
-import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
+import APICallResWrapper from './vos/APICallResWrapper';
 
 export default class ModuleAPIServer extends ModuleServerBase {
 
@@ -47,6 +49,11 @@ export default class ModuleAPIServer extends ModuleServerBase {
             ModuleAPIServer.instance = new ModuleAPIServer();
         }
         return ModuleAPIServer.instance;
+    }
+
+    @RunsOnMainThread(ModuleAPIServer.getInstance)
+    private async get_do_notif_result(call_id: number): Promise<boolean> {
+        return ServerAPIController.api_calls[call_id]?.do_notif_result;
     }
 
     /**
@@ -110,11 +117,9 @@ export default class ModuleAPIServer extends ModuleServerBase {
      * @param request_body
      * @param request_headers
      * @param request_params
-     * @param do_notif_result
      * @param notif_result_uid
      * @param notif_result_tab_id
      * @param api_call_id
-     * @param res
      * @returns
      */
     @RunsOnBgThread(APIBGThread.BGTHREAD_name, ModuleAPIServer.getInstance, true)
@@ -127,11 +132,9 @@ export default class ModuleAPIServer extends ModuleServerBase {
         request_body: any,
         request_headers: any,
         request_params: any,
-        do_notif_result: boolean,
         notif_result_uid: number,
         notif_result_tab_id: string,
-        api_call_id: number,
-        res?: Response
+        api_call_id: number
     ): Promise<U> {
 
         const api: APIDefinition<T, U> = APIControllerWrapper.registered_apis[api_name];
@@ -233,7 +236,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
             // Par défaut, params est un tableau vide si aucun paramètre n'est passé
             const safeParams = (has_params && params && params.length) ? params : [];
             safeParams.push(req);
-            safeParams.push(res);
+            safeParams.push(api_call_id); // On change le dernier paramètre pour ajouter l'api_call_id qui permet via this.send_redirect de renvoyer une redirection (ou d'accéder au res sur le main thread pour cette api)
 
             returnvalue = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session_id, sid, uid),
@@ -249,48 +252,84 @@ export default class ModuleAPIServer extends ModuleServerBase {
             throw new APIServerHandlerError(error, api, uid);
         }
 
-        if (res && res.headersSent && (!do_notif_result)) {
-            // Si les headers sont déjà envoyés, on a plus rien à faire ici
-            return;
-        }
+        // On doit demander l'état de do_notif_result de l'API, pour récupérer la version à jour
+        const do_notif_result = await this.get_do_notif_result(api_call_id);
 
-        if (
-            (api.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
-            (api.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF)) {
+        // if (!do_notif_result) {
+        //     // Si les headers sont déjà envoyés, on a plus rien à faire ici
+        //     return;
+        // }
+
+        // if (
+        //     (api.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
+        //     (api.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF)) {
+        //     if (typeof returnvalue == 'undefined') {
+        //         returnvalue = {} as any;
+        //     }
+        // }
+
+        // switch (api.api_return_type) {
+        //     case APIDefinition.API_RETURN_TYPE_NOTIF:
+        //         if (do_notif_result) {
+        //             await this.try_send_notif_result(
+        //                 notif_result_uid,
+        //                 notif_result_tab_id,
+        //                 api_call_id,
+        //                 returnvalue,
+        //             );
+        //             return;
+        //         }
+
+        //         // return APIControllerWrapper.try_translate_vo_to_api(APINotifTypeResultVO.createNew(
+        //         //     null,
+        //         //     returnvalue
+        //         // ));
+        //         return APINotifTypeResultVO.createNew(
+        //             null,
+        //             returnvalue
+        //         ) as unknown as U;
+
+        //     case APIDefinition.API_RETURN_TYPE_JSON:
+        //     case APIDefinition.API_RETURN_TYPE_FILE:
+        //         // return APIControllerWrapper.try_translate_vo_to_api(returnvalue);
+        //         return returnvalue as unknown as U;
+        // }
+
+        // return returnvalue;
+        // // res.json(returnvalue);
+
+
+        if (do_notif_result) {
+
             if (typeof returnvalue == 'undefined') {
                 returnvalue = {} as any;
             }
+            await this.try_send_notif_result(
+                notif_result_uid,
+                notif_result_tab_id,
+                api_call_id,
+                returnvalue,
+            );
+            return;
         }
 
         switch (api.api_return_type) {
             case APIDefinition.API_RETURN_TYPE_NOTIF:
-                if (do_notif_result) {
-                    await this.try_send_notif_result(
-                        notif_result_uid,
-                        notif_result_tab_id,
-                        api_call_id,
-                        returnvalue,
-                    );
-                    return;
+                if (typeof returnvalue == 'undefined') {
+                    returnvalue = {} as any;
                 }
 
-                // return APIControllerWrapper.try_translate_vo_to_api(APINotifTypeResultVO.createNew(
-                //     null,
-                //     returnvalue
-                // ));
                 return APINotifTypeResultVO.createNew(
-                    null,
+                    api_call_id,
                     returnvalue
                 ) as unknown as U;
 
             case APIDefinition.API_RETURN_TYPE_JSON:
             case APIDefinition.API_RETURN_TYPE_FILE:
-                // return APIControllerWrapper.try_translate_vo_to_api(returnvalue);
                 return returnvalue as unknown as U;
         }
 
         return returnvalue;
-        // res.json(returnvalue);
     }
 
     public async configure(): Promise<void> {
@@ -315,23 +354,23 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     break;
                 case APIDefinition.API_TYPE_POST:
                     // ConsoleHandler.log("AJOUT API POST :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
-                    if (api.csrf_protection) {
-                        // app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
-                        app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrf_protection, (req: Request, res: Response) => this.api_request_handler(api, req, res));
-                    } else {
-                        // app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
-                        app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), (req: Request, res: Response) => this.api_request_handler(api, req, res));
-                    }
+                    // if (api.csrf_protection) {
+                    //     // app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
+                    //     app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrf_protection, (req: Request, res: Response) => this.api_request_handler(api, req, res));
+                    // } else {
+                    // app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
+                    app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), (req: Request, res: Response) => this.api_request_handler(api, req, res));
+                    // }
                     break;
                 case APIDefinition.API_TYPE_POST_FOR_GET:
                     // ConsoleHandler.log("AJOUT API POST FOR GET :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
-                    if (api.csrf_protection) {
-                        // app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
-                        app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrf_protection, (req: Request, res: Response) => this.api_request_handler(api, req, res));
-                    } else {
-                        // app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
-                        app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), (req: Request, res: Response) => this.api_request_handler(api, req, res));
-                    }
+                    // if (api.csrf_protection) {
+                    //     // app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
+                    //     app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrf_protection, (req: Request, res: Response) => this.api_request_handler(api, req, res));
+                    // } else {
+                    // app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
+                    app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), (req: Request, res: Response) => this.api_request_handler(api, req, res));
+                    // }
                     break;
             }
         }
@@ -343,23 +382,23 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
         const notif_result_uid: number = req.session.uid;
         const notif_result_tab_id: string = req.headers.client_tab_id as string;
-        let api_call_id = null;
+        const api_call_id = ++ModuleAPIServer.API_CALL_ID;
         let do_notif_result: boolean = (
             (api.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF) &&
             (!!notif_result_uid) &&
             (!!notif_result_tab_id));
+        const can_notif_result =
+            (!!PushDataServerController.registeredSockets) &&
+            (!!PushDataServerController.registeredSockets[notif_result_uid]) &&
+            (!!PushDataServerController.registeredSockets[notif_result_uid][notif_result_tab_id]);
 
         try {
 
             // On check aussi qu'on a bien un socket à date si on doit notif
-            do_notif_result = do_notif_result && (
-                (!!PushDataServerController.registeredSockets) &&
-                (!!PushDataServerController.registeredSockets[notif_result_uid]) &&
-                (!!PushDataServerController.registeredSockets[notif_result_uid][notif_result_tab_id]));
+            do_notif_result = do_notif_result && can_notif_result;
 
             // Si on répond en notif, on commence par dire OK au client, avant de gérer vraiment la demande
             if (do_notif_result) {
-                api_call_id = ++ModuleAPIServer.API_CALL_ID;
                 const notif_result = APINotifTypeResultVO.createNew(
                     api_call_id,
                     null
@@ -377,7 +416,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
         try {
             let api_res = null;
 
-            api_res = await StackContext.runPromise(
+            const api_call_promise = StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, req.session.id, req.session.sid, req.session.uid),
                 this.exec_api,
                 this,
@@ -389,12 +428,22 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 req.body,
                 req.headers,
                 req.params,
-                do_notif_result,
                 notif_result_uid,
                 notif_result_tab_id,
                 api_call_id,
             );
+            ServerAPIController.api_calls[api_call_id] = new APICallResWrapper(
+                api_call_id,
+                api.api_name,
+                res,
+                api_call_promise,
+                do_notif_result,
+                can_notif_result,
+                notif_result_uid,
+                notif_result_tab_id,
+            );
 
+            api_res = await api_call_promise;
 
             // api_res = await this.exec_api(
             //     api.api_name,
@@ -411,7 +460,11 @@ export default class ModuleAPIServer extends ModuleServerBase {
             //     api_call_id,
             // );
 
-            res.json(api_res);
+            if (!(res && res.headersSent) && !ServerAPIController.api_calls[api_call_id].do_notif_result) {
+                res.json(api_res);
+            }
+
+            delete ServerAPIController.api_calls[api_call_id];
         } catch (error) {
             switch (error._type) {
                 case APIAccessDenied.ERROR_TYPE:

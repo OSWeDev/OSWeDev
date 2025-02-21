@@ -76,9 +76,9 @@ export default class ImageComponent extends VueComponentBase {
         const onSuccess = (this.options) ? this.options.success : null;
         const dropoptions = {
             url: '/ModuleImageServer/upload',
-            headers: {
-                'X-CSRF-Token': AjaxCacheClientController.getInstance().csrf_token,
-            },
+            // headers: {
+            //     'X-CSRF-Token': AjaxCacheClientController.getInstance().csrf_token,
+            // },
             createImageThumbnails: true,
             maxFiles: 1,
             clickable: true,

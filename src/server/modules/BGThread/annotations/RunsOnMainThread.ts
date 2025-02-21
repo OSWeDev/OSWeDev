@@ -11,8 +11,9 @@ export default class RunsOnMainThreadDataController {
 /**
  * Decorator indicating and handling that the method should be executed on the main thread
  * Optimized : if the method is called from the main thread, it will be executed directly and the annotation will be removed so that the method is executed directly next time
+ * @param instanceGetter Getter for the instance of the class on which the method is called, null by default for static methods
  */
-export function RunsOnMainThread(instanceGetter: () => any) {
+export function RunsOnMainThread(instanceGetter: () => any = null) {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
 
         if (ModulesManager.isGenerator) {

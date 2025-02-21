@@ -92,6 +92,7 @@ import OseliaServerController from './OseliaServerController';
 import OseliaOldRunsResyncBGThread from './bgthreads/OseliaOldRunsResyncBGThread';
 import OseliaRunBGThread from './bgthreads/OseliaRunBGThread';
 import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuilderBGThread';
+import ServerAPIController from '../API/ServerAPIController';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -715,14 +716,15 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
     }
 
-    public async open_oselia_db_from_action_url(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
+    public async open_oselia_db_from_action_url(action_url: ActionURLVO, uid: number, req: Request, api_call_id: number): Promise<ActionURLCRVO> {
 
-        if (!action_url.params) {
+        const params: { thread_id: number } = action_url.params as { thread_id: number };
+        if ((!params) || (!params.thread_id)) {
             ConsoleHandler.error('Impossible de trouver la discussion Oselia pour l\'action URL: ' + action_url.action_name);
             return ActionURLServerTools.create_error_cr(action_url, 'Impossible de trouver la discussion Oselia');
         }
 
-        res.redirect('/f/oselia/' + action_url.params.toString());
+        await ServerAPIController.send_redirect_if_headers_not_already_sent(api_call_id, '/f/oselia/' + params.thread_id.toString());
         return ActionURLServerTools.create_info_cr(action_url, 'Redirection vers la discussion avec Osélia');
     }
 
@@ -1101,7 +1103,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     }
 
 
-    public async accept_join_request(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
+    public async accept_join_request(action_url: ActionURLVO, uid: number, req: Request, api_call_id: number): Promise<ActionURLCRVO> {
         if (!action_url.params) {
             ConsoleHandler.error('Impossible de trouver la discussion Oselia pour l\'action URL: ' + action_url.action_name);
             return ActionURLServerTools.create_error_cr(action_url, 'Impossible de trouver la discussion Oselia');
@@ -1142,7 +1144,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         return ActionURLServerTools.create_info_cr(action_url, 'Ajout dans la conversation Osélia');
     }
 
-    public async refuse_join_request(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
+    public async refuse_join_request(action_url: ActionURLVO, uid: number): Promise<ActionURLCRVO> {
         const params = action_url.params as { asking_user_id: number, target_thread_id: number, thread_message_id: number };
         const asking_user_id = params.asking_user_id;
         const target_thread_message_id = params.thread_message_id;

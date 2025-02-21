@@ -28,6 +28,29 @@
     display: none !important;
 }
 
+#mainNav .navbar-collapse,
+#mainNav .navbar-collapsing {
+    .menucomponent #mainmenu.navbar-nav.navbar-sidenav {
+        &::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            transition: background 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+
+        &:hover::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.6);
+        }
+    }
+}
+
 .sidenav-toggled {
 
     .navbar-sidenav .nav-item:after,
@@ -51,24 +74,6 @@
             ul,
             li[data-toggle="tooltip"] {
                 width: 55px !important;
-            }
-
-            &::-webkit-scrollbar {
-                width: 4px;
-            }
-
-            &::-webkit-scrollbar-track {
-                background: transparent;
-            }
-
-            &::-webkit-scrollbar-thumb {
-                background: rgba(0, 0, 0, 0.1);
-                border-radius: 10px;
-                transition: background 0.3s ease-in-out, opacity 0.3s ease-in-out;
-            }
-
-            &:hover::-webkit-scrollbar-thumb {
-                background: rgba(0, 0, 0, 0.6);
             }
 
             // ul li a {

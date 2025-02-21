@@ -261,10 +261,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     /**
      *
      * @returns
-     * @deprecated utilise StackContext que l'on souhaite supprimer. Utiliser plutôt logout_session
      */
     @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
-    public async logout(req: Request, res: Response) {
+    public async logout(req: Request) {
 
         return this.logout_sid(req.session.sid);
     }
@@ -2293,7 +2292,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return null;
     }
 
-    // private redirectUserPostLogin(redirect_to: string, res: Response) {
+    // private redirectUserPostLogin(redirect_to: string) {
     //     if (redirect_to && (redirect_to != "")) {
     //         res.redirect(redirect_to);
     //     } else {
@@ -2481,17 +2480,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'session_share');
     }
 
-    private get_my_sid(req: Request, res: Response) {
-        return (res && res.req && res.req.cookies) ? res.req.cookies['sid'] : req.session.sid;
+    private get_my_sid(req: Request) {
+        return req.session.sid;
     }
 
-    private get_my_session_id(req: Request, res: Response) {
-        // let session = StackContext.get('SESSION');
-        // if (!session) {
-        //     return null;
-        // }
-        // return session.id;
-        return res.req.sessionID;
+    private get_my_session_id(req: Request) {
+        return req.session.id;
     }
 
     /**

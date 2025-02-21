@@ -32,7 +32,7 @@ export default class TeamsAPIServerController {
         action.action_name = 'En parler avec Osélia [' + thread_id + ']';
         action.action_code = ActionURLServerTools.get_unique_code_from_text(action.action_name);
         action.action_remaining_counter = -1; // infini
-        action.params = thread_id;
+        action.params = { thread_id: thread_id };
         action.valid_ts_range = RangeHandler.createNew(TSRange.RANGE_TYPE, Dates.now(), Dates.add(Dates.now(), 60, TimeSegment.TYPE_DAY), true, true, TimeSegment.TYPE_DAY);
 
         action.action_callback_function_name = reflect<ModuleOseliaServer>().open_oselia_db_from_action_url;

@@ -96,15 +96,6 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
     private last_calculation_cpt: number = 0;
     private old_widget_options: BulkOpsWidgetOptions = null;
 
-    private onchangevo(vo, field, field_value) {
-        if (!this.editable_item) {
-            return;
-        }
-
-        this.new_value = field_value;
-        this.editable_item[this.tablecolumn_field_id] = field_value;
-    }
-
     get tablecolumn_field_id() {
         if (!this.field) {
             return null;
@@ -125,6 +116,32 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         return this.field ? CRUD.get_dt_field(this.field).setModuleTable(this.moduletable) : null;
     }
 
+
+    get title_name_code_text() {
+        if (!this.widget_options) {
+            return null;
+        }
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    get widget_options(): BulkOpsWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: BulkOpsWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as BulkOpsWidgetOptions;
+                options = options ? new BulkOpsWidgetOptions(options.api_type_id, options.limit) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
     get get_datatable_row_editable_field() {
         /**
          * on force l'id pour être conforme au tablecolumndesc qu'on a dans les dbtables du widget
@@ -139,60 +156,6 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
         const moduletable = ModuleTableController.module_tables_by_vo_type[this.api_type_id];
         return moduletable;
-    }
-
-    get field_id_select_options(): string[] {
-        const res: string[] = [];
-
-        if (!this.moduletable) {
-            return [];
-        }
-
-        const fields = this.moduletable.get_fields();
-        fields.forEach((field) => field.is_readonly ? null : res.push(field.field_id));
-        return res;
-    }
-
-    private field_id_select_label(field_id: string): string {
-        return this.fields_labels_by_id ? this.fields_labels_by_id[field_id] : null;
-    }
-
-    get fields_labels_by_id(): { [field_id: string]: string } {
-        if (!this.moduletable) {
-            return {};
-        }
-
-        const res: { [field_id: string]: string } = {};
-        const fields = this.moduletable.get_fields();
-
-        for (const i in fields) {
-            const field = fields[i];
-
-            if (field.is_readonly) {
-                continue;
-            }
-
-            res[field.field_id] = this.t(field.field_label.code_text);
-        }
-
-        return res;
-    }
-
-    private mounted() {
-
-        this.editable_item = this.moduletable ? this.moduletable.voConstructor() : null;
-        this.stopLoading();
-    }
-
-    @Watch('api_type_id', { immediate: true })
-    private async onchange_api_type_id() {
-        if (!this.api_type_id) {
-            this.has_access = false;
-            return;
-        }
-
-        this.has_access = await ModuleAccessPolicy.getInstance().testAccess(
-            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.api_type_id));
     }
 
     get api_type_id(): string {
@@ -272,6 +235,86 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         return res;
     }
 
+    get columns_by_field_id(): { [datatable_field_uid: string]: TableColumnDescVO } {
+        if (!this.columns) {
+            return null;
+        }
+
+        const res: { [datatable_field_uid: string]: TableColumnDescVO } = {};
+
+        for (const i in this.columns) {
+            const col = this.columns[i];
+            res[col.datatable_field_uid] = col;
+        }
+
+        return res;
+    }
+
+    get field_id_select_options(): string[] {
+        const res: string[] = [];
+
+        if (!this.moduletable) {
+            return [];
+        }
+
+        const fields = this.moduletable.get_fields();
+        fields.forEach((field) => field.is_readonly ? null : res.push(field.field_id));
+        return res;
+    }
+
+    get pagination_pagesize() {
+        if (!this.widget_options) {
+            return 0;
+        }
+
+        return this.widget_options.limit;
+    }
+
+    get fields_labels_by_id(): { [field_id: string]: string } {
+        if (!this.moduletable) {
+            return {};
+        }
+
+        const res: { [field_id: string]: string } = {};
+        const fields = this.moduletable.get_fields();
+
+        for (const i in fields) {
+            const field = fields[i];
+
+            if (field.is_readonly) {
+                continue;
+            }
+
+            res[field.field_id] = this.t(field.field_label.code_text);
+        }
+
+        return res;
+    }
+
+    @Watch('widget_options', { immediate: true })
+    private async onchange_widget_options() {
+        if (this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
+
+        await this.throttled_update_visible_options();
+    }
+
+    @Watch('api_type_id', { immediate: true })
+    private async onchange_api_type_id() {
+        if (!this.api_type_id) {
+            this.has_access = false;
+            return;
+        }
+
+        this.has_access = await ModuleAccessPolicy.getInstance().testAccess(
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.api_type_id));
+    }
+
     @Watch('field_id_selected')
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
@@ -295,27 +338,12 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             const row = this.data_rows[i];
             const cloned_raw = cloneDeep(row);
             const cloned_res = cloneDeep(row);
-            cloned_raw[this.field_id_selected] = this.new_value;
+            cloned_raw[this.get_datatable_row_editable_field.datatable_field_uid] = this.new_value;
             await ContextFilterVOHandler.get_datatable_row_field_data_async(cloned_raw, cloned_res, this.get_datatable_row_editable_field, null);
             res.push(cloned_res);
         }
 
         this.data_rows_after = res;
-    }
-
-    get columns_by_field_id(): { [datatable_field_uid: string]: TableColumnDescVO } {
-        if (!this.columns) {
-            return null;
-        }
-
-        const res: { [datatable_field_uid: string]: TableColumnDescVO } = {};
-
-        for (const i in this.columns) {
-            const col = this.columns[i];
-            res[col.datatable_field_uid] = col;
-        }
-
-        return res;
     }
 
     private async update_visible_options() {
@@ -380,6 +408,10 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             const field = this.fields[i];
             fields[field.datatable_field_uid] = field;
         }
+        // On ajoute l'id pour bien récupérer une ligne par id, et pas jsute le group by des différentes valeurs qui existent
+        if (!fields['id']) {
+            query_.add_field('id', 'id', this.widget_options.api_type_id);
+        }
 
         const rows = await ModuleContextFilter.instance.select_datatable_rows(query_, this.columns_by_field_id, fields);
 
@@ -395,7 +427,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
             const resData: IDistantVOBase = {
                 id: row.id,
-                _type: row._type
+                _type: this.widget_options.api_type_id,
             };
             for (const j in this.fields) {
                 const field = this.fields[j];
@@ -429,14 +461,6 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         this.is_busy = false;
     }
 
-    get pagination_pagesize() {
-        if (!this.widget_options) {
-            return 0;
-        }
-
-        return this.widget_options.limit;
-    }
-
     private async change_offset(offset: number) {
         this.pagination_offset = offset;
         await this.throttled_update_visible_options();
@@ -445,19 +469,6 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
     private async refresh() {
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_datatable_rows)));
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + APIControllerWrapper.get_api_name_from_module_function(ModuleContextFilter.instance.name, reflect<ModuleContextFilter>().select_count)));
-        await this.throttled_update_visible_options();
-    }
-
-    @Watch('widget_options', { immediate: true })
-    private async onchange_widget_options() {
-        if (this.old_widget_options) {
-            if (isEqual(this.widget_options, this.old_widget_options)) {
-                return;
-            }
-        }
-
-        this.old_widget_options = cloneDeep(this.widget_options);
-
         await this.throttled_update_visible_options();
     }
 
@@ -535,28 +546,40 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         });
     }
 
-    get title_name_code_text() {
-        if (!this.widget_options) {
-            return null;
+    private onchangevo(vo, field, field_value) {
+        if (!this.editable_item) {
+            return;
         }
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
+
+        this.new_value = field_value;
+        this.editable_item[this.tablecolumn_field_id] = field_value;
     }
 
-    get widget_options(): BulkOpsWidgetOptions {
-        if (!this.page_widget) {
+    private field_id_select_label(field_id: string): string {
+        return this.fields_labels_by_id ? this.fields_labels_by_id[field_id] : null;
+    }
+
+    private mounted() {
+
+        this.editable_item = this.moduletable ? this.moduletable.voConstructor() : null;
+        this.stopLoading();
+    }
+
+    private get_default_translation_for_column(column: TableColumnDescVO): string {
+        if (!column) {
             return null;
         }
 
-        let options: BulkOpsWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as BulkOpsWidgetOptions;
-                options = options ? new BulkOpsWidgetOptions(options.api_type_id, options.limit) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
+        if (column.custom_label) {
+            return column.custom_label;
         }
 
-        return options;
+        const field = this.moduletable.get_field_by_id(column.field_id);
+
+        if (!field) {
+            return null;
+        }
+
+        return this.t(field.field_label_translatable_code);
     }
 }

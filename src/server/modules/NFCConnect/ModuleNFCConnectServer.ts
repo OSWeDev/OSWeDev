@@ -1,11 +1,9 @@
-import { Response } from 'express';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleNFCConnect from '../../../shared/modules/NFCConnect/ModuleNFCConnect';
 import NFCTagUserVO from '../../../shared/modules/NFCConnect/vos/NFCTagUserVO';
 import NFCTagVO from '../../../shared/modules/NFCConnect/vos/NFCTagVO';
@@ -13,9 +11,9 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
-import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ServerAPIController from '../API/ServerAPIController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -198,14 +196,12 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         return null;
     }
 
-    private async connect_and_redirect(serial_number: string, req: Request, res: Response): Promise<boolean> {
+    private async connect_and_redirect(serial_number: string, req: Request, api_call_id: number): Promise<boolean> {
         if (!await this.connect(serial_number)) {
             return false;
         }
 
-        if (res) {
-            res.redirect("/");
-        }
+        await ServerAPIController.send_redirect_if_headers_not_already_sent(api_call_id, "/");
     }
 
     private async connect(serial_number: string): Promise<boolean> {
