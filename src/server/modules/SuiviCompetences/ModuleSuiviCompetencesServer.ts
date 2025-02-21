@@ -42,6 +42,7 @@ import VarDaySuiviCompetencesNiveauMaturiteGroupeController from './vars/VarDayS
 import VarDaySuiviCompetencesNiveauMaturiteSousGroupeController from './vars/VarDaySuiviCompetencesNiveauMaturiteSousGroupeController';
 import VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController from './vars/VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController';
 import VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController from './vars/VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController';
+import SuiviCompetencesCronWorkersHandler from './SuiviCompetencesCronWorkersHandler';
 
 export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
 
@@ -119,6 +120,10 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleSuiviCompetences.APINAME_duplicate_suivi_competences_rapport, this.duplicate_suivi_competences_rapport.bind(this));
     }
 
+    // istanbul ignore next: cannot test registerCrons
+    public registerCrons(): void {
+        SuiviCompetencesCronWorkersHandler.getInstance();
+    }
 
     private async handleSuiviCompetencesItemCreation(item: SuiviCompetencesItemVO): Promise<boolean> {
         let new_label: string[] = [item.name];
