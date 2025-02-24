@@ -45,7 +45,7 @@ import TablesGraphComponent from './tables_graph/TablesGraphComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
-// import ModuleTablesComponent from '../module_tables/ModuleTablesComponent';
+import ModuleTablesComponent from '../module_tables/ModuleTablesComponent';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -58,7 +58,7 @@ import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
         Tablesgraphcomponent: TablesGraphComponent,
         Dashboardmenuconfcomponent: DashboardMenuConfComponent,
         Dashboardsharedfilterscomponent: DashboardSharedFiltersComponent,
-        // Moduletablescomponent: ModuleTablesComponent,
+        Moduletablescomponent: ModuleTablesComponent,
     },
 })
 export default class DashboardBuilderComponent extends VueComponentBase {

@@ -3,7 +3,8 @@ import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './ModuleTablesComponent.scss';
 
 // JointJS (Core)
-import * as joint from 'jointjs';
+import * as joint from '@joint/core';
+import { DirectedGraph } from '@joint/layout-directed-graph';
 // Au besoin : import "jointjs/dist/joint.layout.DirectedGraph"; // si vous utilisez le layout DirectedGraph
 
 // Ex. si on utilise d3 (optionnel, juste un squelette pour l'auto-placement)
@@ -218,7 +219,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
 
         // JointJS Core propose un layout "joint.layout.DirectedGraph" (Dagre-like).
         // => Il faut s'assurer d'importer la version qui inclut "joint.layout.DirectedGraph" (selon la doc).
-        joint.layout.DirectedGraph.layout(this.graph, {
+        DirectedGraph.layout(this.graph, {
             setLinkVertices: false,
             rankDir: 'LR', // LR = de gauche à droite, TB = top to bottom, etc.
             marginX: 50,
