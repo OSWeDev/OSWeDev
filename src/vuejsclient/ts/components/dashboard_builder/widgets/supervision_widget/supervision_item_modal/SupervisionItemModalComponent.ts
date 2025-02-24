@@ -13,12 +13,15 @@ import './SupervisionItemModalComponent.scss';
 })
 export default class SupervisionItemModalComponent extends VueComponentBase {
 
-    private selected_item: ISupervisedItem = null;
 
-    public openmodal(selected_item: ISupervisedItem) {
+    private selected_item: ISupervisedItem = null;
+    private has_access_pause: boolean = false;
+
+    public openmodal(selected_item: ISupervisedItem, has_access_pause: boolean) {
         console.log(selected_item);
 
         this.selected_item = selected_item;
+        this.has_access_pause = has_access_pause;
 
         $('#supervision_item_modal').modal('show');
     }

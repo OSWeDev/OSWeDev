@@ -1,7 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
-import ISupervisedItemController from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
 import VueComponentBase from '../../../VueComponentBase';
 import SupervisedItemComponent from '../../item/SupervisedItemComponent';
@@ -21,6 +20,9 @@ export default class SupervisionItemModalComponent extends VueComponentBase {
 
     @ModuleSupervisionGetter
     private get_selected_item: ISupervisedItem;
+
+    @ModuleSupervisionGetter
+    private get_has_access_pause: boolean;
 
     @Prop({ default: false })
     private noclick: boolean;

@@ -1,20 +1,31 @@
 .supervision_dashboard_item_wrapper
-    //- .supervision_dashboard_item(v-if='!noclick' :class='state_classname' @click='open_item')
     .row
-        input.checkbox_supervised_item_read(v-if='!noclick' type="checkbox" :key="item.name" @click='item_selected' :checked="coche")
+        template(v-if="!noclick")
+            input.checkbox_supervised_item_read(type="checkbox" :key="item.name" @click='item_selected' :checked="coche")
 
-        router-link.supervision_dashboard_item(v-if='!noclick' :to="router_to" :class='state_classname')
-             .row.has_checkbox
-                .col-sm-1.supervision_dashboard_item_type
-                    i.fa-solid.fa-fw(aria-hidden="true" :class='fa_class_name')
-                .col-sm-7.supervision_dashboard_item_name {{ item.name }}
-                .col-sm-3.supervision_dashboard_item_date {{ formatted_date }}
-                .col-sm-1.supervision_dashboard_item_value {{ formatted_last_value }}
+            router-link.supervision_dashboard_item(:to="router_to" :class='state_classname')
+                .row.has_checkbox
+                    .col-sm-1.supervision_dashboard_item_type
+                        i.fa-solid.fa-fw(aria-hidden="true" :class='fa_class_name')
+                    .col-sm-7.supervision_dashboard_item_name {{ item.name }}
+                    .col-sm-3.supervision_dashboard_item_date {{ formatted_date }}
+                    .col-sm-1.supervision_dashboard_item_value {{ formatted_last_value }}
 
-        .supervision_dashboard_item.noclick(v-else :class='state_classname')
-            .row
-                .col-sm-1.supervision_dashboard_item_type
-                    i.fa-solid.fa-fw(aria-hidden="true" :class='fa_class_name')
-                .col-sm-7.supervision_dashboard_item_name {{ item.name }}
-                .col-sm-3.supervision_dashboard_item_date {{ formatted_date }}
-                .col-sm-1.supervision_dashboard_item_value {{ formatted_last_value }}
+
+        template(v-else)
+            .col-sm-12.supervision_dashboard_item_name.nameabove(v-if="nameabove" v-html="get_name_above()")
+
+            .supervision_dashboard_item.noclick(:class='state_classname')
+                .row
+                    template(v-if="nameabove")
+                        .col-sm-2.supervision_dashboard_item_type
+                            i.fa-solid.fa-fw(aria-hidden="true" :class='fa_class_name')
+                        .col-sm-8.supervision_dashboard_item_date {{ formatted_date }}
+                        .col-sm-2.supervision_dashboard_item_value {{ formatted_last_value }}
+
+                    template(v-else)
+                        .col-sm-1.supervision_dashboard_item_type
+                            i.fa-solid.fa-fw(aria-hidden="true" :class='fa_class_name')
+                        .col-sm-7.supervision_dashboard_item_name {{ item.name }}
+                        .col-sm-3.supervision_dashboard_item_date {{ formatted_date }}
+                        .col-sm-1.supervision_dashboard_item_value {{ formatted_last_value }}

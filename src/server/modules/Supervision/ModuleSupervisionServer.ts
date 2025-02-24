@@ -7,6 +7,7 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
@@ -14,6 +15,7 @@ import ISupervisedItemURL from '../../../shared/modules/Supervision/interfaces/I
 import ModuleSupervision from '../../../shared/modules/Supervision/ModuleSupervision';
 import SupervisionController from '../../../shared/modules/Supervision/SupervisionController';
 import SupervisedCategoryVO from '../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
+import SupervisedProbeVO from '../../../shared/modules/Supervision/vos/SupervisedProbeVO';
 import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO';
 import TeamsWebhookContentAdaptiveCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAdaptiveCardVO';
 import TeamsWebhookContentAttachmentsVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAttachmentsVO';
@@ -25,6 +27,7 @@ import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWeb
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -184,6 +187,15 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Etat lu non disponible"
         }, 'supervised_item_controls.desc_btn.switch_read_disabled.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Ordonner par catégorie"
+        }, 'supervision_type_widget_component.order_by_categories.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Afficher les compteurs d'état"
+        }, 'supervision_type_widget_component.show_counter.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Supervision selectionnée"
+        }, 'supervision.item_drag_panel.title.___LABEL___'));
 
         /**
          * On gère l'historique des valeurs
@@ -237,9 +249,31 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         fo_access_dependency.src_pol_id = fo_access.id;
         fo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
         fo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(fo_access_dependency);
+
+        let action_pause_access: AccessPolicyVO = new AccessPolicyVO();
+        action_pause_access.group_id = group.id;
+        action_pause_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        action_pause_access.translatable_name = ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS;
+        action_pause_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(action_pause_access, DefaultTranslationVO.create_new({
+            'fr-fr': 'acces à la mise en pause des items de Supervision'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let action_pause_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        action_pause_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        action_pause_access_dependency.src_pol_id = action_pause_access.id;
+        action_pause_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+        action_pause_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(action_pause_access_dependency);
     }
 
     private async onPreU_SUP_ITEM_HISTORIZE(vo_update_handler: DAOUpdateVOHolder<ISupervisedItem>): Promise<boolean> {
+
+        // si on passe en pause : on rejete la modification si on a les pas droits de mise en pause
+        if ((vo_update_handler.pre_update_vo.state != SupervisionController.STATE_PAUSED) && (vo_update_handler.post_update_vo.state == SupervisionController.STATE_PAUSED)) {
+            const has_access_pause: boolean = await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS);
+            if (!has_access_pause) {
+                return false;
+            }
+        }
 
         /**
          * On veut changer la date et historiser que si on est en train de stocker une nouvelle valeur.
@@ -271,6 +305,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
             if (has_new_value) {
                 const moduletablefields = ModuleTableController.module_tables_by_vo_type[vo_update_handler.post_update_vo._type].get_fields();
+                let has_any_diff: boolean = false;
                 for (const i in moduletablefields) {
                     const moduletablefield = moduletablefields[i];
 
@@ -285,9 +320,17 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
                             break;
                         default:
                             if (vo_update_handler.pre_update_vo[moduletablefield.field_name] != vo_update_handler.post_update_vo[moduletablefield.field_name]) {
-                                has_new_value = false;
+                                has_any_diff = true;
                             }
                     }
+
+                    if (!!has_any_diff) {
+                        break;
+                    }
+                }
+
+                if (!has_any_diff) {
+                    has_new_value = false;
                 }
             }
         }
@@ -332,6 +375,31 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     private async onpreC_SUP_ITEM(supervised_item: ISupervisedItem): Promise<boolean> {
+
+        if (!supervised_item.probe_id) {
+            // Dirty JFE : je ne sais pas comment automatiser ou forcer ceci autrement
+            // si la sonde (necessaire au fonctionnement du compteur d'item par status) n'existe pas encore on la cree
+            let probe: SupervisedProbeVO = await query(SupervisedProbeVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<SupervisedProbeVO>().sup_item_api_type_id, supervised_item._type)
+                .select_vo<SupervisedProbeVO>();
+
+            if (!probe) {
+                probe = new SupervisedProbeVO();
+                probe.sup_item_api_type_id = supervised_item._type;
+                probe.category_id = supervised_item.category_id;
+                const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(probe);
+
+                if (!res) {
+                    ConsoleHandler.error(' Impossible de créer la sonde pour le type ' + supervised_item._type);
+                }
+                probe.id = res.id;
+            }
+
+            if (!!probe?.id && supervised_item.probe_id != probe.id) {
+                supervised_item.probe_id = probe.id;
+            }
+        }
+
         supervised_item.creation_date = Dates.now();
         if (supervised_item.state == null) {
             supervised_item.state = SupervisionController.STATE_UNKOWN;

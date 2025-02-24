@@ -8,6 +8,10 @@ import RangeHandler from "../../../../../shared/tools/RangeHandler";
 
 export default class SupervisedCRONClientController implements ISupervisedItemClientController<SupervisedCRONVO> {
 
+    private static instance: SupervisedCRONClientController = null;
+
+    private constructor() { }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): SupervisedCRONClientController {
         if (!SupervisedCRONClientController.instance) {
@@ -16,10 +20,6 @@ export default class SupervisedCRONClientController implements ISupervisedItemCl
 
         return SupervisedCRONClientController.instance;
     }
-
-    private static instance: SupervisedCRONClientController = null;
-
-    private constructor() { }
 
     public get_graph_segmentation(supervised_item: SupervisedCRONVO): ISupervisedItemGraphSegmentation[] {
 

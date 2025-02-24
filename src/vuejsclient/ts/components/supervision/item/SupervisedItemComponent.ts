@@ -34,6 +34,12 @@ export default class SupervisedItemComponent extends VueComponentBase {
     @Prop()
     private supervised_item_vo_type: string;
 
+    @Prop({ default: false })
+    private embed: boolean;
+
+    @Prop({ default: false })
+    private has_access_pause: boolean;
+
     private show_graph: boolean = false;
     private supervised_item: ISupervisedItem = null;
     private debounced_load_supervised_item = debounce(this.load_supervised_item, 200);
@@ -65,15 +71,6 @@ export default class SupervisedItemComponent extends VueComponentBase {
             ((this.supervised_item.state == SupervisionController.STATE_ERROR_READ) || (this.supervised_item.state == SupervisionController.STATE_WARN_READ));
     }
 
-    @Watch('supervised_item')
-    private onchange_supervised_item_activate_default_segm() {
-        this.activate_segmentation(this.default_graph_segmentation);
-    }
-
-    private activate_segmentation(graph_segmentation: ISupervisedItemGraphSegmentation) {
-        this.active_graph_segmentation = graph_segmentation;
-    }
-
     get default_graph_segmentation() {
         if ((!this.supervised_item) || (!this.supervised_item_client_controller)) {
             return null;
@@ -93,6 +90,38 @@ export default class SupervisedItemComponent extends VueComponentBase {
                 (this.supervised_item.state == SupervisionController.STATE_UNKOWN) ||
                 (this.supervised_item.state == SupervisionController.STATE_PAUSED));
     }
+
+    get supervised_item_description(): string {
+        return this.supervised_item && this.supervised_item_controller.get_description ? this.supervised_item_controller.get_description(this.supervised_item) : null;
+    }
+
+    get supervised_item_description_html(): string {
+        return this.supervised_item && this.supervised_item_controller.get_description_html ? this.supervised_item_controller.get_description_html(this.supervised_item) : null;
+    }
+
+    get supervised_item_graph_segmentation(): ISupervisedItemGraphSegmentation[] {
+        return this.supervised_item ? this.supervised_item_client_controller.get_graph_segmentation(this.supervised_item) : null;
+    }
+
+    get get_css_supervised_item_graph(): string {
+        return this.embed ? 'col-sm-12 mb-2' : 'col-sm-7 col-sm-offset-2 mx-auto mb-2';
+    }
+
+    @Watch('supervised_item')
+    private onchange_supervised_item_activate_default_segm() {
+        this.activate_segmentation(this.default_graph_segmentation);
+    }
+
+    @Watch('supervised_item_id')
+    @Watch('supervised_item_vo_type')
+    private async onchange_supervised_item() {
+        await this.debounced_load_supervised_item();
+    }
+
+    private activate_segmentation(graph_segmentation: ISupervisedItemGraphSegmentation) {
+        this.active_graph_segmentation = graph_segmentation;
+    }
+
 
     private async switch_read() {
         switch (this.supervised_item.state) {
@@ -142,18 +171,15 @@ export default class SupervisedItemComponent extends VueComponentBase {
     }
 
     private async switch_paused() {
+        if (!this.has_access_pause) {
+            return;
+        }
         if (this.supervised_item.state == SupervisionController.STATE_PAUSED) {
             this.supervised_item.state = this.supervised_item.state_before_pause;
         } else {
             this.supervised_item.state = SupervisionController.STATE_PAUSED;
         }
         await ModuleDAO.getInstance().insertOrUpdateVO(this.supervised_item);
-        await this.debounced_load_supervised_item();
-    }
-
-    @Watch('supervised_item_id')
-    @Watch('supervised_item_vo_type')
-    private async onchange_supervised_item() {
         await this.debounced_load_supervised_item();
     }
 
@@ -227,21 +253,10 @@ export default class SupervisedItemComponent extends VueComponentBase {
     }
 
     private open_url(url: string) {
-        window.open(url, "supervision");
+        window.open(url + "?sup_item_id=" + this.supervised_item_id + "&type=" + this.supervised_item_vo_type, "supervision");
     }
 
     private toggle_show_hide_graph() {
         this.show_graph = !this.show_graph;
-    }
-
-    get supervised_item_description(): string {
-        return this.supervised_item && this.supervised_item_controller.get_description ? this.supervised_item_controller.get_description(this.supervised_item) : null;
-    }
-    get supervised_item_description_html(): string {
-        return this.supervised_item && this.supervised_item_controller.get_description_html ? this.supervised_item_controller.get_description_html(this.supervised_item) : null;
-    }
-
-    get supervised_item_graph_segmentation(): ISupervisedItemGraphSegmentation[] {
-        return this.supervised_item ? this.supervised_item_client_controller.get_graph_segmentation(this.supervised_item) : null;
     }
 }

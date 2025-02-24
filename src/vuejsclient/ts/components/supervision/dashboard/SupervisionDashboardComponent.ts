@@ -17,9 +17,9 @@ import './SupervisionDashboardComponent.scss';
 import { ModuleSupervisionAction, ModuleSupervisionGetter } from './SupervisionDashboardStore';
 import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWidgetComponent';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
-import { findIndex } from 'lodash';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import DAOController from '../../../../../shared/modules/DAO/DAOController';
+import ModuleSupervision from '../../../../../shared/modules/Supervision/ModuleSupervision';
 
 @Component({
     template: require('./SupervisionDashboardComponent.pug'),
@@ -57,6 +57,8 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private set_filter_text_lower_case: (filter_text_lower_case: string) => void;
     @ModuleSupervisionAction
     private set_api_type_ids_by_category_ids: (api_type_ids_by_category_ids: { [id: number]: string[] }) => void;
+    @ModuleSupervisionAction
+    private set_has_access_pause: (has_access_pause: boolean) => void;
 
     @ModuleSupervisionGetter
     private get_show_errors: boolean;
@@ -88,6 +90,9 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private get_filter_text_lower_case: string;
     @ModuleSupervisionGetter
     private get_api_type_ids_by_category_ids: { [id: number]: string[] };
+    @ModuleSupervisionGetter
+    private get_has_access_pause: boolean;
+
     /** liste des items a effacer */
     private supervised_item_for_delete: { [name: string]: ISupervisedItem } = {};
 
@@ -116,6 +121,35 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
     private cpt: number = 1;
     private supervised_item_selected: { [id: number]: ISupervisedItem } = {};
+
+    /**
+    * recupere les api_type_ids (liste des items) filtrés en fonction de la catégories selectionnée
+    */
+    get filtered_api_type_ids(): string[] {
+        if (!this.get_api_type_ids) {
+            return this.get_api_type_ids;
+        }
+
+        if (!this.get_selected_category) {
+            return this.get_api_type_ids;
+        }
+
+        return this.get_api_type_ids_by_category_ids[this.get_selected_category.id];
+    }
+
+    /**
+     * recupere les restrictions sur les categories s'il y en a une dans {@link SupervisionAdminVueModule} sinon null
+     */
+    get enabled_categories(): string[] {
+        return SupervisionAdminVueModule.getInstance().enabled_categories_by_key[this.dashboard_key];
+    }
+
+    /**
+     * recupere le filtre definit sur les items dans {@link SupervisionAdminVueModule} sinon renvoie une fonction qui retourne true (aucun filtre)
+     */
+    get is_item_accepted(): (supervised_item: ISupervisedItem, get_perf?: boolean) => boolean {
+        return SupervisionAdminVueModule.getInstance().item_filter_conditions_by_key[this.dashboard_key] ? SupervisionAdminVueModule.getInstance().item_filter_conditions_by_key[this.dashboard_key] : () => true;
+    }
 
     @Watch('supervised_item_vo_id', { immediate: true })
     private async onchange_supervised_item_vo_id() {
@@ -161,6 +195,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     }
 
     private async created() {
+        this.set_has_access_pause(await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS));
         this.show_hide_modal();
         this.continue_reloading = true;
         this.filter_text = this.get_filter_text_lower_case;
@@ -437,34 +472,6 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         return ((this.get_selected_api_type_id) && (this.get_selected_api_type_id == api_type_id));
     }
 
-    /**
-     * recupere les api_type_ids (liste des items) filtrés en fonction de la catégories selectionnée
-     */
-    get filtered_api_type_ids(): string[] {
-        if (!this.get_api_type_ids) {
-            return this.get_api_type_ids;
-        }
-
-        if (!this.get_selected_category) {
-            return this.get_api_type_ids;
-        }
-
-        return this.get_api_type_ids_by_category_ids[this.get_selected_category.id];
-    }
-
-    /**
-     * recupere les restrictions sur les categories s'il y en a une dans {@link SupervisionAdminVueModule} sinon null
-     */
-    get enabled_categories(): string[] {
-        return SupervisionAdminVueModule.getInstance().enabled_categories_by_key[this.dashboard_key];
-    }
-
-    /**
-     * recupere le filtre definit sur les items dans {@link SupervisionAdminVueModule} sinon renvoie une fonction qui retourne true (aucun filtre)
-     */
-    get is_item_accepted(): (supervised_item: ISupervisedItem, get_perf?: boolean) => boolean {
-        return SupervisionAdminVueModule.getInstance().item_filter_conditions_by_key[this.dashboard_key] ? SupervisionAdminVueModule.getInstance().item_filter_conditions_by_key[this.dashboard_key] : () => true;
-    }
     /**
      *  ajoute un item à la liste des items selectionnés
      */

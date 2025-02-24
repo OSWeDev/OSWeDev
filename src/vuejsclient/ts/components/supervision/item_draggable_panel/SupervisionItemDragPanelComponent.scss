@@ -1,0 +1,20 @@
+@import "skin-variables.scss";
+
+.sup_drag_panel_component {
+
+    & .sup_drag_panel_container {
+
+        & .sup_drag_panel_header {
+            border-bottom: 1px solid #eee;
+            margin-bottom: 1.5rem;
+
+            & h1 {
+                font-size: 2rem;
+            }
+        }
+
+        & .sup_drag_panel_content {
+            margin-bottom: 1.5rem;
+        }
+    }
+}

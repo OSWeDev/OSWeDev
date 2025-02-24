@@ -1,14 +1,12 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
 import VueComponentBase from '../../../../../ts/components/VueComponentBase';
-import { ModuleSupervisionAction, ModuleSupervisionGetter } from '../SupervisionDashboardStore';
+import { ModuleSupervisionAction } from '../SupervisionDashboardStore';
 import './SupervisionDashboardItemComponent.scss';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 
@@ -32,6 +30,9 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     private noclick: boolean;
 
     @Prop({ default: false })
+    private nameabove: boolean;
+
+    @Prop({ default: false })
     private coche: boolean;
 
     private state_classname: string = 'STATE_UNKNOWN';
@@ -39,9 +40,21 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     private formatted_date: string = null;
     private formatted_last_value: string = null;
 
-    public add_item(valid: boolean) {
-        this.coche = valid;
+    get supervised_item_controller(): ISupervisedItemController<any> {
+        return SupervisionController.getInstance().registered_controllers[this.item._type];
     }
+
+    get router_to() {
+        return {
+            name: SupervisionController.ROUTE_NAME_DASHBOARD_ITEM,
+            params: {
+                dashboard_key: this.$route.params.dashboard_key,
+                supervised_item_vo_type: this.item._type,
+                supervised_item_vo_id: this.item.id.toString(),
+            }
+        };
+    }
+
     @Watch('item', { immediate: true })
     private onchange_item() {
         this.set_state_classname();
@@ -49,6 +62,11 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
         this.set_formatted_date();
         this.set_formatted_last_value();
     }
+
+    public add_item(valid: boolean) {
+        this.coche = valid;
+    }
+
     // @Watch('coche')
     // private onchange_coche() {
     //     this.set_coche();
@@ -169,22 +187,16 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
         this.formatted_last_value = this.item.last_value == null ? "-" : this.item.last_value.toLocaleString();
     }
 
-    get supervised_item_controller(): ISupervisedItemController<any> {
-        return SupervisionController.getInstance().registered_controllers[this.item._type];
-    }
-
-    get router_to() {
-        return {
-            name: SupervisionController.ROUTE_NAME_DASHBOARD_ITEM,
-            params: {
-                dashboard_key: this.$route.params.dashboard_key,
-                supervised_item_vo_type: this.item._type,
-                supervised_item_vo_id: this.item.id.toString(),
-            }
-        };
-    }
     private item_selected() {
         this.$emit('item_selected', this.item);
+    }
+
+    private get_name_above(): string {
+        // découpage arbitraire : retour à la ligne à chaque occurence : ' - '
+        const name: string = this.item.name;
+        const name_parts: string[] = name.split(' - ');
+
+        return name_parts.join('<br/>');
     }
 
 }

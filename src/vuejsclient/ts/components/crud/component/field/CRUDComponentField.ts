@@ -315,6 +315,10 @@ export default class CRUDComponentField extends VueComponentBase
         return HourrangeInputComponent;
     }
 
+    get tstz_input_component() {
+        return TSTZInputComponent;
+    }
+
     get alert_path(): string {
         if (!this.field) {
             return null;
