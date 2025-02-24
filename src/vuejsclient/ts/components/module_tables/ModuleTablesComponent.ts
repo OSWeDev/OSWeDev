@@ -17,16 +17,11 @@ export default class ModuleTablesComponent extends VueComponentBase {
     @Prop({ default: () => ({}) })
     readonly tables_by_table_name!: { [table_name: string]: ModuleTableVO };
 
-    /**
-     * discarded_field_paths[tableName][fieldName] = true => ce champ est "inactif",
-     * donc la liaison et le nom du champ sont en gris translucide.
-     */
     @Prop({ default: () => ({}) })
     readonly discarded_field_paths!: { [vo_type: string]: { [field_id: string]: boolean } };
 
     private ctx: CanvasRenderingContext2D | null = null;
 
-    // Transformation du canvas
     private scale: number = 1;
     private offsetX: number = 0;
     private offsetY: number = 0;
@@ -47,7 +42,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
     private hasMovedSinceMouseDown: boolean = false;
     private CLICK_DRAG_THRESHOLD: number = 5; // px
 
-    // Positions, vitesse, plié/déplié
+    // Positions (centrage)
     private blockPositions: {
         [table_name: string]: {
             x: number;
@@ -55,34 +50,47 @@ export default class ModuleTablesComponent extends VueComponentBase {
             folded: boolean;
         };
     } = {};
+
+    // Vitesse de chaque table pour la simulation
     private velocities: {
         [table_name: string]: { vx: number; vy: number };
     } = {};
 
+    // Adjacences : table -> liste de tables reliées (pour la simulation)
     private adjacency: { [tableName: string]: string[] } = {};
+
+    // Adjacences détaillées : table -> { fieldName -> foreignRef }
+    private adjacency_full: {
+        [tableName: string]: { [fieldName: string]: string }
+    } = {};
+
     private linkCountMap: { [key: string]: number } = {};
 
     private isLayoutRunning: boolean = false;
     private layoutRequestId: number = 0;
     private autoFitEnabled: boolean = true;
 
-    // Pour l'animation des flèches
     private dashAnimationOffset: number = 0;
 
+    private BASE_REPULSION = 10;
+    private COLLISION_PUSH = 0.1;
+    private SPRING_LENGTH = 150;
+    private ATTRACTION_FACTOR = 0.0005;
+    private CENTER_FORCE = 0.0001;
+    private DAMPING = 0.9;
+    private MAX_SPEED = 5;
 
-    // Constantes physiques ajustées
-    private BASE_REPULSION = 10;          // répulsion de base
-    private COLLISION_PUSH = 0.1;           // petit push si chevauchement
-    private SPRING_LENGTH = 150;            // longueur idéale
-    private ATTRACTION_FACTOR = 0.0005;     // ressort
-    private CENTER_FORCE = 0.0001;         // force vers le centre réduite
-    private DAMPING = 0.9;                  // amortissement plus fort
-    private MAX_SPEED = 5;                  // bride la vitesse max
+    // Marquage des cycles
+    private cycle_tables: Set<string> = new Set();
+    private cycle_fields: { [table: string]: Set<string> } = {};
+    private cycle_links: { [table: string]: Set<string> } = {};
 
     @Watch('fields_by_table_name_and_field_name', { deep: true })
     @Watch('tables_by_table_name', { deep: true })
+    @Watch('discarded_field_paths', { deep: true })
     private onDataChange() {
         this.setupNodesAndEdges();
+        this.detectCycles();
         this.startLayout();
         this.autoFit();
     }
@@ -90,6 +98,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
     private mounted() {
         this.initCanvas();
         this.setupNodesAndEdges();
+        this.detectCycles();
         this.startLayout();
         this.autoFit();
 
@@ -118,6 +127,10 @@ export default class ModuleTablesComponent extends VueComponentBase {
         this.ctx = canvas.getContext('2d')!;
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
+
+        this.offsetX = canvas.width / 2;
+        this.offsetY = canvas.height / 2;
+
         window.addEventListener('resize', this.onResize);
     }
 
@@ -126,28 +139,30 @@ export default class ModuleTablesComponent extends VueComponentBase {
         if (!canvas) return;
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
+        this.offsetX = canvas.width / 2;
+        this.offsetY = canvas.height / 2;
         this.drawDiagram();
     }
 
-    // ------------------------------------------------------------------------------------
-    // Setup
-    // ------------------------------------------------------------------------------------
-
+    // --------------------------------------------------------------------
+    // Construction des nodes et edges
+    // --------------------------------------------------------------------
     private setupNodesAndEdges() {
         const tableNames = Object.keys(this.tables_by_table_name);
 
-        // Réinitialise adjacency
         this.adjacency = {};
+        this.adjacency_full = {};
+
         for (const tn of tableNames) {
             this.adjacency[tn] = [];
+            this.adjacency_full[tn] = {};
         }
 
-        // Initialise blockPositions et velocities
         for (const tn of tableNames) {
             if (!this.blockPositions[tn]) {
                 this.blockPositions[tn] = {
-                    x: Math.random() * 600,
-                    y: Math.random() * 400,
+                    x: Math.random() * 200 - 100,
+                    y: Math.random() * 200 - 100,
                     folded: true,
                 };
             }
@@ -156,16 +171,28 @@ export default class ModuleTablesComponent extends VueComponentBase {
             }
         }
 
-        // Foreign keys => adjacency
+        // Création adjacency
         for (const tableName of tableNames) {
             const fields = this.fields_by_table_name_and_field_name[tableName] || {};
             for (const fieldName of Object.keys(fields)) {
                 const field = fields[fieldName];
-                if (field.field_type === ModuleTableFieldVO.FIELD_TYPE_foreign_key && field.foreign_ref_vo_type) {
+
+                // On ignore les fields qui sont désactivés
+                if (this.discarded_field_paths[tableName]?.[fieldName]) {
+                    continue;
+                }
+
+                if (field.foreign_ref_vo_type == tableName) continue; // On ignore les liens vers soi-même
+
+                if (
+                    field.field_type === ModuleTableFieldVO.FIELD_TYPE_foreign_key &&
+                    field.foreign_ref_vo_type
+                ) {
                     const ref = field.foreign_ref_vo_type;
                     if (this.tables_by_table_name[ref]) {
                         this.adjacency[tableName].push(ref);
                         this.adjacency[ref].push(tableName);
+                        this.adjacency_full[tableName][fieldName] = ref;
                     }
                 }
             }
@@ -177,12 +204,106 @@ export default class ModuleTablesComponent extends VueComponentBase {
                 delete this.blockPositions[oldName];
                 delete this.velocities[oldName];
                 delete this.adjacency[oldName];
+                delete this.adjacency_full[oldName];
+            }
+        }
+    }
+
+    // --------------------------------------------------------------------
+    // Détection des cycles : on repère exactement quelles tables, champs et liens
+    // sont dans un cycle, pour les afficher en rouge.
+    // --------------------------------------------------------------------
+    private detectCycles() {
+        this.cycle_tables.clear();
+        this.cycle_fields = {};
+        this.cycle_links = {};
+
+        const visited = new Set<string>();
+        const parent: { [table: string]: string | null } = {};
+
+        // 1) Fonction DFS standard pour cycle undirected
+        const dfsCycle = (current: string, par: string | null) => {
+            visited.add(current);
+
+            for (const neighbor of this.adjacency[current]) {
+                // Évite de revenir au parent direct
+                if (neighbor === par) continue;
+
+                if (!visited.has(neighbor)) {
+                    parent[neighbor] = current;
+                    dfsCycle(neighbor, current);
+                }
+                // Si visited.has(neighbor) et neighbor != par => on a un cycle
+                else if (neighbor !== par) {
+                    // 2) On reconstitue le cycle
+                    //    On remonte parent[] depuis "current" jusqu'au début
+                    //    puis depuis "neighbor" jusqu'à un point commun
+                    //    et on obtient le sous-ensemble de tables formant le cycle
+
+                    const cycleNodes: string[] = [];
+                    // remonte depuis current
+                    let x: string | null = current;
+                    while (x !== null && x !== neighbor && x in parent) {
+                        cycleNodes.push(x);
+                        x = parent[x] || null;
+                    }
+                    // On ajoute neighbor
+                    cycleNodes.push(neighbor);
+
+                    // => cycleNodes contient la "boucle" (ex: B -> ... -> A -> neighbor)
+                    // 3) Marquage des tables
+                    for (const node of cycleNodes) {
+                        this.cycle_tables.add(node);
+                    }
+
+                    // 4) Marquage des champs/links
+                    //    On regarde chaque arête (node[i], node[i+1]) dans cycleNodes
+                    for (let i = 0; i < cycleNodes.length; i++) {
+                        const A = cycleNodes[i];
+                        const B = cycleNodes[(i + 1) % cycleNodes.length]; // boucle
+                        // Du coup on cherche dans adjacency_full[A]
+                        // tous les fields qui pointent sur B (s’il y en a)
+                        for (const [fName, ref] of Object.entries(this.adjacency_full[A])) {
+                            if (ref === B) {
+                                // ce champ A.fName -> B est dans le cycle
+                                if (!this.cycle_fields[A]) {
+                                    this.cycle_fields[A] = new Set();
+                                }
+                                if (!this.cycle_links[A]) {
+                                    this.cycle_links[A] = new Set();
+                                }
+                                this.cycle_fields[A].add(fName);
+                                this.cycle_links[A].add(fName);
+                            }
+                        }
+                        // et réciproquement, s’il existe (B->A)
+                        for (const [fName, ref] of Object.entries(this.adjacency_full[B])) {
+                            if (ref === A) {
+                                if (!this.cycle_fields[B]) {
+                                    this.cycle_fields[B] = new Set();
+                                }
+                                if (!this.cycle_links[B]) {
+                                    this.cycle_links[B] = new Set();
+                                }
+                                this.cycle_fields[B].add(fName);
+                                this.cycle_links[B].add(fName);
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        // 5) On lance la détection sur chaque composante
+        for (const table of Object.keys(this.adjacency)) {
+            if (!visited.has(table)) {
+                parent[table] = null;
+                dfsCycle(table, null);
             }
         }
     }
 
     private get_link_label(table_name: string, field_name: string): string {
-        // Ex: label du champ
         return this.t(
             ModuleTableFieldController
                 .module_table_fields_by_vo_type_and_field_name[table_name][field_name]
@@ -191,10 +312,9 @@ export default class ModuleTablesComponent extends VueComponentBase {
         );
     }
 
-    // ------------------------------------------------------------------------------------
-    // Layout (physique)
-    // ------------------------------------------------------------------------------------
-
+    // --------------------------------------------------------------------
+    // Simulation
+    // --------------------------------------------------------------------
     private startLayout() {
         if (this.isLayoutRunning) return;
         this.isLayoutRunning = true;
@@ -204,13 +324,14 @@ export default class ModuleTablesComponent extends VueComponentBase {
     private layoutLoop() {
         if (!this.isLayoutRunning) return;
 
-        // Plusieurs itérations par frame pour accélérer la stabilisation
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 2; i++) {
             this.applyForcesOnce();
         }
-
-        // Animation des pointillés
         this.dashAnimationOffset += 0.1;
+
+        if (this.autoFitEnabled) {
+            this.autoFit();
+        }
 
         this.drawDiagram();
         this.layoutRequestId = requestAnimationFrame(() => this.layoutLoop());
@@ -228,41 +349,21 @@ export default class ModuleTablesComponent extends VueComponentBase {
         const tableNames = Object.keys(this.tables_by_table_name);
         if (!tableNames.length) return;
 
-        // On utilise le centre du canvas (en coordonnées "diagramme")
-        // pour recentrer les blocs
-        const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
-        // Au lieu d'utiliser offset/scale, on peut forcer tout vers un point "0,0"
-        // ou un point "moyen". Mais gardons un "pseudo-centre" en 0,0 si on veut.
-        // Ici on va faire simple : on ramène tout vers (0,0) => on tient compte de offsetX/offsetY.
-        // Pour un vrai centrage autour du "milieu d'écran", on calcule la position "diagramme" du centre d'écran :
-        const centerScreenX = canvas.width / 2;
-        const centerScreenY = canvas.height / 2;
-        const centerX = (centerScreenX - this.offsetX) / this.scale;
-        const centerY = (centerScreenY - this.offsetY) / this.scale;
-
-        // 1) Repulsion coulombienne
+        // Coulomb
         for (let i = 0; i < tableNames.length; i++) {
             const tA = tableNames[i];
-            const posA = this.blockPositions[tA];
-
             for (let j = i + 1; j < tableNames.length; j++) {
                 const tB = tableNames[j];
+                if (this.draggedTable === tA && this.draggedTable === tB) continue;
+                const posA = this.blockPositions[tA];
                 const posB = this.blockPositions[tB];
-
-                // On ne bouge pas si la table est en drag
-                if (this.draggedTable === tA && this.draggedTable === tB) {
-                    continue;
-                }
-
-                const dx = posB.x - posA.x;
-                const dy = posB.y - posA.y;
-                let dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 0.5) dist = 0.5;
-
+                let dx = posB.x - posA.x;
+                let dy = posB.y - posA.y;
+                let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                if (dist < 0.1) dist = 0.1;
                 const repulsion = this.BASE_REPULSION / dist;
                 const fx = (repulsion * dx) / dist;
                 const fy = (repulsion * dy) / dist;
-
                 if (this.draggedTable !== tA) {
                     this.velocities[tA].vx -= fx;
                     this.velocities[tA].vy -= fy;
@@ -274,21 +375,19 @@ export default class ModuleTablesComponent extends VueComponentBase {
             }
         }
 
-        // 2) Collision push
+        // Collision
         for (let i = 0; i < tableNames.length; i++) {
             const tA = tableNames[i];
             const rA = this.getBlockRadius(tA);
-
             for (let j = i + 1; j < tableNames.length; j++) {
                 const tB = tableNames[j];
-                if (this.draggedTable === tA && this.draggedTable === tB) {
-                    continue;
-                }
+                if (this.draggedTable === tA && this.draggedTable === tB) continue;
                 const rB = this.getBlockRadius(tB);
-
-                const dx = this.blockPositions[tB].x - this.blockPositions[tA].x;
-                const dy = this.blockPositions[tB].y - this.blockPositions[tA].y;
-                const dist = Math.max(0.5, Math.sqrt(dx * dx + dy * dy));
+                const posA = this.blockPositions[tA];
+                const posB = this.blockPositions[tB];
+                const dx = posB.x - posA.x;
+                const dy = posB.y - posA.y;
+                const dist = Math.max(0.1, Math.sqrt(dx * dx + dy * dy));
                 const minDist = rA + rB;
                 if (dist < minDist) {
                     const overlap = (minDist - dist) / minDist;
@@ -308,20 +407,17 @@ export default class ModuleTablesComponent extends VueComponentBase {
             }
         }
 
-        // 3) Ressorts (adherence via adjacency)
+        // Ressorts
         for (const source of tableNames) {
             const neighbors = this.adjacency[source];
             for (const target of neighbors) {
                 if (target <= source) continue;
-                if (this.draggedTable === source || this.draggedTable === target) {
-                    continue;
-                }
+                if (this.draggedTable === source || this.draggedTable === target) continue;
                 const sPos = this.blockPositions[source];
                 const tPos = this.blockPositions[target];
-
                 const dx = tPos.x - sPos.x;
                 const dy = tPos.y - sPos.y;
-                const dist = Math.max(0.5, Math.sqrt(dx * dx + dy * dy));
+                const dist = Math.max(0.1, Math.sqrt(dx * dx + dy * dy));
                 const delta = dist - this.SPRING_LENGTH;
                 const force = delta * this.ATTRACTION_FACTOR;
                 const fx = (force * dx) / dist;
@@ -334,17 +430,17 @@ export default class ModuleTablesComponent extends VueComponentBase {
             }
         }
 
-        // 4) Force vers le centre
+        // Force centre
         for (const tn of tableNames) {
             if (this.draggedTable === tn) continue;
             const pos = this.blockPositions[tn];
-            const dx = centerX - pos.x;
-            const dy = centerY - pos.y;
+            const dx = -pos.x;
+            const dy = -pos.y;
             this.velocities[tn].vx += dx * this.CENTER_FORCE;
             this.velocities[tn].vy += dy * this.CENTER_FORCE;
         }
 
-        // 5) Mise à jour
+        // Mises à jour
         for (const tn of tableNames) {
             if (this.draggedTable === tn) {
                 this.velocities[tn].vx = 0;
@@ -352,18 +448,15 @@ export default class ModuleTablesComponent extends VueComponentBase {
                 continue;
             }
             const v = this.velocities[tn];
-            // Amortissement
             v.vx *= this.DAMPING;
             v.vy *= this.DAMPING;
 
-            // Bride vitesse
             const speed = Math.sqrt(v.vx * v.vx + v.vy * v.vy);
             if (speed > this.MAX_SPEED) {
                 const ratio = this.MAX_SPEED / speed;
                 v.vx *= ratio;
                 v.vy *= ratio;
             }
-            // Avance
             this.blockPositions[tn].x += v.vx;
             this.blockPositions[tn].y += v.vy;
         }
@@ -380,61 +473,65 @@ export default class ModuleTablesComponent extends VueComponentBase {
         return Math.sqrt(blockW * blockW + blockH * blockH) / 2;
     }
 
-    // ------------------------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Auto-Fit
-    // ------------------------------------------------------------------------------------
-
+    // --------------------------------------------------------------------
     private autoFit() {
         const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
         if (!canvas) return;
 
-        const tableNames = Object.keys(this.tables_by_table_name);
-        if (!tableNames.length) return;
+        const tables = Object.keys(this.tables_by_table_name);
+        if (!tables.length) return;
 
-        let minX = Infinity;
-        let maxX = -Infinity;
-        let minY = Infinity;
-        let maxY = -Infinity;
-
-        for (const tn of tableNames) {
-            const pos = this.blockPositions[tn];
-            const fields = this.fields_by_table_name_and_field_name[tn] || {};
-            const nbFields = Object.keys(fields).length;
-            const titleH = 30;
-            const fieldH = 20;
-            const blockW = 200;
-            const blockH = pos.folded ? titleH : titleH + nbFields * fieldH;
-
-            minX = Math.min(minX, pos.x);
-            maxX = Math.max(maxX, pos.x + blockW);
-            minY = Math.min(minY, pos.y);
-            maxY = Math.max(maxY, pos.y + blockH);
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const tn of tables) {
+            const p = this.blockPositions[tn];
+            const f = this.fields_by_table_name_and_field_name[tn] || {};
+            const n = Object.keys(f).length;
+            const bh = p.folded ? 30 : 30 + n * 20;
+            const bw = 200;
+            minX = Math.min(minX, p.x);
+            maxX = Math.max(maxX, p.x + bw);
+            minY = Math.min(minY, p.y);
+            maxY = Math.max(maxY, p.y + bh);
         }
-
         if (maxX < minX || maxY < minY) return;
 
+        const centerBx = (minX + maxX) / 2;
+        const centerBy = (minY + maxY) / 2;
+
+        const dx = -centerBx;
+        const dy = -centerBy;
+
+        for (const tn of tables) {
+            this.blockPositions[tn].x += dx;
+            this.blockPositions[tn].y += dy;
+        }
+
+        const newMinX = minX + dx;
+        const newMaxX = maxX + dx;
+        const newMinY = minY + dy;
+        const newMaxY = maxY + dy;
+
+        const contentW = newMaxX - newMinX;
+        const contentH = newMaxY - newMinY;
+        if (contentW < 1 || contentH < 1) return;
+
         const margin = 50;
-        const contentWidth = maxX - minX;
-        const contentHeight = maxY - minY;
-        if (contentWidth <= 0 || contentHeight <= 0) return;
+        const scaleX = (canvas.width - 2 * margin) / contentW;
+        const scaleY = (canvas.height - 2 * margin) / contentH;
+        this.scale = Math.min(scaleX, scaleY);
 
-        const scaleX = (canvas.width - 2 * margin) / contentWidth;
-        const scaleY = (canvas.height - 2 * margin) / contentHeight;
-        const newScale = Math.min(scaleX, scaleY);
+        this.offsetX = canvas.width / 2;
+        this.offsetY = canvas.height / 2;
 
-        // On recalcule l'offset pour que minX => margin
-        //   => offsetX = margin - minX * newScale
-        this.scale = newScale;
-        this.offsetX = margin - minX * this.scale;
-        this.offsetY = margin - minY * this.scale;
         this.autoFitEnabled = true;
         this.drawDiagram();
     }
 
-    // ------------------------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Dessin
-    // ------------------------------------------------------------------------------------
-
+    // --------------------------------------------------------------------
     private drawDiagram() {
         if (!this.ctx) return;
         const ctx = this.ctx;
@@ -442,7 +539,6 @@ export default class ModuleTablesComponent extends VueComponentBase {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Transformation
         ctx.save();
         ctx.translate(this.offsetX, this.offsetY);
         ctx.scale(this.scale, this.scale);
@@ -478,167 +574,229 @@ export default class ModuleTablesComponent extends VueComponentBase {
     }
 
     private drawBlock(ctx: CanvasRenderingContext2D, tableName: string) {
-        const position = this.blockPositions[tableName];
+        const p = this.blockPositions[tableName];
         const table = this.tables_by_table_name[tableName];
         if (!table) return;
 
-        const blockWidth = 200;
-        const titleHeight = 30;
-        const fieldHeight = 20;
-
+        const w = 200;
+        const titleH = 30;
         const fields = this.fields_by_table_name_and_field_name[tableName] || {};
-        const fieldNames = Object.keys(fields);
+        const n = Object.keys(fields).length;
+        const blockH = p.folded ? titleH : titleH + n * 20;
 
-        const blockHeight = position.folded
-            ? titleHeight
-            : titleHeight + fieldNames.length * fieldHeight;
-
+        // Couleur de fond : rouge transparent si table en cycle
+        const inCycle = this.cycle_tables.has(tableName);
         ctx.save();
-
-        // Légère transparence pour voir les liens derrière
-        ctx.fillStyle = 'rgba(245, 245, 245, 0.8)';
-        ctx.strokeStyle = '#444';
+        ctx.fillStyle = inCycle ? 'rgba(255, 0, 0, 0.15)' : 'rgba(245, 245, 245, 0.8)';
+        ctx.strokeStyle = inCycle ? 'red' : '#444';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.rect(position.x, position.y, blockWidth, blockHeight);
+        ctx.rect(p.x, p.y, w, blockH);
         ctx.fill();
         ctx.stroke();
 
         // Titre
         ctx.fillStyle = '#000';
         ctx.font = 'bold 14px sans-serif';
-        ctx.fillText(this.t(table.label.code_text), position.x + 10, position.y + 20);
+        ctx.fillText(this.t(table.label.code_text), p.x + 10, p.y + 20);
 
         // Champs
-        if (!position.folded) {
+        if (!p.folded) {
             ctx.font = '12px sans-serif';
-            for (let i = 0; i < fieldNames.length; i++) {
-                const fname = fieldNames[i];
-                const yLine = position.y + titleHeight + i * fieldHeight + 15;
-
-                // Couleur si "discarded"
+            const names = Object.keys(fields);
+            for (let i = 0; i < names.length; i++) {
+                const fname = names[i];
+                const yLine = p.y + titleH + i * 20 + 15;
                 const isDiscarded = !!this.discarded_field_paths[tableName]?.[fname];
+
+                // Si ce champ est dans un cycle, fond rouge clair
+                const fieldInCycle =
+                    this.cycle_fields[tableName] &&
+                    this.cycle_fields[tableName].has(fname);
+
+                if (fieldInCycle) {
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+                    ctx.fillRect(p.x, p.y + titleH + i * 20, w, 20);
+                    ctx.restore();
+                }
+
                 ctx.fillStyle = isDiscarded ? 'rgba(0,0,0,0.3)' : '#666';
-                ctx.fillText(fname, position.x + 20, yLine);
+                ctx.fillText(fname, p.x + 20, yLine);
             }
         }
-
         ctx.restore();
     }
 
     private drawLinks(
         ctx: CanvasRenderingContext2D,
         tableName: string,
-        fields: { [field_name: string]: ModuleTableFieldVO }
+        fields: { [name: string]: ModuleTableFieldVO }
     ) {
-        const position = this.blockPositions[tableName];
-        const blockWidth = 200;
-        const titleHeight = 30;
-        const fieldHeight = 20;
+        const p = this.blockPositions[tableName];
+        const w = 200;
+        const titleH = 30;
+        const fieldH = 20;
 
         for (const [idx, fieldName] of Object.keys(fields).entries()) {
-            const field = fields[fieldName];
-            if (field.field_type !== ModuleTableFieldVO.FIELD_TYPE_foreign_key || !field.foreign_ref_vo_type) {
+            const f = fields[fieldName];
+            if (
+                f.field_type !== ModuleTableFieldVO.FIELD_TYPE_foreign_key ||
+                !f.foreign_ref_vo_type
+            ) {
                 continue;
             }
-            const refTableName = field.foreign_ref_vo_type;
-            if (!this.tables_by_table_name[refTableName]) continue;
+            const ref = f.foreign_ref_vo_type;
+            if (ref == tableName) continue; // On ignore les liens vers soi-même
+            if (!this.tables_by_table_name[ref]) continue;
 
-            // Départ
             let startX: number, startY: number;
-            if (position.folded) {
-                startX = position.x + blockWidth / 2;
-                startY = position.y + titleHeight / 2;
+            if (p.folded) {
+                startX = p.x + w / 2;
+                startY = p.y + titleH / 2;
             } else {
-                startX = position.x + blockWidth;
-                startY = position.y + titleHeight + idx * fieldHeight + fieldHeight / 2;
+                startX = p.x + w;
+                startY = p.y + titleH + idx * fieldH + fieldH / 2;
             }
 
-            // Arrivée
-            const refPos = this.blockPositions[refTableName];
-            const refFields = this.fields_by_table_name_and_field_name[refTableName] || {};
-            const nbRefFields = Object.keys(refFields).length;
-            const refHeight = refPos.folded
-                ? titleHeight
-                : titleHeight + nbRefFields * fieldHeight;
-            const endX = refPos.x + blockWidth / 2;
-            const endY = refPos.y + refHeight / 2;
+            const refPos = this.blockPositions[ref];
+            const refFields = this.fields_by_table_name_and_field_name[ref] || {};
+            const nbRef = Object.keys(refFields).length;
+            const refH = refPos.folded ? titleH : titleH + nbRef * fieldH;
+            const endX = refPos.x + w / 2;
+            const endY = refPos.y + refH / 2;
 
-            // Décalage multi-liens
-            const linkKey = tableName < refTableName
-                ? tableName + '=>' + refTableName
-                : refTableName + '=>' + tableName;
+            const linkKey =
+                tableName < ref
+                    ? tableName + '=>' + ref
+                    : ref + '=>' + tableName;
             if (!this.linkCountMap[linkKey]) {
                 this.linkCountMap[linkKey] = 0;
             }
             const linkIndex = this.linkCountMap[linkKey]++;
             const offset = linkIndex * 5;
-
             const angle = Math.atan2(endY - startY, endX - startX);
             const offsetX = offset * Math.cos(angle + Math.PI / 2);
             const offsetY = offset * Math.sin(angle + Math.PI / 2);
 
             const label = this.get_link_label(tableName, fieldName);
+            const isDiscarded =
+                !!this.discarded_field_paths[tableName]?.[fieldName];
 
-            // Détermine si ce lien est "discarded"
-            const isDiscarded = !!this.discarded_field_paths[tableName]?.[fieldName];
+            // Lien dans un cycle ?
+            const isInCycle =
+                this.cycle_links[tableName] &&
+                this.cycle_links[tableName].has(fieldName);
 
-            this.drawArrow(
-                ctx,
-                startX + offsetX,
-                startY + offsetY,
-                endX + offsetX,
-                endY + offsetY,
-                label,
-                isDiscarded
-            );
+            if (
+                this.lineReEntersBlock(
+                    startX, startY,
+                    endX, endY,
+                    p.x, p.y, w, p.folded ? titleH : titleH + Object.keys(fields).length * fieldH
+                )
+            ) {
+                this.drawCurvedArrow(
+                    ctx,
+                    startX + offsetX,
+                    startY + offsetY,
+                    endX + offsetX,
+                    endY + offsetY,
+                    label,
+                    isDiscarded,
+                    isInCycle,
+                    true
+                );
+            } else {
+                this.drawCurvedArrow(
+                    ctx,
+                    startX + offsetX,
+                    startY + offsetY,
+                    endX + offsetX,
+                    endY + offsetY,
+                    label,
+                    isDiscarded,
+                    isInCycle,
+                    false
+                );
+            }
         }
     }
 
-    private drawArrow(
+    private lineReEntersBlock(
+        x1: number,
+        y1: number,
+        x2: number,
+        y2: number,
+        bx: number,
+        by: number,
+        bw: number,
+        bh: number
+    ): boolean {
+        const minx = bx + 1, maxx = bx + bw - 1;
+        const miny = by + 1, maxy = by + bh - 1;
+        if (x2 >= minx && x2 <= maxx && y2 >= miny && y2 <= maxy) {
+            return true;
+        }
+        return false;
+    }
+
+    private drawCurvedArrow(
         ctx: CanvasRenderingContext2D,
         x1: number,
         y1: number,
         x2: number,
         y2: number,
         label: string,
-        isDiscarded: boolean
+        isDiscarded: boolean,
+        isInCycle: boolean,
+        contournement: boolean
     ) {
         ctx.save();
-
-        // Si "discarded", on passe le lien en gris semi-transparent
         if (isDiscarded) {
             ctx.globalAlpha = 0.3;
         }
 
-        // Dégradé
-        let gradient;
-        if (!isDiscarded) {
-            gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+        // Couleur si cycle
+        let strokeColor = isInCycle ? 'red' : 'gray';
+        if (!isDiscarded && !isInCycle) {
+            // gradient (vert->gris) hors cycle
+            const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
             gradient.addColorStop(0, 'green');
             gradient.addColorStop(1, 'gray');
+            ctx.strokeStyle = gradient;
         } else {
-            // Lien "discarded" : tout gris
-            gradient = ctx.createLinearGradient(x1, y1, x2, y2);
-            gradient.addColorStop(0, 'gray');
-            gradient.addColorStop(1, 'gray');
+            // rouge ou gris selon cycle/discard
+            ctx.strokeStyle = strokeColor;
         }
 
-        ctx.strokeStyle = gradient;
-        ctx.lineWidth = 2;
         ctx.setLineDash([8, 6]);
-        ctx.lineDashOffset = -this.dashAnimationOffset;
+        if (!isDiscarded) {
+            // Quand on exclut un champ, on ne veut pas d'animation de dash
+            ctx.lineDashOffset = -this.dashAnimationOffset;
+        }
 
-        // Ligne
+        ctx.lineWidth = 2;
+
         ctx.beginPath();
         ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
+
+        if (contournement) {
+            const mx = (x1 + x2) / 2;
+            const my = (y1 + y2) / 2;
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            const ctrlOffset = 40;
+            const cx = mx + ctrlOffset * Math.cos(angle - Math.PI / 2);
+            const cy = my + ctrlOffset * Math.sin(angle - Math.PI / 2);
+            ctx.quadraticCurveTo(cx, cy, x2, y2);
+        } else {
+            ctx.lineTo(x2, y2);
+        }
+
         ctx.stroke();
 
-        // Pointe
+        // Flèche
         const headlen = 8;
         let angle = Math.atan2(y2 - y1, x2 - x1);
-
         ctx.beginPath();
         ctx.moveTo(x2, y2);
         ctx.lineTo(
@@ -650,8 +808,15 @@ export default class ModuleTablesComponent extends VueComponentBase {
             y2 - headlen * Math.sin(angle + Math.PI / 6)
         );
         ctx.lineTo(x2, y2);
-        ctx.fillStyle = gradient;
+
+        // pointe rouge si cycle
+        if (isInCycle) {
+            ctx.fillStyle = 'red';
+        } else {
+            ctx.fillStyle = ctx.strokeStyle as string;
+        }
         ctx.fill();
+
         ctx.restore();
 
         // Label
@@ -665,7 +830,6 @@ export default class ModuleTablesComponent extends VueComponentBase {
         const ny = labelOffset * Math.sin(angle - Math.PI / 2);
 
         ctx.save();
-        // Si "discarded", label partiellement transparent aussi
         if (isDiscarded) {
             ctx.globalAlpha = 0.3;
         }
@@ -679,36 +843,26 @@ export default class ModuleTablesComponent extends VueComponentBase {
         ctx.restore();
     }
 
-    // ------------------------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Zoom
-    // ------------------------------------------------------------------------------------
-
-    /**
-     * Zoom autour du point de la souris : le point sous la souris ne bouge pas.
-     */
+    // --------------------------------------------------------------------
     private onWheel(e: WheelEvent) {
         e.preventDefault();
         const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
         const rect = canvas.getBoundingClientRect();
-
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
-        // Coordonnées "diagramme" avant
         const diagBefore = this.screenToDiagramCoords(mouseX, mouseY);
 
         const delta = e.deltaY > 0 ? -0.1 : 0.1;
         const newScale = Math.max(0.05, this.scale + delta);
 
-        // On recalcule offsetX/offsetY pour que diagBefore reste sous la souris
-        // screenX = diagramX * scale + offsetX
-        // => offsetX = screenX - diagramX*scale
         this.scale = newScale;
         const diagAfter = this.screenToDiagramCoords(mouseX, mouseY);
         const dx = diagAfter.x - diagBefore.x;
         const dy = diagAfter.y - diagBefore.y;
 
-        // Corrige l'offset pour annuler ce delta
         this.offsetX += dx * this.scale;
         this.offsetY += dy * this.scale;
 
@@ -716,10 +870,9 @@ export default class ModuleTablesComponent extends VueComponentBase {
         this.drawDiagram();
     }
 
-    // ------------------------------------------------------------------------------------
-    // Mouse events
-    // ------------------------------------------------------------------------------------
-
+    // --------------------------------------------------------------------
+    // Souris
+    // --------------------------------------------------------------------
     private onMouseDown(e: MouseEvent) {
         const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
         const rect = canvas.getBoundingClientRect();
@@ -730,17 +883,13 @@ export default class ModuleTablesComponent extends VueComponentBase {
         this.mouseDownY = mouseY;
         this.hasMovedSinceMouseDown = false;
 
-        // Bouton Auto-Fit ?
         if (!this.autoFitEnabled && mouseX >= 10 && mouseX <= 110 && mouseY >= 10 && mouseY <= 40) {
             this.autoFit();
             return;
         }
 
-        // On recherche si on clique sur un bloc
         const clickedTable = this.findClickedTable(mouseX, mouseY);
         if (clickedTable) {
-            // On ne plie/déplie que si à la fin on n'a pas de drag (voir onMouseUp)
-            // On initialise la possibilité de drag
             const diagCoords = this.screenToDiagramCoords(mouseX, mouseY);
             this.draggedTable = clickedTable;
             this.dragTableOffsetX = diagCoords.x - this.blockPositions[clickedTable].x;
@@ -749,7 +898,6 @@ export default class ModuleTablesComponent extends VueComponentBase {
             return;
         }
 
-        // Sinon drag du canvas
         this.isDraggingCanvas = true;
         this.dragStartX = mouseX - this.offsetX;
         this.dragStartY = mouseY - this.offsetY;
@@ -761,7 +909,6 @@ export default class ModuleTablesComponent extends VueComponentBase {
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
-        // Détecte si on dépasse le seuil => c'est un drag
         const distX = mouseX - this.mouseDownX;
         const distY = mouseY - this.mouseDownY;
         if (Math.abs(distX) > this.CLICK_DRAG_THRESHOLD || Math.abs(distY) > this.CLICK_DRAG_THRESHOLD) {
@@ -769,7 +916,6 @@ export default class ModuleTablesComponent extends VueComponentBase {
         }
 
         if (this.draggedTable) {
-            // On déplace la table
             const diagCoords = this.screenToDiagramCoords(mouseX, mouseY);
             this.blockPositions[this.draggedTable].x = diagCoords.x - this.dragTableOffsetX;
             this.blockPositions[this.draggedTable].y = diagCoords.y - this.dragTableOffsetY;
@@ -786,11 +932,8 @@ export default class ModuleTablesComponent extends VueComponentBase {
     }
 
     private onMouseUp(e: MouseEvent) {
-        // Si on a une table potentiellement en drag
         if (this.draggedTable) {
-            // Si on n'a pas bougé (hasMovedSinceMouseDown=false), c'était un clic => toggle folded
             if (!this.hasMovedSinceMouseDown) {
-                // Toggle
                 this.blockPositions[this.draggedTable].folded = !this.blockPositions[this.draggedTable].folded;
             }
         }
@@ -799,35 +942,33 @@ export default class ModuleTablesComponent extends VueComponentBase {
     }
 
     private findClickedTable(mouseX: number, mouseY: number): string | null {
-        const diagCoords = this.screenToDiagramCoords(mouseX, mouseY);
-        const xClick = diagCoords.x;
-        const yClick = diagCoords.y;
-        const blockWidth = 200;
+        const diag = this.screenToDiagramCoords(mouseX, mouseY);
+        const xClick = diag.x;
+        const yClick = diag.y;
 
-        for (const tableName of Object.keys(this.tables_by_table_name)) {
-            const pos = this.blockPositions[tableName];
-            const fields = this.fields_by_table_name_and_field_name[tableName] || {};
-            const nbFields = Object.keys(fields).length;
-            const titleH = 30;
-            const fieldH = 20;
-            const blockH = pos.folded ? titleH : titleH + nbFields * fieldH;
+        for (const tn of Object.keys(this.tables_by_table_name)) {
+            const p = this.blockPositions[tn];
+            const fields = this.fields_by_table_name_and_field_name[tn] || {};
+            const nb = Object.keys(fields).length;
+            const h = p.folded ? 30 : 30 + nb * 20;
+            const w = 200;
 
             if (
-                xClick >= pos.x &&
-                xClick <= pos.x + blockWidth &&
-                yClick >= pos.y &&
-                yClick <= pos.y + blockH
+                xClick >= p.x &&
+                xClick <= p.x + w &&
+                yClick >= p.y &&
+                yClick <= p.y + h
             ) {
-                return tableName;
+                return tn;
             }
         }
         return null;
     }
 
-    private screenToDiagramCoords(screenX: number, screenY: number) {
+    private screenToDiagramCoords(sx: number, sy: number): { x: number; y: number } {
         return {
-            x: (screenX - this.offsetX) / this.scale,
-            y: (screenY - this.offsetY) / this.scale,
+            x: (sx - this.offsetX) / this.scale,
+            y: (sy - this.offsetY) / this.scale,
         };
     }
 }
