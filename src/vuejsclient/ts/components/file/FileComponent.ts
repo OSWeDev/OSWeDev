@@ -1,10 +1,13 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
+import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
-import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
 
 @Component({
     template: require('./FileComponent.pug'),
@@ -26,7 +29,7 @@ export default class FileComponent extends VueComponentBase {
     @Prop({ default: null })
     protected filevo: IDistantVOBase;
 
-    @Prop()
+    @Prop({ default: () => SimpleDatatableFieldVO.createNew(field_names<FileVO>().path) })
     protected field: DatatableField<any, any>;
 
     @Prop({ default: null })
