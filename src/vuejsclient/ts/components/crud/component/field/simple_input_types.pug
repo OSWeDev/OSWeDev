@@ -169,8 +169,8 @@
             .html_field_inline_readonly_value.valign-middle(v-html='field_value')
         template(v-else)
             Vuequilleditor.valign-middle(v-model="field_value" ref="input_elt" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event, true)"  @blur="validateEndOfInput($event, true)" :id="input_elt_id")
-    template(v-else-if="(field_type == 'file')&&(vo._type == 'file')")
-        Filecomponent(ref="input_elt" :filevo="vo" @uploaded="uploadedFile(...arguments)" :id="input_elt_id" :disabled="is_readonly")
+    template(v-else-if="(field_type == 'file')")
+        Filecomponent(ref="input_elt" :filevo="vo" :field="field" @uploaded="uploadedFile(...arguments)" :id="input_elt_id" :disabled="is_readonly")
     template(v-else-if="(field_type == 'file')")
         template(v-if="field_value")
             .download_link

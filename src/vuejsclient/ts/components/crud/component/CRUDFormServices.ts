@@ -601,38 +601,54 @@ export default class CRUDFormServices {
      * @param fileVo
      */
     public static async uploadedFile(
-        vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO | ImageVO,
-        api_type_id: string, editableVO: IDistantVOBase, updateData: (vo_upd: IDistantVOBase) => void,
-        component: VueComponentBase) {
-        if ((!fileVo) || (!fileVo.id)) {
-            return;
-        }
-
+        vo: IDistantVOBase,
+        field: DatatableField<any, any>,
+        fileVo: FileVO | ImageVO,
+        api_type_id: string,
+        editableVO: IDistantVOBase,
+        updateData: (vo_upd: IDistantVOBase) => void,
+        component: VueComponentBase
+    ) {
         switch (api_type_id) {
             case FileVO.API_TYPE_ID:
             case ImageVO.API_TYPE_ID:
-                if (vo && vo.id) {
+                if (vo && vo.id && editableVO) {
                     const tmp = editableVO[field.datatable_field_uid];
-                    editableVO[field.datatable_field_uid] = fileVo[field.datatable_field_uid];
-                    fileVo[field.datatable_field_uid] = tmp;
+                    editableVO[field.datatable_field_uid] = fileVo ? fileVo[field.datatable_field_uid] : null;
 
-                    await ModuleDAO.getInstance().insertOrUpdateVOs([editableVO, fileVo]);
+                    const toUpdates: IDistantVOBase[] = [editableVO];
+
+                    if (fileVo) {
+                        fileVo[field.datatable_field_uid] = tmp;
+                        toUpdates.push(fileVo);
+                    }
+
+                    await ModuleDAO.getInstance().insertOrUpdateVOs(toUpdates);
                     updateData(editableVO);
                     updateData(fileVo);
                 }
+
+                component.$emit('close');
                 break;
 
             default:
-                if (vo) {
-                    editableVO[field.datatable_field_uid] = fileVo.path;
+                if (editableVO) {
+                    editableVO[field.datatable_field_uid] = fileVo ? fileVo.path : null;
 
-                    await ModuleDAO.getInstance().insertOrUpdateVO(editableVO);
                     updateData(editableVO);
+                } else if (vo) {
+                    vo[field.datatable_field_uid] = fileVo ? fileVo.path : null;
+
+                    updateData(vo);
+                }
+
+                if (fileVo) {
                     updateData(fileVo);
                 }
-                break;
+
+                return true;
         }
 
-        component.$emit('close');
+        return false;
     }
 }

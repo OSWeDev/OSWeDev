@@ -17,6 +17,10 @@ import ScreenshotComponent from '../screenshot/ScreenshotComponent';
 import VueComponentBase from '../VueComponentBase';
 import './FeedbackHandlerComponent.scss';
 import { ModuleFeedbackAction, ModuleFeedbackGetter } from './store/FeedbackStore';
+import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 const { parse, stringify } = require('flatted/cjs');
 
 @Component({
@@ -58,11 +62,14 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
     private is_already_sending_feedback: boolean = false;
 
+    private file_path_field: DatatableField<any, any> = null;
+
     private mounted() {
         this.reload();
     }
 
     private reload() {
+        this.file_path_field = SimpleDatatableFieldVO.createNew(field_names<FileVO>().path).setModuleTable(ModuleTableController.module_tables_by_vo_type[FileVO.API_TYPE_ID]);
         this.tmp_user = VueAppController.getInstance().data_user ? VueAppController.getInstance().data_user.name : null;
         this.tmp_email = VueAppController.getInstance().data_user ? VueAppController.getInstance().data_user.email : null;
         this.tmp_phone = VueAppController.getInstance().data_user ? VueAppController.getInstance().data_user.phone : null;
