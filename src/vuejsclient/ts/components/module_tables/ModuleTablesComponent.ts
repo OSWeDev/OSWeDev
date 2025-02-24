@@ -17,6 +17,10 @@ export default class ModuleTablesComponent extends VueComponentBase {
     @Prop({ default: () => ({}) })
     readonly tables_by_table_name!: { [table_name: string]: ModuleTableVO };
 
+    /**
+     * discarded_field_paths[tableName][fieldName] = true => ce champ est "inactif",
+     * donc la liaison et le nom du champ sont en gris translucide.
+     */
     @Prop({ default: () => ({}) })
     readonly discarded_field_paths!: { [vo_type: string]: { [field_id: string]: boolean } };
 
@@ -36,6 +40,12 @@ export default class ModuleTablesComponent extends VueComponentBase {
     private draggedTable: string | null = null;
     private dragTableOffsetX: number = 0;
     private dragTableOffsetY: number = 0;
+
+    // Gestion clic vs drag
+    private mouseDownX: number = 0;
+    private mouseDownY: number = 0;
+    private hasMovedSinceMouseDown: boolean = false;
+    private CLICK_DRAG_THRESHOLD: number = 5; // px
 
     // Positions, vitesse, plié/déplié
     private blockPositions: {
@@ -59,12 +69,13 @@ export default class ModuleTablesComponent extends VueComponentBase {
     // Pour l'animation des flèches
     private dashAnimationOffset: number = 0;
 
+
     // Constantes physiques ajustées
     private BASE_REPULSION = 10;          // répulsion de base
     private COLLISION_PUSH = 0.1;           // petit push si chevauchement
     private SPRING_LENGTH = 150;            // longueur idéale
     private ATTRACTION_FACTOR = 0.0005;     // ressort
-    private CENTER_FORCE = 0.0005;         // force vers le centre réduite
+    private CENTER_FORCE = 0.0001;         // force vers le centre réduite
     private DAMPING = 0.9;                  // amortissement plus fort
     private MAX_SPEED = 5;                  // bride la vitesse max
 
@@ -87,10 +98,6 @@ export default class ModuleTablesComponent extends VueComponentBase {
         canvas.addEventListener('mousemove', this.onMouseMove);
         canvas.addEventListener('mouseup', this.onMouseUp);
         canvas.addEventListener('wheel', (e) => this.onWheel(e), { passive: false });
-    }
-
-    private get_link_label(table_name: string, field_name: string): string {
-        return this.t(ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[table_name][field_name].field_label.code_text);
     }
 
     private beforeDestroy() {
@@ -121,6 +128,10 @@ export default class ModuleTablesComponent extends VueComponentBase {
         canvas.height = canvas.offsetHeight;
         this.drawDiagram();
     }
+
+    // ------------------------------------------------------------------------------------
+    // Setup
+    // ------------------------------------------------------------------------------------
 
     private setupNodesAndEdges() {
         const tableNames = Object.keys(this.tables_by_table_name);
@@ -170,6 +181,20 @@ export default class ModuleTablesComponent extends VueComponentBase {
         }
     }
 
+    private get_link_label(table_name: string, field_name: string): string {
+        // Ex: label du champ
+        return this.t(
+            ModuleTableFieldController
+                .module_table_fields_by_vo_type_and_field_name[table_name][field_name]
+                .field_label
+                .code_text
+        );
+    }
+
+    // ------------------------------------------------------------------------------------
+    // Layout (physique)
+    // ------------------------------------------------------------------------------------
+
     private startLayout() {
         if (this.isLayoutRunning) return;
         this.isLayoutRunning = true;
@@ -183,6 +208,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
         for (let i = 0; i < 3; i++) {
             this.applyForcesOnce();
         }
+
         // Animation des pointillés
         this.dashAnimationOffset += 0.1;
 
@@ -190,19 +216,31 @@ export default class ModuleTablesComponent extends VueComponentBase {
         this.layoutRequestId = requestAnimationFrame(() => this.layoutLoop());
     }
 
+    private stopLayout() {
+        this.isLayoutRunning = false;
+        if (this.layoutRequestId) {
+            cancelAnimationFrame(this.layoutRequestId);
+            this.layoutRequestId = 0;
+        }
+    }
+
     private applyForcesOnce() {
         const tableNames = Object.keys(this.tables_by_table_name);
         if (!tableNames.length) return;
 
+        // On utilise le centre du canvas (en coordonnées "diagramme")
+        // pour recentrer les blocs
         const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
-        // Centre (en coord diag)
-        // const centerX = (canvas.width / 2 - this.offsetX) / this.scale;
-        // const centerY = (canvas.height / 2 - this.offsetY) / this.scale;
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
+        // Au lieu d'utiliser offset/scale, on peut forcer tout vers un point "0,0"
+        // ou un point "moyen". Mais gardons un "pseudo-centre" en 0,0 si on veut.
+        // Ici on va faire simple : on ramène tout vers (0,0) => on tient compte de offsetX/offsetY.
+        // Pour un vrai centrage autour du "milieu d'écran", on calcule la position "diagramme" du centre d'écran :
+        const centerScreenX = canvas.width / 2;
+        const centerScreenY = canvas.height / 2;
+        const centerX = (centerScreenX - this.offsetX) / this.scale;
+        const centerY = (centerScreenY - this.offsetY) / this.scale;
 
-        // --- 1) Repulsion "globale" coulombienne ---
-        // (même sans chevauchement, on veut les éloigner un peu si trop proches)
+        // 1) Repulsion coulombienne
         for (let i = 0; i < tableNames.length; i++) {
             const tA = tableNames[i];
             const posA = this.blockPositions[tA];
@@ -219,21 +257,16 @@ export default class ModuleTablesComponent extends VueComponentBase {
                 const dx = posB.x - posA.x;
                 const dy = posB.y - posA.y;
                 let dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 0.5) dist = 0.5; // évite le /0
+                if (dist < 0.5) dist = 0.5;
 
-                // Repulsion ~ 1 / dist
                 const repulsion = this.BASE_REPULSION / dist;
-
-                // Force
                 const fx = (repulsion * dx) / dist;
                 const fy = (repulsion * dy) / dist;
 
-                // tA
                 if (this.draggedTable !== tA) {
                     this.velocities[tA].vx -= fx;
                     this.velocities[tA].vy -= fy;
                 }
-                // tB
                 if (this.draggedTable !== tB) {
                     this.velocities[tB].vx += fx;
                     this.velocities[tB].vy += fy;
@@ -241,28 +274,23 @@ export default class ModuleTablesComponent extends VueComponentBase {
             }
         }
 
-        // --- 2) Petit push correctif en cas de chevauchement (collisions) ---
+        // 2) Collision push
         for (let i = 0; i < tableNames.length; i++) {
             const tA = tableNames[i];
-            const posA = this.blockPositions[tA];
             const rA = this.getBlockRadius(tA);
 
             for (let j = i + 1; j < tableNames.length; j++) {
                 const tB = tableNames[j];
-                const posB = this.blockPositions[tB];
-                const rB = this.getBlockRadius(tB);
-
-                // On ne bouge pas si drag
                 if (this.draggedTable === tA && this.draggedTable === tB) {
                     continue;
                 }
+                const rB = this.getBlockRadius(tB);
 
-                const dx = posB.x - posA.x;
-                const dy = posB.y - posA.y;
+                const dx = this.blockPositions[tB].x - this.blockPositions[tA].x;
+                const dy = this.blockPositions[tB].y - this.blockPositions[tA].y;
                 const dist = Math.max(0.5, Math.sqrt(dx * dx + dy * dy));
                 const minDist = rA + rB;
                 if (dist < minDist) {
-                    // Overlap => on repousse un peu plus
                     const overlap = (minDist - dist) / minDist;
                     const force = overlap * this.COLLISION_PUSH;
                     const fx = (force * dx) / dist;
@@ -280,7 +308,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
             }
         }
 
-        // --- 3) Attraction "ressort" via adjacency ---
+        // 3) Ressorts (adherence via adjacency)
         for (const source of tableNames) {
             const neighbors = this.adjacency[source];
             for (const target of neighbors) {
@@ -290,6 +318,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
                 }
                 const sPos = this.blockPositions[source];
                 const tPos = this.blockPositions[target];
+
                 const dx = tPos.x - sPos.x;
                 const dy = tPos.y - sPos.y;
                 const dist = Math.max(0.5, Math.sqrt(dx * dx + dy * dy));
@@ -305,18 +334,17 @@ export default class ModuleTablesComponent extends VueComponentBase {
             }
         }
 
-        // --- 4) Force vers le centre pour éviter "l'explosion" ---
+        // 4) Force vers le centre
         for (const tn of tableNames) {
             if (this.draggedTable === tn) continue;
             const pos = this.blockPositions[tn];
             const dx = centerX - pos.x;
             const dy = centerY - pos.y;
-            // On applique une force modérée
             this.velocities[tn].vx += dx * this.CENTER_FORCE;
             this.velocities[tn].vy += dy * this.CENTER_FORCE;
         }
 
-        // --- 5) Mise à jour (positions, amortissement, bridage vitesse) ---
+        // 5) Mise à jour
         for (const tn of tableNames) {
             if (this.draggedTable === tn) {
                 this.velocities[tn].vx = 0;
@@ -327,22 +355,20 @@ export default class ModuleTablesComponent extends VueComponentBase {
             // Amortissement
             v.vx *= this.DAMPING;
             v.vy *= this.DAMPING;
-            // Limitation de vitesse
+
+            // Bride vitesse
             const speed = Math.sqrt(v.vx * v.vx + v.vy * v.vy);
             if (speed > this.MAX_SPEED) {
                 const ratio = this.MAX_SPEED / speed;
                 v.vx *= ratio;
                 v.vy *= ratio;
             }
-            // Mise à jour position
+            // Avance
             this.blockPositions[tn].x += v.vx;
             this.blockPositions[tn].y += v.vy;
         }
     }
 
-    /**
-     * Rayon = moitié de la diagonale du bloc (plié/déplié).
-     */
     private getBlockRadius(tableName: string): number {
         const pos = this.blockPositions[tableName];
         const fields = this.fields_by_table_name_and_field_name[tableName] || {};
@@ -351,18 +377,12 @@ export default class ModuleTablesComponent extends VueComponentBase {
         const fieldH = 20;
         const blockW = 200;
         const blockH = pos.folded ? titleH : titleH + nbFields * fieldH;
-        // Diagonale
-        const diag = Math.sqrt(blockW * blockW + blockH * blockH);
-        return diag / 2;
+        return Math.sqrt(blockW * blockW + blockH * blockH) / 2;
     }
 
-    private stopLayout() {
-        this.isLayoutRunning = false;
-        if (this.layoutRequestId) {
-            cancelAnimationFrame(this.layoutRequestId);
-            this.layoutRequestId = 0;
-        }
-    }
+    // ------------------------------------------------------------------------------------
+    // Auto-Fit
+    // ------------------------------------------------------------------------------------
 
     private autoFit() {
         const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
@@ -400,13 +420,20 @@ export default class ModuleTablesComponent extends VueComponentBase {
 
         const scaleX = (canvas.width - 2 * margin) / contentWidth;
         const scaleY = (canvas.height - 2 * margin) / contentHeight;
-        this.scale = Math.min(scaleX, scaleY);
+        const newScale = Math.min(scaleX, scaleY);
 
+        // On recalcule l'offset pour que minX => margin
+        //   => offsetX = margin - minX * newScale
+        this.scale = newScale;
         this.offsetX = margin - minX * this.scale;
         this.offsetY = margin - minY * this.scale;
         this.autoFitEnabled = true;
         this.drawDiagram();
     }
+
+    // ------------------------------------------------------------------------------------
+    // Dessin
+    // ------------------------------------------------------------------------------------
 
     private drawDiagram() {
         if (!this.ctx) return;
@@ -415,6 +442,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // Transformation
         ctx.save();
         ctx.translate(this.offsetX, this.offsetY);
         ctx.scale(this.scale, this.scale);
@@ -467,8 +495,8 @@ export default class ModuleTablesComponent extends VueComponentBase {
 
         ctx.save();
 
-        // Bloc
-        ctx.fillStyle = '#f5f5f5';
+        // Légère transparence pour voir les liens derrière
+        ctx.fillStyle = 'rgba(245, 245, 245, 0.8)';
         ctx.strokeStyle = '#444';
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -488,6 +516,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
                 const fname = fieldNames[i];
                 const yLine = position.y + titleHeight + i * fieldHeight + 15;
 
+                // Couleur si "discarded"
                 const isDiscarded = !!this.discarded_field_paths[tableName]?.[fname];
                 ctx.fillStyle = isDiscarded ? 'rgba(0,0,0,0.3)' : '#666';
                 ctx.fillText(fname, position.x + 20, yLine);
@@ -515,7 +544,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
             const refTableName = field.foreign_ref_vo_type;
             if (!this.tables_by_table_name[refTableName]) continue;
 
-            // Point de départ
+            // Départ
             let startX: number, startY: number;
             if (position.folded) {
                 startX = position.x + blockWidth / 2;
@@ -525,7 +554,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
                 startY = position.y + titleHeight + idx * fieldHeight + fieldHeight / 2;
             }
 
-            // Point d'arrivée
+            // Arrivée
             const refPos = this.blockPositions[refTableName];
             const refFields = this.fields_by_table_name_and_field_name[refTableName] || {};
             const nbRefFields = Object.keys(refFields).length;
@@ -551,13 +580,17 @@ export default class ModuleTablesComponent extends VueComponentBase {
 
             const label = this.get_link_label(tableName, fieldName);
 
+            // Détermine si ce lien est "discarded"
+            const isDiscarded = !!this.discarded_field_paths[tableName]?.[fieldName];
+
             this.drawArrow(
                 ctx,
                 startX + offsetX,
                 startY + offsetY,
                 endX + offsetX,
                 endY + offsetY,
-                label
+                label,
+                isDiscarded
             );
         }
     }
@@ -568,14 +601,29 @@ export default class ModuleTablesComponent extends VueComponentBase {
         y1: number,
         x2: number,
         y2: number,
-        label: string
+        label: string,
+        isDiscarded: boolean
     ) {
-        // Dégradé vert->gris
-        const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
-        gradient.addColorStop(0, 'green');
-        gradient.addColorStop(1, 'gray');
-
         ctx.save();
+
+        // Si "discarded", on passe le lien en gris semi-transparent
+        if (isDiscarded) {
+            ctx.globalAlpha = 0.3;
+        }
+
+        // Dégradé
+        let gradient;
+        if (!isDiscarded) {
+            gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+            gradient.addColorStop(0, 'green');
+            gradient.addColorStop(1, 'gray');
+        } else {
+            // Lien "discarded" : tout gris
+            gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+            gradient.addColorStop(0, 'gray');
+            gradient.addColorStop(1, 'gray');
+        }
+
         ctx.strokeStyle = gradient;
         ctx.lineWidth = 2;
         ctx.setLineDash([8, 6]);
@@ -617,6 +665,10 @@ export default class ModuleTablesComponent extends VueComponentBase {
         const ny = labelOffset * Math.sin(angle - Math.PI / 2);
 
         ctx.save();
+        // Si "discarded", label partiellement transparent aussi
+        if (isDiscarded) {
+            ctx.globalAlpha = 0.3;
+        }
         ctx.translate(mx + nx, my + ny);
         ctx.rotate(angle);
         ctx.textAlign = 'center';
@@ -627,13 +679,46 @@ export default class ModuleTablesComponent extends VueComponentBase {
         ctx.restore();
     }
 
+    // ------------------------------------------------------------------------------------
+    // Zoom
+    // ------------------------------------------------------------------------------------
+
+    /**
+     * Zoom autour du point de la souris : le point sous la souris ne bouge pas.
+     */
     private onWheel(e: WheelEvent) {
         e.preventDefault();
+        const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
+        const rect = canvas.getBoundingClientRect();
+
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Coordonnées "diagramme" avant
+        const diagBefore = this.screenToDiagramCoords(mouseX, mouseY);
+
         const delta = e.deltaY > 0 ? -0.1 : 0.1;
-        this.scale = Math.max(0.05, this.scale + delta);
+        const newScale = Math.max(0.05, this.scale + delta);
+
+        // On recalcule offsetX/offsetY pour que diagBefore reste sous la souris
+        // screenX = diagramX * scale + offsetX
+        // => offsetX = screenX - diagramX*scale
+        this.scale = newScale;
+        const diagAfter = this.screenToDiagramCoords(mouseX, mouseY);
+        const dx = diagAfter.x - diagBefore.x;
+        const dy = diagAfter.y - diagBefore.y;
+
+        // Corrige l'offset pour annuler ce delta
+        this.offsetX += dx * this.scale;
+        this.offsetY += dy * this.scale;
+
         this.autoFitEnabled = false;
         this.drawDiagram();
     }
+
+    // ------------------------------------------------------------------------------------
+    // Mouse events
+    // ------------------------------------------------------------------------------------
 
     private onMouseDown(e: MouseEvent) {
         const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
@@ -641,20 +726,21 @@ export default class ModuleTablesComponent extends VueComponentBase {
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
+        this.mouseDownX = mouseX;
+        this.mouseDownY = mouseY;
+        this.hasMovedSinceMouseDown = false;
+
         // Bouton Auto-Fit ?
         if (!this.autoFitEnabled && mouseX >= 10 && mouseX <= 110 && mouseY >= 10 && mouseY <= 40) {
             this.autoFit();
             return;
         }
 
-        // Clic sur bloc ?
+        // On recherche si on clique sur un bloc
         const clickedTable = this.findClickedTable(mouseX, mouseY);
         if (clickedTable) {
-            // Toggle fold si pas SHIFT ?
-            if (!e.shiftKey) {
-                this.blockPositions[clickedTable].folded = !this.blockPositions[clickedTable].folded;
-            }
-            // Début drag table
+            // On ne plie/déplie que si à la fin on n'a pas de drag (voir onMouseUp)
+            // On initialise la possibilité de drag
             const diagCoords = this.screenToDiagramCoords(mouseX, mouseY);
             this.draggedTable = clickedTable;
             this.dragTableOffsetX = diagCoords.x - this.blockPositions[clickedTable].x;
@@ -663,7 +749,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
             return;
         }
 
-        // Drag canvas
+        // Sinon drag du canvas
         this.isDraggingCanvas = true;
         this.dragStartX = mouseX - this.offsetX;
         this.dragStartY = mouseY - this.offsetY;
@@ -675,7 +761,15 @@ export default class ModuleTablesComponent extends VueComponentBase {
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
+        // Détecte si on dépasse le seuil => c'est un drag
+        const distX = mouseX - this.mouseDownX;
+        const distY = mouseY - this.mouseDownY;
+        if (Math.abs(distX) > this.CLICK_DRAG_THRESHOLD || Math.abs(distY) > this.CLICK_DRAG_THRESHOLD) {
+            this.hasMovedSinceMouseDown = true;
+        }
+
         if (this.draggedTable) {
+            // On déplace la table
             const diagCoords = this.screenToDiagramCoords(mouseX, mouseY);
             this.blockPositions[this.draggedTable].x = diagCoords.x - this.dragTableOffsetX;
             this.blockPositions[this.draggedTable].y = diagCoords.y - this.dragTableOffsetY;
@@ -683,14 +777,23 @@ export default class ModuleTablesComponent extends VueComponentBase {
             return;
         }
 
-        if (!this.isDraggingCanvas) return;
-        this.offsetX = mouseX - this.dragStartX;
-        this.offsetY = mouseY - this.dragStartY;
-        this.autoFitEnabled = false;
-        this.drawDiagram();
+        if (this.isDraggingCanvas) {
+            this.offsetX = mouseX - this.dragStartX;
+            this.offsetY = mouseY - this.dragStartY;
+            this.autoFitEnabled = false;
+            this.drawDiagram();
+        }
     }
 
-    private onMouseUp() {
+    private onMouseUp(e: MouseEvent) {
+        // Si on a une table potentiellement en drag
+        if (this.draggedTable) {
+            // Si on n'a pas bougé (hasMovedSinceMouseDown=false), c'était un clic => toggle folded
+            if (!this.hasMovedSinceMouseDown) {
+                // Toggle
+                this.blockPositions[this.draggedTable].folded = !this.blockPositions[this.draggedTable].folded;
+            }
+        }
         this.isDraggingCanvas = false;
         this.draggedTable = null;
     }
