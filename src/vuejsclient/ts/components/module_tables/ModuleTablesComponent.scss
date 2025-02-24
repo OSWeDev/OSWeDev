@@ -1,20 +1,22 @@
 .ModuleTablesComponent {
-    .uml-table-viewer {
-        width: 100%;
-        height: 80vh; // exemple: occupe 80% de la hauteur du viewport
 
-        #joint-container {
-            width: 100%;
-            height: 100%;
-            border: 1px solid #ccc;
-            position: relative;
-        }
+    width: 100%;
+    height: 60vh;
+    position: relative;
+
+    canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
     }
 
-    // Stylisez au besoin les éléments communs de JointJS (ports, liens, etc.)
-    // Ex. pour un plus gros label sur les liens :
-    // .link .connection {
-    //     stroke: #999;
-    //     stroke-width: 1.5px;
-    // }
+    // Variables SCSS à adapter
+    $color-block: #f5f5f5;
+    $color-link: #444;
+    $color-hover: #ff9800;
+    $block-width: 200px;
+    $block-height: 120px;
+    $block-gap: 50px;
+
+    // Autres styles...
 }

@@ -158,7 +158,10 @@
                         @update_discarded_field_paths='update_discarded_field_paths'
                     )
 
-                    Moduletablescomponent()
+                    Moduletablescomponent(
+                        :fields_by_table_name_and_field_name='fields_by_table_name_and_field_name'
+                        :tables_by_table_name='tables_by_table_name'
+                    )
 
 
             .fields_wrapper(v-if='show_build_page' :class='{"collapsed":collapsed_fields_wrapper}')

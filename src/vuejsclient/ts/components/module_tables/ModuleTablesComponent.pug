@@ -1,5 +1,9 @@
 .ModuleTablesComponent
-    // Conteneur principal pour le diagramme JointJS
-    .uml-table-viewer
-        // Élément HTML qui accueillera le "paper" JointJS
-        div#joint-container(ref="jointContainer")
+    // Canvas
+    canvas#diagramCanvas(
+        ref="diagramCanvas"
+        @mousedown="onMouseDown"
+        @mousemove="onMouseMove"
+        @mouseup="onMouseUp"
+        @wheel.prevent="onWheel"
+    )

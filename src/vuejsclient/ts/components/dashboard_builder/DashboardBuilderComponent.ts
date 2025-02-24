@@ -46,6 +46,9 @@ import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsC
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
 import ModuleTablesComponent from '../module_tables/ModuleTablesComponent';
+import ModuleTableFieldVO from '../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
+import ModuleTableFieldController from '../../../../shared/modules/DAO/ModuleTableFieldController';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -153,6 +156,43 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private throttle_on_dashboard_loaded = ThrottleHelper.declare_throttle_without_args(
         'DashboardBuilderComponent.throttle_on_dashboard_loaded',
         this.on_dashboard_loaded, 50);
+
+    get fields_by_table_name_and_field_name(): { [table_name: string]: { [field_name: string]: ModuleTableFieldVO } } {
+        const res: { [table_name: string]: { [field_name: string]: ModuleTableFieldVO } } = {};
+
+        for (const i in this.tables_by_table_name) {
+            const table = this.tables_by_table_name[i];
+
+            res[table.vo_type] = {};
+
+            for (const j in ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[table.vo_type]) {
+                const field = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[table.vo_type][j];
+
+                res[table.vo_type][field.field_name] = field;
+            }
+        }
+        return res;
+    }
+
+    get tables_by_table_name(): { [table_name: string]: ModuleTableVO } {
+        const res: { [table_name: string]: ModuleTableVO } = {};
+
+        for (const i in this.get_dashboard_api_type_ids) {
+            const api_type_id = this.get_dashboard_api_type_ids[i];
+
+            res[api_type_id] = ModuleTableController.module_tables_by_vo_type[api_type_id];
+        }
+
+        return res;
+    }
+
+    // get fields_by_table_name_and_field_name(): { [table_name: string]: { [field_name: string]: ModuleTableFieldVO } } {
+    //     return ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name;
+    // }
+
+    // get tables_by_table_name(): { [table_name: string]: ModuleTableVO } {
+    //     return ModuleTableController.module_tables_by_vo_type;
+    // }
 
     get has_navigation_history(): boolean {
         return this.get_page_history && (this.get_page_history.length > 0);

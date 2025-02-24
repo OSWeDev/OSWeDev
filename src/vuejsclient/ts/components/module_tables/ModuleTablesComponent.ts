@@ -1,229 +1,395 @@
 import Component from 'vue-class-component';
-import VueComponentBase from '../../../ts/components/VueComponentBase';
-import './ModuleTablesComponent.scss';
-
-// JointJS (Core)
-import * as joint from '@joint/core';
-import { DirectedGraph } from '@joint/layout-directed-graph';
-// Au besoin : import "jointjs/dist/joint.layout.DirectedGraph"; // si vous utilisez le layout DirectedGraph
-
-// Ex. si on utilise d3 (optionnel, juste un squelette pour l'auto-placement)
-import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
-import ModuleTableFieldController from '../../../../shared/modules/DAO/ModuleTableFieldController';
+import { Prop, Watch } from 'vue-property-decorator';
 import ModuleTableFieldVO from '../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
-
-/**
- * Représente les données minimales pour un nœud (table)
- * On y stocke le "folded" pour savoir si on masque ou affiche les fields
- */
-interface TableNodeData {
-    id: number;                               // table.id
-    tableName: string;                        // table.table_name
-    fields: ModuleTableFieldVO[];
-    folded: boolean;
-}
-
-/**
- * Représente un lien entre 2 tables
- */
-interface TableLinkData {
-    sourceId: number;
-    targetId: number;
-}
+import VueComponentBase from '../../../ts/components/VueComponentBase';
+import './ModuleTablesComponent.scss';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./ModuleTablesComponent.pug'),
     components: {}
 })
 export default class ModuleTablesComponent extends VueComponentBase {
-    // @Prop({ default: () => [] }) readonly tables!: ModuleTableVO[];
-    // @Prop({ default: () => [] }) readonly fields!: ModuleTableFieldVO[];
 
-    private graph: joint.dia.Graph | null = null;
-    private paper: joint.dia.Paper | null = null;
+    @Prop({ default: () => ({}) })
+    readonly fields_by_table_name_and_field_name!: { [table_name: string]: { [field_name: string]: ModuleTableFieldVO } };
 
-    get tables(): ModuleTableVO[] {
-        return Object.values(ModuleTableController.module_tables_by_vo_type);
+    @Prop({ default: () => ({}) })
+    readonly tables_by_table_name!: { [table_name: string]: ModuleTableVO };
+
+    private ctx: CanvasRenderingContext2D | null = null;
+    private scale: number = 1;
+    private offsetX: number = 0;
+    private offsetY: number = 0;
+    private isDragging: boolean = false;
+    private dragStartX: number = 0;
+    private dragStartY: number = 0;
+
+    // Positions et vitesses pour la "physique"
+    private blockPositions: { [table_name: string]: { x: number; y: number; folded: boolean } } = {};
+    private velocities: { [table_name: string]: { vx: number; vy: number } } = {};
+
+    // Contrôle de l'animation
+    private isLayoutRunning: boolean = false;
+    private layoutRequestId: number = 0;
+    private adjacency: { [tableName: string]: string[] } = {};
+
+    @Watch('fields_by_table_name_and_field_name', { deep: true })
+    @Watch('tables_by_table_name', { deep: true })
+    public onDataChange() {
+        // Dès qu'on ajoute / supprime des tables/champs, on recalcule les edges
+        this.setupNodesAndEdges();
+        // On relance la physique
+        this.startLayout();
     }
 
-    get fields(): ModuleTableFieldVO[] {
-        const res: ModuleTableFieldVO[] = [];
-        for (const type_id in ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id) {
-            const fields_by_id = ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id[type_id];
+    public mounted() {
+        this.initCanvas();
+        this.setupNodesAndEdges();
+        this.startLayout();
 
-            for (const field_id in fields_by_id) {
-                res.push(fields_by_id[field_id]);
-            }
+        // Écouteurs souris et molette
+        const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
+        canvas.addEventListener('mousedown', this.onMouseDown);
+        canvas.addEventListener('mousemove', this.onMouseMove);
+        canvas.addEventListener('mouseup', this.onMouseUp);
+        canvas.addEventListener('wheel', (e) => this.onWheel(e));
+    }
+
+    public initCanvas() {
+        const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
+        if (!canvas) return;
+        this.ctx = canvas.getContext('2d')!;
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        window.addEventListener('resize', this.onResize);
+    }
+
+    // public onResize() {
+    //     const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
+    //     if (!canvas) return;
+    //     canvas.width = canvas.offsetWidth;
+    //     canvas.height = canvas.offsetHeight;
+    //     this.drawDiagram();
+    // }
+
+    public drawDiagram() {
+        if (!this.ctx) return;
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.save();
+
+        ctx.translate(this.offsetX, this.offsetY);
+        ctx.scale(this.scale, this.scale);
+
+        // Dessin des liens avant les blocs (pour que les blocs passent "au-dessus")
+        Object.keys(this.tables_by_table_name).forEach((tableName) => {
+            const fields = this.fields_by_table_name_and_field_name[tableName] || {};
+            this.drawLinks(ctx, tableName, fields);
+        });
+
+        // Dessin des blocs
+        Object.keys(this.tables_by_table_name).forEach((tableName) => {
+            const table = this.tables_by_table_name[tableName];
+            const position = this.getBlockPosition(tableName);
+            this.drawBlock(ctx, table, position);
+        });
+
+        ctx.restore();
+    }
+
+    public drawBlock(
+        ctx: CanvasRenderingContext2D,
+        table: ModuleTableVO,
+        position: { x: number; y: number; folded: boolean }
+    ) {
+        const blockWidth = 200;
+        const blockHeight = position.folded ? 40 : 120;
+
+        ctx.fillStyle = '#f5f5f5';
+        ctx.strokeStyle = '#444';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.rect(position.x, position.y, blockWidth, blockHeight);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#000';
+        ctx.font = '14px Roboto';
+        ctx.fillText(this.t(table.label.code_text), position.x + 10, position.y + 20);
+
+        if (!position.folded) {
+            ctx.fillStyle = '#666';
+            ctx.font = '12px Roboto';
+            ctx.fillText('...champs...', position.x + 10, position.y + 40);
         }
-
-        return res;
     }
 
-    mounted() {
-        this.initDiagram();
-        this.loadDataIntoDiagram();
-        this.autoLayout();
-    }
-
-    /**
-     * Initialise la structure de base du diagramme (graph, paper, options).
-     */
-    private initDiagram() {
-        // 1. Crée un graph JointJS
-        this.graph = new joint.dia.Graph();
-
-        // 2. Crée un "paper" (rendu) et l'attache au conteneur #joint-container
-        this.paper = new joint.dia.Paper({
-            el: this.$refs.jointContainer as HTMLElement,
-            model: this.graph,
-            width: '100%',
-            height: '100%',
-            gridSize: 1,
-            drawGrid: false,
-            background: { color: '#ffffff' }, // Fond éventuel
-            // Permet la navigation pan/zoom si besoin :
-            // interactive: false, // si on veut désactiver tout drag des éléments
+    public drawLinks(
+        ctx: CanvasRenderingContext2D,
+        tableName: string,
+        fields: { [field_name: string]: ModuleTableFieldVO }
+    ) {
+        Object.keys(fields).forEach((fieldName) => {
+            const field = fields[fieldName];
+            if (field.field_type === ModuleTableFieldVO.FIELD_TYPE_foreign_key && field.foreign_ref_vo_type) {
+                const refTableName = field.foreign_ref_vo_type;
+                if (!this.tables_by_table_name[refTableName]) return;
+                const posA = this.getBlockPosition(tableName);
+                const posB = this.getBlockPosition(refTableName);
+                this.drawLine(ctx, posA, posB);
+            }
         });
     }
 
-    /**
-     * Transforme nos tables/fields en "cells" (Rectangles + Links) JointJS et les ajoute au graph.
-     */
-    private loadDataIntoDiagram() {
-        if (!this.graph) return;
+    public drawLine(
+        ctx: CanvasRenderingContext2D,
+        posA: { x: number; y: number },
+        posB: { x: number; y: number }
+    ) {
+        const blockWidth = 200;
+        const blockHeight = 120;
+        ctx.beginPath();
+        ctx.moveTo(posA.x + blockWidth / 2, posA.y + blockHeight / 2);
+        ctx.lineTo(posB.x + blockWidth / 2, posB.y + blockHeight / 2);
+        ctx.strokeStyle = '#444';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
 
-        // Construit la liste des nœuds (un par table)
-        const nodes: joint.dia.Element[] = [];
-        // Construit la liste des liens
-        const links: joint.dia.Link[] = [];
+    public getBlockPosition(tableName: string): { x: number; y: number; folded: boolean } {
+        if (!this.blockPositions[tableName]) {
+            this.blockPositions[tableName] = { x: 100, y: 100, folded: false };
+        }
+        return this.blockPositions[tableName];
+    }
 
-        // Map <table.id, data> pour accéder facilement
-        const tableNodeDataArray: TableNodeData[] = this.tables.map((table) => {
-            const relatedFields = this.fields.filter(f => f.module_table_vo_type === table.vo_type);
-            return {
-                id: table.id,
-                tableName: table.table_name,
-                fields: relatedFields,
-                folded: false
-            };
+    public onWheel(e: WheelEvent) {
+        e.preventDefault();
+        const delta = (e.deltaY > 0) ? -0.1 : 0.1;
+        // Retirer la limite haute pour zoomer "à l’infini"
+        this.scale = Math.max(0.01, this.scale + delta);
+        this.drawDiagram();
+    }
+
+    public onResize() {
+        const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
+        if (!canvas) return;
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        this.drawDiagram();
+    }
+
+    // public onWheel(e: WheelEvent) {
+    //     e.preventDefault();
+    //     const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    //     if (e.ctrlKey) {
+    //         this.scale += delta * 0.5;
+    //     } else {
+    //         this.scale += delta;
+    //     }
+    //     this.scale = Math.max(0.1, Math.min(5, this.scale));
+    //     this.drawDiagram();
+    // }
+
+    // public zoomIn() {
+    //     this.scale = Math.min(5, this.scale + 0.1);
+    //     this.drawDiagram();
+    // }
+
+    // public zoomOut() {
+    //     this.scale = Math.max(0.1, this.scale - 0.1);
+    //     this.drawDiagram();
+    // }
+
+    public onMouseDown(e: MouseEvent) {
+        this.isDragging = true;
+        this.dragStartX = e.clientX - this.offsetX;
+        this.dragStartY = e.clientY - this.offsetY;
+    }
+
+    public onMouseMove(e: MouseEvent) {
+        if (!this.isDragging) return;
+        this.offsetX = e.clientX - this.dragStartX;
+        this.offsetY = e.clientY - this.dragStartY;
+        this.drawDiagram();
+    }
+
+    public onMouseUp() {
+        this.isDragging = false;
+    }
+
+    public toggleFold(tableName: string) {
+        if (!this.blockPositions[tableName]) return;
+        this.blockPositions[tableName].folded = !this.blockPositions[tableName].folded;
+        this.drawDiagram();
+    }
+
+    private setupNodesAndEdges() {
+
+        const tableNames = Object.keys(this.tables_by_table_name);
+
+        // Initialiser adjacency
+        this.adjacency = {};
+        tableNames.forEach(name => {
+            this.adjacency[name] = [];
         });
 
-        // 1. Crée les "Rectangles" pour chaque table
-        tableNodeDataArray.forEach((nodeData) => {
-            // On crée un "shape" standard rectangle
-            const element = new joint.shapes.standard.Rectangle({
-                // id unique
-                id: 'table_' + nodeData.id,
-                // On stocke toutes nos infos dans un attribut custom "nodeData"
-                // pour y accéder facilement (ex: pliage)
-                data: nodeData,
-                size: {
-                    width: 180, // Largeur fixe
-                    height: this.getNodeHeight(nodeData) // Calculé
-                },
-                attrs: {
-                    body: {
-                        fill: '#f9f9f9',
-                        stroke: '#333'
-                    },
-                    label: {
-                        text: this.buildNodeLabel(nodeData),
-                        fontSize: 12,
-                        fill: '#000',
-                        // Pour un label multi-lignes, JointJS gère \n
-                        textAnchor: 'middle',
-                        textVerticalAnchor: 'middle'
+        // On affecte position + vitesse si besoin
+        tableNames.forEach((name) => {
+            if (!this.blockPositions[name]) {
+                this.blockPositions[name] = {
+                    x: Math.random() * 500,
+                    y: Math.random() * 500,
+                    folded: false,
+                };
+            }
+            if (!this.velocities[name]) {
+                this.velocities[name] = { vx: 0, vy: 0 };
+            }
+        });
+
+        // On remplit adjacency à partir des foreign keys
+        tableNames.forEach((tableName) => {
+            const fields = this.fields_by_table_name_and_field_name[tableName] || {};
+            Object.keys(fields).forEach((fieldName) => {
+                const field = fields[fieldName];
+                if (field.field_type === ModuleTableFieldVO.FIELD_TYPE_foreign_key && field.foreign_ref_vo_type) {
+                    const ref = field.foreign_ref_vo_type;
+                    if (this.tables_by_table_name[ref]) {
+                        // Ajout bidirectionnel
+                        this.adjacency[tableName].push(ref);
+                        this.adjacency[ref].push(tableName);
                     }
                 }
             });
-
-            // Ajout d'un event "element:click" (ou "element:pointerdown") pour toggler le fold
-            element.on('element:pointerclick', (elementView: joint.dia.ElementView) => {
-                const cell = elementView.model;
-                const data = cell.get('data') as TableNodeData;
-                data.folded = !data.folded;
-                // On met à jour le label + la hauteur
-                cell.attr('label/text', this.buildNodeLabel(data));
-                cell.resize(180, this.getNodeHeight(data));
-            });
-
-            nodes.push(element);
         });
 
-        // 2. Crée les liens "Link" pour chaque foreign_key
-        this.fields.forEach((f) => {
-            if (f.field_type === ModuleTableFieldVO.FIELD_TYPE_foreign_key && f.foreign_ref_vo_type) {
-                const sourceTable = this.tables.find(t => t.vo_type === f.module_table_vo_type);
-                const targetTable = this.tables.find(t => t.vo_type === f.foreign_ref_vo_type);
-                if (sourceTable && targetTable) {
-                    links.push(new joint.shapes.standard.Link({
-                        source: { id: 'table_' + sourceTable.id },
-                        target: { id: 'table_' + targetTable.id },
-                        attrs: {
-                            line: {
-                                stroke: '#999',
-                                strokeWidth: 1.5,
-                                targetMarker: {
-                                    'type': 'path',
-                                    'stroke': '#999',
-                                    'fill': '#999',
-                                    'd': 'M 10 -5 0 0 10 5 z'
-                                }
-                            }
-                        }
-                    }));
+        // Nettoyage pour les tables supprimées
+        Object.keys(this.velocities).forEach((oldName) => {
+            if (!tableNames.includes(oldName)) {
+                delete this.velocities[oldName];
+                delete this.blockPositions[oldName];
+            }
+        });
+    }
+
+    // Lance l'animation (physique en temps réel)
+    private startLayout() {
+        if (this.isLayoutRunning) return;
+        this.isLayoutRunning = true;
+        this.layoutLoop();
+    }
+
+    // Arrête l'animation
+    private stopLayout() {
+        this.isLayoutRunning = false;
+        if (this.layoutRequestId) {
+            cancelAnimationFrame(this.layoutRequestId);
+            this.layoutRequestId = 0;
+        }
+    }
+
+    // Boucle d'animation (appelée à chaque frame)
+    private layoutLoop() {
+        if (!this.isLayoutRunning) return;
+
+        // On peut faire quelques itérations par frame
+        // pour que la convergence ne soit pas trop lente
+        for (let i = 0; i < 3; i++) {
+            this.applyForcesOnce();
+        }
+
+        this.drawDiagram();
+
+        // Programmez la frame suivante
+        this.layoutRequestId = requestAnimationFrame(() => this.layoutLoop());
+    }
+
+    private applyForcesOnce() {
+
+        const tableNames = Object.keys(this.tables_by_table_name);
+        const REPULSION_FORCE = 10000;
+        const SPRING_LENGTH = 150;
+        const ATTRACTION_FACTOR = 0.001;
+        const DAMPING = 0.85;
+
+        // --- Répulsion entre tous les nœuds ---
+        for (let i = 0; i < tableNames.length; i++) {
+            for (let j = i + 1; j < tableNames.length; j++) {
+                const tA = tableNames[i];
+                const tB = tableNames[j];
+                const posA = this.blockPositions[tA];
+                const posB = this.blockPositions[tB];
+
+                const dx = posB.x - posA.x;
+                const dy = posB.y - posA.y;
+                const distSq = dx * dx + dy * dy || 0.01;
+                const dist = Math.sqrt(distSq);
+
+                const force = REPULSION_FORCE / distSq;
+                const fx = (force * dx) / dist;
+                const fy = (force * dy) / dist;
+
+                this.velocities[tA].vx -= fx;
+                this.velocities[tA].vy -= fy;
+                this.velocities[tB].vx += fx;
+                this.velocities[tB].vy += fy;
+            }
+        }
+
+        // --- Attraction via adjacency (foreign_keys) ---
+        tableNames.forEach((source) => {
+            const neighbors = this.adjacency[source];
+            neighbors.forEach((target) => {
+                if (target <= source) {
+                    // éviter de doubler le calcul (car adjacency est symétrique)
+                    return;
                 }
+                const sPos = this.blockPositions[source];
+                const tPos = this.blockPositions[target];
+
+                const dx = tPos.x - sPos.x;
+                const dy = tPos.y - sPos.y;
+                const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
+                const delta = dist - SPRING_LENGTH;
+                const force = delta * ATTRACTION_FACTOR;
+                const fx = (force * dx) / dist;
+                const fy = (force * dy) / dist;
+
+                this.velocities[source].vx += fx;
+                this.velocities[source].vy += fy;
+                this.velocities[target].vx -= fx;
+                this.velocities[target].vy -= fy;
+            });
+        });
+
+        // --- Force centripète pour les nœuds isolés (ou tous les nœuds) ---
+        // Par ex. ramener doucement vers (0,0) dans votre espace de coordonnées
+        const CENTER_GRAVITY = 0.0005;
+        tableNames.forEach((tn) => {
+            const pos = this.blockPositions[tn];
+            // S'applique seulement si le nœud n'a aucune connexion :
+            if (this.adjacency[tn].length === 0) {
+                const dx = -pos.x; // ramène vers x=0
+                const dy = -pos.y; // ramène vers y=0
+                const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
+                const force = dist * CENTER_GRAVITY;
+                const fx = (force * dx) / dist;
+                const fy = (force * dy) / dist;
+                this.velocities[tn].vx += fx;
+                this.velocities[tn].vy += fy;
             }
         });
 
-        // 3. Ajoute tous les cells au graph
-        this.graph.resetCells([...nodes, ...links]);
-    }
-
-    /**
-     * Calcule la hauteur du rectangle en fonction du nombre de champs et du titre
-     */
-    private getNodeHeight(nodeData: TableNodeData): number {
-        // Hauteur de base pour le titre
-        const base = 40; // un peu de marge
-        if (nodeData.folded) {
-            return base;
-        }
-        // Ajoute ~ 15px par champ
-        return base + (nodeData.fields.length * 15);
-    }
-
-    /**
-     * Construit le texte à afficher dans le label (tableName + fields si pas plié)
-     */
-    private buildNodeLabel(nodeData: TableNodeData): string {
-        const title = nodeData.tableName;
-        if (nodeData.folded) {
-            // Juste le titre
-            return title;
-        }
-        // Ajoutons chaque field en nouvelle ligne
-        const fieldsList = nodeData.fields.map(
-            f => `${f.field_name} (${f.field_type})`
-        );
-        // Saut de ligne => JointJS l'interprétera pour du multiline
-        return title + '\n' + fieldsList.join('\n');
-    }
-
-    /**
-     * Applique un layout "automatique" (ex: DirectedGraph) pour organiser les éléments
-     */
-    private autoLayout() {
-        if (!this.graph) return;
-
-        // JointJS Core propose un layout "joint.layout.DirectedGraph" (Dagre-like).
-        // => Il faut s'assurer d'importer la version qui inclut "joint.layout.DirectedGraph" (selon la doc).
-        DirectedGraph.layout(this.graph, {
-            setLinkVertices: false,
-            rankDir: 'LR', // LR = de gauche à droite, TB = top to bottom, etc.
-            marginX: 50,
-            marginY: 50
+        // Mise à jour des positions
+        tableNames.forEach((tn) => {
+            this.blockPositions[tn].x += this.velocities[tn].vx;
+            this.blockPositions[tn].y += this.velocities[tn].vy;
+            // Amortissement
+            this.velocities[tn].vx *= DAMPING;
+            this.velocities[tn].vy *= DAMPING;
         });
     }
 }
