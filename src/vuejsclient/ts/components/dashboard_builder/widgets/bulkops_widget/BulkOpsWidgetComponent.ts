@@ -37,6 +37,7 @@ import ModuleTableVO from '../../../../../../shared/modules/DAO/vos/ModuleTableV
 import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
+import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 
 @Component({
     template: require('./BulkOpsWidgetComponent.pug'),
@@ -146,7 +147,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         /**
          * on force l'id pour être conforme au tablecolumndesc qu'on a dans les dbtables du widget
          */
-        return this.field ? CRUD.get_dt_field(this.field).setModuleTable(this.moduletable).setUID_for_readDuplicateOnly(this.tablecolumn_field_id) : null;
+        return this.field ? CRUD.get_dt_field(this.field).setModuleTable(this.moduletable).auto_update_datatable_field_uid_with_vo_type() : null;
     }
 
     get moduletable(): ModuleTableVO {
@@ -183,9 +184,11 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             label_col.readonly = true;
             label_col.column_width = 0;
             label_col.kanban_column = false;
+            label_col.custom_label = this.moduletable.default_label_field.field_label.code_text ? this.t(this.moduletable.default_label_field.field_label.code_text) : this.moduletable.default_label_field.field_id;
             res.push(label_col);
         }
 
+        const selected_field = this.moduletable.get_field_by_id(this.field_id_selected);
         const selected_col = new TableColumnDescVO();
         selected_col.api_type_id = this.api_type_id;
         selected_col.field_id = this.field_id_selected;
@@ -194,6 +197,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         selected_col.readonly = true;
         selected_col.column_width = 0;
         selected_col.kanban_column = false;
+        selected_col.custom_label = selected_field.field_label.code_text ? this.t(selected_field.field_label.code_text) : this.field_id_selected;
         res.push(selected_col);
 
         return res;
@@ -337,8 +341,10 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         for (const i in this.data_rows) {
             const row = this.data_rows[i];
             const cloned_raw = cloneDeep(row);
-            const cloned_res = cloneDeep(row);
+            // FIXME : très bizarre à ce niveau mais on doit écraser à la fois la raw et la valeur normale a priori pour que ça passe... vraiment un truc à revoir sur la gestion des trads de colonnes
+            cloned_raw[this.get_datatable_row_editable_field.datatable_field_uid + '__raw'] = this.new_value;
             cloned_raw[this.get_datatable_row_editable_field.datatable_field_uid] = this.new_value;
+            const cloned_res = cloneDeep(cloned_raw);
             await ContextFilterVOHandler.get_datatable_row_field_data_async(cloned_raw, cloned_res, this.get_datatable_row_editable_field, null);
             res.push(cloned_res);
         }
@@ -413,35 +419,35 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             query_.add_field('id', 'id', this.widget_options.api_type_id);
         }
 
-        const rows = await ModuleContextFilter.instance.select_datatable_rows(query_, this.columns_by_field_id, fields);
+        const data_rows = await ModuleContextFilter.instance.select_datatable_rows(query_, this.columns_by_field_id, fields);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
             return;
         }
 
-        const data_rows = [];
-        const promises = [];
-        for (const i in rows) {
-            const row = rows[i];
+        // const data_rows = [];
+        // const promises = [];
+        // for (const i in rows) {
+        //     const row = rows[i];
 
-            const resData: IDistantVOBase = {
-                id: row.id,
-                _type: this.widget_options.api_type_id,
-            };
-            for (const j in this.fields) {
-                const field = this.fields[j];
+        //     const resData: IDistantVOBase = {
+        //         id: row.id,
+        //         _type: this.widget_options.api_type_id,
+        //     };
+        //     for (const j in this.fields) {
+        //         const field = this.fields[j];
 
-                promises.push(ContextFilterVOHandler.get_datatable_row_field_data_async(row, resData, field, null));
-            }
-            data_rows.push(resData);
-        }
-        await all_promises(promises);
+        //         promises.push(ContextFilterVOHandler.get_datatable_row_field_data_async(row, resData, field, null));
+        //     }
+        //     data_rows.push(resData);
+        // }
+        // await all_promises(promises);
 
-        // Si je ne suis pas sur la dernière demande, je me casse
-        if (this.last_calculation_cpt != launch_cpt) {
-            return;
-        }
+        // // Si je ne suis pas sur la dernière demande, je me casse
+        // if (this.last_calculation_cpt != launch_cpt) {
+        //     return;
+        // }
 
         this.data_rows = data_rows;
 
