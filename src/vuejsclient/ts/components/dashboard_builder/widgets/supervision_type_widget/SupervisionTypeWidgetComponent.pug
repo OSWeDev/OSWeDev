@@ -2,8 +2,8 @@
     .component_header
         label(v-if="title_name_code_text") {{ t(title_name_code_text) }}
 
-        template(v-if='loaded_once')
-            template(v-if='loaded_once && is_busy')
+        template(v-if='is_busy')
+            template(v-if='is_busy && is_busy')
                 .is_busy
                     i.fa-duotone.fa-refresh.fa-spin(aria-hidden="true")
 

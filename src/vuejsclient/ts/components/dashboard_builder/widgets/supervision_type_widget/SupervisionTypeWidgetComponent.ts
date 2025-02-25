@@ -79,7 +79,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private count_by_sup_api_type_ids: { [sup_api_type_id: string]: { [state: number]: number } } = {};
     private count_by_sup_by_cat: { [cat_id: number]: { [state: number]: number } } = {};
 
-    private loaded_once: boolean = false;
+    // private loaded_once: boolean = false;
     private is_busy: boolean = false;
 
     private has_access_pause: boolean = false;
@@ -330,7 +330,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         this.available_api_type_ids = data.items;
         this.available_api_type_ids_by_cat_ids = new_available_api_type_ids_by_cat_ids;
 
-        if (!!this.show_counter && !this.loaded_once) {
+        if (!!this.show_counter /*&& !this.loaded_once*/) {
             // Si on doit afficher le compteur, on fait les requêtes nécessaires
             console.debug('onchange_supervision_api_type_ids load_counter');
             this.throttled_load_counter();
@@ -448,7 +448,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private async load_counter(): Promise<void> {
         // cf load_filter_visible_options_count
         if (!this.show_counter) {
-            this.loaded_once = false;
+            // this.loaded_once = false;
             this.count_by_sup_api_type_ids = {};
             this.count_by_sup_by_cat = {};
             return;
@@ -511,7 +511,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         }
 
         this.count_by_sup_by_cat = count_by_sup_by_cat;
-        this.loaded_once = true;
+        // this.loaded_once = true;
         this.is_busy = false;
     }
 
