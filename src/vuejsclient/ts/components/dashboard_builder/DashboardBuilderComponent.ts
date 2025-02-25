@@ -1233,7 +1233,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         try {
             await query(DashboardGraphVORefVO.API_TYPE_ID)
-                .filter_by_id(this.dashboard.id)
+                .filter_by_id(this.dashboard.id, DashboardVO.API_TYPE_ID)
                 .filter_by_text_eq(field_names<DashboardGraphVORefVO>().vo_type, table_name)
                 .delete_vos();
         } catch (error) {
@@ -1256,7 +1256,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         let ref: DashboardGraphVORefVO = null;
         try {
             ref = await query(DashboardGraphVORefVO.API_TYPE_ID)
-                .filter_by_id(this.dashboard.id)
+                .filter_by_id(this.dashboard.id, DashboardVO.API_TYPE_ID)
                 .filter_by_text_eq(field_names<DashboardGraphVORefVO>().vo_type, table_name)
                 .select_vo<DashboardGraphVORefVO>();
             if (!!ref) {

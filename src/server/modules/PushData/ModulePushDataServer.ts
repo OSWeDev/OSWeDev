@@ -10,6 +10,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../shared/tools/EnvHandler';
+import { reflect } from '../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
 import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
@@ -170,10 +171,10 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
-        APIControllerWrapper.registerServerApiHandler(ModulePushData.APINAME_set_prompt_result, this.set_prompt_result.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModulePushData.APINAME_get_app_version, this.get_app_version.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModulePushData.APINAME_join_io_room, this.join_io_room.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModulePushData.APINAME_leave_io_room, this.leave_io_room.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModulePushData>().set_prompt_result, this.set_prompt_result.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModulePushData>().get_app_version, this.get_app_version.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModulePushData>().join_io_room, this.join_io_room.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModulePushData>().leave_io_room, this.leave_io_room.bind(this));
     }
 
     // istanbul ignore next: cannot test configure

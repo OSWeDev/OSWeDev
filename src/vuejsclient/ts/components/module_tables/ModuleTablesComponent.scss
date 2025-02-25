@@ -2,4 +2,49 @@
     width: 100%;
     height: 60vh;
     position: relative;
+
+    .selection-panel,
+    .link-panel,
+    .add-panel {
+        position: absolute;
+        top: 50px;
+        right: 0;
+        width: 300px;
+        max-height: 50vh; // limite la hauteur
+        overflow-y: auto; // barre de défilement si trop de contenu
+        background: #fff;
+        border-radius: 6px; // arrondi
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        padding: 10px;
+        margin: 0 10px 10px 0;
+
+        input[type="checkbox"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #007bff;
+            border-radius: 4px;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            vertical-align: middle;
+            margin-right: .4em;
+        }
+
+        input[type="checkbox"]:checked {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        input[type="checkbox"]:checked::after {
+            content: '✔';
+            color: white;
+            font-size: 16px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+        }
+    }
 }

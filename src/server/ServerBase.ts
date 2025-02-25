@@ -1430,10 +1430,11 @@ export default abstract class ServerBase {
                 .url
                 .replace(/\/f\//, '/#/'));
 
-            if (!req.session) {
-                ConsoleHandler.error('ServerBase:redirect_login_or_home:No session');
-                return;
-            }
+            // Osef non ?
+            // if (!req.session) {
+            //     ConsoleHandler.error('ServerBase:redirect_login_or_home:No session');
+            //     return;
+            // }
 
             return;
         }

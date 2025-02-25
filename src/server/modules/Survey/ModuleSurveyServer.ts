@@ -15,6 +15,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
@@ -22,6 +23,12 @@ const { parse } = require('flatted/cjs');
 
 export default class ModuleSurveyServer extends ModuleServerBase {
 
+    private static instance: ModuleSurveyServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleSurvey.getInstance().name);
+    }
 
 
     // istanbul ignore next: nothing to test : getInstance
@@ -32,11 +39,53 @@ export default class ModuleSurveyServer extends ModuleServerBase {
         return ModuleSurveyServer.instance;
     }
 
-    private static instance: ModuleSurveyServer = null;
+    /**
+     * Ce module nécessite le param FEEDBACK_TRELLO_LIST_ID
+     *  Pour trouver le idList => https://customer.io/actions/trello/
+     */
+    @RunsOnMainThread(ModuleSurveyServer.getInstance)
+    private async survey(survey: SurveyVO): Promise<boolean> {
 
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleSurvey.getInstance().name);
+        if (!survey) {
+            return false;
+        }
+
+        const uid = ModuleAccessPolicyServer.getLoggedUserId();
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+
+        try {
+
+            const user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
+            if (!user_session) {
+                return false;
+            }
+
+
+            // Remplir le survey avec toutes les infos qui sont connues côté serveur, le user_id est ici !
+            survey.user_id = user_session.uid;
+
+            if (ModuleAccessPolicyServer.getInstance().isLogedAs()) {
+
+                const admin_user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getAdminLogedUserSession();
+
+            }
+
+            // Puis créer le survey en base
+            const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(survey);
+            if ((!res) || (!res.id)) {
+                throw new Error('Failed survey creation');
+            }
+            survey.id = res.id;
+
+
+            await PushDataServerController.notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'survey.survey.success', true);
+
+            return true;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'survey.survey.error', true);
+            return false;
+        }
     }
 
     // istanbul ignore next: cannot test registerAccessPolicies
@@ -145,58 +194,4 @@ export default class ModuleSurveyServer extends ModuleServerBase {
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleSurvey.APINAME_survey, this.survey.bind(this));
     }
-
-    /**
-     * Ce module nécessite le param FEEDBACK_TRELLO_LIST_ID
-     *  Pour trouver le idList => https://customer.io/actions/trello/
-     */
-    private async survey(survey: SurveyVO): Promise<boolean> {
-
-        if (!survey) {
-            return false;
-        }
-
-        const uid = ModuleAccessPolicyServer.getLoggedUserId();
-        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-
-        try {
-
-            const user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
-            if (!user_session) {
-                return false;
-            }
-
-
-            // Remplir le survey avec toutes les infos qui sont connues côté serveur, le user_id est ici !
-            survey.user_id = user_session.uid;
-
-            if (ModuleAccessPolicyServer.getInstance().isLogedAs()) {
-
-                const admin_user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getAdminLogedUserSession();
-
-            }
-
-            // Puis créer le survey en base
-            const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(survey);
-            if ((!res) || (!res.id)) {
-                throw new Error('Failed survey creation');
-            }
-            survey.id = res.id;
-
-
-            await PushDataServerController.notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'survey.survey.success', true);
-
-            return true;
-        } catch (error) {
-            ConsoleHandler.error(error);
-            await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'survey.survey.error', true);
-            return false;
-        }
-    }
-
-
-
-
-
-
 }

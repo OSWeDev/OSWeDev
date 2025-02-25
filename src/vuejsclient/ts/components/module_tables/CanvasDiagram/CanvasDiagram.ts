@@ -563,7 +563,7 @@ export default class CanvasDiagram extends Vue {
             if (f.field_type !== ModuleTableFieldVO.FIELD_TYPE_foreign_key || !f.foreign_ref_vo_type) {
                 continue;
             }
-            if (this.discarded_field_paths[tableName]?.[fieldName]) continue;
+            // if (this.discarded_field_paths[tableName]?.[fieldName]) continue;
             const ref = f.foreign_ref_vo_type;
             if (!this.tables_by_table_name[ref]) continue;
             if (ref === tableName) continue;
@@ -661,13 +661,19 @@ export default class CanvasDiagram extends Vue {
 
         ctx.beginPath();
         ctx.moveTo(x1, y1);
-        const mx = (x1 + x2) / 2;
-        const my = (y1 + y2) / 2;
-        const angle = Math.atan2(y2 - y1, x2 - x1);
-        const ctrlOffset = 40;
-        const cx = mx + ctrlOffset * Math.cos(angle - Math.PI / 2);
-        const cy = my + ctrlOffset * Math.sin(angle - Math.PI / 2);
-        ctx.quadraticCurveTo(cx, cy, x2, y2);
+
+        // // Version courbe
+        // const mx = (x1 + x2) / 2;
+        // const my = (y1 + y2) / 2;
+        // const angle = Math.atan2(y2 - y1, x2 - x1);
+        // const ctrlOffset = 40;
+        // const cx = mx + ctrlOffset * Math.cos(angle - Math.PI / 2);
+        // const cy = my + ctrlOffset * Math.sin(angle - Math.PI / 2);
+        // ctx.quadraticCurveTo(cx, cy, x2, y2);
+
+        // Version droite
+        ctx.lineTo(x2, y2);
+
         ctx.stroke();
 
         let a = Math.atan2(y2 - y1, x2 - x1);
@@ -753,6 +759,12 @@ export default class CanvasDiagram extends Vue {
         this.mouseDownY = mouseY;
         this.hasMovedSinceMouseDown = false;
 
+        // Bouton Auto-Fit
+        if (!this.autoFitEnabled && mouseX >= 10 && mouseX <= 110 && mouseY >= 10 && mouseY <= 40) {
+            this.autoFit();
+            return;
+        }
+
         // Vérifier s'il y a un bloc table cliqué
         const clickedTable = this.findClickedTable(mouseX, mouseY);
         if (clickedTable) {
@@ -760,7 +772,7 @@ export default class CanvasDiagram extends Vue {
             this.draggedTable = clickedTable;
             this.dragTableOffsetX = diagCoords.x - this.blockPositions[clickedTable].x;
             this.dragTableOffsetY = diagCoords.y - this.blockPositions[clickedTable].y;
-            this.autoFitEnabled = false;
+            // this.autoFitEnabled = false; pourquoi ?
             this.$emit("select_link", null);
             return;
         }
