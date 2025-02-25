@@ -157,6 +157,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         'DashboardBuilderComponent.throttle_on_dashboard_loaded',
         this.on_dashboard_loaded, 50);
 
+    get all_tables_by_table_name(): { [table_name: string]: ModuleTableVO } {
+        return ModuleTableController.module_tables_by_vo_type;
+    }
+
     get fields_by_table_name_and_field_name(): { [table_name: string]: { [field_name: string]: ModuleTableFieldVO } } {
         const res: { [table_name: string]: { [field_name: string]: ModuleTableFieldVO } } = {};
 
@@ -1176,5 +1180,28 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
     private reverse_collapse_fields_2_wrapper() {
         this.collapsed_fields_wrapper_2 = !this.collapsed_fields_wrapper_2;
+    }
+
+    private setDiscardedField(table: string, field: string, new_discard: boolean) {
+        const new_descarded_field_paths = Object.assign({}, this.get_discarded_field_paths);
+        if (new_discard) {
+            if (!new_descarded_field_paths[table]) {
+                new_descarded_field_paths[table] = {};
+            }
+            new_descarded_field_paths[table][field] = true;
+        } else {
+            if (new_descarded_field_paths[table]) {
+                delete new_descarded_field_paths[table][field];
+            }
+        }
+        this.set_discarded_field_paths(new_descarded_field_paths);
+    }
+
+    private removeTable(table_name: string) {
+        this.del_api_type_id(table_name);
+    }
+
+    private addTable(table_name: string) {
+        this.add_api_type_id(table_name);
     }
 }
