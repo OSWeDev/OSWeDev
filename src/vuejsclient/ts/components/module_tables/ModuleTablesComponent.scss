@@ -15,6 +15,9 @@
         }
     }
 
-    // Exemple de style pour un bloc
-    // On pourrait ajouter des variables SCSS, etc.
+    .selection-panel,
+    .add-panel {
+        border: 1px solid #666;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    }
 }

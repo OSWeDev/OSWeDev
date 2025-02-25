@@ -6,6 +6,15 @@ import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './ModuleTablesComponent.scss';
 import ModuleTableFieldController from '../../../../shared/modules/DAO/ModuleTableFieldController';
 
+interface LinkDrawInfo {
+    table: string;          // table qui porte le champ
+    field: string;          // nom du champ
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+}
+
 @Component({
     template: require('./ModuleTablesComponent.pug'),
 })
@@ -20,9 +29,6 @@ export default class ModuleTablesComponent extends VueComponentBase {
     @Prop({ default: () => ({}) })
     readonly discarded_field_paths!: { [vo_type: string]: { [field_id: string]: boolean } };
 
-    /**
-     * Liste de toutes les tables existantes (même celles qui ne sont pas affichées).
-     */
     @Prop({ default: () => ({}) })
     readonly all_tables_by_table_name!: { [table_name: string]: ModuleTableVO };
 
@@ -76,22 +82,26 @@ export default class ModuleTablesComponent extends VueComponentBase {
     private DAMPING = 0.9;
     private MAX_SPEED = 5;
 
+    // Repérage cycles
     private cycle_tables: Set<string> = new Set();
     private cycle_fields: { [table: string]: Set<string> } = {};
     private cycle_links: { [table: string]: Set<string> } = {};
 
-    // Bloc actuellement sélectionné
+    // Sélections
     private selectedTable: string | null = null;
+    private selectedLink: { table: string; field: string } | null = null;
 
     // Panneau d'ajout
     private showAddPanel: boolean = false;
     private addSearch: string = '';
     private hideVersioned: boolean = true;
 
+    // On stocke les infos de dessin de chaque lien pour la sélection
+    private drawnLinks: LinkDrawInfo[] = [];
 
 
     // --------------------------------------------------------------------
-    // Encarts à droite (sélection / ajout)
+    // Panneau sélection
     // --------------------------------------------------------------------
     get foreignKeyFieldsOfSelectedTable(): { [fName: string]: ModuleTableFieldVO } {
         if (!this.selectedTable) return {};
@@ -105,22 +115,13 @@ export default class ModuleTablesComponent extends VueComponentBase {
         return res;
     }
 
+    // Panneau ajout
     get filteredTables(): string[] {
-        // Liste des tables non encore dans le graphique
-        // filtrées par search et hideVersioned
         const res: string[] = [];
         const searchLC = (this.addSearch || '').toLowerCase();
-
         for (const [tn, tVO] of Object.entries(this.all_tables_by_table_name)) {
-            // déjà dans le graphique
-            if (this.tables_by_table_name[tn]) continue;
-
-            // si hideVersioned
-            if (this.hideVersioned && this.isVersionedAuxTable(tn)) {
-                continue;
-            }
-
-            // Filtre texte
+            if (this.tables_by_table_name[tn]) continue; // déjà dans le graph
+            if (this.hideVersioned && this.isVersionedAuxTable(tn)) continue;
             const labelLC = tVO.label?.code_text?.toLowerCase?.() || '';
             if (
                 searchLC &&
@@ -135,7 +136,6 @@ export default class ModuleTablesComponent extends VueComponentBase {
     }
 
     private get showPlusButton(): boolean {
-        // Affiche le bouton + si au moins une table existe hors diagramme
         return Object.keys(this.all_tables_by_table_name).some(tn => !this.tables_by_table_name[tn]);
     }
 
@@ -227,14 +227,11 @@ export default class ModuleTablesComponent extends VueComponentBase {
             const fields = this.fields_by_table_name_and_field_name[tableName] || {};
             for (const fieldName of Object.keys(fields)) {
                 const field = fields[fieldName];
-
-                // On ignore ce champ si il est "discarded"
+                // On ignore si discard
                 if (this.discarded_field_paths[tableName]?.[fieldName]) continue;
                 if (field.field_type === ModuleTableFieldVO.FIELD_TYPE_foreign_key && field.foreign_ref_vo_type) {
                     const ref = field.foreign_ref_vo_type;
-                    // On ignore les fks vers soi-même
-                    if (ref === tableName) continue;
-                    if (this.tables_by_table_name[ref]) {
+                    if (ref !== tableName && this.tables_by_table_name[ref]) {
                         this.adjacency[tableName].push(ref);
                         this.adjacency[ref].push(tableName);
                         this.adjacency_full[tableName][fieldName] = ref;
@@ -278,7 +275,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
                         x = parent[x] || null;
                     }
                     cycleNodes.push(neighbor);
-                    // Marquage
+                    // marquage
                     for (const node of cycleNodes) {
                         this.cycle_tables.add(node);
                     }
@@ -438,7 +435,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
             }
         }
 
-        // Force centre
+        // Centre
         for (const tn of tableNames) {
             if (this.draggedTable === tn) continue;
             const pos = this.blockPositions[tn];
@@ -448,7 +445,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
             this.velocities[tn].vy += dy * this.CENTER_FORCE;
         }
 
-        // Mise à jour
+        // Maj
         for (const tn of tableNames) {
             if (this.draggedTable === tn) {
                 this.velocities[tn].vx = 0;
@@ -486,7 +483,6 @@ export default class ModuleTablesComponent extends VueComponentBase {
     private autoFit() {
         const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
         if (!canvas) return;
-
         const tables = Object.keys(this.tables_by_table_name);
         if (!tables.length) return;
 
@@ -543,12 +539,12 @@ export default class ModuleTablesComponent extends VueComponentBase {
         const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
         ctx.save();
         ctx.translate(this.offsetX, this.offsetY);
         ctx.scale(this.scale, this.scale);
 
         this.linkCountMap = {};
+        this.drawnLinks = []; // réinitialise la liste des liens dessinés
 
         // Liens
         for (const tableName of Object.keys(this.tables_by_table_name)) {
@@ -576,11 +572,10 @@ export default class ModuleTablesComponent extends VueComponentBase {
         const n = Object.keys(fields).length;
         const blockH = p.folded ? titleH : titleH + n * 20;
 
-        // Couleur de fond : rouge transparent si table en cycle
+        // Couleur si cycle
         const inCycle = this.cycle_tables.has(tableName);
-
-        // Si sélectionné, on force une bordure plus épaisse
         const isSelected = (this.selectedTable === tableName);
+
         ctx.save();
         ctx.fillStyle = inCycle ? 'rgba(255, 0, 0, 0.15)' : 'rgba(245, 245, 245, 0.8)';
         ctx.strokeStyle = isSelected ? '#00f' : (inCycle ? 'red' : '#444');
@@ -590,12 +585,10 @@ export default class ModuleTablesComponent extends VueComponentBase {
         ctx.fill();
         ctx.stroke();
 
-        // Titre
         ctx.fillStyle = '#000';
         ctx.font = 'bold 14px sans-serif';
         ctx.fillText(this.t(table.label.code_text), p.x + 10, p.y + 20);
 
-        // Champs
         if (!p.folded) {
             ctx.font = '12px sans-serif';
             const names = Object.keys(fields);
@@ -603,9 +596,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
                 const fname = names[i];
                 const yLine = p.y + titleH + i * 20 + 15;
                 const isDiscarded = !!this.discarded_field_paths[tableName]?.[fname];
-                const fieldInCycle =
-                    this.cycle_fields[tableName] &&
-                    this.cycle_fields[tableName].has(fname);
+                const fieldInCycle = this.cycle_fields[tableName]?.has(fname);
 
                 if (fieldInCycle) {
                     ctx.save();
@@ -630,20 +621,21 @@ export default class ModuleTablesComponent extends VueComponentBase {
         const titleH = 30;
         const fieldH = 20;
 
-        for (const [idx, fieldName] of Object.keys(fields).entries()) {
+        const fieldNames = Object.keys(fields);
+        for (let idx = 0; idx < fieldNames.length; idx++) {
+            const fieldName = fieldNames[idx];
             const f = fields[fieldName];
-            if (
-                f.field_type !== ModuleTableFieldVO.FIELD_TYPE_foreign_key ||
-                !f.foreign_ref_vo_type
-            ) {
+            if (f.field_type !== ModuleTableFieldVO.FIELD_TYPE_foreign_key || !f.foreign_ref_vo_type) {
                 continue;
             }
-            if (f.foreign_ref_vo_type === tableName) continue;
+            // if (this.discarded_field_paths[tableName]?.[fieldName]) continue; // discard
             const ref = f.foreign_ref_vo_type;
             if (!this.tables_by_table_name[ref]) continue;
+            if (ref === tableName) continue;
 
             let startX: number, startY: number;
             if (p.folded) {
+                // on fait un point sur le bloc
                 startX = p.x + w / 2;
                 startY = p.y + titleH / 2;
             } else {
@@ -658,10 +650,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
             const endX = refPos.x + w / 2;
             const endY = refPos.y + refH / 2;
 
-            const linkKey =
-                tableName < ref
-                    ? tableName + '=>' + ref
-                    : ref + '=>' + tableName;
+            const linkKey = tableName < ref ? tableName + '=>' + ref : ref + '=>' + tableName;
             if (!this.linkCountMap[linkKey]) {
                 this.linkCountMap[linkKey] = 0;
             }
@@ -673,58 +662,32 @@ export default class ModuleTablesComponent extends VueComponentBase {
 
             const label = this.get_link_label(tableName, fieldName);
             const isDiscarded = !!this.discarded_field_paths[tableName]?.[fieldName];
-            const isInCycle =
-                this.cycle_links[tableName] &&
-                this.cycle_links[tableName].has(fieldName);
+            const isInCycle = this.cycle_links[tableName]?.has(fieldName);
 
-            if (
-                this.lineReEntersBlock(
-                    startX, startY,
-                    endX, endY,
-                    p.x, p.y, w, p.folded ? titleH : titleH + Object.keys(fields).length * fieldH
-                )
-            ) {
-                this.drawCurvedArrow(
-                    ctx,
-                    startX + offsetX,
-                    startY + offsetY,
-                    endX + offsetX,
-                    endY + offsetY,
-                    label,
-                    isDiscarded,
-                    isInCycle,
-                    true
-                );
-            } else {
-                this.drawCurvedArrow(
-                    ctx,
-                    startX + offsetX,
-                    startY + offsetY,
-                    endX + offsetX,
-                    endY + offsetY,
-                    label,
-                    isDiscarded,
-                    isInCycle,
-                    false
-                );
-            }
+            // On dessine TOUTES les liaisons en courbe
+            // => contournement forcé
+            this.drawCurvedArrow(
+                ctx,
+                startX + offsetX,
+                startY + offsetY,
+                endX + offsetX,
+                endY + offsetY,
+                label,
+                isDiscarded,
+                isInCycle,
+                true // courbe
+            );
+
+            // On stocke l'info pour la sélection de lien
+            this.drawnLinks.push({
+                table: tableName,
+                field: fieldName,
+                startX: startX + offsetX,
+                startY: startY + offsetY,
+                endX: endX + offsetX,
+                endY: endY + offsetY,
+            });
         }
-    }
-
-    private lineReEntersBlock(
-        x1: number,
-        y1: number,
-        x2: number,
-        y2: number,
-        bx: number,
-        by: number,
-        bw: number,
-        bh: number
-    ): boolean {
-        const minx = bx + 1, maxx = bx + bw - 1;
-        const miny = by + 1, maxy = by + bh - 1;
-        if (x2 >= minx && x2 <= maxx && y2 >= miny && y2 <= maxy) return true;
-        return false;
     }
 
     private drawCurvedArrow(
@@ -736,80 +699,90 @@ export default class ModuleTablesComponent extends VueComponentBase {
         label: string,
         isDiscarded: boolean,
         isInCycle: boolean,
-        contournement: boolean
+        forceCurve: boolean
     ) {
         ctx.save();
-        if (isDiscarded) {
-            ctx.globalAlpha = 0.3;
-        }
-        let strokeColor = isInCycle ? 'red' : 'gray';
-        if (!isDiscarded && !isInCycle) {
-            const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
-            gradient.addColorStop(0, 'green');
-            gradient.addColorStop(1, 'gray');
-            ctx.strokeStyle = gradient;
+        // Si ce lien est sélectionné, on l'affiche en bleu
+        const isSelectedLink =
+            this.selectedLink &&
+            this.selectedLink.field &&
+            label === this.get_link_label(this.selectedLink.table, this.selectedLink.field);
+
+        if (isSelectedLink) {
+            ctx.strokeStyle = '#00f';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([]);
         } else {
-            ctx.strokeStyle = strokeColor;
+            if (isDiscarded) {
+                ctx.globalAlpha = 0.3;
+            }
+            let strokeColor = isInCycle ? 'red' : 'gray';
+            if (!isDiscarded && !isInCycle) {
+                const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+                gradient.addColorStop(0, 'green');
+                gradient.addColorStop(1, 'gray');
+                ctx.strokeStyle = gradient;
+            } else {
+                ctx.strokeStyle = strokeColor;
+            }
+            ctx.setLineDash([8, 6]);
+            if (!isDiscarded) {
+                ctx.lineDashOffset = -this.dashAnimationOffset;
+            }
+            ctx.lineWidth = 2;
         }
 
-        ctx.setLineDash([8, 6]);
-        if (!isDiscarded) {
-            ctx.lineDashOffset = -this.dashAnimationOffset;
-        }
-        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(x1, y1);
 
-        if (contournement) {
-            const mx = (x1 + x2) / 2;
-            const my = (y1 + y2) / 2;
-            const angle = Math.atan2(y2 - y1, x2 - x1);
-            const ctrlOffset = 40;
-            const cx = mx + ctrlOffset * Math.cos(angle - Math.PI / 2);
-            const cy = my + ctrlOffset * Math.sin(angle - Math.PI / 2);
-            ctx.quadraticCurveTo(cx, cy, x2, y2);
-        } else {
-            ctx.lineTo(x2, y2);
-        }
-
+        // Quadratic
+        const mx = (x1 + x2) / 2;
+        const my = (y1 + y2) / 2;
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        const ctrlOffset = 40;
+        const cx = mx + ctrlOffset * Math.cos(angle - Math.PI / 2);
+        const cy = my + ctrlOffset * Math.sin(angle - Math.PI / 2);
+        ctx.quadraticCurveTo(cx, cy, x2, y2);
         ctx.stroke();
 
+        // Flèche
+        let a = Math.atan2(y2 - y1, x2 - x1);
         const headlen = 8;
-        let angle = Math.atan2(y2 - y1, x2 - x1);
         ctx.beginPath();
         ctx.moveTo(x2, y2);
         ctx.lineTo(
-            x2 - headlen * Math.cos(angle - Math.PI / 6),
-            y2 - headlen * Math.sin(angle - Math.PI / 6)
+            x2 - headlen * Math.cos(a - Math.PI / 6),
+            y2 - headlen * Math.sin(a - Math.PI / 6)
         );
         ctx.lineTo(
-            x2 - headlen * Math.cos(angle + Math.PI / 6),
-            y2 - headlen * Math.sin(angle + Math.PI / 6)
+            x2 - headlen * Math.cos(a + Math.PI / 6),
+            y2 - headlen * Math.sin(a + Math.PI / 6)
         );
         ctx.lineTo(x2, y2);
-        if (isInCycle) {
-            ctx.fillStyle = 'red';
+        if (isSelectedLink) {
+            ctx.fillStyle = '#00f';
         } else {
-            ctx.fillStyle = ctx.strokeStyle as string;
+            ctx.fillStyle = isInCycle ? 'red' : (ctx.strokeStyle as string);
         }
         ctx.fill();
         ctx.restore();
 
-        if (angle > Math.PI / 2 || angle < -Math.PI / 2) {
-            angle += Math.PI;
+        // Label
+        if (a > Math.PI / 2 || a < -Math.PI / 2) {
+            a += Math.PI;
         }
-        const mx = (x1 + x2) / 2;
-        const my = (y1 + y2) / 2;
         const labelOffset = 10;
-        const nx = labelOffset * Math.cos(angle - Math.PI / 2);
-        const ny = labelOffset * Math.sin(angle - Math.PI / 2);
+        const nx = labelOffset * Math.cos(a - Math.PI / 2);
+        const ny = labelOffset * Math.sin(a - Math.PI / 2);
+        const mx2 = (x1 + x2) / 2;
+        const my2 = (y1 + y2) / 2;
 
         ctx.save();
-        if (isDiscarded) {
+        if (isDiscarded && !isSelectedLink) {
             ctx.globalAlpha = 0.3;
         }
-        ctx.translate(mx + nx, my + ny);
-        ctx.rotate(angle);
+        ctx.translate(mx2 + nx, my2 + ny);
+        ctx.rotate(a);
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = '#000';
@@ -818,9 +791,6 @@ export default class ModuleTablesComponent extends VueComponentBase {
         ctx.restore();
     }
 
-    // --------------------------------------------------------------------
-    // UI Overlays (bouton Auto-Fit, bouton +, panneaux)
-    // --------------------------------------------------------------------
     private drawUIOverlays(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
         // Bouton Auto-Fit
         if (!this.autoFitEnabled) {
@@ -835,10 +805,10 @@ export default class ModuleTablesComponent extends VueComponentBase {
             ctx.restore();
         }
 
-        // Bouton "+" si possible
+        // Bouton "+"
         if (this.showPlusButton) {
             ctx.save();
-            const btnX = canvas.width - 40; // en haut à droite
+            const btnX = canvas.width - 40;
             const btnY = 10;
             ctx.fillStyle = '#fff';
             ctx.fillRect(btnX, btnY, 30, 30);
@@ -854,31 +824,21 @@ export default class ModuleTablesComponent extends VueComponentBase {
     // --------------------------------------------------------------------
     // Souris
     // --------------------------------------------------------------------
-    // --------------------------------------------------------------------
-    // Zoom centrée sur la souris, (0,0) reste le centre "logique"
-    // --------------------------------------------------------------------
     private onWheel(e: WheelEvent) {
         e.preventDefault();
         const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
-
-        // Position diag
         const diagBefore = this.screenToDiagramCoords(mouseX, mouseY);
-
         const delta = e.deltaY > 0 ? -0.1 : 0.1;
         const newScale = Math.max(0.05, this.scale + delta);
-
-        // Recalcule offset pour conserver diagBefore sous le curseur
         this.scale = newScale;
         const diagAfter = this.screenToDiagramCoords(mouseX, mouseY);
         const dx = diagAfter.x - diagBefore.x;
         const dy = diagAfter.y - diagBefore.y;
-
         this.offsetX += dx * this.scale;
         this.offsetY += dy * this.scale;
-
         this.autoFitEnabled = false;
         this.drawDiagram();
     }
@@ -893,7 +853,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
         this.mouseDownY = mouseY;
         this.hasMovedSinceMouseDown = false;
 
-        // Bouton Auto-Fit
+        // Auto-Fit button
         if (!this.autoFitEnabled && mouseX >= 10 && mouseX <= 110 && mouseY >= 10 && mouseY <= 40) {
             this.autoFit();
             return;
@@ -909,6 +869,7 @@ export default class ModuleTablesComponent extends VueComponentBase {
             }
         }
 
+        // Cherche si on clique une table
         const clickedTable = this.findClickedTable(mouseX, mouseY);
         if (clickedTable) {
             const diagCoords = this.screenToDiagramCoords(mouseX, mouseY);
@@ -916,9 +877,22 @@ export default class ModuleTablesComponent extends VueComponentBase {
             this.dragTableOffsetX = diagCoords.x - this.blockPositions[clickedTable].x;
             this.dragTableOffsetY = diagCoords.y - this.blockPositions[clickedTable].y;
             this.autoFitEnabled = false;
+
+            // On reset la sélection du lien
+            this.selectedLink = null;
             return;
         }
 
+        // Sinon, cherche si on clique un lien
+        const clickedLink = this.findClickedLink(mouseX, mouseY);
+        if (clickedLink) {
+            this.selectedLink = clickedLink;
+            // On reset la sélection table
+            this.selectedTable = null;
+            return;
+        }
+
+        // Sinon drag canvas
         this.isDraggingCanvas = true;
         this.dragStartX = mouseX - this.offsetX;
         this.dragStartY = mouseY - this.offsetY;
@@ -929,7 +903,6 @@ export default class ModuleTablesComponent extends VueComponentBase {
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
-
         const distX = mouseX - this.mouseDownX;
         const distY = mouseY - this.mouseDownY;
         if (Math.abs(distX) > this.CLICK_DRAG_THRESHOLD || Math.abs(distY) > this.CLICK_DRAG_THRESHOLD) {
@@ -955,12 +928,13 @@ export default class ModuleTablesComponent extends VueComponentBase {
     private onMouseUp(e: MouseEvent) {
         if (this.draggedTable) {
             if (!this.hasMovedSinceMouseDown) {
-                // Clique sur une table => sélection
+                // clique => sélection table
                 if (this.selectedTable === this.draggedTable) {
                     // toggle fold
                     this.blockPositions[this.draggedTable].folded = !this.blockPositions[this.draggedTable].folded;
                 } else {
                     this.selectedTable = this.draggedTable;
+                    this.selectedLink = null;
                 }
             }
         }
@@ -990,6 +964,36 @@ export default class ModuleTablesComponent extends VueComponentBase {
         return null;
     }
 
+    private findClickedLink(mouseX: number, mouseY: number): { table: string; field: string } | null {
+        // On fait un simple test de distance au segment (ou au midpoint)
+        const diag = this.screenToDiagramCoords(mouseX, mouseY);
+        for (const link of this.drawnLinks) {
+            const dist = this.pointToSegmentDistance(diag.x, diag.y, link.startX, link.startY, link.endX, link.endY);
+            if (dist < 10) {
+                return { table: link.table, field: link.field };
+            }
+        }
+        return null;
+    }
+
+    private pointToSegmentDistance(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
+        // Projection du point (px,py) sur le segment (x1,y1)->(x2,y2)
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        if (dx === 0 && dy === 0) {
+            return Math.hypot(px - x1, py - y1);
+        }
+        const t = ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy);
+        if (t < 0) {
+            return Math.hypot(px - x1, py - y1);
+        } else if (t > 1) {
+            return Math.hypot(px - x2, py - y2);
+        }
+        const projX = x1 + t * dx;
+        const projY = y1 + t * dy;
+        return Math.hypot(px - projX, py - projY);
+    }
+
     private screenToDiagramCoords(sx: number, sy: number): { x: number; y: number } {
         return {
             x: (sx - this.offsetX) / this.scale,
@@ -998,27 +1002,18 @@ export default class ModuleTablesComponent extends VueComponentBase {
     }
 
     private isVersionedAuxTable(tn: string): boolean {
-        // si la table est marquée is_versioned dans son ModuleTableVO,
-        // la table "de base" s'appelle tn (ex: "x"),
-        // les 3 tables associées sont "versioned__x", "trashed__x", "trashed__versioned__x"
         const vo = this.all_tables_by_table_name[tn];
         if (!vo) return false;
         if (!vo.is_versioned) return false;
-        // Si is_versioned = true, alors la "table de base" est "tn" (ex: x)
-        // et les 3 auxiliaires commencent par versioned__ ou trashed__
-        // => On teste
         if (tn.startsWith('versioned__') || tn.startsWith('trashed__')) {
             return true;
         }
         return false;
     }
 
-    private onSwitchDiscard(table: string, field: string, newIsActive: boolean) {
-        // si newIsActive==true => on enlève le discard
-        const new_discard = !newIsActive;
-        this.$emit('setDiscardedField', table, field, new_discard);
-    }
-
+    // --------------------------------------------------------------------
+    // Actions
+    // --------------------------------------------------------------------
     private onRemoveSelectedTable() {
         if (!this.selectedTable) return;
         this.$emit('removeTable', this.selectedTable);
@@ -1027,5 +1022,13 @@ export default class ModuleTablesComponent extends VueComponentBase {
 
     private onAddTable(tn: string) {
         this.$emit('addTable', tn);
+    }
+
+    /**
+     * Sur le switch, newIsActive = true => on enlève le discard
+     */
+    private onSwitchDiscard(table: string, field: string, newIsActive: boolean) {
+        const new_discard = !newIsActive;
+        this.$emit('setDiscardedField', table, field, new_discard);
     }
 }
