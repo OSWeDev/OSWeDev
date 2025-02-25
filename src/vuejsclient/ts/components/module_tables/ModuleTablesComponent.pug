@@ -1,39 +1,40 @@
 .ModuleTablesComponent
-    canvas#diagramCanvas(ref="diagramCanvas")
+    CanvasDiagram(
+        :fields_by_table_name_and_field_name="fields_by_table_name_and_field_name"
+        :tables_by_table_name="tables_by_table_name"
+        :discarded_field_paths="discarded_field_paths"
+        :all_tables_by_table_name="all_tables_by_table_name"
+        :selectedTable.sync="selectedTable"
+        :selectedLink.sync="selectedLink"
+        @select_table="select_table"
+        @select_link="select_link"
+    )
 
-    // Panneau sélection table
-    .selection-panel(v-if="selectedTable" style="position:absolute; top:50px; right:0; width:300px; background:rgba(255,255,255,0.9); padding:10px;")
-        h3 {{ selectedTable }}
-        button(@click="onRemoveSelectedTable") Retirer cette table
-        h4 Champs foreign key
-        ul
-            li(v-for="(fieldVO, fName) in foreignKeyFieldsOfSelectedTable" :key="fName")
-                // Switch => appelle onSwitchDiscard(table, champ, isActive)
-                // isActive = !discarded_field_paths[table][champ]
-                label
-                    input(
-                        type="checkbox"
-                        :checked="!discarded_field_paths[selectedTable]?.[fName]"
-                        @change="onSwitchDiscard(selectedTable, fName, $event.target.checked)"
-                    )
-                    | {{ fName }}
+    SelectionPanel(
+        v-if="selectedTable"
+        :tables_by_table_name="tables_by_table_name"
+        :selectedTable="selectedTable"
+        :fields_by_table_name_and_field_name="fields_by_table_name_and_field_name"
+        :discarded_field_paths="discarded_field_paths"
+        @removeTable="onRemoveSelectedTable"
+        @switchDiscard="onSwitchDiscard"
+    )
 
-    // Panneau sélection lien
-    .selection-panel(v-if="selectedLink" style="position:absolute; top:50px; right:0; width:300px; background:rgba(255,255,255,0.9); padding:10px;")
-        h3 Lien
-        p
-            | Table : {{ selectedLink.table }}
-        p
-            | Champ : {{ selectedLink.field }}
-        button(@click="onSwitchDiscard(selectedLink.table, selectedLink.field, true)") Désactiver ce champ
+    LinkPanel(
+        v-if="selectedLink"
+        :selectedLink="selectedLink"
+        @switchDiscard="onSwitchDiscard"
+    )
 
-    // Panneau d'ajout
-    .add-panel(v-if="showAddPanel" style="position:absolute; top:50px; right:0; width:300px; background:rgba(255,255,255,0.9); padding:10px;")
-        h3 Ajouter une table
-        label
-            input(type="checkbox" v-model="hideVersioned")
-            | Masquer versions
-        input(type="text" v-model="addSearch" placeholder="Rechercher...")
-        ul
-            li(v-for="tableName in filteredTables" :key="tableName" @click="onAddTable(tableName)" style="cursor:pointer;")
-                | {{ tableName }}
+    AddPanel(
+        v-if="showAddPanel"
+        :all_tables_by_table_name="all_tables_by_table_name"
+        :tables_by_table_name="tables_by_table_name"
+        @addTable="onAddTable"
+    )
+
+    button(
+        v-if="showPlusButton"
+        @click="showAddPanel=!showAddPanel"
+        style="position:absolute; top:10px; right:10px;"
+    ) +

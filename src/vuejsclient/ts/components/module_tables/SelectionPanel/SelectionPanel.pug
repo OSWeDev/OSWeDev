@@ -1,0 +1,13 @@
+.selection-panel
+    h3 {{ selectedTable }}
+    button(@click="onRemoveSelectedTable") Retirer cette table
+    h4 Champs foreign key
+    ul
+        li(v-for="(fieldVO, fName) in foreignKeyFieldsOfSelectedTable" :key="fName")
+            label
+                input(
+                    type="checkbox"
+                    :checked="!discarded_field_paths[selectedTable]?.[fName]"
+                    @change="onSwitchDiscard(selectedTable, fName, $event.target.checked)"
+                )
+                | {{ fName }}
