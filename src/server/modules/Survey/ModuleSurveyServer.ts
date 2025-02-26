@@ -64,7 +64,7 @@ export default class ModuleSurveyServer extends ModuleServerBase {
             // Remplir le survey avec toutes les infos qui sont connues côté serveur, le user_id est ici !
             survey.user_id = user_session.uid;
 
-            if (ModuleAccessPolicyServer.getInstance().isLogedAs()) {
+            if (await ModuleAccessPolicyServer.getInstance().isLogedAs()) {
 
                 const admin_user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getAdminLogedUserSession();
 

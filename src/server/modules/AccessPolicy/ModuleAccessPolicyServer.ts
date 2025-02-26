@@ -370,7 +370,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
-    public isLogedAs(): boolean {
+    public async isLogedAs(): Promise<boolean> {
 
         try {
 
@@ -392,7 +392,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      *  On remonte à la racine des logas
      */
     @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
-    public getAdminLogedUserId(): number {
+    public async getAdminLogedUserId(): Promise<number> {
 
         try {
 

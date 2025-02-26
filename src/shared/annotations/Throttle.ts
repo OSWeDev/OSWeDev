@@ -45,14 +45,22 @@ export function PostThrottleParam(target: unknown, propertyKey: string | symbol,
     Reflect.defineMetadata('PostThrottleParam', parameterIndex, target, propertyKey);
 }
 
+type AsyncMethod = (...args: any[]) => Promise<any>;
+
 // Décorateur Throttle
 export default function Throttle(options: ThrottleOptions) {
-    return function (
+    return function <T extends AsyncMethod>(
         target: any,
         propertyKey: string,
-        descriptor: PropertyDescriptor
-    ) {
+        descriptor: PropertyDescriptor): TypedPropertyDescriptor<T> {
         const originalMethod = descriptor.value;
+
+        // Vérification runtime : si la fonction n’est pas async, on bloque
+        if (originalMethod.constructor.name !== 'AsyncFunction') {
+            throw new Error(
+                `La méthode "${propertyKey}" doit impérativement être déclarée "async".`
+            );
+        }
 
         // Récupérer les indices des paramètres spéciaux
         const preThrottleIndex: number = Reflect.getMetadata('PreThrottleParam', target, propertyKey);

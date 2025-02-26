@@ -9,9 +9,17 @@ export function ExecAsServerParam(target: any, propertyKey: string, parameterInd
     Reflect.defineMetadata(EXEC_AS_SERVER_PARAM_KEY, parameterIndex, target, propertyKey);
 }
 
+type AsyncMethod = (...args: any[]) => Promise<any>;
 
-export function ExecAsServer(target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
+export function ExecAsServer<T extends AsyncMethod>(target: unknown, propertyKey: string, descriptor: PropertyDescriptor): TypedPropertyDescriptor<T> {
     const originalMethod = descriptor.value;
+
+    // Vérification runtime : si la fonction n’est pas async, on bloque
+    if (originalMethod.constructor.name !== 'AsyncFunction') {
+        throw new Error(
+            `La méthode "${propertyKey}" doit impérativement être déclarée "async".`
+        );
+    }
 
     descriptor.value = async function (...args: any[]) {
 

@@ -717,7 +717,7 @@ export default class VarsDatasVoUpdateHandler {
         const vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
         const vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = {};
 
-        VarsDatasVoUpdateHandler.prepare_updates(ordered_vos_cud, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
+        await VarsDatasVoUpdateHandler.prepare_updates(ordered_vos_cud, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
 
         const intersectors_by_index: { [index: string]: VarDataBaseVO } = await VarsDatasVoUpdateHandler.init_leaf_intersectors(vo_types, vos_update_buffer, vos_create_or_delete_buffer);
         const leaf_invalidators_by_index: { [conf_id: string]: VarDataInvalidatorVO } = {};
@@ -787,7 +787,7 @@ export default class VarsDatasVoUpdateHandler {
                 });
 
                 // Attention on ne doit pas unlink en //, sinon il faut semaphore comme le getInstance()
-                this.apply_invalidator_in_tree(invalidator);
+                await this.apply_invalidator_in_tree(invalidator);
             }
         }
 
@@ -894,8 +894,8 @@ export default class VarsDatasVoUpdateHandler {
      * @returns
      */
     @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, null)//static
-    private static apply_invalidator_in_tree(invalidator: VarDataInvalidatorVO) {
-        const invalid_nodes: VarDAGNode[] = this.filter_varsdatas_cache_by_invalidator(invalidator);
+    private static async apply_invalidator_in_tree(invalidator: VarDataInvalidatorVO) {
+        const invalid_nodes: VarDAGNode[] = await this.filter_varsdatas_cache_by_invalidator(invalidator);
 
         if (!invalid_nodes) {
             return;
@@ -940,7 +940,7 @@ export default class VarsDatasVoUpdateHandler {
      * Doit être lancé depuis le thread des vars
      */
     @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, null)//static
-    private static filter_varsdatas_cache_by_invalidator(invalidator: VarDataInvalidatorVO): VarDAGNode[] {
+    private static async filter_varsdatas_cache_by_invalidator(invalidator: VarDataInvalidatorVO): Promise<VarDAGNode[]> {
 
         if (!invalidator) {
             return null;
@@ -1085,7 +1085,7 @@ export default class VarsDatasVoUpdateHandler {
      * @returns 0 si on a géré limit éléments dans le buffer, != 0 sinon (et donc le buffer est vide)
      */
     @RunsOnBgThread(VarsBGThreadNameHolder.bgthread_name, null)//static
-    private static prepare_updates(
+    private static async prepare_updates(
         ordered_vos_cud: Array<IDistantVOBase | DAOUpdateVOHolder<IDistantVOBase>>,
         vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> },
         vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] },

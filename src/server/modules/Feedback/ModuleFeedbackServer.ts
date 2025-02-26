@@ -142,7 +142,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             feedback.user_login_date = user_session.creation_date_unix;
 
             feedback.is_impersonated = false;
-            if (ModuleAccessPolicyServer.getInstance().isLogedAs()) {
+            if (await ModuleAccessPolicyServer.getInstance().isLogedAs()) {
 
                 const admin_user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getAdminLogedUserSession();
                 feedback.impersonated_from_user_connection_date = admin_user_session.last_load_date_unix;

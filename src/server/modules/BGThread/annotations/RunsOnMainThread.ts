@@ -13,8 +13,13 @@ export default class RunsOnMainThreadDataController {
  * Optimized : if the method is called from the main thread, it will be executed directly and the annotation will be removed so that the method is executed directly next time
  * @param instanceGetter Getter for the instance of the class on which the method is called, null by default for static methods
  */
+type AsyncMethod = (...args: any[]) => Promise<any>;
+
 export function RunsOnMainThread(instanceGetter: () => any = null) {
-    return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    return function <T extends AsyncMethod>(
+        target: any,
+        propertyKey: string,
+        descriptor: PropertyDescriptor): TypedPropertyDescriptor<T> {
 
         if (ModulesManager.isGenerator) {
             // Sur le générateur on n'a qu'un seul thread dans tous les cas
@@ -22,6 +27,13 @@ export function RunsOnMainThread(instanceGetter: () => any = null) {
         }
 
         const originalMethod = descriptor.value;
+
+        // Vérification runtime : si la fonction n’est pas async, on bloque
+        if (originalMethod.constructor.name !== 'AsyncFunction') {
+            throw new Error(
+                `La méthode "${propertyKey}" doit impérativement être déclarée "async".`
+            );
+        }
 
         //TODO register the method as a task on the main thread, with a UID based on the method name and the class name
         const task_UID = target.constructor.name + '.' + propertyKey;
@@ -64,7 +76,8 @@ export function RunsOnMainThread(instanceGetter: () => any = null) {
                     writable: true
                 });
                 // Call the original method
-                return originalMethod.apply(this, args);
+                const res = await originalMethod.apply(this, args);
+                return res;
             }
         };
 
