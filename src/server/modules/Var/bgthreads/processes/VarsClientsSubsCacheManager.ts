@@ -29,11 +29,11 @@ export default class VarsClientsSubsCacheManager {
             false);
     }
 
-    public static add_new_sub(var_index: string) {
-        VarsClientsSubsCacheManager.throttle_add_new_subs([var_index]);
+    public static async add_new_sub(var_index: string) {
+        await VarsClientsSubsCacheManager.throttle_add_new_subs([var_index]);
     }
-    public static remove_sub(var_index: string) {
-        VarsClientsSubsCacheManager.throttle_remove_subs([var_index]);
+    public static async remove_sub(var_index: string) {
+        await VarsClientsSubsCacheManager.throttle_remove_subs([var_index]);
     }
 
     public static async update_clients_subs_indexes_cache(force_update: boolean = false): Promise<void> {
@@ -64,7 +64,7 @@ export default class VarsClientsSubsCacheManager {
         VarsBGThreadNameHolder.bgthread_name,
         null, // static
     )
-    public static throttle_add_new_subs(@PreThrottleParam pre_var_indexs: string | string[], @PostThrottleParam var_indexs: string[] = null) {
+    public static async throttle_add_new_subs(@PreThrottleParam pre_var_indexs: string | string[], @PostThrottleParam var_indexs: string[] = null) {
         for (const i in var_indexs) {
             VarsClientsSubsCacheHolder.clients_subs_indexes_cache[var_indexs[i]] = true;
         }

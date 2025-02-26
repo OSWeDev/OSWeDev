@@ -684,7 +684,7 @@ export default class VarsDatasVoUpdateHandler {
         null, // static
         false,
     )
-    public static push_invalidators(
+    public static async push_invalidators(
         @PreThrottleParam invalidator: VarDataInvalidatorVO | VarDataInvalidatorVO[],
         @PostThrottleParam invalidators: VarDataInvalidatorVO[] = null,
     ) {

@@ -265,7 +265,7 @@ export default class ForkMessageController {
         throttle_ms: 500,
 
     })
-    public static retry() {
+    public static async retry() {
         if ((!ForkMessageController.stacked_msg_waiting) || (!ForkMessageController.stacked_msg_waiting.length)) {
             return;
         }

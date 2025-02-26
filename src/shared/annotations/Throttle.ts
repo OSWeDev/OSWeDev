@@ -75,7 +75,7 @@ export default function Throttle(options: ThrottleOptions) {
             throw new Error('The post-throttle parameter is not defined');
         }
 
-        descriptor.value = function (...args: any[]) {
+        descriptor.value = async (...args: any[]) => {
 
             let needs_to_declare_throttle = false;
 

@@ -62,7 +62,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
     }
 
     @RunsOnMainThread(ModulePushDataServer.getInstance)
-    private join_io_room(room_vo_fields: string[]) {
+    private async join_io_room(room_vo_fields: string[]) {
 
         if ((!room_vo_fields) || (!room_vo_fields.length) || (room_vo_fields.length % 2 == 1)) {
             ConsoleHandler.error('Impossible de parser la room IO:' + room_vo_fields);
@@ -116,7 +116,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
     }
 
     @RunsOnMainThread(ModulePushDataServer.getInstance)
-    private leave_io_room(room_vo_fields: string[]) {
+    private async leave_io_room(room_vo_fields: string[]) {
 
         if ((!room_vo_fields) || (!room_vo_fields.length) || (room_vo_fields.length % 2 == 1)) {
             ConsoleHandler.error('Impossible de parser la room IO:' + room_vo_fields);
