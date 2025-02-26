@@ -23,6 +23,7 @@
     LinkPanel(
         v-if="selectedLink"
         :selectedLink="selectedLink"
+        :discarded_field_paths="discarded_field_paths"
         @switchDiscard="onSwitchDiscard"
     )
 

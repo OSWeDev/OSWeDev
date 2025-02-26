@@ -9,10 +9,13 @@ import './LinkPanel.scss';
 export default class LinkPanel extends Vue {
 
     @Prop({ default: null })
-    readonly selectedLink!: { table: string; field: string } | null;
+    readonly selectedLink!: { table: string; field: string, target_table: string } | null;
 
-    onDiscardLink() {
-        if (!this.selectedLink) return;
-        this.$emit('switchDiscard', this.selectedLink.table, this.selectedLink.field, true);
+    @Prop({ default: () => ({}) })
+    readonly discarded_field_paths!: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    onSwitchDiscard(table: string, field: string, newIsActive: boolean) {
+        const new_discard = !newIsActive;
+        this.$emit('switchDiscard', table, field, new_discard);
     }
 }

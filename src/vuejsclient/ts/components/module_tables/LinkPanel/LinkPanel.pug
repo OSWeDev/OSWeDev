@@ -1,5 +1,10 @@
 .selection-panel
     h3 Lien
-    p Table : {{ selectedLink.table }}
-    p Champ : {{ selectedLink.field }}
-    button(@click="onDiscardLink") Désactiver ce champ
+    label
+        input(
+            type="checkbox"
+            :checked="!discarded_field_paths[selectedLink.table]?.[selectedLink.field]"
+            @change="onSwitchDiscard(selectedLink.table, selectedLink.field, $event.target.checked)"
+        )
+        | {{ selectedLink.table }}.{{ selectedLink.field }} => {{ selectedLink.target_table }}
+

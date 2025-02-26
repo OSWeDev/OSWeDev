@@ -37,7 +37,7 @@ export default class CanvasDiagram extends Vue {
     private selectedTable!: string | null;
 
     @Prop({ default: null })
-    private selectedLink!: { table: string; field: string } | null;
+    private selectedLink!: { table: string, field: string, target_table: string } | null;
 
     private ctx: CanvasRenderingContext2D | null = null;
 
@@ -81,12 +81,12 @@ export default class CanvasDiagram extends Vue {
 
     private dashAnimationOffset: number = 0;
 
-    private BASE_REPULSION = 2;
-    private COLLISION_PUSH = 0.1;
-    private SPRING_LENGTH = 150;
+    private BASE_REPULSION = 3;
+    private COLLISION_PUSH = 0.3;
+    private SPRING_LENGTH = 200;
     private ATTRACTION_FACTOR = 0.0005;
     private CENTER_FORCE = 0.0001;
-    private DAMPING = 0.9;
+    private DAMPING = 0.95;
     private MAX_SPEED = 5;
 
     private cycle_tables: Set<string> = new Set();
@@ -599,6 +599,8 @@ export default class CanvasDiagram extends Vue {
             const isInCycle = this.cycle_links[tableName]?.has(fieldName);
 
             this.drawCurvedArrow(
+                tableName,
+                fieldName,
                 ctx,
                 startX + offsetX,
                 startY + offsetY,
@@ -621,6 +623,8 @@ export default class CanvasDiagram extends Vue {
     }
 
     private drawCurvedArrow(
+        table_name: string,
+        field_name: string,
         ctx: CanvasRenderingContext2D,
         x1: number,
         y1: number,
@@ -633,8 +637,8 @@ export default class CanvasDiagram extends Vue {
         ctx.save();
         const isSelectedLink =
             this.selectedLink &&
-            label === this.get_link_label(this.selectedLink.table, this.selectedLink.field);
-
+            this.selectedLink.table === table_name &&
+            this.selectedLink.field === field_name;
         if (isSelectedLink) {
             ctx.strokeStyle = '#00f';
             ctx.lineWidth = 3;
@@ -780,6 +784,15 @@ export default class CanvasDiagram extends Vue {
         // Vérifier s'il y a un lien
         const clickedLink = this.findClickedLink(mouseX, mouseY);
         if (clickedLink) {
+
+            // Si le lien est déjà sélectionné, le désélectionner
+            if (this.selectedLink &&
+                (clickedLink.table === this.selectedLink.table) &&
+                (clickedLink.field === this.selectedLink.field)) {
+                this.$emit("select_link", null);
+                return;
+            }
+
             this.$emit("select_link", clickedLink);
             this.$emit("select_table", null);
             return;
@@ -824,6 +837,7 @@ export default class CanvasDiagram extends Vue {
                 if (this.selectedTable === this.draggedTable) {
                     this.blockPositions[this.draggedTable].folded = !this.blockPositions[this.draggedTable].folded;
                 } else {
+
                     this.$emit("select_table", this.draggedTable);
                     this.$emit("select_link", null);
                 }
@@ -855,12 +869,12 @@ export default class CanvasDiagram extends Vue {
         return null;
     }
 
-    private findClickedLink(mouseX: number, mouseY: number): { table: string; field: string } | null {
+    private findClickedLink(mouseX: number, mouseY: number): { table: string; field: string, target_table: string } | null {
         const diag = this.screenToDiagramCoords(mouseX, mouseY);
         for (const link of this.drawnLinks) {
             const dist = this.pointToSegmentDistance(diag.x, diag.y, link.startX, link.startY, link.endX, link.endY);
             if (dist < 10) {
-                return { table: link.table, field: link.field };
+                return { table: link.table, field: link.field, target_table: ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[link.table][link.field].foreign_ref_vo_type };
             }
         }
         return null;
