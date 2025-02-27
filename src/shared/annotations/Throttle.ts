@@ -5,6 +5,7 @@ import EventifyEventListenerConfVO from '../modules/Eventify/vos/EventifyEventLi
 import EventifyEventListenerInstanceVO from '../modules/Eventify/vos/EventifyEventListenerInstanceVO';
 import StackContextWrapper from '../tools/StackContextWrapper';
 import ThrottleHelper from '../tools/ThrottleHelper';
+import ModulesManager from '../modules/ModulesManager';
 
 // Types pour les paramètres du décorateur
 export interface ThrottleOptions {
@@ -47,7 +48,10 @@ export function PostThrottleParam(target: unknown, propertyKey: string | symbol,
 
 type AsyncMethod = (...args: any[]) => Promise<any>;
 
-// Décorateur Throttle
+/**
+ * ATTENTION : la méthode décorée est obligatoirement async !
+ * Décorateur Throttle
+ */
 export default function Throttle(options: ThrottleOptions) {
     return function <T extends AsyncMethod>(
         target: any,
@@ -55,8 +59,8 @@ export default function Throttle(options: ThrottleOptions) {
         descriptor: PropertyDescriptor): TypedPropertyDescriptor<T> {
         const originalMethod = descriptor.value;
 
-        // Vérification runtime : si la fonction n’est pas async, on bloque
-        if (originalMethod.constructor.name !== 'AsyncFunction') {
+        // Vérification runtime : si la fonction n’est pas async, on bloque => valide uniquement côté serveur
+        if (ModulesManager.isServerSide && originalMethod.constructor.name !== 'AsyncFunction') {
             throw new Error(
                 `La méthode "${propertyKey}" doit impérativement être déclarée "async".`
             );
@@ -75,7 +79,7 @@ export default function Throttle(options: ThrottleOptions) {
             throw new Error('The post-throttle parameter is not defined');
         }
 
-        descriptor.value = async (...args: any[]) => {
+        descriptor.value = async function (...args: any[]) { // Attention si on déclare la fonction avec la flèche on perd le this
 
             let needs_to_declare_throttle = false;
 

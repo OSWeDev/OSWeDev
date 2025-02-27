@@ -70,7 +70,7 @@ export default class CheckListItemComponent extends VueComponentBase {
     @Watch('global_route_path')
     @Watch('checklist_item')
     @Watch('ordered_checkpoints')
-    private watchers() {
+    private async watchers() {
         this.debounced_update_state_step();
         this.set_checkpoints_editable_fields();
         this.set_item_description();
@@ -83,7 +83,7 @@ export default class CheckListItemComponent extends VueComponentBase {
     }
 
     @Throttle({ param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE, throttle_ms: 100 })
-    private set_checkpoints_editable_fields(): { [step_id: number]: Array<DatatableField<any, any>> } {
+    private async set_checkpoints_editable_fields(): Promise<{ [step_id: number]: Array<DatatableField<any, any>> }> {
 
         if (!this.checklist_item) {
             return {};

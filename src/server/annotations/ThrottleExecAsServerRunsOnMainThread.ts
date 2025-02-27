@@ -1,10 +1,14 @@
 import Throttle, { ThrottleOptions } from "../../shared/annotations/Throttle";
+import ModulesManager from "../../shared/modules/ModulesManager";
 import { RunsOnMainThread } from "../modules/BGThread/annotations/RunsOnMainThread";
 import { ExecAsServer } from "./ExecAsServer";
 
 type AsyncMethod = (...args: any[]) => Promise<any>;
 
-// Décorateur Throttled
+/**
+ * ATTENTION : la méthode décorée est obligatoirement async !
+ * Décorateur Throttled + ExecAsServer + RunsOnMainThread
+ */
 export default function ThrottleExecAsServerRunsOnMainThread(
     throttleOptions: ThrottleOptions,
     instanceGetter: () => any,
@@ -16,8 +20,8 @@ export default function ThrottleExecAsServerRunsOnMainThread(
 
         const originalMethod = descriptor.value;
 
-        // Vérification runtime : si la fonction n’est pas async, on bloque
-        if (originalMethod.constructor.name !== 'AsyncFunction') {
+        // Vérification runtime : si la fonction n’est pas async, on bloque => valide uniquement côté serveur
+        if (ModulesManager.isServerSide && originalMethod.constructor.name !== 'AsyncFunction') {
             throw new Error(
                 `La méthode "${propertyKey}" doit impérativement être déclarée "async".`
             );

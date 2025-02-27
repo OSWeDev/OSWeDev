@@ -8,13 +8,13 @@ export default class RunsOnMainThreadDataController {
     public static exec_self_on_main_process_and_return_value_method: (thrower: any, task_uid: string, resolver: any, ...task_params: any[]) => Promise<boolean> = null;
 }
 
+type AsyncMethod = (...args: any[]) => Promise<any>;
 /**
+ * ATTENTION : la méthode décorée est obligatoirement async !
  * Decorator indicating and handling that the method should be executed on the main thread
  * Optimized : if the method is called from the main thread, it will be executed directly and the annotation will be removed so that the method is executed directly next time
  * @param instanceGetter Getter for the instance of the class on which the method is called, null by default for static methods
  */
-type AsyncMethod = (...args: any[]) => Promise<any>;
-
 export function RunsOnMainThread(instanceGetter: () => any = null) {
     return function <T extends AsyncMethod>(
         target: any,
@@ -28,8 +28,8 @@ export function RunsOnMainThread(instanceGetter: () => any = null) {
 
         const originalMethod = descriptor.value;
 
-        // Vérification runtime : si la fonction n’est pas async, on bloque
-        if (originalMethod.constructor.name !== 'AsyncFunction') {
+        // Vérification runtime : si la fonction n’est pas async, on bloque => valide uniquement côté serveur
+        if (ModulesManager.isServerSide && originalMethod.constructor.name !== 'AsyncFunction') {
             throw new Error(
                 `La méthode "${propertyKey}" doit impérativement être déclarée "async".`
             );
@@ -51,7 +51,7 @@ export function RunsOnMainThread(instanceGetter: () => any = null) {
                 } : originalMethod.bind(target));
         }
 
-        descriptor.value = async function (...args: any[]) {
+        descriptor.value = async function (...args: any[]) { // Attention si on déclare la fonction avec la flèche on perd le this
             if (!isMainThread) {
 
                 // Not on main process: execute the method on the main process

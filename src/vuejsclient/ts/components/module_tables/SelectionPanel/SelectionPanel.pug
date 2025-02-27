@@ -3,8 +3,8 @@
     button.btn.btn-danger(@click="onRemoveSelectedTable") Retirer cette table
     hr
     h4(v-if='has_foreignKeyFieldsFROMSelectedTable') {{ selectedTable }} => X
-    template(v-for="(fieldVO, fName) in foreignKeyFieldsFROMSelectedTable" :key="fName")
-        label
+    template(v-for="(fieldVO, fName) in foreignKeyFieldsFROMSelectedTable")
+        label(:key="selectedTable + '_' + fName")
             input(
                 type="checkbox"
                 :checked="!discarded_field_paths[selectedTable]?.[fName]"
@@ -12,8 +12,8 @@
             )
             | {{ fieldVO.module_table_vo_type }}.{{ fName }} => {{ fieldVO.foreign_ref_vo_type }}
     h4(v-if='has_foreignKeyFieldsTOSelectedTable') X => {{ selectedTable }}
-    template(v-for="(fieldVO, fName) in foreignKeyFieldsTOSelectedTable" :key="fName")
-        label
+    template(v-for="(fieldVO, fName) in foreignKeyFieldsTOSelectedTable")
+        label(:key="selectedTable + '_' + fName")
             input(
                 type="checkbox"
                 :checked="!discarded_field_paths[fieldVO.module_table_vo_type]?.[fName]"

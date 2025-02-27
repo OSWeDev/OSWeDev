@@ -69,6 +69,9 @@ export default class SelectionPanel extends Vue {
                 if (field.foreign_ref_vo_type != this.selectedTable) {
                     continue;
                 }
+                if (field.module_table_vo_type == this.selectedTable) {
+                    continue;
+                }
                 res[fname] = field;
             }
         }
