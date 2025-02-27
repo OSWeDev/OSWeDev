@@ -365,7 +365,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après modification.
                 //  Attention si un des output est false avant modification, on annule la modification
-                const res: boolean[] = await DAOServerController.pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo), exec_as_server);
+                const res: boolean[] = await StackContext.exec_as_server(
+                    DAOServerController.pre_update_trigger_hook.trigger,
+                    DAOServerController.pre_update_trigger_hook,
+                    exec_as_server,
+                    vo._type,
+                    new DAOUpdateVOHolder(pre_update_vo, vo),
+                    exec_as_server);
+
                 if (!BooleanHandler.AND(res, true)) {
                     StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_update_trigger_hook_rejection');
                     return null;
@@ -420,7 +427,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après modification.
                 //  Attention si un des output est false avant modification, on annule la modification
-                const res: boolean[] = await DAOServerController.pre_create_trigger_hook.trigger(vo._type, vo, exec_as_server);
+                const res: boolean[] = await StackContext.exec_as_server(
+                    DAOServerController.pre_create_trigger_hook.trigger,
+                    DAOServerController.pre_create_trigger_hook,
+                    exec_as_server,
+                    vo._type,
+                    vo,
+                    exec_as_server);
+
                 if (!BooleanHandler.AND(res, true)) {
                     StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_create_trigger_hook_rejection');
                     return null;
@@ -2470,7 +2484,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après suppression.
                 //  Attention si un des output est false avant suppression, on annule la suppression
-                const res: boolean[] = await DAOServerController.pre_delete_trigger_hook.trigger(vo._type, vo, exec_as_server);
+                const res: boolean[] = await StackContext.exec_as_server(
+                    DAOServerController.pre_create_trigger_hook.trigger,
+                    DAOServerController.pre_create_trigger_hook,
+                    exec_as_server,
+                    vo._type,
+                    vo,
+                    exec_as_server);
+
                 if (!BooleanHandler.AND(res, true)) {
                     StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'pre_delete_trigger_hook_rejection');
                     continue;
@@ -2545,7 +2566,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                 }
 
-                await DAOServerController.post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo, exec_as_server);
+                await StackContext.exec_as_server(
+                    DAOServerController.post_delete_trigger_hook.trigger,
+                    DAOServerController.post_delete_trigger_hook,
+                    exec_as_server,
+                    deleted_vo._type,
+                    deleted_vo,
+                    exec_as_server);
             }
             return value;
         });
@@ -3013,7 +3040,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     vo.id = parseInt(results[i].id.toString());
 
                     try {
-                        await DAOServerController.post_create_trigger_hook.trigger(vo._type, vo, exec_as_server);
+                        await StackContext.exec_as_server(
+                            DAOServerController.post_create_trigger_hook.trigger,
+                            DAOServerController.post_create_trigger_hook,
+                            exec_as_server,
+                            vo._type,
+                            vo,
+                            exec_as_server);
                     } catch (error) {
                         ConsoleHandler.error('post_create_trigger_hook :' + vo._type + ':' + vo.id + ':' + error);
                     }

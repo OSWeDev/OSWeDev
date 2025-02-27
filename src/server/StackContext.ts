@@ -1,6 +1,15 @@
 /* istanbul ignore file: only one method, and not willing to test it right now*/
 
+import { reflect } from '../shared/tools/ObjectHandler';
 import cls from './CLSHooked';
+
+export const scope_overloads_for_exec_as_server = {
+    IS_CLIENT: false,
+    UID: null,
+    CLIENT_TAB_ID: null,
+    REFERER: null,
+    SESSION: null,
+};
 
 export default class StackContext {
 
@@ -14,11 +23,33 @@ export default class StackContext {
         StackContext.ns.run(() => next());
     }
 
+    public static async exec_as_server<T extends Array<unknown>, U>(callback: (...params: T) => U | Promise<U>, this_arg: unknown, exec_as_server: boolean, ...params: T): Promise<U> {
+
+        // Par défaut, params est un tableau vide si aucun paramètre n'est passé
+        const safeParams = params.length ? params : ([] as unknown as T);
+        if (exec_as_server && !!StackContext.get('IS_CLIENT')) {
+            return StackContext.runPromise(scope_overloads_for_exec_as_server, callback, this_arg, ...safeParams);
+        }
+
+        return callback.apply(this_arg, safeParams);
+    }
+
     /**
      * Replace when possible by StackContext.set, or contextqueries excec_as_admin, or insert_vos(vos, true)
      * @deprecated Should only be used on ServerBase for the main request
      */
-    public static async runPromise(scope_overloads: { [scope_key: string]: any }, callback: (...params: any) => Promise<any>): Promise<any> {
+    public static async runPromise<T extends Array<unknown>, U>(scope_overloads: any, callback: (...params: T) => U | Promise<U>, this_arg: unknown, ...params: T): Promise<U> {
+
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+        // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        //     ConsoleHandler.log('StackContext.runPromise:IN:' + JSON.stringify(StackContext.get_active_context()) + ':' + JSON.stringify(scope_overloads));
+        // }
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+
 
         let result = null;
 
@@ -34,9 +65,9 @@ export default class StackContext {
             }
 
             try {
-                result = await callback();
+                result = await callback.apply(this_arg, params);
             } catch (error) {
-
+                //
             }
 
             for (const field_name in scope_overloads) {
@@ -44,8 +75,46 @@ export default class StackContext {
             }
         });
 
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+        // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        //     ConsoleHandler.log('StackContext.runPromise:OUT:' + JSON.stringify(StackContext.get_active_context()) + ':' + JSON.stringify(scope_overloads));
+        // }
+        // /**
+        //  * FIXME DELETE ME DEBUG ONLY JNE
+        //  */
+
         return result;
     }
+    // public static async runPromise(scope_overloads: { [scope_key: string]: any }, callback: (...params: any) => Promise<any>): Promise<any> {
+
+    //     let result = null;
+
+    //     const old_context_values = {};
+
+    //     await StackContext.ns.runPromise(async () => {
+
+    //         for (const field_name in scope_overloads) {
+    //             const field_value = scope_overloads[field_name];
+
+    //             old_context_values[field_name] = StackContext.get(field_name);
+    //             StackContext.set(field_name, field_value);
+    //         }
+
+    //         try {
+    //             result = await callback();
+    //         } catch (error) {
+
+    //         }
+
+    //         for (const field_name in scope_overloads) {
+    //             StackContext.set(field_name, old_context_values[field_name]);
+    //         }
+    //     });
+
+    //     return result;
+    // }
 
     /**
      * Gets a value from the context by key.  Will return undefined if the context has not yet been initialized for this request or if a value is not found for the specified key.

@@ -365,7 +365,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     send_email_with_export_notification,
                     vars_indicator,
                 );
-            });
+            },
+                this
+            );
         } else {
             await this.do_exportContextQueryToXLSX_contextuid(
                 filename,

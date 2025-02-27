@@ -1508,7 +1508,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 { SESSION: session_to_delete_by_sids[sid] },
                 async () => {
                     await this.delete_session();
-                }
+                },
+                this
             );
         }
     }

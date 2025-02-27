@@ -91,7 +91,9 @@ export default class ModuleAPIServer extends ModuleServerBase {
             if (api.access_policy_name) {
                 if (!await StackContext.runPromise(
                     await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
-                    async () => AccessPolicyServerController.checkAccessSync(api.access_policy_name))) {
+                    async () => AccessPolicyServerController.checkAccessSync(api.access_policy_name),
+                    this
+                )) {
                     const session: IServerUserSession = (req as any).session;
                     ConsoleHandler.error('Access denied to API:' + api.api_name + ':sessionID:' + req.sessionID + ":uid:" + (session ? session.uid : "null") + ":user_vo:" + ((session && session.user_vo) ? JSON.stringify(session.user_vo) : null));
                     StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'access_denied_api', api.api_name);
@@ -180,7 +182,9 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
                 returnvalue = await StackContext.runPromise(
                     await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
-                    async () => (has_params && params && params.length) ? await api.SERVER_HANDLER(...params, req, res) : await api.SERVER_HANDLER(req, res));
+                    async () => (has_params && params && params.length) ? await api.SERVER_HANDLER(...params, req, res) : await api.SERVER_HANDLER(req, res),
+                    this
+                );
 
                 // /**
                 //  * DELETE ME :IN: Juste pour un TEST

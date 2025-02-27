@@ -1517,7 +1517,9 @@ export default class ModuleVarServer extends ModuleServerBase {
                                     }
 
                                     ids_db = await cache_local[query_wrapper.query];
-                                });
+                                },
+                                    this
+                                );
                             }
                             if (ConfigurationService.node_configuration.debug_vars_db_param_builder) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:OUT');
