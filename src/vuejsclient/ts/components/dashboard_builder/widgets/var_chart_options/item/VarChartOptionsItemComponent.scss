@@ -1,11 +1,61 @@
 @import 'skin-variables.scss';
 
-.var_chart_scales_options_item_component {
-    background-color: $input_editable_bg_color;
-    border: $table_border;
-    border-radius: 4px;
-    padding: 1rem;
-    margin-bottom: 1rem;
+.var_chart_options_item_component {
+    .var_chart_options_item_component_wrapper {
+        margin-bottom: 0.5em;
+    }
+
+    .container {
+        display: inline-flex;
+
+        .input_label {
+            margin-left: 1rem;
+        }
+    }
+
+    // Basique : .section, .section-header, .section-content
+    .section {
+        border: $table_border;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+        background-color: $input_editable_bg_color;
+
+        .section-header {
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            background-color: $button_primary_bg_color;
+            color: $button_text_color;
+            border-radius: 6px 6px 0 0;
+            display: flex;
+            align-items: center;
+
+            h4 {
+                flex-grow: 1;
+                margin: 0;
+                font-size: 1rem;
+            }
+
+            i.icon {
+                margin-left: 0.5rem;
+
+                &:hover {
+                    transform: scale(1.1);
+                }
+            }
+        }
+
+        .section-content {
+            padding: 1rem;
+            border-radius: 0 0 6px 6px;
+            background-color: $input_editable_bg_color;
+
+            .bg_color_picker {
+                border-color: #002454;
+                border-width: thin;
+                border: solid;
+            }
+        }
+    }
 
     .options_separator_lvl2 {
         margin-top: 1em;
@@ -19,36 +69,46 @@
         font-size: 1rem;
     }
 
-    .var_chart_scales_options_item_component_wrapper {
-        margin-bottom: 0.5em;
+    .input_label {
+        font-size: 0.9rem;
+        color: $header_text_color;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+        display: inline-block;
+    }
 
-        .input_label {
-            font-size: 0.9rem;
-            color: $header_text_color;
-            font-weight: 600;
-            margin-bottom: 0.3rem;
-            display: inline-block;
+    .input_wrapper {
+        margin-bottom: 0.75rem;
+    }
+
+    .explication {
+        margin-top: 0.75rem;
+        margin-bottom: 0.75rem;
+        color: $header_text_color;
+        font-size: 0.9rem;
+        font-style: italic;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+        width: 100%;
+        padding: 0.5rem;
+        border: $table_border;
+        border-radius: 4px;
+        font-size: 0.9rem;
+
+        &:focus {
+            outline: none;
+            border-color: $light_warning;
         }
+    }
 
-        .input_wrapper {
-            margin-bottom: 0.75rem;
-        }
+    .clickable {
+        cursor: pointer;
 
-        input[type="text"] {
-            width: 100%;
-            padding: 0.5rem;
-            border: $table_border;
-            border-radius: 4px;
-            font-size: 0.9rem;
-
-            &:focus {
-                outline: none;
-                border-color: $light_warning;
-            }
-        }
-
-        .toggle-button__wrapper {
-            // Optionnel: styliser la toggle
+        &:hover {
+            text-decoration: underline;
+            color: $main_link_color;
         }
     }
 }

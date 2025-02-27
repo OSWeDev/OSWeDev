@@ -526,7 +526,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         }
         // On récupère var_chart_scales_options
         const var_chart_scales_options = this.widget_options.var_chart_scales_options;
-        let scales = {};
+        const scales = {};
 
         // ----------------------------------------------------------------------
         // Mode "detailed"
@@ -631,8 +631,9 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     enabled: true,
                     axis: 'xy',
                     mode: this.widget_options.tooltip_by_index ? 'index' : 'nearest',
-                    scales: scales
                 },
+                scales: scales,
+                detailed: this.widget_options.detailed,
             };
             return Object.assign({}, obj, interaction_option);
         }
@@ -712,7 +713,8 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     },
                 },
             },
-            scales: scales
+            scales: scales,
+            detailed: this.widget_options.detailed,
         };
 
         return obj;
@@ -854,11 +856,13 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         // Récupération des custom filters
         const custom_filters = {};
         this.widget_options.var_charts_options?.forEach((vco) => {
-            const cf = VarWidgetComponent.get_var_custom_filters(
-                this.var_custom_filters[vco.chart_id],
-                this.get_active_field_filters
-            );
-            custom_filters[vco.chart_id] = cf;
+            if (this.var_custom_filters && this.get_active_field_filters) {
+                const cf = VarWidgetComponent.get_var_custom_filters(
+                    this.var_custom_filters[vco.chart_id],
+                    this.get_active_field_filters
+                );
+                custom_filters[vco.chart_id] = cf;
+            }
         });
 
         // On gère le multi-dataset => remplit this.datasets
@@ -1010,7 +1014,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
                     promises.push((async () => {
                         // Copie du filter
-                        let active_field_filters = cloneDeep(this.get_active_field_filters) || {};
+                        const active_field_filters = cloneDeep(this.get_active_field_filters) || {};
                         if (!active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id]) {
                             active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id] = {};
                         }
@@ -1425,7 +1429,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 is_rbga = true;
             }
 
-            for (let i in this.ordered_dimension) {
+            for (const i in this.ordered_dimension) {
                 const nb = parseInt(i);
                 let color = base_color;
                 if (is_rbga) {

@@ -130,7 +130,7 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     get chart_plugins() {
         const self = this;
-        let plugins = [
+        const plugins = [
             this.plugins
         ];
 
@@ -265,12 +265,10 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         if (old_var_params && old_var_params.length) {
-            console.log('unregister');
             await VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
         }
 
         if (new_var_params && new_var_params.length) {
-            console.log('register');
             await VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
         }
 
@@ -325,7 +323,7 @@ export default class VarPieChartComponent extends VueComponentBase {
     }
 
     public async created() {
-        let chart = Chart;
+        const chart = Chart;
         chart.register(ChartDataLabels, CategoryScale, LinearScale, LogarithmicScale, TimeScale, RadialLinearScale);
         window['Chart'] = chart;
         Chart['helpers'] = helpers;

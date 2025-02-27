@@ -41,20 +41,32 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
     @Prop({ default: null })
     private get_var_name_code_text?: (page_widget_id: number, var_id: number, chart_id: number) => string;
 
+    /**
+     * sectionsOpen = { scaleOptions: boolean, filterOptions: boolean }
+     */
+    @Prop({ default: () => ({ scaleOptions: false, filterOptions: false }) })
+    private sectionsOpen: { scaleOptions: boolean; filterOptions: boolean };
+
+
     // -------------------------------------------------------------------------
     // Données internes
     // -------------------------------------------------------------------------
+
+    /**
+     * localSectionsOpen : copie locale
+     */
+    private localSectionsOpen: { scaleOptions: boolean; filterOptions: boolean } = {
+        scaleOptions: false,
+        filterOptions: false
+    };
+
+
 
     /**
      * Copie locale de l'option, pour éviter de muter directement la prop
      */
     private options_props: VarChartScalesOptionsVO | null = null;
 
-    // État repli/dépli des sous-sections
-    private sectionsOpen = {
-        scaleOptions: false,    // partie "options graphiques"
-        filterOptions: false    // partie "filtre / tri dimension"
-    };
 
     // Valeurs bindées
     private show_scale_title: boolean = true;
@@ -75,6 +87,31 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
         50,
         false
     );
+
+    // -------------------------------------------------------------------------
+    // Computed
+    // -------------------------------------------------------------------------
+
+    /**
+     * chart_id local
+     */
+    get chart_id(): number {
+        if (!this.options_props?.chart_id) {
+            // fallback
+            return Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+        }
+        return this.options_props.chart_id;
+    }
+
+    /**
+     * Titre "code text" => pour InlineTranslatableText
+     */
+    get title_code_text(): string {
+        if (!this.options_props) {
+            return null;
+        }
+        return this.options_props.get_title_name_code_text(this.page_widget_id, this.chart_id);
+    }
 
     // -------------------------------------------------------------------------
     // Watchers
@@ -114,7 +151,7 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
             this.scale_options = this.options_props.scale_options;
         }
         if (this.selected_position !== this.options_props.selected_position) {
-            this.selected_position = this.options_props.selected_position || 'left';
+            this.selected_position = this.options_props.selected_position;
         }
         if (this.stacked !== this.options_props.stacked) {
             this.stacked = !!this.options_props.stacked;
@@ -124,30 +161,14 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Computed
-    // -------------------------------------------------------------------------
-
     /**
-     * chart_id local
+     * On synchronise localSectionsOpen avec sectionsOpen
      */
-    get chart_id(): number {
-        if (!this.options_props?.chart_id) {
-            // fallback
-            return Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
-        }
-        return this.options_props.chart_id;
+    @Watch('sectionsOpen', { immediate: true, deep: true })
+    private onPropSectionsOpenChanged() {
+        this.localSectionsOpen = cloneDeep(this.sectionsOpen);
     }
 
-    /**
-     * Titre "code text" => pour InlineTranslatableText
-     */
-    get title_code_text(): string {
-        if (!this.options_props) {
-            return null;
-        }
-        return this.options_props.get_title_name_code_text(this.page_widget_id, this.chart_id);
-    }
 
     // -------------------------------------------------------------------------
     // Méthodes
@@ -157,7 +178,8 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
      * Toggle l'ouverture d'une section
      */
     private toggleSection(sectionName: 'scaleOptions' | 'filterOptions') {
-        this.sectionsOpen[sectionName] = !this.sectionsOpen[sectionName];
+        this.localSectionsOpen[sectionName] = !this.localSectionsOpen[sectionName];
+        this.$emit('update-sections-open', cloneDeep(this.localSectionsOpen));
     }
 
     private async switch_show_scale_title() {
@@ -192,6 +214,20 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
         if (this.scale_options && this.scale_options.type !== '') {
             await this.throttled_emit_changes();
         }
+    }
+
+    private async handle_scale_position_change(position: string) {
+        this.selected_position = position;
+        await this.throttled_emit_changes();
+    }
+
+    /**
+     * Permet de récupérer la traduction de la position de l'axe
+     * @param position
+     * @returns
+     */
+    private get_scale_position_label(position: string) {
+        return this.label(`var_chart_scales_options_item_component.separator.scale_position.${position}`);
     }
 
     /**

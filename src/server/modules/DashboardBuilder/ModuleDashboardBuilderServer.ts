@@ -115,7 +115,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Champ de la dimension'
         }, 'var_choropleth_chart_widget_options_component.dimension_vo_field_ref.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Segmentation de la dimension date'
+            'fr-fr': 'Segmentation de la dimension'
         }, 'var_choropleth_chart_widget_options_component.max_dimension_values.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Trier la dimension par un champ'
@@ -274,11 +274,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_mixed_charts_widget_options_component.section.chart_title.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Options de légende'
+            'fr-fr': 'Options de la légende'
         }, 'var_mixed_charts_widget_options_component.section.legend_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Options de données'
+            'fr-fr': 'Options des données'
         }, 'var_mixed_charts_widget_options_component.section.data_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -307,7 +307,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_radar_chart_widget_options_component.dimension_vo_field_ref.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Segmentation de la dimension date'
+            'fr-fr': 'Segmentation de la dimension'
         }, 'var_radar_chart_widget_options_component.dimension_custom_filter_segment_type.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -398,6 +398,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_mixed_charts_widget_options_component.multiple_dataset_vo_field_ref.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Le multidataset permet de superposer plusieurs graphiques sur un même axe des abscisses.'
+        }, 'var_mixed_charts_widget_options_component.multiple_dataset_vo_field_ref.tooltip.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Maximum de graphiques superposés'
         }, 'var_mixed_charts_widget_options_component.max_dataset_values.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -433,17 +437,8 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_mixed_charts_widget_options_component.switch_detailed.simple.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Condition du survol'
-        }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.___LABEL___'));
-
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Par abscisse'
-        }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.index.___LABEL___'));
-
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Par valeur proche'
-        }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.nearest.___LABEL___'));
-
+            'fr-fr': 'Condition d\'affichage des valeurs des données au survol.'
+        }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.tooltip.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Pas de données, veuillez vérifier que les tables nécessaires sont présentes.'
@@ -490,28 +485,52 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_mixed_charts_widget_options_component.legend_display.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Position de la légende'
+            'fr-fr': 'Position'
         }, 'var_mixed_charts_widget_options_component.legend_position.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Couleur de la légende'
+            'fr-fr': 'Haut'
+        }, 'var_mixed_charts_widget_options_component.legend_position.top.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Gauche'
+        }, 'var_mixed_charts_widget_options_component.legend_position.left.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Bas'
+        }, 'var_mixed_charts_widget_options_component.legend_position.bottom.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Droite'
+        }, 'var_mixed_charts_widget_options_component.legend_position.right.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Couleur du texte'
         }, 'var_mixed_charts_widget_options_component.legend_font_color.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Taille de la légende'
+            'fr-fr': 'Taille'
         }, 'var_mixed_charts_widget_options_component.legend_font_size.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Epaisseur de la légende'
+            'fr-fr': 'Epaisseur'
         }, 'var_mixed_charts_widget_options_component.legend_box_width.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Marge de la légende'
+            'fr-fr': 'Marge'
         }, 'var_mixed_charts_widget_options_component.legend_padding.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Utiliser le style de point pour la légende'
-        }, 'var_mixed_charts_widget_options_component.legend_use_point_style.___LABEL___'));
+            'fr-fr': 'Style'
+        }, 'var_mixed_charts_widget_options_component.legend_style.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Rond'
+        }, 'var_mixed_charts_widget_options_component.legend_style.circle.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Rectangle'
+        }, 'var_mixed_charts_widget_options_component.legend_style.rectangle.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options des données'
@@ -530,7 +549,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_mixed_charts_widget_options_component.dimension_vo_field_ref.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Segmentation de la dimension date'
+            'fr-fr': 'Segmentation de la dimension'
         }, 'var_mixed_charts_widget_options_component.dimension_custom_filter_segment_type.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -554,10 +573,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_mixed_charts_widget_options_component.dimension_custom_filter_name.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Type de filtre de la dimension'
-        }, 'var_mixed_charts_widget_options_component.dimension_custom_filter_segment_type.___LABEL___'));
-
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
         }, 'var_mixed_charts_widget_options_component.has_dimension.___LABEL___'));
 
@@ -578,16 +593,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_mixed_charts_widget_options_component.scale_x_axis_color.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Afficher la légende des abscisses'
+            'fr-fr': 'Afficher la légende'
         }, 'var_mixed_charts_widget_options_component.show_scale_x.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Options de l\'axe des abscisses'
-        }, 'var_mixed_charts_widget_options_component.scale_options_x.___LABEL___'));
+            'fr-fr': 'Légende'
+        }, 'var_mixed_charts_widget_options_component.scale_x_title.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Légende de l\'axe des abscisses'
-        }, 'var_mixed_charts_widget_options_component.scale_x_title.___LABEL___'));
+            'fr-fr': 'Type de l\'axe'
+        }, 'var_mixed_charts_widget_options_component.scale_x_type.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Afficher la légende des ordonnées'
@@ -596,10 +611,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Couleur de l\'axe des ordonnées'
         }, 'var_mixed_charts_widget_options_component.scale_y_axis_color.___LABEL___'));
-
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Légende de l\'axe des abscisses'
-        }, 'var_mixed_charts_widget_options_component.scale_y_title.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options de l\'axe des ordonnées'
@@ -626,6 +637,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_chart_options_item_component.separator.var_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options visuelles'
+        }, 'var_chart_options_item_component.section.graphical_options.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options des données'
+        }, 'var_chart_options_item_component.section.filter_options.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Id du graphique'
         }, 'var_chart_options_item_component.chart_id.___LABEL___'));
 
@@ -639,7 +658,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Type de graphique'
-        }, 'var_chart_options_item_component.graphe_type.___LABEL___'));
+        }, 'var_chart_options_item_component.graph_type.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Ligne'
+        }, 'var_chart_options_item_component.graph_type.line.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Barre'
+        }, 'var_chart_options_item_component.graph_type.bar.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Degradé de couleur'
@@ -674,10 +701,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_chart.no_data_to_display.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Filtrer les valeurs'
-        }, 'var_chart_options_item_component.datas_filter_options.___LABEL___'));
-
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Supprimer la variable du graphique'
         }, 'var_charts_options_component.remove_var_chart_options_button.___LABEL___'));
 
@@ -694,11 +717,29 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_charts_scales_options_component.separator.var_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Ouvrir les sections'
+        }, 'var_charts_scales_options_component.tooltip.toggle_all_button.open.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Fermer les sections'
+        }, 'var_charts_scales_options_component.tooltip.toggle_all_button.close.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Tout ouvrir'
+        }, 'var_charts_scales_options_component.tooltip.toggle_all_and_children_button.open.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Tout fermer'
+        }, 'var_charts_scales_options_component.tooltip.toggle_all_and_children_button.close.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Ajouter une ordonnée'
         }, 'var_chart_scales_options_component.add_var_chart_scales_options_button.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Options graphiques'
+            'fr-fr': 'Options visuelles'
         }, 'var_chart_scales_options_item_component.separator.var_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -714,8 +755,20 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_chart_scales_options_item.stacked.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Permet, dans le cas d\'un graphique en bar de superposer les valeurs des différentes variables.'
+        }, 'var_chart_scales_options_item.stacked_tooltip.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Remplir ?'
         }, 'var_chart_scales_options_item.fill.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Permet, dans le cas d\'un graphique en ligne de remplir l\'espace entre la ligne et l\'axe des abscisses.'
+        }, 'var_chart_scales_options_item.fill_tooltip.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Permet de filtrer l\'affichage du pas de l\'axe des ordonnées.'
+        }, 'var_chart_scales_options_item.widget_filter_tooltip.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Type de l\'ordonnée'
@@ -734,8 +787,32 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_chart_scales_options_item_component.separator.scale_position.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Gauche'
+        }, 'var_chart_scales_options_item_component.separator.scale_position.left.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Droite'
+        }, 'var_chart_scales_options_item_component.separator.scale_position.right.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options de filtrage des valeurs'
         }, 'var_chart_scales_options_item_component.separator.datas_filter_options.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Linéaire'
+        }, 'chart_js_scale_type.linear.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Logarithmique'
+        }, 'chart_js_scale_type.logarithmic.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Catégorie'
+        }, 'chart_js_scale_type.category.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Temps'
+        }, 'chart_js_scale_type.time.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options de l\'unité de temps'
@@ -746,7 +823,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_chart_scales_options_component.remove_var_chart_scales_options_button.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Options de tri des dimensions'
+            'fr-fr': 'Options du pas de l\'axe des ordonnées'
         }, 'var_chart_scales_options_component.separator.datas_filter_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -2025,19 +2102,22 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Options du graphique'
         }, 'var_pie_chart_widget_options_component.separator.chart_options.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options du titre'
+        }, 'var_pie_chart_widget_options_component.section.chart_title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Titre du graphique'
         }, 'var_pie_chart_widget_options_component.separator.chart_title_options.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Afficher le titre'
         }, 'var_pie_chart_widget_options_component.title_display.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Couleur du titre'
+            'fr-fr': 'Couleur'
         }, 'var_pie_chart_widget_options_component.title_font_color.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Taille du titre'
+            'fr-fr': 'Taille'
         }, 'var_pie_chart_widget_options_component.title_font_size.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Padding du titre'
+            'fr-fr': 'Marge'
         }, 'var_pie_chart_widget_options_component.title_padding.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options de la légende'
@@ -2052,23 +2132,29 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Options des étiquettes'
         }, 'var_pie_chart_widget_options_component.separator.chart_label_options.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Position de la légende'
+            'fr-fr': 'Position'
         }, 'var_pie_chart_widget_options_component.legend_position.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Couleur de la légende'
+            'fr-fr': 'Couleur'
         }, 'var_pie_chart_widget_options_component.legend_font_color.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Taille du texte de la légende'
+            'fr-fr': 'Taille'
         }, 'var_pie_chart_widget_options_component.legend_font_size.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Largeur des blocs de la légende'
+            'fr-fr': 'Epaisseur'
         }, 'var_pie_chart_widget_options_component.legend_box_width.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Padding de la légende'
+            'fr-fr': 'Marge'
         }, 'var_pie_chart_widget_options_component.legend_padding.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Utiliser le style des points pour la légende à la place des blocs'
-        }, 'var_pie_chart_widget_options_component.legend_use_point_style.___LABEL___'));
+            'fr-fr': 'Style'
+        }, 'var_pie_chart_widget_options_component.legend_style.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Rond'
+        }, 'var_pie_chart_widget_options_component.legend_style.circle.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Rectangle'
+        }, 'var_pie_chart_widget_options_component.legend_style.rectangle.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options de rendu du graphique'
         }, 'var_pie_chart_widget_options_component.separator.chart_render_options.___LABEL___'));
@@ -2085,10 +2171,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Point de départ du graphique en degrés. Entre 0 et 360. Exemple pour une jauge : 270'
         }, 'var_pie_chart_widget_options_component.rotation.tooltip.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Circumference'
+            'fr-fr': 'Circonférence'
         }, 'var_pie_chart_widget_options_component.circumference.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Circumference du graphique. Entre 0 et 360. Exemple pour une jauge : 180'
+            'fr-fr': 'Circonférence du graphique. Entre 0 et 360. Exemple pour une jauge : 180'
         }, 'var_pie_chart_widget_options_component.circumference.tooltip.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options des données'
@@ -2109,7 +2195,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Champ de la dimension'
         }, 'var_pie_chart_widget_options_component.dimension_vo_field_ref.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Segmentation de la dimension date'
+            'fr-fr': 'Segmentation de la dimension'
         }, 'var_pie_chart_widget_options_component.dimension_custom_filter_segment_type.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Max. de valeurs pour la dimension choisie'
@@ -2142,7 +2228,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Couleur de fond'
         }, 'var_pie_chart_widget_options_component.bg_color_1.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Nom de la variable principale'
+            'fr-fr': 'Titre de la variable principale'
         }, 'var_pie_chart_widget_options_component.var_title_1.title_name_code_text.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Couleur de bordure'
@@ -2169,7 +2255,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Utiliser la somme des deux variables comme valeur max ?'
         }, 'var_pie_chart_widget_options_component.max_is_sum_of_var_1_and_2.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Utiliser ce filtre de date personnalisé pour la dimension'
+            'fr-fr': 'Nom du filtre de la dimension'
         }, 'var_pie_chart_widget_options_component.dimension_custom_filter_name.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser un dégradé de couleur ?'
@@ -3675,16 +3761,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'advanced_date_filter_widget_component.auto_select_relative_date_max.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
-            { 'fr-fr': "Superposer" },
-            'var_chart_scales_options_item.stacked.___LABEL___'
-        ));
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
-            { 'fr-fr': "Remplir la ligne" },
-            'var_chart_scales_options_item.fill.___LABEL___'
-        ));
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Utiliser une palette" },
             'var_charts_options_component.use_palette.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Choisissez une palette..." },
+            'var_charts_options_component.color_palette_selector_placeholder.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Masquer le filtre" },

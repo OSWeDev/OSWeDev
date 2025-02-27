@@ -56,24 +56,14 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     // Sections repliables pour l'UX (accordions)
     // --------------------------------------------------------------------------
     private sectionsOpen = {
-        filter: true,
-        widgetTitle: true,
-        chartBasic: true,
+        widgetTitle: false,
+        chartBasic: false,
         chartTitle: false,
         chartLegend: false,
         dataOptions: false,
-        multipleDataset: false,
         scaleXOptions: false,
         yAxisOptions: false
     };
-
-    /**
-     * Permet de replier/déplier une section
-     * @param section Nom de la section dans sectionsOpen
-     */
-    private toggleSection(section: keyof typeof this.sectionsOpen) {
-        this.sectionsOpen[section] = !this.sectionsOpen[section];
-    }
 
     // --------------------------------------------------------------------------
     // Données de travail
@@ -141,6 +131,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
 
     // --- Sélections temporaires (multiselect)
     private tmp_selected_legend_position: string = null;
+    private tmp_selected_custom_filter: string = null;
     private tmp_selected_dimension_custom_filter_segment_type: string = null;
 
     /**
@@ -167,6 +158,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         'bottom',
         'right'
     ];
+
 
     // --------------------------------------------------------------------------
     // Getters
@@ -261,7 +253,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             // Supprime le titre X si on vide scale_x_code_text
             if (this.widget_options.scale_x_title) {
                 this.widget_options.scale_x_title = null;
-                this.throttled_update_options();
+                await this.throttled_update_options();
             }
             return;
         }
@@ -270,7 +262,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             if (this.widget_options.scale_x_title !== this.scale_x_code_text) {
                 this.next_update_options = this.widget_options;
                 this.next_update_options.scale_x_title = this.scale_x_code_text;
-                this.throttled_update_options();
+                await this.throttled_update_options();
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -289,7 +281,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         if (!this.tmp_selected_dimension_custom_filter_segment_type) {
             if (this.widget_options.dimension_custom_filter_segment_type) {
                 this.widget_options.dimension_custom_filter_segment_type = null;
-                this.throttled_update_options();
+                await this.throttled_update_options();
             }
             return;
         }
@@ -301,7 +293,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             if (this.widget_options.dimension_custom_filter_segment_type !== newType) {
                 this.next_update_options = this.widget_options;
                 this.next_update_options.dimension_custom_filter_segment_type = newType;
-                this.throttled_update_options();
+                await this.throttled_update_options();
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -320,7 +312,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         if (!this.tmp_selected_legend_position) {
             if (this.widget_options.legend_position) {
                 this.widget_options.legend_position = null;
-                this.throttled_update_options();
+                await this.throttled_update_options();
             }
             return;
         }
@@ -329,7 +321,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             if (this.widget_options.legend_position !== this.tmp_selected_legend_position) {
                 this.next_update_options = this.widget_options;
                 this.next_update_options.legend_position = this.tmp_selected_legend_position;
-                this.throttled_update_options();
+                await this.throttled_update_options();
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -366,7 +358,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     }
 
     @Watch('max_dimension_values')
-    private watch_max_dimension_values() {
+    private async watch_max_dimension_values() {
         // Logique un peu différente (valeur > 0 si !dimension_is_vo_field_ref)
         if (!this.widget_options) {
             return;
@@ -374,7 +366,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         if (!this.max_dimension_values) {
             if (this.widget_options.max_dimension_values) {
                 this.widget_options.max_dimension_values = 10;
-                this.throttled_update_options();
+                await this.throttled_update_options();
             }
             return;
         }
@@ -399,7 +391,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
                         this.next_update_options.max_dimension_values = 10;
                     }
                 }
-                this.throttled_update_options();
+                await this.throttled_update_options();
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -407,7 +399,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     }
 
     @Watch('max_dataset_values')
-    private watch_max_dataset_values() {
+    private async watch_max_dataset_values() {
         // Logique similaire à max_dimension_values
         if (!this.widget_options) {
             return;
@@ -415,7 +407,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         if (!this.max_dataset_values) {
             if (this.widget_options.max_dataset_values) {
                 this.widget_options.max_dataset_values = 10;
-                this.throttled_update_options();
+                await this.throttled_update_options();
             }
             return;
         }
@@ -438,7 +430,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
                         this.next_update_options.max_dataset_values = 10;
                     }
                 }
-                this.throttled_update_options();
+                await this.throttled_update_options();
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -446,9 +438,33 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     }
 
     /**
+     * Sélection d'un custom_filter dimension
+     */
+    @Watch('tmp_selected_custom_filter')
+    private async watch_tmp_custom_filter_dimension(): Promise<void> {
+        if (!this.widget_options) {
+            return;
+        }
+        this.prepareNextOptions();
+
+        this.dimension_custom_filter_name = this.tmp_selected_custom_filter;
+        this.next_update_options.dimension_custom_filter_name = this.tmp_selected_custom_filter;
+
+        await this.throttled_update_options();
+    }
+
+    /**
+     * Permet de replier/déplier une section
+     * @param section Nom de la section dans sectionsOpen
+     */
+    private toggleSection(section: keyof typeof this.sectionsOpen) {
+        this.sectionsOpen[section] = !this.sectionsOpen[section];
+    }
+
+    /**
      * watchNumericProperty : factorise la logique d'un parseInt sur un champ local => widget_options
      */
-    private watchNumericProperty(localPropName: string, widgetOptionName: string, defaultValue: number, maxValue?: number) {
+    private async watchNumericProperty(localPropName: string, widgetOptionName: string, defaultValue: number, maxValue?: number) {
         if (!this.widget_options) {
             return;
         }
@@ -456,7 +472,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         if (!localValStr) {
             if ((this.widget_options as any)[widgetOptionName]) {
                 (this.widget_options as any)[widgetOptionName] = defaultValue;
-                this.throttled_update_options();
+                await this.throttled_update_options();
             }
             return;
         }
@@ -474,7 +490,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
                     (this.widget_options as any)[widgetOptionName] = parsed;
                 }
                 this.next_update_options = this.widget_options;
-                this.throttled_update_options();
+                await this.throttled_update_options();
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -488,63 +504,63 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     private async switch_show_scale_x() {
         this.prepareNextOptions();
         this.next_update_options.show_scale_x = !this.next_update_options.show_scale_x;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     private async switch_show_scale_y() {
         this.prepareNextOptions();
         this.next_update_options.show_scale_y = !this.next_update_options.show_scale_y;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     private async switch_legend_display() {
         this.prepareNextOptions();
         this.next_update_options.legend_display = !this.next_update_options.legend_display;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     private async switch_dimension_is_vo_field_ref() {
         this.prepareNextOptions();
         this.next_update_options.dimension_is_vo_field_ref = !this.next_update_options.dimension_is_vo_field_ref;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     private async switch_sort_dimension_by_asc() {
         this.prepareNextOptions();
         this.next_update_options.sort_dimension_by_asc = !this.next_update_options.sort_dimension_by_asc;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     private async switch_hide_filter() {
         this.prepareNextOptions();
         this.next_update_options.hide_filter = !this.next_update_options.hide_filter;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     private async switch_tooltip_by_index() {
         this.prepareNextOptions();
         this.tooltip_by_index = !this.tooltip_by_index;
         this.next_update_options.tooltip_by_index = this.tooltip_by_index;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     private async switch_detailed() {
         this.prepareNextOptions();
         this.detailed = !this.detailed;
         this.next_update_options.detailed = this.detailed;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     private async switch_title_display() {
         this.prepareNextOptions();
         this.next_update_options.title_display = !this.next_update_options.title_display;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     private async switch_legend_use_point_style() {
         this.prepareNextOptions();
         this.next_update_options.legend_use_point_style = !this.next_update_options.legend_use_point_style;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     // --------------------------------------------------------------------------
@@ -557,7 +573,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             return;
         }
         this.next_update_options.dimension_vo_field_ref = null;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     private async add_dimension_vo_field_ref(api_type_id: string, field_id: string) {
@@ -568,7 +584,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         vof.weight = 0;
 
         this.next_update_options.dimension_vo_field_ref = vof;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     private async remove_sort_dimension_by_vo_field_ref() {
@@ -577,7 +593,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             return;
         }
         this.next_update_options.sort_dimension_by_vo_field_ref = null;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     private async add_sort_dimension_by_vo_field_ref(api_type_id: string, field_id: string) {
@@ -588,7 +604,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         vof.weight = 0;
 
         this.next_update_options.sort_dimension_by_vo_field_ref = vof;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     private async remove_multiple_dataset_vo_field_ref() {
@@ -597,7 +613,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             return;
         }
         this.next_update_options.multiple_dataset_vo_field_ref = null;
-        await this.throttled_update_options();
+        await await this.throttled_update_options();
     }
 
     private async add_multiple_dataset_vo_field_ref(api_type_id: string, field_id: string) {
@@ -608,7 +624,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         vof.weight = 0;
 
         this.next_update_options.multiple_dataset_vo_field_ref = vof;
-        await this.throttled_update_options();
+        await await this.throttled_update_options();
     }
 
     // --------------------------------------------------------------------------
@@ -628,6 +644,15 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     }
 
     /**
+     * Permet de récupérer la traduction de la position de la légende
+     * @param position
+     * @returns
+     */
+    private get_legend_position_label(position: string) {
+        return this.label(`var_mixed_charts_widget_options_component.legend_position.${position}`);
+    }
+
+    /**
      * Renvoie un VarMixedChartWidgetOptionsVO par défaut
      */
     private get_default_options(): VarMixedChartWidgetOptionsVO {
@@ -637,33 +662,33 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     /**
      * Callback quand on modifie l'axe X (ChartJsScaleOptions)
      */
-    private handle_scale_options_x_change(options: Partial<Scale>) {
+    private async handle_scale_options_x_change(options: Partial<Scale>) {
         this.scale_options_x = options;
         this.prepareNextOptions();
 
         if (this.scale_options_x && this.scale_options_x.type !== '') {
             this.next_update_options.scale_options_x = options;
         }
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     /**
      * Callback quand on modifie l'axe Y
      */
-    private handle_scale_options_y_change(options: Partial<Scale>) {
+    private async handle_scale_options_y_change(options: Partial<Scale>) {
         this.scale_options_y = options;
         this.prepareNextOptions();
 
         if (this.scale_options_y && this.scale_options_y.type !== '') {
             this.next_update_options.scale_options_y = options;
         }
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     /**
      * Quand on modifie la liste des var_charts_options (ex: ajout/suppression de variables à afficher)
      */
-    private handle_var_charts_options_change(var_charts_options: VarChartOptionsVO[]) {
+    private async handle_var_charts_options_change(var_charts_options: VarChartOptionsVO[]) {
         if (!this.widget_options) {
             return;
         }
@@ -671,13 +696,13 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
 
         this.var_charts_options = var_charts_options;
         this.next_update_options.var_charts_options = this.var_charts_options;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     /**
      * Quand on modifie la liste des échelles
      */
-    private handle_var_chart_scales_options_change(var_chart_scales_options: VarChartScalesOptionsVO[]) {
+    private async handle_var_chart_scales_options_change(var_chart_scales_options: VarChartScalesOptionsVO[]) {
         if (!this.widget_options) {
             return;
         }
@@ -685,19 +710,19 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
 
         this.var_chart_scales_options = var_chart_scales_options;
         this.next_update_options.var_chart_scales_options = this.var_chart_scales_options;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     /**
      * ex: update_filter_type si on veut modifier un type de filtre global
      */
-    private update_filter_type(filter_type: string): void {
+    private async update_filter_type(filter_type: string): Promise<void> {
         if (!this.widget_options) {
             return;
         }
         this.prepareNextOptions();
         this.next_update_options.filter_type = filter_type;
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     /**
@@ -713,23 +738,9 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         this.next_update_options.title_font_color = this.title_font_color;
         this.next_update_options.bg_color = this.bg_color;
 
-        await this.throttled_update_options();
+        await await this.throttled_update_options();
     }
 
-    /**
-     * Sélection d'un custom_filter dimension
-     */
-    private change_custom_filter_dimension(custom_filter: string): void {
-        if (!this.widget_options) {
-            return;
-        }
-        this.prepareNextOptions();
-
-        this.dimension_custom_filter_name = custom_filter;
-        this.next_update_options.dimension_custom_filter_name = custom_filter;
-
-        this.throttled_update_options();
-    }
 
     /**
      * Convertit la valeur sélectionnée (string) en TimeSegment.TYPE_*
@@ -895,6 +906,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         }
         if (this.dimension_custom_filter_name !== this.widget_options.dimension_custom_filter_name) {
             this.dimension_custom_filter_name = this.widget_options.dimension_custom_filter_name;
+            this.tmp_selected_custom_filter = this.dimension_custom_filter_name;
         }
 
         // Légende : position

@@ -1,10 +1,18 @@
 @import 'skin-variables.scss';
 
 .var_mixed_charts_widget_options_component {
-    background-color: $input_editable_bg_color; 
-    border: $table_border; 
+    background-color: $input_editable_bg_color;
+    border: $table_border;
     border-radius: 8px;
     padding: 1rem;
+
+    .container {
+        display: inline-flex;
+
+        .input_label {
+            margin-left: 1rem;
+        }
+    }
 
     // ======================================================
     // Les blocs section
@@ -19,7 +27,7 @@
             cursor: pointer;
             padding: 0.75rem 1rem;
             background-color: $button_primary_bg_color; // Couleur brand
-            color: $button_text_color;                  // Texte en blanc ou autre
+            color: $button_text_color; // Texte en blanc ou autre
             border-radius: 6px 6px 0 0;
             display: flex;
             align-items: center;
@@ -29,8 +37,13 @@
                 margin: 0;
                 font-size: 1rem;
             }
+
             i.icon {
                 margin-left: 0.5rem;
+
+                &:hover {
+                    transform: scale(1.1);
+                }
             }
         }
 
@@ -38,6 +51,12 @@
             padding: 1rem;
             background-color: $input_editable_bg_color;
             border-radius: 0 0 6px 6px;
+
+            .bg_color_picker {
+                border-color: #002454;
+                border-width: thin;
+                border: solid;
+            }
         }
     }
 
@@ -64,7 +83,7 @@
         font-weight: 600;
     }
 
-    > div {
+    >div {
         margin-bottom: 0.5em;
 
         .input_label {

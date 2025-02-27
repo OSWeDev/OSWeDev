@@ -1,71 +1,73 @@
 @import 'skin-variables.scss';
 
 .var_charts_scales_options_component {
-    background-color: $input_editable_bg_color;
-    padding: 1rem;
-    border: $table_border;
-    border-radius: 4px;
-    margin-bottom: 1rem;
+    .open-icon {
+        position: relative;
+        left: 50%;
+        font-size: xx-large;
+        color: $success_color;
+        cursor: pointer;
+        transition: transform 0.2s ease;
 
-    .options_separator_lvl2 {
-        margin-top: 0.5rem;
-        margin-bottom: 1rem;
-        background-color: $button_primary_bg_color;
-        color: $button_text_color;
-        text-align: center;
-        border-radius: 12px;
-        padding: 0.5rem 1rem;
-        font-weight: bold;
-        font-size: 1rem;
+        &:hover {
+            transform: scale(1.1);
+        }
     }
 
-    .var_charts_scales_options_selector {
-        .add_var_chart_scales_options_button_wrapper {
-            margin-bottom: 1rem;
-
-            .add_var_chart_scales_options_button {
-                font-size: 1rem;
-                font-weight: 600;
-                background-color: $success_color;  // ou $button_primary_bg_color
-                border-color: $success_color;
-                color: $button_text_color;
-
-                &:hover {
-                    background-color: $button_primary_active_bg_color; // ex: un "hover" plus clair
-                }
-            }
-        }
-
-        .input_wrapper {
+    .scale_section {
+        .section {
+            border: $table_border;
+            border-radius: 6px;
             margin-bottom: 1.5rem;
+            background-color: $input_editable_bg_color;
 
-            .closer {
-                display: block;
-                margin: 0.5rem auto;
-                width: fit-content; 
-                height: 40px;
-                text-align: center;
-                background-color: $light_warning; 
-                border: none;
-                box-shadow: inset 0px -2px 0px rgba(0, 0, 0, 0.45);
+            .section-header {
+                cursor: pointer;
+                padding: 0.75rem 1rem;
+                background-color: $button_primary_bg_color;
                 color: $button_text_color;
-                font-weight: 600;
+                border-radius: 6px 6px 0 0;
+                display: flex;
+                align-items: center;
+                position: relative;
 
-                &:hover {
-                    background-color: $button_primary_active_bg_color;
+                i.icon {
+                    margin-left: 2rem;
+
+                    &:hover {
+                        transform: scale(1.1);
+                    }
+                }
+
+                .scale-title {
+                    flex-grow: 1;
+                    font-size: 1rem;
+                }
+
+                .edit-icon,
+                .delete-icon {
+                    margin-left: 0.75rem;
+                    font-size: 1.1rem;
+                    cursor: pointer;
+
+                    &:hover {
+                        transform: scale(1.1);
+                    }
+                }
+
+                .delete-icon {
+                    color: $danger_color;
+
+                    &:hover {
+                        transform: scale(1.1);
+                    }
                 }
             }
 
-            .remove_var_chart_scales_options_button {
-                margin-top: 0.75rem;
-                font-weight: 600;
-                background-color: $danger_color;
-                color: $button_text_color;
-                border: none;
-
-                &:hover {
-                    background-color: rgba($danger_color, 0.8); 
-                }
+            .section-content {
+                padding: 1rem;
+                background-color: $input_editable_bg_color;
+                border-radius: 0 0 6px 6px;
             }
         }
     }
