@@ -369,7 +369,7 @@ export default abstract class ServerBase {
             cookie: {
                 maxAge: 30 * 24 * 60 * 60 * 1000, // 30 jours
                 httpOnly: true,  // empêche l'accès au cookie depuis le JS
-                secure: true,    // n'envoie le cookie qu'en HTTPS
+                secure: !ConfigurationService.node_configuration.isdev,    // n'envoie le cookie qu'en HTTPS
                 sameSite: 'lax', // bloque largement les requêtes cross-site
             },
         });
@@ -1157,8 +1157,8 @@ export default abstract class ServerBase {
          * On tente de récupérer un ID unique de session en request, et si on en trouve, on essaie de charger la session correspondante
          * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
          */
-        const sessionid = req.query.sessionid;
-        if (!sessionid) {
+        const sid = req.query.sessionid;
+        if (!sid) {
             next();
             return;
         }
