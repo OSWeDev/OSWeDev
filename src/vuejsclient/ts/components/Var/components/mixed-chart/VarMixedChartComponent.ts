@@ -237,8 +237,6 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
                 if (this.getlabel && this.getlabel(var_param)) {
                     res.push(this.getlabel(var_param));
-                } else {
-                    res.push(this.t(VarsController.get_translatable_name_code_by_var_id(var_param.var_id)));
                 }
             }
 

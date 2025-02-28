@@ -142,8 +142,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     display: this.get_bool_option('label_display', true) ?
                         function (ctx) {
                             let count = 0;
-                            let value = ctx.dataset.data[ctx.dataIndex];
-                            for (let data in ctx.dataset.data) {
+                            const value = ctx.dataset.data[ctx.dataIndex];
+                            for (const data in ctx.dataset.data) {
                                 count += ctx.dataset.data[data];
                             }
                             if (((value / count) * 100) < 3) {
@@ -186,7 +186,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     onLeave: function (evt, item, legend) {
                         if (item.fillStyle.includes('rgba')) {
                             legend.chart.data.datasets[0].backgroundColor.forEach((color_value, index, colors) => {
-                                let opacity = (1 - (1 / colors.length) * index);
+                                const opacity = (1 - (1 / colors.length) * index);
                                 colors[index] = index === item.index ? color_value.replace(/[^,]+(?=\))/, opacity) : color_value.replace(/[^,]+(?=\))/, opacity);
                             });
                         } else {
@@ -492,7 +492,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
     }
 
     private getLabelsForTooltip(context) {
-        let value = context.raw;
+        const value = context.raw;
         if (this.var_filter) {
             return context.chart.data.labels[context.dataIndex] + ' :\n' + this.var_filter([value].concat(this.var_filter_additional_params));
         } else {

@@ -234,6 +234,15 @@
                                 :page_widget_id='page_widget ? page_widget.id : null'
                             )
 
+                    .field_ref
+                        .input_label {{ label('var_mixed_charts_widget_options_component.sort_dimension_by_vo_field_ref') }}
+                        .input_wrapper
+                            Singlevofieldrefholdercomponent(
+                                :vo_field_ref="sort_dimension_by_vo_field_ref" 
+                                @remove_field_ref="remove_sort_dimension_by_vo_field_ref" 
+                                @add_field_ref="add_sort_dimension_by_vo_field_ref"
+                                :page_widget_id='page_widget ? page_widget.id : null'
+                            )
                 template(v-else)
                     .dimension_custom_filter_name
                         .input_label {{ label('var_mixed_charts_widget_options_component.dimension_custom_filter_name') }}
@@ -290,17 +299,6 @@
                             v-model="max_dimension_values"
                             v-tooltip="label('var_mixed_charts_widget_options_component.max_dimension_values.tooltip')"
                         )
-
-                template(v-if='dimension_is_vo_field_ref')
-                    .field_ref
-                        .input_label {{ label('var_mixed_charts_widget_options_component.sort_dimension_by_vo_field_ref') }}
-                        .input_wrapper
-                            Singlevofieldrefholdercomponent(
-                                :vo_field_ref="sort_dimension_by_vo_field_ref" 
-                                @remove_field_ref="remove_sort_dimension_by_vo_field_ref" 
-                                @add_field_ref="add_sort_dimension_by_vo_field_ref"
-                                :page_widget_id='page_widget ? page_widget.id : null'
-                            )
 
                 .field_sort_dimension_by_asc
                     .container

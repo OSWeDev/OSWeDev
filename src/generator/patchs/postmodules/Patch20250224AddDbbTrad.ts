@@ -41,11 +41,6 @@ export default class Patch20250224AddDbbTrad implements IGeneratorWorker {
         );
 
         await this.update_trad(
-            'var_mixed_charts_widget_options_component.scale_x_type.___LABEL___',
-            'Type de l\'axe des abscisses'
-        );
-
-        await this.update_trad(
             'var_mixed_charts_widget_options_component.multiple_dataset_vo_field_ref.tooltip.___LABEL___',
             'Le multidataset permet de superposer plusieurs graphiques sur un même axe des abscisses.'
         );
@@ -105,192 +100,210 @@ export default class Patch20250224AddDbbTrad implements IGeneratorWorker {
             'Ordonnée du graphique'
         );
 
+        await this.update_trad(
+            'var_choropleth_chart_widget_options_component.max_dimension_values.___LABEL___',
+            'Segmentation de la dimension'
+        );
 
-        //  DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //     'fr-fr': 'Segmentation de la dimension'
-        //  }, 'var_choropleth_chart_widget_options_component.max_dimension_values.___LABEL___'))
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.section.legend_options.___LABEL___',
+            'Options de la légende'
+        );
 
-        // DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Options de la légende'
-        //         }, 'var_mixed_charts_widget_options_component.section.legend_options.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.section.data_options.___LABEL___',
+            'Options des données'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Options des données'
-        //         }, 'var_mixed_charts_widget_options_component.section.data_options.___LABEL___'));
-        // DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Segmentation de la dimension'
-        //         }, 'var_radar_chart_widget_options_component.dimension_custom_filter_segment_type.___LABEL___'));
+        await this.update_trad(
+            'var_radar_chart_widget_options_component.dimension_custom_filter_segment_type.___LABEL___',
+            'Segmentation de la dimension'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Le multidataset permet de superposer plusieurs graphiques sur un même axe des abscisses.'
-        //         }, 'var_mixed_charts_widget_options_component.multiple_dataset_vo_field_ref.tooltip.___LABEL___'));
-        // DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Condition d\'affichage des valeurs des données au survol.'
-        //         }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.tooltip.___LABEL___'));
-        // DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Haut'
-        //         }, 'var_mixed_charts_widget_options_component.legend_position.top.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.switch_tooltip_by_index.tooltip.___LABEL___',
+            'Condition d\'affichage des valeurs des données au survol.'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Gauche'
-        //         }, 'var_mixed_charts_widget_options_component.legend_position.left.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.legend_position.top.___LABEL___',
+            'Haut'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Bas'
-        //         }, 'var_mixed_charts_widget_options_component.legend_position.bottom.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.legend_position.left.___LABEL___',
+            'Gauche'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Droite'
-        //         }, 'var_mixed_charts_widget_options_component.legend_position.right.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.legend_position.bottom.___LABEL___',
+            'Bas'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Couleur du texte'
-        //         }, 'var_mixed_charts_widget_options_component.legend_font_color.___LABEL___'));
-        // DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Taille'
-        //         }, 'var_mixed_charts_widget_options_component.legend_font_size.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.legend_position.right.___LABEL___',
+            'Droite'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Epaisseur'
-        //         }, 'var_mixed_charts_widget_options_component.legend_box_width.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.legend_font_color.___LABEL___',
+            'Couleur du texte'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Marge'
-        //         }, 'var_mixed_charts_widget_options_component.legend_padding.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.legend_font_size.___LABEL___',
+            'Taille'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Style'
-        //         }, 'var_mixed_charts_widget_options_component.legend_style.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.legend_box_width.___LABEL___',
+            'Epaisseur'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Rond'
-        //         }, 'var_mixed_charts_widget_options_component.legend_style.circle.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.legend_padding.___LABEL___',
+            'Marge'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Rectangle'
-        //         }, 'var_mixed_charts_widget_options_component.legend_style.rectangle.___LABEL___'));
-        //  DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Segmentation de la dimension'
-        //         }, 'var_mixed_charts_widget_options_component.dimension_custom_filter_segment_type.___LABEL___'));
-        // DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Afficher la légende'
-        //         }, 'var_mixed_charts_widget_options_component.show_scale_x.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.legend_style.___LABEL___',
+            'Style'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Légende'
-        //         }, 'var_mixed_charts_widget_options_component.scale_x_title.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.legend_style.circle.___LABEL___',
+            'Rond'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Type de l\'axe'
-        //         }, 'var_mixed_charts_widget_options_component.scale_x_type.___LABEL___'));
-        //  DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Options visuelles'
-        //         }, 'var_chart_options_item_component.section.graphical_options.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.legend_style.rectangle.___LABEL___',
+            'Rectangle'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Options des données'
-        //         }, 'var_chart_options_item_component.section.filter_options.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.dimension_custom_filter_segment_type.___LABEL___',
+            'Segmentation de la dimension'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Ligne'
-        //         }, 'var_chart_options_item_component.graph_type.line.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.show_scale_x.___LABEL___',
+            'Afficher la légende'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Barre'
-        //         }, 'var_chart_options_item_component.graph_type.bar.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.scale_x_title.___LABEL___',
+            'Légende'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Ouvrir les sections'
-        //         }, 'var_charts_scales_options_component.tooltip.toggle_all_button.open.___LABEL___'));
+        await this.update_trad(
+            'var_mixed_charts_widget_options_component.scale_x_type.___LABEL___',
+            'Type de l\'axe'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Fermer les sections'
-        //         }, 'var_charts_scales_options_component.tooltip.toggle_all_button.close.___LABEL___'));
+        await this.update_trad(
+            'var_chart_options_item_component.section.filter_options.___LABEL___',
+            'Options des données'
+        );
 
+        await this.update_trad(
+            'var_chart_options_item_component.graph_type.line.___LABEL___',
+            'Ligne'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Tout ouvrir'
-        //         }, 'var_charts_scales_options_component.tooltip.toggle_all_and_children_button.open.___LABEL___'));
+        await this.update_trad(
+            'var_chart_options_item_component.graph_type.bar.___LABEL___',
+            'Barre'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Tout fermer'
-        //         }, 'var_charts_scales_options_component.tooltip.toggle_all_and_children_button.close.___LABEL___'));
-        //  DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Options visuelles'
-        //         }, 'var_chart_scales_options_item_component.separator.var_options.___LABEL___'));
-        //    DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Permet, dans le cas d\'un graphique en bar de superposer les valeurs des différentes variables.'
-        //         }, 'var_chart_scales_options_item.stacked_tooltip.___LABEL___'));
-        //  DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Permet, dans le cas d\'un graphique en ligne de remplir l\'espace entre la ligne et l\'axe des abscisses.'
-        //         }, 'var_chart_scales_options_item.fill_tooltip.___LABEL___'));
+        await this.update_trad(
+            'var_charts_scales_options_component.tooltip.toggle_all_button.open.___LABEL___',
+            'Ouvrir les sections'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Permet de filtrer l\'affichage du pas de l\'axe des ordonnées.'
-        //         }, 'var_chart_scales_options_item.widget_filter_tooltip.___LABEL___'));
+        await this.update_trad(
+            'var_charts_scales_options_component.tooltip.toggle_all_button.close.___LABEL___',
+            'Fermer les sections'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Gauche'
-        //         }, 'var_chart_scales_options_item_component.separator.scale_position.left.___LABEL___'));
+        await this.update_trad(
+            'var_charts_scales_options_component.tooltip.toggle_all_and_children_button.open.___LABEL___',
+            'Tout ouvrir'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Droite'
-        //         }, 'var_chart_scales_options_item_component.separator.scale_position.right.___LABEL___'));
-        //  DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Linéaire'
-        //         }, 'chart_js_scale_type.linear.___LABEL___'));
+        await this.update_trad(
+            'var_charts_scales_options_component.tooltip.toggle_all_and_children_button.close.___LABEL___',
+            'Tout fermer'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Logarithmique'
-        //         }, 'chart_js_scale_type.logarithmic.___LABEL___'));
+        await this.update_trad(
+            'var_chart_scales_options_item_component.separator.scale_position.left.___LABEL___',
+            'Gauche'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Catégorie'
-        //         }, 'chart_js_scale_type.category.___LABEL___'));
+        await this.update_trad(
+            'var_chart_scales_options_item_component.separator.scale_position.right.___LABEL___',
+            'Droite'
+        );
 
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Temps'
-        //         }, 'chart_js_scale_type.time.___LABEL___'));
-        // DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Options du pas de l\'axe des ordonnées'
-        //         }, 'var_chart_scales_options_component.separator.datas_filter_options.___LABEL___'));
+        await this.update_trad(
+            'var_pie_chart_widget_options_component.legend_position.___LABEL___',
+            'Position'
+        );
 
-        //     DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //                 'fr-fr': 'Position'
-        //             }, 'var_pie_chart_widget_options_component.legend_position.___LABEL___'));
-        //             DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //                 'fr-fr': 'Couleur'
-        //             }, 'var_pie_chart_widget_options_component.legend_font_color.___LABEL___'));
-        //             DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //                 'fr-fr': 'Taille'
-        //             }, 'var_pie_chart_widget_options_component.legend_font_size.___LABEL___'));
-        //             DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //                 'fr-fr': 'Epaisseur'
-        //             }, 'var_pie_chart_widget_options_component.legend_box_width.___LABEL___'));
-        //             DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //                 'fr-fr': 'Marge'
-        //             }, 'var_pie_chart_widget_options_component.legend_padding.___LABEL___'));
-        //             DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //                 'fr-fr': 'Style'
-        //             }, 'var_pie_chart_widget_options_component.legend_style.___LABEL___'));
-        //             DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //                 'fr-fr': 'Rond'
-        //             }, 'var_pie_chart_widget_options_component.legend_style.circle.___LABEL___'));
-        //             DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //                 'fr-fr': 'Rectangle'
-        //             }, 'var_pie_chart_widget_options_component.legend_style.rectangle.___LABEL___'));
-        // DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Circonférence'
-        //         }, 'var_pie_chart_widget_options_component.circumference.___LABEL___'));
-        //         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //             'fr-fr': 'Circonférence du graphique. Entre 0 et 360. Exemple pour une jauge : 180'
-        //         }, 'var_pie_chart_widget_options_component.circumference.tooltip.___LABEL___'));
-        //          DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //                     'fr-fr': 'Segmentation de la dimension'
-        //                 }, 'var_pie_chart_widget_options_component.dimension_custom_filter_segment_type.___LABEL___'));
-        //                 DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-        //                            'fr-fr': 'Nom du filtre de la dimension'
-        //                        }, 'var_pie_chart_widget_options_component.dimension_custom_filter_name.___LABEL___'));
+        await this.update_trad(
+            'var_pie_chart_widget_options_component.legend_font_color.___LABEL___',
+            'Couleur'
+        );
+
+        await this.update_trad(
+            'var_pie_chart_widget_options_component.legend_font_size.___LABEL___',
+            'Taille'
+        );
+
+        await this.update_trad(
+            'var_pie_chart_widget_options_component.legend_box_width.___LABEL___',
+            'Epaisseur'
+        );
+
+        await this.update_trad(
+            'var_pie_chart_widget_options_component.legend_padding.___LABEL___',
+            'Marge'
+        );
+
+        await this.update_trad(
+            'var_pie_chart_widget_options_component.legend_style.___LABEL___',
+            'Style'
+        );
+
+        await this.update_trad(
+            'var_pie_chart_widget_options_component.legend_style.circle.___LABEL___',
+            'Rond'
+        );
+
+        await this.update_trad(
+            'var_pie_chart_widget_options_component.legend_style.rectangle.___LABEL___',
+            'Rectangle'
+        );
+
+        await this.update_trad(
+            'var_pie_chart_widget_options_component.circumference.___LABEL___',
+            'Circonférence'
+        );
+
+        await this.update_trad(
+            'var_pie_chart_widget_options_component.circumference.tooltip.___LABEL___',
+            'Circonférence du graphique. Entre 0 et 360. Exemple pour une jauge : 180'
+        );
+
+        await this.update_trad(
+            'var_pie_chart_widget_options_component.dimension_custom_filter_segment_type.___LABEL___',
+            'Segmentation de la dimension'
+        );
+
+        await this.update_trad(
+            'var_pie_chart_widget_options_component.dimension_custom_filter_name.___LABEL___',
+            'Nom du filtre de la dimension'
+        );
 
     }
 
