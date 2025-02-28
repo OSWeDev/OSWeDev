@@ -5,6 +5,12 @@ import StatsClientController from './StatsClientController';
 
 export default class StatsVueModule extends VueModuleBase {
 
+    private static instance: StatsVueModule = null;
+    private constructor() {
+
+        super(ModuleStats.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): StatsVueModule {
         if (!StatsVueModule.instance) {
@@ -12,13 +18,6 @@ export default class StatsVueModule extends VueModuleBase {
         }
 
         return StatsVueModule.instance;
-    }
-
-    private static instance: StatsVueModule = null;
-
-    private constructor() {
-
-        super(ModuleStats.getInstance().name);
     }
 
     public initialize() {

@@ -1,0 +1,10 @@
+.selection-panel
+    h3 Lien
+    label
+        input(
+            type="checkbox"
+            :checked="!discarded_field_paths[selectedLink.table]?.[selectedLink.field]"
+            @change="onSwitchDiscard(selectedLink.table, selectedLink.field, $event.target.checked)"
+        )
+        | {{ selectedLink.table }}.{{ selectedLink.field }} => {{ selectedLink.target_table }}
+

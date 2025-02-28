@@ -144,7 +144,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 if (apiDefinition.access_policy_name) {
                     if (!AccessPolicyServerController.checkAccessSync(apiDefinition.access_policy_name)) {
                         const session: IServerUserSession = (req as any).session;
-                        ConsoleHandler.error('Access denied to API:' + apiDefinition.api_name + ':' + ' sessionID:' + (req as any).sessionID + ": UID:" + (session ? session.uid : "null") + ":");
+                        ConsoleHandler.error('Access denied to API:' + apiDefinition.api_name + ':' + ' SID:' + (req as any).sessionID + ": UID:" + (session ? session.uid : "null") + ":");
                         res.requests_results[wrapped_request.index] = null;
                         return null;
                     }

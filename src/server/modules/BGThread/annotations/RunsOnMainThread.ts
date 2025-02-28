@@ -8,12 +8,18 @@ export default class RunsOnMainThreadDataController {
     public static exec_self_on_main_process_and_return_value_method: (thrower: any, task_uid: string, resolver: any, ...task_params: any[]) => Promise<boolean> = null;
 }
 
+type AsyncMethod = (...args: any[]) => Promise<any>;
 /**
+ * ATTENTION : la méthode décorée est obligatoirement async !
  * Decorator indicating and handling that the method should be executed on the main thread
  * Optimized : if the method is called from the main thread, it will be executed directly and the annotation will be removed so that the method is executed directly next time
+ * @param instanceGetter Getter for the instance of the class on which the method is called, null by default for static methods
  */
-export function RunsOnMainThread(instanceGetter: () => any) {
-    return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+export function RunsOnMainThread(instanceGetter: () => any = null) {
+    return function <T extends AsyncMethod>(
+        target: any,
+        propertyKey: string,
+        descriptor: PropertyDescriptor): TypedPropertyDescriptor<T> {
 
         if (ModulesManager.isGenerator) {
             // Sur le générateur on n'a qu'un seul thread dans tous les cas
@@ -21,6 +27,13 @@ export function RunsOnMainThread(instanceGetter: () => any) {
         }
 
         const originalMethod = descriptor.value;
+
+        // Vérification runtime : si la fonction n’est pas async, on bloque => valide uniquement côté serveur
+        if (ModulesManager.isServerSide && originalMethod.constructor.name !== 'AsyncFunction') {
+            throw new Error(
+                `La méthode "${propertyKey}" doit impérativement être déclarée "async".`
+            );
+        }
 
         //TODO register the method as a task on the main thread, with a UID based on the method name and the class name
         const task_UID = target.constructor.name + '.' + propertyKey;
@@ -38,7 +51,7 @@ export function RunsOnMainThread(instanceGetter: () => any) {
                 } : originalMethod.bind(target));
         }
 
-        descriptor.value = async function (...args: any[]) {
+        descriptor.value = async function (...args: any[]) { // Attention si on déclare la fonction avec la flèche on perd le this
             if (!isMainThread) {
 
                 // Not on main process: execute the method on the main process
@@ -63,7 +76,8 @@ export function RunsOnMainThread(instanceGetter: () => any) {
                     writable: true
                 });
                 // Call the original method
-                return originalMethod.apply(this, args);
+                const res = await originalMethod.apply(this, args);
+                return res;
             }
         };
 

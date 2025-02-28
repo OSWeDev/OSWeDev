@@ -1,5 +1,41 @@
 .ModuleTablesComponent
-    // Conteneur principal pour le diagramme JointJS
-    .uml-table-viewer
-        // Élément HTML qui accueillera le "paper" JointJS
-        div#joint-container(ref="jointContainer")
+    CanvasDiagram(
+        :fields_by_table_name_and_field_name="fields_by_table_name_and_field_name"
+        :tables_by_table_name="tables_by_table_name"
+        :discarded_field_paths="discarded_field_paths"
+        :all_tables_by_table_name="all_tables_by_table_name"
+        :selectedTable.sync="selectedTable"
+        :selectedLink.sync="selectedLink"
+        @select_table="select_table"
+        @select_link="select_link"
+    )
+
+    SelectionPanel(
+        v-if="selectedTable"
+        :tables_by_table_name="tables_by_table_name"
+        :selectedTable="selectedTable"
+        :fields_by_table_name_and_field_name="fields_by_table_name_and_field_name"
+        :discarded_field_paths="discarded_field_paths"
+        @removeTable="onRemoveSelectedTable"
+        @switchDiscard="onSwitchDiscard"
+    )
+
+    LinkPanel(
+        v-if="selectedLink"
+        :selectedLink="selectedLink"
+        :discarded_field_paths="discarded_field_paths"
+        @switchDiscard="onSwitchDiscard"
+    )
+
+    AddPanel(
+        v-if="showAddPanel"
+        :all_tables_by_table_name="all_tables_by_table_name"
+        :tables_by_table_name="tables_by_table_name"
+        @addTable="onAddTable"
+    )
+
+    button(
+        v-if="showPlusButton"
+        @click="showAddPanel=!showAddPanel"
+        style="position:absolute; top:10px; right:10px;"
+    ) +

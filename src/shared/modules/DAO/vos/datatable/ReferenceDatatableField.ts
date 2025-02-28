@@ -26,6 +26,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
             (!this.sortEnum) &&
             (!this.sieve) &&
             (!this.sieveCondition) &&
+            (!((this._type == "mto_dtf") && this['filterOptionsForUpdateOrCreateOnManyToOne'])) &&
             (!this.sieveEnum);
     }
 

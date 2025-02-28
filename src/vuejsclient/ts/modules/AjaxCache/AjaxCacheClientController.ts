@@ -50,7 +50,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
     // public api_logs: LightWeightSendableRequestVO[] = [];
 
-    public csrf_token: string = null;
+    // public csrf_token: string = null;
 
     private cache: RequestsCacheVO = new RequestsCacheVO();
     private invalidationRules: CacheInvalidationRulesVO = new CacheInvalidationRulesVO();
@@ -85,20 +85,20 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         return AjaxCacheClientController.instance;
     }
 
-    public async getCSRFToken() {
-        StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'IN');
-        const time_in = Dates.now_ms();
+    // public async getCSRFToken() {
+    //     StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'IN');
+    //     const time_in = Dates.now_ms();
 
-        const res = await this.get(null, '/api/getcsrftoken', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED);
-        if (!res) {
-            StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'FAILED');
-            StatsController.register_stat_DUREE('AjaxCacheClientController', 'getCSRFToken', 'FAILED', Dates.now_ms() - time_in);
-            return;
-        }
-        this.csrf_token = res['csrfToken'];
-        StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'OK');
-        StatsController.register_stat_DUREE('AjaxCacheClientController', 'getCSRFToken', 'OK', Dates.now_ms() - time_in);
-    }
+    //     const res = await this.get(null, '/api/getcsrftoken', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED);
+    //     if (!res) {
+    //         StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'FAILED');
+    //         StatsController.register_stat_DUREE('AjaxCacheClientController', 'getCSRFToken', 'FAILED', Dates.now_ms() - time_in);
+    //         return;
+    //     }
+    //     this.csrf_token = res['csrfToken'];
+    //     StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'OK');
+    //     StatsController.register_stat_DUREE('AjaxCacheClientController', 'getCSRFToken', 'OK', Dates.now_ms() - time_in);
+    // }
 
     /**
      *
@@ -292,10 +292,14 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             } else {
                 options.timeout = 120000;
             }
-            if (self.csrf_token) {
-                options.headers['X-CSRF-Token'] = self.csrf_token;
+
+            if (AjaxCacheClientController.getInstance().client_tab_id) {
                 options.headers['client_tab_id'] = AjaxCacheClientController.getInstance().client_tab_id;
             }
+            // if (self.csrf_token) {
+            //     options.headers['X-CSRF-Token'] = self.csrf_token;
+            //     options.headers['client_tab_id'] = AjaxCacheClientController.getInstance().client_tab_id;
+            // }
             if (EnvHandler.version) {
                 options.headers['version'] = EnvHandler.version;
             }

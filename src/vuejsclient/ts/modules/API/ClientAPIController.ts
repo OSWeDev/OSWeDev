@@ -196,8 +196,10 @@ export default class ClientAPIController implements IAPIController {
         // api_res = APIControllerWrapper.try_translate_vo_from_api(api_res);
         api_res = ObjectHandler.reapply_prototypes(api_res);
 
-        // Si on a une api de type result notif, on vient de récupérer un ID normalement, qu'on stocke en attendant la notif
-        if (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF) {
+        // On peut recevoir une indication de réponse au format notif à venir, au lieu d'un résultat direct, pour tous les types de demande maintenant,
+        // donc on checke le type de retour reçu et si c'est une indication de APINotifTypeResultVO, on attend la notif
+        if (api_res && (api_res._type == APINotifTypeResultVO.API_TYPE_ID)) {
+
             // 2 options, soit le serveur répond en notif et renvoie dans un premier temps le call_id, soit il répond directement avec le résultat
             const api_res_typed: APINotifTypeResultVO = api_res as APINotifTypeResultVO;
 

@@ -56,7 +56,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
                 data: formData,
                 contentType: false,
                 processData: false,
-                headers: { 'X-CSRF-Token': AjaxCacheClientController.getInstance().csrf_token }
+                // headers: { 'X-CSRF-Token': AjaxCacheClientController.getInstance().csrf_token }
             });
             this.snotify.success("Génération des données terminée !");
             return true;

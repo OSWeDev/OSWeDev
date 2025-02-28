@@ -1153,7 +1153,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         const uid = StackContext.get('UID');
         const client_tab_id = StackContext.get('CLIENT_TAB_ID');
-        VarsTabsSubsController.unregister_sub(uid, client_tab_id, params.map((param) => param.check_param_is_valid(param._type) ? param.index : null));
+        await VarsTabsSubsController.unregister_sub(uid, client_tab_id, params.map((param) => param.check_param_is_valid(param._type) ? param.index : null));
 
         if (ConfigurationService.node_configuration.debug_vars) {
             for (const i in params) {

@@ -1,7 +1,7 @@
 import child_process from 'child_process';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
-import csrf from 'csurf';
+// import csrf from 'csurf';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import createLocaleMiddleware from 'express-locale';
 import expressSession from 'express-session';
@@ -74,6 +74,8 @@ import APIDefinition from '../shared/modules/API/vos/APIDefinition';
 import expressStaticGzip from 'express-static-gzip';
 import StackContextWrapper from '../shared/tools/StackContextWrapper';
 import AsyncHookPromiseWatchController from './modules/Stats/AsyncHookPromiseWatchController';
+import OseliaReferrerVO from '../shared/modules/Oselia/vos/OseliaReferrerVO';
+import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 
 export default abstract class ServerBase {
 
@@ -82,7 +84,7 @@ export default abstract class ServerBase {
     /* istanbul ignore next: nothing to test here */
     protected static instance: ServerBase = null;
 
-    public csrf_protection;
+    // public csrf_protection;
     public version;
     public io;
 
@@ -142,9 +144,9 @@ export default abstract class ServerBase {
         CronServerController.getInstance().register_crons = true;
 
         ModulesManager.isServerSide = true;
-        this.csrf_protection = csrf({
-            cookie: true
-        });
+        // this.csrf_protection = csrf({
+        //     cookie: true
+        // });
     }
 
     /* istanbul ignore next: nothing to test here */
@@ -363,7 +365,13 @@ export default abstract class ServerBase {
                 schemaName: 'ref',
                 tableName: 'module_expressdbsessions_express_session', // En dur pour le chargement de l'appli
             }),
-            cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
+            // On durcit un peu la session
+            cookie: {
+                maxAge: 30 * 24 * 60 * 60 * 1000, // 30 jours
+                httpOnly: true,  // empêche l'accès au cookie depuis le JS
+                secure: !ConfigurationService.node_configuration.isdev,    // n'envoie le cookie qu'en HTTPS
+                sameSite: 'lax', // bloque largement les requêtes cross-site
+            },
         });
 
         /**
@@ -394,16 +402,17 @@ export default abstract class ServerBase {
          */
         await this.define_express_statics();
 
+        this.app.use(helmet());
+        this.app.use(this.check_origin_or_referer_middleware.bind(this));
+
         /**
          * Application des différents middlewares suivant les regex des urls
          */
         const cookieParser_middleware = cookieParser();
-        const helmet_middleware = helmet();
         const express_json_middleware = express.json({ limit: '150mb' });
         const express_urlencoded_middleware = express.urlencoded({ extended: true, limit: '150mb' });
 
         const session_dependant_middlewares: ((req: Request, res: Response, next: NextFunction) => void)[] = [
-            helmet_middleware,
             cookieParser_middleware,
             express_json_middleware,
             express_urlencoded_middleware,
@@ -421,6 +430,9 @@ export default abstract class ServerBase {
                 '/api_handler/*': [
                     ...session_dependant_middlewares,
                     // this.response_time_middleware.bind(this),
+                ],
+                '*/f/*': [
+                    this.redirect_fragmented_url.bind(this),
                 ],
                 '/': [
                     this.redirect_fragmented_url.bind(this),
@@ -446,12 +458,11 @@ export default abstract class ServerBase {
                     this.reflect_header_middleware.bind(this),
                 ],
 
-                // Send CSRF token for session
-                '/api/getcsrftoken': [
-                    ...session_dependant_middlewares,
-                    ServerBase.getInstance().csrf_protection,
-                    this.csrf_middleware.bind(this),
-                ],
+                // // Send CSRF token for session
+                // '/api/getcsrftoken': [
+                //     ...session_dependant_middlewares,
+                //     this.csrf_middleware.bind(this),
+                // ],
 
                 '/logout': [
                     ...session_dependant_middlewares,
@@ -1027,6 +1038,34 @@ export default abstract class ServerBase {
     //     });
     // }
 
+    private async check_origin_or_referer_middleware(req: Request, res: Response, next): Promise<void> {
+        const origin = (req.headers.origin || req.headers.referer) as string;
+
+        if (!origin) {
+            next();
+            return;
+        }
+
+        // On prend le domaine du static env + les parteners osélia
+        const authorized_origins: string[] = [
+            new URL(ConfigurationService.node_configuration.base_url).hostname,
+        ];
+        // On se laisse 10 minutes pour recharger les partenaires
+        const oselia_parteners: OseliaReferrerVO[] = await query(OseliaReferrerVO.API_TYPE_ID).set_max_age_ms(1000 * 60 * 10).exec_as_server().select_vos<OseliaReferrerVO>();
+        for (const i in oselia_parteners) {
+            authorized_origins.push(oselia_parteners[i].referrer_origin);
+        }
+
+        const origin_hostname = origin ? new URL(origin).hostname : null;
+        if (!(origin && authorized_origins.indexOf(origin_hostname) >= 0)) {
+            res.status(403).send('Forbidden - Invalid Origin');
+            return;
+        }
+
+        next();
+    }
+
+
     private async client_home_middleware(req: Request, res: Response) {
 
         const session: IServerUserSession = req.session as IServerUserSession;
@@ -1083,9 +1122,30 @@ export default abstract class ServerBase {
         res.sendFile(path.resolve('./dist/public/admin.html'));
     }
 
-    private reflect_header_middleware(req: Request, res: Response, next: NextFunction) {
+    private async reflect_header_middleware(req: Request, res: Response, next: NextFunction) {
         const result = JSON.stringify(req.headers);
         res.send(result);
+
+        // On stocke le log de connexion en base
+        let session: IServerUserSession = req ? req.session as IServerUserSession : null;
+
+        if (session && session.uid) {
+            const uid: number = session.uid;
+
+            const user_log: UserLogVO = new UserLogVO();
+            user_log.user_id = uid;
+            user_log.log_time = Dates.now();
+            user_log.impersonated = false;
+            user_log.referer = req.headers.referer;
+            user_log.log_type = UserLogVO.LOG_TYPE_CSRF_REQUEST;
+
+            /**
+             * Gestion du impersonate
+             */
+            user_log.handle_impersonation(session);
+
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+        }
     }
 
     private pre_init_session_middleware(req: Request, res: Response, next: NextFunction) {
@@ -1097,8 +1157,8 @@ export default abstract class ServerBase {
          * On tente de récupérer un ID unique de session en request, et si on en trouve, on essaie de charger la session correspondante
          * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
          */
-        const sessionid = req.query.sessionid;
-        if (!sessionid) {
+        const sid = req.query.sessionid;
+        if (!sid) {
             next();
             return;
         }
@@ -1301,55 +1361,55 @@ export default abstract class ServerBase {
         next();
     }
 
-    private async csrf_middleware(req: Request, res: Response, next: NextFunction) {
+    // private async csrf_middleware(req: Request, res: Response, next: NextFunction) {
 
-        /**
-         * On stocke dans la session l'info de la date de chargement de l'application
-         */
-        let session: IServerUserSession = null;
-        if (req && req.session) {
-            session = req.session as IServerUserSession;
+    //     /**
+    //      * On stocke dans la session l'info de la date de chargement de l'application
+    //      */
+    //     let session: IServerUserSession = null;
+    //     if (req && req.session) {
+    //         session = req.session as IServerUserSession;
 
-            session.last_load_date_unix = Dates.now();
-        }
+    //         session.last_load_date_unix = Dates.now();
+    //     }
 
-        if (session && session.uid) {
-            const uid: number = session.uid;
+    //     if (session && session.uid) {
+    //         const uid: number = session.uid;
 
-            // On doit vérifier que le compte est ni bloqué ni expiré
-            const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().set_max_age_ms(60000).select_vo<UserVO>();
-            if ((!user) || user.blocked || user.invalidated) {
+    //         // On doit vérifier que le compte est ni bloqué ni expiré
+    //         const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().set_max_age_ms(60000).select_vo<UserVO>();
+    //         if ((!user) || user.blocked || user.invalidated) {
 
-                await ConsoleHandler.warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
+    //             await ConsoleHandler.warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
 
-                await PushDataServerController.unregisterSession(session.sid);
-                session.destroy(async () => {
-                    await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
-                });
-                return;
-            }
-            session.last_check_blocked_or_expired = Dates.now();
+    //             await PushDataServerController.unregisterSession(session.sid);
+    //             session.destroy(async () => {
+    //                 await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
+    //             });
+    //             return;
+    //         }
+    //         session.last_check_blocked_or_expired = Dates.now();
 
-            await PushDataServerController.registerSession(session);
+    //         await PushDataServerController.registerSession(session);
 
-            // On stocke le log de connexion en base
-            const user_log: UserLogVO = new UserLogVO();
-            user_log.user_id = uid;
-            user_log.log_time = Dates.now();
-            user_log.impersonated = false;
-            user_log.referer = req.headers.referer;
-            user_log.log_type = UserLogVO.LOG_TYPE_CSRF_REQUEST;
+    //         // On stocke le log de connexion en base
+    //         const user_log: UserLogVO = new UserLogVO();
+    //         user_log.user_id = uid;
+    //         user_log.log_time = Dates.now();
+    //         user_log.impersonated = false;
+    //         user_log.referer = req.headers.referer;
+    //         user_log.log_type = UserLogVO.LOG_TYPE_CSRF_REQUEST;
 
-            /**
-             * Gestion du impersonate
-             */
-            user_log.handle_impersonation(session);
+    //         /**
+    //          * Gestion du impersonate
+    //          */
+    //         user_log.handle_impersonation(session);
 
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
-        }
+    //         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+    //     }
 
-        return res.json({ csrfToken: (req as any).csrfToken() });
-    }
+    //     return res.json({ csrfToken: (req as any).csrfToken() });
+    // }
 
     private async redirect_fragmented_url(req: Request, res: Response, next: NextFunction) {
 
@@ -1370,10 +1430,11 @@ export default abstract class ServerBase {
                 .url
                 .replace(/\/f\//, '/#/'));
 
-            if (!req.session) {
-                ConsoleHandler.error('ServerBase:redirect_login_or_home:No session');
-                return;
-            }
+            // Osef non ?
+            // if (!req.session) {
+            //     ConsoleHandler.error('ServerBase:redirect_login_or_home:No session');
+            //     return;
+            // }
 
             return;
         }

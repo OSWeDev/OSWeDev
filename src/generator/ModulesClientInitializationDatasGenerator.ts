@@ -97,9 +97,9 @@ export default class ModulesClientInitializationDatasGenerator {
 
         fileContent += "    ModuleTableController.initialize();\n";
 
-        if (target != 'Test') {
-            fileContent += "    await AjaxCacheClientController.getInstance().getCSRFToken();\n";
-        }
+        // if (target != 'Test') {
+        //     fileContent += "    let res = await AjaxCacheClientController.getInstance().getCSRFToken();\n";
+        // }
         fileContent += '    await ParamsManager.reloadPreloadParams();\n';
         fileContent += "    let promises = [];\n";
 

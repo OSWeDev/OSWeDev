@@ -1,20 +1,60 @@
 .ModuleTablesComponent {
-    .uml-table-viewer {
-        width: 100%;
-        height: 80vh; // exemple: occupe 80% de la hauteur du viewport
+    width: 100%;
+    height: 60vh;
+    position: relative;
 
-        #joint-container {
-            width: 100%;
-            height: 100%;
-            border: 1px solid #ccc;
+    .selection-panel,
+    .link-panel,
+    .add-panel {
+        position: absolute;
+        top: 50px;
+        right: 0;
+        width: 300px;
+        max-height: 50vh; // limite la hauteur
+        overflow-y: auto; // barre de défilement si trop de contenu
+        background: #fff;
+        border-radius: 6px; // arrondi
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        padding: 10px;
+        margin: 0 10px 10px 0;
+
+        h3 {
+            font-size: 1.3em;
+            line-height: 2em;
+        }
+
+        h4 {
+            font-size: 1.1em;
+            line-height: 1.8em;
+        }
+
+        input[type="checkbox"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #007bff;
+            border-radius: 4px;
+            display: inline-block;
             position: relative;
+            cursor: pointer;
+            vertical-align: middle;
+            margin-right: .4em;
+        }
+
+        input[type="checkbox"]:checked {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        input[type="checkbox"]:checked::after {
+            content: '✔';
+            color: white;
+            font-size: 16px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
         }
     }
-
-    // Stylisez au besoin les éléments communs de JointJS (ports, liens, etc.)
-    // Ex. pour un plus gros label sur les liens :
-    // .link .connection {
-    //     stroke: #999;
-    //     stroke-width: 1.5px;
-    // }
 }

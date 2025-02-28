@@ -4,7 +4,10 @@ import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQuery
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../../shared/modules/DAO/ModuleTableFieldController';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableFieldVO from '../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
 import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DashboardBuilderBoardManager from '../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
 import DashboardPageVOManager from '../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
@@ -34,6 +37,7 @@ import InlineTranslatableText from '../InlineTranslatableText/InlineTranslatable
 import TranslatableTextController from '../InlineTranslatableText/TranslatableTextController';
 import { ModuleTranslatableTextAction } from '../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../VueComponentBase';
+import ModuleTablesComponent from '../module_tables/ModuleTablesComponent';
 import './DashboardBuilderComponent.scss';
 import DashboardBuilderBoardComponent from './board/DashboardBuilderBoardComponent';
 import DroppableVoFieldsComponent from './droppable_vo_fields/DroppableVoFieldsComponent';
@@ -42,10 +46,10 @@ import DashboardMenuConfComponent from './menu_conf/DashboardMenuConfComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from './page/DashboardPageStore';
 import DashboardSharedFiltersComponent from './shared_filters/DashboardSharedFiltersComponent';
 import TablesGraphComponent from './tables_graph/TablesGraphComponent';
+import MaxGraphMapper from './tables_graph/graph_mapper/MaxGraphMapper';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
-// import ModuleTablesComponent from '../module_tables/ModuleTablesComponent';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -58,7 +62,7 @@ import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
         Tablesgraphcomponent: TablesGraphComponent,
         Dashboardmenuconfcomponent: DashboardMenuConfComponent,
         Dashboardsharedfilterscomponent: DashboardSharedFiltersComponent,
-        // Moduletablescomponent: ModuleTablesComponent,
+        Moduletablescomponent: ModuleTablesComponent,
     },
 })
 export default class DashboardBuilderComponent extends VueComponentBase {
@@ -153,6 +157,47 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private throttle_on_dashboard_loaded = ThrottleHelper.declare_throttle_without_args(
         'DashboardBuilderComponent.throttle_on_dashboard_loaded',
         this.on_dashboard_loaded, 50);
+
+    get all_tables_by_table_name(): { [table_name: string]: ModuleTableVO } {
+        return ModuleTableController.module_tables_by_vo_type;
+    }
+
+    get fields_by_table_name_and_field_name(): { [table_name: string]: { [field_name: string]: ModuleTableFieldVO } } {
+        const res: { [table_name: string]: { [field_name: string]: ModuleTableFieldVO } } = {};
+
+        for (const i in this.tables_by_table_name) {
+            const table = this.tables_by_table_name[i];
+
+            res[table.vo_type] = {};
+
+            for (const j in ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[table.vo_type]) {
+                const field = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[table.vo_type][j];
+
+                res[table.vo_type][field.field_name] = field;
+            }
+        }
+        return res;
+    }
+
+    get tables_by_table_name(): { [table_name: string]: ModuleTableVO } {
+        const res: { [table_name: string]: ModuleTableVO } = {};
+
+        for (const i in this.get_dashboard_api_type_ids) {
+            const api_type_id = this.get_dashboard_api_type_ids[i];
+
+            res[api_type_id] = ModuleTableController.module_tables_by_vo_type[api_type_id];
+        }
+
+        return res;
+    }
+
+    // get fields_by_table_name_and_field_name(): { [table_name: string]: { [field_name: string]: ModuleTableFieldVO } } {
+    //     return ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name;
+    // }
+
+    // get tables_by_table_name(): { [table_name: string]: ModuleTableVO } {
+    //     return ModuleTableController.module_tables_by_vo_type;
+    // }
 
     get has_navigation_history(): boolean {
         return this.get_page_history && (this.get_page_history.length > 0);
@@ -1136,5 +1181,104 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
     private reverse_collapse_fields_2_wrapper() {
         this.collapsed_fields_wrapper_2 = !this.collapsed_fields_wrapper_2;
+    }
+
+    private async setDiscardedField(table: string, field: string, new_discard: boolean) {
+
+        // On utilise le add pour récupérer la table en base de données
+        const table_vo_ref = await this.addTable(table);
+        if (!table_vo_ref) {
+            return;
+        }
+
+        if (!table_vo_ref.values_to_exclude) {
+            table_vo_ref.values_to_exclude = [];
+        }
+
+        if (!table_vo_ref.values_to_exclude.find((e) => e == field)) {
+            table_vo_ref.values_to_exclude.push(field);
+        } else {
+            table_vo_ref.values_to_exclude = table_vo_ref.values_to_exclude.filter((e) => e != field);
+        }
+        const update_res = await ModuleDAO.instance.insertOrUpdateVO(table_vo_ref);
+        if (!update_res || !update_res.id) {
+            ConsoleHandler.error('Impossible de mettre à jour le graphvoref');
+            this.$snotify.error(this.label('TablesGraphEditFormComponent.switch_edge_acceptance.error'));
+            return;
+        }
+
+        const new_descarded_field_paths = Object.assign({}, this.get_discarded_field_paths);
+        if (new_discard) {
+            if (!new_descarded_field_paths[table]) {
+                new_descarded_field_paths[table] = {};
+            }
+            new_descarded_field_paths[table][field] = true;
+        } else {
+            if (new_descarded_field_paths[table]) {
+                delete new_descarded_field_paths[table][field];
+            }
+        }
+        this.set_discarded_field_paths(new_descarded_field_paths);
+    }
+
+    private async removeTable(table_name: string) {
+
+        if ((!this.dashboard) || (!this.dashboard.id)) {
+            return;
+        }
+
+        if (!table_name) {
+            return;
+        }
+
+        try {
+            await query(DashboardGraphVORefVO.API_TYPE_ID)
+                .filter_by_id(this.dashboard.id, DashboardVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<DashboardGraphVORefVO>().vo_type, table_name)
+                .delete_vos();
+        } catch (error) {
+            ConsoleHandler.error('DashboardBuilderComponent.removeTable:' + error);
+        }
+
+        this.del_api_type_id(table_name);
+    }
+
+    private async addTable(table_name: string) {
+
+        if ((!this.dashboard) || (!this.dashboard.id)) {
+            return;
+        }
+
+        if (!table_name) {
+            return;
+        }
+
+        let ref: DashboardGraphVORefVO = null;
+        try {
+            ref = await query(DashboardGraphVORefVO.API_TYPE_ID)
+                .filter_by_id(this.dashboard.id, DashboardVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<DashboardGraphVORefVO>().vo_type, table_name)
+                .select_vo<DashboardGraphVORefVO>();
+            if (!!ref) {
+                return ref;
+            }
+
+            ref = new DashboardGraphVORefVO();
+
+            ref.x = 800;
+            ref.y = 80;
+            ref.width = MaxGraphMapper.default_width;
+            ref.height = MaxGraphMapper.default_height;
+            ref.vo_type = table_name;
+            ref.dashboard_id = this.dashboard.id;
+            await ModuleDAO.instance.insertOrUpdateVO(ref);
+
+        } catch (error) {
+            ConsoleHandler.error('DashboardBuilderComponent.addTable:' + error);
+        }
+
+        this.add_api_type_id(table_name);
+
+        return ref;
     }
 }

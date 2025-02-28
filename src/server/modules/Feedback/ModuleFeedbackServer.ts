@@ -43,6 +43,7 @@ import EnvParam from '../../env/EnvParam';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleFileServer from '../File/ModuleFileServer';
 import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
@@ -92,6 +93,185 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             ModuleFeedbackServer.instance = new ModuleFeedbackServer();
         }
         return ModuleFeedbackServer.instance;
+    }
+
+    /**
+     * Ce module nécessite le param FEEDBACK_TRELLO_LIST_ID
+     *  Pour trouver le idList => https://customer.io/actions/trello/
+     */
+    @RunsOnMainThread(ModuleFeedbackServer.getInstance)
+    private async feedback(feedback: FeedbackVO): Promise<FeedbackVO> {
+
+        if (!feedback) {
+            return null;
+        }
+
+        const time_in: number = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "IN");
+
+        const uid = ModuleAccessPolicyServer.getLoggedUserId();
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+
+        try {
+
+            const user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
+            if (!user_session) {
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_USER_SESSION");
+                return null;
+            }
+
+            const FEEDBACK_TRELLO_LIST_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_LIST_ID_PARAM_NAME);
+            if (!FEEDBACK_TRELLO_LIST_ID) {
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_TRELLO_LIST_ID");
+                throw new Error('Le module FEEDBACK nécessite la configuration du paramètre FEEDBACK_TRELLO_LIST_ID qui indique le code du tableau Trello à utiliser (cf URL d\'une card de la liste +.json => idList)');
+            }
+
+            const FEEDBACK_TRELLO_POSSIBLE_BUG_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_BUG_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_NOT_SET_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_NOT_SET_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_RAPPELER_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_RAPPELER_ID_PARAM_NAME);
+            if ((!FEEDBACK_TRELLO_POSSIBLE_BUG_ID) || (!FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID) || (!FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID) || (!FEEDBACK_TRELLO_NOT_SET_ID)) {
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_TRELLO_POSSIBLE_BUG_ID");
+                throw new Error('Le module FEEDBACK nécessite la configuration des paramètres FEEDBACK_TRELLO_POSSIBLE_BUG_ID,FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID,FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID,FEEDBACK_TRELLO_NOT_SET_ID qui indiquent les codes des marqueurs Trello à utiliser (cf URL d\'une card de la liste +.json => labels:id)');
+            }
+
+            // Remplir le feedback avec toutes les infos qui sont connues côté serveur,
+            feedback.user_connection_date = user_session.last_load_date_unix;
+            feedback.user_id = user_session.uid;
+            feedback.user_login_date = user_session.creation_date_unix;
+
+            feedback.is_impersonated = false;
+            if (await ModuleAccessPolicyServer.getInstance().isLogedAs()) {
+
+                const admin_user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getAdminLogedUserSession();
+                feedback.impersonated_from_user_connection_date = admin_user_session.last_load_date_unix;
+                feedback.impersonated_from_user_id = admin_user_session.uid;
+                feedback.impersonated_from_user_login_date = admin_user_session.creation_date_unix;
+                feedback.is_impersonated = true;
+            }
+
+            // Puis créer le feedback en base
+            const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(feedback);
+            if ((!res) || (!res.id)) {
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_CREATED");
+                throw new Error('Failed feedback creation');
+            }
+            feedback.id = res.id;
+
+            // Créer le Trello associé
+            let response;
+            const idLabels: string[] = [];
+            let trello_message = feedback.message + '\x0A' + '\x0A';
+
+            const user_infos = await this.user_infos_to_string(feedback);
+            trello_message += user_infos;
+            const feedback_infos = await this.feedback_infos_to_string(feedback);
+            trello_message += feedback_infos;
+
+            const screen_captures = await this.screen_captures_to_string(feedback);
+            trello_message += screen_captures;
+            const attachments = await this.attachments_to_string(feedback);
+            trello_message += attachments;
+
+            const routes = await this.routes_to_string(feedback);
+            trello_message += routes;
+            const console_logs_errors = await this.console_logs_to_string(feedback);
+            trello_message += console_logs_errors;
+
+            // let api_logs = await this.api_logs_to_string(feedback);
+            // if (ModuleParams.APINAME_feedback_activate_api_logs) { //Api_logs du message , désactivé par défaut.
+            //     trello_message += api_logs;
+            // }
+            switch (feedback.feedback_type) {
+                case FeedbackVO.FEEDBACK_TYPE_BUG:
+                    idLabels.push(FEEDBACK_TRELLO_POSSIBLE_BUG_ID);
+                    break;
+                case FeedbackVO.FEEDBACK_TYPE_INCIDENT:
+                    idLabels.push(FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID);
+                    break;
+                case FeedbackVO.FEEDBACK_TYPE_ENHANCEMENT_REQUEST:
+                    idLabels.push(FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID);
+                    break;
+                case FeedbackVO.FEEDBACK_TYPE_NOT_SET:
+                    idLabels.push(FEEDBACK_TRELLO_NOT_SET_ID);
+                    break;
+            }
+
+            let card_name: string = (ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + feedback.title;
+
+            if (feedback.wish_be_called && FEEDBACK_TRELLO_RAPPELER_ID) {
+                idLabels.push(FEEDBACK_TRELLO_RAPPELER_ID);
+                card_name += " (A RAPPELER)";
+            }
+
+            // On peut pas envoyer plus de 16384 chars à l'api trello pour le message
+            // Donc on limite à 15000 chars et on met tout dans un fichier dont on donne l'adresse au début du message
+
+            const feedback_file_patch = '/files/feedbacks/feedback_' + Dates.now() + '.txt';
+            await ModuleFileServer.getInstance().makeSureThisFolderExists('./files/feedbacks/');
+            await ModuleFileServer.getInstance().writeFile('.' + feedback_file_patch, trello_message);
+
+            const envParam: EnvParam = ConfigurationService.node_configuration;
+            const file_url = envParam.base_url + feedback_file_patch;
+
+            trello_message = ((trello_message.length > 15000) ? trello_message.substr(0, 15000) + ' ... [truncated 15000 cars]' : trello_message);
+            trello_message = '[FEEDBACK FILE : ' + file_url + '](' + file_url + ')' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + trello_message;
+
+            try {
+
+                response = await ModuleTrelloAPIServer.getInstance().create_card(
+                    card_name,
+                    trello_message,
+                    FEEDBACK_TRELLO_LIST_ID,
+                    idLabels);
+                // idLabels,
+                // {
+                //     pos: 'top',
+                // });
+            } catch (error) {
+                ConsoleHandler.error(error);
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_TRELLO_API");
+            }
+
+            // Faire le lien entre le feedback en base et le Trello
+            if (response && response.id) {
+                feedback.trello_ref = response.id;
+            } else {
+                ConsoleHandler.error('Failed Trello card creation');
+                await TeamsAPIServerController.send_teams_error(
+                    'Echec de création de carte Trello',
+                    'Impossible de créer la carte Trello pour le feedback ' + feedback.id + ' : ' + feedback.title);
+            }
+
+            const ires: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(feedback);
+            if ((!ires) || (!ires.id)) {
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_INSERTING_FEEDBACK");
+                throw new Error('Failed feedback creation');
+            }
+            feedback.id = ires.id;
+
+            // // On n'attend pas la réponse pour Teams, à cause des temps d'interaction avec GPT
+            // this.handle_feedback_gpt_to_teams(feedback, uid, user_infos, feedback_infos, routes, console_logs_errors
+            //     // , api_logs
+            // );
+
+            // Envoyer un mail pour confirmer la prise en compte du feedback
+            const mail: MailVO = await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
+            feedback.confirmation_mail_id = mail ? mail.id : null;
+
+            await PushDataServerController.notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success', true);
+
+            StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "FEEDBACK_CREATED");
+            StatsController.register_stat_DUREE("ModuleFeedback", "feedback", "FEEDBACK_CREATED", Dates.now_ms() - time_in);
+
+            return feedback;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_THROWN");
+            await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error', true);
+            return null;
+        }
     }
 
     // istanbul ignore next: cannot test registerAccessPolicies
@@ -291,184 +471,6 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         }
 
         return true;
-    }
-
-    /**
-     * Ce module nécessite le param FEEDBACK_TRELLO_LIST_ID
-     *  Pour trouver le idList => https://customer.io/actions/trello/
-     */
-    private async feedback(feedback: FeedbackVO): Promise<FeedbackVO> {
-
-        if (!feedback) {
-            return null;
-        }
-
-        const time_in: number = Dates.now_ms();
-        StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "IN");
-
-        const uid = ModuleAccessPolicyServer.getLoggedUserId();
-        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-
-        try {
-
-            const user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
-            if (!user_session) {
-                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_USER_SESSION");
-                return null;
-            }
-
-            const FEEDBACK_TRELLO_LIST_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_LIST_ID_PARAM_NAME);
-            if (!FEEDBACK_TRELLO_LIST_ID) {
-                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_TRELLO_LIST_ID");
-                throw new Error('Le module FEEDBACK nécessite la configuration du paramètre FEEDBACK_TRELLO_LIST_ID qui indique le code du tableau Trello à utiliser (cf URL d\'une card de la liste +.json => idList)');
-            }
-
-            const FEEDBACK_TRELLO_POSSIBLE_BUG_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_BUG_ID_PARAM_NAME);
-            const FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID_PARAM_NAME);
-            const FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID_PARAM_NAME);
-            const FEEDBACK_TRELLO_NOT_SET_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_NOT_SET_ID_PARAM_NAME);
-            const FEEDBACK_TRELLO_RAPPELER_ID = await ParamsServerController.getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_RAPPELER_ID_PARAM_NAME);
-            if ((!FEEDBACK_TRELLO_POSSIBLE_BUG_ID) || (!FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID) || (!FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID) || (!FEEDBACK_TRELLO_NOT_SET_ID)) {
-                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_TRELLO_POSSIBLE_BUG_ID");
-                throw new Error('Le module FEEDBACK nécessite la configuration des paramètres FEEDBACK_TRELLO_POSSIBLE_BUG_ID,FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID,FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID,FEEDBACK_TRELLO_NOT_SET_ID qui indiquent les codes des marqueurs Trello à utiliser (cf URL d\'une card de la liste +.json => labels:id)');
-            }
-
-            // Remplir le feedback avec toutes les infos qui sont connues côté serveur,
-            feedback.user_connection_date = user_session.last_load_date_unix;
-            feedback.user_id = user_session.uid;
-            feedback.user_login_date = user_session.creation_date_unix;
-
-            feedback.is_impersonated = false;
-            if (ModuleAccessPolicyServer.getInstance().isLogedAs()) {
-
-                const admin_user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getAdminLogedUserSession();
-                feedback.impersonated_from_user_connection_date = admin_user_session.last_load_date_unix;
-                feedback.impersonated_from_user_id = admin_user_session.uid;
-                feedback.impersonated_from_user_login_date = admin_user_session.creation_date_unix;
-                feedback.is_impersonated = true;
-            }
-
-            // Puis créer le feedback en base
-            const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(feedback);
-            if ((!res) || (!res.id)) {
-                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_CREATED");
-                throw new Error('Failed feedback creation');
-            }
-            feedback.id = res.id;
-
-            // Créer le Trello associé
-            let response;
-            const idLabels: string[] = [];
-            let trello_message = feedback.message + '\x0A' + '\x0A';
-
-            const user_infos = await this.user_infos_to_string(feedback);
-            trello_message += user_infos;
-            const feedback_infos = await this.feedback_infos_to_string(feedback);
-            trello_message += feedback_infos;
-
-            const screen_captures = await this.screen_captures_to_string(feedback);
-            trello_message += screen_captures;
-            const attachments = await this.attachments_to_string(feedback);
-            trello_message += attachments;
-
-            const routes = await this.routes_to_string(feedback);
-            trello_message += routes;
-            const console_logs_errors = await this.console_logs_to_string(feedback);
-            trello_message += console_logs_errors;
-
-            // let api_logs = await this.api_logs_to_string(feedback);
-            // if (ModuleParams.APINAME_feedback_activate_api_logs) { //Api_logs du message , désactivé par défaut.
-            //     trello_message += api_logs;
-            // }
-            switch (feedback.feedback_type) {
-                case FeedbackVO.FEEDBACK_TYPE_BUG:
-                    idLabels.push(FEEDBACK_TRELLO_POSSIBLE_BUG_ID);
-                    break;
-                case FeedbackVO.FEEDBACK_TYPE_INCIDENT:
-                    idLabels.push(FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID);
-                    break;
-                case FeedbackVO.FEEDBACK_TYPE_ENHANCEMENT_REQUEST:
-                    idLabels.push(FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID);
-                    break;
-                case FeedbackVO.FEEDBACK_TYPE_NOT_SET:
-                    idLabels.push(FEEDBACK_TRELLO_NOT_SET_ID);
-                    break;
-            }
-
-            let card_name: string = (ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + feedback.title;
-
-            if (feedback.wish_be_called && FEEDBACK_TRELLO_RAPPELER_ID) {
-                idLabels.push(FEEDBACK_TRELLO_RAPPELER_ID);
-                card_name += " (A RAPPELER)";
-            }
-
-            // On peut pas envoyer plus de 16384 chars à l'api trello pour le message
-            // Donc on limite à 15000 chars et on met tout dans un fichier dont on donne l'adresse au début du message
-
-            const feedback_file_patch = '/files/feedbacks/feedback_' + Dates.now() + '.txt';
-            await ModuleFileServer.getInstance().makeSureThisFolderExists('./files/feedbacks/');
-            await ModuleFileServer.getInstance().writeFile('.' + feedback_file_patch, trello_message);
-
-            const envParam: EnvParam = ConfigurationService.node_configuration;
-            const file_url = envParam.base_url + feedback_file_patch;
-
-            trello_message = ((trello_message.length > 15000) ? trello_message.substr(0, 15000) + ' ... [truncated 15000 cars]' : trello_message);
-            trello_message = '[FEEDBACK FILE : ' + file_url + '](' + file_url + ')' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + trello_message;
-
-            try {
-
-                response = await ModuleTrelloAPIServer.getInstance().create_card(
-                    card_name,
-                    trello_message,
-                    FEEDBACK_TRELLO_LIST_ID,
-                    idLabels);
-                // idLabels,
-                // {
-                //     pos: 'top',
-                // });
-            } catch (error) {
-                ConsoleHandler.error(error);
-                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_TRELLO_API");
-            }
-
-            // Faire le lien entre le feedback en base et le Trello
-            if (response && response.id) {
-                feedback.trello_ref = response.id;
-            } else {
-                ConsoleHandler.error('Failed Trello card creation');
-                await TeamsAPIServerController.send_teams_error(
-                    'Echec de création de carte Trello',
-                    'Impossible de créer la carte Trello pour le feedback ' + feedback.id + ' : ' + feedback.title);
-            }
-
-            const ires: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(feedback);
-            if ((!ires) || (!ires.id)) {
-                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_INSERTING_FEEDBACK");
-                throw new Error('Failed feedback creation');
-            }
-            feedback.id = ires.id;
-
-            // // On n'attend pas la réponse pour Teams, à cause des temps d'interaction avec GPT
-            // this.handle_feedback_gpt_to_teams(feedback, uid, user_infos, feedback_infos, routes, console_logs_errors
-            //     // , api_logs
-            // );
-
-            // Envoyer un mail pour confirmer la prise en compte du feedback
-            const mail: MailVO = await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
-            feedback.confirmation_mail_id = mail ? mail.id : null;
-
-            await PushDataServerController.notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success', true);
-
-            StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "FEEDBACK_CREATED");
-            StatsController.register_stat_DUREE("ModuleFeedback", "feedback", "FEEDBACK_CREATED", Dates.now_ms() - time_in);
-
-            return feedback;
-        } catch (error) {
-            ConsoleHandler.error(error);
-            StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_THROWN");
-            await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error', true);
-            return null;
-        }
     }
 
     // On va mettre en place un assistant pour remplacer le feedback dans tous les cas, et cette version n'est ni valide, ni utilisée

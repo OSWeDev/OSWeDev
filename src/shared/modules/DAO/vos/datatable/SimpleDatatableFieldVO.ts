@@ -107,6 +107,10 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return hourFilter.read(field_value);
 
                 case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    // JNE FIXME TODO : on gère le cas bizarre où field_value est une string directement, et donc on doit pas le retraduire, c'est déjà tout pret
+                    if (typeof field_value == 'string') {
+                        return field_value;
+                    }
                     return LocaleManager.getInstance().t(this.enum_values[field_value]);
 
                 case ModuleTableFieldVO.FIELD_TYPE_date:

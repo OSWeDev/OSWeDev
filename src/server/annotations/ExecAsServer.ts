@@ -1,3 +1,4 @@
+import ModulesManager from "../../shared/modules/ModulesManager";
 import StackContext from "../StackContext";
 import 'reflect-metadata';
 
@@ -9,11 +10,23 @@ export function ExecAsServerParam(target: any, propertyKey: string, parameterInd
     Reflect.defineMetadata(EXEC_AS_SERVER_PARAM_KEY, parameterIndex, target, propertyKey);
 }
 
+type AsyncMethod = (...args: any[]) => Promise<any>;
 
-export function ExecAsServer(target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
+/**
+ * ATTENTION : la méthode décorée est obligatoirement async !
+ * Permet de définir une méthode qui est exécutée côté serveur, quel que soit le thread d'appel. On retourne sur le thread d'appel à la fin de la fonction
+ */
+export function ExecAsServer<T extends AsyncMethod>(target: unknown, propertyKey: string, descriptor: PropertyDescriptor): TypedPropertyDescriptor<T> {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (...args: any[]) {
+    // Vérification runtime : si la fonction n’est pas async, on bloque => valide uniquement côté serveur
+    if (ModulesManager.isServerSide && originalMethod.constructor.name !== 'AsyncFunction') {
+        throw new Error(
+            `La méthode "${propertyKey}" doit impérativement être déclarée "async".`
+        );
+    }
+
+    descriptor.value = async function (...args: any[]) { // Attention si on déclare la fonction avec la flèche on perd le this
 
         // Récupérer l'index du paramètre marqué
         const paramIndex: number | undefined = Reflect.getMetadata(

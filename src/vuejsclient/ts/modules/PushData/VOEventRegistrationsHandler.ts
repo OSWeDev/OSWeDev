@@ -29,7 +29,7 @@ export default class VOEventRegistrationsHandler extends VueModuleBase {
 
         if (!VOEventRegistrationsHandler.registered_vo_create_callbacks[room_id]) {
             VOEventRegistrationsHandler.registered_vo_create_callbacks[room_id] = {};
-            ModulePushData.getInstance().join_io_room(room_fields);
+            await ModulePushData.getInstance().join_io_room(room_fields);
         }
 
         const cb_id: number = VOEventRegistrationsHandler.VO_EVENTS_CB_ID++;

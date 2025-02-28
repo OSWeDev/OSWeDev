@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
@@ -24,6 +24,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../shared/tools/LocaleManager';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
+import ServerAPIController from '../API/ServerAPIController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
@@ -92,7 +93,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
      * @param code
      * @returns
      */
-    private async action_url(code: string, do_not_redirect: boolean, req: Request, res: Response): Promise<boolean> {
+    private async action_url(code: string, do_not_redirect: boolean, req: Request, api_call_id: number): Promise<boolean> {
 
         const uid = ModuleAccessPolicyServer.getLoggedUserId();
 
@@ -120,10 +121,10 @@ export default class ModuleActionURLServer extends ModuleServerBase {
         // TeamsAPIServerController.update_teams_message(messageId, canalId, groupId);
 
         try {
-            const action_res = await this.do_action_url(action_url, code, uid, req, res);
-            if ((!res.headersSent) && (!do_not_redirect)) {
+            const action_res = await this.do_action_url(action_url, code, uid, req, api_call_id);
+            if (!do_not_redirect) {
                 // par défaut on redirige vers la page de consultation des crs de cette action_url si aucune redirection n'a été faite
-                res.redirect('/#/action_url_cr/' + action_url.id);
+                await ServerAPIController.send_redirect_if_headers_not_already_sent(api_call_id, '/#/action_url_cr/' + action_url.id);
             }
 
             return action_res;
@@ -133,7 +134,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
         return false;
     }
 
-    private async do_action_url(action_url: ActionURLVO, code: string, uid: number, req: Request, res: Response): Promise<boolean> {
+    private async do_action_url(action_url: ActionURLVO, code: string, uid: number, req: Request, api_call_id: number): Promise<boolean> {
         if (action_url.action_remaining_counter == 0) {
             ConsoleHandler.error('No more remaining counter for action_url:' + code + ': module_name:' + action_url.action_callback_module_name + ': function_name:' + action_url.action_callback_function_name);
             return false;
@@ -162,7 +163,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
         }
         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(action_url);
 
-        const action_cr: ActionURLCRVO = await module_instance[action_url.action_callback_function_name](action_url, uid, req, res);
+        const action_cr: ActionURLCRVO = await module_instance[action_url.action_callback_function_name](action_url, uid, req, api_call_id);
 
         if (action_cr) {
             action_cr.action_url_id = action_url.id;

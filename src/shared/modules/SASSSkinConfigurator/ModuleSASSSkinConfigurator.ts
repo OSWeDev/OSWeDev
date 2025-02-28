@@ -274,7 +274,7 @@ export default class ModuleSASSSkinConfigurator extends Module {
             ModuleSASSSkinConfigurator.APINAME_get_sass_param_value,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             StringParamVOStatic
-        ).disable_csrf_protection());
+        )/*.disable_csrf_protection()*/);
     }
 
     /* istanbul ignore next: nothing to test here */

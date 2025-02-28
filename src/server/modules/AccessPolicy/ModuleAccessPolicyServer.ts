@@ -66,6 +66,7 @@ import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import APIBGThread from '../API/bgthreads/APIBGThread';
 import { IRequestStackContext } from '../../ServerExpressController';
 import CachedQueryHandler from '../../../shared/tools/cache/CachedQueryHandler';
+import BGThreadServerController from '../BGThread/BGThreadServerController';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -261,10 +262,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     /**
      *
      * @returns
-     * @deprecated utilise StackContext que l'on souhaite supprimer. Utiliser plutôt logout_session
      */
     @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
-    public async logout(req: Request, res: Response) {
+    public async logout(req: Request) {
 
         return this.logout_sid(req.session.sid);
     }
@@ -370,7 +370,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
-    public isLogedAs(): boolean {
+    public async isLogedAs(): Promise<boolean> {
 
         try {
 
@@ -392,7 +392,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      *  On remonte à la racine des logas
      */
     @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
-    public getAdminLogedUserId(): number {
+    public async getAdminLogedUserId(): Promise<number> {
 
         try {
 
@@ -409,46 +409,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return impersonated_from_session.uid;
             }
             return null;
-        } catch (error) {
-            ConsoleHandler.error(error);
-            return null;
-        }
-    }
-
-    /**
-     * Renvoie la session de l'admin qui utilise la fonction logAs
-     */
-    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
-    public getAdminLogedUserSession(): IServerUserSession {
-
-        try {
-
-            const sid = StackContext.get('SID');
-            let session = PushDataServerController.registered_sessions_by_sid[sid];
-
-            if (!session.impersonated_from) {
-                return null;
-            }
-
-            while (session && !!session.impersonated_from) {
-                session = session.impersonated_from;
-            }
-            return session;
-        } catch (error) {
-            ConsoleHandler.error(error);
-            return null;
-        }
-    }
-
-    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
-    public getUserSession(): IServerUserSession {
-
-        try {
-
-            const sid = StackContext.get('SID');
-            const session = PushDataServerController.registered_sessions_by_sid[sid];
-
-            return session;
         } catch (error) {
             ConsoleHandler.error(error);
             return null;
@@ -802,6 +762,55 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     @RunsOnBgThread(APIBGThread.BGTHREAD_name, ModuleAccessPolicyServer.getInstance, true)
     private async insert_or_update_uselog(user_log: UserLogVO) {
         return ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
+    }
+
+
+    /**
+     * Renvoie la session de l'admin qui utilise la fonction logAs
+     * On doit obligatoirement être sur le main process => on peut pas en revenir avec un objet session !
+     * // @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
+     */
+    public getAdminLogedUserSession(): IServerUserSession {
+
+        // On doit obligatoirement être sur le main process
+        ForkedTasksController.assert_is_main_process();
+
+        try {
+
+            const sid = StackContext.get('SID');
+            let session = PushDataServerController.registered_sessions_by_sid[sid];
+
+            if (!session.impersonated_from) {
+                return null;
+            }
+
+            while (session && !!session.impersonated_from) {
+                session = session.impersonated_from;
+            }
+            return session;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return null;
+        }
+    }
+
+    // On doit obligatoirement être sur le main process => on peut pas en revenir avec un objet session !
+    // @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
+    public getUserSession(): IServerUserSession {
+
+        // On doit obligatoirement être sur le main process
+        ForkedTasksController.assert_is_main_process();
+
+        try {
+
+            const sid = StackContext.get('SID');
+            const session = PushDataServerController.registered_sessions_by_sid[sid];
+
+            return session;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return null;
+        }
     }
 
     /**
@@ -2293,7 +2302,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return null;
     }
 
-    // private redirectUserPostLogin(redirect_to: string, res: Response) {
+    // private redirectUserPostLogin(redirect_to: string) {
     //     if (redirect_to && (redirect_to != "")) {
     //         res.redirect(redirect_to);
     //     } else {
@@ -2481,17 +2490,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'session_share');
     }
 
-    private get_my_sid(req: Request, res: Response) {
-        return (res && res.req && res.req.cookies) ? res.req.cookies['sid'] : req.session.sid;
+    private get_my_sid(req: Request) {
+        return req.session.sid;
     }
 
-    private get_my_session_id(req: Request, res: Response) {
-        // let session = StackContext.get('SESSION');
-        // if (!session) {
-        //     return null;
-        // }
-        // return session.id;
-        return res.req.sessionID;
+    private get_my_session_id(req: Request) {
+        return req.session.id;
     }
 
     /**

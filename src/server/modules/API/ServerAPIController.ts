@@ -1,10 +1,16 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import IAPIController from '../../../shared/modules/API/interfaces/IAPIController';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
+import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
+import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
+import APICallResWrapper from './vos/APICallResWrapper';
 
 export default class ServerAPIController implements IAPIController {
 
     private static instance: ServerAPIController = null;
+
+    @StatThisMapKeys('ServerAPIController')
+    public static api_calls: { [api_call_id: number]: APICallResWrapper } = {};
 
     // istanbul ignore next: nothing to test
     public static getInstance(): ServerAPIController {
@@ -12,6 +18,30 @@ export default class ServerAPIController implements IAPIController {
             ServerAPIController.instance = new ServerAPIController();
         }
         return ServerAPIController.instance;
+    }
+
+    /**
+     * Permet de renvoyer une redirection si les headers n'ont pas déjà été envoyés
+     * @param call_id L'id de l'appel API
+     * @param url L'url de redirection
+     * @returns true si la redirection a été envoyée, false sinon
+     */
+    @RunsOnMainThread()
+    public static async send_redirect_if_headers_not_already_sent(call_id: number, url: string): Promise<boolean> {
+        const res = ServerAPIController.api_calls[call_id]?.res;
+
+        if (!res) {
+            return false;
+        }
+
+        if (res.headersSent) {
+            // Si on a déjà renvoyé un redirect ou une réponse, on ne fait rien
+            return false;
+        }
+
+
+        res.redirect(url);
+        return true;
     }
 
     public sah<T, U>(

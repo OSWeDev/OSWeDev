@@ -773,11 +773,10 @@ export default class ContextQueryServerController {
                             return null;
                         }
 
-                        // On exécute les triggers as_admin toujours
                         await StackContext.exec_as_server(
                             DAOServerController.post_update_trigger_hook.trigger,
                             DAOServerController.post_update_trigger_hook,
-                            true,
+                            context_query.is_server,
                             vo_to_update._type,
                             new DAOUpdateVOHolder(preupdate_vo, vo_to_update),
                             context_query.is_server);
@@ -875,11 +874,10 @@ export default class ContextQueryServerController {
                     if (has_trigger_pre_delete) {
                         // Ajout des triggers, avant et après suppression.
                         //  Attention si un des output est false avant suppression, on annule la suppression
-                        // On exécute les triggers as_admin toujours
                         const preDeleteTrigger_res: boolean[] = await StackContext.exec_as_server(
                             DAOServerController.pre_delete_trigger_hook.trigger,
                             DAOServerController.pre_delete_trigger_hook,
-                            true,
+                            context_query.is_server,
                             context_query.base_api_type_id,
                             vo_to_delete,
                             context_query.is_server);
@@ -1001,11 +999,10 @@ export default class ContextQueryServerController {
                             ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                         }
 
-                        // On exécute les triggers as_admin toujours
                         await StackContext.exec_as_server(
                             DAOServerController.post_delete_trigger_hook.trigger,
                             DAOServerController.post_delete_trigger_hook,
-                            true,
+                            context_query.is_server,
                             deleted_vo._type,
                             deleted_vo,
                             context_query.is_server);
@@ -1055,11 +1052,10 @@ export default class ContextQueryServerController {
                                 ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                             }
 
-                            // On exécute les triggers as_admin toujours
                             await StackContext.exec_as_server(
                                 DAOServerController.post_delete_trigger_hook.trigger,
                                 DAOServerController.post_delete_trigger_hook,
-                                true,
+                                context_query.is_server,
                                 deleted_vo._type,
                                 deleted_vo,
                                 context_query.is_server);

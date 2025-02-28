@@ -1,0 +1,16 @@
+.add-panel
+    h3 Ajouter une table
+    label
+        input(type="checkbox" v-model="hideVersioned")
+        | Masquer versions
+    label
+        input(type="checkbox" v-model="hideInternalImport")
+        | Masquer imports (tables internes)
+    label
+        input(type="checkbox" v-model="hideHistoricSupervision")
+        | Masquer historiques de supervision
+
+    input(type="text" v-model="addSearch" placeholder="Rechercher...")
+    ul
+        li(v-for="tableName in filteredTables" :key="tableName" @click="onAddTable(tableName)" style="cursor:pointer;")
+            | {{ tableName }}

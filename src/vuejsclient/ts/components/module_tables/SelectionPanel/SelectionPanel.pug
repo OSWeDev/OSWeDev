@@ -1,0 +1,22 @@
+.selection-panel
+    h3 Table : {{ selectedTable }}
+    button.btn.btn-danger(@click="onRemoveSelectedTable") Retirer cette table
+    hr
+    h4(v-if='has_foreignKeyFieldsFROMSelectedTable') {{ selectedTable }} => X
+    template(v-for="(fieldVO, fName) in foreignKeyFieldsFROMSelectedTable")
+        label(:key="selectedTable + '_' + fName")
+            input(
+                type="checkbox"
+                :checked="!discarded_field_paths[selectedTable]?.[fName]"
+                @change="onSwitchDiscard(selectedTable, fName, $event.target.checked)"
+            )
+            | {{ fieldVO.module_table_vo_type }}.{{ fName }} => {{ fieldVO.foreign_ref_vo_type }}
+    h4(v-if='has_foreignKeyFieldsTOSelectedTable') X => {{ selectedTable }}
+    template(v-for="(fieldVO, fName) in foreignKeyFieldsTOSelectedTable")
+        label(:key="selectedTable + '_' + fName")
+            input(
+                type="checkbox"
+                :checked="!discarded_field_paths[fieldVO.module_table_vo_type]?.[fName]"
+                @change="onSwitchDiscard(fieldVO.module_table_vo_type, fName, $event.target.checked)"
+            )
+            | {{ fieldVO.module_table_vo_type }}.{{ fName }} => {{ fieldVO.foreign_ref_vo_type }}

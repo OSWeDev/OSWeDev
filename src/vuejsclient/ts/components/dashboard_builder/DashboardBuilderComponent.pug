@@ -150,15 +150,23 @@
         template(v-else)
             .row(v-if='show_select_vos && dashboard && dashboard.id')
                 .col-sm-12.tables_graph_wrapper 
-                    Tablesgraphcomponent(
-                        :key='"Tablesgraphcomponent__" + dashboard.id' 
-                        :dashboard='dashboard' 
-                        @add_api_type_id='add_api_type_id' 
-                        @del_api_type_id='del_api_type_id'
-                        @update_discarded_field_paths='update_discarded_field_paths'
-                    )
+                    //- Tablesgraphcomponent(
+                    //-     :key='"Tablesgraphcomponent__" + dashboard.id' 
+                    //-     :dashboard='dashboard' 
+                    //-     @add_api_type_id='add_api_type_id' 
+                    //-     @del_api_type_id='del_api_type_id'
+                    //-     @update_discarded_field_paths='update_discarded_field_paths'
+                    //- )
 
-                    //- Moduletablescomponent()
+                    Moduletablescomponent(
+                        :fields_by_table_name_and_field_name='fields_by_table_name_and_field_name'
+                        :tables_by_table_name='tables_by_table_name'
+                        :discarded_field_paths='get_discarded_field_paths'
+                        :all_tables_by_table_name='all_tables_by_table_name'
+                        @setDiscardedField='setDiscardedField'
+                        @removeTable='removeTable'
+                        @addTable='addTable'
+                    )
 
 
             .fields_wrapper(v-if='show_build_page' :class='{"collapsed":collapsed_fields_wrapper}')

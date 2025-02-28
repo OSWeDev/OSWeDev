@@ -5,6 +5,7 @@ import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatT
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThrottleExecAsServerRunsOnMainThread from '../../annotations/ThrottleExecAsServerRunsOnMainThread';
 import ConfigurationService from '../../env/ConfigurationService';
 import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
@@ -82,10 +83,10 @@ export default class VarsTabsSubsController {
      * WARN : Only on main thread (express).
      */
     @RunsOnMainThread(null)
-    public static register_sub(user_id: number, client_tab_id: string, param_indexs: string[]) {
+    public static async register_sub(user_id: number, client_tab_id: string, param_indexs: string[]) {
 
         user_id = ((user_id == null) ? 0 : user_id);
-
+        const promises = [];
         for (const i in param_indexs) {
             const param_index = param_indexs[i];
 
@@ -97,7 +98,7 @@ export default class VarsTabsSubsController {
                 this._tabs_subs[param_index] = {};
 
                 // On ajoute un nouvel index, on prévient le thread des vars immédiatement
-                VarsClientsSubsCacheManager.add_new_sub(param_index);
+                promises.push(VarsClientsSubsCacheManager.add_new_sub(param_index));
             }
 
             if (!this._tabs_subs[param_index][user_id]) {
@@ -114,6 +115,7 @@ export default class VarsTabsSubsController {
 
             this._tabs_subs[param_index][user_id][client_tab_id].last_registration_ts = Dates.now();
         }
+        await all_promises(promises);
 
         if (ConfigurationService.node_configuration.debug_vars) {
             ConsoleHandler.log('VarsTabsSubsController:post register_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
@@ -124,7 +126,7 @@ export default class VarsTabsSubsController {
      * WARN : Only on main thread (express).
      */
     @RunsOnMainThread(null)
-    public static unregister_sub(user_id: number, client_tab_id: string, param_indexs: string[]) {
+    public static async unregister_sub(user_id: number, client_tab_id: string, param_indexs: string[]) {
 
         user_id = ((user_id == null) ? 0 : user_id);
 
@@ -165,13 +167,15 @@ export default class VarsTabsSubsController {
                 param_index_to_delete.push(param_index);
             }
         }
+        const promises = [];
         for (const i in param_index_to_delete) {
             const param_index = param_index_to_delete[i];
             delete this._tabs_subs[param_index];
 
             // On supprime un nouvel index, on prévient le thread des vars immédiatement
-            VarsClientsSubsCacheManager.remove_sub(param_index);
+            promises.push(VarsClientsSubsCacheManager.remove_sub(param_index));
         }
+        await all_promises(promises);
 
         if (ConfigurationService.node_configuration.debug_vars) {
             ConsoleHandler.log('VarsTabsSubsController:post unregister_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');

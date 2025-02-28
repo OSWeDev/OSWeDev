@@ -1,4 +1,4 @@
-import { field_names } from '../../tools/ObjectHandler';
+import { field_names, reflect } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import StringParamVO from '../API/vos/apis/StringParamVO';
@@ -16,22 +16,18 @@ import ModuleTableController from '../DAO/ModuleTableController';
 
 export default class ModulePushData extends Module {
 
-    public static APINAME_set_prompt_result: string = 'set_prompt_result';
-    public static APINAME_get_app_version: string = 'get_app_version';
-    public static APINAME_join_io_room: string = 'join_io_room';
-    public static APINAME_leave_io_room: string = 'leave_io_room';
     public static PARAM_TECH_DISCONNECT_URL: string = 'TECH_DISCONNECT_URL';
 
     private static instance: ModulePushData = null;
 
     public set_prompt_result: (
         notification: NotificationVO
-    ) => Promise<any> = APIControllerWrapper.sah(ModulePushData.APINAME_set_prompt_result);
+    ) => Promise<any> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModulePushData>().set_prompt_result);
 
-    public get_app_version: () => Promise<string> = APIControllerWrapper.sah(ModulePushData.APINAME_get_app_version);
+    public get_app_version: () => Promise<string> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModulePushData>().get_app_version);
 
-    public join_io_room: (room_fields: string[]) => Promise<void> = APIControllerWrapper.sah(ModulePushData.APINAME_join_io_room);
-    public leave_io_room: (room_fields: string[]) => Promise<void> = APIControllerWrapper.sah(ModulePushData.APINAME_leave_io_room);
+    public join_io_room: (room_fields: string[]) => Promise<void> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModulePushData>().join_io_room);
+    public leave_io_room: (room_fields: string[]) => Promise<void> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModulePushData>().leave_io_room);
 
     private constructor() {
 
@@ -49,27 +45,31 @@ export default class ModulePushData extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOParamVO, any>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<APISimpleVOParamVO, any>(
             null,
-            ModulePushData.APINAME_set_prompt_result,
+            this.name,
+            reflect<ModulePushData>().set_prompt_result,
             [NotificationVO.API_TYPE_ID],
             APISimpleVOParamVOStatic
         ));
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<void, string>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<void, string>(
             null,
-            ModulePushData.APINAME_get_app_version,
+            this.name,
+            reflect<ModulePushData>().get_app_version,
             []
         ));
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<string[], void>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<string[], void>(
             null,
-            ModulePushData.APINAME_join_io_room,
+            this.name,
+            reflect<ModulePushData>().join_io_room,
             []
         ));
-        APIControllerWrapper.registerApi(new PostAPIDefinition<string[], void>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<string[], void>(
             null,
-            ModulePushData.APINAME_leave_io_room,
+            this.name,
+            reflect<ModulePushData>().leave_io_room,
             []
         ));
     }

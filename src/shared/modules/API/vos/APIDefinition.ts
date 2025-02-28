@@ -20,10 +20,10 @@ export default abstract class APIDefinition<T, U> {
      */
     public SERVER_HANDLER: (...params) => Promise<U> = null;
 
-    /**
-     * ATTENTION permet de désactiver la protection CSRF sur une API, par exemple pour le webhook de sendinblue
-     */
-    public csrf_protection: boolean = true;
+    // /**
+    //  * ATTENTION permet de désactiver la protection CSRF sur une API, par exemple pour le webhook de sendinblue
+    //  */
+    // public csrf_protection: boolean = true;
 
     /**
      * Permet d'indiquer que la requete peut modifier le response de l'API et donc a besoin de ce paramètre
@@ -58,10 +58,10 @@ export default abstract class APIDefinition<T, U> {
         public api_return_type: number = 0) {
     }
 
-    public disable_csrf_protection(): APIDefinition<T, U> {
-        this.csrf_protection = false;
-        return this;
-    }
+    // public disable_csrf_protection(): APIDefinition<T, U> {
+    //     this.csrf_protection = false;
+    //     return this;
+    // }
 
     public does_not_need_response_param(): APIDefinition<T, U> {
         this.needs_response_param = false;

@@ -39,7 +39,7 @@ export default class ModulePlayWrightServer extends ModuleServerBase {
     public async configure() {
     }
 
-    protected async setup_and_login(access_code: string, req: Request, res: Response): Promise<string> {
+    protected async setup_and_login(access_code: string, req: Request): Promise<string> {
 
         if (!access_code || (access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code)) {
             ConsoleHandler.error('ModulePlayWrightServer setup_and_login: access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code');

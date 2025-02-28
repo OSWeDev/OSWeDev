@@ -16,12 +16,17 @@ export default class RunsOnBgThreadDataController {
         ...task_params: any[]) => Promise<boolean> = null;
 }
 
+type AsyncMethod = (...args: any[]) => Promise<any>;
 /**
+ * ATTENTION : la méthode décorée est obligatoirement async !
  * Decorator indicating and handling that the method should be executed on a bgthread
  * Optimized : if the method is called from the right thread, it will be executed directly and the annotation will be removed so that the method is executed directly next time
  */
 export function RunsOnBgThread(bgthread: string, instanceGetter: () => any, defaults_to_this_thread: boolean = false) {
-    return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    return function <T extends AsyncMethod>(
+        target: any,
+        propertyKey: string,
+        descriptor: PropertyDescriptor): TypedPropertyDescriptor<T> {
 
         if (ModulesManager.isGenerator) {
             // Sur le générateur on n'a qu'un seul thread dans tous les cas
@@ -29,6 +34,13 @@ export function RunsOnBgThread(bgthread: string, instanceGetter: () => any, defa
         }
 
         const originalMethod = descriptor.value;
+
+        // Vérification runtime : si la fonction n’est pas async, on bloque => valide uniquement côté serveur
+        if (ModulesManager.isServerSide && originalMethod.constructor.name !== 'AsyncFunction') {
+            throw new Error(
+                `La méthode "${propertyKey}" doit impérativement être déclarée "async".`
+            );
+        }
 
         //TODO register the method as a task on the main thread, with a UID based on the method name and the class name
         const task_UID = target.constructor.name + '.' + propertyKey;
@@ -48,7 +60,7 @@ export function RunsOnBgThread(bgthread: string, instanceGetter: () => any, defa
             }
         });
 
-        descriptor.value = async function (...args: any[]) {
+        descriptor.value = async function (...args: any[]) { // Attention si on déclare la fonction avec la flèche on perd le this
             if (!BGThreadServerDataManager.valid_bgthreads_names[bgthread]) { // not on the right bgthread
 
                 // Execute the method on the right process
@@ -98,7 +110,8 @@ export function RunsOnBgThread(bgthread: string, instanceGetter: () => any, defa
                     writable: true
                 });
                 // Call the original method
-                return originalMethod.apply(this, args);
+                const res = await originalMethod.apply(this, args);
+                return res;
             }
         };
 

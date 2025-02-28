@@ -1519,7 +1519,6 @@ export default class CRUDComponentField extends VueComponentBase
 
                     if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[id] != null)) {
                         newOptions.push(id);
-
                     }
                 }
                 if (this.isLoadingOptions) {
@@ -2298,7 +2297,7 @@ export default class CRUDComponentField extends VueComponentBase
 
                 const promises = [];
                 for (const e of this.field_value) {
-                    if (e._type) {
+                    if (e.range_type) {
                         promises.push(RangeHandler.foreach(e, async (v: number) => {
                             Vue.set(this.field_value_labels_by_id, v, await ref_field.voIdToHumanReadable(v, this.getStoredDatas[ref_field.targetModuleTable.vo_type] ? this.getStoredDatas[ref_field.targetModuleTable.vo_type][v] : null));
                         }));
