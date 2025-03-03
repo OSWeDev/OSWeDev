@@ -98,6 +98,11 @@ export default class FileServerController {
         });
     }
 
+    /**
+     * TODO FIXME en l'état c'est inutile, il existe await fs.promises.readFile qui fait la même chose, et qui renvoie correctement les erreurs...
+     * @param filepath
+     * @returns
+     */
     public async readFile(filepath: string): Promise<string> {
         return new Promise((resolve, reject) => {
             fs.readFile(filepath, ConfigurationService.node_configuration.server_encoding, function (err, data: string) {

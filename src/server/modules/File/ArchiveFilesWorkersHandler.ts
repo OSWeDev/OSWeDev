@@ -8,14 +8,6 @@ import TimeSegment from "../../../shared/modules/DataRender/vos/TimeSegment";
 
 export default class ArchiveFilesWorkersHandler {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ArchiveFilesWorkersHandler.instance) {
-            ArchiveFilesWorkersHandler.instance = new ArchiveFilesWorkersHandler();
-        }
-        return ArchiveFilesWorkersHandler.instance;
-    }
-
     private static instance: ArchiveFilesWorkersHandler = null;
 
     private constructor() {
@@ -31,5 +23,13 @@ export default class ArchiveFilesWorkersHandler {
         planCronWorker.worker_uid = ArchiveFilesCronWorker.getInstance().worker_uid;
 
         ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.error(error));
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ArchiveFilesWorkersHandler.instance) {
+            ArchiveFilesWorkersHandler.instance = new ArchiveFilesWorkersHandler();
+        }
+        return ArchiveFilesWorkersHandler.instance;
     }
 }

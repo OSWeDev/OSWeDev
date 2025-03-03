@@ -20,6 +20,7 @@ import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import ModuleFileServerBase from './ModuleFileServerBase';
 import { reflect } from '../../../shared/tools/ObjectHandler';
 import { IRequestStackContext } from '../../ServerExpressController';
+import ArchiveFilesConfVO from '../../../shared/modules/File/vos/ArchiveFilesConfVO';
 
 export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
@@ -122,6 +123,9 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
         const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preCreateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.check_secured_files_conf);
         preUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.check_secured_files_conf_update);
+
+        preCreateTrigger.registerHandler(ArchiveFilesConfVO.API_TYPE_ID, this, this.check_archive_conf_onc);
+        preUpdateTrigger.registerHandler(ArchiveFilesConfVO.API_TYPE_ID, this, this.check_archive_conf_onu);
     }
 
     public create_folder_if_not_exists(folder: string) {
@@ -195,6 +199,29 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
             await ModuleFileServer.getInstance().moveFile(f.path, new_folder);
             f.path = new_path;
             return true;
+        }
+
+        return true;
+    }
+
+    private async check_archive_conf_onu(vo_update_handler: DAOUpdateVOHolder<ArchiveFilesConfVO>): Promise<boolean> {
+        return this.check_archive_conf_onc(vo_update_handler.post_update_vo);
+    }
+
+    private async check_archive_conf_onc(conf: ArchiveFilesConfVO): Promise<boolean> {
+        if (!conf) {
+            return false;
+        }
+
+        if ((!conf.paths_to_check) || (!conf.paths_to_check.length)) {
+            return false;
+        }
+
+        // Si le début des répertoires n'est ni ./files/ ni ./sfiles/ on refuse
+        for (let i in conf.paths_to_check) {
+            if (!conf.paths_to_check[i].startsWith(ModuleFile.FILES_ROOT) && !conf.paths_to_check[i].startsWith(ModuleFile.SECURED_FILES_ROOT)) {
+                return false;
+            }
         }
 
         return true;

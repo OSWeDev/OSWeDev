@@ -390,7 +390,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             }
 
             const image_path = file_vo.path;
-            const base64Image = fs.readFileSync(image_path, { encoding: 'base64' });
+            const base64Image = await fs.promises.readFile(image_path, { encoding: 'base64' });
 
             const response = await GPTAssistantAPIServerController.wrap_api_call(
                 ModuleGPTServer.openai.chat.completions.create,
