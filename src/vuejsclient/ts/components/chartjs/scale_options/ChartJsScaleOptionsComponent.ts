@@ -82,6 +82,10 @@ export default class ChartJsScaleOptionsComponent extends VueComponentBase {
         this.emit_change();
     }
 
+    private get_type_label(type: string) {
+        return this.label(`chart_js_scale_type.${type}`);
+    }
+
     private handle_time_options_change(time: ITimeScaleFields) {
         this.time = time;
     }

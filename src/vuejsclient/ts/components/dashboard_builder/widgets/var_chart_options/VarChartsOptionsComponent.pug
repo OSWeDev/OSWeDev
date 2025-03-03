@@ -1,57 +1,86 @@
 .var_charts_options_component
-    .options_separator_lvl2 {{ label('var_charts_options_component.separator.var_options') }}
-    template(v-if='options_props.length >0')
-        .input_label {{ label('var_charts_options_component.use_palette') }}
-        .input_wrapper
-            toggle-button(
-                @change="switch_use_palette" 
-                :value="use_palette" 
-                :sync="true"
-                :width="60"
-                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+    .section
+        .section-header(@click="toggleHead()")
+            h4 {{ label('var_charts_options_component.separator.var_options') }}
+            i.icon.fa-solid(
+                @click.stop="toggleAll()"
+                :class="isAllOpen ? 'fa-eye-slash' : 'fa-eye'"
+                v-tooltip="isAllOpen ? label('var_charts_scales_options_component.tooltip.toggle_all_button.close') : label('var_charts_scales_options_component.tooltip.toggle_all_button.open')"
             )
-        template(v-if='use_palette')
-            multiselect(
-                :preselect-first="true"
-                :multiple="false"
-                v-model="tmp_selected_color_palette"
-                :options="color_palettes_labels"
-                :allow-empty="false",
-
-                :searchable="true"
-                :internal-search="true"
-                
-                select-label=''
-                select-group-label=''
-                selected-label=''
-                deselect-label=''
-                deselect-group-label=''
-
-                placeholder=''
-                
-                name="color_palette_selector"               
+            i.icon.fa-solid(
+                @click.stop="toggleAllAndChildren()"
+                :class="isAllAndChildrenOpen ? 'fa-angles-up' : 'fa-angles-down'"
+                v-tooltip="isAllAndChildrenOpen ? label('var_charts_scales_options_component.tooltip.toggle_all_and_children_button.close') : label('var_charts_scales_options_component.tooltip.toggle_all_and_children_button.open')"
             )
-    .var_charts_options_selector 
-        .add_var_chart_options_button_wrapper
-            button.btn-success.btn-lg.btn-block.add_var_chart_options_button(
-                @click="add_var_chart_options"
-            ) {{ label('var_charts_options_component.add_var_chart_options_button') }}
-        template
-            .input_wrapper(v-for="(var_chart_options, index) in options_props")
-                button.btn-primary.closer(
-                    @click="close_var_chart_options(index)"
-                ) {{ is_closed(index) ? label('var_charts_options_component.open_var_chart_options') + ' ' + ( var_chart_options.var_id ? 'Variable ' + get_var_name(var_chart_options.var_id) : ( (var_chart_options.type ? var_chart_options.type : ( (var_chart_options.chart_id ? var_chart_options.chart_id : '') ) ) ) ) : label('var_charts_options_component.close_var_chart_options') }}
-                template(v-if="!is_closed(index)")
-                    Varchartoptionsitemcomponent(
-                        @on_change="handle_var_chart_options_change(index, $event)"
-                        :get_var_name_code_text="get_var_name_code_text"
-                        :page_widget_id="page_widget_id"
-                        :options="var_chart_options"
-                        :use_palette="use_palette"
-                        :detailed="detailed"
-                        :fields_that_could_get_scales_filter="fields_that_could_get_scales_filter"
+            i.icon.fa-solid(
+                :class="isHeadOpen ? 'fa-caret-down' : 'fa-caret-right'"
+            )
+
+        .section-content(v-if="isHeadOpen")
+
+            //----- Toggle palette & palette select
+            template(v-if="options_props.length > 0")
+                .use_palette_toggle
+                    .container
+                        .input_wrapper
+                            toggle-button(
+                                @change="switch_use_palette" 
+                                :value="use_palette" 
+                                :sync="true"
+                                :width="60"
+                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                            )
+                        .input_label {{ label('var_charts_options_component.use_palette') }}
+
+                template(v-if="use_palette")
+                    // On passe un tableau d'objets, label="label", track-by="id"
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="false"
+                        v-model="tmp_selected_color_palette_id"
+                        :options="color_palettes_options"
+                        label="label"
+                        track-by="id"
+                        :allow-empty="false"
+                        :searchable="true"
+                        :internal-search="true"
+                        select-label=''
+                        select-group-label=''
+                        selected-label=''
+                        deselect-label=''
+                        deselect-group-label=''
+                        :placeholder="label('var_charts_options_component.color_palette_selector_placeholder')"
+                        name="color_palette_selector"
                     )
-                    button.btn-danger.btn-lg.btn-block.remove_var_chart_options_button(
-                        @click="remove_var_chart_options(index)"
-                    ) {{ label('var_charts_options_component.remove_var_chart_options_button') }}
 
+            //----- Liste d'items
+            .options_list
+                template(v-for="(item, index) in options_props")
+                    .section
+                        .section-header(@click="toggleSection(index)")
+                            span.scale-title {{ getScaleTitle(item, index) }}
+
+                            // icône suppr
+                            i.fa.fa-trash.delete-icon(@click.stop="remove_var_chart_options(index)")
+
+                            i.icon-open.fa-solid(:class="isOpen(index) ? 'fa-caret-down' : 'fa-caret-right'")
+
+                        .section-content(v-if="isOpen(index)")
+                            Varchartoptionsitemcomponent(
+                                @on_change="handle_var_chart_options_change(index, $event)"
+                                :get_var_name_code_text="get_var_name_code_text"
+                                :page_widget_id="page_widget_id"
+                                :options="item"
+                                :use_palette="use_palette"
+                                :detailed="detailed"
+                                :fields_that_could_get_scales_filter="fields_that_could_get_scales_filter"
+                                :sectionsOpen="openedSections[index]"
+                                @update-sections-open="onChildSectionsOpen(index, $event)"
+                                :get_custom_filters="get_custom_filters"
+                            )
+
+                // Bouton / icône d'ajout
+                i.fa.fa-plus.open-icon(
+                    @click="add_var_chart_options"
+                    v-tooltip="label('var_charts_options_component.add_var_chart_options_button')"
+                )

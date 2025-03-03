@@ -3,6 +3,8 @@ div.var_mixed_charts_widget_component(:style='widget_options ? {background: widg
     template(v-if='current_charts_var_params && current_charts_var_dataset_descriptor && current_options')
         .chart_wrapper
             .chart_frame
+                i.icon.fa-solid.fa-info-circle(:style='{color: "grey"}' v-tooltip="chart_result_txt" )
+                  
                 var-mixed-charts(
                     :charts_var_dataset_descriptor="current_charts_var_dataset_descriptor"
                     :charts_var_params="current_charts_var_params"
@@ -12,4 +14,5 @@ div.var_mixed_charts_widget_component(:style='widget_options ? {background: widg
                     :filter='var_filter'
                     :filter_additional_params='var_filter_additional_params'
                     :key="'var_mixed_charts_widget_' + page_widget.id"
-                )
+                    v-tooltip="chart_result_nb"
+                ) 

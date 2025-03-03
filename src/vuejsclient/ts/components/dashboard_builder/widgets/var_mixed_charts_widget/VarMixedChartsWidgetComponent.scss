@@ -1,11 +1,24 @@
 .var_mixed_charts_widget_component {
+
     .chart_wrapper {
         height: -webkit-fill-available;
 
         .chart_frame {
             height: -webkit-fill-available;
 
-            > div {
+            i.icon {
+                color: grey;
+                left: 50%;
+                right: auto;
+                display: flex;
+                position: relative;
+                font-size: large;
+
+
+            }
+
+
+            >div {
                 height: -webkit-fill-available;
 
                 .chartjs-size-monitor {

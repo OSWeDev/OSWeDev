@@ -32,6 +32,7 @@ export interface IChartOptions {
     hover?: any;
     onClick?: any;
     plugins?: any;
+    detailed?: boolean;
 }
 
 export interface IChartDataset {
@@ -89,6 +90,8 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
     private current_mixed_charts_data: any = null;
     private current_mixed_charts_options: any = null;
+
+    private chartKey: number = 0;
 
     private throttled_update_chart_js = ThrottleHelper.declare_throttle_without_args(
         'VarMixedChartComponent.throttled_update_chart_js',
@@ -182,10 +185,14 @@ export default class VarMixedChartComponent extends VueComponentBase {
                     if (!self.isDescMode) {
                         return;
                     }
+                    let all_chart_params: VarDataBaseVO[] = [];
 
+                    for (const chart_param of Object.values(this.charts_var_params)) {
+                        all_chart_params = all_chart_params.concat(chart_param);
+                    }
                     self.$modal.show(
                         VarDatasRefsParamSelectComponent,
-                        { var_params: this.charts_var_params },
+                        { var_params:  all_chart_params },
                         {
                             width: 465,
                             height: 'auto',
@@ -230,8 +237,6 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
                 if (this.getlabel && this.getlabel(var_param)) {
                     res.push(this.getlabel(var_param));
-                } else {
-                    res.push(this.t(VarsController.get_translatable_name_code_by_var_id(var_param.var_id)));
                 }
             }
 
@@ -252,7 +257,11 @@ export default class VarMixedChartComponent extends VueComponentBase {
         if (!this.charts_data || !this.charts_options) {
             return;
         }
-
+        if(this.current_mixed_charts_options) {
+            if (this.current_mixed_charts_options.detailed != this.charts_options.detailed) {
+                this.chartKey++;
+            }
+        }
         this.current_mixed_charts_data = this.charts_data;
         this.current_mixed_charts_options = this.charts_options;
     }
@@ -323,7 +332,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
     }
 
     public async created() {
-        let chart = Chart;
+        const chart = Chart;
         chart.register(ChartDataLabels, CategoryScale, LinearScale, LogarithmicScale, TimeScale, RadialLinearScale);
         window['Chart'] = chart;
         Chart['helpers'] = helpers;
@@ -574,8 +583,8 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
     private async destroyed() {
 
-        for (let chart_key in this.charts_var_params) {
-            let chart_var_params = this.charts_var_params[chart_key];
+        for (const chart_key in this.charts_var_params) {
+            const chart_var_params = this.charts_var_params[chart_key];
 
             await VarsClientController.getInstance().unRegisterParams(chart_var_params, this.varUpdateCallbacks);
         }

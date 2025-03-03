@@ -1,23 +1,61 @@
 .var_charts_scales_options_component
-    .options_separator_lvl2 {{ label('var_charts_scales_options_component.separator.var_options') }}
-    .var_charts_scales_options_selector 
-        .add_var_chart_scales_options_button_wrapper
-            button.btn-success.btn-lg.btn-block.add_var_chart_scales_options_button(
+    // SECTION globale
+    .section
+        .section-header(@click="toggleHead()")
+            h4 {{ label('var_charts_scales_options_component.separator.var_options') }}
+            i.icon.fa-solid(
+                @click.stop="toggleAll()"
+                :class="isAllOpen ? 'fa-eye-slash' : 'fa-eye'"
+                v-tooltip="isAllOpen ? label('var_charts_scales_options_component.tooltip.toggle_all_button.close') : label('var_charts_scales_options_component.tooltip.toggle_all_button.open')"
+            )
+            i.icon.fa-solid(
+                @click.stop="toggleAllAndChildren()"
+                :class="isAllAndChildrenOpen ? 'fa-angles-up' : 'fa-angles-down'"
+                v-tooltip="isAllAndChildrenOpen ? label('var_charts_scales_options_component.tooltip.toggle_all_and_children_button.close') : label('var_charts_scales_options_component.tooltip.toggle_all_and_children_button.open')"
+            )
+            i.icon.fa-solid(
+                :class="isHeadOpen ? 'fa-caret-down' : 'fa-caret-right'"
+            )
+        .section-content(v-if="isHeadOpen")
+            // Liste d'items
+            template
+                .scale_section(
+                    v-for="(item, index) in options_props"
+                    :key="index"
+                )
+                    .section
+                        // HEADER de l'item (avec caret, titre, edit & delete)
+                        .section-header(@click="toggleSection(index)")
+
+                            // Titre ou inline edit
+                            span.scale-title(v-if="!isEditingTitle(index)") {{ getScaleTitle(item, index) }}
+                            template(v-else)
+                                Inlinetranslatabletext(
+                                    :code_text="item.get_title_name_code_text(page_widget_id, item.chart_id)"
+                                    :is_editable="true"
+                                )
+
+                            // Edit icon
+                            i.fa.fa-pen.edit-icon(@click.stop="toggleEditTitle(index)")
+
+                            // Delete icon
+                            i.fa.fa-trash.delete-icon(@click.stop="remove_var_chart_scales_options(index)")
+                            
+                            i.icon.fa-solid(
+                                :class="isOpen(index) ? 'fa-caret-down' : 'fa-caret-right'"
+                            )
+                        // CONTENT
+                        .section-content(v-if="isOpen(index)")
+                            Varchartscalesoptionsitemcomponent(
+                                :options="item"
+                                :detailed="detailed"
+                                :sectionsOpen="openedSections[index]"
+                                :page_widget_id="page_widget_id"
+                                @on_change="handle_var_chart_scales_options_change(index, $event)"
+                                @update-sections-open="onChildSectionsOpen(index, $event)"
+                            )
+            i.fa.fa-plus.open-icon(
                 @click="add_var_chart_scales_options"
-            ) {{ label('var_chart_scales_options_component.add_var_chart_scales_options_button') }}
-        template
-            .input_wrapper(v-for="(var_chart_scales_options, index) in options_props")
-                button.btn-primary.closer(
-                        @click="close_var_chart_options(index)"
-                ) {{ is_closed(index) ? label('var_charts_options_component.open_var_chart_options') : label('var_charts_options_component.close_var_chart_options') }}
-                template(v-if="!is_closed(index)")
-                    Varchartscalesoptionsitemcomponent(
-                        @on_change="handle_var_chart_scales_options_change(index, $event)"
-                        :page_widget_id="page_widget_id"
-                        :options="var_chart_scales_options"
-                        :detailed="detailed"
-                    )
-                    button.btn-danger.btn-lg.btn-block.remove_var_chart_scales_options_button(
-                        @click="remove_var_chart_scales_options(index)"
-                    ) {{ label('var_chart_scales_options_component.remove_var_chart_scales_options_button') }}
+                v-tooltip="label('var_chart_scales_options_component.add_var_chart_scales_options_button')"
+            )
 

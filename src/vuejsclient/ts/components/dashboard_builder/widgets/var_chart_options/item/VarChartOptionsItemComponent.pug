@@ -1,177 +1,199 @@
-.var_chart_options_item_component 
+.var_chart_options_item_component
     .var_chart_options_item_component_wrapper
 
-        .options_separator_lvl2 {{ label('var_chart_options_item_component.separator.var_options') }}
-    
-        .chart_id
-            .input_label {{ label('var_chart_options_item_component.chart_id') }}
-            .input_wrapper 
-                input(
-                    v-model="chart_id"
-                    :disabled="true"
-                    type="text"
-                )
+        //====================================================
+        // SECTION : Options graphiques
+        //====================================================
+        .section
+            .section-header(@click="toggleSection('graphicalOptions')")
+                h4 {{ label('var_chart_options_item_component.section.graphical_options') }}
+                i.icon.fa-solid(:class="localSectionsOpen.graphicalOptions ? 'fa-caret-down' : 'fa-caret-right'")
 
-        .var_name 
-            .input_label {{ label('var_chart_options_item_component.var_name') }}
-            .input_wrapper
-                multiselect.var_name_selector(
-                    :preselect-first="false"
-                    :multiple="false"
-                    v-model="selected_var_name"
-                    :options="var_names"
-                    :allow-empty="false",
-
-                    :searchable="true"
-                    :internal-search="true"
-                    
-                    select-label=''
-                    select-group-label=''
-                    selected-label=''
-                    deselect-label=''
-                    deselect-group-label=''
-
-                    placeholder=''
-                    
-                    name="var_name_selector"
-                )
-                    .lang_selector_option(slot="noOptions") -
-
-        .var_title(v-if='page_widget_id && var_id && get_var_name_code_text(page_widget_id, var_id, chart_id)')
-            .var_title_label {{ label('var_chart_options_item_component.var_title.title_name_code_text') }}
-            .var_title_wrapper
-                Inlinetranslatabletext(
-                    :code_text="get_var_name_code_text(page_widget_id, var_id, chart_id)" 
-                    :is_editable="true"
-                )
-
-        .graphe_type 
-            .input_label {{ label('var_chart_options_item_component.graphe_type') }}
-            .input_wrapper
-                multiselect.graphe_type_selector(
-                    :preselect-first="false"
-                    :multiple="false"
-                    v-model="type"
-                    :options="graphe_types"
-                    :allow-empty="false",
-
-                    :searchable="true"
-                    :internal-search="true"
-                    
-                    select-label=''
-                    select-group-label=''
-                    selected-label=''
-                    deselect-label=''
-                    deselect-group-label=''
-
-                    placeholder=''
-                    
-                    name="graphe_type_selector"
-                )
-                    .lang_selector_option(slot="noOptions") -
-        template(v-if='!use_palette')
-            .bg_color
-                .explication {{ label("var_chart_options_item_component.bg_color") }}
-                color-picker(v-model="bg_color")
-
-            template(v-if='type !="line"')
-                .has_gradient 
-                    .explication {{ label("var_chart_options_item_component.has_gradient") }}
+            .section-content(v-if="localSectionsOpen.graphicalOptions")
+                // Var title
+                .var_title(v-if='page_widget_id && var_id && get_var_name_code_text(page_widget_id, var_id, chart_id)')
+                    .input_label {{ label('var_chart_options_item_component.var_title.title_name_code_text') }}
                     .input_wrapper
-                            toggle-button(
-                                @change="on_change_gradient" 
-                                :value="has_gradient" 
-                                :sync="true"
-                                :width="60"
-                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                            )
-
-            .border_color
-                .explication {{ label("var_chart_options_item_component.border_color") }}
-                color-picker(v-model="border_color")
-        template(v-if="detailed")
-            .border_width
-                .input_label {{ label('var_chart_options_item_component.border_width') }}
-                .input_wrapper
-                    input(
-                        v-model="border_width"
-                        type="number"
-                    )
-            .show_values 
-                .explication {{ label("var_chart_options_item_component.show_values") }}
-                .input_wrapper
-                        toggle-button(
-                            @change="switch_show_values" 
-                            :value="show_values" 
-                            :sync="true"
-                            :width="60"
-                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                        )
-            template(v-if="show_values")
-                .show_zeros 
-                    .explication {{ label("var_chart_options_item_component.show_zeros") }}
-                    .input_wrapper
-                            toggle-button(
-                                @change="switch_show_zeros" 
-                                :value="show_zeros" 
-                                :sync="true"
-                                :width="60"
-                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                            )
-                .value_label_size
-                    .explication {{ label('var_chart_options_item_component.value_label_size') }}
-                    .input_wrapper
-                        input(
-                            v-model="value_label_size"
-                            type="number"
-                        )
-                .explication {{ label('var_chart_options_item_component.datas_filter_options') }}
-                .filter_options
-                    .filter_options_wrapper
-                        Widgetfilteroptionscomponent(
-                            :actual_additional_options="filter_additional_params"
-                            :actual_filter_type="filter_type"
-                            @update_additional_options="update_additional_options"
-                            @update_filter_type="update_filter_type"
+                        Inlinetranslatabletext(
+                            :code_text="get_var_name_code_text(page_widget_id, var_id, chart_id)" 
+                            :is_editable="true"
                         )
 
-        template(v-if='fields_that_could_get_custom_filter && fields_that_could_get_custom_filter.length')
-            .fields_that_could_get_custom_filter
-                template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter')
-                    .field_that_could_get_custom_filter
-                        .field_label {{ label('var_chart_options_item_component.field_that_could_get_custom_filter') }}
-                        .custom_filter 
+                // Graph type
+                .graph_type 
+                    .input_label {{ label('var_chart_options_item_component.graph_type') }}
+                    .input_wrapper
+                        multiselect.graph_type_selector(
+                            :preselect-first="false"
+                            :multiple="false"
+                            v-model="type"
+                            :options="graph_types"
+                            :allow-empty="false"
+                            :searchable="true"
+                            :internal-search="true"
+                            :custom-label='get_type_label'
+                            select-label=''
+                            select-group-label=''
+                            selected-label=''
+                            deselect-label=''
+                            deselect-group-label=''
+                            placeholder=''
+                            name="graph_type_selector"
+                        )
+                            .lang_selector_option(slot="noOptions") -
+
+                // Couleurs (si on n'utilise pas de palette)
+                template(v-if='!use_palette')
+                    .bg_color
+                        .container
+                            .input_wrapper
+                                color-picker(
+                                    v-model="bg_color"
+                                    class="bg_color_picker"
+                                )
+                            .input_label {{ label("var_chart_options_item_component.bg_color") }}
+
+                    template(v-if='type != "line"')
+                        .has_gradient 
+                            .container
+                                .input_wrapper
+                                    toggle-button(
+                                        @change="on_change_gradient" 
+                                        :value="has_gradient" 
+                                        :sync="true"
+                                        :width="60"
+                                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                                    )
+                                .input_label {{ label("var_chart_options_item_component.has_gradient") }}
+
+                    .border_color
+                        .container
+                            .input_wrapper 
+                                color-picker(
+                                    v-model="border_color" 
+                                    class="bg_color_picker"
+                                )
+                            .input_label {{ label("var_chart_options_item_component.border_color") }}
+
+                // Avancé (detailed)
+                template(v-if="detailed")
+                    .border_width
+                        .input_label {{ label('var_chart_options_item_component.border_width') }}
+                        .input_wrapper
                             input(
-                                v-model="custom_filter_names[field_that_could_get_custom_filter]"
-                                :disabled="true"
-                                type="text"
+                                v-model="border_width"
+                                type="number"
                             )
-                        .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
-                            template(v-for='custom_filter in get_custom_filters')
-                                .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
+                    .show_values 
+                        .container
+                            .input_wrapper
+                                toggle-button(
+                                    @change="switch_show_values" 
+                                    :value="show_values" 
+                                    :sync="true"
+                                    :width="60"
+                                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                                )
+                            .input_label {{ label("var_chart_options_item_component.show_values") }}
 
-        template(v-if='fields_that_could_get_scales_filter && fields_that_could_get_scales_filter.length')
-            .fields_that_could_get_scales_filter
-                .field_label {{ label('var_chart_options_item_component.field_that_could_get_scales_filter') }}
-                .scale_filter 
-                    multiselect(
-                        :preselect-first="false"
-                        :multiple="false"
-                        v-model="selected_filter_name"
-                        :options="scale_filter_names"
-                        :allow-empty="false",
+                    template(v-if="show_values")
+                        .show_zeros 
+                            .container
+                                .input_wrapper
+                                    toggle-button(
+                                        @change="switch_show_zeros" 
+                                        :value="show_zeros" 
+                                        :sync="true"
+                                        :width="60"
+                                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                                    )
+                                .input_label {{ label("var_chart_options_item_component.show_zeros") }}
 
-                        :searchable="true"
-                        :internal-search="true"
+                        .value_label_size
+                            .input_label {{ label('var_chart_options_item_component.value_label_size') }}
+                            .input_wrapper
+                                input(
+                                    v-model="value_label_size"
+                                    type="number"
+                                )
 
-                        select-label=''
-                        select-group-label=''
-                        selected-label=''
-                        deselect-label=''
-                        deselect-group-label=''
 
-                        placeholder=''
+        //====================================================
+        // SECTION : Options filtres / custom filter / scale filter
+        //====================================================
+        .section
+            .section-header(@click="toggleSection('filterOptions')")
+                h4 {{ label('var_chart_options_item_component.section.filter_options') }}
+                i.icon.fa-solid(:class="localSectionsOpen.filterOptions ? 'fa-caret-down' : 'fa-caret-right'")
 
-                        name="fields_that_could_get_scales_filter_selector"
-                    )
+            .section-content(v-if="localSectionsOpen.filterOptions")
+                // Var name
+                .var_name 
+                    .input_label {{ label('var_chart_options_item_component.var_name') }}
+                    .input_wrapper
+                        multiselect.var_name_selector(
+                            :preselect-first="false"
+                            :multiple="false"
+                            v-model="selected_var_name"
+                            :options="var_names"
+                            :allow-empty="false"
+                            :searchable="true"
+                            :internal-search="true"
+                            select-label=''
+                            select-group-label=''
+                            selected-label=''
+                            deselect-label=''
+                            deselect-group-label=''
+                            placeholder=''
+                            name="var_name_selector"
+                        )
+                            .lang_selector_option(slot="noOptions") -
 
+                // scale_filter
+                template(v-if='fields_that_could_get_scales_filter && fields_that_could_get_scales_filter.length')
+                    .fields_that_could_get_scales_filter
+                        .input_label {{ label('var_chart_options_item_component.field_that_could_get_scales_filter') }}
+                        .input_wrapper 
+                            multiselect(
+                                :preselect-first="false"
+                                :multiple="false"
+                                v-model="selected_filter_name"
+                                :options="scale_filter_names"
+                                :allow-empty="false"
+                                :searchable="true"
+                                :internal-search="true"
+                                select-label=''
+                                select-group-label=''
+                                selected-label=''
+                                deselect-label=''
+                                deselect-group-label=''
+                                placeholder=''
+                                name="fields_that_could_get_scales_filter_selector"
+                            )
+
+                // Filtre principal
+                template(v-if="detailed")
+                    .filter_options
+                        .filter_options_wrapper
+                            Widgetfilteroptionscomponent(
+                                :actual_additional_options="filter_additional_params"
+                                :actual_filter_type="filter_type"
+                                @update_additional_options="update_additional_options"
+                                @update_filter_type="update_filter_type"
+                            )
+
+                // custom_filter
+                template(v-if='fields_that_could_get_custom_filter && fields_that_could_get_custom_filter.length')
+                    .fields_that_could_get_custom_filter
+                        template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter')
+                            .field_that_could_get_custom_filter
+                                .input_label {{ label('var_chart_options_item_component.field_that_could_get_custom_filter') }}
+                                .custom_filter 
+                                    input(
+                                        v-model="custom_filter_names[field_that_could_get_custom_filter]"
+                                        :disabled="true"
+                                        type="text"
+                                    )
+                                .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                                    template(v-for='custom_filter in get_custom_filters')
+                                        .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}

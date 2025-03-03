@@ -1,51 +1,73 @@
+@import 'skin-variables.scss';
+
 .var_charts_scales_options_component {
-    .var_charts_scales_options_selector {
-        .input_wrapper {
-            .btn-primary.closer {
-                width: 100%;
-                height: 30px;
-                margin-top: 10px;
-                border-radius: 5px;
-                background-color: #87949f !important;
-                border-color: #00000000 !important;
-                box-shadow: inset 0px -2px 0px rgb(0 0 0 / 45%);
+    .open-icon {
+        position: relative;
+        left: 50%;
+        font-size: xx-large;
+        color: $success_color;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+
+        &:hover {
+            transform: scale(1.1);
+        }
+    }
+
+    .scale_section {
+        .section {
+            border: $table_border;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            background-color: $input_editable_bg_color;
+
+            .section-header {
+                cursor: pointer;
+                padding: 0.75rem 1rem;
+                background-color: $button_primary_bg_color;
+                color: $button_text_color;
+                border-radius: 6px 6px 0 0;
+                display: flex;
+                align-items: center;
+                position: relative;
+
+                i.icon {
+                    margin-left: 2rem;
+
+                    &:hover {
+                        transform: scale(1.1);
+                    }
+                }
+
+                .scale-title {
+                    flex-grow: 1;
+                    font-size: 1rem;
+                }
+
+                .edit-icon,
+                .delete-icon {
+                    margin-left: 0.75rem;
+                    font-size: 1.1rem;
+                    cursor: pointer;
+
+                    &:hover {
+                        transform: scale(1.1);
+                    }
+                }
+
+                .delete-icon {
+                    color: $danger_color;
+
+                    &:hover {
+                        transform: scale(1.1);
+                    }
+                }
             }
-        }
-    }        
-    .options_separator_lvl1 {
-        font-size: medium;
-        margin-top: 1em;
-        background: white;
-        text-align: center;
-        border-radius: 1em;
-        padding: 0.5em;
-        font-weight: bold;
-        margin-bottom: 0.3em;
-        color: #333;
-    }
 
-    .options_separator_lvl2 {
-        margin-top: 1em;
-        text-align: center;
-        text-decoration: underline;
-    }
-
-    > div {
-        margin-bottom: 0.5em;
-
-        .input_label {
-            font-size: small;
-            color: #555;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 0.3em;
-            border: solid 1px #bbb;
-            border-radius: 2px;
-
-            &.multiselect__input {
-                border: none;
+            .section-content {
+                padding: 1rem;
+                background-color: $input_editable_bg_color;
+                border-radius: 0 0 6px 6px;
             }
         }
     }

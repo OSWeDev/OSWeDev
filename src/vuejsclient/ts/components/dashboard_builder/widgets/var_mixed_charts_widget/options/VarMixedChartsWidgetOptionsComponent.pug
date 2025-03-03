@@ -1,197 +1,153 @@
 .var_mixed_charts_widget_options_component
-
-    template(v-if='widget_options')
-        .hide_filter
+    //-======================================================================
+    //-=============  SECTION FILTER OPTIONS  ==============================
+    //-======================================================================
+    
+    .hide_filter
+        .container
+            .input_wrapper
+                toggle-button(
+                    @change="switch_hide_filter" 
+                    :value="hide_filter" 
+                    :sync="true"
+                    :width="100"
+                    :labels="{checked: t('YES'), unchecked: t('NO')}" 
+                )
             .input_label {{ label('var_mixed_charts_widget_options_component.hide_filter') }}
 
-            toggle-button(
-                @change="switch_hide_filter" 
-                :value="hide_filter" 
-                :sync="true"
-                :width="100"
-                :labels="{checked: t('YES'), unchecked: t('NO')}" 
-            )
+    //-======================================================================
+    //-=============  SECTION BASIC CHART OPTIONS  =========================
+    //-======================================================================
+    .section
+        .section-header(@click="toggleSection('chartBasic')")
+            h4 {{ label('var_mixed_charts_widget_options_component.section.chart_basic') }}
+            i.icon.fa-solid(:class="sectionsOpen.chartBasic ? 'fa-caret-down' : 'fa-caret-right'")
 
-        .options_separator_lvl1 {{ label('var_mixed_charts_widget_options_component.separator.widget_options') }}
-        .widget_title(v-if='title_name_code_text')
-            .widget_title_label {{ label('var_mixed_charts_widget_options_component.widget_title.title_name_code_text') }}
-            .widget_title_wrapper
-                Inlinetranslatabletext(
-                    :code_text="title_name_code_text" 
-                    :is_editable="true"
-                )
-        .bg_color
-            .explication {{ label("var_mixed_charts_widget_options_component.bg_color") }}
-            color-picker(v-model="bg_color" @change='throttled_update_colors')
-        
-        .options_separator_lvl1 {{ label('var_mixed_charts_widget_options_component.separator.chart_options') }}
-        .style_picker 
-            .input_label {{ label('var_mixed_charts_widget_options_component.switch_detailed') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_detailed" 
-                    :value="detailed" 
-                    :sync="false"
-                    :width="120"
-                    :labels="{checked: label('var_mixed_charts_widget_options_component.switch_detailed.detailed'), unchecked: label('var_mixed_charts_widget_options_component.switch_detailed.simple')}" 
-                )
-        .tooltip_picker 
-            .input_label {{ label('var_mixed_charts_widget_options_component.switch_tooltip_by_index') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_tooltip_by_index" 
-                    :value="tooltip_by_index" 
-                    :sync="false"
-                    :width="120"
-                    :labels="{checked: label('var_mixed_charts_widget_options_component.switch_tooltip_by_index.index'), unchecked: label('var_mixed_charts_widget_options_component.switch_tooltip_by_index.nearest')}" 
-                )
-        .options_separator_lvl2 {{ label('var_mixed_charts_widget_options_component.separator.chart_title_options') }}
-        .field_title_display
-            .input_label {{ label('var_mixed_charts_widget_options_component.title_display') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_title_display" 
-                    :value="title_display" 
-                    :sync="false"
-                    :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
-                )
+        .section-content(v-if="sectionsOpen.chartBasic")
 
-        template(v-if='title_display')
-            .title_font_color
-                .explication {{ label("var_mixed_charts_widget_options_component.title_font_color") }}
-                color-picker(v-model="title_font_color" @change='throttled_update_colors')
-            .title_font_size
-                .input_label {{ label('var_mixed_charts_widget_options_component.title_font_size') }}
-                .input_wrapper
-                    input(
-                        v-model="title_font_size"
-                        type="number"
-                    )
-            .title_padding
-                .input_label {{ label('var_mixed_charts_widget_options_component.title_padding') }}
-                .input_wrapper
-                    input(
-                        v-model="title_padding"
-                        type="number"
-                    )
+            //-======================================================================
+            //-=============  SECTION CHART TITLE OPTIONS  =========================
+            //-======================================================================
+            .section
+                .section-header(@click="toggleSection('chartTitle')")
+                    h4 {{ label('var_mixed_charts_widget_options_component.section.chart_title') }}
+                    i.icon.fa-solid(:class="sectionsOpen.chartTitle ? 'fa-caret-down' : 'fa-caret-right'")
 
-        .options_separator_lvl2 {{ label('var_mixed_charts_widget_options_component.separator.chart_legend_options') }}
-        .field_legend_display
-            .input_label {{ label('var_mixed_charts_widget_options_component.legend_display') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_legend_display" 
-                    :value="legend_display" 
-                    :sync="false"
-                    :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
-                )
+                .section-content(v-if="sectionsOpen.chartTitle")
+                    .field_title_display
+                        .container
+                            .input_wrapper
+                                toggle-button(
+                                    @change="switch_title_display" 
+                                    :value="title_display" 
+                                    :sync="false"
+                                    :width="60"
+                                    :labels="{ checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false') }"
+                                )
+                            .input_label {{ label('var_mixed_charts_widget_options_component.title_display') }}
 
-        template(v-if='legend_display')
-            .legend_position 
-                .input_label {{ label('var_mixed_charts_widget_options_component.legend_position') }}
-                .input_wrapper
-                    multiselect.var_name_selector(
-                        :preselect-first="false"
-                        :multiple="false"
-                        v-model="tmp_selected_legend_position"
-                        :options="legend_positions"
-                        :allow-empty="false",
+                    template(v-if='title_display')
+                        //--- Widget Title
+                        .widget_title(v-if='title_name_code_text')
+                            .input_label {{ label('var_mixed_charts_widget_options_component.widget_title.title_name_code_text') }}
+                            .input_wrapper
+                                Inlinetranslatabletext(
+                                    :code_text="title_name_code_text" 
+                                    :is_editable="true"
+                                )
+                        .title_font_color
+                            .input_label {{ label("var_mixed_charts_widget_options_component.title_font_color") }}
+                            .input_wrapper
+                                color-picker(
+                                    v-model="title_font_color" 
+                                    @change='throttled_update_colors'
+                                    class="bg_color_picker"
+                                )
+                        .title_font_size
+                            .input_label {{ label('var_mixed_charts_widget_options_component.title_font_size') }}
+                            .input_wrapper
+                                input(
+                                    v-model="title_font_size"
+                                    type="number"
+                                )
+                        .title_padding
+                            .input_label {{ label('var_mixed_charts_widget_options_component.title_padding') }}
+                            .input_wrapper
+                                input(
+                                    v-model="title_padding"
+                                    type="number"
+                                )
+            
 
-                        :searchable="true"
-                        :internal-search="true"
-
-                        select-label=''
-                        select-group-label=''
-                        selected-label=''
-                        deselect-label=''
-                        deselect-group-label=''
-
-                        placeholder=''
-
-                        name="legend_position_selector_1"
-                    )
-            .legend_font_color
-                .explication {{ label("var_mixed_charts_widget_options_component.legend_font_color") }}
-                color-picker(v-model="legend_font_color" @change='throttled_update_colors')
-            .legend_font_size
-                .input_label {{ label('var_mixed_charts_widget_options_component.legend_font_size') }}
-                .input_wrapper
-                    input(
-                        type="number"
-                        v-model="legend_font_size"
-                    )
-            .legend_box_width
-                .input_label {{ label('var_mixed_charts_widget_options_component.legend_box_width') }}
-                .input_wrapper
-                    input(
-                        type="number"
-                        v-model="legend_box_width"
-                    )
-            .legend_padding
-                .input_label {{ label('var_mixed_charts_widget_options_component.legend_padding') }}
-                .input_wrapper
-                    input(
-                        type="number"
-                        v-model="legend_padding"
-                    )
-            .field_legend_use_point_style
-                .input_label {{ label('var_mixed_charts_widget_options_component.legend_use_point_style') }}
-                .input_wrapper
-                    toggle-button(
-                        @change="switch_legend_use_point_style" 
-                        :value="legend_use_point_style" 
-                        :sync="false"
-                        :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
-                    )
-
-        .options_separator_lvl1 {{ label('var_mixed_charts_widget_options_component.separator.datas_options') }}
-        template(v-if='has_dimension')
-            .field_dimension_is_vo_field_ref
-                .input_label {{ label('var_mixed_charts_widget_options_component.dimension_is_vo_field_ref') }}
-                .input_wrapper
-                    toggle-button(
-                        @change="switch_dimension_is_vo_field_ref" 
-                        :value="dimension_is_vo_field_ref" 
-                        :sync="false"
-                        :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
-                    )
-
-            template(v-if='dimension_is_vo_field_ref')
-                .field_ref
-                    .input_label {{ label('var_mixed_charts_widget_options_component.dimension_vo_field_ref') }}
+            //--- Background Color
+            .bg_color
+                .container
                     .input_wrapper
-                        Singlevofieldrefholdercomponent(
-                            :vo_field_ref="dimension_vo_field_ref" @remove_field_ref="remove_dimension_vo_field_ref" @add_field_ref="add_dimension_vo_field_ref"
-                            :page_widget_id='page_widget ? page_widget.id : null'
+                        color-picker(
+                            v-model="bg_color" 
+                            @change='throttled_update_colors'
+                            class="bg_color_picker"
                         )
-
-            template(v-else)
-                .dimension_custom_filter_name
-                    .field_id {{ label('var_mixed_charts_widget_options_component.dimension_custom_filter_name') }}
-                    .custom_filter 
-                        input(
-                            v-model="dimension_custom_filter_name"
-                            :disabled="true"
-                            type="text"
+                    .input_label {{ label("var_mixed_charts_widget_options_component.bg_color") }}
+            //--- Style toggle
+            .style_picker 
+                .container
+                    .input_wrapper
+                        toggle-button(
+                            @change="switch_detailed" 
+                            :value="detailed" 
+                            :sync="false"
+                            :width="120"
+                            :labels="{ checked: label('var_mixed_charts_widget_options_component.switch_detailed.detailed'),unchecked: label('var_mixed_charts_widget_options_component.switch_detailed.simple') }"
                         )
-                    .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
-                        template(v-for='custom_filter in get_custom_filters')
-                            .custom_filter.clickable(@click='change_custom_filter_dimension(custom_filter)') {{ custom_filter }}
+                    .input_label {{ label('var_mixed_charts_widget_options_component.switch_detailed') }}
 
-                .dimension_custom_filter_segment_type 
-                    .input_label {{ label('var_mixed_charts_widget_options_component.dimension_custom_filter_segment_type') }}
+            //--- Tooltip toggle
+            .tooltip_picker 
+                .container
+                    .input_wrapper
+                        toggle-button(
+                            @change="switch_tooltip_by_index" 
+                            :value="tooltip_by_index" 
+                            :sync="false"
+                            :width="120"
+                            :labels="{ checked: label('var_mixed_charts_widget_options_component.switch_tooltip_by_index.index'),unchecked: label('var_mixed_charts_widget_options_component.switch_tooltip_by_index.nearest') }"
+                            v-tooltip="label('var_mixed_charts_widget_options_component.switch_tooltip_by_index.tooltip')"
+                        )
+                    .input_label {{ label('var_mixed_charts_widget_options_component.switch_tooltip_by_index') }}
+
+    //-======================================================================
+    //-=============  SECTION CHART LEGEND OPTIONS  ========================
+    //-======================================================================
+    .section
+        .section-header(@click="toggleSection('chartLegend')")
+            h4 {{ label('var_mixed_charts_widget_options_component.section.legend_options') }}
+            i.icon.fa-solid(:class="sectionsOpen.chartLegend ? 'fa-caret-down' : 'fa-caret-right'")
+
+        .section-content(v-if="sectionsOpen.chartLegend")
+            .field_legend_display
+                .container
+                    .input_wrapper
+                        toggle-button(
+                            @change="switch_legend_display" 
+                            :value="legend_display" 
+                            :sync="false"
+                            :width="60"
+                            :labels="{ checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false') }" 
+                        )
+                    .input_label {{ label('var_mixed_charts_widget_options_component.legend_display') }}
+
+            template(v-if='legend_display')
+                .legend_position 
+                    .input_label {{ label('var_mixed_charts_widget_options_component.legend_position') }}
                     .input_wrapper
                         multiselect.var_name_selector(
                             :preselect-first="false"
                             :multiple="false"
-                            v-model="tmp_selected_dimension_custom_filter_segment_type"
-                            :options="dimension_custom_filter_segment_types_values"
-                            :allow-empty="false",
-
+                            v-model="tmp_selected_legend_position"
+                            :options="legend_positions"
+                            :custom-label="get_legend_position_label"
+                            :allow-empty="false"
                             :searchable="true"
                             :internal-search="true"
 
@@ -200,104 +156,254 @@
                             selected-label=''
                             deselect-label=''
                             deselect-group-label=''
-
                             placeholder=''
 
-                            name="dimension_custom_filter_segment_type_selector_1"
+                            name="legend_position_selector_1"
                         )
-
-            .max_dimension_values
-                .input_label {{ label('var_mixed_charts_widget_options_component.max_dimension_values') }}
-                .input_wrapper
-                    input(
-                        type="number"
-                        v-model="max_dimension_values"
-                        v-tooltip="label('var_mixed_charts_widget_options_component.max_dimension_values.tooltip')"
-                    )
-
-            template(v-if='dimension_is_vo_field_ref')
-                .field_ref
-                    .input_label {{ label('var_mixed_charts_widget_options_component.sort_dimension_by_vo_field_ref') }}
-                    .input_wrapper
-                        Singlevofieldrefholdercomponent(
-                            :vo_field_ref="sort_dimension_by_vo_field_ref" @remove_field_ref="remove_sort_dimension_by_vo_field_ref" @add_field_ref="add_sort_dimension_by_vo_field_ref"
-                            :page_widget_id='page_widget ? page_widget.id : null'
+                .legend_font_color
+                    .input_label {{ label("var_mixed_charts_widget_options_component.legend_font_color") }}
+                    .input_wrapper    
+                        color-picker(
+                            v-model="legend_font_color" 
+                            @change='throttled_update_colors'
+                            class="bg_color_picker"
                         )
-
-            .field_sort_dimension_by_asc
-                .input_label {{ label('var_mixed_charts_widget_options_component.sort_dimension_by_asc') }}
-                .input_wrapper
-                    toggle-button(
-                        @change="switch_sort_dimension_by_asc" 
-                        :value="sort_dimension_by_asc" 
-                        :sync="false"
-                        :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
-                    )
-
-
-        .options_separator_lvl2 {{ label('var_mixed_charts_widget_options_component.separator.multiple_dataset') }}
-        .multiple_dataset_params
-            .field_ref.multiple_dataset_vo_field_ref
-                .input_label {{ label('var_mixed_charts_widget_options_component.multiple_dataset_vo_field_ref') }}
-                .input_wrapper
-                    Singlevofieldrefholdercomponent(
-                        :vo_field_ref="multiple_dataset_vo_field_ref" @remove_field_ref="remove_multiple_dataset_vo_field_ref" @add_field_ref="add_multiple_dataset_vo_field_ref"
-                        :page_widget_id='page_widget ? page_widget.id : null'
-                    )
-
-            template(v-if="multiple_dataset_vo_field_ref")
-                .max_dataset_values
-                    .input_label {{ label('var_mixed_charts_widget_options_component.max_dataset_values') }}
+                .legend_font_size
+                    .input_label {{ label('var_mixed_charts_widget_options_component.legend_font_size') }}
                     .input_wrapper
                         input(
                             type="number"
-                            v-model="max_dataset_values"
-                            v-tooltip="label('var_mixed_charts_widget_options_component.max_dataset_values.tooltip')"
+                            v-model="legend_font_size"
                         )
-        .options_separator_lvl2 {{ label('var_mixed_charts_widget_options_component.scale_options_x') }}
-        .show_scale_y
-            .input_label {{ label('var_mixed_charts_widget_options_component.show_scale_x') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_show_scale_x" 
-                    :value="show_scale_x" 
-                    :sync="true"
-                    :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
-                )
-        template(v-if='show_scale_x')
-            .scale_x_title
-                .input_label {{ label('var_mixed_charts_widget_options_component.scale_x_title') }}
-                .input_wrapper 
-                    Inlinetranslatabletext(
-                        :code_text="scale_x_code_text" 
-                        :is_editable="true"
+                .legend_box_width
+                    .input_label {{ label('var_mixed_charts_widget_options_component.legend_box_width') }}
+                    .input_wrapper
+                        input(
+                            type="number"
+                            v-model="legend_box_width"
+                        )
+                .legend_padding
+                    .input_label {{ label('var_mixed_charts_widget_options_component.legend_padding') }}
+                    .input_wrapper
+                        input(
+                            type="number"
+                            v-model="legend_padding"
+                        )
+                .field_legend_use_point_style
+                    .input_label {{ label('var_mixed_charts_widget_options_component.legend_style') }}
+                    .input_wrapper
+                        toggle-button(
+                            @change="switch_legend_use_point_style" 
+                            :value="legend_use_point_style" 
+                            :sync="false"
+                            :width="120"
+                            :labels="{ checked: label('var_mixed_charts_widget_options_component.legend_style.circle'), unchecked: label('var_mixed_charts_widget_options_component.legend_style.rectangle') }"
+                        )
+
+
+    //-======================================================================
+    //-=============  SECTION DATA OPTIONS  ================================
+    //-======================================================================
+    .section
+        .section-header(@click="toggleSection('dataOptions')")
+            h4 {{ label('var_mixed_charts_widget_options_component.section.data_options') }}
+            i.icon.fa-solid(:class="sectionsOpen.dataOptions ? 'fa-caret-down' : 'fa-caret-right'")
+
+        .section-content(v-if="sectionsOpen.dataOptions")
+            template(v-if='has_dimension')
+                .field_dimension_is_vo_field_ref
+                    .container
+                        .input_wrapper
+                            toggle-button(
+                                @change="switch_dimension_is_vo_field_ref" 
+                                :value="dimension_is_vo_field_ref" 
+                                :sync="false"
+                                :width="60"
+                                :labels="{ checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false') }"
+                            )
+                        .input_label {{ label('var_mixed_charts_widget_options_component.dimension_is_vo_field_ref') }}
+
+                template(v-if='dimension_is_vo_field_ref')
+                    .field_ref
+                        .input_label {{ label('var_mixed_charts_widget_options_component.dimension_vo_field_ref') }}
+                        .input_wrapper
+                            Singlevofieldrefholdercomponent(
+                                :vo_field_ref="dimension_vo_field_ref" 
+                                @remove_field_ref="remove_dimension_vo_field_ref" 
+                                @add_field_ref="add_dimension_vo_field_ref"
+                                :page_widget_id='page_widget ? page_widget.id : null'
+                            )
+
+                    .field_ref
+                        .input_label {{ label('var_mixed_charts_widget_options_component.sort_dimension_by_vo_field_ref') }}
+                        .input_wrapper
+                            Singlevofieldrefholdercomponent(
+                                :vo_field_ref="sort_dimension_by_vo_field_ref" 
+                                @remove_field_ref="remove_sort_dimension_by_vo_field_ref" 
+                                @add_field_ref="add_sort_dimension_by_vo_field_ref"
+                                :page_widget_id='page_widget ? page_widget.id : null'
+                            )
+                template(v-else)
+                    .dimension_custom_filter_name
+                        .input_label {{ label('var_mixed_charts_widget_options_component.dimension_custom_filter_name') }}
+                        .input_wrapper
+                            .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                                multiselect.custom_filter_selector(
+                                    :preselect-first="false"
+                                    :multiple="false"
+                                    v-model="tmp_selected_custom_filter"
+                                    :options="get_custom_filters"
+                                    :allow-empty="false"
+                                    :searchable="true"
+                                    :internal-search="true"
+
+                                    select-label=''
+                                    select-group-label=''
+                                    selected-label=''
+                                    deselect-label=''
+                                    deselect-group-label=''
+                                    placeholder=''
+
+                                    name="custom_filter_selector_1"
+                                )
+                                //- template(v-for='custom_filter in get_custom_filters')
+                                //-     .custom_filter.clickable(@click='change_custom_filter_dimension(custom_filter)') {{ custom_filter }}
+
+                    .dimension_custom_filter_segment_type 
+                        .input_label {{ label('var_mixed_charts_widget_options_component.dimension_custom_filter_segment_type') }}
+                        .input_wrapper
+                            multiselect.var_name_selector(
+                                :preselect-first="false"
+                                :multiple="false"
+                                v-model="tmp_selected_dimension_custom_filter_segment_type"
+                                :options="dimension_custom_filter_segment_types_values"
+                                :allow-empty="false"
+                                :searchable="true"
+                                :internal-search="true"
+
+                                select-label=''
+                                select-group-label=''
+                                selected-label=''
+                                deselect-label=''
+                                deselect-group-label=''
+                                placeholder=''
+
+                                name="dimension_custom_filter_segment_type_selector_1"
+                            )
+
+                .max_dimension_values
+                    .input_label {{ label('var_mixed_charts_widget_options_component.max_dimension_values') }}
+                    .input_wrapper
+                        input(
+                            type="number"
+                            v-model="max_dimension_values"
+                            v-tooltip="label('var_mixed_charts_widget_options_component.max_dimension_values.tooltip')"
+                        )
+
+                .field_sort_dimension_by_asc
+                    .container
+                        .input_wrapper
+                            toggle-button(
+                                @change="switch_sort_dimension_by_asc" 
+                                :value="sort_dimension_by_asc" 
+                                :sync="false"
+                                :width="60"
+                                :labels="{ checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false') }"
+                            )
+                        .input_label {{ label('var_mixed_charts_widget_options_component.sort_dimension_by_asc') }}
+
+                .multiple_dataset_params
+                    .field_ref.multiple_dataset_vo_field_ref
+                        .input_label {{ label('var_mixed_charts_widget_options_component.multiple_dataset_vo_field_ref') }}
+                        .input_wrapper
+                            Singlevofieldrefholdercomponent(
+                                :vo_field_ref="multiple_dataset_vo_field_ref" 
+                                @remove_field_ref="remove_multiple_dataset_vo_field_ref" 
+                                @add_field_ref="add_multiple_dataset_vo_field_ref"
+                                :page_widget_id='page_widget ? page_widget.id : null'
+                                v-tooltip="label('var_mixed_charts_widget_options_component.multiple_dataset_vo_field_ref.tooltip')"
+                            )
+
+                    template(v-if="multiple_dataset_vo_field_ref")
+                        .max_dataset_values
+                            .input_label {{ label('var_mixed_charts_widget_options_component.max_dataset_values') }}
+                            .input_wrapper
+                                input(
+                                    type="number"
+                                    v-model="max_dataset_values"
+                                    v-tooltip="label('var_mixed_charts_widget_options_component.max_dataset_values.tooltip')"
+                                )
+
+    //-======================================================================
+    //-=============  SECTION SCALE OPTIONS X  =============================
+    //-======================================================================
+    .section
+        .section-header(@click="toggleSection('scaleXOptions')")
+            h4 {{ label('var_mixed_charts_widget_options_component.section.scale_options_x') }}
+            i.icon.fa-solid(:class="sectionsOpen.scaleXOptions ? 'fa-caret-down' : 'fa-caret-right'")
+
+        .section-content(v-if="sectionsOpen.scaleXOptions")
+            .show_scale_x
+                .container
+                    .input_wrapper
+                        toggle-button(
+                            @change="switch_show_scale_x" 
+                            :value="show_scale_x" 
+                            :sync="true"
+                            :width="60"
+                            :labels="{ checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false') }"
+                        )
+                    .input_label {{ label('var_mixed_charts_widget_options_component.show_scale_x') }}
+
+            template(v-if='show_scale_x')
+                .scale_x_title
+                    .input_label {{ label('var_mixed_charts_widget_options_component.scale_x_title') }}
+                    .input_wrapper 
+                        Inlinetranslatabletext(
+                            :code_text="scale_x_code_text" 
+                            :is_editable="true"
+                        )
+
+            .scale_options_x 
+                .input_label {{ label('var_mixed_charts_widget_options_component.scale_x_type') }}
+                .input_wrapper
+                    Chartjsscaleoptionscomponent(
+                        @on_change="handle_scale_options_x_change"
+                        :options="scale_options_x"
+                    )      
+
+
+    //-======================================================================
+    //-=============  SECTION Y AXIS & VARIABLES  ==========================
+    //-======================================================================
+    //-Ici, nous gérons l'axe Y (via VarChartScalesOptionsComponent) et
+    //-la configuration des variables à afficher (via VarChartsOptionsComponent).
+    .section
+        .section-header(@click="toggleSection('yAxisOptions')")
+            h4 {{ label('var_mixed_charts_widget_options_component.section.y_axis_options') }}
+            i.icon.fa-solid(:class="sectionsOpen.yAxisOptions ? 'fa-caret-down' : 'fa-caret-right'")
+
+        .section-content(v-if="sectionsOpen.yAxisOptions")
+            //--- Échelles Y
+            .y_scales
+                .input_wrapper
+                    Varchartscalesoptionscomponent(
+                        @on_change="handle_var_chart_scales_options_change"
+                        :get_var_name_code_text="widget_options.get_var_name_code_text"
+                        :page_widget_id="page_widget.id"
+                        :options="fields_that_could_get_scales_filter"
+                        :detailed="detailed"
                     )
-        .scale_options_x 
-            .input_wrapper
-                Chartjsscaleoptionscomponent(
-                    @on_change="handle_scale_options_x_change"
-                    :options="scale_options_x"
-                )      
-        .input_wrapper
-            Varchartscalesoptionscomponent(
-                @on_change="handle_var_chart_scales_options_change"
-                :get_var_name_code_text="this.widget_options.get_var_name_code_text"
-                :page_widget_id="page_widget.id"
-                :options="fields_that_could_get_scales_filter"
-                :detailed="detailed"
-            )
-        .options_separator_lvl2
-        
-        .var_charts_options 
-            .input_wrapper
-                Varchartsoptionscomponent(
-                    @on_change="handle_var_charts_options_change"
-                    :get_var_name_code_text="this.widget_options.get_var_name_code_text"
-                    :page_widget_id="page_widget.id"
-                    :options="var_charts_options"
-                    :detailed="detailed"
-                    :fields_that_could_get_scales_filter="fields_that_could_get_scales_filter"
-                )
-            
+
+            //--- Variables du chart
+            .var_charts_options 
+                .input_wrapper
+                    Varchartsoptionscomponent(
+                        @on_change="handle_var_charts_options_change"
+                        :get_var_name_code_text="widget_options.get_var_name_code_text"
+                        :page_widget_id="page_widget.id"
+                        :options="var_charts_options"
+                        :detailed="detailed"
+                        :fields_that_could_get_scales_filter="fields_that_could_get_scales_filter"
+                        :get_custom_filters="get_custom_filters"
+                    )
