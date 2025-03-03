@@ -12,11 +12,14 @@ import DefaultTranslationVO from '../../../shared/modules/Translation/vos/Defaul
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import DashboardBuilderCronWorkersHandler from './DashboardBuilderCronWorkersHandler';
+import DashboardCycleChecker from './DashboardCycleChecker';
 import FavoritesFiltersVOService from './service/FavoritesFiltersVOService';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
@@ -56,6 +59,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Max'
         }, 'StatVO.AGGREGATOR_MAX'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Ouvrir le dashboard'
+        }, 'DashboardCycleChecker.open_dashboard.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Filtres favoris'
@@ -3677,6 +3684,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
+
+        const postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        postUTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onUDashboardVO);
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -3798,5 +3808,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         e.i = max_i + 1;
 
         return;
+    }
+
+    private async onUDashboardVO(wrapper: DAOUpdateVOHolder<DashboardVO>) {
+        return DashboardCycleChecker.detectCyclesForDashboards({ [wrapper.post_update_vo.id]: true });
     }
 }

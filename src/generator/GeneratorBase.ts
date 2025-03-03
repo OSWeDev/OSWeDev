@@ -140,6 +140,7 @@ import Patch20241224SupervisionFillProbe from './patchs/postmodules/Patch2024122
 import Patch20250102AddRightsSupervisedProbe from './patchs/postmodules/Patch20250102AddRightsSupervisedProbe';
 import Patch20250106createTableSupProbe from './patchs/premodules/Patch20250106createTableSupProbe';
 import Patch20250115UpdateGraphsPalettes from './patchs/postmodules/Patch20250115UpdateGraphsPalettes';
+import Patch20250228DeleteDuplicateGraphVO from './patchs/premodules/Patch20250228DeleteDuplicateGraphVO';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -237,6 +238,7 @@ export default abstract class GeneratorBase {
             // Patch20241129PreCreateEventsConfs.getInstance(),
             // Patch20241126TruncateLogs.getInstance(),
             Patch20250106createTableSupProbe.getInstance(),
+            Patch20250228DeleteDuplicateGraphVO.getInstance(),
         ];
 
         this.post_modules_workers = [

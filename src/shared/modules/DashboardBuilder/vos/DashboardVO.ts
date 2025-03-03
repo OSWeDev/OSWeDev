@@ -10,6 +10,11 @@ export default class DashboardVO implements IDistantVOBase, IWeightedItem {
 
     public id: number;
 
+    public cycle_tables: string[];
+    public cycle_fields: { [voType: string]: string[] };
+    public cycle_links: { [voType: string]: string[] };
+    public has_cycle: boolean;
+
     public weight: number;
 
     get translatable_name_code_text(): string {
