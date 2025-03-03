@@ -483,6 +483,10 @@ export default class PushDataVueModule extends VueModuleBase {
     }
 
     private async notifications_handler_TYPE_NOTIF_VO_CREATED(notifications: NotificationVO[]) {
+
+        // On invalide le cache des vo_type concernés
+        const vos_types: { [vo_type_id: string]: boolean } = {};
+
         for (const i in notifications) {
             const notification = notifications[i];
 
@@ -490,28 +494,43 @@ export default class PushDataVueModule extends VueModuleBase {
                 const vo = notification.vos[0];
 
                 VOEventRegistrationsHandler.registered_vo_create_callbacks[notification.room_id][j](vo);
+                vos_types[vo._type] = true;
             }
         }
+
+        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved(Object.keys(vos_types));
     }
 
     private async notifications_handler_TYPE_NOTIF_VO_UPDATED(notifications: NotificationVO[]) {
+        // On invalide le cache des vo_type concernés
+        const vos_types: { [vo_type_id: string]: boolean } = {};
+
         for (const i in notifications) {
             const notification = notifications[i];
 
             for (const j in VOEventRegistrationsHandler.registered_vo_update_callbacks[notification.room_id]) {
                 VOEventRegistrationsHandler.registered_vo_update_callbacks[notification.room_id][j](notification.vos[0], notification.vos[1]);
+                vos_types[notification.vos[0]._type] = true;
             }
         }
+
+        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved(Object.keys(vos_types));
     }
 
     private async notifications_handler_TYPE_NOTIF_VO_DELETED(notifications: NotificationVO[]) {
+        // On invalide le cache des vo_type concernés
+        const vos_types: { [vo_type_id: string]: boolean } = {};
+
         for (const i in notifications) {
             const notification = notifications[i];
 
             for (const j in VOEventRegistrationsHandler.registered_vo_delete_callbacks[notification.room_id]) {
                 VOEventRegistrationsHandler.registered_vo_delete_callbacks[notification.room_id][j](notification.vos[0]);
+                vos_types[notification.vos[0]._type] = true;
             }
         }
+
+        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved(Object.keys(vos_types));
     }
 
     private async notifications_handler_TYPE_NOTIF_APIRESULT(notifications: NotificationVO[]) {
