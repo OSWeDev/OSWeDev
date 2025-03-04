@@ -125,7 +125,7 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
                         }
                     }
 
-                    const archiveDir = this.build_archive_path(file_path, conf, stat);
+                    const archiveDir = await this.build_archive_path(file_path, conf, stat);
                     if (!archiveDir) {
                         throw new Error('Erreur lors de la construction du chemin d\'archivage : ' + file_path + ' - ' + JSON.stringify(conf));
                     }
@@ -204,11 +204,11 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
         return regexList.some((pattern) => new RegExp(pattern, 'i').test(fileName));
     }
 
-    private build_archive_path(
+    private async build_archive_path(
         unarchived_file_path: string,
         conf: ArchiveFilesConfVO,
         file_stats: fs.Stats,
-    ): string {
+    ): Promise<string> {
 
         if (!conf) {
             return null;
@@ -259,6 +259,37 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
                 break;
             default:
                 throw new Error('NOT IMPLEMENTED');
+        }
+
+        // Si on a activé le max_files_per_archive_folder, on classe immédiatement dans des répertoires de 100000 fichiers, /X/XXXX.zip ou X est un nombre de 0 à +inf
+        // On regarde les répertoires présents et on prend le plus grand, et +1 si on a déjà atteint le max_files_per_archive_folder dans le dernier répertoire
+        // On peut (et on devrait probablement) faire un cache de ce max_folder pour éviter de le recalculer à chaque fois => en base par exemple ou en fichier dans le repertoire d'archivage
+        if (conf.max_files_per_archive_folder) {
+            let max_folder = 0;
+            if (fs.existsSync(archive_path)) {
+                const files = await fs.promises.readdir(archive_path);
+                for (const file of files) {
+                    if (fs.statSync(path.join(archive_path, file)).isDirectory()) {
+
+                        try {
+                            const folder = parseInt(file);
+                            if (folder > max_folder) {
+                                max_folder = folder;
+                            }
+                        } catch (error) {
+                            ConsoleHandler.warn('ArchiveFilesCronWorker - Répertoire d\'archivage non numérique : ' + file);
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            let folder = max_folder;
+            if (fs.existsSync(archive_path) && (await fs.promises.readdir(archive_path)).length >= conf.max_files_per_archive_folder) {
+                folder++;
+            }
+
+            archive_path = path.join(archive_path, folder.toString());
         }
 
         return archive_path;
