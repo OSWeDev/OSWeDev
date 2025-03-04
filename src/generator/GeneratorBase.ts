@@ -143,6 +143,7 @@ import Patch20250115UpdateGraphsPalettes from './patchs/postmodules/Patch2025011
 import Patch20250228DeleteDuplicateGraphVO from './patchs/premodules/Patch20250228DeleteDuplicateGraphVO';
 import Patch20250224AddDbbTrad from './patchs/postmodules/Patch20250224AddDbbTrad';
 import Patch20250224AddDefaultPalette from './patchs/postmodules/Patch20250224AddDefaultPalette';
+import Patch20250304TruncateArchivesConfVO from './patchs/premodules/Patch20250304TruncateArchivesConfVO';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -241,6 +242,7 @@ export default abstract class GeneratorBase {
             // Patch20241126TruncateLogs.getInstance(),
             Patch20250106createTableSupProbe.getInstance(),
             Patch20250228DeleteDuplicateGraphVO.getInstance(),
+            Patch20250304TruncateArchivesConfVO.getInstance(),
         ];
 
         this.post_modules_workers = [

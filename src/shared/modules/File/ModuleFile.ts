@@ -9,6 +9,7 @@ import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
+import VersionedVOController from '../Versioned/VersionedVOController';
 import ArchiveFilesConfVO from './vos/ArchiveFilesConfVO';
 import FileVO from './vos/FileVO';
 
@@ -86,7 +87,7 @@ export default class ModuleFile extends Module {
 
         ModuleTableFieldController.create_new(ArchiveFilesConfVO.API_TYPE_ID, field_names<ArchiveFilesConfVO>().max_tentatives, ModuleTableFieldVO.FIELD_TYPE_int, 'Nombre max de tentatives', true, true, 3);
 
-        ModuleTableController.create_new(this.name, ArchiveFilesConfVO, label_field, "Conf archivage des fichiers");
+        VersionedVOController.getInstance().registerModuleTable(ModuleTableController.create_new(this.name, ArchiveFilesConfVO, label_field, "Conf archivage des fichiers"));
     }
 
     public registerApis() {

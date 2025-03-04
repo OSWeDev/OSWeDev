@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.34.42-pre.0",
+    "version": "0.34.42-pre.1",
     "description": "",
     "repository": {
         "type": "git",
@@ -89,6 +89,7 @@
         "lodash": "4.17.21",
         "longjohn": "0.2.12",
         "mathjs": "10.6.4",
+        "mime-types": "2.1.35",
         "mkdirp": "0.5.1",
         "moment": "2.24.0",
         "node": "22.11.0",

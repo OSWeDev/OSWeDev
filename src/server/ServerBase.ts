@@ -1,6 +1,7 @@
 import child_process from 'child_process';
-import cookieParser from 'cookie-parser';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
+import mime from 'mime-types';
 // import csrf from 'csurf';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import createLocaleMiddleware from 'express-locale';
@@ -10,7 +11,7 @@ import fs from 'fs';
 import helmet from 'helmet';
 import path from 'path';
 import pg from 'pg';
-import pg_promise, { IDatabase, IEventContext, IResultExt, ITaskContext } from 'pg-promise';
+import pg_promise, { IDatabase, IEventContext, IResultExt } from 'pg-promise';
 import socketIO from 'socket.io';
 import winston from 'winston';
 import winston_daily_rotate_file from 'winston-daily-rotate-file';
@@ -52,11 +53,15 @@ import PushDataServerController from './modules/PushData/PushDataServerControlle
 import StatsServerController from './modules/Stats/StatsServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 // import { createTerminus } from '@godaddy/terminus';
+import expressStaticGzip from 'express-static-gzip';
 import { IClient } from 'pg-promise/typescript/pg-subset';
+import APIDefinition from '../shared/modules/API/vos/APIDefinition';
 import EventsController from '../shared/modules/Eventify/EventsController';
+import OseliaReferrerVO from '../shared/modules/Oselia/vos/OseliaReferrerVO';
 import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
 import { field_names } from '../shared/tools/ObjectHandler';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
+import StackContextWrapper from '../shared/tools/StackContextWrapper';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
 import BGThreadServerDataManager from './modules/BGThread/BGThreadServerDataManager';
@@ -69,13 +74,8 @@ import PingForkMessage from './modules/Fork/messages/PingForkMessage';
 import OseliaServerController from './modules/Oselia/OseliaServerController';
 import ParamsServerController from './modules/Params/ParamsServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
-import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
-import APIDefinition from '../shared/modules/API/vos/APIDefinition';
-import expressStaticGzip from 'express-static-gzip';
-import StackContextWrapper from '../shared/tools/StackContextWrapper';
 import AsyncHookPromiseWatchController from './modules/Stats/AsyncHookPromiseWatchController';
-import OseliaReferrerVO from '../shared/modules/Oselia/vos/OseliaReferrerVO';
-import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
+import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 
 export default abstract class ServerBase {
 
@@ -925,14 +925,18 @@ export default abstract class ServerBase {
     }
 
     /**
-     * Pas trouvé à faire une route récursive propre, on limite à 5 sous-reps
+     * Pas trouvé à faire une route récursive propre, on limite à 7 sous-reps
      */
     private async sfiles_middleware(req: Request, res: Response, next: NextFunction) {
         const folders = (req.params.folder1 ? req.params.folder1 + '/' + (
             req.params.folder2 ? req.params.folder2 + '/' + (
                 req.params.folder3 ? req.params.folder3 + '/' + (
                     req.params.folder4 ? req.params.folder4 + '/' + (
-                        req.params.folder5 ? req.params.folder5 + '/' : ''
+                        req.params.folder5 ? req.params.folder5 + '/' + (
+                            req.params.folder6 ? req.params.folder6 + '/' + (
+                                req.params.folder7 ? req.params.folder7 + '/' : ''
+                            ) : ''
+                        ) : ''
                     ) : ''
                 ) : ''
             ) : ''
@@ -978,6 +982,73 @@ export default abstract class ServerBase {
         }
         res.sendFile(path.resolve(file.path));
     }
+
+    /**
+     * Pas trouvé à faire une route récursive propre, on limite à 7 sous-reps
+     */
+    private async files_middleware(req: Request, res: Response, next: NextFunction) {
+        const folders = (req.params.folder1 ? req.params.folder1 + '/' + (
+            req.params.folder2 ? req.params.folder2 + '/' + (
+                req.params.folder3 ? req.params.folder3 + '/' + (
+                    req.params.folder4 ? req.params.folder4 + '/' + (
+                        req.params.folder5 ? req.params.folder5 + '/' + (
+                            req.params.folder6 ? req.params.folder6 + '/' + (
+                                req.params.folder7 ? req.params.folder7 + '/' : ''
+                            ) : ''
+                        ) : ''
+                    ) : ''
+                ) : ''
+            ) : ''
+        ) : '');
+        const file_name = req.params.file_name;
+
+        if (file_name.indexOf(';') >= 0) {
+            next();
+            return;
+        }
+
+        if (file_name.indexOf(')') >= 0) {
+            next();
+            return;
+        }
+
+        if (file_name.indexOf("'") >= 0) {
+            next();
+            return;
+        }
+
+        let file: FileVO = null;
+
+        file = await query(FileVO.API_TYPE_ID)
+            .filter_is_true(field_names<FileVO>().is_secured)
+            .filter_by_text_eq(field_names<FileVO>().path, ModuleFile.SECURED_FILES_ROOT + folders + file_name)
+            .exec_as_server()
+            .select_vo<FileVO>();
+
+        /**
+         * Gestion de l'archivage des fichiers /files
+         */
+        if (file && file.is_archived && file.archive_path) {
+
+            // On doit charger le fichier avec fs.promises.readFile et le renvoyer
+            //  readFile a été modifié pour réaliser du stream depuis le zip en cas d'archivage ce qui est le cas ici, donc on peut le renvoyer directement
+            const archive_path = file.archive_path;
+
+            const archive_file = await fs.promises.readFile(archive_path);
+
+            // On déduit le type mime de l'extension du fichier
+            const mime_type = mime.getType(file_name);
+            res.setHeader('Content-Type', mime_type);
+            res.setHeader('Content-Length', archive_file.length);
+            res.setHeader('Content-Disposition', 'attachment; filename=' + file_name);
+            res.end(archive_file);
+
+            return;
+        }
+
+        res.sendFile(path.resolve(file.path));
+    }
+
 
     private apply_middlewares(middlewares_by_urls_and_methdods: { [url: string]: { [method: string]: ((req: Request, res: Response, next: NextFunction) => void)[] } }) {
         for (const method_s in middlewares_by_urls_and_methdods) {
