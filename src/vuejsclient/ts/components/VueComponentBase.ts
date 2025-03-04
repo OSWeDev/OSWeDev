@@ -1270,6 +1270,16 @@ export default class VueComponentBase extends Vue
                     }
                     break;
 
+                case ModuleTableFieldVO.FIELD_TYPE_boolean:
+                    if ((simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL) &&
+                        (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_BOOLEAN_FALSE_ANY) &&
+                        (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL) &&
+                        (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_BOOLEAN_TRUE_ANY)) {
+                        throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type +
+                            ' for field_id ' + simple_filter_on_api_type_id.field_name + ' of field_type ' + field_type);
+                    }
+                    break;
+
                 default:
                     throw new Error('simple_filters_on_api_type_id field_type Not implemented' +
                         ' for field_id ' + simple_filter_on_api_type_id.field_name + ' of field_type ' + field_type);
@@ -1374,6 +1384,14 @@ export default class VueComponentBase extends Vue
                 case ModuleTableFieldVO.FIELD_TYPE_file_field:
                 case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     room_vo[simple_filter_on_api_type_id.field_name] = simple_filter_on_api_type_id.param_text;
+                    break;
+
+                case ModuleTableFieldVO.FIELD_TYPE_boolean:
+                    room_vo[simple_filter_on_api_type_id.field_name] =
+                        (
+                            (simple_filter_on_api_type_id.filter_type == ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL) ||
+                            (simple_filter_on_api_type_id.filter_type == ContextFilterVO.TYPE_BOOLEAN_FALSE_ANY)
+                        ) ? false : true;
                     break;
 
                 default:

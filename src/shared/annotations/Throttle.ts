@@ -67,8 +67,9 @@ export default function Throttle(options: ThrottleOptions) {
         }
 
         // Récupérer les indices des paramètres spéciaux
-        const preThrottleIndex: number = Reflect.getMetadata('PreThrottleParam', target, propertyKey);
-        const postThrottleIndex: number = Reflect.getMetadata('PostThrottleParam', target, propertyKey);
+        const has_map_param_type = (options.param_type == EventifyEventListenerConfVO.PARAM_TYPE_MAP);
+        const preThrottleIndex: number = has_map_param_type ? 0 : Reflect.getMetadata('PreThrottleParam', target, propertyKey);
+        const postThrottleIndex: number = has_map_param_type ? 0 : Reflect.getMetadata('PostThrottleParam', target, propertyKey);
         const has_no_param = (options.param_type == EventifyEventListenerConfVO.PARAM_TYPE_NONE);
 
         if ((!has_no_param) && (preThrottleIndex === undefined)) {
@@ -152,7 +153,7 @@ export default function Throttle(options: ThrottleOptions) {
                                         null,
                                         l.current_params_map as { [map_elt_id: string]: unknown });
                                 } else {
-                                    await originalMethod.apply(self, l.current_params_map as { [map_elt_id: string]: unknown });
+                                    await originalMethod.apply(self, [l.current_params_map as { [map_elt_id: string]: unknown }]);
                                 }
                             },
                         );
