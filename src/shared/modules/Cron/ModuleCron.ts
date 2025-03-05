@@ -12,6 +12,7 @@ import CronWorkerPlanification from './vos/CronWorkerPlanification';
 
 export default class ModuleCron extends Module {
 
+
     public static MODULE_NAME: string = "Cron";
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleCron.MODULE_NAME;
@@ -21,6 +22,25 @@ export default class ModuleCron extends Module {
     public static APINAME_executeWorkerManually: string = "executeWorkerManually";
     public static APINAME_run_manual_task: string = "run_manual_task";
     public static APINAME_get_manual_tasks: string = "get_manual_tasks";
+    public static APINAME_get_patch_premodules: string = "get_patch_premodules";
+    public static APINAME_get_patch_postmodules: string = "get_patch_postmodules";
+    public static APINAME_rerun_patch: string = "rerun_patch";
+
+    private static instance: ModuleCron = null;
+
+    public get_manual_tasks: () => Promise<string[]> = APIControllerWrapper.sah(ModuleCron.APINAME_get_manual_tasks);
+    public run_manual_task: (name: string) => void = APIControllerWrapper.sah(ModuleCron.APINAME_run_manual_task);
+    public executeWorkersManually: () => void = APIControllerWrapper.sah(ModuleCron.APINAME_executeWorkersManually);
+    public executeWorkerManually: (worker_uid: string) => void = APIControllerWrapper.sah(ModuleCron.APINAME_executeWorkerManually);
+    public get_patch_premodules: () => Promise<string[]> = APIControllerWrapper.sah(ModuleCron.APINAME_get_patch_premodules);
+    public get_patch_postmodules: () => Promise<string[]> = APIControllerWrapper.sah(ModuleCron.APINAME_get_patch_postmodules);
+    public rerun_patch: (patch: string) => void = APIControllerWrapper.sah(ModuleCron.APINAME_rerun_patch);
+
+    private constructor() {
+
+        super("cron", ModuleCron.MODULE_NAME);
+        this.forceActivationOnInstallation();
+    }
 
     // istanbul ignore next: nothing to test
     public static getInstance(): ModuleCron {
@@ -30,18 +50,6 @@ export default class ModuleCron extends Module {
         return ModuleCron.instance;
     }
 
-    private static instance: ModuleCron = null;
-
-    public get_manual_tasks: () => Promise<string[]> = APIControllerWrapper.sah(ModuleCron.APINAME_get_manual_tasks);
-    public run_manual_task: (name: string) => void = APIControllerWrapper.sah(ModuleCron.APINAME_run_manual_task);
-    public executeWorkersManually: () => void = APIControllerWrapper.sah(ModuleCron.APINAME_executeWorkersManually);
-    public executeWorkerManually: (worker_uid: string) => void = APIControllerWrapper.sah(ModuleCron.APINAME_executeWorkerManually);
-
-    private constructor() {
-
-        super("cron", ModuleCron.MODULE_NAME);
-        this.forceActivationOnInstallation();
-    }
 
     public registerApis() {
 
@@ -66,6 +74,25 @@ export default class ModuleCron extends Module {
             ModuleCron.POLICY_BO_ACCESS,
             ModuleCron.APINAME_run_manual_task,
             [CronWorkerPlanification.API_TYPE_ID],
+            StringParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, string[]>(
+            ModuleCron.POLICY_BO_ACCESS,
+            ModuleCron.APINAME_get_patch_premodules,
+            null
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, string[]>(
+            ModuleCron.POLICY_BO_ACCESS,
+            ModuleCron.APINAME_get_patch_postmodules,
+            null
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
+            ModuleCron.POLICY_BO_ACCESS,
+            ModuleCron.APINAME_rerun_patch,
+            null,
             StringParamVOStatic
         ));
     }

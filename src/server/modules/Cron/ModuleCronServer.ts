@@ -1,3 +1,4 @@
+import GeneratorPatchsListHandler from '../../../generator/GeneratorPatchsListHandler';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -7,15 +8,16 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleCron from '../../../shared/modules/Cron/ModuleCron';
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
+import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import CronServerController from './CronServerController';
@@ -48,6 +50,33 @@ export default class ModuleCronServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Supervision des CRONs'
         }, 'menu.menuelements.admin.sup_cron.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Patchs PRE-MODULES'
+        }, 'cron.patch_premodule.head.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': '{patch_premodule}'
+        }, 'cron.patch_premodule.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Patchs POST-MODULES'
+        }, 'cron.patch_postmodule.head.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': '{patch_postmodule}'
+        }, 'cron.patch_postmodule.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Rerun du patch PRE-MODULES...'
+        }, 'CronComponent.info.patch_premodule.started.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Rerun du patch PRE-MODULES terminé !'
+        }, 'CronComponent.info.patch_premodule.ended.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Rerun du patch POST-MODULES...'
+        }, 'CronComponent.info.patch_postmodule.started.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Rerun du patch POST-MODULES terminé !'
+        }, 'CronComponent.info.patch_postmodule.ended.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Lancer une tâche planifiée manuellement'
@@ -158,6 +187,9 @@ export default class ModuleCronServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_executeWorkerManually, this.executeWorkerManually.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_run_manual_task, this.run_manual_task.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_get_manual_tasks, this.get_manual_tasks.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_get_patch_premodules, this.get_patch_premodules.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_get_patch_postmodules, this.get_patch_postmodules.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_rerun_patch, this.rerun_patch.bind(this));
     }
 
     public registerCronWorker(cronWorker: ICronWorker) {
@@ -253,5 +285,52 @@ export default class ModuleCronServer extends ModuleServerBase {
             res.push(text);
         }
         return res;
+    }
+
+    private async get_patch_premodules(): Promise<string[]> {
+        const res: string[] = [];
+
+        for (const i in GeneratorPatchsListHandler.pre_modules_workers) {
+            const patch = GeneratorPatchsListHandler.pre_modules_workers[i];
+            res.push(patch.uid);
+        }
+        return res;
+    }
+
+    private async get_patch_postmodules(): Promise<string[]> {
+        const res: string[] = [];
+
+        for (const i in GeneratorPatchsListHandler.post_modules_workers) {
+            const patch = GeneratorPatchsListHandler.post_modules_workers[i];
+            res.push(patch.uid);
+        }
+        return res;
+    }
+
+    private async rerun_patch(patch: string) {
+        try {
+
+            for (const i in GeneratorPatchsListHandler.pre_modules_workers) {
+                const prepatch = GeneratorPatchsListHandler.pre_modules_workers[i];
+
+                if (prepatch.uid == patch) {
+                    await prepatch.work(ModuleServiceBase.db);
+                    return;
+                }
+            }
+
+            for (const i in GeneratorPatchsListHandler.post_modules_workers) {
+                const postpatch = GeneratorPatchsListHandler.post_modules_workers[i];
+
+                if (postpatch.uid == patch) {
+                    await postpatch.work(ModuleServiceBase.db);
+                    return;
+                }
+            }
+
+            ConsoleHandler.error('Patch not found');
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
     }
 }
