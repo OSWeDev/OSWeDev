@@ -127,13 +127,13 @@
                         label {{ label('feedback_handler.attachments.label') }}
                 .row
                     .col-sm-4
-                        Filecomponent(id='tmp_attachment_1_vo' :filevo="tmp_attachment_1_vo" @uploaded="uploadedFile1(...arguments)")
+                        Filecomponent(id='tmp_attachment_1_vo' :filevo="tmp_attachment_1_vo" :field="file_path_field" @uploaded="uploadedFile1(...arguments)")
                     .col-sm-4
                         template(v-if='!!tmp_attachment_1_vo')
-                            Filecomponent(id='tmp_attachment_2_vo' :filevo="tmp_attachment_2_vo" @uploaded="uploadedFile2(...arguments)")
+                            Filecomponent(id='tmp_attachment_2_vo' :filevo="tmp_attachment_2_vo" :field="file_path_field" @uploaded="uploadedFile2(...arguments)")
                     .col-sm-4
                         template(v-if='!!tmp_attachment_2_vo')
-                            Filecomponent(id='tmp_attachment_3_vo' :filevo="tmp_attachment_3_vo" @uploaded="uploadedFile3(...arguments)")
+                            Filecomponent(id='tmp_attachment_3_vo' :filevo="tmp_attachment_3_vo" :field="file_path_field" @uploaded="uploadedFile3(...arguments)")
 
                 .spacer
 

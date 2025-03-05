@@ -2304,7 +2304,8 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
                         if (context_filter.param_alias != null) {
-                            where_conditions.push(field_name + " != " + context_filter.param_alias);
+                            // On rajoute IS NULL car sinon le != ne prend pas en compte les NULL
+                            where_conditions.push("((" + field_name + " != " + context_filter.param_alias + ") OR (" + field_name + " IS NULL))");
                             break;
                         }
 
@@ -2332,14 +2333,17 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_numeric != null) {
                             ContextQueryInjectionCheckHandler.assert_numeric(context_filter.param_numeric);
-                            where_conditions.push(field_name + " != " + context_filter.param_numeric);
+                            // On rajoute IS NULL car sinon le != ne prend pas en compte les NULL
+                            where_conditions.push("((" + field_name + " != " + context_filter.param_numeric + ") OR (" + field_name + " IS NULL))");
                             break;
                         }
 
                         if (context_filter.param_numranges) {
                             RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (num: number) => {
                                 ContextQueryInjectionCheckHandler.assert_numeric(num);
-                                where_conditions.push(field_name + " != " + num);
+                                // On rajoute IS NULL car sinon le != ne prend pas en compte les NULL
+                                where_conditions.push("((" + field_name + " != " + num + ") OR (" + field_name + " IS NULL))");
+
                             });
                         }
 
@@ -3077,7 +3081,8 @@ export default class ContextFilterServerController {
                     query_result.params = query_result.params.concat(qr_TYPE_NOT_IN.params);
                 }
 
-                where_conditions.push(field_name + ' NOT IN (' + qr_TYPE_NOT_IN.query + ')');
+                // On rajoute IS NULL car sinon le != ne prend pas en compte les NULL
+                where_conditions.push("((" + field_name + " NOT IN (" + qr_TYPE_NOT_IN.query + ")) OR (" + field_name + " IS NULL))");
 
                 break;
 
