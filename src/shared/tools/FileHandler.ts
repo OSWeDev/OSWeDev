@@ -1,11 +1,58 @@
 /* istanbul ignore file: only one method, and not willing to test it right now*/
 
-import { Stats, statSync } from 'fs';
+import { promises, Stats, statSync } from 'fs';
 import FileVO from '../modules/File/vos/FileVO';
 import ConsoleHandler from './ConsoleHandler';
 import ThreadHandler from './ThreadHandler';
 
 export default class FileHandler {
+
+    public static normalize_path(path: string): string {
+
+        if (!path) {
+            return null;
+        }
+
+        if (!path.startsWith('./')) {
+            path = '.' + (path.startsWith('/') ? '' : '/') + path;
+        }
+        path = path.replace(/\\/g, '/');
+
+        return path;
+    }
+
+    /**
+     * On reprend la logique du path.join de nodejs mais en restant normalisé avec les /
+     * On ne normalise pas ici, donc il faut avoir une base normalisée (./path) ou normaliser ensuite
+     * @param paths des chemins à joindre, dont le premier est le chemin de base normalisé a priori
+     * @returns
+     */
+    public static join_path(...paths: string[]): string {
+
+        if ((!paths) || (paths.length == 0)) {
+            return null;
+        }
+
+        let path = paths[0].replace(/\\/g, '/');
+        for (let i = 1; i < paths.length; i++) {
+            let added_path = paths[i].replace(/\\/g, '/');
+            if (!added_path) {
+                continue;
+            }
+
+            if (added_path.startsWith('./')) {
+                added_path = added_path.substring(2);
+            }
+
+            if (added_path.startsWith('/')) {
+                added_path = added_path.substring(1);
+            }
+
+            path += (path.endsWith('/') ? '' : '/') + added_path;
+        }
+
+        return path;
+    }
 
     // istanbul ignore next: nothing to test
     public static getInstance(): FileHandler {
@@ -58,9 +105,9 @@ export default class FileHandler {
         }
     }
 
-    public get_file_size(filePath: string): number {
+    public async get_file_size(filePath: string): Promise<number> {
 
-        const stats = statSync(filePath);
+        const stats = await promises.stat(filePath);
         return stats ? stats.size : null;
     }
 

@@ -233,6 +233,11 @@ export default class ConsoleHandler {
                     break;
             }
 
+            if (!ConsoleHandler['old_console_' + log_type_str]) {
+                // On log normalement si la console n'est pas redirigée
+                console[log_type_str]('[' + log_type_str.toUpperCase() + ' ' + this.get_formatted_timestamp(log.date) + '] (' + ConsoleHandler.thread_name + ') ' + log.msg, ...log.params);
+                continue;
+            }
             ConsoleHandler['old_console_' + log_type_str]('[' + log_type_str.toUpperCase() + ' ' + this.get_formatted_timestamp(log.date) + '] (' + ConsoleHandler.thread_name + ') ' + log.msg, ...log.params);
         }
 

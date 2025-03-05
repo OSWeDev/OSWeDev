@@ -125,7 +125,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
     private isValid: boolean = true;
 
     private chart_result_nb: { [chart_id: string]: number } = null;
-    private chart_result_txt: string = '';
+    private chart_result_txt: string = null;
 
     // --------------------------------------------------------------------------
     //  Getters
@@ -447,7 +447,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             if (!this.chart_result_nb) {
                 this.chart_result_nb = {};
             }
-            this.chart_result_nb[(this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code)  ? this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code : this.charts_var_dataset_descriptor[chart_id]?.var_name ] = 0;
+            this.chart_result_nb[(this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code) ? this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code : this.charts_var_dataset_descriptor[chart_id]?.var_name] = 0;
 
             for (const i in this.ordered_dimension) {
                 const dimensionVal = this.ordered_dimension[i];
@@ -459,7 +459,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 }
 
                 res[chart_id].push(chart_var_params[dimensionVal]);
-                this.chart_result_nb[(this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code)  ? this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code : this.charts_var_dataset_descriptor[chart_id]?.var_name ]++;
+                this.chart_result_nb[(this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code) ? this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code : this.charts_var_dataset_descriptor[chart_id]?.var_name]++;
             }
         }
         return res;
@@ -762,9 +762,19 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
     @Watch('chart_result_nb')
     private async onchange_chart_result_nb() {
-        this.chart_result_txt = '';
+
+        let chart_result_txt = '';
         for (const i in this.chart_result_nb) {
-            this.chart_result_txt += '- ' + i + ' : ' + this.chart_result_nb[i] + ' / ' + this.ordered_dimension.length + ' données trouvées \n';
+
+            if (this.chart_result_nb[i] != this.ordered_dimension.length) {
+                chart_result_txt += '- ' + i + ' : ' + this.chart_result_nb[i] + ' / ' + this.ordered_dimension.length + ' données trouvées \n';
+            }
+        }
+
+        if (chart_result_txt != '') {
+            this.chart_result_txt = chart_result_txt;
+        } else {
+            this.chart_result_txt = null;
         }
     }
 

@@ -109,6 +109,14 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                 case ModuleTableFieldVO.FIELD_TYPE_enum:
                     // JNE FIXME TODO : on gère le cas bizarre où field_value est une string directement, et donc on doit pas le retraduire, c'est déjà tout pret
                     if (typeof field_value == 'string') {
+                        try {
+                            const int_value = parseInt(field_value);
+                            if (!isNaN(int_value)) {
+                                return LocaleManager.getInstance().t(this.enum_values[int_value]);
+                            }
+                        } catch (error) {
+                            //
+                        }
                         return field_value;
                     }
                     return LocaleManager.getInstance().t(this.enum_values[field_value]);
@@ -484,20 +492,22 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                 case ModuleTableFieldVO.FIELD_TYPE_float_array:
                 case ModuleTableFieldVO.FIELD_TYPE_int_array:
                 case ModuleTableFieldVO.FIELD_TYPE_string_array:
-                    // ATTENTION - INTERDITION DE METTRE UNE VIRGULE DANS UN CHAMP DE TYPE ARRAY SINON CA FAIT X VALEURS
-                    const values: any[] = [];
+                    // JNE: Pourquoi on fait ça ? du coup on se retrouve avec des strings qui décrivent des array format BDD (pas json en plus) plutôt que des string[] et la trad pour la base gérée directement côté serveur...
+                    // // ATTENTION - INTERDITION DE METTRE UNE VIRGULE DANS UN CHAMP DE TYPE ARRAY SINON CA FAIT X VALEURS
+                    // const values: any[] = [];
 
-                    for (const j in value) {
-                        if (value[j]) {
-                            values.push(value[j]);
-                        }
-                    }
+                    // for (const j in value) {
+                    //     if (value[j]) {
+                    //         values.push(value[j]);
+                    //     }
+                    // }
 
-                    if (!values || !values.length) {
-                        return null;
-                    }
+                    // if (!values || !values.length) {
+                    //     return null;
+                    // }
 
-                    return '{' + values + '}';
+                    // return '{' + values + '}';
+                    return value;
 
                 case ModuleTableFieldVO.FIELD_TYPE_html_array:
                     return value;

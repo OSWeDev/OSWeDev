@@ -461,7 +461,12 @@ export default class ModuleAPIServer extends ModuleServerBase {
             // );
 
             if (!(res && res.headersSent) && !ServerAPIController.api_calls[api_call_id].do_notif_result) {
-                res.json(api_res);
+
+                if ((api_res == null) || (api_res === "")) {
+                    res.end();
+                } else {
+                    res.json(api_res);
+                }
             }
 
             delete ServerAPIController.api_calls[api_call_id];

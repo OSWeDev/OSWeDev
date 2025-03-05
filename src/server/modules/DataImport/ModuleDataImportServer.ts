@@ -589,7 +589,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
          * On test le cas fichier vide :
          */
         const fileVO: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(importHistoric.file_id).select_vo<FileVO>();
-        const file_size = fileVO ? FileHandler.getInstance().get_file_size(fileVO.path) : null;
+        const file_size = fileVO ? await FileHandler.getInstance().get_file_size(fileVO.path) : null;
         if (!file_size) {
             if ((!!importHistoric) && (!!importHistoric.id)) {
                 await this.logAndUpdateHistoric(importHistoric, null, ModuleDataImport.IMPORTATION_STATE_POSTTREATED, "Aucune donnée formattable", "import.errors.failed_formatting_no_data", DataImportLogVO.LOG_LEVEL_DEBUG);

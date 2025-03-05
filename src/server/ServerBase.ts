@@ -76,6 +76,8 @@ import ParamsServerController from './modules/Params/ParamsServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import AsyncHookPromiseWatchController from './modules/Stats/AsyncHookPromiseWatchController';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
+import StreamZip from 'node-stream-zip';
+import { fs_stream_zipped_archive } from './modules/File/ArchiveServerController';
 
 export default abstract class ServerBase {
 
@@ -423,9 +425,12 @@ export default abstract class ServerBase {
 
         const middlewares_by_urls_and_methd: { [method: number]: { [url: string]: ((req: Request, res: Response, next: NextFunction) => void)[] } } = {
             [APIDefinition.API_TYPE_GET]: {
-                [ModuleFile.SECURED_FILES_ROOT.replace(/^[.][/]/, '/') + '(:folder1/)?(:folder2/)?(:folder3/)?(:folder4/)?(:folder5/)?:file_name']: [
+                [ModuleFile.SECURED_FILES_ROOT.replace(/^[.][/]/, '/') + '(:folder1/)?(:folder2/)?(:folder3/)?(:folder4/)?(:folder5/)?(:folder6/)?(:folder7/)?:file_name']: [
                     ...session_dependant_middlewares,
                     this.sfiles_middleware.bind(this),
+                ],
+                [ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/') + '(:folder1/)?(:folder2/)?(:folder3/)?(:folder4/)?(:folder5/)?(:folder6/)?(:folder7/)?:file_name']: [
+                    this.files_middleware.bind(this),
                 ],
                 '/api_handler/*': [
                     ...session_dependant_middlewares,
@@ -875,19 +880,24 @@ export default abstract class ServerBase {
             },
         }));
 
-        // Cache sur les files
-        this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), expressStaticGzip(ModuleFile.FILES_ROOT.replace(/^[.][/]/, ''), {
-            enableBrotli: true,
-            orderPreference: ['br', 'gz'],
-            index: false,
-            serveStatic: {
-                cacheControl: true,
-                lastModified: true,
-                etag: true,
-                maxAge: cache_duration,
-                fallthrough: false,
-            },
-        }));
+        // // Cache sur les files => TODO FIXME ya plus de cache a priori du coup avec l'archivage à ce niveau. faudra ptetre revoir la copie quand même du coup
+        // this.app.use(
+        //     ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'),
+        //     this.files_middleware.bind(this),
+        //     // /*expressStaticGzip(ModuleFile.FILES_ROOT.replace(/^[.][/]/, ''), */
+        //     // {
+        //     //     enableBrotli: true,
+        //     //     orderPreference: ['br', 'gz'],
+        //     //     index: false,
+        //     //     serveStatic: {
+        //     //         cacheControl: true,
+        //     //         lastModified: true,
+        //     //         etag: true,
+        //     //         maxAge: cache_duration,
+        //     //         fallthrough: false,
+        //     //     },
+        //     // })
+        // );
 
         // Pour activation auto let's encrypt - pas de cache
         this.app.use('/.well-known', express.static('.well-known', {
@@ -980,6 +990,26 @@ export default abstract class ServerBase {
             await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
             return;
         }
+
+        /**
+         * Gestion de l'archivage des fichiers /files
+         */
+        if (file && file.is_archived && file.archive_path) {
+
+            // On doit charger le fichier avec fs.promises.readFile et le renvoyer
+            //  readFile a été modifié pour réaliser du stream depuis le zip en cas d'archivage ce qui est le cas ici, donc on peut le renvoyer directement
+            const zipData = await fs_stream_zipped_archive(file);
+
+            // On déduit le type mime de l'extension du fichier
+            const mime_type = mime.contentType(file_name);
+            res.setHeader('Content-Type', mime_type);
+            res.setHeader('Content-Length', zipData.length);
+            res.setHeader('Content-Disposition', 'attachment; filename=' + file_name);
+            res.end(zipData);
+
+            return;
+        }
+
         res.sendFile(path.resolve(file.path));
     }
 
@@ -1020,8 +1050,8 @@ export default abstract class ServerBase {
         let file: FileVO = null;
 
         file = await query(FileVO.API_TYPE_ID)
-            .filter_is_true(field_names<FileVO>().is_secured)
-            .filter_by_text_eq(field_names<FileVO>().path, ModuleFile.SECURED_FILES_ROOT + folders + file_name)
+            .filter_is_false(field_names<FileVO>().is_secured)
+            .filter_by_text_eq(field_names<FileVO>().path, ModuleFile.FILES_ROOT + folders + file_name)
             .exec_as_server()
             .select_vo<FileVO>();
 
@@ -1032,16 +1062,14 @@ export default abstract class ServerBase {
 
             // On doit charger le fichier avec fs.promises.readFile et le renvoyer
             //  readFile a été modifié pour réaliser du stream depuis le zip en cas d'archivage ce qui est le cas ici, donc on peut le renvoyer directement
-            const archive_path = file.archive_path;
-
-            const archive_file = await fs.promises.readFile(archive_path);
+            const zipData = await fs_stream_zipped_archive(file);
 
             // On déduit le type mime de l'extension du fichier
-            const mime_type = mime.getType(file_name);
+            const mime_type = mime.contentType(file_name);
             res.setHeader('Content-Type', mime_type);
-            res.setHeader('Content-Length', archive_file.length);
+            res.setHeader('Content-Length', zipData.length);
             res.setHeader('Content-Disposition', 'attachment; filename=' + file_name);
-            res.end(archive_file);
+            res.end(zipData);
 
             return;
         }

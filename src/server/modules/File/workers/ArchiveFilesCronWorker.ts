@@ -9,6 +9,7 @@ import ArchiveFilesConfVO from '../../../../shared/modules/File/vos/ArchiveFiles
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import FileHandler from '../../../../shared/tools/FileHandler';
 import { field_names } from '../../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../../shared/tools/ThreadHandler';
 import ICronWorker from "../../Cron/interfaces/ICronWorker";
@@ -67,10 +68,11 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
             const files = await fs.promises.readdir(dir);
             for (const file of files) {
                 if (archivedCount >= conf.max_files_per_treatement) {
+                    ConsoleHandler.log('ArchiveFilesCronWorker - ' + archivedCount + ' fichiers archivés pour la configuration : ' + conf.name + ' - Arrêt du traitement pour cette configuration (max_files_per_treatement atteint)');
                     return;
                 }
 
-                const file_path = path.join(dir, file);
+                let file_path = FileHandler.join_path(dir, file);
                 const stat = fs.statSync(file_path);
                 let date_to_use: number = null;
                 switch (conf.date_fichier_pour_delai) {
@@ -99,6 +101,8 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
                     continue;
                 }
 
+                file_path = FileHandler.normalize_path(file_path);
+
                 let fileVO = await query(FileVO.API_TYPE_ID)
                     .filter_by_text_eq(field_names<FileVO>().path, file_path)
                     .exec_as_server()
@@ -119,7 +123,7 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
 
                         fileVO = new FileVO();
                         fileVO.path = file_path;
-                        fileVO.is_secured = (file_path.indexOf(ModuleFile.SECURED_FILES_ROOT) >= 0);
+                        fileVO.is_secured = file_path.startsWith(ModuleFile.SECURED_FILES_ROOT);
                         if (fileVO.is_secured) {
                             fileVO.file_access_policy_name = ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS;
                         }
@@ -134,7 +138,7 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
                         fs.mkdirSync(archiveDir, { recursive: true });
                     }
 
-                    const zipPath = path.join(archiveDir, `${file}.zip`);
+                    const zipPath = FileHandler.join_path(archiveDir, `${file}.zip`);
 
                     const output = fs.createWriteStream(zipPath);
                     const archive = Archiver('zip', { zlib: { level: 9 } });
@@ -241,21 +245,21 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
         let month = Dates.format(date_to_use, 'MM');
         let day = Dates.format(date_to_use, 'DD');
 
-        let archive_path = path.join(base, unarchived_file_folder);
+        let archive_path = FileHandler.join_path(base, unarchived_file_folder);
 
         if (conf.add_name_trans_in_archive_path) {
-            archive_path = path.join(archive_path, conf.name_trans);
+            archive_path = FileHandler.join_path(archive_path, conf.name_trans);
         }
 
         switch (conf.type_segment_nommage_archives) {
             case TimeSegment.TYPE_YEAR:
-                archive_path = path.join(archive_path, year);
+                archive_path = FileHandler.join_path(archive_path, year);
                 break;
             case TimeSegment.TYPE_MONTH:
-                archive_path = path.join(archive_path, year, month);
+                archive_path = FileHandler.join_path(archive_path, year, month);
                 break;
             case TimeSegment.TYPE_DAY:
-                archive_path = path.join(archive_path, year, month, day);
+                archive_path = FileHandler.join_path(archive_path, year, month, day);
                 break;
             default:
                 throw new Error('NOT IMPLEMENTED');
@@ -269,7 +273,7 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
             if (fs.existsSync(archive_path)) {
                 const files = await fs.promises.readdir(archive_path);
                 for (const file of files) {
-                    if (fs.statSync(path.join(archive_path, file)).isDirectory()) {
+                    if (fs.statSync(FileHandler.join_path(archive_path, file)).isDirectory()) {
 
                         try {
                             const folder = parseInt(file);
@@ -289,9 +293,9 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
                 folder++;
             }
 
-            archive_path = path.join(archive_path, folder.toString());
+            archive_path = FileHandler.join_path(archive_path, folder.toString());
         }
 
-        return archive_path;
+        return FileHandler.normalize_path(archive_path);
     }
 }
