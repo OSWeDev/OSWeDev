@@ -286,17 +286,37 @@
 
     .button_arrow {
         position: absolute;
-        top: 50%;
-        color: #fff;
+        top: 100%;
+        color: #333;
         font-size: 20px;
         z-index: 2;
-        text-shadow: 0 0 3px #000;
     }
 
     .button_arrow.prev {
-        transform: translateX(5vw);
+        transform: translateX(10vw);
     }
     .button_arrow.next {
-        transform: translateX(95vw);
+        transform: translateX(90vw);
+    }
+
+    .indicators {
+        display: inline-flex; /* ou flex selon vos besoins */
+        align-items: center;
+        gap: 8px; /* espace entre les ronds */
+        margin: 0 12px; /* un peu d'espacement horizontal */
+        position: absolute;
+        top: 150vw;
+        left: 41vw;
+    }
+
+    .circle {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #ccc; /* rond vide (gris) */
+    }
+
+    .circle.filled {
+        background-color: #333; /* rond rempli (noir ou autre couleur) */
     }
 }

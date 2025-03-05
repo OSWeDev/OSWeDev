@@ -50,6 +50,12 @@ include ../../../../../views/mixins/loading.pug
                             .input(@click="previous_card_single_display" type="button" v-if="current_element > 0")
                                 i.fa-solid.fa-chevron-left
 
+                        //- Indicateurs (3 ronds)
+                        .indicators
+                            .circle(:class="{ filled: current_element === 0 }")
+                            .circle(:class="{ filled: current_element !== 0 && current_element !== (nb_elements.length - 1) }")
+                            .circle(:class="{ filled: current_element === (nb_elements.length - 1) }")
+
                         .button_arrow.next
                             .input(@click="next_card_single_display" type="button" v-if="current_element < (nb_elements.length - 1)")
                                 i.fa-solid.fa-chevron-right
