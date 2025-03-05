@@ -97,6 +97,26 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         // SupervisionController.STATE_UNKOWN
     ];
 
+    private state_label: { [state: number]: string } = SupervisionController.STATE_LABELS_BY_STATE;
+    private state_fa_class: { [state: number]: string } = {
+        [SupervisionController.STATE_ERROR]: 'fa-exclamation-triangle',
+        [SupervisionController.STATE_ERROR_READ]: 'fa-exclamation-triangle',
+        [SupervisionController.STATE_WARN]: 'fa-exclamation',
+        [SupervisionController.STATE_WARN_READ]: 'fa-exclamation',
+        [SupervisionController.STATE_OK]: 'fa-check',
+        [SupervisionController.STATE_PAUSED]: 'fa-pause',
+        [SupervisionController.STATE_UNKOWN]: 'fa-question',
+    };
+    private state_read_fa_class: { [state: number]: string } = {
+        [SupervisionController.STATE_ERROR]: null,
+        [SupervisionController.STATE_ERROR_READ]: 'fa-envelope-open',
+        [SupervisionController.STATE_WARN]: null,
+        [SupervisionController.STATE_WARN_READ]: 'fa-envelope-open',
+        [SupervisionController.STATE_OK]: null,
+        [SupervisionController.STATE_PAUSED]: null,
+        [SupervisionController.STATE_UNKOWN]: null,
+    };
+
     private selectedApitypeState: string = null;
 
     private throttled_load_counter = ThrottleHelper.declare_throttle_without_args(
@@ -186,12 +206,17 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private onchange_selected_api_type_id() {
 
         if (!this.selected_api_type_id) {
-            this.set_active_api_type_ids([]);
-            return;
+            if (!!this.selected_state) {
+                // si on a un état selectionné, on ajoute toute les api_type_ids aux api active
+            } else {
+                // si on a pas de d'état selectionné, on retire tout les filtres
+                this.set_active_api_type_ids([]);
+                return;
+            }
         }
 
         if (this.selected_state !== null) {
-            if (!!this.available_api_type_ids?.length && (this.selected_state !== null)) {
+            if (!!this.available_api_type_ids?.length) {
                 for (const i in this.available_api_type_ids) {
                     if (this.available_api_type_ids[i] == this.selected_api_type_id) {
                         continue;
@@ -229,24 +254,38 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             return;
         }
 
-        if (!!this.available_api_type_ids?.length && (this.selected_api_type_id !== null)) {
-            for (const i in this.available_api_type_ids) {
-                if (this.available_api_type_ids[i] == this.selected_api_type_id) {
-                    continue;
-                }
+        if (!!this.available_api_type_ids?.length) {
 
-                this.remove_active_field_filter({
-                    field_id: field_names<ISupervisedItem>().state,
-                    vo_type: this.available_api_type_ids[i],
-                });
+            for (const i in this.available_api_type_ids) {
+                if (!this.selected_api_type_id) {
+                    // si on a pas un api_type_id sélectionné, on set toute les api_type_ids
+                    this.set_active_field_filter({
+                        field_id: field_names<ISupervisedItem>().state,
+                        vo_type: this.available_api_type_ids[i],
+                        active_field_filter: filter(this.available_api_type_ids[i], field_names<ISupervisedItem>().state).by_num_eq(this.selected_state)
+                    });
+
+                } else {
+                    // si on a un api_type_id sélectionné, on retire les autres api_type_ids du filtre
+                    if (this.available_api_type_ids[i] == this.selected_api_type_id) {
+                        continue;
+                    }
+
+                    this.remove_active_field_filter({
+                        field_id: field_names<ISupervisedItem>().state,
+                        vo_type: this.available_api_type_ids[i],
+                    });
+                }
             }
         }
 
-        this.set_active_field_filter({
-            field_id: field_names<ISupervisedItem>().state,
-            vo_type: this.selected_api_type_id,
-            active_field_filter: filter(this.selected_api_type_id, field_names<ISupervisedItem>().state).by_num_eq(this.selected_state)
-        });
+        if (!!this.selected_api_type_id) {
+            this.set_active_field_filter({
+                field_id: field_names<ISupervisedItem>().state,
+                vo_type: this.selected_api_type_id,
+                active_field_filter: filter(this.selected_api_type_id, field_names<ISupervisedItem>().state).by_num_eq(this.selected_state)
+            });
+        }
     }
 
     @Watch("available_api_type_ids")
@@ -366,6 +405,9 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             await this.start_auto_refresh();
         }
 
+        // on pre filtre les sondes
+        // par defaut on filtre sur les erreurs
+
     }
 
     /**
@@ -439,6 +481,12 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private togglePanelCat(catId: number) {
         // On inverse la valeur actuelle
         this.$set(this.isPanelOpenCat, catId, !this.isPanelOpenCat[catId]);
+        // quand on ouvre un panneau, on ferme les autres
+        for (const i in this.categories_ordered) {
+            if (this.categories_ordered[i].id != catId) {
+                this.$set(this.isPanelOpenCat, this.categories_ordered[i].id, false);
+            }
+        }
     }
 
     /**

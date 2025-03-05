@@ -1,8 +1,11 @@
 .supervision_type_widget_component {
-    .category_label {
+    .separator {
         border-top: 1px solid #888;
-        font-weight: bold;
         margin: 0.5rem 0 0.2rem 0;
+    }
+
+    .category_label {
+        font-weight: bold;
 
         p {
             padding: 0.5rem 0 0.1rem 0;
@@ -96,6 +99,7 @@
         &.selected {
             opacity: 1;
             border: 2px solid #888;
+            line-height: 13px;
         }
 
         &.STATE_0 {
@@ -127,6 +131,17 @@
         }
     }
 
+    .sup_cnt.btn.btn-sm.caption {
+        min-height: 20px;
+        max-height: 20px;
+        line-height: 18px;
+        font-weight: normal;
+
+        &.selected {
+            line-height: 16px;
+        }
+    }
+
     .accordion-panel-heading {
         cursor: pointer;
 
@@ -134,6 +149,7 @@
             background-color: white;
             min-height: 18px;
             max-height: 18px;
+            line-height: 15px;
 
             &.STATE_0 {
                 color: red;

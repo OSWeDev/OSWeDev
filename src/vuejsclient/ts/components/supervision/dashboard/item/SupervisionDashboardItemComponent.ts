@@ -37,6 +37,7 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
 
     private state_classname: string = 'STATE_UNKNOWN';
     private fa_class_name: string = null;
+    private read_fa_class_name: string = null;
     private formatted_date: string = null;
     private formatted_last_value: string = null;
 
@@ -130,10 +131,12 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     private set_fa_class_name() {
         if (!this.state_classname) {
             this.fa_class_name = "";
+            this.read_fa_class_name = "";
             return;
         }
 
         let fa_class_name: string = null;
+        let read_fa_class_name: string = null;
 
         switch (this.state_classname) {
             case "STATE_ERROR":
@@ -141,6 +144,7 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
                 break;
             case "STATE_ERROR_READ":
                 fa_class_name = "fa-exclamation-triangle";
+                read_fa_class_name = "fa-envelope-open";
                 break;
             case "STATE_OK":
                 fa_class_name = "fa-check";
@@ -156,12 +160,14 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
                 break;
             case "STATE_WARN_READ":
                 fa_class_name = "fa-exclamation";
+                read_fa_class_name = "fa-envelope-open";
                 break;
             default:
                 break;
         }
 
         this.fa_class_name = fa_class_name;
+        this.read_fa_class_name = read_fa_class_name;
     }
 
     private set_formatted_date() {

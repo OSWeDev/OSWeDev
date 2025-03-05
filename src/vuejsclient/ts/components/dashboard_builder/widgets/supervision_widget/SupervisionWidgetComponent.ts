@@ -305,7 +305,10 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             {
                 offset: this.pagination_offset,
                 limit: this.limit,
-                sorts: [new SortByVO(null, 'name', true)],
+                sorts: [
+                    new SortByVO(null, field_names<ISupervisedItem>().state, true),
+                    new SortByVO(null, field_names<ISupervisedItem>().name, true)
+                ],
             },
         );
 
