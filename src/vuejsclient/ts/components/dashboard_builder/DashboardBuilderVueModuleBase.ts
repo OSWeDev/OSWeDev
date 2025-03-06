@@ -187,6 +187,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_CrudButtons();
         await this.initializeWidget_CMSPrintParam();
         await this.initializeWidget_CMSVisionneusePdf();
+        await this.initializeWidget_CMSBooleanButton();
     }
 
     private async initializeWidget_BulkOps() {
@@ -813,6 +814,27 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('CMSLinkButtonwidgetcomponent', () => import('./widgets/cms_link_button_widget/CMSLinkButtonWidgetComponent'));
         Vue.component('CMSLinkButtonwidgetoptionscomponent', () => import('./widgets/cms_link_button_widget/options/CMSLinkButtonWidgetOptionsComponent'));
         Vue.component('CMSLinkButtonwidgeticoncomponent', () => import('./widgets/cms_link_button_widget/icon/CMSLinkButtonWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSBooleanButton() {
+        const CMSBooleanButton = new DashboardWidgetVO();
+
+        CMSBooleanButton.default_height = 5;
+        CMSBooleanButton.default_width = 2;
+        CMSBooleanButton.name = DashboardWidgetVO.WIDGET_NAME_cmsbooleanbutton;
+        CMSBooleanButton.widget_component = 'CMSBooleanButtonwidgetcomponent';
+        CMSBooleanButton.options_component = 'CMSBooleanButtonwidgetoptionscomponent';
+        CMSBooleanButton.weight = 3;
+        CMSBooleanButton.default_background = '#f5f5f5';
+        CMSBooleanButton.icon_component = 'CMSBooleanButtonwidgeticoncomponent';
+        CMSBooleanButton.is_filter = false;
+        CMSBooleanButton.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSBooleanButton, null, null);
+
+        Vue.component('CMSBooleanButtonwidgetcomponent', () => import('./widgets/cms_boolean_button_widget/CMSBooleanButtonWidgetComponent'));
+        Vue.component('CMSBooleanButtonwidgetoptionscomponent', () => import('./widgets/cms_boolean_button_widget/options/CMSBooleanButtonWidgetOptionsComponent'));
+        Vue.component('CMSBooleanButtonwidgeticoncomponent', () => import('./widgets/cms_boolean_button_widget/icon/CMSBooleanButtonWidgetIconComponent'));
     }
 
     private async initializeWidget_CMSLikeButton() {
