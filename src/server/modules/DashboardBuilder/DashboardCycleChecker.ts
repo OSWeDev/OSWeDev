@@ -180,11 +180,11 @@ export default class DashboardCycleChecker {
 
         const does_not_need_update = !DashboardCycleChecker.needs_update(dashboard, cycle_tables, cycle_fields, cycle_links);
 
-        if ((!dashboard.has_cycle) && cycle_tables.length) {
+        if ((!dashboard.has_cycle) && (cycle_tables && cycle_tables.length)) {
             await DashboardCycleChecker.notif_teams_cycle_detected(dashboard, cycle_tables);
         }
 
-        if (dashboard.has_cycle && !cycle_tables.length) {
+        if (dashboard.has_cycle && ((!cycle_tables) || (!cycle_tables.length))) {
             await DashboardCycleChecker.notif_teams_cycle_solved(dashboard);
         }
 
@@ -195,7 +195,7 @@ export default class DashboardCycleChecker {
         dashboard.cycle_tables = cycle_tables;
         dashboard.cycle_fields = cycle_fields;
         dashboard.cycle_links = cycle_links;
-        dashboard.has_cycle = cycle_tables.length > 0;
+        dashboard.has_cycle = !!(cycle_tables && (cycle_tables.length > 0));
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dashboard);
     }
@@ -211,7 +211,7 @@ export default class DashboardCycleChecker {
         ) && ObjectHandler.are_equal(
             dashboard.cycle_links,
             cycle_links
-        ) && (dashboard.has_cycle === (cycle_tables.length > 0)));
+        ) && (dashboard.has_cycle === (cycle_tables && (cycle_tables.length > 0))));
     }
 
     private static async notif_teams_cycle_detected(dashboard: DashboardVO, cycle_tables: string[]) {
