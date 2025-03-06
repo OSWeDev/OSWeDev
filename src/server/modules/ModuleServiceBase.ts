@@ -148,10 +148,10 @@ import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
 import ModulePerfReportServer from './PerfReport/ModulePerfReportServer';
 import ModulePerfReport from '../../shared/modules/PerfReport/ModulePerfReport';
+import IDatabaseHolder from './IDatabaseHolder';
+import PostModulesInitHookHolder from './PostModulesInitHookHolder';
 
 export default abstract class ModuleServiceBase {
-
-    public static db;
 
     private static instance: ModuleServiceBase;
     private static query_uid: number = 1;
@@ -159,8 +159,6 @@ export default abstract class ModuleServiceBase {
     /**
      * Local thread cache -----
      */
-    public post_modules_installation_hooks: Array<() => void> = [];
-
     protected registered_child_modules: Module[] = [];
     protected login_child_modules: Module[] = [];
     protected server_child_modules: ModuleServerBase[] = [];
@@ -190,7 +188,7 @@ export default abstract class ModuleServiceBase {
         ModuleServiceBase.instance = null;
         ModuleServiceBase.instance = this;
 
-        ModuleServiceBase.db = {
+        IDatabaseHolder.db = {
             none: this.db_none.bind(this),
             one: this.db_one.bind(this),
             oneOrNone: this.db_oneOrNone.bind(this),
@@ -266,7 +264,7 @@ export default abstract class ModuleServiceBase {
 
         // // On charge le actif /inactif depuis la BDD pour surcharger à l'init la conf de l'appli
         // //  VALIDE UNIQUEMENT si le module est déjà créé en base, le activate_on_install est pas pris en compte....
-        PreloadedModuleServerController.db = ModuleServiceBase.db;
+        PreloadedModuleServerController.db = IDatabaseHolder.db;
 
         // On va créer la structure de base de la BDD pour les modules
         if ((!!is_generator) || (!ConfigurationService.node_configuration.server_start_booster)) {
@@ -289,7 +287,7 @@ export default abstract class ModuleServiceBase {
         this.server_modules = [].concat(this.server_base_modules, this.server_child_modules);
 
         ModuleTableController.initialize();
-        ModuleTableDBService.getInstance(ModuleServiceBase.db);
+        ModuleTableDBService.getInstance(IDatabaseHolder.db);
 
         // En version SERVER_START_BOOSTER on check pas le format de la BDD au démarrage, le générateur s'en charge déjà en amont
         if ((!!is_generator) || (!ConfigurationService.node_configuration.server_start_booster)) {
@@ -371,8 +369,8 @@ export default abstract class ModuleServiceBase {
         }
         // }
 
-        for (const i in this.post_modules_installation_hooks) {
-            const post_modules_installation_hook = this.post_modules_installation_hooks[i];
+        for (const i in PostModulesInitHookHolder.post_modules_installation_hooks) {
+            const post_modules_installation_hook = PostModulesInitHookHolder.post_modules_installation_hooks[i];
 
             // Appel async
             post_modules_installation_hook();

@@ -61,8 +61,8 @@ import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
+import IDatabaseHolder from '../IDatabaseHolder';
 import ModuleServerBase from '../ModuleServerBase';
-import ModuleServiceBase from '../ModuleServiceBase';
 import ModuleTableDBService from '../ModuleTableDBService';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ParamsServerController from '../Params/ParamsServerController';
@@ -1014,14 +1014,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 const query_string = "DELETE FROM " + datatable.get_segmented_full_name(segment_value);
                 const uid = LogDBPerfServerController.log_db_query_perf_start('delete_all_vos', query_string, 'is_segmented');
-                await ModuleServiceBase.db.none(query_string + ";");
+                await IDatabaseHolder.db.none(query_string + ";");
                 LogDBPerfServerController.log_db_query_perf_end(uid, 'delete_all_vos', query_string, 'is_segmented');
 
             }, datatable.table_segmented_field_segment_type);
         } else {
             const query_string = "DELETE FROM " + datatable.full_name;
             const uid = LogDBPerfServerController.log_db_query_perf_start('delete_all_vos', query_string, '!is_segmented');
-            await ModuleServiceBase.db.none(query_string + ";");
+            await IDatabaseHolder.db.none(query_string + ";");
             LogDBPerfServerController.log_db_query_perf_end(uid, 'delete_all_vos', query_string, '!is_segmented');
         }
     }
@@ -1286,7 +1286,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 await promise_pipeline.push(async () => {
                     const uid = LogDBPerfServerController.log_db_query_perf_start('insertOrUpdateVOs_without_triggers', sql);
-                    const results = await ModuleServiceBase.db.query(sql);
+                    const results = await IDatabaseHolder.db.query(sql);
                     LogDBPerfServerController.log_db_query_perf_end(uid, 'insertOrUpdateVOs_without_triggers', sql);
 
                     for (const i in results) {
@@ -1804,14 +1804,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     }
                     const query_string = "TRUNCATE " + datatable.get_segmented_full_name(segment_value);
                     const uid = LogDBPerfServerController.log_db_query_perf_start('truncate', query_string, 'is_segmented');
-                    await ModuleServiceBase.db.none(query_string + ";");
+                    await IDatabaseHolder.db.none(query_string + ";");
                     LogDBPerfServerController.log_db_query_perf_end(uid, 'truncate', query_string, 'is_segmented');
 
                 }, datatable.table_segmented_field_segment_type);
             } else {
                 const query_string = "TRUNCATE " + datatable.full_name;
                 const uid = LogDBPerfServerController.log_db_query_perf_start('truncate', query_string, '!is_segmented');
-                await ModuleServiceBase.db.none(query_string + ";");
+                await IDatabaseHolder.db.none(query_string + ";");
                 LogDBPerfServerController.log_db_query_perf_end(uid, 'truncate', query_string, '!is_segmented');
             }
         } catch (error) {
@@ -1896,7 +1896,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             request += (offset ? ' offset ' + offset : '');
 
             const query_uid = LogDBPerfServerController.log_db_query_perf_start('selectAll', request, 'is_segmented');
-            const vos: T[] = await ModuleServiceBase.db.query(request + ';', queryParams ? queryParams : []);
+            const vos: T[] = await IDatabaseHolder.db.query(request + ';', queryParams ? queryParams : []);
             LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectAll', request, 'is_segmented');
 
             for (const i in vos) {
@@ -1910,7 +1910,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 (query_ ? query_ : '') + (limit ? ' limit ' + limit : '') + (offset ? ' offset ' + offset : '');
             const query_uid = LogDBPerfServerController.log_db_query_perf_start('selectAll', query_string, '!is_segmented');
 
-            const vos = await ModuleServiceBase.db.query(
+            const vos = await IDatabaseHolder.db.query(
                 query_string, queryParams ? queryParams : []) as T[];
             for (const i in vos) {
                 const data = vos[i];
@@ -1972,7 +1972,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 const query_string = "SELECT t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " + (query_ ? query_ : '');
                 const query_uid = LogDBPerfServerController.log_db_query_perf_start('selectOne', query_string, 'is_segmented');
-                const segment_vo: T = await ModuleServiceBase.db.oneOrNone(query_string + ";", queryParams ? queryParams : []) as T;
+                const segment_vo: T = await IDatabaseHolder.db.oneOrNone(query_string + ";", queryParams ? queryParams : []) as T;
                 LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectOne', query_string, 'is_segmented');
 
                 if ((!!segmented_vo) && (!!segment_vo)) {
@@ -2000,7 +2000,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         } else {
             const query_string = "SELECT t.* FROM " + moduleTable.full_name + " t " + (query_ ? query_ : '');
             const query_uid = LogDBPerfServerController.log_db_query_perf_start('selectOne', query_string, '!is_segmented');
-            vo = await ModuleServiceBase.db.oneOrNone(query_string + ";", queryParams ? queryParams : []) as T;
+            vo = await IDatabaseHolder.db.oneOrNone(query_string + ";", queryParams ? queryParams : []) as T;
             LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectOne', query_string, '!is_segmented');
             if (!!vo) {
                 vo['_type'] = moduleTable.vo_type;
@@ -2046,9 +2046,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         const query_uid = LogDBPerfServerController.log_db_query_perf_start('query', query_);
         if (!!values) {
-            res = await ModuleServiceBase.db.query(query_, values);
+            res = await IDatabaseHolder.db.query(query_, values);
         } else {
-            res = await ModuleServiceBase.db.query(query_);
+            res = await IDatabaseHolder.db.query(query_);
         }
         LogDBPerfServerController.log_db_query_perf_end(query_uid, 'query', query_);
 
@@ -2093,7 +2093,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             // let query_string = "select * from ref.get_user('" + login.toLowerCase().trim() + "', '" + login.toLowerCase().trim() + "', '" + login.toLowerCase().trim() + "', PWD, " + (check_pwd ? 'true' : 'false') + ");";
             // let query_uid = LogDBPerfServerController.log_db_query_perf_start('selectOneUser', query_string);
-            // let vo: UserVO = await ModuleServiceBase.db.oneOrNone(
+            // let vo: UserVO = await IDatabaseHolder.db.oneOrNone(
             //     "select * from ref.get_user($1, $1, $1, $2, $3);", [login.toLowerCase().trim(), password, check_pwd]) as UserVO;
             // LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectOneUser', query_string);
 
@@ -2162,7 +2162,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             //     // OLD
             //     let query_string = "select * from ref.get_user(" + name.toLowerCase().trim() + ", " + email.toLowerCase().trim() + ", " + (phone ? phone.toLowerCase().trim() : null) + ", $2, $3);";
             // let query_uid = LogDBPerfServerController.log_db_query_perf_start('selectUsersForCheckUnicity', query_string);
-            // let vo: UserVO = await ModuleServiceBase.db.oneOrNone(
+            // let vo: UserVO = await IDatabaseHolder.db.oneOrNone(
             //     "select * from ref.get_user($1, $2, $3, null, false);", [name.toLowerCase().trim(), email.toLowerCase().trim(), phone ? phone.toLowerCase().trim() : null]) as UserVO;
             // LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectUsersForCheckUnicity', query_string);
 
@@ -2192,7 +2192,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         try {
             const query_string = "SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (TRIM(LOWER(" + login.toLowerCase().trim();
             const query_uid = LogDBPerfServerController.log_db_query_perf_start('selectOneUserForRecovery', query_string);
-            let vo: UserVO = await ModuleServiceBase.db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (TRIM(LOWER(name)) = $1 OR TRIM(LOWER(email)) = $1 or TRIM(LOWER(phone)) = $1) and blocked = false", [login.toLowerCase().trim()]) as UserVO;
+            let vo: UserVO = await IDatabaseHolder.db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (TRIM(LOWER(name)) = $1 OR TRIM(LOWER(email)) = $1 or TRIM(LOWER(phone)) = $1) and blocked = false", [login.toLowerCase().trim()]) as UserVO;
             LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectOneUserForRecovery', query_string);
 
             if (!!vo) {
@@ -2214,7 +2214,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         const query_string = "SELECT t.* FROM " + datatable.full_name + " t " + "WHERE id = " + uid + " and blocked = false";
         const query_uid = LogDBPerfServerController.log_db_query_perf_start('selectOneUserForRecoveryUID', query_string);
-        let vo: UserVO = await ModuleServiceBase.db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE id = $1 and blocked = false", [uid]) as UserVO;
+        let vo: UserVO = await IDatabaseHolder.db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE id = $1 and blocked = false", [uid]) as UserVO;
         LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectOneUserForRecoveryUID', query_string);
 
         if (!!vo) {
@@ -2518,7 +2518,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         const deleted_vos: IDistantVOBase[] = [];
 
         const query_uid = LogDBPerfServerController.log_db_query_perf_start('deleteVOs');
-        const results: any[] = await ModuleServiceBase.db.tx(async (t) => {
+        const results: any[] = await IDatabaseHolder.db.tx(async (t) => {
 
             LogDBPerfServerController.log_db_query_perf_end(query_uid, 'deleteVOs');
             const queries: any[] = [];
@@ -3017,7 +3017,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             if (sqls.length > 0) {
                 const query_uid = LogDBPerfServerController.log_db_query_perf_start('insert_vos', 'nb:' + sqls.length + ':first:' + sqls[0]);
-                results = await ModuleServiceBase.db.tx(async (t) => {
+                results = await IDatabaseHolder.db.tx(async (t) => {
 
                     const queries: any[] = [];
 

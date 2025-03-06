@@ -13,7 +13,7 @@ import ThreadHandler from "../../../shared/tools/ThreadHandler";
 import ThrottleHelper from "../../../shared/tools/ThrottleHelper";
 import ConfigurationService from "../../env/ConfigurationService";
 import AzureMemoryCheckServerController from "../AzureMemoryCheck/AzureMemoryCheckServerController";
-import ModuleServiceBase from "../ModuleServiceBase";
+import IDatabaseHolder from "../IDatabaseHolder";
 import DAOCacheHandler from "./DAOCacheHandler";
 import LogDBPerfServerController from "./LogDBPerfServerController";
 import ThrottledSelectQueryParam from "./vos/ThrottledSelectQueryParam";
@@ -492,7 +492,7 @@ export default class ThrottledQueryServerController {
 
         try {
             const uid = LogDBPerfServerController.log_db_query_perf_start('do_select_query', request);
-            results = await ModuleServiceBase.db.query(request, values);
+            results = await IDatabaseHolder.db.query(request, values);
             LogDBPerfServerController.log_db_query_perf_end(uid, 'do_select_query', request);
 
             StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'do_select_query', 'query_OUT');

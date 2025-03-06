@@ -35,7 +35,6 @@ import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import { IRequestStackContext } from '../../ServerExpressController';
 import StackContext from '../../StackContext';
@@ -51,7 +50,7 @@ import ModuleTableServerController from '../DAO/ModuleTableServerController';
 import ThrottledQueryServerController from '../DAO/ThrottledQueryServerController';
 import ThrottledRefuseServerController from '../DAO/ThrottledRefuseServerController';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-import ModuleServiceBase from '../ModuleServiceBase';
+import IDatabaseHolder from '../IDatabaseHolder';
 import ParamsServerController from '../Params/ParamsServerController';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
 import ContextAccessServerController from './ContextAccessServerController';
@@ -760,7 +759,7 @@ export default class ContextQueryServerController {
 
                         const bdd_version = ModuleTableServerController.translate_vos_to_db(vo_to_update);
                         const query_uid = LogDBPerfServerController.log_db_query_perf_start('update_vos', 'type:' + vo_to_update._type);
-                        const db_result = await ModuleServiceBase.db.oneOrNone(sql, bdd_version).catch((reason) => {
+                        const db_result = await IDatabaseHolder.db.oneOrNone(sql, bdd_version).catch((reason) => {
                             ConsoleHandler.error('update_vos :' + reason);
                             failed = true;
                         });
@@ -974,7 +973,7 @@ export default class ContextQueryServerController {
             const ids_to_delete: number[] = Object.keys(deleted_vos_by_id).map((id) => parseInt(id));
             try {
 
-                await ModuleServiceBase.db.none('DELETE FROM ' + moduletable.full_name + ' WHERE id IN ($1:csv)', [ids_to_delete]);
+                await IDatabaseHolder.db.none('DELETE FROM ' + moduletable.full_name + ' WHERE id IN ($1:csv)', [ids_to_delete]);
 
                 StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'WHILE_IN_TO_DB_OUT', Dates.now_ms() - while_time_in);
                 StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DB_OUT');
@@ -1012,7 +1011,7 @@ export default class ContextQueryServerController {
             } catch (error) {
                 ConsoleHandler.error('delete_vos :FAILED fast deletion of those ids:' + error + ":retrying with slow method");
 
-                await ModuleServiceBase.db.tx(async (t) => {
+                await IDatabaseHolder.db.tx(async (t) => {
 
                     const qs = [];
                     for (const i in queries) {
@@ -1065,7 +1064,7 @@ export default class ContextQueryServerController {
                 });
 
             }
-            // await ModuleServiceBase.db.tx(async (t) => {
+            // await IDatabaseHolder.db.tx(async (t) => {
 
             //     const qs = [];
             //     for (const i in queries) {

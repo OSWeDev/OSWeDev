@@ -16,8 +16,8 @@ import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import IDatabaseHolder from '../IDatabaseHolder';
 import ModuleServerBase from '../ModuleServerBase';
-import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import CronServerController from './CronServerController';
@@ -25,13 +25,6 @@ import ICronWorker from './interfaces/ICronWorker';
 
 export default class ModuleCronServer extends ModuleServerBase {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleCronServer.instance) {
-            ModuleCronServer.instance = new ModuleCronServer();
-        }
-        return ModuleCronServer.instance;
-    }
 
     private static instance: ModuleCronServer = null;
 
@@ -39,6 +32,14 @@ export default class ModuleCronServer extends ModuleServerBase {
     private constructor() {
         super(ModuleCron.getInstance().name);
         CronServerController.getInstance();
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleCronServer.instance) {
+            ModuleCronServer.instance = new ModuleCronServer();
+        }
+        return ModuleCronServer.instance;
     }
 
     // istanbul ignore next: cannot test configure
@@ -314,7 +315,7 @@ export default class ModuleCronServer extends ModuleServerBase {
                 const prepatch = GeneratorPatchsListHandler.pre_modules_workers[i];
 
                 if (prepatch.uid == patch) {
-                    await prepatch.work(ModuleServiceBase.db);
+                    await prepatch.work(IDatabaseHolder.db);
                     return;
                 }
             }
@@ -323,7 +324,7 @@ export default class ModuleCronServer extends ModuleServerBase {
                 const postpatch = GeneratorPatchsListHandler.post_modules_workers[i];
 
                 if (postpatch.uid == patch) {
-                    await postpatch.work(ModuleServiceBase.db);
+                    await postpatch.work(IDatabaseHolder.db);
                     return;
                 }
             }

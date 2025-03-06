@@ -40,6 +40,7 @@ import CheckExtensions from './inits/premodules/CheckExtensions';
 import VersionUpdater from './version_updater/VersionUpdater';
 // import Patch20241129PreCreateEventsConfs from './patchs/premodules/Patch20241129PreCreateEventsConfs';
 import GeneratorPatchsListHandler from './GeneratorPatchsListHandler';
+import IDatabaseHolder from '../server/modules/IDatabaseHolder';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -133,7 +134,7 @@ export default abstract class GeneratorBase {
         if (envParam.launch_init) {
             console.log("INIT pre modules initialization workers...");
             if (this.init_pre_modules_workers) {
-                if (!await this.execute_workers(this.init_pre_modules_workers, ModuleServiceBase.db)) {
+                if (!await this.execute_workers(this.init_pre_modules_workers, IDatabaseHolder.db)) {
                     process.exit(0);
                     return;
                 }
@@ -143,7 +144,7 @@ export default abstract class GeneratorBase {
 
         console.log("pre modules initialization workers...");
         if (this.pre_modules_workers) {
-            if (!await this.execute_workers(this.pre_modules_workers, ModuleServiceBase.db)) {
+            if (!await this.execute_workers(this.pre_modules_workers, IDatabaseHolder.db)) {
                 process.exit(0);
                 return;
             }
@@ -175,7 +176,7 @@ export default abstract class GeneratorBase {
         if (envParam.launch_init) {
             console.log("INIT post modules initialization workers...");
             if (this.init_post_modules_workers) {
-                if (!await this.execute_workers(this.init_post_modules_workers, ModuleServiceBase.db)) {
+                if (!await this.execute_workers(this.init_post_modules_workers, IDatabaseHolder.db)) {
                     process.exit(0);
                     return;
                 }
@@ -185,7 +186,7 @@ export default abstract class GeneratorBase {
 
         console.log("post modules initialization workers...");
         if (this.post_modules_workers) {
-            if (!await this.execute_workers(this.post_modules_workers, ModuleServiceBase.db)) {
+            if (!await this.execute_workers(this.post_modules_workers, IDatabaseHolder.db)) {
                 process.exit(0);
                 return;
             }

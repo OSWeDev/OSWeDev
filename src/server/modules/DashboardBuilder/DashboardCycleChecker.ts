@@ -7,6 +7,7 @@ import DashboardGraphVORefVO from "../../../shared/modules/DashboardBuilder/vos/
 import DashboardVO from "../../../shared/modules/DashboardBuilder/vos/DashboardVO";
 import EventifyEventListenerConfVO from "../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO";
 import TeamsWebhookContentActionOpenUrlVO from "../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO";
+import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import LocaleManager from "../../../shared/tools/LocaleManager";
 import ObjectHandler from "../../../shared/tools/ObjectHandler";
 import ThreadHandler from "../../../shared/tools/ThreadHandler";
@@ -176,8 +177,8 @@ export default class DashboardCycleChecker {
             cycle_links
         ) && (dashboard.has_cycle === (cycle_tables.length > 0));
 
-        if ((!dashboard.has_cycle) && dashboard.cycle_tables) {
-            await DashboardCycleChecker.notif_teams_cycle_detected(dashboard);
+        if ((!dashboard.has_cycle) && cycle_tables.length) {
+            await DashboardCycleChecker.notif_teams_cycle_detected(dashboard, cycle_tables);
         }
 
         if (dashboard.has_cycle && !cycle_tables.length) {
@@ -196,7 +197,7 @@ export default class DashboardCycleChecker {
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dashboard);
     }
 
-    private static async notif_teams_cycle_detected(dashboard: DashboardVO) {
+    private static async notif_teams_cycle_detected(dashboard: DashboardVO, cycle_tables: string[]) {
 
         const dashboard_title = await LocaleManager.getInstance().t(dashboard.translatable_name_code_text);
 
@@ -207,7 +208,7 @@ export default class DashboardCycleChecker {
         await TeamsAPIServerController.send_teams_error(
             'Dashboard Cycle Checker - Cycle détecté',
             'Cycle détecté dans le dashboard "<b>' + dashboard_title + '</b>" [' + dashboard.id + '] : <ul>' +
-            dashboard.cycle_tables.map((table) => '<li>' + table + '</li>').join('') +
+            cycle_tables.map((table) => '<li>' + table + '</li>').join('') +
             '</ul>',
             actions
         );
@@ -235,9 +236,15 @@ export default class DashboardCycleChecker {
         },
     )
     public static async detectCyclesForDashboards(dashboard_ids: { [id: number]: boolean }) {
+
+        if (!dashboard_ids || !Object.keys(dashboard_ids).length) {
+            return;
+        }
+
         for (const dashboard_id of Object.keys(dashboard_ids)) {
+            ConsoleHandler.log('DashboardCycleChecker.detectCyclesForDashboards - ' + dashboard_id);
             await DashboardCycleChecker.detectCyclesForDashboard(parseInt(dashboard_id));
-            await ThreadHandler.sleep(1000, 'DashboardCycleChecker.detectCyclesForDashboard'); // On laisse un peu de temps au reste du monde, ya pas urgence sur ce truc
+            await ThreadHandler.sleep(100, 'DashboardCycleChecker.detectCyclesForDashboard'); // On laisse un peu de temps au reste du monde, ya pas urgence sur ce truc
         }
     }
 }
