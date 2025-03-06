@@ -217,7 +217,6 @@ export default class GeneratorPatchsListHandler {
         Patch20241016AddOseliaFunction_OSELIA_get_cache_value.getInstance(),
         Patch20241016AddOseliaFunction_OSELIA_set_cache_value.getInstance(),
         Patch20241016AddOseliaFunction_OSELIA_get_assistant.getInstance(),
-        Patch20241010CreateLogType.getInstance(),
         Patch20241030SuiviCompetencesGroupeShortName.getInstance(),
         Patch20241224SupervisionFillProbe.getInstance(),
         Patch20250102AddRightsSupervisedProbe.getInstance(),
