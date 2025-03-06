@@ -1228,9 +1228,27 @@ export default abstract class ServerBase {
 
         // On stocke le log de connexion en base
         let session: IServerUserSession = req ? req.session as IServerUserSession : null;
+        if (req && req.session) {
+            session = req.session as IServerUserSession;
+
+            session.last_load_date_unix = Dates.now();
+        }
 
         if (session && session.uid) {
             const uid: number = session.uid;
+
+            // On doit vérifier que le compte est ni bloqué ni expiré
+            const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().set_max_age_ms(60000).select_vo<UserVO>();
+            if ((!user) || user.blocked || user.invalidated) {
+
+                await ConsoleHandler.warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
+
+                await PushDataServerController.unregisterSession(session.sid);
+                session.destroy(async () => {
+                    await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
+                });
+                return;
+            }
 
             const user_log: UserLogVO = new UserLogVO();
             user_log.user_id = uid;
