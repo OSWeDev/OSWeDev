@@ -3,6 +3,7 @@ import DashboardCycleChecker from "../../../server/modules/DashboardBuilder/Dash
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import DashboardVO from "../../../shared/modules/DashboardBuilder/vos/DashboardVO";
 import IGeneratorWorker from "../../IGeneratorWorker";
+import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 
 
 export default class Patch20250303CheckDBsCycles implements IGeneratorWorker {
@@ -28,6 +29,8 @@ export default class Patch20250303CheckDBsCycles implements IGeneratorWorker {
 
         for (const i in dbs) {
             const dashboard = dbs[i];
+
+            ConsoleHandler.log('Checking cycles for dashboard ' + dashboard.id);
             await DashboardCycleChecker.detectCyclesForDashboard(dashboard.id);
         }
     }
