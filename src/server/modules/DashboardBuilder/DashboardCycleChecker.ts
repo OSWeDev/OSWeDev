@@ -92,9 +92,9 @@ export default class DashboardCycleChecker {
         const parent: { [voType: string]: string | null } = {};
 
         // On remplace les sets par des tableaux
-        const cycle_tables: string[] = [];
-        const cycle_fields: { [voType: string]: string[] } = {};
-        const cycle_links: { [voType: string]: string[] } = {};
+        let cycle_tables: string[] = [];
+        let cycle_fields: { [voType: string]: string[] } = {};
+        let cycle_links: { [voType: string]: string[] } = {};
 
         // Helper pour ajouter un élément unique dans un tableau
         const addUnique = (arr: string[], val: string) => {
@@ -166,16 +166,19 @@ export default class DashboardCycleChecker {
             }
         }
 
-        const does_not_need_update = ObjectHandler.are_equal(
-            dashboard.cycle_tables,
-            cycle_tables
-        ) && ObjectHandler.are_equal(
-            dashboard.cycle_fields,
-            cycle_fields
-        ) && ObjectHandler.are_equal(
-            dashboard.cycle_links,
-            cycle_links
-        ) && (dashboard.has_cycle === (cycle_tables.length > 0));
+        if (!cycle_tables.length) {
+            cycle_tables = null;
+        }
+
+        if (!Object.keys(cycle_fields).length) {
+            cycle_fields = null;
+        }
+
+        if (!Object.keys(cycle_links).length) {
+            cycle_links = null;
+        }
+
+        const does_not_need_update = !DashboardCycleChecker.needs_update(dashboard, cycle_tables, cycle_fields, cycle_links);
 
         if ((!dashboard.has_cycle) && cycle_tables.length) {
             await DashboardCycleChecker.notif_teams_cycle_detected(dashboard, cycle_tables);
@@ -195,6 +198,20 @@ export default class DashboardCycleChecker {
         dashboard.has_cycle = cycle_tables.length > 0;
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dashboard);
+    }
+
+    public static needs_update(dashboard: DashboardVO, cycle_tables: string[], cycle_fields: { [voType: string]: string[] }, cycle_links: { [voType: string]: string[] }): boolean {
+
+        return !(ObjectHandler.are_equal(
+            dashboard.cycle_tables,
+            cycle_tables
+        ) && ObjectHandler.are_equal(
+            dashboard.cycle_fields,
+            cycle_fields
+        ) && ObjectHandler.are_equal(
+            dashboard.cycle_links,
+            cycle_links
+        ) && (dashboard.has_cycle === (cycle_tables.length > 0)));
     }
 
     private static async notif_teams_cycle_detected(dashboard: DashboardVO, cycle_tables: string[]) {

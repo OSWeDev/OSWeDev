@@ -3930,6 +3930,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     }
 
     private async onUDashboardVO(wrapper: DAOUpdateVOHolder<DashboardVO>) {
+
+        // Si la modif est justement un changement de cycles, on ne fait rien
+        if (!DashboardCycleChecker.needs_update(wrapper.pre_update_vo, wrapper.post_update_vo.cycle_tables, wrapper.post_update_vo.cycle_fields, wrapper.post_update_vo.cycle_links)) {
+            return;
+        }
+
         return DashboardCycleChecker.detectCyclesForDashboards({ [wrapper.post_update_vo.id]: true });
     }
 }
