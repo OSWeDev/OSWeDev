@@ -371,7 +371,8 @@ export default abstract class ServerBase {
             cookie: {
                 maxAge: 30 * 24 * 60 * 60 * 1000, // 30 jours
                 httpOnly: true,  // empêche l'accès au cookie depuis le JS
-                secure: (!ConfigurationService.node_configuration.isdev) && (!ConfigurationService.node_configuration.base_url.startsWith('http://localhost')),    // n'envoie le cookie qu'en HTTPS
+                secure: false, // TODO FIXME ne fonctionne pas, même en HTTPS !!! pourquoi ?
+                // secure: (!ConfigurationService.node_configuration.isdev) && (!ConfigurationService.node_configuration.base_url.startsWith('http://localhost')),    // n'envoie le cookie qu'en HTTPS
                 sameSite: 'lax', // bloque largement les requêtes cross-site
             },
         });
