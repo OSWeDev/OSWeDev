@@ -71,3 +71,18 @@
                 :width="100"
                 :labels="{checked: label('cms_crud_buttons.widget_option.show_delete.true'), unchecked: label('cms_crud_buttons.widget_option.show_delete.false')}"
             )
+
+        .role_access(v-tooltip="label('cms_crud_buttons.widget_option.role_access.tooltip')") {{ label('cms_crud_buttons.widget_option.role_access') }}
+            multiselect.mb-3(
+                v-model="selected_roles"
+                :multiple="true"
+                :options="list_roles"
+                :custom-label="multiselectRoleOptionLabel"
+                :select-label='label("multiselect.selectLabel")'
+                :select-group-label='label("multiselect.selectGroupLabel")'
+                :selected-label='label("multiselect.selectedLabel")'
+                :deselect-label='label("multiselect.deselectLabel")'
+                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                :placeholder='label("multiselect.roles.placeholder")'
+                track-by="id"
+            )

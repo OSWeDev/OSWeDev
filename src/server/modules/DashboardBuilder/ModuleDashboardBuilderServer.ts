@@ -4185,6 +4185,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Titre" },
             'cms_print_param.widget_option.title.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Rôles" },
+            'multiselect.roles.placeholder.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Limiter l'accès au CRUD aux rôles suivants" },
+            'cms_crud_buttons.widget_option.role_access.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ne renseigner aucun rôle laisse l'accès à tout le monde." },
+            'cms_crud_buttons.widget_option.role_access.tooltip.___LABEL___'
+        ));
 
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);

@@ -18,6 +18,10 @@ import CRUDCreateModalComponent from '../table_widget/crud_modals/create/CRUDCre
 import CRUDUpdateModalComponent from '../table_widget/crud_modals/update/CRUDUpdateModalComponent';
 import './CMSCrudButtonsWidgetComponent.scss';
 import { ModuleDAOAction } from '../../../dao/store/DaoStore';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
+import RoleVO from '../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
 
 @Component({
     template: require('./CMSCrudButtonsWidgetComponent.pug'),
@@ -55,6 +59,8 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
     private show_manual_vo_type: boolean = false;
     private show_add_edit_fk: boolean = true;
     private manual_vo_type: string;
+
+    private show_crud_buttons: boolean = false;
 
     private vo_type: string = null;
 
@@ -111,11 +117,30 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
         this.show_manual_vo_type = this.widget_options.show_manual_vo_type;
         this.manual_vo_type = this.widget_options.manual_vo_type;
         this.show_add_edit_fk = this.widget_options.show_add_edit_fk;
+
+        if (!this.widget_options.role_access || this.widget_options.role_access.length == 0) {
+            this.show_crud_buttons = true;
+        }
+
+        this.user = VueAppController.getInstance().data_user;
+
+        if (this.user?.id && this.widget_options.role_access?.length > 0) {
+
+            const user_roles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq(field_names<UserRoleVO>().user_id, this.user.id).select_vos();
+            const role_ids: number[] = user_roles.map((role: UserRoleVO) => role.role_id);
+            const roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).filter_by_ids(role_ids).select_vos();
+
+            for (const i in roles) {
+                if (this.widget_options.role_access.find((role: RoleVO) => role.id == roles[i].id)) {
+                    this.show_crud_buttons = true;
+                    break;
+                }
+            }
+        }
     }
 
     private async mounted() {
         this.user = VueAppController.getInstance().data_user;
-
 
         if (this.show_manual_vo_type == true) {
             this.vo_type = this.manual_vo_type;

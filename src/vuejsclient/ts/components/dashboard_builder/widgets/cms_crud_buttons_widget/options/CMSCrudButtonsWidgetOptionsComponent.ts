@@ -12,6 +12,8 @@ import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './CMSCrudButtonsWidgetOptionsComponent.scss';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 @Component({
     template: require('./CMSCrudButtonsWidgetOptionsComponent.pug')
@@ -33,6 +35,8 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
     private show_manual_vo_type: boolean = false;
     private manual_vo_type: string = null;
     private show_add_edit_fk: boolean = true;
+    private selected_roles: RoleVO[] = [];
+    private list_roles: RoleVO[] = [];
 
     private next_update_options: CMSCrudButtonsWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -69,6 +73,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
             this.show_manual_vo_type = false;
             this.manual_vo_type = null;
             this.show_add_edit_fk = true;
+            this.selected_roles = [];
 
             return;
         }
@@ -78,6 +83,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
         this.show_manual_vo_type = this.widget_options.show_manual_vo_type;
         this.manual_vo_type = this.widget_options.manual_vo_type;
         this.show_add_edit_fk = this.widget_options.show_add_edit_fk;
+        this.selected_roles = this.widget_options.role_access;
     }
 
     @Watch('show_add')
@@ -86,6 +92,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
     @Watch('show_manual_vo_type')
     @Watch('manual_vo_type')
     @Watch('show_add_edit_fk')
+    @Watch('selected_roles')
     private async onchange_bloc_text() {
         if (!this.widget_options) {
             return;
@@ -96,7 +103,8 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
             this.widget_options.show_delete != this.show_delete ||
             this.widget_options.show_manual_vo_type != this.show_manual_vo_type ||
             this.widget_options.show_add_edit_fk != this.show_add_edit_fk ||
-            this.widget_options.manual_vo_type != this.manual_vo_type
+            this.widget_options.manual_vo_type != this.manual_vo_type ||
+            this.widget_options.role_access != this.selected_roles
         ) {
             this.next_update_options.show_add = this.show_add;
             this.next_update_options.show_update = this.show_update;
@@ -104,6 +112,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
             this.next_update_options.show_manual_vo_type = this.show_manual_vo_type;
             this.next_update_options.manual_vo_type = this.manual_vo_type;
             this.next_update_options.show_add_edit_fk = this.show_add_edit_fk;
+            this.next_update_options.role_access = this.selected_roles;
 
             await this.throttled_update_options();
         }
@@ -119,6 +128,8 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
             this.next_update_options = this.widget_options;
         }
 
+        this.list_roles = await query(RoleVO.API_TYPE_ID).select_vos();
+
         await this.throttled_update_options();
     }
 
@@ -130,6 +141,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
             false,
             null,
             true,
+            [],
         );
     }
 
@@ -212,5 +224,9 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
         this.next_update_options.show_manual_vo_type = !this.next_update_options.show_manual_vo_type;
 
         await this.throttled_update_options();
+    }
+
+    private multiselectRoleOptionLabel(filter_item: RoleVO): string {
+        return this.label(filter_item.translatable_name);
     }
 }
