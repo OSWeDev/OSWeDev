@@ -5,6 +5,7 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import ModuleDashboardBuilder from '../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
+import DashboardGraphVORefVO from '../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardPageWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -3805,7 +3806,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
 
         const postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        postUTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onUDashboardVO);
+        postUTrigger.registerHandler(DashboardGraphVORefVO.API_TYPE_ID, this, this.onUDashboardGraphVORefVO);
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -3929,13 +3930,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         return;
     }
 
-    private async onUDashboardVO(wrapper: DAOUpdateVOHolder<DashboardVO>) {
+    private async onUDashboardGraphVORefVO(wrapper: DAOUpdateVOHolder<DashboardGraphVORefVO>) {
 
-        // Si la modif est justement un changement de cycles, on ne fait rien
-        if (DashboardCycleChecker.needs_update(wrapper.pre_update_vo, wrapper.post_update_vo.cycle_tables, wrapper.post_update_vo.cycle_fields, wrapper.post_update_vo.cycle_links)) {
-            return;
-        }
+        // // Si la modif est justement un changement de cycles, on ne fait rien
+        // if (DashboardCycleChecker.needs_update(wrapper.pre_update_vo, wrapper.post_update_vo.cycle_tables, wrapper.post_update_vo.cycle_fields, wrapper.post_update_vo.cycle_links)) {
+        //     return;
+        // }
 
-        DashboardCycleChecker.detectCyclesForDashboards({ [wrapper.post_update_vo.id]: true });
+        DashboardCycleChecker.detectCyclesForDashboards({ [wrapper.post_update_vo.dashboard_id]: true });
     }
 }

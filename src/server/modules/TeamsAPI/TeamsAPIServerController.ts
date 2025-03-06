@@ -421,8 +421,9 @@ export default class TeamsAPIServerController {
                 const key_param = key_params[i];
 
                 if (key_param.actions && (key_param.actions.length > 0)) {
-                    ConsoleHandler.error('NOT IMPLEMENTED : TeamsAPIServerController.throttled_send_teams_level:Impossible de gérer les actions dans le cadre d\'un throttle de messages');
-                    break;
+                    ConsoleHandler.warn('FIXME TODO : TeamsAPIServerController.throttled_send_teams_level: Les actions ne sont pas optimisées dans le cadre d\'un throttle de messages');
+                    actions.push(...key_param.actions);
+                    // break;
                 }
             }
 

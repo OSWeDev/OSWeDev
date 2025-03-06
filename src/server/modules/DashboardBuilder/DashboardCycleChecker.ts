@@ -219,7 +219,7 @@ export default class DashboardCycleChecker {
         const dashboard_title = await LocaleManager.getInstance().t(dashboard.translatable_name_code_text);
 
         const actions = [
-            new TeamsWebhookContentActionOpenUrlVO().set_url(ConfigurationService.node_configuration.base_url + 'admin#/dashboard/view/' + dashboard.id).set_title('Editer le dashboard')
+            new TeamsWebhookContentActionOpenUrlVO().set_url(ConfigurationService.node_configuration.base_url + 'admin#/dashboard_builder/' + dashboard.id).set_title('Editer le dashboard')
         ];
 
         await TeamsAPIServerController.send_teams_error(
@@ -236,7 +236,7 @@ export default class DashboardCycleChecker {
         const dashboard_title = await LocaleManager.getInstance().t(dashboard.translatable_name_code_text);
 
         const actions = [
-            new TeamsWebhookContentActionOpenUrlVO().set_url(ConfigurationService.node_configuration.base_url + 'admin#/dashboard/view/' + dashboard.id).set_title('Editer le dashboard')
+            new TeamsWebhookContentActionOpenUrlVO().set_url(ConfigurationService.node_configuration.base_url + 'admin#/dashboard_builder/' + dashboard.id).set_title('Editer le dashboard')
         ];
 
         await TeamsAPIServerController.send_teams_success(
