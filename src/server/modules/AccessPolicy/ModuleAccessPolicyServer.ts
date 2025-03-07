@@ -67,6 +67,7 @@ import APIBGThread from '../API/bgthreads/APIBGThread';
 import { IRequestStackContext } from '../../ServerExpressController';
 import CachedQueryHandler from '../../../shared/tools/cache/CachedQueryHandler';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
+import ExpressDBSessionsServerCacheHolder from '../ExpressDBSessions/ExpressDBSessionsServerCacheHolder';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -202,7 +203,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     public async logout_sid(sid: string) {
 
-        let session = PushDataServerController.registered_sessions_by_sid[sid];
+        let session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
         return new Promise(async (accept, reject) => {
 
             let user_log = null;
@@ -279,7 +280,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public async login_sid(uid: number, sid: string): Promise<boolean> {
 
         try {
-            const session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
+            const session: IServerUserSession = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
 
             if (!session) {
                 ConsoleHandler.warn('ModuleAccessPolicyServer.login_session:session not found:SID:' + sid + ':UID:' + uid);
@@ -333,7 +334,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             });
 
             await session_is_saved;
-            await PushDataServerController.registerSession(session);
 
             // On stocke le log de connexion en base
             const user_log = new UserLogVO();
@@ -375,7 +375,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
 
             const sid = StackContext.get('SID');
-            const session = PushDataServerController.registered_sessions_by_sid[sid];
+            const session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
 
             if (session && !!session.impersonated_from) {
                 return true;
@@ -397,7 +397,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
 
             const sid = StackContext.get('SID');
-            const session = PushDataServerController.registered_sessions_by_sid[sid];
+            const session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
 
             let impersonated_from_session = (session && session.impersonated_from) ? session.impersonated_from : null;
 
@@ -421,7 +421,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     private async do_delete_session(sid: string) {
 
-        let session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
+        let session: IServerUserSession = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
 
         /**
          * On veut supprimer la session et déconnecter tout le monde
@@ -487,7 +487,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
             const sid = StackContext.get('SID');
-            const session = PushDataServerController.registered_sessions_by_sid[sid];
+            const session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
 
             if (!session) {
                 ConsoleHandler.warn('ModuleAccessPolicyServer.signinAndRedirect:session not found:SID:' + sid + ':UID:' + email);
@@ -567,7 +567,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
             session.uid = user.id;
             session.user_vo = user;
-            await PushDataServerController.registerSession(session);
             session.save((error) => {
                 if (error) {
                     ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:' + error);
@@ -599,7 +598,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
             const sid = StackContext.get('SID');
-            const session = PushDataServerController.registered_sessions_by_sid[sid];
+            const session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
 
             if (!session) {
                 ConsoleHandler.warn('ModuleAccessPolicyServer.signinAndRedirect:session not found:SID:' + sid + ':UID:' + email);
@@ -659,7 +658,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session.uid = user.id;
             session.user_vo = user;
-            await PushDataServerController.registerSession(session);
             session.save((error) => {
                 if (error) {
                     ConsoleHandler.error('ModuleAccessPolicyServer.loginAndRedirect:session.save:' + error);
@@ -693,7 +691,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     private async do_impersonate(context_query: ContextQueryVO): Promise<number> {
         const sid = StackContext.get('SID');
-        const session = PushDataServerController.registered_sessions_by_sid[sid];
+        const session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
 
         const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
@@ -731,7 +729,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         session.impersonated_from = Object.assign({}, session);
         session.uid = user.id;
         session.user_vo = user;
-        await PushDataServerController.registerSession(session);
         session.save((error) => {
             if (error) {
                 ConsoleHandler.error('ModuleAccessPolicyServer.do_impersonate:session.save:' + error);
@@ -778,7 +775,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
 
             const sid = StackContext.get('SID');
-            let session = PushDataServerController.registered_sessions_by_sid[sid];
+            let session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
 
             if (!session.impersonated_from) {
                 return null;
@@ -804,7 +801,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
 
             const sid = StackContext.get('SID');
-            const session = PushDataServerController.registered_sessions_by_sid[sid];
+            const session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
 
             return session;
         } catch (error) {

@@ -1,6 +1,7 @@
+import ISessionObject from "../../ExpressDBSessions/interfaces/ISessionObject";
 import UserVO from "./UserVO";
 
-export default interface IServerUserSession {
+export default interface IServerUserSession extends ISessionObject {
     uid: number;
     user_vo: UserVO;
     sid: string;

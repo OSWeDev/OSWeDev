@@ -68,6 +68,7 @@ import BGThreadServerDataManager from './modules/BGThread/BGThreadServerDataMana
 import RunsOnBgThreadDataController from './modules/BGThread/annotations/RunsOnBGThread';
 import RunsOnMainThreadDataController from './modules/BGThread/annotations/RunsOnMainThread';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
+import { fs_stream_zipped_archive } from './modules/File/ArchiveServerController';
 import ForkMessageController from './modules/Fork/ForkMessageController';
 import IFork from './modules/Fork/interfaces/IFork';
 import PingForkMessage from './modules/Fork/messages/PingForkMessage';
@@ -76,8 +77,6 @@ import ParamsServerController from './modules/Params/ParamsServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import AsyncHookPromiseWatchController from './modules/Stats/AsyncHookPromiseWatchController';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
-import StreamZip from 'node-stream-zip';
-import { fs_stream_zipped_archive } from './modules/File/ArchiveServerController';
 
 export default abstract class ServerBase {
 
@@ -1049,10 +1048,11 @@ export default abstract class ServerBase {
         }
 
         let file: FileVO = null;
+        const file_path = ModuleFile.FILES_ROOT + folders + file_name;
 
         file = await query(FileVO.API_TYPE_ID)
             .filter_is_false(field_names<FileVO>().is_secured)
-            .filter_by_text_eq(field_names<FileVO>().path, ModuleFile.FILES_ROOT + folders + file_name)
+            .filter_by_text_eq(field_names<FileVO>().path, file_path)
             .exec_as_server()
             .select_vo<FileVO>();
 
@@ -1075,7 +1075,7 @@ export default abstract class ServerBase {
             return;
         }
 
-        res.sendFile(path.resolve(file.path));
+        res.sendFile(path.resolve(file_path));
     }
 
 
@@ -1254,7 +1254,7 @@ export default abstract class ServerBase {
             user_log.user_id = uid;
             user_log.log_time = Dates.now();
             user_log.impersonated = false;
-            user_log.referer = req.headers.referer;
+            user_log.referer = (req.headers.origin || req.headers.referer) as string;
             user_log.log_type = UserLogVO.LOG_TYPE_CSRF_REQUEST;
 
             /**
@@ -1373,41 +1373,56 @@ export default abstract class ServerBase {
         }
 
 
-        // Middleware pour définir dynamiquement les en-têtes X-Frame-Options
-        let origin = req.get('Origin');
-        if ((!origin) || !(origin.length)) {
-            origin = req.get('Referer');
-        }
+        // // Middleware pour définir dynamiquement les en-têtes X-Frame-Options
+        // let origin = req.get('Origin');
+        // if ((!origin) || !(origin.length)) {
+        //     origin = req.get('Referer');
+        // }
 
-        if (!/^(https?:\/\/[^/]+\/).*/i.test(origin)) {
-            origin = origin + '/';
-        }
+        //     if (!/^(https?:\/\/[^/]+\/).*/i.test(origin)) {
+        //         origin = origin + '/';
+        //     }
 
-        // On veut que la partie de l'URL qui nous intéresse (https://www.monsite.com) et pas le reste
-        origin = origin.replace(/^(https?:\/\/[^/]+)\/?.*/i, '$1');
+        //     // On veut que la partie de l'URL qui nous intéresse (https://www.monsite.com) et pas le reste
+        //     origin = origin.replace(/^(https?:\/\/[^/]+)\/?.*/i, '$1');
 
-        if (origin && (ConfigurationService.node_configuration.base_url.toLowerCase().startsWith(origin.toLowerCase()) || OseliaServerController.has_authorization(origin))) {
-            res.setHeader('X-Frame-Options', `ALLOW-FROM ${origin}`);
+        //     if (origin && (ConfigurationService.node_configuration.base_url.toLowerCase().startsWith(origin.toLowerCase()) || OseliaServerController.has_authorization(origin))) {
+        //         res.setHeader('X-Frame-Options', `ALLOW-FROM ${origin}`);
 
-            if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
-                ConsoleHandler.log("ServerExpressController:origin:" + origin + ":X-Frame-Options:ALLOW-FROM");
-            }
+        //         if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
+        //             ConsoleHandler.log("ServerExpressController:origin:" + origin + ":X-Frame-Options:ALLOW-FROM");
+        //         }
 
+        //     } else {
+        //         res.setHeader('X-Frame-Options', 'DENY');
+
+        //         if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
+        //             ConsoleHandler.log("ServerExpressController:origin:" + origin + ":X-Frame-Options:DENY");
+        //         }
+        //     }
+
+        // // allow cors
+        // res.header('Access-Control-Allow-Credentials', 'true');
+        // res.header('Access-Control-Allow-Origin', (req.headers.origin ? req.headers.origin.toString() : ""));
+        // res.header('Access-Control-Allow-Methods', 'OPTIONS,GET,PUT,POST,DELETE');
+        // res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
+
+
+        const origin = req.get('Origin') || req.get('Referer') || '';
+        const allowedOrigin = ConfigurationService.node_configuration.base_url.toLowerCase();
+
+        if (origin && (allowedOrigin.startsWith(origin.toLowerCase()) || OseliaServerController.has_authorization(origin))) {
+            res.header('Access-Control-Allow-Origin', origin);
+            res.header('X-Frame-Options', `ALLOW-FROM ${origin}`);
         } else {
-            res.setHeader('X-Frame-Options', 'DENY');
-
-            if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
-                ConsoleHandler.log("ServerExpressController:origin:" + origin + ":X-Frame-Options:DENY");
-            }
+            res.header('Access-Control-Allow-Origin', allowedOrigin);
+            res.header('X-Frame-Options', 'DENY');
         }
 
-        // allow cors
+        // autres headers CORS
         res.header('Access-Control-Allow-Credentials', 'true');
-        res.header('Access-Control-Allow-Origin', (req.headers.origin ? req.headers.origin.toString() : ""));
         res.header('Access-Control-Allow-Methods', 'OPTIONS,GET,PUT,POST,DELETE');
         res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
-
-
 
 
 
@@ -1415,10 +1430,6 @@ export default abstract class ServerBase {
         let session: IServerUserSession = null;
         if (req && !!req.session) {
             session = req.session as IServerUserSession;
-
-            if (!!session) {
-                await PushDataServerController.registerSession(session);
-            }
 
             if (!session.returning) {
                 // session was just created
@@ -1507,8 +1518,6 @@ export default abstract class ServerBase {
     //             return;
     //         }
     //         session.last_check_blocked_or_expired = Dates.now();
-
-    //         await PushDataServerController.registerSession(session);
 
     //         // On stocke le log de connexion en base
     //         const user_log: UserLogVO = new UserLogVO();

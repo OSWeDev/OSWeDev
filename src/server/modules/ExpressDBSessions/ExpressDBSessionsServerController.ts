@@ -13,7 +13,7 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import APIBGThread from '../API/bgthreads/APIBGThread';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
+import ExpressDBSessionsServerCacheHolder from './ExpressDBSessionsServerCacheHolder';
 
 const session = expressSession as any;
 const Store = session.Store || session.session.Store;
@@ -25,15 +25,6 @@ export default class ExpressDBSessionsServerController extends Store {
 
 
     private static instance: ExpressDBSessionsServerController = null;
-
-    /**
-     * On ajoute un cache de session pour éviter de faire des requêtes SQL inutiles
-     *  (on ne fait pas de requête SQL si on a déjà la session en cache et qu'elle est valide)
-     */
-    @StatThisMapKeys('ExpressDBSessionsServerController')
-    private static session_cache: { [session_id: string]: ExpressSessionVO } = {};
-    @StatThisMapKeys('ExpressDBSessionsServerController')
-    private static parsed_session_cache: { [session_id: string]: IServerUserSession } = {};
 
     public constructor(options) {
         super(options);
@@ -106,19 +97,20 @@ export default class ExpressDBSessionsServerController extends Store {
 
             let this_session: ExpressSessionVO = null;
             let this_parsed_session: IServerUserSession = null;
-            if (ExpressDBSessionsServerController.session_cache[session_id] && ExpressDBSessionsServerController.session_cache[session_id].expire >= Dates.now()) {
-                this_session = ExpressDBSessionsServerController.session_cache[session_id];
-                if (ExpressDBSessionsServerController.parsed_session_cache[session_id]) {
-                    this_parsed_session = ExpressDBSessionsServerController.parsed_session_cache[session_id];
+            if (ExpressDBSessionsServerCacheHolder.session_cache[session_id] && ExpressDBSessionsServerCacheHolder.session_cache[session_id].expire >= Dates.now()) {
+                this_session = ExpressDBSessionsServerCacheHolder.session_cache[session_id];
+                if (ExpressDBSessionsServerCacheHolder.parsed_session_cache[session_id]) {
+                    this_parsed_session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[session_id];
                 }
             } else {
 
                 // On sort du contexte client pour faire la requete, on doit toujours pouvoir récupérer la session
                 this_session = await this.get_session_from_db(session_id);
-                ExpressDBSessionsServerController.session_cache[session_id] = this_session;
+                ExpressDBSessionsServerCacheHolder.session_cache[session_id] = this_session;
                 try {
                     this_parsed_session = this_session ? ObjectHandler.try_get_json(this_session.sess) : null;
-                    ExpressDBSessionsServerController.parsed_session_cache[session_id] = this_parsed_session;
+                    ExpressDBSessionsServerCacheHolder.parsed_session_cache[session_id] = this_parsed_session;
+                    ExpressDBSessionsServerCacheHolder.session_id_by_sid[this_parsed_session.sid] = session_id;
                 } catch {
                     return this.destroy(session_id, fn);
                 }
@@ -163,10 +155,10 @@ export default class ExpressDBSessionsServerController extends Store {
              */
             let cache_sess: ExpressSessionVO = null;
             let cache_sess_obj: IServerUserSession = null;
-            if (ExpressDBSessionsServerController.session_cache[session_id]) {
-                cache_sess = ExpressDBSessionsServerController.session_cache[session_id];
-                if (ExpressDBSessionsServerController.parsed_session_cache[session_id]) {
-                    cache_sess_obj = ExpressDBSessionsServerController.parsed_session_cache[session_id];
+            if (ExpressDBSessionsServerCacheHolder.session_cache[session_id]) {
+                cache_sess = ExpressDBSessionsServerCacheHolder.session_cache[session_id];
+                if (ExpressDBSessionsServerCacheHolder.parsed_session_cache[session_id]) {
+                    cache_sess_obj = ExpressDBSessionsServerCacheHolder.parsed_session_cache[session_id];
                 }
             }
 
@@ -222,15 +214,17 @@ export default class ExpressDBSessionsServerController extends Store {
                     StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'set', 'update_out', Dates.now_ms() - db_session_time_in);
                 }
 
-                ExpressDBSessionsServerController.session_cache[session_id] = res;
-                ExpressDBSessionsServerController.parsed_session_cache[session_id] = sess;
+                ExpressDBSessionsServerCacheHolder.session_cache[session_id] = res;
+                ExpressDBSessionsServerCacheHolder.parsed_session_cache[session_id] = sess;
+                ExpressDBSessionsServerCacheHolder.session_id_by_sid[sess_obj.sid] = session_id;
 
                 if (!res || !res.id) {
                     /**
                      * On a un problème, on supprime la session du cache pour forcer une nouvelle insertion
                      */
-                    delete ExpressDBSessionsServerController.session_cache[session_id];
-                    delete ExpressDBSessionsServerController.parsed_session_cache[session_id];
+                    delete ExpressDBSessionsServerCacheHolder.session_cache[session_id];
+                    delete ExpressDBSessionsServerCacheHolder.parsed_session_cache[session_id];
+                    delete ExpressDBSessionsServerCacheHolder.session_id_by_sid[sess_obj.sid];
                     StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'ERROR_session_cache');
                     try {
                         const db_sess: ExpressSessionVO = await this.get_session_from_db(session_id);
@@ -253,9 +247,9 @@ export default class ExpressDBSessionsServerController extends Store {
                     return null;
                 }
 
-                ExpressDBSessionsServerController.session_cache[session_id].id = ExpressDBSessionsServerController.session_cache[session_id].id ? ExpressDBSessionsServerController.session_cache[session_id].id : res.id;
+                ExpressDBSessionsServerCacheHolder.session_cache[session_id].id = ExpressDBSessionsServerCacheHolder.session_cache[session_id].id ? ExpressDBSessionsServerCacheHolder.session_cache[session_id].id : res.id;
 
-                if (!ExpressDBSessionsServerController.session_cache[session_id].id) {
+                if (!ExpressDBSessionsServerCacheHolder.session_cache[session_id].id) {
                     StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'ERROR_no_id');
                     ConsoleHandler.error('ExpressDBSessionsServerController.set: no id for session session_id:' + session_id +
                         ': sess:' + ((typeof sess === 'string') ? sess : JSON.stringify(sess)) +
@@ -281,7 +275,7 @@ export default class ExpressDBSessionsServerController extends Store {
      */
     public async destroy(session_id, fn) {
 
-        if (!ExpressDBSessionsServerController.session_cache[session_id] || !ExpressDBSessionsServerController.session_cache[session_id].id) {
+        if (!ExpressDBSessionsServerCacheHolder.session_cache[session_id] || !ExpressDBSessionsServerCacheHolder.session_cache[session_id].id) {
             if (fn) {
                 return fn(null);
             }
@@ -290,15 +284,26 @@ export default class ExpressDBSessionsServerController extends Store {
         StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'destroy', 'IN');
         try {
             const db_session_time_in = Dates.now_ms();
-            await this.delete_session_in_db(ExpressDBSessionsServerController.session_cache[session_id].id);
+            await this.delete_session_in_db(ExpressDBSessionsServerCacheHolder.session_cache[session_id].id);
             StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'destroy', 'OUT', Dates.now_ms() - db_session_time_in);
             StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'destroy', 'OUT');
         } catch (error) {
             StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'destroy', 'error');
             ConsoleHandler.error('ExpressDBSessionsServerController.destroy: error on delete session_id:' + session_id + ': ' + error);
         }
-        delete ExpressDBSessionsServerController.session_cache[session_id];
-        delete ExpressDBSessionsServerController.parsed_session_cache[session_id];
+        delete ExpressDBSessionsServerCacheHolder.session_cache[session_id];
+        delete ExpressDBSessionsServerCacheHolder.parsed_session_cache[session_id];
+
+        let sid = null;
+        for (const i in ExpressDBSessionsServerCacheHolder.session_id_by_sid) {
+            if (ExpressDBSessionsServerCacheHolder.session_id_by_sid[i] == session_id) {
+                sid = i;
+                break;
+            }
+        }
+        if (sid) {
+            delete ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid];
+        }
 
         if (fn) {
             return fn(null);
@@ -319,16 +324,16 @@ export default class ExpressDBSessionsServerController extends Store {
         /**
          * On ne met à jour que si : le contenu de la session change (objet sess) ou la date d'expiration a bougé de plus de 7 jours
          */
-        let do_update = (!ExpressDBSessionsServerController.session_cache[session_id]) || (!ExpressDBSessionsServerController.session_cache[session_id].expire);
+        let do_update = (!ExpressDBSessionsServerCacheHolder.session_cache[session_id]) || (!ExpressDBSessionsServerCacheHolder.session_cache[session_id].expire);
         if (!do_update) {
-            do_update = (Math.abs(expireTime - ExpressDBSessionsServerController.session_cache[session_id].expire) > 7 * 24 * 60 * 60);
+            do_update = (Math.abs(expireTime - ExpressDBSessionsServerCacheHolder.session_cache[session_id].expire) > 7 * 24 * 60 * 60);
         }
 
         StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'IN');
         const db_session_time_in = Dates.now_ms();
 
         if (do_update) {
-            let res = ExpressDBSessionsServerController.session_cache[session_id];
+            let res = ExpressDBSessionsServerCacheHolder.session_cache[session_id];
             if (!res) {
 
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'insert');
@@ -354,16 +359,18 @@ export default class ExpressDBSessionsServerController extends Store {
                 StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'touch', 'update_out', Dates.now_ms() - db_session_time_in);
             }
 
-            ExpressDBSessionsServerController.session_cache[session_id] = res;
-            ExpressDBSessionsServerController.parsed_session_cache[session_id] = sess;
+            ExpressDBSessionsServerCacheHolder.session_cache[session_id] = res;
+            ExpressDBSessionsServerCacheHolder.parsed_session_cache[session_id] = sess;
+            ExpressDBSessionsServerCacheHolder.session_id_by_sid[ObjectHandler.try_get_json(sess).sid] = session_id;
 
             if (!res || !res.id) {
                 /**
                  * On a un problème, on supprime la session du cache pour forcer une nouvelle insertion
                  */
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'ERROR_session_cache');
-                delete ExpressDBSessionsServerController.session_cache[session_id];
-                delete ExpressDBSessionsServerController.parsed_session_cache[session_id];
+                delete ExpressDBSessionsServerCacheHolder.session_cache[session_id];
+                delete ExpressDBSessionsServerCacheHolder.parsed_session_cache[session_id];
+                delete ExpressDBSessionsServerCacheHolder.session_id_by_sid[ObjectHandler.try_get_json(sess).sid];
                 try {
                     const db_sess: ExpressSessionVO = await this.get_session_from_db(session_id);
                     if (db_sess && db_sess.id) {
@@ -384,9 +391,9 @@ export default class ExpressDBSessionsServerController extends Store {
                 return null;
             }
 
-            ExpressDBSessionsServerController.session_cache[session_id].id = ExpressDBSessionsServerController.session_cache[session_id].id ? ExpressDBSessionsServerController.session_cache[session_id].id : res.id;
+            ExpressDBSessionsServerCacheHolder.session_cache[session_id].id = ExpressDBSessionsServerCacheHolder.session_cache[session_id].id ? ExpressDBSessionsServerCacheHolder.session_cache[session_id].id : res.id;
 
-            if (!ExpressDBSessionsServerController.session_cache[session_id].id) {
+            if (!ExpressDBSessionsServerCacheHolder.session_cache[session_id].id) {
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'ERROR_no_id');
                 ConsoleHandler.error('ExpressDBSessionsServerController.touch: no id for session session_id:' + session_id +
                     ': sess:' + ((typeof sess === 'string') ? sess : JSON.stringify(sess)) +

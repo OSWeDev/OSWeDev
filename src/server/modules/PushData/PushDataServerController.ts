@@ -7,6 +7,7 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import APINotifTypeResultVO from '../../../shared/modules/PushData/vos/APINotifTypeResultVO';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
+import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -19,9 +20,9 @@ import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ExpressDBSessionsServerCacheHolder from '../ExpressDBSessions/ExpressDBSessionsServerCacheHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import SocketWrapper from './vos/SocketWrapper';
-import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 
 export default class PushDataServerController {
 
@@ -114,12 +115,6 @@ export default class PushDataServerController {
      * !!!! Only for main process use !!!!
      */
     @StatThisMapKeys('PushDataServerController')
-    public static registered_sessions_by_sid: { [sid: string]: IServerUserSession } = {};
-
-
-    @StatThisMapKeys('PushDataServerController', null, 1)
-    private static registered_sessions_by_uid: { [userId: number]: { [sessId: string]: IServerUserSession } } = {};
-    @StatThisMapKeys('PushDataServerController')
     private static registered_sockets_by_id: { [socket_id: string]: SocketWrapper } = {};
     @StatThisMapKeys('PushDataServerController', null, 1)
     private static registered_sockets_by_sessionid: { [session_id: string]: { [socket_id: string]: SocketWrapper } } = {};
@@ -197,31 +192,6 @@ export default class PushDataServerController {
     }
 
     /**
-     * WARN : Only on main thread (express). Mais on ASSERT à ce niveau par ce qu'on ne peut pas venir d'un autre thread. Les sessions ne peuvent être modifiées/passées que par le main thread. Les autres parlent en session.sid
-     * @param session
-     */
-    public static async registerSession(session: IServerUserSession) {
-
-        if ((!session) || (!session.id)) {
-            return;
-        }
-
-        ForkedTasksController.assert_is_main_process();
-
-        const uid = ((session.uid == null) ? 0 : session.uid);
-
-        if (!PushDataServerController.registered_sessions_by_uid[uid]) {
-            PushDataServerController.registered_sessions_by_uid[uid] = {};
-        }
-        if (!PushDataServerController.registered_sessions_by_uid[uid][session.id]) {
-            PushDataServerController.registered_sessions_by_uid[uid][session.id] = session;
-        }
-        if (!PushDataServerController.registered_sessions_by_sid[session.sid]) {
-            PushDataServerController.registered_sessions_by_sid[session.sid] = session;
-        }
-    }
-
-    /**
      * Les sockets sont accessibles et transférables que sur le main process, donc on assert ici
      */
     public static getSocketsBySession(session_id: string): { [socket_id: string]: SocketWrapper } {
@@ -279,16 +249,6 @@ export default class PushDataServerController {
 
         PushDataServerController.registereduid_by_socketid[socket.id] = session_uid;
         PushDataServerController.registeredclient_tab_id_by_socketid[socket.id] = client_tab_id;
-
-        if (!PushDataServerController.registered_sessions_by_uid[session_uid]) {
-            PushDataServerController.registered_sessions_by_uid[session_uid] = {};
-        }
-        if (!PushDataServerController.registered_sessions_by_uid[session_uid][session.id]) {
-            PushDataServerController.registered_sessions_by_uid[session_uid][session.id] = session;
-        }
-        if (!PushDataServerController.registered_sessions_by_sid[session.sid]) {
-            PushDataServerController.registered_sessions_by_sid[session.sid] = session;
-        }
     }
 
     /**
@@ -388,7 +348,18 @@ export default class PushDataServerController {
     public static async getUserSessions(userId: number): Promise<{ [sessId: string]: IServerUserSession }> {
 
         ForkedTasksController.assert_is_main_process();
-        return PushDataServerController.registered_sessions_by_uid[userId];
+
+        const res: { [sessId: string]: IServerUserSession } = {};
+
+        for (const i in ExpressDBSessionsServerCacheHolder.parsed_session_cache) {
+            const session: IServerUserSession = ExpressDBSessionsServerCacheHolder.parsed_session_cache[i];
+
+            if (session.uid == userId) {
+                res[session.id] = session;
+            }
+        }
+
+        return res;
     }
 
     /**
@@ -400,7 +371,7 @@ export default class PushDataServerController {
     public static async getSessionBySid(sid: string): Promise<IServerUserSession> {
 
         ForkedTasksController.assert_is_main_process();
-        return PushDataServerController.registered_sessions_by_sid[sid];
+        return ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
     }
 
     /**
@@ -502,7 +473,7 @@ export default class PushDataServerController {
     @RunsOnMainThread(null)
     public static async unregisterSession(sid: string, notify_redirect: boolean = true): Promise<void> {
 
-        const session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
+        const session: IServerUserSession = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
         if (!session) {
             return;
         }
@@ -521,14 +492,6 @@ export default class PushDataServerController {
         if ((!session) || (!session.id)) {
             return;
         }
-
-        if (PushDataServerController.registered_sessions_by_uid[uid] && PushDataServerController.registered_sessions_by_uid[uid][session.id]) {
-            delete PushDataServerController.registered_sessions_by_uid[uid][session.id];
-        }
-
-        if (PushDataServerController.registered_sessions_by_sid[session.sid]) {
-            delete PushDataServerController.registered_sessions_by_sid[session.sid];
-        }
     }
 
     /**
@@ -538,23 +501,14 @@ export default class PushDataServerController {
     @RunsOnMainThread(null)
     public static async unregisterUserSession(sid: string): Promise<void> {
 
-        const session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
+        const session: IServerUserSession = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
 
         if (!session) {
             return;
         }
 
-        const uid = ((session.uid == null) ? 0 : session.uid);
-
         // PushDataServerController.notifySimpleERROR(session.uid, null, PushDataServerController.NOTIFY_SESSION_INVALIDATED, true);
         await PushDataServerController.notifyRedirectHomeAndDisconnect(sid);
-
-        if (PushDataServerController.registered_sessions_by_uid[uid] && PushDataServerController.registered_sessions_by_uid[uid][session.id]) {
-            delete PushDataServerController.registered_sessions_by_uid[uid][session.id];
-        }
-        if (PushDataServerController.registered_sessions_by_sid[session.sid]) {
-            delete PushDataServerController.registered_sessions_by_sid[session.sid];
-        }
     }
 
     /**
@@ -676,7 +630,7 @@ export default class PushDataServerController {
     @RunsOnMainThread(null)
     public static async notifyRedirectHomeAndDisconnect(sid: string): Promise<void> {
 
-        const session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
+        const session: IServerUserSession = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
 
         if (!session) {
             return;
@@ -716,7 +670,7 @@ export default class PushDataServerController {
         sso: boolean = false
     ): Promise<void> {
 
-        const session: IServerUserSession = PushDataServerController.registered_sessions_by_sid[sid];
+        const session: IServerUserSession = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
 
         let notification: NotificationVO = null;
         try {
