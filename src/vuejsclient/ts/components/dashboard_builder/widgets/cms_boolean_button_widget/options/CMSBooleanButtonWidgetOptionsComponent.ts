@@ -34,6 +34,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
     private color: string = null;
     private text_color: string = null;
     private vo_field_ref: VOFieldRefVO = null;
+    private user_field_ref: VOFieldRefVO = null;
     private radius: number = null;
     private icone_ok: string = null;
     private icone_nok: string = null;
@@ -70,6 +71,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
             this.radius = 0;
             this.icone_ok = null;
             this.icone_nok = null;
+            this.user_field_ref = null;
 
             return;
         }
@@ -81,6 +83,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
         this.radius = this.widget_options.radius;
         this.icone_ok = this.widget_options.icone_ok;
         this.icone_nok = this.widget_options.icone_nok;
+        this.user_field_ref = this.widget_options.user_field_ref;
     }
 
     @Watch('title_ok')
@@ -91,6 +94,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
     @Watch('radius')
     @Watch('icone_ok')
     @Watch('icone_nok')
+    @Watch('user_field_ref')
     private async onchange_bloc_text() {
         if (!this.widget_options) {
             return;
@@ -103,6 +107,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
             this.widget_options.radius != this.radius ||
             this.widget_options.icone_ok != this.icone_ok ||
             this.widget_options.icone_nok != this.icone_nok ||
+            this.widget_options.user_field_ref != this.user_field_ref ||
             this.widget_options.color != this.color) {
 
             this.next_update_options.title_ok = this.title_ok;
@@ -113,6 +118,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
             this.next_update_options.radius = this.radius;
             this.next_update_options.icone_ok = this.icone_ok;
             this.next_update_options.icone_nok = this.icone_nok;
+            this.next_update_options.user_field_ref = this.user_field_ref;
 
             await this.throttled_update_options();
         }
@@ -142,6 +148,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
             null,
             null,
             0,
+            null,
         );
     }
 
@@ -165,6 +172,9 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
     private async add_vo_field_ref(api_type_id: string, field_id: string) {
         await this.add_field_ref(api_type_id, field_id, 'vo_field_ref');
     }
+    private async add_user_field_ref(api_type_id: string, field_id: string) {
+        await this.add_field_ref(api_type_id, field_id, 'user_field_ref');
+    }
 
     private async add_field_ref(api_type_id: string, field_id: string, field_name: string) {
         this.next_update_options = this.widget_options;
@@ -185,6 +195,9 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
 
     private async remove_vo_field_ref() {
         await this.remove_field_ref('vo_field_ref');
+    }
+    private async remove_user_field_ref() {
+        await this.remove_field_ref('user_field_ref');
     }
 
     private async remove_field_ref(field_name: string) {

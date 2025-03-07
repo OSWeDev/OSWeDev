@@ -1,15 +1,27 @@
 .cms_boolean_button_widget_options_component
     .cms_boolean_button_widget_options_component_wrapper
 
-        .widget_url_label
-            .widget_url_label {{ label('cms_boolean_button.widget_option.url') }}
-            .widget_url_wrapper
+        .widget_vo_label
+            .widget_vo_label {{ label('cms_boolean_button.widget_option.vo_field_ref') }}
+            .widget_vo_wrapper
 
-                .widget_url_wrapper_input
+                .widget_vo_wrapper_input
                     Singlevofieldrefholdercomponent(
                         :vo_field_ref="vo_field_ref"
                         @remove_field_ref="remove_vo_field_ref"
                         @add_field_ref="add_vo_field_ref"
+                        :page_widget_id='page_widget ? page_widget.id : null'
+                    )
+
+        .widget_user_label
+            .widget_user_label {{ label('cms_boolean_button.widget_option.user_field_ref') }}
+            .widget_user_wrapper
+
+                .widget_user_wrapper_input
+                    Singlevofieldrefholdercomponent(
+                        :vo_field_ref="user_field_ref"
+                        @remove_field_ref="remove_user_field_ref"
+                        @add_field_ref="add_user_field_ref"
                         :page_widget_id='page_widget ? page_widget.id : null'
                     )
         
@@ -31,14 +43,14 @@
                 input(
                     type="text"
                     v-model="icone_ok"
-                    v-tooltip='label("cms_boolean_button.widget_option.icone_ok.tooltip")'
+                    v-tooltip='label("cms_boolean_button.widget_option.icone.tooltip")'
                 )
         .widget_icone_nok_label {{ label('cms_boolean_button.widget_option.icone_nok') }}
             .widget_icone_wrapper
                 input(
                     type="text"
                     v-model="icone_nok"
-                    v-tooltip='label("cms_boolean_button.widget_option.icone_nok.tooltip")'
+                    v-tooltip='label("cms_boolean_button.widget_option.icone.tooltip")'
                 )
 
         .widget_button_color {{ label("cms_boolean_button.widget_option.color") }}

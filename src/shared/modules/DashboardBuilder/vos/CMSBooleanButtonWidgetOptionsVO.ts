@@ -11,6 +11,7 @@ export default class CMSBooleanButtonWidgetOptionsVO extends AbstractVO {
     public icone_ok: string;
     public icone_nok: string;
     public radius: number;
+    public user_field_ref: VOFieldRefVO;
 
     public static createNew(
         title_ok: string,
@@ -21,6 +22,7 @@ export default class CMSBooleanButtonWidgetOptionsVO extends AbstractVO {
         icone_ok: string,
         icone_nok: string,
         radius: number,
+        user_field_ref: VOFieldRefVO,
     ): CMSBooleanButtonWidgetOptionsVO {
         const res = new CMSBooleanButtonWidgetOptionsVO();
 
@@ -32,6 +34,7 @@ export default class CMSBooleanButtonWidgetOptionsVO extends AbstractVO {
         res.icone_ok = icone_ok;
         res.icone_nok = icone_nok;
         res.radius = radius;
+        res.user_field_ref = user_field_ref;
 
         return res;
     }

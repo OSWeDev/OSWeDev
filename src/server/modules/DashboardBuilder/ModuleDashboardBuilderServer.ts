@@ -4202,6 +4202,43 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboards.widgets.icons_tooltips.cmsbooleanbutton.___LABEL___'
         ));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ booléen" },
+            'cms_boolean_button.widget_option.vo_field_ref.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Titre pour valeur 'Vraie'" },
+            'cms_boolean_button.widget_option.titre_ok.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Titre pour valeur 'Faux'" },
+            'cms_boolean_button.widget_option.titre_nok.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Icône pour valeur 'Vraie'" },
+            'cms_boolean_button.widget_option.icone_ok.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Icône pour valeur 'Faux'" },
+            'cms_boolean_button.widget_option.icone_nok.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Couleur du bouton" },
+            'cms_boolean_button.widget_option.color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Couleur du texte" },
+            'cms_boolean_button.widget_option.text_color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Code FontAwesome" },
+            'cms_boolean_button.widget_option.icone.tooltip.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ User" },
+            'cms_boolean_button.widget_option.user_field_ref.___LABEL___'
+        ));
+
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
