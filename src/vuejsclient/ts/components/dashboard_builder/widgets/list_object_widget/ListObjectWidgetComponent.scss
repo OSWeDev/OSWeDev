@@ -284,39 +284,37 @@
         }
     }
 
-    .button_arrow {
-        position: absolute;
-        top: 100%;
-        color: #333;
-        font-size: 20px;
-        z-index: 2;
-    }
-
-    .button_arrow.prev {
-        transform: translateX(10vw);
-    }
-    .button_arrow.next {
-        transform: translateX(90vw);
-    }
-
-    .indicators {
-        display: inline-flex; /* ou flex selon vos besoins */
+    .bottom_pagination {
+        display: flex;
+        justify-content: space-between;
+        margin: 15px 5vw 0;
         align-items: center;
-        gap: 8px; /* espace entre les ronds */
-        margin: 0 12px; /* un peu d'espacement horizontal */
-        position: absolute;
-        top: 150vw;
-        left: 41vw;
-    }
 
-    .circle {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background-color: #ccc; /* rond vide (gris) */
-    }
+        .button_arrow {
+            color: #333;
+            font-size: 20px;
 
-    .circle.filled {
-        background-color: #333; /* rond rempli (noir ou autre couleur) */
+            .input.navigation_disabled {
+                opacity: 0.3;
+                pointer-events: none;
+            }
+        }
+
+        .indicators {
+            display: inline-flex; /* ou flex selon vos besoins */
+            align-items: center;
+            gap: 8px; /* espace entre les ronds */
+        }
+
+        .circle {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ccc; /* rond vide (gris) */
+        }
+
+        .circle.filled {
+            background-color: #333; /* rond rempli (noir ou autre couleur) */
+        }
     }
 }
