@@ -65,8 +65,6 @@ import UserRecapture from './UserRecapture/UserRecapture';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import APIBGThread from '../API/bgthreads/APIBGThread';
 import { IRequestStackContext } from '../../ServerExpressController';
-import CachedQueryHandler from '../../../shared/tools/cache/CachedQueryHandler';
-import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ExpressDBSessionsServerCacheHolder from '../ExpressDBSessions/ExpressDBSessionsServerCacheHolder';
 
 

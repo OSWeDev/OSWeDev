@@ -20,6 +20,10 @@ export interface IRequestStackContext {
 
 export default class ServerExpressController {
 
+    public static PERF_MODULE_NAME: string = 'expressjs';
+    // On veut séparer  chaque requete pour avoir un rapport de perf par requete
+    public static PERF_MODULE_UID: number = 0;
+
     private static instance: ServerExpressController = null;
 
     private constructor() { }

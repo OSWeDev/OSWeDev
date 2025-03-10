@@ -77,6 +77,15 @@ export default interface IEnvParam {
     activate_module_perf_var_dag_nodes?: boolean;
     activate_module_perf_gpt_assistant_api?: boolean;
     activate_module_perf_gpt_sync?: boolean;
+    activate_module_perf_expressjs?: boolean;
+
+    debug_all_expressjs_perf?: boolean;
+    debug_expressjs_request_reflexion_time?: boolean;
+    debug_expressjs_request_reflexion_time_console_log_ms_limit?: number;
+    debug_expressjs_request_reflexion_time_teams_log_ms_limit?: number;
+    debug_expressjs_request_sendres_time?: boolean;
+    debug_expressjs_request_sendres_time_console_log_ms_limit?: number;
+    debug_expressjs_request_sendres_time_teams_log_ms_limit?: number;
 
     debug_var_get_instance_semaphored_db_loaded_var_data?: boolean;
 

@@ -58,6 +58,7 @@ import { IClient } from 'pg-promise/typescript/pg-subset';
 import APIDefinition from '../shared/modules/API/vos/APIDefinition';
 import EventsController from '../shared/modules/Eventify/EventsController';
 import OseliaReferrerVO from '../shared/modules/Oselia/vos/OseliaReferrerVO';
+import PerfReportController from '../shared/modules/PerfReport/PerfReportController';
 import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
 import { field_names } from '../shared/tools/ObjectHandler';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
@@ -74,8 +75,10 @@ import IFork from './modules/Fork/interfaces/IFork';
 import PingForkMessage from './modules/Fork/messages/PingForkMessage';
 import OseliaServerController from './modules/Oselia/OseliaServerController';
 import ParamsServerController from './modules/Params/ParamsServerController';
+import PerfReportServerController from './modules/PerfReport/PerfReportServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import AsyncHookPromiseWatchController from './modules/Stats/AsyncHookPromiseWatchController';
+import TeamsAPIServerController from './modules/TeamsAPI/TeamsAPIServerController';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 
 export default abstract class ServerBase {
@@ -337,6 +340,11 @@ export default abstract class ServerBase {
 
         this.app = express();
         this.app.disable('x-powered-by'); // On ne veut pas communiquer la techno utilisée
+
+        // On commence par le système de perf
+        PerfReportServerController.register_perf_module(ServerExpressController.PERF_MODULE_NAME);
+        this.app.use(this.response_time_middleware.bind(this));
+        this.app.use(this.response_time_middleware_err_handler.bind(this));
 
         if (this.envParam.compress) {
             const shouldCompress = function (req, res) {
@@ -953,20 +961,20 @@ export default abstract class ServerBase {
         ) : '');
         const file_name = req.params.file_name;
 
-        if (file_name.indexOf(';') >= 0) {
-            next();
-            return;
-        }
+        // if (file_name.indexOf(';') >= 0) {
+        //     next();
+        //     return;
+        // }
 
-        if (file_name.indexOf(')') >= 0) {
-            next();
-            return;
-        }
+        // if (file_name.indexOf(')') >= 0) {
+        //     next();
+        //     return;
+        // }
 
-        if (file_name.indexOf("'") >= 0) {
-            next();
-            return;
-        }
+        // if (file_name.indexOf("'") >= 0) {
+        //     next();
+        //     return;
+        // }
 
         const session: IServerUserSession = req.session as IServerUserSession;
         let file: FileVO = null;
@@ -1032,20 +1040,20 @@ export default abstract class ServerBase {
         ) : '');
         const file_name = req.params.file_name;
 
-        if (file_name.indexOf(';') >= 0) {
-            next();
-            return;
-        }
+        // if (file_name.indexOf(';') >= 0) {
+        //     next();
+        //     return;
+        // }
 
-        if (file_name.indexOf(')') >= 0) {
-            next();
-            return;
-        }
+        // if (file_name.indexOf(')') >= 0) {
+        //     next();
+        //     return;
+        // }
 
-        if (file_name.indexOf("'") >= 0) {
-            next();
-            return;
-        }
+        // if (file_name.indexOf("'") >= 0) {
+        //     next();
+        //     return;
+        // }
 
         let file: FileVO = null;
         const file_path = ModuleFile.FILES_ROOT + folders + file_name;
@@ -1099,6 +1107,160 @@ export default abstract class ServerBase {
                 }
             }
         }
+    }
+
+    // Middleware pour mesurer le temps
+    private response_time_middleware(req: Request, res: Response, next: NextFunction) {
+        const start = Dates.now_ms();
+        (req as any).startTime = start;
+
+        // On commence par créer l'info de perfReport event de réception de query
+        const perf_name = 'expressjs.response_time_middleware.' + req.method + '.' + req.originalUrl + ' [' + ServerExpressController.PERF_MODULE_UID++ + ']';
+        const perf_line_name = req.method + ' ' + req.originalUrl;
+        PerfReportController.add_event(
+            ServerExpressController.PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            perf_line_name,
+            start,
+            "uid: " + (req.session?.uid || 'anonymous') + "<br>" +
+            "method: " + req.method + "<br>" +
+            "url: " + req.originalUrl + "<br>" +
+            "query: " + JSON.stringify(req.query) + "<br>" +
+            "body: " + JSON.stringify(req.body)
+        );
+
+        const interceptResponse = () => {
+            const calculationEnd = Dates.now_ms();
+            const calculationDurationMs = calculationEnd - start;
+
+            PerfReportController.add_call(
+                ServerExpressController.PERF_MODULE_NAME,
+                perf_name,
+                perf_line_name,
+                perf_line_name,
+                start,
+                calculationEnd,
+                "uid: " + (req.session?.uid || 'anonymous') + "<br>" +
+                "method: " + req.method + "<br>" +
+                "url: " + req.originalUrl + "<br>" +
+                "query: " + JSON.stringify(req.query) + "<br>" +
+                "body: " + JSON.stringify(req.body) + "<br>" +
+                "statusCode: " + res.statusCode
+            );
+
+            res.once('finish', () => {
+                const totalEnd = Dates.now_ms();
+                const sendingDurationMs = totalEnd - calculationEnd;
+
+                const log = {
+                    uid: req.session?.uid || 'anonymous',
+                    method: req.method,
+                    url: req.originalUrl,
+                    query: req.query,
+                    body: req.body,
+                    calculationDurationMs,
+                    sendingDurationMs,
+                    statusCode: res.statusCode,
+                };
+
+
+                /**
+                 * On applique les params de log pour cette perf
+                 */
+
+                // D'abord la console
+                let log_to_console = false;
+                if (ConfigurationService.node_configuration.debug_all_expressjs_perf) {
+                    log_to_console = true;
+                } else {
+                    if (ConfigurationService.node_configuration.debug_expressjs_request_reflexion_time) {
+                        if (calculationDurationMs > ConfigurationService.node_configuration.debug_expressjs_request_reflexion_time_console_log_ms_limit) {
+                            log_to_console = true;
+                        }
+                    }
+
+                    if (ConfigurationService.node_configuration.debug_expressjs_request_sendres_time) {
+                        if (sendingDurationMs > ConfigurationService.node_configuration.debug_expressjs_request_sendres_time_console_log_ms_limit) {
+                            log_to_console = true;
+                        }
+                    }
+                }
+
+                if (log_to_console) {
+                    ConsoleHandler.log('ServerBase:response_time_middleware:' + JSON.stringify(log));
+                }
+
+                // Ensuite teams
+                let log_to_teams = false;
+
+                if (ConfigurationService.node_configuration.debug_expressjs_request_reflexion_time) {
+                    if (calculationDurationMs > ConfigurationService.node_configuration.debug_expressjs_request_reflexion_time_teams_log_ms_limit) {
+                        log_to_teams = true;
+                    }
+                }
+
+                if (ConfigurationService.node_configuration.debug_expressjs_request_sendres_time) {
+                    if (sendingDurationMs > ConfigurationService.node_configuration.debug_expressjs_request_sendres_time_teams_log_ms_limit) {
+                        log_to_teams = true;
+                    }
+                }
+
+                if (log_to_teams) {
+                    TeamsAPIServerController.send_teams_warn(
+                        'ServerBase response_time_middleware',
+                        JSON.stringify(log)
+                    );
+                }
+
+                PerfReportController.add_cooldown(
+                    ServerExpressController.PERF_MODULE_NAME,
+                    perf_name,
+                    perf_line_name,
+                    perf_line_name,
+                    calculationEnd,
+                    totalEnd,
+                    "uid: " + (req.session?.uid || 'anonymous') + "<br>" +
+                    "method: " + req.method + "<br>" +
+                    "url: " + req.originalUrl + "<br>" +
+                    "query: " + JSON.stringify(req.query) + "<br>" +
+                    "body: " + JSON.stringify(req.body) + "<br>" +
+                    "statusCode: " + res.statusCode
+                );
+
+            });
+        };
+
+        ['send', 'json', 'redirect', 'end'].forEach(method => {
+            const original = (res as any)[method].bind(res);
+            (res as any)[method] = (...args: any[]) => {
+                interceptResponse();
+                return original(...args);
+            };
+        });
+
+        next();
+    }
+
+    // Middleware pour mesurer le temps des erreurs
+    private response_time_middleware_err_handler(err: any, req: Request, res: Response, next: NextFunction) {
+        const endTime = Dates.now_ms();
+        const durationMs = endTime - (req as any).startTime;
+
+        const log = {
+            uid: req.session?.uid || 'anonymous',
+            method: req.method,
+            url: req.originalUrl,
+            query: req.query,
+            body: req.body,
+            error: err.message,
+            durationMs,
+            statusCode: res.statusCode || 500,
+        };
+
+        ConsoleHandler.error(JSON.stringify(log));
+
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 
     // private response_time_middleware(req: Request, res: Response, next: NextFunction) {

@@ -136,6 +136,24 @@ export default class EnvParam implements IEnvParam {
     public activate_module_perf_var_dag_nodes?: boolean = false;
     public activate_module_perf_gpt_assistant_api?: boolean = false;
     public activate_module_perf_gpt_sync?: boolean = false;
+    public activate_module_perf_expressjs?: boolean = false;
+
+    // Lenteurs sur ExpressJS - lenteurs sur la partie réflexion (calculs, requetes, ...) et sur la partie envoie de la réponse
+    /**
+     * Pour debug toutes les requetes à expressjs
+     */
+    public debug_all_expressjs_perf?: boolean = false;
+
+    /**
+     * Activer le log (console et teams) des requetes expressjs qui prennent trop de temps
+     */
+    public debug_expressjs_request_reflexion_time?: boolean = false;
+    public debug_expressjs_request_reflexion_time_console_log_ms_limit?: number = 5000; // Si une requete prend plus de 5000ms à être réfléchie, on log dans la console
+    public debug_expressjs_request_reflexion_time_teams_log_ms_limit?: number = 30000; // Si une requete prend plus de 30000ms à être réfléchie, on log dans Teams
+
+    public debug_expressjs_request_sendres_time?: boolean = false;
+    public debug_expressjs_request_sendres_time_console_log_ms_limit?: number = 1000; // Si une requete prend plus de 1000ms à être renvoyée, on log dans la console
+    public debug_expressjs_request_sendres_time_teams_log_ms_limit?: number = 5000; // Si une requete prend plus de 5000ms à être renvoyée, on log dans Teams
 
     // TEAMS Webhooks
     public teams_webhook_send_message?: string = null;
