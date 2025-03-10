@@ -26,6 +26,8 @@ import KillForkMessage from '../Fork/messages/KillForkMessage';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ParamsServerController from '../Params/ParamsServerController';
+import PerfReportServerController from '../PerfReport/PerfReportServerController';
+import BgthreadPerfModuleNamesHolder from './BgthreadPerfModuleNamesHolder';
 import BGThreadServerController from './BGThreadServerController';
 import BGThreadServerDataManager from './BGThreadServerDataManager';
 import IBGThread from './interfaces/IBGThread';
@@ -116,6 +118,9 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     }
 
     public async configure() {
+        PerfReportServerController.register_perf_module(BgthreadPerfModuleNamesHolder.EXPRESSJS_PERF_MODULE_NAME);
+        PerfReportServerController.register_perf_module(BgthreadPerfModuleNamesHolder.WORKER_MESSAGES_PERF_MODULE_NAME);
+
         ForkedTasksController.register_task(ModuleBGThreadServer.TASK_NAME_write_heap_snapshot_on_this_thread, this.write_heap_snapshot_on_this_thread.bind(this));
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleBGThreadServer.TASK_NAME_write_heap_snapshot_on_all_thread] =
             ModuleBGThreadServer.getInstance().write_heap_snapshot_on_all_threads;
