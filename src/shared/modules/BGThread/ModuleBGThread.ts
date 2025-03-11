@@ -14,14 +14,6 @@ export default class ModuleBGThread extends Module {
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleBGThread.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleBGThread.MODULE_NAME + ".BO_ACCESS";
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleBGThread {
-        if (!ModuleBGThread.instance) {
-            ModuleBGThread.instance = new ModuleBGThread();
-        }
-        return ModuleBGThread.instance;
-    }
-
     private static instance: ModuleBGThread = null;
 
     private constructor() {
@@ -30,12 +22,17 @@ export default class ModuleBGThread extends Module {
         this.forceActivationOnInstallation();
     }
 
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleBGThread {
+        if (!ModuleBGThread.instance) {
+            ModuleBGThread.instance = new ModuleBGThread();
+        }
+        return ModuleBGThread.instance;
+    }
+
     public initialize() {
         const label_field = ModuleTableFieldController.create_new(BGThreadVO.API_TYPE_ID, field_names<BGThreadVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
-        const datatable_fields = [
-            label_field,
-            ModuleTableFieldController.create_new(BGThreadVO.API_TYPE_ID, field_names<BGThreadVO>().last_up_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernière exécution', false).set_segmentation_type(TimeSegment.TYPE_SECOND)
-        ];
+        ModuleTableFieldController.create_new(BGThreadVO.API_TYPE_ID, field_names<BGThreadVO>().last_up_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernière exécution', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
 
         ModuleTableController.create_new(this.name, BGThreadVO, label_field, "BGThreads");
     }

@@ -293,7 +293,7 @@ function patchedCreateReadStream(filePath: PathLike, options?: any) {
 
     (async () => {
         try {
-            if (typeof filePath === 'string') {
+            if ((typeof filePath === 'string') && !fs.existsSync(filePath)) {
                 // On regarde s'il existe un FileVO
                 const fileVO = await query(FileVO.API_TYPE_ID)
                     .filter_by_text_eq(field_names<FileVO>().path, filePath)

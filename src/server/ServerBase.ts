@@ -66,6 +66,7 @@ import StackContextWrapper from '../shared/tools/StackContextWrapper';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
 import BGThreadServerDataManager from './modules/BGThread/BGThreadServerDataManager';
+import BgthreadPerfModuleNamesHolder from './modules/BGThread/BgthreadPerfModuleNamesHolder';
 import RunsOnBgThreadDataController from './modules/BGThread/annotations/RunsOnBGThread';
 import RunsOnMainThreadDataController from './modules/BGThread/annotations/RunsOnMainThread';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
@@ -75,7 +76,6 @@ import IFork from './modules/Fork/interfaces/IFork';
 import PingForkMessage from './modules/Fork/messages/PingForkMessage';
 import OseliaServerController from './modules/Oselia/OseliaServerController';
 import ParamsServerController from './modules/Params/ParamsServerController';
-import PerfReportServerController from './modules/PerfReport/PerfReportServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import AsyncHookPromiseWatchController from './modules/Stats/AsyncHookPromiseWatchController';
 import TeamsAPIServerController from './modules/TeamsAPI/TeamsAPIServerController';
@@ -342,7 +342,6 @@ export default abstract class ServerBase {
         this.app.disable('x-powered-by'); // On ne veut pas communiquer la techno utilisée
 
         // On commence par le système de perf
-        PerfReportServerController.register_perf_module(ServerExpressController.PERF_MODULE_NAME);
         this.app.use(this.response_time_middleware.bind(this));
         this.app.use(this.response_time_middleware_err_handler.bind(this));
 
@@ -1118,7 +1117,7 @@ export default abstract class ServerBase {
         const perf_name = 'expressjs.response_time_middleware.' + req.method + '.' + req.originalUrl + ' [' + ServerExpressController.PERF_MODULE_UID++ + ']';
         const perf_line_name = req.method + ' ' + req.originalUrl;
         PerfReportController.add_event(
-            ServerExpressController.PERF_MODULE_NAME,
+            BgthreadPerfModuleNamesHolder.EXPRESSJS_PERF_MODULE_NAME,
             perf_name,
             perf_line_name,
             perf_line_name,
@@ -1135,7 +1134,7 @@ export default abstract class ServerBase {
             const calculationDurationMs = calculationEnd - start;
 
             PerfReportController.add_call(
-                ServerExpressController.PERF_MODULE_NAME,
+                BgthreadPerfModuleNamesHolder.EXPRESSJS_PERF_MODULE_NAME,
                 perf_name,
                 perf_line_name,
                 perf_line_name,
@@ -1214,7 +1213,7 @@ export default abstract class ServerBase {
                 }
 
                 PerfReportController.add_cooldown(
-                    ServerExpressController.PERF_MODULE_NAME,
+                    BgthreadPerfModuleNamesHolder.EXPRESSJS_PERF_MODULE_NAME,
                     perf_name,
                     perf_line_name,
                     perf_line_name,

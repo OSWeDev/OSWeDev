@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash';
+import { Worker } from 'worker_threads';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
@@ -165,6 +166,25 @@ export default class ContextQueryServerController {
                 uid
             );
         }
+
+        /**
+         * Test de worker_thread pour séparer le traitement de translate potentiellement très long, dès qu'on a plus de 10k lignes
+         */
+
+        // if (query_res && (query_res.length > 10000)) {
+        //     ConsoleHandler.log('ContextQueryServerController.select_vos: using worker to translate ' + query_res.length + ' rows of type ' + context_query.base_api_type_id);
+        //     context_query.log(false);
+
+        //     return new Promise((resolve, reject) => {
+        //         const worker = new Worker('./node_modules/oswedev/dist/server/modules/ContextFilter/worker_ModuleTableServerController_translate_vos_from_db.js', { workerData: query_res });
+
+        //         worker.once('message', (translated) => resolve(translated));
+        //         worker.once('error', (err) => reject(err));
+        //         worker.once('exit', (code) => {
+        //             if (code !== 0) reject(new Error(`Worker stopped with exit code ${code}`));
+        //         });
+        //     });
+        // }
 
         return ModuleTableServerController.translate_vos_from_db(query_res);
     }

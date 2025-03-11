@@ -137,6 +137,7 @@ export default class EnvParam implements IEnvParam {
     public activate_module_perf_gpt_assistant_api?: boolean = false;
     public activate_module_perf_gpt_sync?: boolean = false;
     public activate_module_perf_expressjs?: boolean = false;
+    public activate_module_perf_worker_messages?: boolean = false;
 
     // Lenteurs sur ExpressJS - lenteurs sur la partie réflexion (calculs, requetes, ...) et sur la partie envoie de la réponse
     /**

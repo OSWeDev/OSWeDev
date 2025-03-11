@@ -3,13 +3,16 @@ import { parentPort, threadId, workerData } from 'worker_threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import EventsController from '../../../shared/modules/Eventify/EventsController';
 import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModulesManager from '../../../shared/modules/ModulesManager';
+import PerfReportController from '../../../shared/modules/PerfReport/PerfReportController';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DBDisconnectionManager from '../../../shared/tools/DBDisconnectionManager';
 import LocaleManager from '../../../shared/tools/LocaleManager';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
+import StackContextWrapper from '../../../shared/tools/StackContextWrapper';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import FileLoggerHandler from '../../FileLoggerHandler';
 import I18nextInit from '../../I18nextInit';
@@ -21,19 +24,19 @@ import ServerAPIController from '../API/ServerAPIController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
+import BgthreadPerfModuleNamesHolder from '../BGThread/BgthreadPerfModuleNamesHolder';
 import RunsOnBgThreadDataController, { EVENT_NAME_ForkServerController_ready } from '../BGThread/annotations/RunsOnBGThread';
 import RunsOnMainThreadDataController from '../BGThread/annotations/RunsOnMainThread';
 import CronServerController from '../Cron/CronServerController';
 import DBDisconnectionServerHandler from '../DAO/disconnection/DBDisconnectionServerHandler';
 import ModuleServiceBase from '../ModuleServiceBase';
 import PushDataServerController from '../PushData/PushDataServerController';
+import AsyncHookPromiseWatchController from '../Stats/AsyncHookPromiseWatchController';
 import StatsServerController from '../Stats/StatsServerController';
 import ForkMessageController from './ForkMessageController';
 import ForkedTasksController from './ForkedTasksController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
-import StackContextWrapper from '../../../shared/tools/StackContextWrapper';
-import AsyncHookPromiseWatchController from '../Stats/AsyncHookPromiseWatchController';
 
 export default abstract class ForkedProcessWrapperBase {
 
@@ -191,9 +194,31 @@ export default abstract class ForkedProcessWrapperBase {
         BGThreadServerController.SERVER_READY = true;
         CronServerController.getInstance().server_ready = true;
 
-        parentPort.on('message', async (msg: IForkMessage) => {
-            msg = ForkMessageController.reapply_prototypes_on_msg(msg);
-            await ForkMessageController.message_handler(msg, parentPort);
+        parentPort.on('message', (msg: IForkMessage) => {
+
+            // On commence par créer l'info de perfReport event de réception de query
+            msg['PERF_MODULE_UID'] = msg['PERF_MODULE_UID'] ? msg['PERF_MODULE_UID'] : ForkMessageController.PERF_MODULE_UID++;
+            const perf_name = 'ForkMessageController.message_handler.' + msg.message_type + ' [' + msg['PERF_MODULE_UID'] + ']';
+            const perf_line_name = msg.message_type;
+            PerfReportController.add_event(
+                BgthreadPerfModuleNamesHolder.EXPRESSJS_PERF_MODULE_NAME,
+                perf_name,
+                perf_line_name,
+                perf_line_name,
+                Dates.now_ms(),
+                perf_name + '<br>' +
+                ForkMessageController.to_perf_desc(msg)
+            );
+
+            // cf GPT4.5 : Les messages reçus par un worker Node.js sont traités en série, car ils sont traités par un seul thread/event-loop.
+            // Donc on await surtout pas ici et on renvoie pas la promise et on renvoie asap la main au worker
+            setTimeout(() => {
+
+                msg = ForkMessageController.reapply_prototypes_on_msg(msg);
+
+                ForkMessageController.message_handler(msg, parentPort);
+            }, 1);
+            // On rend la main au worker
         });
 
         // On prévient le process parent qu'on est ready

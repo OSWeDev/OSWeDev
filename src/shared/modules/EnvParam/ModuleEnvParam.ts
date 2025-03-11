@@ -207,6 +207,7 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_gpt_assistant_api, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - GPT assistant API', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_gpt_sync, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - GPT sync', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_expressjs, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - ExpressJS', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_worker_messages, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Worker messages', true, true, false);
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_all_expressjs_perf, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug all ExpressJS perf', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_expressjs_request_reflexion_time, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug ExpressJS request reflexion time', true, true, false);

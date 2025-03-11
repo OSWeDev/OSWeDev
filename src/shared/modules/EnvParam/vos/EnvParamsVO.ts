@@ -195,6 +195,7 @@ export default class EnvParamsVO implements IDistantVOBase {
     public activate_module_perf_gpt_assistant_api: boolean;
     public activate_module_perf_gpt_sync: boolean;
     public activate_module_perf_expressjs: boolean;
+    public activate_module_perf_worker_messages: boolean;
 
     public debug_all_expressjs_perf: boolean;
     public debug_expressjs_request_reflexion_time: boolean;
