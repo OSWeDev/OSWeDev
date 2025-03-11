@@ -53,7 +53,7 @@ export default class ForkMessageController {
         const perf_name = 'ForkMessageController.message_handler.' + msg.message_type + ' [' + (msg['PERF_MODULE_UID'] ? msg['PERF_MODULE_UID'] : ForkMessageController.PERF_MODULE_UID++) + ']';
         const perf_line_name = msg.message_type;
         PerfReportController.add_event(
-            BgthreadPerfModuleNamesHolder.EXPRESSJS_PERF_MODULE_NAME,
+            BgthreadPerfModuleNamesHolder.WORKER_MESSAGES_PERF_MODULE_NAME,
             perf_name,
             perf_line_name,
             perf_line_name,
@@ -83,7 +83,7 @@ export default class ForkMessageController {
         }
 
         PerfReportController.add_call(
-            BgthreadPerfModuleNamesHolder.EXPRESSJS_PERF_MODULE_NAME,
+            BgthreadPerfModuleNamesHolder.WORKER_MESSAGES_PERF_MODULE_NAME,
             perf_name,
             perf_line_name,
             perf_line_name,
@@ -185,7 +185,7 @@ export default class ForkMessageController {
         const perf_name = 'ForkMessageController.send.' + msg.message_type + ' [' + ForkMessageController.PERF_MODULE_UID++ + ']';
         const perf_line_name = msg.message_type;
         PerfReportController.add_event(
-            BgthreadPerfModuleNamesHolder.EXPRESSJS_PERF_MODULE_NAME,
+            BgthreadPerfModuleNamesHolder.WORKER_MESSAGES_PERF_MODULE_NAME,
             perf_name,
             perf_line_name,
             perf_line_name,
@@ -198,7 +198,7 @@ export default class ForkMessageController {
             send_handle.postMessage(msg);
 
             PerfReportController.add_call(
-                BgthreadPerfModuleNamesHolder.EXPRESSJS_PERF_MODULE_NAME,
+                BgthreadPerfModuleNamesHolder.WORKER_MESSAGES_PERF_MODULE_NAME,
                 perf_name,
                 perf_line_name,
                 perf_line_name,

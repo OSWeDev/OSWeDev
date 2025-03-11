@@ -79,6 +79,8 @@ export default interface IEnvParam {
     activate_module_perf_gpt_sync?: boolean;
     activate_module_perf_expressjs?: boolean;
     activate_module_perf_worker_messages?: boolean;
+    activate_module_perf_bgthread_ping_latency?: boolean;
+    activate_module_perf_bgthread_load_balancing?: boolean;
 
     debug_all_expressjs_perf?: boolean;
     debug_expressjs_request_reflexion_time?: boolean;
@@ -87,6 +89,17 @@ export default interface IEnvParam {
     debug_expressjs_request_sendres_time?: boolean;
     debug_expressjs_request_sendres_time_console_log_ms_limit?: number;
     debug_expressjs_request_sendres_time_teams_log_ms_limit?: number;
+
+    debug_all_thread_ping_latency?: boolean;
+
+    debug_thread_ping_latency?: boolean;
+    debug_thread_ping_latency_console_log_ms_limit?: number;
+    debug_thread_ping_latency_teams_log_ms_limit?: number;
+
+    api_load_balancing?: boolean;
+    api_load_balancing_nb_workers?: number;
+
+    load_balancing_debug_log?: boolean;
 
     debug_var_get_instance_semaphored_db_loaded_var_data?: boolean;
 

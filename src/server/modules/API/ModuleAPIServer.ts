@@ -11,7 +11,6 @@ import StatsController from '../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import ServerBase from '../../ServerBase';
 import ServerExpressController from '../../ServerExpressController';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -333,7 +332,13 @@ export default class ModuleAPIServer extends ModuleServerBase {
     }
 
     public async configure(): Promise<void> {
-        ModuleBGThreadServer.getInstance().registerBGThread(APIBGThread.getInstance());
+        if (ConfigurationService.node_configuration.load_balancing_debug_log && ConfigurationService.node_configuration.api_load_balancing) {
+            ConsoleHandler.log('LoadBalancing bgthread APIBGThread : nb_workers : ' + ConfigurationService.node_configuration.api_load_balancing_nb_workers);
+        }
+        ModuleBGThreadServer.getInstance().registerLoadBalancedBGThread(
+            APIBGThread.getInstance(),
+            ConfigurationService.node_configuration.api_load_balancing ? ConfigurationService.node_configuration.api_load_balancing_nb_workers : 1,
+        );
     }
 
     public registerExpressApis(app: Application): void {

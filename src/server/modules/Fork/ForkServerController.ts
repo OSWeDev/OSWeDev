@@ -294,7 +294,7 @@ export default class ForkServerController {
                         continue;
                     }
 
-                    await ForkMessageController.send(new PingForkMessage(forked.uid), forked.worker, forked);
+                    await ForkMessageController.send(new PingForkMessage(forked.uid, Dates.now_ms()), forked.worker, forked);
                 }
             },
             10000,

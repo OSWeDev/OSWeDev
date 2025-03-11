@@ -23,14 +23,18 @@ import ForkedTasksController from '../Fork/ForkedTasksController';
 import ForkMessageController from '../Fork/ForkMessageController';
 import ForkServerController from '../Fork/ForkServerController';
 import KillForkMessage from '../Fork/messages/KillForkMessage';
+import RegisteredForkedTasksController from '../Fork/RegisteredForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ParamsServerController from '../Params/ParamsServerController';
 import PerfReportServerController from '../PerfReport/PerfReportServerController';
+import BGThreadLoadBalancerServerController from './BGThreadLoadBalancerServerController';
 import BgthreadPerfModuleNamesHolder from './BgthreadPerfModuleNamesHolder';
 import BGThreadServerController from './BGThreadServerController';
 import BGThreadServerDataManager from './BGThreadServerDataManager';
 import IBGThread from './interfaces/IBGThread';
+import LoadBalancedBGThreadBase from './LoadBalancedBGThreadBase';
+import BGThreadLoadBalancer from './vos/BGThreadLoadBalancer';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
 
@@ -120,6 +124,10 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     public async configure() {
         PerfReportServerController.register_perf_module(BgthreadPerfModuleNamesHolder.EXPRESSJS_PERF_MODULE_NAME);
         PerfReportServerController.register_perf_module(BgthreadPerfModuleNamesHolder.WORKER_MESSAGES_PERF_MODULE_NAME);
+        PerfReportServerController.register_perf_module(BgthreadPerfModuleNamesHolder.BGTHREAD_LOAD_BALANCING_PERF_MODULE_NAME);
+        PerfReportServerController.register_perf_module(BgthreadPerfModuleNamesHolder.BGTHREAD_PING_LATENCY_PERF_MODULE_NAME);
+
+        RegisteredForkedTasksController.register_task(BGThreadLoadBalancerServerController.GET_WORKER_LATENCY_TASK_NAME, BGThreadLoadBalancerServerController.get_worker_latency_bgthread_task);
 
         ForkedTasksController.register_task(ModuleBGThreadServer.TASK_NAME_write_heap_snapshot_on_this_thread, this.write_heap_snapshot_on_this_thread.bind(this));
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleBGThreadServer.TASK_NAME_write_heap_snapshot_on_all_thread] =
@@ -140,6 +148,33 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         }
         require('v8').writeHeapSnapshot();
     }
+
+
+    /**
+     * Enregistre le bgthread et ses workers dans {@link BGThreadServerController.register_bgthreads} et s'il est possible de l'executer execute ses workers.
+     * @param bgthread à enregistrer et executer
+     * @param nb_workers nombre de workers à lancer
+     * @returns void
+     */
+    public registerLoadBalancedBGThread(bgthread: LoadBalancedBGThreadBase, nb_workers: number): void {
+
+        // On vérifie qu'on peut register les bgthreads
+        if (!BGThreadServerController.register_bgthreads) {
+            return;
+        }
+
+        // On déclare le loadbalancer
+        BGThreadLoadBalancerServerController.loadbalancers_by_bg_thread_name[bgthread.base_name] = new BGThreadLoadBalancer(bgthread.base_name, nb_workers);
+
+        // On dispatch pour déclarer n workers
+        for (let i = 0; i < nb_workers; i++) {
+            // On fait appel au constructeur pour créer un nouveau bgthread, et on assign les valeurs du bgthread passé en paramètre
+            const worker: LoadBalancedBGThreadBase = Object.assign(Object.create(Object.getPrototypeOf(bgthread)), bgthread);
+            worker.this_worker_index = i;
+            this.registerBGThread(worker);
+        }
+    }
+
 
     /**
      * Enregistre le bgthread dans {@link BGThreadServerController.register_bgthreads} et s'il est possible de l'executer l'execute.

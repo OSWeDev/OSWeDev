@@ -1,18 +1,11 @@
 import StatsController from "../../../shared/modules/Stats/StatsController";
-import VarDAG from "../../modules/Var/vos/VarDAG";
-import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
+import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import ThreadHandler from "../../../shared/tools/ThreadHandler";
 import ThrottleHelper from "../../../shared/tools/ThrottleHelper";
-import VarsProcessInvalidator from "./bgthreads/processes/VarsProcessInvalidator";
-import { isEqual } from "lodash";
-import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
-import ManualTasksController from "../../../shared/modules/Cron/ManualTasksController";
-import VarsBGThreadNameHolder from "./VarsBGThreadNameHolder";
-import ForkServerController from "../Fork/ForkServerController";
-import TeamsAPIServerController from "../TeamsAPI/TeamsAPIServerController";
 import ConfigurationService from "../../env/ConfigurationService";
-import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
-import TimeSegment from "../../../shared/modules/DataRender/vos/TimeSegment";
+import VarDAG from "../../modules/Var/vos/VarDAG";
+import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
+import TeamsAPIServerController from "../TeamsAPI/TeamsAPIServerController";
 
 export default class CurrentVarDAGHolder {
 

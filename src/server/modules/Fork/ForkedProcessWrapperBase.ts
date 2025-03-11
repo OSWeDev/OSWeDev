@@ -37,6 +37,7 @@ import ForkMessageController from './ForkMessageController';
 import ForkedTasksController from './ForkedTasksController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
+import LoadBalancedBGThreadBase from '../BGThread/LoadBalancedBGThreadBase';
 
 export default abstract class ForkedProcessWrapperBase {
 
@@ -102,6 +103,13 @@ export default abstract class ForkedProcessWrapperBase {
                 switch (type) {
                     case BGThreadServerDataManager.ForkedProcessType:
                         BGThreadServerDataManager.valid_bgthreads_names[name] = true;
+
+                        // On gère le cas des bgthreads loadbalancés qui doivent aussi indiquer qu'ils gèrent le base_name
+                        if (name.indexOf(LoadBalancedBGThreadBase.LOAD_BALANCED_BGTHREAD_NAME_SUFFIX) >= 0) {
+                            const base_name = name.split(LoadBalancedBGThreadBase.LOAD_BALANCED_BGTHREAD_NAME_SUFFIX)[0];
+                            BGThreadServerDataManager.valid_bgthreads_names[base_name] = true;
+                        }
+
                         break;
                     case CronServerController.ForkedProcessType:
                         CronServerController.getInstance().valid_crons_names[name] = true;

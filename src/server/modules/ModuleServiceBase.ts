@@ -50,6 +50,7 @@ import ModuleNFCConnect from '../../shared/modules/NFCConnect/ModuleNFCConnect';
 import ModuleOselia from '../../shared/modules/Oselia/ModuleOselia';
 import ModuleParams from '../../shared/modules/Params/ModuleParams';
 import ParamsManager from '../../shared/modules/Params/ParamsManager';
+import ModulePerfReport from '../../shared/modules/PerfReport/ModulePerfReport';
 import PerfReportController from '../../shared/modules/PerfReport/PerfReportController';
 import ModulePlayWright from '../../shared/modules/PlayWright/ModulePlayWright';
 import ModulePopup from '../../shared/modules/Popup/ModulePopup';
@@ -114,6 +115,7 @@ import ModuleForkServer from './Fork/ModuleForkServer';
 import ModuleFormatDatesNombresServer from './FormatDatesNombres/ModuleFormatDatesNombresServer';
 import ModuleGPTServer from './GPT/ModuleGPTServer';
 import ModuleGeneratePDFServer from './GeneratePDF/ModuleGeneratePDFServer';
+import IDatabaseHolder from './IDatabaseHolder';
 import ModuleImageServer from './Image/ModuleImageServer';
 import ModuleImageFormatServer from './ImageFormat/ModuleImageFormatServer';
 import ModuleLoggerServer from './Logger/ModuleLoggerServer';
@@ -126,8 +128,10 @@ import ModuleTableDBService from './ModuleTableDBService';
 import ModuleNFCConnectServer from './NFCConnect/ModuleNFCConnectServer';
 import ModuleOseliaServer from './Oselia/ModuleOseliaServer';
 import ModuleParamsServer from './Params/ModuleParamsServer';
+import ModulePerfReportServer from './PerfReport/ModulePerfReportServer';
 import ModulePlayWrightServer from './PlayWright/ModulePlayWrightServer';
 import ModulePopupServer from './Popup/ModulePopupServer';
+import PostModulesInitHookHolder from './PostModulesInitHookHolder';
 import ModulePowershellServer from './Powershell/ModulePowershellServer';
 import PreloadedModuleServerController from './PreloadedModuleServerController';
 import ModulePushDataServer from './PushData/ModulePushDataServer';
@@ -146,10 +150,6 @@ import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
-import ModulePerfReportServer from './PerfReport/ModulePerfReportServer';
-import ModulePerfReport from '../../shared/modules/PerfReport/ModulePerfReport';
-import IDatabaseHolder from './IDatabaseHolder';
-import PostModulesInitHookHolder from './PostModulesInitHookHolder';
 
 export default abstract class ModuleServiceBase {
 
@@ -839,7 +839,7 @@ export default abstract class ModuleServiceBase {
                 const fs = require('fs');
                 const path = require('path');
                 const filename = path.join(process.cwd(), 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
-                fs.writeFile(filename, query);
+                await ModuleFileServer.getInstance().writeFile(filename, query);
                 ConsoleHandler.error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.max_size_per_query + ') ' + query.substring(0, 1000) + '...');
 
                 //     throw new Error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.max_size_per_query + ')');
@@ -851,7 +851,7 @@ export default abstract class ModuleServiceBase {
                 const fs = require('fs');
                 const path = require('path');
                 const filename = path.join(process.cwd(), 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
-                fs.writeFile(filename, query);
+                await ModuleFileServer.getInstance().writeFile(filename, query);
                 ConsoleHandler.error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.max_union_all_per_query + ') ' + query.substring(0, 1000) + '...');
 
                 //     throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.max_union_all_per_query + ')');
