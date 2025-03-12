@@ -1,7 +1,3 @@
-import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
-import PerfReportController from "../../../shared/modules/PerfReport/PerfReportController";
-import ForkedTasksController from "../Fork/ForkedTasksController";
-import BgthreadPerfModuleNamesHolder from "./BgthreadPerfModuleNamesHolder";
 import BGThreadLoadBalancer from "./vos/BGThreadLoadBalancer";
 
 export default class BGThreadLoadBalancerServerController {
@@ -14,23 +10,7 @@ export default class BGThreadLoadBalancerServerController {
      * @param worker_name
      * @returns
      */
-    public static async get_worker_latency(worker_name: string): Promise<number> {
-        const start_ms = Dates.now_ms();
-
-        await ForkedTasksController.exec_task_on_bgthread_and_return_value(true, worker_name, BGThreadLoadBalancerServerController.GET_WORKER_LATENCY_TASK_NAME);
-
-        PerfReportController.add_cooldown(
-            BgthreadPerfModuleNamesHolder.BGTHREAD_PING_LATENCY_PERF_MODULE_NAME,
-            'BGThreadLoadBalancer.worker_latency.' + worker_name,
-            'BGThreadLoadBalancer.worker_latency.' + worker_name,
-            'BGThreadLoadBalancer.worker_latency.' + worker_name,
-            start_ms,
-            Dates.now_ms(),
-            'Durée totale : ' + (Dates.now_ms() - start_ms) + ' ms',
-        );
-
-        return Dates.now_ms() - start_ms;
-    }
+    public static get_worker_latency: (worker_name: string) => Promise<number> = null;
 
     public static async get_worker_latency_bgthread_task(): Promise<void> {
     }

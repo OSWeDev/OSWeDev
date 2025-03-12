@@ -23,6 +23,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ServerAPIController from './ServerAPIController';
 import APIBGThread from './bgthreads/APIBGThread';
+import APIBGThreadBaseNameHolder from './bgthreads/APIBGThreadBaseNameHolder';
 import APIAccessDenied from './exceptions/APIAccessDenied';
 import APIGunZipError from './exceptions/APIGunZipError';
 import APIParamTranslatorError from './exceptions/APIParamTranslatorError';
@@ -55,6 +56,26 @@ export default class ModuleAPIServer extends ModuleServerBase {
         return ServerAPIController.api_calls[call_id]?.do_notif_result;
     }
 
+    @RunsOnMainThread(ModuleAPIServer.getInstance)
+    private async send_res_for_notif_result(call_id: number): Promise<boolean> {
+        const api_call = ServerAPIController.api_calls[call_id];
+        if ((!api_call) || api_call.res.headersSent) {
+            return;
+        }
+
+        api_call.do_notif_result = true; // Mais au fond on s'en fout, on a déjà envoyé la réponse sur le bgthread (ou plutôt on le fera sur le bgthread)
+        const notif_result = APINotifTypeResultVO.createNew(
+            api_call.api_call_id,
+            null
+        );
+
+        try {
+            api_call.res.json(notif_result);
+        } catch (error) {
+            ConsoleHandler.error('Error sending notif_result :' + api_call.api_name, error);
+        }
+    }
+
     /**
      * Quand on renvoit le résultat en notif, on doit le faire depuis le thread principal
      * @param notif_result_uid
@@ -63,7 +84,8 @@ export default class ModuleAPIServer extends ModuleServerBase {
      * @param returnvalue
      * @returns
      */
-    @RunsOnMainThread(ModuleAPIServer.getInstance)
+    // @RunsOnMainThread(ModuleAPIServer.getInstance)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, ModuleAPIServer.getInstance, true)
     private async try_send_notif_result(
         notif_result_uid: number,
         notif_result_tab_id: string,
@@ -121,7 +143,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
      * @param api_call_id
      * @returns
      */
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name, ModuleAPIServer.getInstance, true)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, ModuleAPIServer.getInstance, true)
     private async exec_api<T, U>(
         api_name: string,
         session_id: string,
@@ -148,6 +170,8 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
         let param: IAPIParamTranslator<T> = null;
         let has_params = false;
+
+        let do_notif_result = false;
 
         if (
             ((api.api_type == APIDefinition.API_TYPE_POST) && (request_body)) ||
@@ -237,6 +261,16 @@ export default class ModuleAPIServer extends ModuleServerBase {
             safeParams.push(req);
             safeParams.push(api_call_id); // On change le dernier paramètre pour ajouter l'api_call_id qui permet via this.send_redirect de renvoyer une redirection (ou d'accéder au res sur le main thread pour cette api)
 
+            // En fait avant même de faire le SERVER_HANDLER, si on peut notifier le résultat, on indique de suite que ça sert à rien d'attendre
+            if (
+                (!!PushDataServerController.registeredSockets) &&
+                (!!PushDataServerController.registeredSockets[notif_result_uid]) &&
+                (!!PushDataServerController.registeredSockets[notif_result_uid][notif_result_tab_id])
+            ) {
+                do_notif_result = true;
+                this.send_res_for_notif_result(api_call_id);
+            }
+
             returnvalue = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session_id, sid, uid),
                 api.SERVER_HANDLER,
@@ -252,7 +286,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
         }
 
         // On doit demander l'état de do_notif_result de l'API, pour récupérer la version à jour
-        const do_notif_result = await this.get_do_notif_result(api_call_id);
+        do_notif_result = do_notif_result || await this.get_do_notif_result(api_call_id);
 
         // if (!do_notif_result) {
         //     // Si les headers sont déjà envoyés, on a plus rien à faire ici
@@ -385,22 +419,23 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
     private async api_request_handler<T, U>(api: APIDefinition<T, U>, req: Request, res: Response): Promise<void> {
 
-        const notif_result_uid: number = req.session.uid;
+        const notif_result_uid: number = (!!req.session.uid) ? req.session.uid : 0;
         const notif_result_tab_id: string = req.headers.client_tab_id as string;
         const api_call_id = ++ModuleAPIServer.API_CALL_ID;
         let do_notif_result: boolean = (
             (api.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF) &&
-            (!!notif_result_uid) &&
             (!!notif_result_tab_id));
-        const can_notif_result =
-            (!!PushDataServerController.registeredSockets) &&
-            (!!PushDataServerController.registeredSockets[notif_result_uid]) &&
-            (!!PushDataServerController.registeredSockets[notif_result_uid][notif_result_tab_id]);
+
+        // Sauf que les sockets sont sur les APIBGThreads maintenant et là on est sur le main thread...
+        // const can_notif_result =
+        //     (!!PushDataServerController.registeredSockets) &&
+        //     (!!PushDataServerController.registeredSockets[notif_result_uid]) &&
+        //     (!!PushDataServerController.registeredSockets[notif_result_uid][notif_result_tab_id]);
 
         try {
 
-            // On check aussi qu'on a bien un socket à date si on doit notif
-            do_notif_result = do_notif_result && can_notif_result;
+            // // On check aussi qu'on a bien un socket à date si on doit notif
+            // do_notif_result = do_notif_result && can_notif_result;
 
             // Si on répond en notif, on commence par dire OK au client, avant de gérer vraiment la demande
             if (do_notif_result) {
@@ -443,7 +478,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 res,
                 api_call_promise,
                 do_notif_result,
-                can_notif_result,
+                // can_notif_result,
                 notif_result_uid,
                 notif_result_tab_id,
             );

@@ -15,10 +15,11 @@ import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler'
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
-import ServerBase from '../../ServerBase';
+import ServerBaseConfHolder from '../../ServerBaseConfHolder';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
-import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
+import APIBGThreadBaseNameHolder from '../API/bgthreads/APIBGThreadBaseNameHolder';
+import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ExpressDBSessionsServerCacheHolder from '../ExpressDBSessions/ExpressDBSessionsServerCacheHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
@@ -192,10 +193,10 @@ export default class PushDataServerController {
     }
 
     /**
-     * Les sockets sont accessibles et transférables que sur le main process, donc on assert ici
+     * Les sockets sont accessibles et transférables que sur les apibgthread. // le main process, donc on assert ici
      */
     public static getSocketsBySession(session_id: string): { [socket_id: string]: SocketWrapper } {
-        ForkedTasksController.assert_is_main_process();
+        ForkedTasksController.assert_is_bgthread(APIBGThreadBaseNameHolder.BGTHREAD_name);
 
         if ((!PushDataServerController.registered_sockets_by_sessionid) ||
             (!PushDataServerController.registered_sockets_by_sessionid[session_id])) {
@@ -213,7 +214,7 @@ export default class PushDataServerController {
      */
     public static registerSocket(session: IServerUserSession, socket: socketIO.Socket) {
 
-        ForkedTasksController.assert_is_main_process();
+        ForkedTasksController.assert_is_bgthread(APIBGThreadBaseNameHolder.BGTHREAD_name);
 
         if ((!session) || (!socket)) {
             return;
@@ -257,7 +258,7 @@ export default class PushDataServerController {
      * @param userId
      */
     public static getUserSockets(userId: number, client_tab_id: string = null): SocketWrapper[] {
-        ForkedTasksController.assert_is_main_process();
+        ForkedTasksController.assert_is_bgthread(APIBGThreadBaseNameHolder.BGTHREAD_name);
 
         if (!client_tab_id) {
             let res: SocketWrapper[] = [];
@@ -275,7 +276,7 @@ export default class PushDataServerController {
      * Les sockets sont accessibles et transférables que sur le main process, donc on assert ici
      */
     public static getAllSockets(): SocketWrapper[] {
-        ForkedTasksController.assert_is_main_process();
+        ForkedTasksController.assert_is_bgthread(APIBGThreadBaseNameHolder.BGTHREAD_name);
 
         let res: SocketWrapper[] = [];
 
@@ -292,7 +293,7 @@ export default class PushDataServerController {
      * @param socket
      */
     public static unregisterSocket(session: IServerUserSession, socket: socketIO.Socket) {
-        ForkedTasksController.assert_is_main_process();
+        ForkedTasksController.assert_is_bgthread(APIBGThreadBaseNameHolder.BGTHREAD_name);
 
         if ((!session) || (!socket)) {
             return;
@@ -342,7 +343,7 @@ export default class PushDataServerController {
     /**
      * WARN : Only on main thread (express).
      * On assert le main thread ici par ce qu'on ne peut pas json.stringify une session
-     * Attention: @RunsOnMainThread impose async, donc si on peut accéder proprement depuis le main thread directement au registered_sessions_by_uid, on le fait(null)
+     * Attention: impose async, donc si on peut accéder proprement depuis le main thread directement au registered_sessions_by_uid, on le fait(null)
      * @param userId
      */
     public static async getUserSessions(userId: number): Promise<{ [sessId: string]: IServerUserSession }> {
@@ -365,7 +366,7 @@ export default class PushDataServerController {
     /**
      * WARN : Only on main thread (express).
      * On assert le main thread ici par ce qu'on ne peut pas json.stringify une session
-     * Attention: @RunsOnMainThread impose async, donc si on peut accéder proprement depuis le main thread directement au registered_sessions_by_sid, on le fait(null)
+     * Attention: impose async, donc si on peut accéder proprement depuis le main thread directement au registered_sessions_by_sid, on le fait(null)
      * @param sid
      */
     public static async getSessionBySid(sid: string): Promise<IServerUserSession> {
@@ -382,7 +383,7 @@ export default class PushDataServerController {
      */
     private static getUserSockets_client_tab_id(userId: number, client_tab_id: string): SocketWrapper[] {
 
-        ForkedTasksController.assert_is_main_process();
+        ForkedTasksController.assert_is_bgthread(APIBGThreadBaseNameHolder.BGTHREAD_name);
 
         PushDataServerController.clearClosedSockets(userId, client_tab_id);
 
@@ -440,7 +441,7 @@ export default class PushDataServerController {
         return notification;
     }
 
-    private static getTechNotif(user_id: number, client_tab_id: string, socket_ids: string[], marker: string, gpt_assistant_id?: string, gpt_thread_id?: string): NotificationVO {
+    private static getTechNotif(user_id: number, client_tab_id: string, socket_ids: string[], marker: string, ...params: string[]): NotificationVO {
 
         const notification: NotificationVO = new NotificationVO();
 
@@ -451,16 +452,26 @@ export default class PushDataServerController {
         notification.client_tab_id = client_tab_id;
         notification.user_id = user_id;
         notification.auto_read_if_connected = true;
-        if (gpt_assistant_id && gpt_thread_id) {
-            notification.vos = [{
-                marker,
-                gpt_assistant_id,
-                gpt_thread_id
-            } as any];
-        } else {
-            notification.vos = [{
-                marker
-            } as any];
+
+        switch (marker) {
+            case NotificationVO.TECH_REDIRECT:
+                notification.vos = [{
+                    marker,
+                    url: params[0],
+                } as any];
+                break;
+            case NotificationVO.TECH_SCREENSHOT:
+                notification.vos = [{
+                    marker,
+                    gpt_assistant_id: params[0],
+                    gpt_thread_id: params[1],
+                } as any];
+                break;
+            default:
+                notification.vos = [{
+                    marker
+                } as any];
+                break;
         }
         return notification;
     }
@@ -470,7 +481,7 @@ export default class PushDataServerController {
      * WARN : Only on main thread (express).
      * @param session
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async unregisterSession(sid: string, notify_redirect: boolean = true): Promise<void> {
 
         const session: IServerUserSession = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
@@ -498,7 +509,7 @@ export default class PushDataServerController {
      * WARN : Only on main thread (express).
      * @param session
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async unregisterUserSession(sid: string): Promise<void> {
 
         const session: IServerUserSession = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
@@ -516,7 +527,7 @@ export default class PushDataServerController {
      * @param room_id
      * @param vo
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notify_vo_creation(room_id: string, vo: any): Promise<void> {
 
         const create_vo_notif: NotificationVO = new NotificationVO();
@@ -532,7 +543,7 @@ export default class PushDataServerController {
         // const notification = APIControllerWrapper.try_translate_vo_to_api(create_vo_notif);
         const notification = create_vo_notif;
 
-        return ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
+        return ServerBaseConfHolder.io.to(room_id).emit(notification_type, notification);
     }
 
     /**
@@ -541,7 +552,7 @@ export default class PushDataServerController {
      * @param pre_update_vo
      * @param post_update_vo
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notify_vo_update(room_id: string, pre_update_vo: any, post_update_vo: any): Promise<void> {
 
         const update_vo_notif: NotificationVO = new NotificationVO();
@@ -557,7 +568,7 @@ export default class PushDataServerController {
         // const notification = APIControllerWrapper.try_translate_vo_to_api(update_vo_notif);
         const notification = update_vo_notif;
 
-        return ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
+        return ServerBaseConfHolder.io.to(room_id).emit(notification_type, notification);
     }
 
 
@@ -566,7 +577,7 @@ export default class PushDataServerController {
      * @param room_id
      * @param vo
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notify_vo_deletion(room_id: string, vo: any): Promise<void> {
 
         const delete_vo_notif: NotificationVO = new NotificationVO();
@@ -582,7 +593,7 @@ export default class PushDataServerController {
         // const notification = APIControllerWrapper.try_translate_vo_to_api(delete_vo_notif);
         const notification = delete_vo_notif;
 
-        return ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
+        return ServerBaseConfHolder.io.to(room_id).emit(notification_type, notification);
     }
 
     /**
@@ -591,7 +602,7 @@ export default class PushDataServerController {
      * @param client_tab_id
      * @param res
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifyAPIResult(user_id: number, client_tab_id: string, api_call_id: number, res: any): Promise<void> {
 
         user_id = ((user_id == null) ? 0 : user_id);
@@ -611,7 +622,7 @@ export default class PushDataServerController {
      * @param client_tab_id
      * @param vo
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifyVarData(user_id: number, client_tab_id: string, vo: VarDataValueResVO): Promise<void> {
 
         user_id = ((user_id == null) ? 0 : user_id);
@@ -627,7 +638,7 @@ export default class PushDataServerController {
      * DELETE ME Post suppression StackContext: Does not need StackContext
      * On notifie un utilisateur pour forcer la déco et rechargement de la page d'accueil
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifyRedirectHomeAndDisconnect(sid: string): Promise<void> {
 
         const session: IServerUserSession = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
@@ -663,7 +674,7 @@ export default class PushDataServerController {
      * DELETE ME Post suppression StackContext: Does not need StackContext
      * On notifie une session pour forcer le rechargement de la page d'accueil suite connexion / changement de compte
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notify_user_and_redirect(
         sid: string,
         redirect_uri: string = '/',
@@ -703,7 +714,7 @@ export default class PushDataServerController {
      * On notifie une session pour forcer le rechargement de la page d'accueil suite connexion / changement de compte
      * @deprecated Utilise StackContext que l'on ne veut plus utiliser. Préférer notify_user_and_redirect
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifyUserLoggedAndRedirect(redirect_uri: string = '/', sso: boolean = false): Promise<void> {
 
         const sid = StackContext.get('SID');
@@ -711,7 +722,25 @@ export default class PushDataServerController {
         return this.notify_user_and_redirect(sid, redirect_uri, sso);
     }
 
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
+    public static async notify_do_redirect(UID: number, CLIENT_TAB_ID: string, url: string): Promise<void> {
+        let notification: NotificationVO = null;
+        try {
+            notification = PushDataServerController.getTechNotif(
+                UID, CLIENT_TAB_ID,
+                null, NotificationVO.TECH_SCREENSHOT, url);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        if (!notification) {
+            return;
+        }
+
+        await PushDataServerController.notify(notification);
+    }
+
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifyScreenshot(UID: number, CLIENT_TAB_ID: string, gpt_assistant_id: string, gpt_thread_id: string): Promise<void> {
         let notification: NotificationVO = null;
         try {
@@ -732,7 +761,7 @@ export default class PushDataServerController {
     /**
      * On notifie une tab pour reload
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifyTabReload(UID: number, CLIENT_TAB_ID: string): Promise<void> {
 
         let notification: NotificationVO = null;
@@ -757,7 +786,7 @@ export default class PushDataServerController {
      * @param client_tab_id
      * @param vos
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifyVarsDatas(user_id: number, client_tab_id: string, vos: VarDataValueResVO[]): Promise<void> {
 
         user_id = ((user_id == null) ? 0 : user_id);
@@ -769,7 +798,7 @@ export default class PushDataServerController {
         return PushDataServerController.notify(notification);
     }
 
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifyVarsDatasBySocket_(socket_id: string, vos: VarDataValueResVO[]): Promise<void> {
 
         const notification: NotificationVO = PushDataServerController.getVarDataNotif(PushDataServerController.registereduid_by_socketid[socket_id], PushDataServerController.registeredclient_tab_id_by_socketid[socket_id], socket_id, vos);
@@ -780,7 +809,7 @@ export default class PushDataServerController {
         return PushDataServerController.notify(notification);
     }
 
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifyDAOGetVoById(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number): Promise<void> {
 
         if ((!user_id) || (!api_type_id) || (!vo_id)) {
@@ -800,7 +829,7 @@ export default class PushDataServerController {
         return PushDataServerController.notify(notification);
     }
 
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifyDAORemoveId(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number): Promise<void> {
 
         if ((!user_id) || (!api_type_id) || (!vo_id)) {
@@ -820,7 +849,7 @@ export default class PushDataServerController {
         return PushDataServerController.notify(notification);
     }
 
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifyDAOGetVos(user_id: number, client_tab_id: string, api_type_id: string): Promise<void> {
 
         if ((!user_id) || (!api_type_id)) {
@@ -839,7 +868,7 @@ export default class PushDataServerController {
         return PushDataServerController.notify(notification);
     }
 
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async broadcastLoggedSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null): Promise<void> {
 
         const promises: Array<Promise<void>> = [];
@@ -861,7 +890,7 @@ export default class PushDataServerController {
         return all_promises(promises) as unknown as Promise<void>;
     }
 
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async broadcastAllSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null): Promise<void> {
 
         const promises = [];
@@ -876,7 +905,7 @@ export default class PushDataServerController {
         return all_promises(promises) as unknown as Promise<void>;
     }
 
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async broadcastRoleSimple(role_name: string, msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null): Promise<void> {
 
         const promises = [];
@@ -920,7 +949,7 @@ export default class PushDataServerController {
     }
 
     // Notifications qui redirigent sur une route avec ou sans paramètres
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async broadcastRoleRedirect(
         role_name: string,
         msg_type: number,
@@ -978,7 +1007,7 @@ export default class PushDataServerController {
      * @param simple_notif_json_params
      * @deprecated On veut supprimer StackContext. Préférer notify_session
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifySession(code_text: string, notif_type: number = NotificationVO.SIMPLE_SUCCESS, simple_notif_json_params: string = null): Promise<void> {
         return this.notify_session(StackContext.get('SID'), code_text, notif_type, simple_notif_json_params);
     }
@@ -989,7 +1018,7 @@ export default class PushDataServerController {
      * @param notif_type
      * @param simple_notif_json_params
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notify_session(
         sid: string,
         code_text: string,
@@ -1013,7 +1042,7 @@ export default class PushDataServerController {
     /**
      * DELETE ME Post suppression StackContext: Does not need StackContext
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifySimpleSUCCESS(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null): Promise<void> {
 
         return PushDataServerController.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_SUCCESS, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
@@ -1022,7 +1051,7 @@ export default class PushDataServerController {
     /**
      * DELETE ME Post suppression StackContext: Does not need StackContext
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifySimpleINFO(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null): Promise<void> {
 
         return PushDataServerController.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_INFO, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
@@ -1031,7 +1060,7 @@ export default class PushDataServerController {
     /**
      * DELETE ME Post suppression StackContext: Does not need StackContext
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifySimpleWARN(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null): Promise<void> {
 
         return await PushDataServerController.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_WARN, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
@@ -1040,7 +1069,7 @@ export default class PushDataServerController {
     /**
      * DELETE ME Post suppression StackContext: Does not need StackContext
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifySimpleERROR(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null): Promise<void> {
 
         return PushDataServerController.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_ERROR, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
@@ -1053,7 +1082,7 @@ export default class PushDataServerController {
      * @param client_tab_id
      * @param full_file_path
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifyDownloadFile(
         user_id: number,
         client_tab_id: string,
@@ -1074,7 +1103,7 @@ export default class PushDataServerController {
         await PushDataServerController.notify(notification);
     }
 
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifyPrompt(user_id: number, client_tab_id: string, code_text: string, simple_notif_json_params: string = null): Promise<string> {
 
         if ((!user_id) || (!client_tab_id) || (!code_text)) {
@@ -1115,14 +1144,14 @@ export default class PushDataServerController {
         });
     }
 
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     public static async notifyRedirectINFO(user_id: number, client_tab_id: string, code_text: string, redirect_route: string = "", notif_route_params_name: string[] = null, notif_route_params_values: string[] = null, auto_read_if_connected: boolean = false): Promise<void> {
 
         return PushDataServerController.notifyRedirect(null, user_id, client_tab_id, NotificationVO.SIMPLE_INFO, code_text, redirect_route, notif_route_params_name, notif_route_params_values, auto_read_if_connected);
     }
 
     // Notifications qui redirigent sur une route avec ou sans paramètres
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     private static async notifyRedirect(
         socket_ids: string[],
         user_id: number,
@@ -1160,7 +1189,7 @@ export default class PushDataServerController {
     /**
      * DELETE ME Post suppression StackContext : Does not need StackContext
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     private static async notifySimple(
         socket_ids: string[], user_id: number, client_tab_id: string,
         msg_type: number, code_text: string, auto_read_if_connected: boolean,
@@ -1195,7 +1224,7 @@ export default class PushDataServerController {
      * TODO Ajouter un wrapper sur les notifs et un debounced comme pour les request wrapper de manière à regrouper au maximum les notifs sans avoir à mettre des await sur chaque notif...
      * @param notification
      */
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     private static async notify(notification: NotificationVO): Promise<void> {
 
         try {
@@ -1252,7 +1281,7 @@ export default class PushDataServerController {
         }
     }
 
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     private static async clearClosedSockets(userId: number, client_tab_id: string): Promise<void> {
 
         if (!client_tab_id) {
@@ -1266,7 +1295,7 @@ export default class PushDataServerController {
         }
     }
 
-    @RunsOnMainThread(null)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, null)
     private static async clearClosedSockets_client_tab_id(userId: number, client_tab_id: string): Promise<void> {
 
         const toclose_tabs: string[] = [];

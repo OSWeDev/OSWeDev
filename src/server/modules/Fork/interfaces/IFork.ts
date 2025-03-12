@@ -5,4 +5,5 @@ export default interface IFork {
     uid: number;
     processes: { [name: string]: IForkProcess };
     worker: Worker;
+    port: number;
 }

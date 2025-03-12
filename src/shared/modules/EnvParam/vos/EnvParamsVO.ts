@@ -217,6 +217,8 @@ export default class EnvParamsVO implements IDistantVOBase {
     public api_load_balancing: boolean;
     public api_load_balancing_nb_workers: number;
 
+    public api_load_balancing_worker_ports: number[];
+
     public load_balancing_debug_log: boolean;
 
     public debug_reruns_of_oselia: boolean;

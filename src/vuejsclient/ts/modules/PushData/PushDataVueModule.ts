@@ -1,4 +1,4 @@
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import { SnotifyToast } from 'vue-snotify';
 import ModuleAccessPolicy from "../../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -41,7 +41,7 @@ export default class PushDataVueModule extends VueModuleBase {
     public env_params: EnvParamsVO = null;
     public var_debug_notif_id: number = 0;
 
-    protected socket;
+    protected sockets_by_worker_index: { [worker_index: number]: Socket } = {};
 
     protected snotify_connect_disconnect = null;
     protected snotify_observer_error_no_internet = null;
@@ -106,19 +106,28 @@ export default class PushDataVueModule extends VueModuleBase {
     }
 
     public initialize() {
-        const self = this;
-        let first = true;
+        this.sockets_by_worker_index = {};
 
-        // test suppression base api url this.socket = io.connect(VueAppBase.getInstance().appController.data_base_api_url);
-        this.socket = io({
-            transportOptions: {
-                polling: {
-                    extraHeaders: {
-                        client_tab_id: AjaxCacheClientController.getInstance().client_tab_id,
+        // On adapte pour gérer le cas des apibgthreads loadbalancés : on se connecte à tous les workers
+        for (const i in VueAppController.getInstance().apibgthread_worker_ports) {
+            const port = VueAppController.getInstance().apibgthread_worker_ports[i];
+
+            /**
+             * On doit garder le domain cible actuel :
+             *  - en dev on est sur http://localhost:4407 par exemple et on veut un socket vers http://localhost:port
+             *  - en prod on est sur https://www.oselia.fr et on veut un socket vers https://www.oselia.fr:port
+             */
+            this.sockets_by_worker_index[i] = io(window.location.protocol + '//' + window.location.hostname + ':' + port, {
+                transportOptions: {
+                    polling: {
+                        extraHeaders: {
+                            client_tab_id: AjaxCacheClientController.getInstance().client_tab_id,
+                        },
                     },
                 },
-            },
-        });
+                withCredentials: true // important pour envoyer les cookies
+            });
+        }
 
         window.addEventListener('online', this.handleOnline);
         window.addEventListener('offline', this.handleOffline);
@@ -132,139 +141,9 @@ export default class PushDataVueModule extends VueModuleBase {
         // Commencer à observer les entrées de type 'resource'
         observer.observe({ type: 'resource', buffered: true });
 
-
-        this.socket.on('disconnect', (reason) => {
-            ConsoleHandler.error('Socket : Déconnexion ' + reason);
-
-            setTimeout(() => {
-                first = false;
-                self.socket.open();
-            }, 5000);
-        });
-        this.socket.on('error', async () => {
-            ConsoleHandler.error('Socket : Erreur');
-
-            // On tente une reconnexion toutes les 10 secondes
-            setTimeout(() => {
-                first = false;
-                self.socket.open();
-            }, 5000);
-        });
-        this.socket.on('connect_error', async () => {
-            ConsoleHandler.error('Socket : Connect erreur');
-
-            // On tente une reconnexion toutes les 10 secondes
-            setTimeout(() => {
-                first = false;
-                self.socket.open();
-            }, 5000);
-        });
-        this.socket.on('connect_timeout', async () => {
-            ConsoleHandler.error('Socket : Connect timeout');
-
-            // On tente une reconnexion toutes les 10 secondes
-            setTimeout(() => {
-                first = false;
-                self.socket.open();
-            }, 5000);
-        });
-        this.socket.on('reconnect_error', async () => {
-            ConsoleHandler.error('Socket : Reconnecte erreur');
-
-            // On tente une reconnexion toutes les 10 secondes
-            setTimeout(() => {
-                first = false;
-                self.socket.open();
-            }, 5000);
-        });
-        this.socket.on('reconnect_failed', async () => {
-            ConsoleHandler.error('Socket : Reccontect failed');
-
-            // On tente une reconnexion toutes les 10 secondes
-            setTimeout(() => {
-                first = false;
-                self.socket.open();
-            }, 5000);
-        });
-
-        /**
-         * Sur une reco on veut rejouer tous les registerParams
-         */
-        this.socket.on('connect', (socket) => {
-            let same_version_app: boolean = true;
-
-            setTimeout(async () => {
-                same_version_app = await self.check_version_app();
-            }, 1);
-
-            if (!first && same_version_app) {
-                setTimeout(async () => {
-                    await VarsClientController.getInstance().registerAllParamsAgain();
-                    await PushDataVueModule.joinAllRoomsAgain();
-                }, 10000);
-            }
-        });
-
-        this.socket.on('reconnect', () => {
-            let same_version_app: boolean = true;
-
-            setTimeout(async () => {
-                same_version_app = await self.check_version_app();
-            }, 1);
-
-            if (same_version_app) {
-                setTimeout(async () => {
-                    await VarsClientController.getInstance().registerAllParamsAgain();
-                    await PushDataVueModule.joinAllRoomsAgain();
-                }, 10000);
-            }
-        });
-
-        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_SIMPLE], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
-        });
-
-        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_DAO], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
-        });
-
-        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VARDATA], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
-        });
-
-        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_APIRESULT], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
-        });
-
-        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_TECH], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
-        });
-
-        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_PROMPT], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
-        });
-
-        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_REDIRECT], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
-        });
-
-        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
-        });
-
-        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VO_CREATED], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
-        });
-
-        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VO_DELETED], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
-        });
-
-        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VO_UPDATED], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
-        });
-
-        // TODO: Handle other notif types
+        for (const i in this.sockets_by_worker_index) {
+            this.init_socket(this.sockets_by_worker_index[i]);
+        }
     }
 
     // Fonction pour vérifier toutes les ressources qu'on appelle et faire une gestion d'erreur
@@ -937,6 +816,14 @@ export default class PushDataVueModule extends VueModuleBase {
                                     window.location.reload();
                                 }, 3000);
                                 break;
+                            case NotificationVO.TECH_REDIRECT:
+                                const url = vo.url;
+                                if (url) {
+                                    location.href = url;
+                                } else {
+                                    ConsoleHandler.error('No url to redirect to');
+                                }
+                                break;
                             case NotificationVO.TECH_SCREENSHOT:
                                 if (vo.gpt_assistant_id == null || vo.gpt_assistant_id == undefined) {
                                     ConsoleHandler.error('No gpt_assistant_id');
@@ -988,6 +875,7 @@ export default class PushDataVueModule extends VueModuleBase {
                                         true
                                     );
                                 }, 3000);
+                                break;
 
                             default:
                                 break;
@@ -996,5 +884,141 @@ export default class PushDataVueModule extends VueModuleBase {
                 }
             }
         }
+    }
+
+    private init_socket(socket: Socket) {
+        const self = this;
+        let first = true;
+
+        socket.on('disconnect', (reason) => {
+            ConsoleHandler.error('Socket : Déconnexion ' + reason);
+
+            setTimeout(() => {
+                first = false;
+                socket.open();
+            }, 5000);
+        });
+        socket.on('error', async () => {
+            ConsoleHandler.error('Socket : Erreur');
+
+            // On tente une reconnexion toutes les 10 secondes
+            setTimeout(() => {
+                first = false;
+                socket.open();
+            }, 5000);
+        });
+        socket.on('connect_error', async () => {
+            ConsoleHandler.error('Socket : Connect erreur');
+
+            // On tente une reconnexion toutes les 10 secondes
+            setTimeout(() => {
+                first = false;
+                socket.open();
+            }, 5000);
+        });
+        socket.on('connect_timeout', async () => {
+            ConsoleHandler.error('Socket : Connect timeout');
+
+            // On tente une reconnexion toutes les 10 secondes
+            setTimeout(() => {
+                first = false;
+                socket.open();
+            }, 5000);
+        });
+        socket.on('reconnect_error', async () => {
+            ConsoleHandler.error('Socket : Reconnecte erreur');
+
+            // On tente une reconnexion toutes les 10 secondes
+            setTimeout(() => {
+                first = false;
+                socket.open();
+            }, 5000);
+        });
+        socket.on('reconnect_failed', async () => {
+            ConsoleHandler.error('Socket : Reccontect failed');
+
+            // On tente une reconnexion toutes les 10 secondes
+            setTimeout(() => {
+                first = false;
+                socket.open();
+            }, 5000);
+        });
+
+        /**
+         * Sur une reco on veut rejouer tous les registerParams
+         */
+        socket.on('connect', () => {
+            let same_version_app: boolean = true;
+
+            setTimeout(async () => {
+                same_version_app = await self.check_version_app();
+            }, 1);
+
+            if (!first && same_version_app) {
+                setTimeout(async () => {
+                    await VarsClientController.getInstance().registerAllParamsAgain();
+                    await PushDataVueModule.joinAllRoomsAgain();
+                }, 10000);
+            }
+        });
+
+        socket.on('reconnect', () => {
+            let same_version_app: boolean = true;
+
+            setTimeout(async () => {
+                same_version_app = await self.check_version_app();
+            }, 1);
+
+            if (same_version_app) {
+                setTimeout(async () => {
+                    await VarsClientController.getInstance().registerAllParamsAgain();
+                    await PushDataVueModule.joinAllRoomsAgain();
+                }, 10000);
+            }
+        });
+
+        socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_SIMPLE], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
+        socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_DAO], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
+        socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VARDATA], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
+        socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_APIRESULT], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
+        socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_TECH], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
+        socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_PROMPT], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
+        socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_REDIRECT], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
+        socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
+        socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VO_CREATED], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
+        socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VO_DELETED], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
+        socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VO_UPDATED], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
     }
 }

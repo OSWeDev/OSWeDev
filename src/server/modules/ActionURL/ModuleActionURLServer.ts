@@ -85,7 +85,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
      * @returns
      */
     public async simple_open_url_from_action_url(action_url: ActionURLVO, uid: number, req: Request, call_id: number): Promise<ActionURLCRVO> {
-        const param:ISimpleActionURLParams = action_url.params as ISimpleActionURLParams;
+        const param: ISimpleActionURLParams = action_url.params as ISimpleActionURLParams;
         await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, param.url);
         return ActionURLServerTools.create_info_cr(action_url, 'Redirection vers ' + param.url);
     }

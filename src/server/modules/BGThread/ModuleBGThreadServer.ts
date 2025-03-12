@@ -2,6 +2,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleBGThread from '../../../shared/modules/BGThread/ModuleBGThread';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
@@ -10,12 +11,15 @@ import EventifyEventConfVO from '../../../shared/modules/Eventify/vos/EventifyEv
 import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import PerfReportController from '../../../shared/modules/PerfReport/PerfReportController';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -93,6 +97,25 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         if (!ModuleBGThreadServer.instance) {
             ModuleBGThreadServer.instance = new ModuleBGThreadServer();
         }
+
+        BGThreadLoadBalancerServerController.get_worker_latency = async (worker_name: string): Promise<number> => {
+            const start_ms = Dates.now_ms();
+
+            await ForkedTasksController.exec_task_on_bgthread_and_return_value(true, worker_name, BGThreadLoadBalancerServerController.GET_WORKER_LATENCY_TASK_NAME);
+
+            PerfReportController.add_cooldown(
+                BgthreadPerfModuleNamesHolder.BGTHREAD_PING_LATENCY_PERF_MODULE_NAME,
+                'BGThreadLoadBalancer.worker_latency.' + worker_name,
+                'BGThreadLoadBalancer.worker_latency.' + worker_name,
+                'BGThreadLoadBalancer.worker_latency.' + worker_name,
+                start_ms,
+                Dates.now_ms(),
+                'Durée totale : ' + (Dates.now_ms() - start_ms) + ' ms',
+            );
+
+            return Dates.now_ms() - start_ms;
+        };
+
         return ModuleBGThreadServer.instance;
     }
 
@@ -132,6 +155,11 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         ForkedTasksController.register_task(ModuleBGThreadServer.TASK_NAME_write_heap_snapshot_on_this_thread, this.write_heap_snapshot_on_this_thread.bind(this));
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleBGThreadServer.TASK_NAME_write_heap_snapshot_on_all_thread] =
             ModuleBGThreadServer.getInstance().write_heap_snapshot_on_all_threads;
+    }
+
+    // istanbul ignore next: cannot test registerServerApiHandlers
+    public registerServerApiHandlers() {
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<this>().get_apibgthread_ports, this.get_apibgthread_ports.bind(this));
     }
 
     public async write_heap_snapshot_on_all_threads() {
@@ -276,6 +304,24 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             EventsController.emit_event(EventifyEventInstanceVO.instantiate(await this.get_EVENT_execute_bgthread(bgthread, false)));
         }).catch((error) => ConsoleHandler.error(error));
         // this.execute_bgthread(bgthread).then().catch((error) => ConsoleHandler.error(error));
+    }
+
+    /**
+     * Méthode pour récupérer les ports des workers apibgthread loadbalancés
+     * @returns les ports des apibgthreads workers
+     */
+    public async get_apibgthread_ports(): Promise<number[]> {
+        const ports: number[] = [];
+
+        if (!ConfigurationService.node_configuration.api_load_balancing) {
+            ports.push((ConfigurationService.node_configuration?.api_load_balancing_worker_ports ? ConfigurationService.node_configuration.api_load_balancing_worker_ports[0] : 3000));
+        } else {
+            for (let i = 0; i < ConfigurationService.node_configuration.api_load_balancing_nb_workers; i++) {
+                ports.push((ConfigurationService.node_configuration?.api_load_balancing_worker_ports ? ConfigurationService.node_configuration.api_load_balancing_worker_ports[i] : 3000 + i));
+            }
+        }
+
+        return ports;
     }
 
     /**
@@ -434,6 +480,12 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             // RETROCOMPATIBILITE
             this.LISTENER_execute_bgthread_CONF_by_bgthread_name[bgthread_name].run_as_soon_as_possible_event_conf_id = this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name].id;
             this.LISTENER_execute_bgthread_CONF_by_bgthread_name[bgthread_name].run_as_soon_as_possible_event_conf_name = this.ASAP_EVENT_execute_bgthread_CONF_by_bgthread_name[bgthread_name].name;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(this.LISTENER_execute_bgthread_CONF_by_bgthread_name[bgthread_name]);
+        }
+
+        // Si on change le cooldown, on le met à jour
+        if (this.LISTENER_execute_bgthread_CONF_by_bgthread_name[bgthread_name].cooldown_ms != bgthread.current_timeout) {
+            this.LISTENER_execute_bgthread_CONF_by_bgthread_name[bgthread_name].cooldown_ms = bgthread.current_timeout;
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(this.LISTENER_execute_bgthread_CONF_by_bgthread_name[bgthread_name]);
         }
 

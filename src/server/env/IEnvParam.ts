@@ -99,6 +99,8 @@ export default interface IEnvParam {
     api_load_balancing?: boolean;
     api_load_balancing_nb_workers?: number;
 
+    api_load_balancing_worker_ports?: number[];
+
     load_balancing_debug_log?: boolean;
 
     debug_var_get_instance_semaphored_db_loaded_var_data?: boolean;

@@ -13,6 +13,8 @@ import EnvHandler from '../../../shared/tools/EnvHandler';
 import { reflect } from '../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
+import APIBGThreadBaseNameHolder from '../API/bgthreads/APIBGThreadBaseNameHolder';
+import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
@@ -61,7 +63,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         return ModulePushDataServer.instance;
     }
 
-    @RunsOnMainThread(ModulePushDataServer.getInstance)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, ModulePushDataServer.getInstance, true)
     private async join_io_room(room_vo_fields: string[]) {
 
         if ((!room_vo_fields) || (!room_vo_fields.length) || (room_vo_fields.length % 2 == 1)) {
@@ -115,7 +117,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         }
     }
 
-    @RunsOnMainThread(ModulePushDataServer.getInstance)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, ModulePushDataServer.getInstance, true)
     private async leave_io_room(room_vo_fields: string[]) {
 
         if ((!room_vo_fields) || (!room_vo_fields.length) || (room_vo_fields.length % 2 == 1)) {
@@ -259,7 +261,10 @@ export default class ModulePushDataServer extends ModuleServerBase {
         try {
             for (const i in room_ids) {
                 const room_id = room_ids[i];
-                this.registered_rooms[room_id] = JSON.parse(room_id);
+
+                if (!this.registered_rooms[room_id]) {
+                    this.registered_rooms[room_id] = JSON.parse(room_id);
+                }
             }
         } catch (error) {
             ConsoleHandler.error('Impossible de parser les rooms IO: ' + room_ids.toString());
@@ -271,10 +276,19 @@ export default class ModulePushDataServer extends ModuleServerBase {
         const room_ids: string[] = msg.message_content;
         for (const i in room_ids) {
             const room_id = room_ids[i];
-            delete this.registered_rooms[room_id];
+
+            if (this.registered_rooms[room_id]) {
+                delete this.registered_rooms[room_id];
+            }
         }
     }
 
+    /**
+     * FIXME TODO : probablement pertinent de chercher des solutions pour ne pas broadcast à chaque fois sur chaque worker...
+     * On envoie clairement trop d'infos là à tous les threads...
+     * @param rooms
+     * @returns
+     */
     private async broadcast_registered_rooms(rooms: { [room_id: string]: boolean }) {
         const param = Object.keys(rooms);
         if ((!param) || (!param.length)) {
@@ -283,6 +297,12 @@ export default class ModulePushDataServer extends ModuleServerBase {
         await ForkMessageController.broadcast(new RegisterIORoomsThreadMessage(Object.keys(rooms)));
     }
 
+    /**
+     * FIXME TODO : probablement pertinent de chercher des solutions pour ne pas broadcast à chaque fois sur chaque worker...
+     * On envoie clairement trop d'infos là à tous les threads...
+     * @param rooms
+     * @returns
+     */
     private async broadcast_unregistered_rooms(rooms: { [room_id: string]: boolean }) {
         const param = Object.keys(rooms);
         if ((!param) || (!param.length)) {

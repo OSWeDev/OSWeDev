@@ -6,13 +6,11 @@ import mime from 'mime-types';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import createLocaleMiddleware from 'express-locale';
 import expressSession from 'express-session';
-import sharedsession from 'express-socket.io-session';
 import fs from 'fs';
 import helmet from 'helmet';
 import path from 'path';
 import pg from 'pg';
 import pg_promise, { IDatabase, IEventContext, IResultExt } from 'pg-promise';
-import socketIO from 'socket.io';
 import winston from 'winston';
 import winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -76,10 +74,10 @@ import IFork from './modules/Fork/interfaces/IFork';
 import PingForkMessage from './modules/Fork/messages/PingForkMessage';
 import OseliaServerController from './modules/Oselia/OseliaServerController';
 import ParamsServerController from './modules/Params/ParamsServerController';
-import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import AsyncHookPromiseWatchController from './modules/Stats/AsyncHookPromiseWatchController';
 import TeamsAPIServerController from './modules/TeamsAPI/TeamsAPIServerController';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
+import ServerBaseConfHolder from './ServerBaseConfHolder';
 
 export default abstract class ServerBase {
 
@@ -88,14 +86,9 @@ export default abstract class ServerBase {
     /* istanbul ignore next: nothing to test here */
     protected static instance: ServerBase = null;
 
-    // public csrf_protection;
-    public version;
-    public io;
-
     protected db: IDatabase<any>;
     protected spawn;
     protected app: Application;
-    protected port;
     protected uiDebug;
     protected envParam: EnvParam;
     private connectionString: string;
@@ -199,7 +192,7 @@ export default abstract class ServerBase {
             ConsoleHandler.log('ServerExpressController:createMandatoryFolders:END');
         }
 
-        this.version = this.getVersion();
+        ServerBaseConfHolder.version = this.getVersion();
 
         this.envParam = ConfigurationService.node_configuration;
 
@@ -210,14 +203,14 @@ export default abstract class ServerBase {
         EnvHandler.max_pool = this.envParam.max_pool;
         EnvHandler.compress = !!this.envParam.compress;
         EnvHandler.code_google_analytics = this.envParam.code_google_analytics;
-        EnvHandler.version = this.version;
+        EnvHandler.version = ServerBaseConfHolder.version;
         EnvHandler.activate_pwa = !!this.envParam.activate_pwa;
         EnvHandler.zoom_auto = !!this.envParam.zoom_auto;
         EnvHandler.debug_vars = !!this.envParam.debug_vars;
         EnvHandler.logo_path = this.envParam.logo_path;
         this.connectionString = this.envParam.connection_string;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
-        this.port = process.env.PORT ? process.env.PORT : this.envParam.port;
+        ServerBaseConfHolder.port = process.env.PORT ? process.env.PORT : this.envParam.port;
 
         PushDataServerController.initialize();
 
@@ -612,93 +605,12 @@ export default abstract class ServerBase {
             true,
         );
 
-        ConsoleHandler.log('listening on port: ' + ServerBase.getInstance().port);
-
         const on_connection = async () => {
             ConsoleHandler.log('connection to db successful');
 
             const server = require('http').Server(ServerBase.getInstance().app);
-            const io = require('socket.io')(server);
-            ServerBase.getInstance().io = io;
-            io.use(sharedsession(ServerBase.getInstance().session));
-
-            io.of('/').adapter.on('join-room', (room) => {
-                // On ne s'intéresse qu'aux rooms de push (donc un vo stringified)
-                if (!room || (typeof room != 'string') || (room.indexOf('{"') != 0)) {
-                    return;
-                }
-
-                if (ConfigurationService.node_configuration.debug_io_rooms) {
-                    ConsoleHandler.log('SOCKET IO:join-room: ' + room);
-                }
-            });
-
-            io.of('/').adapter.on('leave-room', (room) => {
-                // On ne s'intéresse qu'aux rooms de push (donc un vo stringified)
-                if (!room || (typeof room != 'string') || (room.indexOf('{"') != 0)) {
-                    return;
-                }
-
-                if (ConfigurationService.node_configuration.debug_io_rooms) {
-                    ConsoleHandler.log('SOCKET IO:leave-room: ' + room);
-                }
-            });
-
-            io.of('/').adapter.on('create-room', (room) => {
-
-                // On ne s'intéresse qu'aux rooms de push (donc un vo stringified)
-                if (!room || (typeof room != 'string') || (room.indexOf('{"') != 0)) {
-                    return;
-                }
-
-                if (ConfigurationService.node_configuration.debug_io_rooms) {
-                    ConsoleHandler.log('SOCKET IO:create-room: ' + room);
-                }
-
-                ModulePushDataServer.getInstance().on_create_room(room);
-            });
-            io.of('/').adapter.on('delete-room', (room) => {
-                // On ne s'intéresse qu'aux rooms de push (donc un vo stringified)
-                if (!room || (typeof room != 'string') || (room.indexOf('{"') != 0)) {
-                    return;
-                }
-
-                if (ConfigurationService.node_configuration.debug_io_rooms) {
-                    ConsoleHandler.log('SOCKET IO:delete-room: ' + room);
-                }
-
-                ModulePushDataServer.getInstance().on_delete_room(room);
-            });
-
-            server.listen(ServerBase.getInstance().port);
-            // ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
-
-            // SocketIO
-            // let io = socketIO.listen(ServerBase.getInstance().app);
-            //turn off debug
-            // io.set('log level', 1);
-            // define interactions with client
-
-            io.on('connection', function (socket: socketIO.Socket) {
-                const session: IServerUserSession = socket.handshake['session'];
-
-                if (!session) {
-                    ConsoleHandler.error('Impossible de charger la session dans SocketIO');
-                    return;
-                }
-
-                PushDataServerController.registerSocket(session, socket);
-            }.bind(ServerBase.getInstance()));
-
-            io.on('disconnect', function (socket: socketIO.Socket) {
-                const session: IServerUserSession = socket.handshake['session'];
-
-                PushDataServerController.unregisterSocket(session, socket);
-            });
-
-            io.on('error', function (err) {
-                ConsoleHandler.error("IO nearly failed: " + err.stack);
-            });
+            server.listen(ServerBaseConfHolder.port);
+            ConsoleHandler.log('listening on port: ' + ServerBaseConfHolder.port);
 
             // ServerBase.getInstance().testNotifs();
 
@@ -1758,7 +1670,7 @@ export default abstract class ServerBase {
 
         res.json(JSON.stringify(
             {
-                data_version: ServerBase.getInstance().version,
+                data_version: ServerBaseConfHolder.version,
                 data_user: user,
                 data_ui_debug: ServerBase.getInstance().uiDebug,
                 // data_base_api_url: "",
@@ -1774,7 +1686,7 @@ export default abstract class ServerBase {
 
         res.json(JSON.stringify(
             {
-                data_version: ServerBase.getInstance().version,
+                data_version: ServerBaseConfHolder.version,
                 data_code_pays: ServerBase.getInstance().envParam.code_pays,
                 data_node_env: process.env.NODE_ENV,
                 data_user: user,

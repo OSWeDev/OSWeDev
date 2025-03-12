@@ -10,7 +10,7 @@ import StatsController from '../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import APIBGThread from '../API/bgthreads/APIBGThread';
+import APIBGThreadBaseNameHolder from '../API/bgthreads/APIBGThreadBaseNameHolder';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ExpressDBSessionsServerCacheHolder from './ExpressDBSessionsServerCacheHolder';
@@ -43,7 +43,7 @@ export default class ExpressDBSessionsServerController extends Store {
      * @param session_id
      * @returns
      */
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name, ExpressDBSessionsServerController.getInstance, true)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, ExpressDBSessionsServerController.getInstance, true)
     private async get_session_from_db(session_id: string): Promise<ExpressSessionVO> {
         return query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq(field_names<ExpressSessionVO>().session_id, session_id).exec_as_server().select_vo<ExpressSessionVO>();
     }
@@ -55,7 +55,7 @@ export default class ExpressDBSessionsServerController extends Store {
      * @param session_id
      * @returns
      */
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name, ExpressDBSessionsServerController.getInstance, true)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, ExpressDBSessionsServerController.getInstance, true)
     private async create_session_in_db(sessionvo: ExpressSessionVO): Promise<InsertOrDeleteQueryResult> {
         return ModuleDAOServer.instance.insertOrUpdateVO_as_server(sessionvo);
     }
@@ -66,7 +66,7 @@ export default class ExpressDBSessionsServerController extends Store {
      * @param session_id
      * @returns
      */
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name, ExpressDBSessionsServerController.getInstance, true)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, ExpressDBSessionsServerController.getInstance, true)
     private async update_session_in_db(sessionvo: ExpressSessionVO): Promise<InsertOrDeleteQueryResult[]> {
         return query(ExpressSessionVO.API_TYPE_ID).filter_by_id(sessionvo.id).exec_as_server().update_vos<ExpressSessionVO>(
             ModuleTableController.translate_vos_to_api(sessionvo, false)
@@ -79,7 +79,7 @@ export default class ExpressDBSessionsServerController extends Store {
      * @param session_id
      * @returns
      */
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name, ExpressDBSessionsServerController.getInstance, true)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, ExpressDBSessionsServerController.getInstance, true)
     private async delete_session_in_db(session_id: number): Promise<InsertOrDeleteQueryResult[]> {
         return query(ExpressSessionVO.API_TYPE_ID).filter_by_id(session_id).exec_as_server().delete_vos();
     }

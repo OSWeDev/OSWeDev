@@ -98,6 +98,8 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     /**
      * Ce module nécessite le param FEEDBACK_TRELLO_LIST_ID
      *  Pour trouver le idList => https://customer.io/actions/trello/
+     * TODO FIXME : la session est en base et partagée, pourquoi on passe pas a minima par un apibgthread ?
+     * POURQUOI on a besoin d'etre sur le main thread ?
      */
     @RunsOnMainThread(ModuleFeedbackServer.getInstance)
     private async feedback(feedback: FeedbackVO): Promise<FeedbackVO> {

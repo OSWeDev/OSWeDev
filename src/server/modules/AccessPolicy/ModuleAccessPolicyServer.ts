@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -37,7 +37,6 @@ import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import TextHandler from '../../../shared/tools/TextHandler';
 import StackContext from '../../StackContext';
-import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -62,9 +61,9 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
 // import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
-import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
-import APIBGThread from '../API/bgthreads/APIBGThread';
 import { IRequestStackContext } from '../../ServerExpressController';
+import APIBGThreadBaseNameHolder from '../API/bgthreads/APIBGThreadBaseNameHolder';
+import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import ExpressDBSessionsServerCacheHolder from '../ExpressDBSessions/ExpressDBSessionsServerCacheHolder';
 
 
@@ -754,7 +753,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * Attention le user_log n'a pas d'id du coup puisque le moduledao est lancé sur un autre thread
      * INFO : On peut lancer en local si le bgthread est pas encore dispo
      */
-    @RunsOnBgThread(APIBGThread.BGTHREAD_name, ModuleAccessPolicyServer.getInstance, true)
+    @RunsOnBgThread(APIBGThreadBaseNameHolder.BGTHREAD_name, ModuleAccessPolicyServer.getInstance, true)
     private async insert_or_update_uselog(user_log: UserLogVO) {
         return ModuleDAOServer.instance.insertOrUpdateVO_as_server(user_log);
     }
@@ -791,6 +790,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     // On doit obligatoirement être sur le main process => on peut pas en revenir avec un objet session !
     // @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
+    // TODO FIXME : la session est en base et partagée, pourquoi on passe pas a minima par un apibgthread ?
     public getUserSession(): IServerUserSession {
 
         // On doit obligatoirement être sur le main process

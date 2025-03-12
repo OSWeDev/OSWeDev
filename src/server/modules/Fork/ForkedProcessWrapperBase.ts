@@ -17,6 +17,7 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import FileLoggerHandler from '../../FileLoggerHandler';
 import I18nextInit from '../../I18nextInit';
 import MemoryUsageStat from '../../MemoryUsageStat';
+import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
@@ -25,6 +26,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
 import BgthreadPerfModuleNamesHolder from '../BGThread/BgthreadPerfModuleNamesHolder';
+import LoadBalancedBGThreadBase from '../BGThread/LoadBalancedBGThreadBase';
 import RunsOnBgThreadDataController, { EVENT_NAME_ForkServerController_ready } from '../BGThread/annotations/RunsOnBGThread';
 import RunsOnMainThreadDataController from '../BGThread/annotations/RunsOnMainThread';
 import CronServerController from '../Cron/CronServerController';
@@ -37,7 +39,7 @@ import ForkMessageController from './ForkMessageController';
 import ForkedTasksController from './ForkedTasksController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
-import LoadBalancedBGThreadBase from '../BGThread/LoadBalancedBGThreadBase';
+import ServerBaseConfHolder from '../../ServerBaseConfHolder';
 
 export default abstract class ForkedProcessWrapperBase {
 
@@ -89,11 +91,14 @@ export default abstract class ForkedProcessWrapperBase {
         CronServerController.getInstance().register_crons = true;
         CronServerController.getInstance().run_crons = true;
 
+        // Ajout du port pour les sockets des apibgthreads
+        ServerBaseConfHolder.port = parseInt(workerData[1]);
+
         try {
 
             const argv = workerData;
 
-            for (let i = 1; i < argv.length; i++) {
+            for (let i = 2; i < argv.length; i++) {
                 const arg = argv[i];
 
                 const splitted = arg.split(':');

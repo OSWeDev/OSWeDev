@@ -3,6 +3,7 @@ import IAPIController from '../../../shared/modules/API/interfaces/IAPIControlle
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
+import PushDataServerController from '../PushData/PushDataServerController';
 import APICallResWrapper from './vos/APICallResWrapper';
 
 export default class ServerAPIController implements IAPIController {
@@ -28,15 +29,17 @@ export default class ServerAPIController implements IAPIController {
      */
     @RunsOnMainThread()
     public static async send_redirect_if_headers_not_already_sent(call_id: number, url: string): Promise<boolean> {
-        const res = ServerAPIController.api_calls[call_id]?.res;
+        const api_call = ServerAPIController.api_calls[call_id];
+        const res = api_call?.res;
 
         if (!res) {
             return false;
         }
 
         if (res.headersSent) {
-            // Si on a déjà renvoyé un redirect ou une réponse, on ne fait rien
-            return false;
+            // Si on a déjà renvoyé un redirect ou une réponse, on renvoie via une notif
+            await PushDataServerController.notify_do_redirect(api_call.notif_result_uid, api_call.notif_result_tab_id, url);
+            return true;
         }
 
 

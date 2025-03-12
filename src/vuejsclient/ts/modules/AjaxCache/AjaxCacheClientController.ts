@@ -46,7 +46,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     /**
      * This is used to identify the tab the app is running in to send appropriate notifications to the corresponding tab
      */
-    public client_tab_id: string = Dates.now() + '_' + Math.floor(Math.random() * 100000);
+    public client_tab_id: string = `${this.getSessionId()}_${performance.now()}_${crypto.randomUUID()}`;
 
     // public api_logs: LightWeightSendableRequestVO[] = [];
 
@@ -878,5 +878,10 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         // }
 
         // return res;
+    }
+
+    private getSessionId(): string {
+        const match = document.cookie.match(/(?:^|; )sid=([^;]+)/);
+        return match ? decodeURIComponent(match[1]) : 'no-session';
     }
 }

@@ -42,6 +42,7 @@ export default class ModuleSurveyServer extends ModuleServerBase {
     /**
      * Ce module nécessite le param FEEDBACK_TRELLO_LIST_ID
      *  Pour trouver le idList => https://customer.io/actions/trello/
+     * idem pourquoi ona besoin d'etre sur le main thread ?
      */
     @RunsOnMainThread(ModuleSurveyServer.getInstance)
     private async survey(survey: SurveyVO): Promise<boolean> {

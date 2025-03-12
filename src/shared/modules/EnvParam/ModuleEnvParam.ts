@@ -229,6 +229,7 @@ export default class ModuleEnvParam extends Module {
         // Conf load balancing des apis
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().api_load_balancing, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activer le load balancing des apis', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().api_load_balancing_nb_workers, ModuleTableFieldVO.FIELD_TYPE_int, 'Nombre de threads concurrents pour le load balancing des apis', true, true, 5);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().api_load_balancing_worker_ports, ModuleTableFieldVO.FIELD_TYPE_int_array, 'Ports des workers du load balancing des apis', true, true, null);
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().load_balancing_debug_log, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug log du load balancing', true, true, false);
 

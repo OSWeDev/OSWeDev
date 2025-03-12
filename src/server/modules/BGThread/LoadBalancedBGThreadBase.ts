@@ -24,11 +24,5 @@ export default abstract class LoadBalancedBGThreadBase implements IBGThread {
     }
 
     abstract get base_name(): string;
-
-    /**
-     * Ya pas de work sur un bgthread qui sert de load balancer. c'est les méthode qui sont indiquée run on bgthread qui sont loadbalancées
-     */
-    public async work(): Promise<number> {
-        return null;
-    }
+    abstract work(): Promise<number>;
 }

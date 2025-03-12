@@ -1,6 +1,8 @@
 import { isMainThread, parentPort, threadId } from 'worker_threads';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
@@ -14,9 +16,6 @@ import MainProcessForwardToBGThreadForkMessage from './messages/MainProcessForwa
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import RegisteredForkedTasksController from './RegisteredForkedTasksController';
 import ForkMessageCallbackWrapper from './vos/ForkMessageCallbackWrapper';
-import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
-import { all_promises } from '../../../shared/tools/PromiseTools';
-import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 
 /**
  * ForkedTasksController
@@ -419,6 +418,12 @@ export default class ForkedTasksController {
             return false;
         }
         return true;
+    }
+
+    public static assert_is_bgthread(bgthread_name: string) {
+        if (!BGThreadServerDataManager.valid_bgthreads_names[bgthread_name]) {
+            throw new Error('Should not be called on main process. See exec_async_task_on_main_process.');;
+        }
     }
 
     public static assert_is_main_process() {

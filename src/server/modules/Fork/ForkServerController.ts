@@ -12,6 +12,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 import BgthreadPerfModuleNamesHolder from '../BGThread/BgthreadPerfModuleNamesHolder';
 import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
 import IBGThread from '../BGThread/interfaces/IBGThread';
+import LoadBalancedBGThreadBase from '../BGThread/LoadBalancedBGThreadBase';
 import CronServerController from '../Cron/CronServerController';
 import ICronWorker from '../Cron/interfaces/ICronWorker';
 import ForkMessageController from './ForkMessageController';
@@ -19,6 +20,7 @@ import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
 import IForkProcess from './interfaces/IForkProcess';
 import PingForkMessage from './messages/PingForkMessage';
+import APIBGThreadBaseNameHolder from '../API/bgthreads/APIBGThreadBaseNameHolder';
 
 export default class ForkServerController {
 
@@ -62,7 +64,8 @@ export default class ForkServerController {
         const default_fork: IFork = {
             processes: {},
             uid: this.UID++,
-            worker: null
+            worker: null,
+            port: null,
         };
         this.forks[default_fork.uid] = default_fork;
 
@@ -209,7 +212,10 @@ export default class ForkServerController {
     }
 
     private static get_argv(forked: IFork): string[] {
-        const res: string[] = [forked.uid.toString()];
+        const res: string[] = [
+            forked.uid.toString(),
+            forked.port?.toString(),
+        ];
 
         for (const i in forked.processes) {
             const proc = forked.processes[i];
@@ -239,7 +245,13 @@ export default class ForkServerController {
                         [bgthread.name]: forked_bgthread
                     },
                     uid: this.UID,
-                    worker: null
+                    worker: null,
+                    port: ((bgthread.name.startsWith(APIBGThreadBaseNameHolder.BGTHREAD_name)) ?
+                        (
+                            ConfigurationService.node_configuration?.api_load_balancing_worker_ports ?
+                                ConfigurationService.node_configuration?.api_load_balancing_worker_ports[bgthread.name.split(LoadBalancedBGThreadBase.LOAD_BALANCED_BGTHREAD_NAME_SUFFIX)[1]] :
+                                3000 + parseInt(bgthread.name.split(LoadBalancedBGThreadBase.LOAD_BALANCED_BGTHREAD_NAME_SUFFIX)[1])
+                        ) : null)
                 };
                 this.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread.name] = this.forks[this.UID];
                 this.UID++;
@@ -269,7 +281,8 @@ export default class ForkServerController {
                         [cron.worker_uid]: forked_cron
                     },
                     uid: this.UID,
-                    worker: null
+                    worker: null,
+                    port: null,
                 };
                 this.fork_by_type_and_name[CronServerController.ForkedProcessType][cron.worker_uid] = this.forks[this.UID];
 

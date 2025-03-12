@@ -173,6 +173,8 @@ export default class EnvParam implements IEnvParam {
 
     public load_balancing_debug_log?: boolean = false;
 
+    public api_load_balancing_worker_ports?: number[] = null;
+
     // TEAMS Webhooks
     public teams_webhook_send_message?: string = null;
     public teams_webhook_update_message?: string = null;
