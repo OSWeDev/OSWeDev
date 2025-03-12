@@ -40,6 +40,9 @@ export default class SupervisedItemComponent extends VueComponentBase {
     @Prop({ default: false })
     private has_access_pause: boolean;
 
+    @Prop({ default: null })
+    private split_char: string;
+
     private show_graph: boolean = false;
     private supervised_item: ISupervisedItem = null;
     private debounced_load_supervised_item = debounce(this.load_supervised_item, 200);

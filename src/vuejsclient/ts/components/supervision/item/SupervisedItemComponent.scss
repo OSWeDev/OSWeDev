@@ -1,22 +1,36 @@
 .supervised_item {
-
-    &.embedded {
-        margin-top: 1rem;
+    .supervised_item_urls {
+        display: flex;
+        flex-flow: row wrap;
+        max-width: 100%;
     }
 
+
     .supervised_item_url {
+        flex: 1 1 50%;
+        max-width: 50%;
 
         button {
             margin-bottom: 0.2em;
+            width: 100%;
+            text-wrap: auto;
         }
     }
 
     .supervised_item_description {
-        // padding: 1.5em;
         border: solid 1px #EEE;
         border-radius: 5px;
-        // margin-top: 0.2em;
         font-size: medium;
     }
 
+    &.embedded {
+        margin-top: 0.5rem;
+
+        & .supervised_item_description {
+            border: none;
+            border-radius: 0;
+            border-top: solid 1px #888;
+            font-size: small;
+        }
+    }
 }

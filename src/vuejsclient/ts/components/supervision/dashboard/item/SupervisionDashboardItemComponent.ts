@@ -32,6 +32,9 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     @Prop({ default: false })
     private nameabove: boolean;
 
+    @Prop({ default: null })
+    private split_char: string;
+
     @Prop({ default: false })
     private coche: boolean;
 
@@ -197,12 +200,8 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
         this.$emit('item_selected', this.item);
     }
 
-    private get_name_above(): string {
-        // découpage arbitraire : retour à la ligne à chaque occurence : ' - '
-        const name: string = this.item.name;
-        const name_parts: string[] = name.split(' - ');
-
-        return name_parts.join('<br/>');
+    private get_split_name(): string {
+        return SupervisionController.getInstance().get_item_split_name(this.item?.name, this.split_char);
     }
 
 }

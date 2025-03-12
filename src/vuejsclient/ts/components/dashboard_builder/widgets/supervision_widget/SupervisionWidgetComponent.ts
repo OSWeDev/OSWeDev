@@ -36,6 +36,7 @@ import { query } from '../../../../../../shared/modules/ContextFilter/vos/Contex
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleSupervision from '../../../../../../shared/modules/Supervision/ModuleSupervision';
+import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -99,6 +100,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     private groups: SupervisedProbeGroupVO[] = [];
     private probes_by_ids: { [id: number]: SupervisedProbeVO } = {};
     private has_access_pause: boolean = false;
+    private split_char: string = null;
 
     get refresh_button(): boolean {
         return this.widget_options && this.widget_options.refresh_button;
@@ -220,6 +222,8 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     private async mounted() {
         this.stopLoading();
         this.has_access_pause = await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS);
+        this.split_char = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervision.PARAM_NAME_sup_item_name_split_char, null);
+
         if (this.widget_options && this.widget_options.auto_refresh) {
             await this.start_auto_refresh();
         }
@@ -381,7 +385,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     }
 
     private openModal(item: ISupervisedItem) {
-        this.get_Supervisionitemmodal.openmodal(item, this.has_access_pause);
+        this.get_Supervisionitemmodal.openmodal(item, this.has_access_pause, this.split_char);
     }
 
     private get_date(item: ISupervisedItem): string {

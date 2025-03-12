@@ -6,6 +6,7 @@ import SupervisedItemComponent from '../item/SupervisedItemComponent';
 import { Route } from 'vue-router/types/router';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleSupervision from '../../../../../shared/modules/Supervision/ModuleSupervision';
+import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 
 @Component({
     template: require('./SupervisionitemDragPanelComponent.pug'),
@@ -23,6 +24,7 @@ export default class SupervisionItemDragPanelComponent extends VueComponentBase 
     private sup_item_id: number = null;
     private sup_api_type_id: string = null;
     private has_access_pause: boolean = false;
+    private split_char: string = null;
 
     @Watch('$route', { immediate: true, deep: false })
     private onRouteChanged(newRoute: Route, oldRoute: Route) {
@@ -36,6 +38,7 @@ export default class SupervisionItemDragPanelComponent extends VueComponentBase 
         const route: Route = Object.assign({}, this.$router.currentRoute);
         this.set_sup_item_id(route);
         this.has_access_pause = await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS);
+        this.split_char = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervision.PARAM_NAME_sup_item_name_split_char, null);
     }
 
     private set_sup_item_id(route: Route) {
