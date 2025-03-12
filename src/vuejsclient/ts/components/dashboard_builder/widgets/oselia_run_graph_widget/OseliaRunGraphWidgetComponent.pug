@@ -1,0 +1,43 @@
+.ModuleOseliaRunComponent
+    // On insère le Canvas
+    CanvasDiagram(
+        :items="items"
+        :links="links"
+        :hidden_links="hidden_links"
+
+        :selectedItem.sync="selectedItem"
+        :selectedLink.sync="selectedLink"
+
+        @select_item="selectItem"
+        @select_link="selectLink"
+    )
+
+    // Panel de sélection d'item
+    SelectionPanel(
+        v-if="selectedItem"
+        :items="items"
+        :selectedItem="selectedItem"
+        :removeItemFn="removeItem"
+        @switchHidden="onSwitchHidden"
+    )
+
+    // Panel de lien
+    LinkPanel(
+        v-if="selectedLink"
+        :selectedLink="selectedLink"
+        :hidden_links="hidden_links"
+        @switchHidden="onSwitchHidden"
+    )
+
+    // Panel d'ajout
+    AddPanel(
+        v-if="showAddPanel"
+        :items="items"
+        :addItemFn="addItem"
+    )
+
+    // Le bouton + pour afficher/cacher le AddPanel
+    button(
+        v-if="showPlusButton"
+        @click="showAddPanel = !showAddPanel"
+    ) +

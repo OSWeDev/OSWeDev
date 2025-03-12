@@ -38,6 +38,7 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public static WIDGET_NAME_varchoroplethchart: string = 'varchoroplethchart';
     public static WIDGET_NAME_varradarchart: string = 'varradarchart';
     public static WIDGET_NAME_varmixedcharts: string = 'varmixedcharts';
+    public static WIDGET_NAME_oseliarungraphwidget: string = 'oseliarungraphwidget';
 
     public id: number;
     public _type: string = DashboardWidgetVO.API_TYPE_ID;

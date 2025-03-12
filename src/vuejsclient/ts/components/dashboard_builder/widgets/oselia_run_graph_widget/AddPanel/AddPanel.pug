@@ -1,0 +1,8 @@
+.add-panel
+    h3 Ajouter un template
+
+    input(type="text" v-model="addSearch" placeholder="Rechercher...")
+
+    ul
+        li(v-for="tmpl in filteredTemplates" :key="tmpl.id" @click="onAddItem(tmpl.id)")
+            | {{ tmpl.name }} (run_type={{ tmpl.run_type }})
