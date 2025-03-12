@@ -1,4 +1,8 @@
 .supervision_type_widget_component {
+    .x-large {
+        font-size: x-large;
+    }
+
     .separator {
         border-top: 1px solid #888;
         margin: 0.5rem 0 0.2rem 0;
@@ -15,7 +19,6 @@
 
         .btn-sm.fa {
             margin: 0.4rem 0 0 0;
-
         }
 
         .btn-sm.fa::before {
@@ -47,7 +50,6 @@
         // max-height: 1.1rem; ok si html 14px
         min-height: 16px;
         max-height: 16px;
-
 
         padding: 0;
 
@@ -93,12 +95,12 @@
 
         &:hover,
         &.active &.selected {
-            box-shadow: 3px 3px 3px -2px #888
+            box-shadow: 3px 3px 3px -2px black;
         }
 
         &.selected {
             opacity: 1;
-            border: 2px solid #888;
+            border: 2px solid black;
             line-height: 13px;
         }
 
@@ -136,6 +138,7 @@
         max-height: 20px;
         line-height: 18px;
         font-weight: normal;
+        margin-top: 0.5rem;
 
         &.selected {
             line-height: 16px;

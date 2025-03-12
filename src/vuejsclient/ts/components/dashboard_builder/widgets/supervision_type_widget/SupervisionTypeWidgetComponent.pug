@@ -14,13 +14,34 @@
                         | {{ label('crud.actions.refresh') }}
 
     .available_api_type_ids(v-if="available_api_type_ids && (available_api_type_ids.length > 0)")
-        template(v-if="show_counter")
-            div
+        template(v-if='show_active_selection')
+            .separator
+                div {{ label('supervision_type_widget_component.title') }}
+                    i.pull-right.fa-solid.fa-times.x-large(
+                        v-if='selected_api_type_id !== null || selected_state !== null'
+                        v-tooltip='label("supervision_type_widget_component.unselect_all")'
+                        @click="handle_select_api_type_id_and_state(null, null)"
+                    )
+                    br
+                    span {{ label('supervision_type_widget_component.selected_state') }}
+                        template(v-if='selected_state !== null')
+                            i.fa-solid.fa-fw(aria-hidden="true" :class='state_fa_class[selected_state]')
+                            i.fa-solid.fa-fw(v-if="state_read_fa_class[selected_state]" aria-hidden="true" :class='state_read_fa_class[selected_state]')
+                            span {{ t(state_label[selected_state]) }}
+                        template(v-else)
+                            span {{ label('supervision_type_widget_component.selected_state_none') }}
+                    br
+                    span {{ label('supervision_type_widget_component.selected_api_type_id') }}
+                        span(v-if='selected_api_type_id') {{ label('supervision_widget_component.' + selected_api_type_id) }}
+                        span(v-else) {{ label('supervision_type_widget_component.selected_api_type_id_none') }}
+
+        template(v-if='show_state_btn')
+            .separator
                 template(v-for="state in all_states")
                     .sup_cnt.btn.btn-sm.mr-1.caption(
                         v-tooltip='t(state_label[state])'
                         :class="['STATE_' + state, 'tt_states_' + all_states.length, { selected: selectedApitypeState === 'null_' + state}]"
-                        @click="handle_select_api_type_id_and_state(state, null, null)"
+                        @click="handle_select_api_type_id_and_state(state, null)"
                     )
                         i.fa-solid.fa-fw(aria-hidden="true" :class='state_fa_class[state]')
                         i.fa-solid.fa-fw(v-if="state_read_fa_class[state]" aria-hidden="true" :class='state_read_fa_class[state]')
@@ -61,11 +82,11 @@
                         .accordion-panel-body
                             template(v-for="api_type_id in available_api_type_ids_by_cat_ids[cat.id]")
                                 template(v-if="show_counter")
-                                    p.probe_label {{ label('supervision_widget_component.' + api_type_id)}}
+                                    p.probe_label(:class="{'bold':selected_api_type_id == api_type_id}") {{ label('supervision_widget_component.' + api_type_id)}}
                                     template(v-if="!!count_by_sup_api_type_ids && !!count_by_sup_api_type_ids[api_type_id]")
                                         template(v-for="state in all_states")
                                             .sup_cnt.btn.btn-sm.mr-1(
-                                                @click="handle_select_api_type_id_and_state(state, api_type_id, null)"
+                                                @click="handle_select_api_type_id_and_state(state, api_type_id)"
                                                 :class="['STATE_' + state, 'tt_states_' + all_states.length, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
                                             )
                                                 span {{ count_by_sup_api_type_ids[api_type_id][state] }}
@@ -78,26 +99,26 @@
 
         //- endOf if (order_by_categories)
         template(v-else)
-            .separator
-                template(v-if="show_counter")
+            template(v-if="show_counter")
+                .separator
                     template(v-for="api_type_id in available_api_type_ids")
-                        p.probe_label {{ label('supervision_widget_component.' + api_type_id)}}
+                        p.probe_label(:class="{'bold':selected_api_type_id == api_type_id}") {{ label('supervision_widget_component.' + api_type_id)}}
                         template(v-if="!!count_by_sup_api_type_ids && !!count_by_sup_api_type_ids[api_type_id]")
                             template(v-for="state in all_states")
                                 .sup_cnt.btn.btn-sm.mr-1(
-                                    @click="handle_select_api_type_id_and_state(state, api_type_id, null)"
+                                    @click="handle_select_api_type_id_and_state(state, api_type_id)"
                                     :class="['STATE_' + state, 'tt_states_' + all_states.length, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
                                 )
                                     span {{ count_by_sup_api_type_ids[api_type_id][state] }}
 
-                template(v-else)
-                    template
-                        .btn.btn-info.button_opacity.mr-1.mb-1(
-                            @click="handle_select_api_type_id(null)"
-                            :class="{'active': is_all_selected()}"
-                        ) {{ label('supervision_widget_component.all') }}
-                    template(v-for="api_type_id in available_api_type_ids")
-                        .btn.btn-info.button_opacity.mr-1.mb-1(
-                            @click="handle_select_api_type_id(api_type_id)"
-                            :class="{'active': selected_api_type_id == api_type_id}"
-                        ) {{ label('supervision_widget_component.' + api_type_id) }}
+            template(v-else)
+                template
+                    .btn.btn-info.button_opacity.mr-1.mb-1(
+                        @click="handle_select_api_type_id(null)"
+                        :class="{'active': is_all_selected()}"
+                    ) {{ label('supervision_widget_component.all') }}
+                template(v-for="api_type_id in available_api_type_ids")
+                    .btn.btn-info.button_opacity.mr-1.mb-1(
+                        @click="handle_select_api_type_id(api_type_id)"
+                        :class="{'active': selected_api_type_id == api_type_id}"
+                    ) {{ label('supervision_widget_component.' + api_type_id) }}

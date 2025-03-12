@@ -4,7 +4,8 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -196,6 +197,9 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Supervision selectionnée"
         }, 'supervision.item_drag_panel.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Afficher les boutons de filtre par état"
+        }, 'supervision_type_widget_component.show_btn_state.___LABEL___'));
 
         /**
          * On gère l'historique des valeurs
@@ -387,6 +391,23 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
                 probe = new SupervisedProbeVO();
                 probe.sup_item_api_type_id = supervised_item._type;
                 probe.category_id = supervised_item.category_id;
+
+                const query_other_probe: ContextQueryVO = query(SupervisedProbeVO.API_TYPE_ID);
+                if (!!supervised_item.category_id) {
+                    query_other_probe.filter_by_num_eq(field_names<SupervisedProbeVO>().category_id, supervised_item.category_id);
+                } else {
+                    query_other_probe.filter_is_null_or_empty(field_names<SupervisedProbeVO>().category_id);
+                }
+                query_other_probe.filter_by_num_sup_eq(field_names<SupervisedProbeVO>().weight, 0);
+                query_other_probe.set_sort(new SortByVO(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().weight, false));
+                query_other_probe.set_limit(1);
+
+                const other_probe: SupervisedProbeVO = await query_other_probe.select_vo<SupervisedProbeVO>();
+
+                if (!!other_probe) {
+                    probe.weight = other_probe.weight + 1;
+                }
+
                 const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(probe);
 
                 if (!res) {

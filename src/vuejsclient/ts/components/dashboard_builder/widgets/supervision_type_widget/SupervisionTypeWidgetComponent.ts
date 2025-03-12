@@ -161,6 +161,32 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     }
 
     /**
+     *  if true, the supervision items (sondes) will display active selection
+     * @returns {string[]}
+     */
+    get show_active_selection(): boolean {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.show_active_selection;
+    }
+
+    /**
+     *  if true, the supervision items (sondes) will display state buttons
+     * @returns {string[]}
+     */
+    get show_state_btn(): boolean {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.show_state_btn;
+    }
+
+    /**
      *  if true, the supervision items (sondes) will display a counter
      * @returns {string[]}
      */
@@ -185,6 +211,8 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
                 options = options ? new SupervisionTypeWidgetOptionsVO(
                     options.supervision_api_type_ids,
                     options.order_by_categories,
+                    options.show_active_selection,
+                    options.show_state_btn,
                     options.show_counter,
                     options.refresh_button,
                     options.auto_refresh,
@@ -206,13 +234,10 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private onchange_selected_api_type_id() {
 
         if (!this.selected_api_type_id) {
-            if (!!this.selected_state) {
-                // si on a un état selectionné, on ajoute toute les api_type_ids aux api active
-            } else {
-                // si on a pas de d'état selectionné, on retire tout les filtres
-                this.set_active_api_type_ids([]);
-                return;
-            }
+            // si on a pas de d'état selectionné, on retire tout les filtres
+            this.set_active_api_type_ids([]);
+            return;
+
         }
 
         if (this.selected_state !== null) {

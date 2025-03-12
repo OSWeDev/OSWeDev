@@ -352,6 +352,8 @@ export default class SupervisionWidgetManager {
             const vos_context_query = cloneDeep(context_query);
 
             vos_context_query.set_limit(limit, pagination?.offset ?? 0);
+            // NB on sait que la limite avec l'union pose des probleme => OSEF pour l'instant, si besoin augmenter la limite
+            // console.debug(await vos_context_query.get_select_query_str());
 
             items = await vos_context_query.select_vos();
         });

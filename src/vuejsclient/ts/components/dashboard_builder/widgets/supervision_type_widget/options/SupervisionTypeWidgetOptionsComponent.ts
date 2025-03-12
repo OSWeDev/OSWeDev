@@ -46,10 +46,13 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
     private supervision_select_options: string[] = [];
 
     private order_by_categories: boolean = true;
+    private show_active_selection: boolean = true;
+    private show_state_btn: boolean = true;
     private show_counter: boolean = true;
     private refresh_button: boolean = true;
     private auto_refresh: boolean = true;
     private auto_refresh_seconds: number = 30;
+
 
     get widget_options(): SupervisionTypeWidgetOptionsVO {
         if (!this.page_widget) {
@@ -136,12 +139,33 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
         }
     }
 
+
+    private mounted() {
+        if (!!this.widget_options) {
+            this.order_by_categories = this.widget_options.order_by_categories;
+            this.show_active_selection = this.widget_options.show_active_selection;
+            this.show_state_btn = this.widget_options.show_state_btn;
+            this.show_counter = this.widget_options.show_counter;
+            this.refresh_button = this.widget_options.refresh_button;
+            this.auto_refresh = this.widget_options.auto_refresh;
+            this.auto_refresh_seconds = this.widget_options.auto_refresh_seconds;
+        }
+    }
+
     private supervision_select_label(api_type_id: string): string {
         return this.label('supervision_widget_component.' + api_type_id);
     }
 
     private get_default_options(): SupervisionTypeWidgetOptionsVO {
-        return new SupervisionTypeWidgetOptionsVO(this.default_supervision_api_type_ids, this.order_by_categories, this.show_counter, true, true, 30);
+        return new SupervisionTypeWidgetOptionsVO(
+            this.default_supervision_api_type_ids,
+            this.order_by_categories,
+            this.show_active_selection,
+            this.show_state_btn,
+            this.show_counter,
+            true,
+            true,
+            30);
     }
 
     private async update_options() {
@@ -190,6 +214,30 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
             this.next_update_options.auto_refresh = false;
             this.auto_refresh = false;
         }
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_show_active_selection() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.show_active_selection = !this.next_update_options.show_active_selection;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_show_state_btn() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.show_state_btn = !this.next_update_options.show_state_btn;
 
         await this.throttled_update_options();
     }
