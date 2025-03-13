@@ -3,8 +3,9 @@
         .modal-dialog.modal-lg(role='document')
             .modal-content(v-if="get_selected_item")
                 .modal-header
-                    h4.modal-title(v-if="!!split_char"  v-html="get_split_name()")
-                    h4.modal-title(v-else) {{ get_selected_item.name }}
+                    h4.modal-title.col-sm-11
+                        span(v-if="!!split_char" v-html="get_split_name()")
+                        span(v-else) {{ get_selected_item.name }}
                     a.btn.close(@click="closemodal") &times;
                 .modal-body
                     Superviseditemcomponent(

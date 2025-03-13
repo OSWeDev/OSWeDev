@@ -265,7 +265,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     @Watch('selected_state')
     private onchange_selected_state() {
 
-        console.log('onchange_selected_state ' + this.selected_state);
+        // console.log('onchange_selected_state ' + this.selected_state);
 
         if (this.selected_state === null) {
             if (!!this.available_api_type_ids?.length) {
@@ -396,7 +396,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
         if (!!this.show_counter /*&& !this.loaded_once*/) {
             // Si on doit afficher le compteur, on fait les requêtes nécessaires
-            console.debug('onchange_supervision_api_type_ids load_counter');
+            // console.debug('onchange_supervision_api_type_ids load_counter');
             this.throttled_load_counter();
         }
     }
@@ -487,7 +487,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     }
 
     private handle_select_api_type_id_and_state(state: number, api_type_id: string) {
-        console.log('handle_select_api_type_id_and_state ' + state + ' ' + api_type_id);
+        // console.log('handle_select_api_type_id_and_state ' + state + ' ' + api_type_id);
 
         // si l'api_type_id est déjà sélectionné et que l'état est le même, on déselectionne
         if (this.selected_api_type_id === api_type_id && this.selected_state === state) {

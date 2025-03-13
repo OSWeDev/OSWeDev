@@ -46,9 +46,9 @@ include ../../../../../views/mixins/loading.pug
             table.table-hover
                 thead
                     tr
-                        //- Checkboxes 
+                        //- Checkboxes
                         template(v-if="show_bulk_edit")
-                            th 
+                            th
                         //- Popup actions
                         th
                         th {{ label('supervision_widget_component.table.name') }}
@@ -61,16 +61,17 @@ include ../../../../../views/mixins/loading.pug
                                 td.text-center
                                     input(
                                         :checked="selected_items[get_identifier(row)]",
-                                        v-model="selected_items[get_identifier(row)]", 
-                                        type="checkbox", 
+                                        v-model="selected_items[get_identifier(row)]",
+                                        type="checkbox",
                                     )
                             td.text-center
                                 .show_detail.clickable(
                                     @click="openModal(row)"
-                                ) 
+                                )
                                     i.fa-duotone.fa-eye.mr-1
                                     span {{ label('supervision_widget_component.table.show_detail') }}
 
                             td {{ row.name }}
                             td {{ get_date(row) }}
+                                i.fa-solid.fa-fw.fa-hourglass-half(v-if="row.invalid" aria-hidden="true" v-tooltip='label("supervision_widget_component.tooltip.item.invalid")')
                             td {{ row.last_value }}

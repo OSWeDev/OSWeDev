@@ -196,7 +196,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
     }
 
     private async load_supervised_item() {
-        console.log('load_supervised_item', this.supervised_item_id, this.supervised_item_vo_type);
+        // console.log('load_supervised_item', this.supervised_item_id, this.supervised_item_vo_type);
 
         if ((!this.supervised_item_id) || (!this.supervised_item_vo_type)) {
             this.supervised_item = null;
@@ -214,7 +214,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
             .filter_by_id(this.supervised_item_id)
             .select_vo<ISupervisedItem>();
 
-        console.log('load_supervised_item', this.supervised_item);
+        // console.log('load_supervised_item', this.supervised_item);
 
         const promises = [];
         let tmp_hist: ISupervisedItem[] = null;
