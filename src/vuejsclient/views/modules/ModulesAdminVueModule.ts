@@ -36,13 +36,6 @@ export default class ModulesAdminVueModule extends VueModuleBase {
             return;
         }
 
-        this.routes.push({
-            path: "/oselia_graph/",
-            name: 'Oselia_graph',
-            component: () => import('../../ts/components/module_oselia_run/ModuleOseliaRunComponent'),
-            props: true,
-        });
-
         const modulesMenuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(

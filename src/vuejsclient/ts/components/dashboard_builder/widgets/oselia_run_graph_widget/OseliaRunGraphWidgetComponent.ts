@@ -5,7 +5,7 @@ import CanvasDiagram from './CanvasDiagram/CanvasDiagram';
 import SelectionPanel from './SelectionPanel/SelectionPanel';
 import LinkPanel from './LinkPanel/LinkPanel';
 import AddPanel from './AddPanel/AddPanel';
-import './ModuleOseliaRunComponent.scss';
+import './OseliaRunGraphWidgetComponent.scss';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -15,7 +15,6 @@ import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/Tr
 import { ModuleDashboardPageGetter, ModuleDashboardPageAction } from '../../page/DashboardPageStore';
 import { ModuleOseliaGetter, ModuleOseliaAction } from '../oselia_thread_widget/OseliaStore';
 import OseliaRunTemplateVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
-import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 @Component({
@@ -25,18 +24,15 @@ import { query } from '../../../../../../shared/modules/ContextFilter/vos/Contex
         LinkPanel,
         AddPanel
     },
-    template: require('./ModuleOseliaRunComponent.pug')
+    template: require('./OseliaRunGraphWidgetComponent.pug')
 })
-export default class ModuleOseliaRunComponent extends Vue {
+export default class OseliaRunGraphWidgetComponent extends Vue {
 
-    @Prop({ default: () => ({}) })
-    public items!: { [id: string]: OseliaRunTemplateVO };
+    private items: { [id: string]: OseliaRunTemplateVO } = {};
+    private choices_of_item: OseliaRunTemplateVO[] = [];
+    private links: { [id: string]: string[] } = {};
+    private hidden_links: { [from: string]: { [to: string]: boolean } } =  {};
 
-    @Prop({ default: () => ({}) })
-    public links!: { [id: string]: string[] };
-
-    @Prop({ default: () => ({}) })
-    public hidden_links!: { [from: string]: { [to: string]: boolean } };
     @ModuleOseliaGetter
     private get_show_hidden_messages: boolean;
     @ModuleOseliaAction
@@ -99,16 +95,8 @@ export default class ModuleOseliaRunComponent extends Vue {
      * (anciennement on émettait @addItem, maintenant on le fait directement ici)
      */
     public addItem(itemId: string) {
-        // Ex. on crée un nouvel OseliaRunTemplateVO
-        const newObj = new OseliaRunTemplateVO();
-        newObj.id = parseInt(itemId, 10);
-        newObj.name = 'New Template ' + itemId;
-        newObj.run_type = 0; // param par défaut, à adapter
-        // ... Initialiser d'autres champs si besoin
-
-        // On l'insère dans items
-        this.$set(this.items, itemId, newObj);
-
+        
+        this.items[itemId] = this.choices_of_item.find((item) => item.id == Number(itemId));
         // Refermer le panel d'ajout
         this.showAddPanel = false;
     }
@@ -168,8 +156,7 @@ export default class ModuleOseliaRunComponent extends Vue {
 
     private async get_templates() {
         try {
-            // const runTemplates: DashboardWidgetVO[] = await query(DashboardWidgetVO.API_TYPE_ID).exec_as_server().select_vos();
-
+            this.choices_of_item = await query(OseliaRunTemplateVO.API_TYPE_ID).exec_as_server().select_vos();
         } catch (error) {
             console.error('Erreur lors du fetch des runTemplates :', error);
         }

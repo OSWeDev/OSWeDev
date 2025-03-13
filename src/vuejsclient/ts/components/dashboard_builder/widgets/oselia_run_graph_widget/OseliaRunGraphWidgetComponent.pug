@@ -1,4 +1,4 @@
-.ModuleOseliaRunComponent
+.OseliaRunGraphWidgetComponent
     // On insère le Canvas
     CanvasDiagram(
         :items="items"
@@ -32,7 +32,7 @@
     // Panel d'ajout
     AddPanel(
         v-if="showAddPanel"
-        :items="items"
+        :items="choices_of_item"
         :addItemFn="addItem"
     )
 

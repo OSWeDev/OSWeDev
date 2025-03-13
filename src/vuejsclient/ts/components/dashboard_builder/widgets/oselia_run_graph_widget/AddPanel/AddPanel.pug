@@ -4,5 +4,5 @@
     input(type="text" v-model="addSearch" placeholder="Rechercher...")
 
     ul
-        li(v-for="tmpl in filteredTemplates" :key="tmpl.id" @click="onAddItem(tmpl.id)")
+        li(v-for="tmpl in items" :key="tmpl.id" @click="onAddItem(tmpl.id)")
             | {{ tmpl.name }} (run_type={{ tmpl.run_type }})

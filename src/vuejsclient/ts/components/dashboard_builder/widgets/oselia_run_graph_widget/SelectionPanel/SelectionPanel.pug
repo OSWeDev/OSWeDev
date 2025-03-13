@@ -1,17 +1,8 @@
+// SelectionPanel.pug
 .selection-panel
     h3 Sélection : {{ currentItem ? currentItem.name : 'Aucun' }}
 
-    if currentItem
-        p run_type = {{ currentItem.run_type }}
-
     button(@click="onRemoveSelectedItem") Supprimer l'Item
 
-    //- Exemple d’affichage de liens (mock)
-    ul
-        //- On itère sur outgoingLinks si vous avez la data
-        li(v-for="link in outgoingLinks" :key="link.targetId")
-            label
-                input(type="checkbox"
-                      :checked="!link.hidden"
-                      @change="onSwitchHidden(selectedItem, link.targetId, $event.target.checked)")
-                | Lien vers {{ link.targetId }}
+    if currentItem
+        p run_type = {{ currentItem.run_type }}

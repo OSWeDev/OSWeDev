@@ -18,17 +18,6 @@ export default class AddPanel extends Vue {
 
     public addSearch: string = '';
 
-    // On simule un petit "catalogue"
-    private allTemplates: OseliaRunTemplateVO[] = [
-        // ...
-    ];
-
-    get filteredTemplates(): OseliaRunTemplateVO[] {
-        return this.allTemplates
-            .filter(t => t.name.toLowerCase().includes(this.addSearch.toLowerCase()))
-            .filter(t => !this.items[t.id]); // n’affiche pas ceux déjà ajoutés
-    }
-
     public onAddItem(itemId: number) {
         // Appel direct de la fonction
         this.addItemFn(String(itemId));
