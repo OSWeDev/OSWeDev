@@ -1,4 +1,10 @@
 .OseliaRunGraphWidgetComponent
+    // Le bouton + pour afficher/cacher le AddPanel
+    button(
+        v-if="showPlusButton"
+        @click="showAddPanel = !showAddPanel"
+    ) +
+    
     // On insère le Canvas
     CanvasDiagram(
         :items="items"
@@ -36,8 +42,3 @@
         :addItemFn="addItem"
     )
 
-    // Le bouton + pour afficher/cacher le AddPanel
-    button(
-        v-if="showPlusButton"
-        @click="showAddPanel = !showAddPanel"
-    ) +

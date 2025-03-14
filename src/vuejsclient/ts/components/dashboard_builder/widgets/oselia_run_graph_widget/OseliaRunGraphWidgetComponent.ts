@@ -28,11 +28,6 @@ import { query } from '../../../../../../shared/modules/ContextFilter/vos/Contex
 })
 export default class OseliaRunGraphWidgetComponent extends Vue {
 
-    private items: { [id: string]: OseliaRunTemplateVO } = {};
-    private choices_of_item: OseliaRunTemplateVO[] = [];
-    private links: { [id: string]: string[] } = {};
-    private hidden_links: { [from: string]: { [to: string]: boolean } } =  {};
-
     @ModuleOseliaGetter
     private get_show_hidden_messages: boolean;
     @ModuleOseliaAction
@@ -79,7 +74,11 @@ export default class OseliaRunGraphWidgetComponent extends Vue {
      * Contrôle l'ouverture du panel "AddPanel"
      */
     public showAddPanel: boolean = false;
-
+    private items: { [id: string]: OseliaRunTemplateVO } = {};
+    private links: { [id: string]: string[] } = {};
+    private choices_of_item: OseliaRunTemplateVO[] = [];
+    private mapped_items: { [parent_id: string] : string[] } =  {};
+    private hidden_links: { [from: string]: { [to: string]: boolean } } =  {};
 
     get showPlusButton(): boolean {
         return true; // Condition d'affichage si besoin
@@ -95,10 +94,19 @@ export default class OseliaRunGraphWidgetComponent extends Vue {
      * (anciennement on émettait @addItem, maintenant on le fait directement ici)
      */
     public addItem(itemId: string) {
-        
-        this.items[itemId] = this.choices_of_item.find((item) => item.id == Number(itemId));
-        // Refermer le panel d'ajout
-        this.showAddPanel = false;
+        if (this.mapped_items[itemId] && this.mapped_items[itemId].length > 0) {
+            this.mapped_items[itemId].forEach((item) => {
+                this.links[item] = [itemId];
+                this.items[item] = this.choices_of_item.find((_item) => _item.id == Number(item));
+            });
+            this.items[itemId] = this.choices_of_item.find((item) => item.id == Number(itemId));
+            this.showAddPanel = false;
+        } else {
+            this.items[itemId] = this.choices_of_item.find((item) => item.id == Number(itemId));
+            this.choices_of_item.splice(this.choices_of_item.findIndex((item) => item.id == Number(itemId)), 1);
+            // Refermer le panel d'ajout
+            this.showAddPanel = false;
+        }
     }
 
     /**
@@ -110,6 +118,7 @@ export default class OseliaRunGraphWidgetComponent extends Vue {
             return;
         }
 
+        this.choices_of_item.push(this.items[itemId]);
         // 1) Supprimer l'item
         this.$delete(this.items, itemId);
 
@@ -157,6 +166,16 @@ export default class OseliaRunGraphWidgetComponent extends Vue {
     private async get_templates() {
         try {
             this.choices_of_item = await query(OseliaRunTemplateVO.API_TYPE_ID).exec_as_server().select_vos();
+            if (this.choices_of_item.length > 0) {
+                this.choices_of_item.forEach((item) => {
+                    if (item.parent_run_id) {
+                        if (!this.mapped_items[item.parent_run_id]) {
+                            this.mapped_items[item.parent_run_id] = [];
+                        }
+                        this.mapped_items[item.parent_run_id].push(item.id.toString());
+                    }
+                });
+            }
         } catch (error) {
             console.error('Erreur lors du fetch des runTemplates :', error);
         }

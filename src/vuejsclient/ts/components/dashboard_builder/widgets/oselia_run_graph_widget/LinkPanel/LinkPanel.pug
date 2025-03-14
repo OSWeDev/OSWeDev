@@ -1,9 +1,10 @@
-.link-panel
-    h3 Lien sélectionné
-    if selectedLink
-        p {{ selectedLink.from }} => {{ selectedLink.to }}
-        label
-            span Masqué ?
-            input(type="checkbox" :checked="isHidden" @change="onSwitchHidden()")
-    else
-        p Aucun lien
+.selection-panel
+    h3 Lien
+    label
+        input(
+            type="checkbox"
+            :checked="isHidden"
+            @change="onSwitchHidden()"
+        )
+        | {{ selectedLink.from}} => {{ selectedLink.to }}
+
