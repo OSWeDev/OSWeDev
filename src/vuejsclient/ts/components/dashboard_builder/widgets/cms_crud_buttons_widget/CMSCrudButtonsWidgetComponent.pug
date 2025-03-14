@@ -5,7 +5,7 @@ include ../../../../../views/mixins/loading.pug
     template(v-if='show_crud_buttons')
         template(v-if='has_access_to_add && show_add')
             button(@click="open_add_modal" id="add_button")
-                i.fa-solid.fa-plus-circle(id="add_icon")
+                i.fa-solid.fa-light.fa-plus(id="add_icon")
 
         template(v-if='has_access_to_update && show_update')
             button(@click="open_update_modal" id="update_button")
