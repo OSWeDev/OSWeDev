@@ -1314,13 +1314,21 @@ export default abstract class ServerBase {
         // On se laisse 10 minutes pour recharger les partenaires
         const oselia_parteners: OseliaReferrerVO[] = await query(OseliaReferrerVO.API_TYPE_ID).set_max_age_ms(1000 * 60 * 10).exec_as_server().select_vos<OseliaReferrerVO>();
         for (const i in oselia_parteners) {
-            authorized_origins.push(oselia_parteners[i].referrer_origin);
+            const oselia_partener = oselia_parteners[i];
+            const oselia_parteners_hostname = oselia_partener.referrer_origin ? new URL(oselia_partener.referrer_origin).hostname : null;
+            authorized_origins.push(oselia_parteners_hostname);
         }
 
-        const origin_hostname = origin ? new URL(origin).hostname : null;
-        if (!(origin && authorized_origins.indexOf(origin_hostname) >= 0)) {
-            res.status(403).send('Forbidden - Invalid Origin');
-            return;
+        // TODO FIXME on ouvre tout pour le moment, on log simplement
+        try {
+            const origin_hostname = origin ? new URL(origin).hostname : null;
+            if (authorized_origins.indexOf(origin_hostname) < 0) {
+                ConsoleHandler.error("check_origin_or_referer_middleware:un_authorized_origins:" + origin + ":origin_hostname:" + origin_hostname + ":authorized_origins:" + authorized_origins.join(','));
+                // res.status(403).send('Forbidden - Invalid Origin');
+                // return;
+            }
+        } catch (error) {
+            ConsoleHandler.error("check_origin_or_referer_middleware:ERROR:" + error);
         }
 
         next();
