@@ -889,6 +889,7 @@ export default class ModuleTableDBService {
 
                 await ContextFilterServerController.update_where_conditions(
                     null,
+                    0,
                     null,
                     conditions,
                     filter,

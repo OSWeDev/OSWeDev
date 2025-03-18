@@ -70,6 +70,95 @@ export default class ContextQueryServerController {
     }
 
     /**
+     * Check injection OK : Seul risque identifié updates_jointures > get_table_full_name, dont le check est OK
+     *
+     * @param context_query
+     * @param aliases_n
+     * @param api_type_id
+     * @param jointures
+     * @param joined_tables_by_vo_type
+     * @param tables_aliases_by_type
+     * @param access_type
+     * @param selected_field Cas d'une demande de jointure depuis un champs dont l'api_type_id n'a aucun lien avec les vos actuellement en requetes.
+     *  Dans ce cas, on doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
+     *  (qui n'aurait aucun impact positif sur le résultat de la requête)
+     * @returns
+     */
+    public static async join_api_type_id(
+        context_query: ContextQueryVO,
+        aliases_n: number,
+        api_type_id: string,
+        jointures: string[],
+        cross_joins: string[],
+        joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO },
+        tables_aliases_by_type: { [vo_type: string]: string },
+        access_type: string,
+        selected_field: ContextQueryFieldVO | ModuleTableFieldVO = null
+    ): Promise<number> {
+
+        /**
+         * Cas spécifique d'un api_type_id join qui serait en fait issu d'un join de contextquery
+         */
+        if (context_query.joined_context_queries) {
+            const context_query_join = context_query.joined_context_queries.find((joined_context_query) => joined_context_query.joined_table_alias == api_type_id);
+
+            if (context_query_join) {
+                return ContextQueryServerController.handle_join_context_query(context_query_join, jointures, tables_aliases_by_type);
+            }
+        }
+
+        /**
+         * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
+         */
+        const path: FieldPathWrapper[] = ContextFieldPathServerController.get_path_between_types(
+            context_query.discarded_field_paths,
+            context_query.use_technical_field_versioning,
+            context_query.active_api_type_ids,
+            Object.keys(joined_tables_by_vo_type),
+            api_type_id
+        );
+        if (!path) {
+
+            if (selected_field) {
+
+                /**
+                 * On doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
+                 */
+                const field_api_type_id = ((selected_field as ContextQueryFieldVO).api_type_id) ? (selected_field as ContextQueryFieldVO).api_type_id : (selected_field as ModuleTableFieldVO).module_table_vo_type;
+
+                if ((!context_query.is_server) && !await ContextAccessServerController.check_access_to_field_retrieve_roles(context_query, field_api_type_id, selected_field.field_name, access_type)) {
+                    ConsoleHandler.warn('join_api_type_id:check_access_to_field_retrieve_roles:Access denied to field ' + selected_field.field_name + ' of type ' + field_api_type_id + ' for access_type ' + access_type);
+                    return aliases_n;
+                }
+
+                return ContextFilterServerController.updates_cross_jointures(
+                    context_query,
+                    context_query.query_tables_prefix,
+                    field_api_type_id,
+                    cross_joins,
+                    context_query.filters,
+                    joined_tables_by_vo_type,
+                    tables_aliases_by_type,
+                    aliases_n
+                );
+            } else {
+                // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
+                return aliases_n;
+            }
+        }
+
+        /**
+         * On doit checker le trajet complet
+         */
+        if ((!context_query.is_server) && !ContextAccessServerController.check_access_to_fields(context_query, path, access_type)) {
+            return aliases_n;
+        }
+
+        return ContextFilterServerController.updates_jointures(
+            context_query, context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+    }
+
+    /**
      * Filtrer des vos avec les context filters
      * On peut passer le query_wrapper pour éviter de le reconstruire si ça a été fait avant (pour récupérer la requete construite par exemple pour un cache local)
      * @param context_query le champs fields doit être null pour demander des vos complets
@@ -2202,8 +2291,9 @@ export default class ContextQueryServerController {
             /**
              * Check injection : OK
              */
-            await ContextFilterServerController.update_where_conditions(
+            aliases_n = await ContextFilterServerController.update_where_conditions(
                 context_query,
+                aliases_n,
                 query_wrapper,
                 where_conditions,
                 context_filter,
@@ -2481,93 +2571,6 @@ export default class ContextQueryServerController {
             '(' + joined_query_str + ') ' + context_query_join.joined_table_alias +
             ' ON ' + join_on_fields.join(' AND ')
         );
-    }
-
-    /**
-     * Check injection OK : Seul risque identifié updates_jointures > get_table_full_name, dont le check est OK
-     *
-     * @param context_query
-     * @param aliases_n
-     * @param api_type_id
-     * @param jointures
-     * @param joined_tables_by_vo_type
-     * @param tables_aliases_by_type
-     * @param access_type
-     * @param selected_field Cas d'une demande de jointure depuis un champs dont l'api_type_id n'a aucun lien avec les vos actuellement en requetes.
-     *  Dans ce cas, on doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
-     *  (qui n'aurait aucun impact positif sur le résultat de la requête)
-     * @returns
-     */
-    private static async join_api_type_id(
-        context_query: ContextQueryVO,
-        aliases_n: number,
-        api_type_id: string,
-        jointures: string[],
-        cross_joins: string[],
-        joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO },
-        tables_aliases_by_type: { [vo_type: string]: string },
-        access_type: string,
-        selected_field: ContextQueryFieldVO = null
-    ): Promise<number> {
-
-        /**
-         * Cas spécifique d'un api_type_id join qui serait en fait issu d'un join de contextquery
-         */
-        if (context_query.joined_context_queries) {
-            const context_query_join = context_query.joined_context_queries.find((joined_context_query) => joined_context_query.joined_table_alias == api_type_id);
-
-            if (context_query_join) {
-                return ContextQueryServerController.handle_join_context_query(context_query_join, jointures, tables_aliases_by_type);
-            }
-        }
-
-        /**
-         * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
-         */
-        const path: FieldPathWrapper[] = ContextFieldPathServerController.get_path_between_types(
-            context_query.discarded_field_paths,
-            context_query.use_technical_field_versioning,
-            context_query.active_api_type_ids,
-            Object.keys(joined_tables_by_vo_type),
-            api_type_id
-        );
-        if (!path) {
-
-            if (selected_field) {
-
-                /**
-                 * On doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
-                 */
-                if ((!context_query.is_server) && !await ContextAccessServerController.check_access_to_field_retrieve_roles(context_query, selected_field.api_type_id, selected_field.field_name, access_type)) {
-                    ConsoleHandler.warn('join_api_type_id:check_access_to_field_retrieve_roles:Access denied to field ' + selected_field.field_name + ' of type ' + selected_field.api_type_id + ' for access_type ' + access_type);
-                    return aliases_n;
-                }
-
-                return ContextFilterServerController.updates_cross_jointures(
-                    context_query,
-                    context_query.query_tables_prefix,
-                    selected_field.api_type_id,
-                    cross_joins,
-                    context_query.filters,
-                    joined_tables_by_vo_type,
-                    tables_aliases_by_type,
-                    aliases_n
-                );
-            } else {
-                // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
-                return aliases_n;
-            }
-        }
-
-        /**
-         * On doit checker le trajet complet
-         */
-        if ((!context_query.is_server) && !ContextAccessServerController.check_access_to_fields(context_query, path, access_type)) {
-            return aliases_n;
-        }
-
-        return ContextFilterServerController.updates_jointures(
-            context_query, context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
     }
 
     /**

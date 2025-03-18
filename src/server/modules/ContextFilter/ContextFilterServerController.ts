@@ -41,11 +41,12 @@ export default class ContextFilterServerController {
      */
     public static async update_where_conditions(
         context_query: ContextQueryVO,
+        aliases_n: number,
         query_result: ParameterizedQueryWrapper,
         where_conditions: string[],
         context_filter: ContextFilterVO,
         tables_aliases_by_type: { [vo_type: string]: string }
-    ) {
+    ): Promise<number> {
 
         ContextQueryInjectionCheckHandler.assert_api_type_id_format(context_filter.vo_type);
         ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_filter.field_name);
@@ -58,6 +59,11 @@ export default class ContextFilterServerController {
             tables_aliases_by_type[context_filter.vo_type] + '.' + context_filter.field_name :
             null;
 
+        const field = context_filter.vo_type ?
+            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[context_filter.vo_type][context_filter.field_name] :
+            null;
+
+
         /**
          * On est sur un filtre qui a pas de rapport a priori avec la requete (aucune jointure trouvée)
          *  on ignore le filtrage tout simplement
@@ -65,12 +71,22 @@ export default class ContextFilterServerController {
         if (field_name && !tables_aliases_by_type[context_filter.vo_type]) {
             // Typiquement pas un souci dans les requetes sur les param de vars dans les dbs ...
             // ConsoleHandler.log('Filtrage initié via table non liée à la requête (pas forcément une erreur dans un DB pour le moment):' + JSON.stringify(context_filter) + ':' + JSON.stringify(tables_aliases_by_type) + ':');
-            return;
-        }
 
-        const field = context_filter.vo_type ?
-            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[context_filter.vo_type][context_filter.field_name] :
-            null;
+
+            // TODO FIXME : ok mais est-ce qu'on devrait pas faire la liaison du coup dans tous les cas ? par ce que là si on a des context filter hooks, on a pas de lien, et bah pas de filtre donc on voit tout ... ?
+            // return null;
+
+            aliases_n = await ContextQueryServerController.join_api_type_id(
+                context_query,
+                aliases_n,
+                context_filter.vo_type,
+                query_result.jointures,
+                query_result.cross_joins,
+                query_result.joined_tables_by_vo_type,
+                query_result.tables_aliases_by_type,
+                ModuleDAO.DAO_ACCESS_TYPE_READ,
+                field);
+        }
 
         /**
          * Cas spécifique de l'id qu'on doit gérer comme un field de type int
@@ -397,7 +413,7 @@ export default class ContextFilterServerController {
                                 like_array.push(pgPromise.as.format('$1', ["%" + text + "%"]));
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
 
                             if (context_filter.text_ignore_case) {
@@ -460,7 +476,7 @@ export default class ContextFilterServerController {
                                 }
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             where_conditions.push("(" + like_array.join(') OR (') + ")");
                         } else {
@@ -660,7 +676,7 @@ export default class ContextFilterServerController {
                                 like_array.push("crypt(" + pgPromise.as.format('$1', [text]) + ", " + field_name + ")");
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             // TODO on peut aussi identifie qu'on a plusieurs chaines différentes et fuir la requete (si on doit être = à TOUS il vaut mieux en avoir qu'un...)
                             where_conditions.push(field_name + " = ALL(ARRAY[" + like_array.join(',') + "])");
@@ -700,7 +716,7 @@ export default class ContextFilterServerController {
                                 like_array.push(pgPromise.as.format('$1', [text]));
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             // TODO on peut aussi identifie qu'on a plusieurs chaines différentes et fuir la requete (si on doit être = à TOUS il vaut mieux en avoir qu'un...)
                             where_conditions.push((context_filter.text_ignore_case ? 'LOWER(' : '') + field_name + (context_filter.text_ignore_case ? ')' : '') + " = ALL(ARRAY[" + like_array.join(',') + "])");
@@ -736,7 +752,7 @@ export default class ContextFilterServerController {
                                 like_array.push(pgPromise.as.format('$1', [text]));
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             where_conditions.push("['" + like_array.join("','") + "'] <@ " + field_name +
                                 " AND ['" + like_array.join("','") + "'] @> " + field_name);
@@ -835,7 +851,7 @@ export default class ContextFilterServerController {
                                 like_array.push("crypt(" + pgPromise.as.format('$1', [text]) + ", " + field_name + ")");
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             where_conditions.push(field_name + " = ANY(ARRAY[" + like_array.join(',') + "])");
                         } else {
@@ -881,7 +897,7 @@ export default class ContextFilterServerController {
                                 like_array.push(pgPromise.as.format('$1', [text]));
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             where_conditions.push((context_filter.text_ignore_case ? 'LOWER(' : '') + field_name + (context_filter.text_ignore_case ? ')' : '') + " = ANY(ARRAY[" + like_array.join(',') + "])");
                         } else {
@@ -916,7 +932,7 @@ export default class ContextFilterServerController {
 
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             where_conditions.push("(" + like_array.join(') OR (') + ")");
                         } else {
@@ -1024,7 +1040,7 @@ export default class ContextFilterServerController {
                                 like_array.push(pgPromise.as.format('$1', [text + '%']));
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
 
                             if (context_filter.text_ignore_case) {
@@ -1067,7 +1083,7 @@ export default class ContextFilterServerController {
                                 }
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             where_conditions.push("(" + like_array.join(') OR (') + ")");
                         } else {
@@ -1176,7 +1192,7 @@ export default class ContextFilterServerController {
                                 like_array.push(pgPromise.as.format('$1', ['%' + text]));
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
 
                             if (context_filter.text_ignore_case) {
@@ -1218,7 +1234,7 @@ export default class ContextFilterServerController {
                                 }
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             where_conditions.push("(" + like_array.join(') OR (') + ")");
                         } else {
@@ -1303,7 +1319,7 @@ export default class ContextFilterServerController {
                                 like_array.push("crypt(" + pgPromise.as.format('$1', [text]) + ", " + field_name + ")");
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             where_conditions.push(field_name + " != ALL(ARRAY[" + like_array.join(',') + "])");
                         } else {
@@ -1338,7 +1354,7 @@ export default class ContextFilterServerController {
                                 like_array.push(pgPromise.as.format('$1', [text]));
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             where_conditions.push((context_filter.text_ignore_case ? 'LOWER(' : '') + field_name + (context_filter.text_ignore_case ? ')' : '') + " != ALL(ARRAY[" + like_array.join(',') + "])");
                         } else {
@@ -1371,7 +1387,7 @@ export default class ContextFilterServerController {
                                 like_array.push(pgPromise.as.format('$1', [text]) + " != ALL(" + field_name + ')');
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             where_conditions.push("(" + like_array.join(') AND (') + ")");
                         } else {
@@ -1462,7 +1478,7 @@ export default class ContextFilterServerController {
                                 like_array.push(pgPromise.as.format('$1', ['%' + text + '%']));
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
 
                             if (context_filter.text_ignore_case) {
@@ -1501,7 +1517,7 @@ export default class ContextFilterServerController {
                                 }
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             where_conditions.push("(" + like_array.join(') AND (') + ")");
                         } else {
@@ -1594,7 +1610,7 @@ export default class ContextFilterServerController {
                                 like_array.push(pgPromise.as.format('$1', [text + '%']));
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
 
                             if (context_filter.text_ignore_case) {
@@ -1637,7 +1653,7 @@ export default class ContextFilterServerController {
                                 }
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             where_conditions.push("(" + like_array.join(') AND (') + ")");
                         } else {
@@ -1738,7 +1754,7 @@ export default class ContextFilterServerController {
                                 like_array.push(pgPromise.as.format('$1', ['%' + text]));
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
 
                             if (context_filter.text_ignore_case) {
@@ -1780,7 +1796,7 @@ export default class ContextFilterServerController {
                                 }
                             }
                             if ((!like_array) || (!like_array.length)) {
-                                return;
+                                return aliases_n;
                             }
                             where_conditions.push("(" + like_array.join(') AND (') + ")");
                         } else {
@@ -2710,18 +2726,43 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_FILTER_OR:
                 const conditions_OR_left: string[] = [];
-                await ContextFilterServerController.update_where_conditions(context_query, query_result, conditions_OR_left, context_filter.left_hook, tables_aliases_by_type);
+                aliases_n = await ContextFilterServerController.update_where_conditions(context_query, aliases_n, query_result, conditions_OR_left, context_filter.left_hook, tables_aliases_by_type);
                 const conditions_OR_right: string[] = [];
-                await ContextFilterServerController.update_where_conditions(context_query, query_result, conditions_OR_right, context_filter.right_hook, tables_aliases_by_type);
-                where_conditions.push(' ((' + conditions_OR_left[0] + ') OR (' + conditions_OR_right[0] + ')) ');
+                aliases_n = await ContextFilterServerController.update_where_conditions(context_query, aliases_n, query_result, conditions_OR_right, context_filter.right_hook, tables_aliases_by_type);
+
+                if (!conditions_OR_left || !conditions_OR_left.length) {
+
+                    if (!conditions_OR_right || !conditions_OR_right.length) {
+                        break;
+                    }
+
+                    where_conditions.push(conditions_OR_right[0]);
+                } else {
+
+                    if (!conditions_OR_right || !conditions_OR_right.length) {
+                        where_conditions.push(conditions_OR_left[0]);
+                        break;
+                    }
+
+                    where_conditions.push('(' + conditions_OR_left[0] + ') OR (' + conditions_OR_right[0] + ')');
+                }
+
                 break;
 
             case ContextFilterVO.TYPE_FILTER_AND:
                 const conditions_AND_left: string[] = [];
-                await ContextFilterServerController.update_where_conditions(context_query, query_result, conditions_AND_left, context_filter.left_hook, tables_aliases_by_type);
+                aliases_n = await ContextFilterServerController.update_where_conditions(context_query, aliases_n, query_result, conditions_AND_left, context_filter.left_hook, tables_aliases_by_type);
                 const conditions_AND_right: string[] = [];
-                await ContextFilterServerController.update_where_conditions(context_query, query_result, conditions_AND_right, context_filter.right_hook, tables_aliases_by_type);
-                where_conditions.push(' ((' + conditions_AND_left[0] + ') AND (' + conditions_AND_right[0] + ')) ');
+                aliases_n = await ContextFilterServerController.update_where_conditions(context_query, aliases_n, query_result, conditions_AND_right, context_filter.right_hook, tables_aliases_by_type);
+
+                if (conditions_AND_left && conditions_AND_left.length) {
+                    where_conditions.push(conditions_AND_left[0]);
+                }
+
+                if (conditions_AND_right && conditions_AND_right.length) {
+                    where_conditions.push(conditions_AND_right[0]);
+                }
+
                 break;
 
             case ContextFilterVO.TYPE_FILTER_NOT:
@@ -2957,7 +2998,7 @@ export default class ContextFilterServerController {
                         ConsoleHandler.error('ERROR : tsrange null on field_name ' + field_name
                             + ' :: param_tsranges : ' + JSON.stringify(context_filter.param_tsranges)
                             + ' : contextQuery : ' + JSON.stringify(context_query));
-                        return;
+                        return aliases_n;
                     }
 
                     where_clause_date_intersects = (where_clause_date_intersects ? where_clause_date_intersects + ' OR ' : '');
@@ -3527,6 +3568,8 @@ export default class ContextFilterServerController {
 
                 throw new Error('Not Implemented');
         }
+
+        return aliases_n;
     }
 
     /**
