@@ -145,8 +145,8 @@ export default class ModuleOselia extends Module {
         this.initializeOseliaThreadRoleVO();
         this.initializeOseliaThreadUserVO();
 
-        this.initializeOseliaRunVO();
         this.initializeOseliaRunTemplateVO();
+        this.initializeOseliaRunVO();
 
         this.initializeOseliaRunFunctionCallVO();
 
@@ -192,8 +192,11 @@ export default class ModuleOselia extends Module {
     }
 
     public initializeOseliaRunTemplateVO() {
-        const label = ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().template_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du template', true);
-        ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'étape', true);
+        const label = ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().entry_point_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Point d\'entrée', false)
+            .set_many_to_one_target_moduletable_name(OseliaRunTemplateVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().children, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Enfants', false)
+            .set_many_to_one_target_moduletable_name(OseliaRunTemplateVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', false)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().oselia_thread_default_assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant Osélia par défaut', false)
@@ -728,6 +731,4 @@ export default class ModuleOselia extends Module {
             )
         );
     }
-
-
 }

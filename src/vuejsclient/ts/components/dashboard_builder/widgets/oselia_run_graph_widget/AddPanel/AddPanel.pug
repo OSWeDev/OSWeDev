@@ -1,8 +1,8 @@
 .add-panel
-    h3 Ajouter un template
+    h3 Ajouter un agent
 
     input(type="text" v-model="addSearch" placeholder="Rechercher...")
 
     ul
         li(v-for="tmpl in items" :key="tmpl.id" @click="onAddItem(tmpl.id)" style="cursor:pointer;")
-            | {{ tmpl.template_name }} (run_type={{ tmpl.run_type }})
+            | {{ tmpl.name }}

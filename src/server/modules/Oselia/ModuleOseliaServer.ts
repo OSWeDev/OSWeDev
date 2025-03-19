@@ -1233,7 +1233,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
          * Si un assistant est passé en param, on le force dans le thread
          */
         let openai_assistant_id = null;
-        let openai_thread_id = null;
+        const openai_thread_id = null;
         if ((!openai_assistant_id) && referrer.default_assistant_id) {
             const default_assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
                 .filter_by_id(referrer.default_assistant_id)
@@ -2687,7 +2687,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
 
         const run_template: OseliaRunTemplateVO = await query(OseliaRunTemplateVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<OseliaRunTemplateVO>().template_name, listener.oselia_run_template_name)
+            .filter_by_text_eq(field_names<OseliaRunTemplateVO>().name, listener.oselia_run_template_name)
             .exec_as_server()
             .select_vo<OseliaRunTemplateVO>();
 

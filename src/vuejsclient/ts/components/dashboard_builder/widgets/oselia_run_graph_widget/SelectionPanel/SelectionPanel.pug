@@ -1,7 +1,11 @@
 // SelectionPanel.pug
 .selection-panel
-    h3 Sélection : {{ currentItem ? currentItem.name : 'Aucun' }}
-    button.btn.btn-danger(@click="onRemoveSelectedItem") Retirer
+    h3  {{ currentItem ? currentItem.name : 'Aucun' }}
+    hr
+    .buttons
+        .edit_button
+            button.btn.btn-primary(@click="onEditSelectItem") Modifier 
+        .remove_button
+            button.btn.btn-danger(@click="onRemoveSelectedItem") Retirer
     hr
 
-    h4(v-if='currentItem') {{ currentItem.parent_run_id ? 'Run' : 'Sélection' }}

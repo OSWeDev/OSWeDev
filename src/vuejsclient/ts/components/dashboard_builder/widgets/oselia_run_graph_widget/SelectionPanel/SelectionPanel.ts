@@ -18,6 +18,10 @@ export default class SelectionPanel extends Vue {
     @Prop({ type: Function, required: true })
     public removeItemFn!: (itemId: string) => void;
 
+    // Nouvelle prop : la fonction pour supprimer un item
+    @Prop({ type: Function, required: true })
+    public editItemFn!: (itemId: string) => void;
+
     get currentItem(): OseliaRunTemplateVO | null {
         if (!this.selectedItem) {
             return null;
@@ -33,6 +37,11 @@ export default class SelectionPanel extends Vue {
         if (!this.selectedItem) return;
         // Appel direct de la fonction
         this.removeItemFn(this.selectedItem);
+    }
+
+    public onEditSelectItem() {
+        if (!this.selectedItem) return;
+        this.editItemFn(this.selectedItem);
     }
 
 }

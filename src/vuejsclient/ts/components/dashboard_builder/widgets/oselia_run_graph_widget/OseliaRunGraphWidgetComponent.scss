@@ -4,12 +4,11 @@
     height: 80%;
     overflow: hidden;
 
-    button {
+    .add-button {
         position: absolute;
         right: 1%;
     }
 
-    .selection-panel,
     .link-panel,
     .add-panel {
         position: absolute;

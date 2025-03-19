@@ -462,6 +462,8 @@ export default class OseliaRunBGThread implements IBGThread {
                     return;
                 }
 
+            case OseliaRunVO.RUN_TYPE_AGENT:
+                return;
             case OseliaRunVO.RUN_TYPE_ASSISTANT:
             default:
                 await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_RUNNING);

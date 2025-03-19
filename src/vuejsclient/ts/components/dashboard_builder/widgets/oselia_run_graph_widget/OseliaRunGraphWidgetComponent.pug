@@ -1,29 +1,36 @@
 .OseliaRunGraphWidgetComponent
     // Le bouton + pour afficher/cacher le AddPanel
-    button(
+    button.add-button(
         v-if="showPlusButton"
         @click="showAddPanel = !showAddPanel"
     ) +
+    template(v-if='has_agent')
+       
+        // On insère le Canvas
+        CanvasDiagram(
+            :items="items"
+            :links="links"
+            :hidden_links="hidden_links"
+            :selectedItem.sync="selectedItem"
+            :selectedLink.sync="selectedLink"
+            :updatedItem="updatedItem"
+
+            @select_item="selectItem"
+            @select_link="selectLink"
+        )
+    template(v-else)
+        h1 Vous n'avez pas d'agent
+        p Vous devez ajouter un agent pour pouvoir utiliser ce widget
+
     
-    // On insère le Canvas
-    CanvasDiagram(
-        :items="items"
-        :links="links"
-        :hidden_links="hidden_links"
-
-        :selectedItem.sync="selectedItem"
-        :selectedLink.sync="selectedLink"
-
-        @select_item="selectItem"
-        @select_link="selectLink"
-    )
-
+        
     // Panel de sélection d'item
     SelectionPanel(
         v-if="selectedItem"
         :items="items"
         :selectedItem="selectedItem"
         :removeItemFn="removeItem"
+        :editItemFn="editSelectItem"
         @switchHidden="onSwitchHidden"
     )
 
