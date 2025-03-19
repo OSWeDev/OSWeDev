@@ -21,11 +21,20 @@ import DatatableComponent from '../../../datatable/component/DatatableComponent'
 import CRUDComponentManager from '../../CRUDComponentManager';
 import CRUDFormServices from '../CRUDFormServices';
 import "./CRUDCreateFormComponent.scss";
+import TranslatableTextVO from '../../../../../../shared/modules/Translation/vos/TranslatableTextVO';
+import DefaultTranslationVO from '../../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import DefaultTranslationManager from '../../../../../../shared/modules/Translation/DefaultTranslationManager';
+import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
+import TranslationVO from '../../../../../../shared/modules/Translation/vos/TranslationVO';
+import LangVO from '../../../../../../shared/modules/Translation/vos/LangVO';
+import VueAppController from '../../../../../VueAppController';
+import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
 
 @Component({
     template: require('./CRUDCreateFormComponent.pug'),
     components: {
         Datatable: DatatableComponent,
+        Inlinetranslatabletext: InlineTranslatableText
     },
 })
 export default class CRUDCreateFormComponent extends VueComponentBase {
@@ -80,6 +89,11 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     private crud_field_remover_conf: CRUDFieldRemoverConfVO = null;
     private POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS: boolean = false;
 
+    private has_access_to_admin: boolean = false;
+    private is_editing_title: boolean = false;
+    private label_title: string = null;
+    private translatable_text_title: TranslatableTextVO = null;
+
     get CRUDTitle(): string {
         if (!this.crud) {
             return null;
@@ -106,6 +120,10 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         }
 
         return false;
+    }
+
+    get get_crud_title(): string {
+        return this.t(this.label_title);
     }
 
     @Watch("api_type_id", { immediate: true })
@@ -152,6 +170,33 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                 this.remove_fields(this.crud_field_remover_conf.module_table_field_ids);
             }
         }
+
+        const default_trad: string = 'crud.create.modal.title' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+
+        if (this.api_type_id) {
+            this.label_title = this.api_type_id + '.' + default_trad;
+        } else {
+            this.label_title = default_trad;
+        }
+
+        this.translatable_text_title = await query(TranslatableTextVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, this.label_title)
+            .select_vo();
+
+        if (!this.translatable_text_title) {
+            const user: UserVO = VueAppController.getInstance().data_user;
+
+            this.translatable_text_title = new TranslatableTextVO();
+            this.translatable_text_title.code_text = this.label_title;
+            const translatable_text_title_id = await ModuleDAO.getInstance().insertOrUpdateVO(this.translatable_text_title);
+
+            const translation: TranslationVO = new TranslationVO();
+            const lang_user: LangVO = await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo();
+            translation.lang_id = lang_user.id;
+            translation.text_id = translatable_text_title_id.id;
+            translation.translated = this.t(default_trad);
+            await ModuleDAO.getInstance().insertOrUpdateVO(translation);
+        }
     }
 
     @Watch("vo_init")
@@ -182,6 +227,11 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
     private async mounted() {
         this.POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS = await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS);
+        this.has_access_to_admin = await ModuleAccessPolicy.getInstance().testAccess(ModuleAccessPolicy.POLICY_BO_ACCESS);
+    }
+
+    private toggle_edit_title() {
+        this.is_editing_title = !this.is_editing_title;
     }
 
     private async delete_removed_crud_field_id(module_table_field_id: string) {

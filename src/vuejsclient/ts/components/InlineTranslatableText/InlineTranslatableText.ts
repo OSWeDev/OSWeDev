@@ -7,6 +7,11 @@ import VueComponentBase from "../VueComponentBase";
 import './InlineTranslatableText.scss';
 import TranslatableTextController from "./TranslatableTextController";
 import { ModuleTranslatableTextAction, ModuleTranslatableTextGetter } from './TranslatableTextStore';
+import TranslationVO from "../../../../shared/modules/Translation/vos/TranslationVO";
+import { field_names, reflect } from "../../../../shared/tools/ObjectHandler";
+import { filter } from "../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
+import TranslatableTextVO from "../../../../shared/modules/Translation/vos/TranslatableTextVO";
+import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 
 @Component({
     template: require('./InlineTranslatableText.pug')
@@ -49,11 +54,32 @@ export default class InlineTranslatableText extends VueComponentBase {
     @Prop({ default: false })
     private textarea: boolean;
 
-    private text: string = null;
+    public local_translation: TranslationVO = null;
+
     private parameterized_text: string = null;
     private semaphore: boolean = false;
 
     private thottled_check_existing_bdd_translation = ThrottleHelper.declare_throttle_without_args(this.check_existing_bdd_translation.bind(this), 500);
+
+    get has_modif(): boolean {
+        return this.local_translation.translated != this.translation;
+    }
+
+    get code_lang(): string {
+        return LocaleManager.getInstance().getDefaultLocale();
+    }
+
+    get translation(): string {
+        if ((!this.get_flat_locale_translations) || (!this.get_initialized) || (!this.code_text) || (!this.get_flat_locale_translations[this.code_text])) {
+            return null;
+        }
+
+        /**
+         * Appliquer les params
+         *  Version simple
+         */
+        return this.get_flat_locale_translations[this.code_text];
+    }
 
     @Watch("code_text", { immediate: true })
     @Watch("translation_params", { immediate: true })
@@ -63,14 +89,38 @@ export default class InlineTranslatableText extends VueComponentBase {
             return;
         }
 
-        this.text = this.translation;
-        this.parameterized_text = this.get_parameterized_translation(this.text);
-
         if (!this.code_text) {
             return;
         }
 
+        const local_translatable_text: TranslatableTextVO = await query(TranslatableTextVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, this.code_text)
+            .select_vo();
+
+        this.local_translation = await query(TranslationVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<TranslationVO>().text_id, local_translatable_text.id)
+            .select_vo();
+
+        this.local_translation.translated = this.translation;
+        this.parameterized_text = this.get_parameterized_translation(this.local_translation.translated);
+
         await this.thottled_check_existing_bdd_translation();
+    }
+
+    @Watch("translation", { immediate: true })
+    private async onchange_translation() {
+
+        this.local_translation.translated = this.translation;
+        this.parameterized_text = this.get_parameterized_translation(this.local_translation.translated);
+
+        await this.unregister_all_vo_event_callbacks();
+
+        await this.register_single_vo_updates(
+            TranslationVO.API_TYPE_ID,
+            this.local_translation.id,
+            reflect<InlineTranslatableText>().local_translation,
+            true,
+        );
     }
 
     private async check_existing_bdd_translation() {
@@ -102,7 +152,7 @@ export default class InlineTranslatableText extends VueComponentBase {
                          * On a une trad par défaut, on la crée
                          */
                         if (this.code_text == code_text) {
-                            this.text = default_translation;
+                            this.local_translation.translated = default_translation;
                         }
                         await this.update_trad(default_translation, true, code_lang, code_text);
                     }
@@ -121,12 +171,16 @@ export default class InlineTranslatableText extends VueComponentBase {
                      * On a une trad par défaut, on la crée
                      */
                     if (this.code_text == code_text) {
-                        this.text = default_translation;
+                        this.local_translation.translated = default_translation;
                     }
                     await this.update_trad(default_translation, true, code_lang, code_text);
                 }
             }
         }
+    }
+
+    private async beforeDestroy() {
+        await this.unregister_all_vo_event_callbacks();
     }
 
     private async mounted() {
@@ -135,7 +189,7 @@ export default class InlineTranslatableText extends VueComponentBase {
             this.set_initializing(true);
 
             this.set_flat_locale_translations(VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS);
-            this.text = this.translation;
+            this.local_translation.translated = this.translation;
             await this.thottled_check_existing_bdd_translation();
 
             this.set_initializing(false);
@@ -143,33 +197,6 @@ export default class InlineTranslatableText extends VueComponentBase {
         }
 
         this.semaphore = true;
-    }
-
-    @Watch("translation", { immediate: true })
-    private onchange_translation() {
-
-        this.text = this.translation;
-        this.parameterized_text = this.get_parameterized_translation(this.text);
-    }
-
-    get has_modif(): boolean {
-        return this.text != this.translation;
-    }
-
-    get code_lang(): string {
-        return LocaleManager.getInstance().getDefaultLocale();
-    }
-
-    get translation(): string {
-        if ((!this.get_flat_locale_translations) || (!this.get_initialized) || (!this.code_text) || (!this.get_flat_locale_translations[this.code_text])) {
-            return null;
-        }
-
-        /**
-         * Appliquer les params
-         *  Version simple
-         */
-        return this.get_flat_locale_translations[this.code_text];
     }
 
     /**
