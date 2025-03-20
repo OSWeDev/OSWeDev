@@ -54,7 +54,7 @@ export default class InlineTranslatableText extends VueComponentBase {
     @Prop({ default: false })
     private textarea: boolean;
 
-    public local_translation: TranslationVO = null;
+    private text: string = null;
 
     private parameterized_text: string = null;
     private semaphore: boolean = false;
@@ -62,7 +62,7 @@ export default class InlineTranslatableText extends VueComponentBase {
     private thottled_check_existing_bdd_translation = ThrottleHelper.declare_throttle_without_args(this.check_existing_bdd_translation.bind(this), 500);
 
     get has_modif(): boolean {
-        return this.local_translation.translated != this.translation;
+        return this.text != this.translation;
     }
 
     get code_lang(): string {
@@ -89,38 +89,14 @@ export default class InlineTranslatableText extends VueComponentBase {
             return;
         }
 
+        this.text = this.translation;
+        this.parameterized_text = this.get_parameterized_translation(this.text);
+
         if (!this.code_text) {
             return;
         }
 
-        const local_translatable_text: TranslatableTextVO = await query(TranslatableTextVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, this.code_text)
-            .select_vo();
-
-        this.local_translation = await query(TranslationVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<TranslationVO>().text_id, local_translatable_text.id)
-            .select_vo();
-
-        this.local_translation.translated = this.translation;
-        this.parameterized_text = this.get_parameterized_translation(this.local_translation.translated);
-
         await this.thottled_check_existing_bdd_translation();
-    }
-
-    @Watch("translation", { immediate: true })
-    private async onchange_translation() {
-
-        this.local_translation.translated = this.translation;
-        this.parameterized_text = this.get_parameterized_translation(this.local_translation.translated);
-
-        await this.unregister_all_vo_event_callbacks();
-
-        await this.register_single_vo_updates(
-            TranslationVO.API_TYPE_ID,
-            this.local_translation.id,
-            reflect<InlineTranslatableText>().local_translation,
-            true,
-        );
     }
 
     private async check_existing_bdd_translation() {
@@ -152,7 +128,7 @@ export default class InlineTranslatableText extends VueComponentBase {
                          * On a une trad par défaut, on la crée
                          */
                         if (this.code_text == code_text) {
-                            this.local_translation.translated = default_translation;
+                            this.text = default_translation;
                         }
                         await this.update_trad(default_translation, true, code_lang, code_text);
                     }
@@ -171,7 +147,7 @@ export default class InlineTranslatableText extends VueComponentBase {
                      * On a une trad par défaut, on la crée
                      */
                     if (this.code_text == code_text) {
-                        this.local_translation.translated = default_translation;
+                        this.text = default_translation;
                     }
                     await this.update_trad(default_translation, true, code_lang, code_text);
                 }
@@ -189,7 +165,7 @@ export default class InlineTranslatableText extends VueComponentBase {
             this.set_initializing(true);
 
             this.set_flat_locale_translations(VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS);
-            this.local_translation.translated = this.translation;
+            this.text = this.translation;
             await this.thottled_check_existing_bdd_translation();
 
             this.set_initializing(false);
