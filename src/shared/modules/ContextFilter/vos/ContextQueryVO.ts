@@ -148,6 +148,11 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     /**
+     * Pour anonymiser directement via la bdd, on stocke les fields à anonymiser
+     */
+    public anonimized_fields: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    /**
      * @deprecated use is_server
      */
     get is_access_hook_def(): boolean {

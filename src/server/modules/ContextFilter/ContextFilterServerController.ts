@@ -3680,7 +3680,8 @@ export default class ContextFilterServerController {
                             for (const j in table_fields) {
                                 const field = table_fields[j];
 
-                                fields += ', ' + field.field_name;
+                                // Gestion de l'anonymisation
+                                fields += ', ' + ServerAnonymizationController.handle_anon_field_name(context_query, table.vo_type, field.field_name);
                             }
 
                             jointure_table_ref = '(SELECT ' + fields + ' FROM ' + tables.join(' UNION ALL SELECT ' + fields + ' FROM ') + ')';
@@ -3770,7 +3771,8 @@ export default class ContextFilterServerController {
                             for (const j in table_fields) {
                                 const field = table_fields[j];
 
-                                fields += ', ' + field.field_name;
+                                // Gestion de l'anonymisation
+                                fields += ', ' + ServerAnonymizationController.handle_anon_field_name(context_query, table.vo_type, field.field_name);
                             }
 
                             jointure_table_ref = '(SELECT ' + fields + ' FROM ' + tables.join(' UNION ALL SELECT ' + fields + ' FROM ') + ')';
@@ -3880,7 +3882,8 @@ export default class ContextFilterServerController {
                     for (const j in table_fields) {
                         const field = table_fields[j];
 
-                        fields += ', ' + field.field_name;
+                        // Gestion de l'anonymisation
+                        fields += ', ' + ServerAnonymizationController.handle_anon_field_name(context_query, table.vo_type, field.field_name);
                     }
 
                     cross_jointure_table_ref = '(SELECT ' + fields + ' FROM ' + tables.join(' UNION ALL SELECT ' + fields + ' FROM ') + ')';

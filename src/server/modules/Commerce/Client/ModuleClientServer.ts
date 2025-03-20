@@ -32,11 +32,12 @@ export default class ModuleClientServer extends ModuleServerBase {
     }
 
     public async getInformationsClientUser(num: number): Promise<InformationsVO> {
-        return ModuleDAOServer.instance.selectOne<InformationsVO>(
-            InformationsVO.API_TYPE_ID,
-            ' JOIN ' + ModuleTableController.module_tables_by_vo_type[ClientVO.API_TYPE_ID].full_name + ' c on c.informations_id = t.id ' +
-            ' WHERE c.user_id = $1', [num]
-        );
+        throw new Error('Not implemented');
+        // return ModuleDAOServer.instance.selectOne<InformationsVO>(
+        //     InformationsVO.API_TYPE_ID,
+        //     ' JOIN ' + ModuleTableController.module_tables_by_vo_type[ClientVO.API_TYPE_ID].full_name + ' c on c.informations_id = t.id ' +
+        //     ' WHERE c.user_id = $1', [num]
+        // );
     }
 
     public async getClientsByUserId(num: number): Promise<ClientVO[]> {

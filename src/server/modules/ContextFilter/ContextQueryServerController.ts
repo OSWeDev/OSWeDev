@@ -244,17 +244,17 @@ export default class ContextQueryServerController {
             }
         }
 
-        // FIXME TODO anonymisation incompatible avec les throttles
-        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
-            // Anonymisation
-            const uid = await StackContext.get('UID');
+        // // FIXME TODO anonymisation incompatible avec les throttles
+        // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        //     // Anonymisation
+        //     const uid = await StackContext.get('UID');
 
-            await ServerAnonymizationController.anonymise_context_filtered_rows(
-                query_res,
-                context_query.fields,
-                uid
-            );
-        }
+        //     await ServerAnonymizationController.anonymise_context_filtered_rows(
+        //         query_res,
+        //         context_query.fields,
+        //         uid
+        //     );
+        // }
 
         /**
          * Test de worker_thread pour séparer le traitement de translate potentiellement très long, dès qu'on a plus de 10k lignes
@@ -349,12 +349,12 @@ export default class ContextQueryServerController {
             query_res = ObjectHandler.clone_vos(query_res);
         }
 
-        // FIXME TODO anonymisation incompatible avec les throttles
-        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
-            // Anonymisation
-            const uid = await StackContext.get('UID');
-            await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
-        }
+        // // FIXME TODO anonymisation incompatible avec les throttles
+        // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        //     // Anonymisation
+        //     const uid = await StackContext.get('UID');
+        //     await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        // }
 
         return query_res;
     }
@@ -442,12 +442,12 @@ export default class ContextQueryServerController {
             query_res = ObjectHandler.clone_vos(query_res);
         }
 
-        // FIXME TODO anonymisation incompatible avec les throttles
-        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
-            // Anonymisation
-            const uid = await StackContext.get('UID');
-            await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
-        }
+        // // FIXME TODO anonymisation incompatible avec les throttles
+        // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        //     // Anonymisation
+        //     const uid = await StackContext.get('UID');
+        //     await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        // }
 
         /**
          * Traitement des champs. on met dans + '__raw' les valeurs brutes, et on met dans le champ lui même la valeur formatée
@@ -1822,6 +1822,11 @@ export default class ContextQueryServerController {
             all_required_fields = cloneDeep(all_required_fields);
         }
 
+        // Gestion de l'anonymisation
+        if (!context_query.anonimized_fields) {
+            ServerAnonymizationController.apply_anonymisation_conf_for_user_on_context_query(context_query);
+        }
+
         let aliases_n: number = 0;
         let FROM: string = null;
 
@@ -2160,6 +2165,9 @@ export default class ContextQueryServerController {
                 default:
                     throw new Error('Not Implemented');
             }
+
+            // Handle anonymisation
+            field_full_name = ServerAnonymizationController.handle_anon_field_name(context_query, context_field.api_type_id, context_field.field_name, field_full_name, !!field_alias);
 
             /**
              * Check injection OK :

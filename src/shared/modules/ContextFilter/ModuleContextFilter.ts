@@ -440,6 +440,7 @@ export default class ModuleContextFilter extends Module {
             ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().max_age_ms, ModuleTableFieldVO.FIELD_TYPE_int, 'max_age_ms', true, true, 0),
             ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().request_id, ModuleTableFieldVO.FIELD_TYPE_int, 'request_id', false),
             ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().throttle_query_select, ModuleTableFieldVO.FIELD_TYPE_boolean, 'throttle_query_select', true, true, true),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().anonimized_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'anonimized_fields', false),
         ];
 
         const datatable = ModuleTableController.create_new(this.name, ContextQueryVO, null, "Requête");

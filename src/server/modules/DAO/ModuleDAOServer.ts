@@ -82,6 +82,8 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
+import ForkMessageController from '../Fork/ForkMessageController';
+import ServerAnonymizationReloadConfMessage from '../Anonymization/vos/ServerAnonymizationReloadConfMessage';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -614,6 +616,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async configure() {
 
         PerfReportServerController.register_perf_module(ThrottledQueryServerController.PERF_MODULE_NAME);
+
+        ForkMessageController.register_message_handler(ServerAnonymizationReloadConfMessage.FORK_MESSAGE_TYPE, ServerAnonymizationController.reload_conf);
 
         await DAOServerController.configure();
         // await this.create_or_replace_function_ref_get_user();
@@ -1826,206 +1830,206 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
     }
 
-    /**
-     * @deprecated  use context queries - will be deleted soon [utiliser la version contextquery query(API_TYPE_ID).select_vos<T>();]
-     */
-    public async selectAll<T extends IDistantVOBase>(
-        API_TYPE_ID: string, query_: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null,
-        distinct: boolean = false, ranges: IRange[] = null, limit: number = 0, offset: number = 0): Promise<T[]> {
+    // /**
+    //  * @deprecated  use context queries - will be deleted soon [utiliser la version contextquery query(API_TYPE_ID).select_vos<T>();]
+    //  */
+    // public async selectAll<T extends IDistantVOBase>(
+    //     API_TYPE_ID: string, query_: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null,
+    //     distinct: boolean = false, ranges: IRange[] = null, limit: number = 0, offset: number = 0): Promise<T[]> {
 
-        const moduleTable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[API_TYPE_ID];
+    //     const moduleTable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[API_TYPE_ID];
 
-        // On vérifie qu'on peut faire un select
-        if (!DAOServerController.checkAccessSync(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
-            return null;
-        }
+    //     // On vérifie qu'on peut faire un select
+    //     if (!DAOServerController.checkAccessSync(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
+    //         return null;
+    //     }
 
-        let res: T[] = null;
+    //     let res: T[] = null;
 
-        if (moduleTable.is_segmented) {
+    //     if (moduleTable.is_segmented) {
 
-            // Si on est sur une table segmentée on adapte le comportement
-            if (!ranges) {
-                ranges = this.get_all_ranges_from_segmented_table(moduleTable);
-            }
+    //         // Si on est sur une table segmentée on adapte le comportement
+    //         if (!ranges) {
+    //             ranges = this.get_all_ranges_from_segmented_table(moduleTable);
+    //         }
 
-            if ((!ranges) || (RangeHandler.getCardinalFromArray(ranges) < 1)) {
-                return null;
-            }
+    //         if ((!ranges) || (RangeHandler.getCardinalFromArray(ranges) < 1)) {
+    //             return null;
+    //         }
 
-            const segmentations_tables: { [table_name: string]: number } = {};
+    //         const segmentations_tables: { [table_name: string]: number } = {};
 
-            RangeHandler.foreach_ranges_sync(ranges, (segment_value) => {
+    //         RangeHandler.foreach_ranges_sync(ranges, (segment_value) => {
 
-                if (!DAOServerController.has_segmented_known_database(moduleTable, segment_value)) {
-                    return;
-                }
+    //             if (!DAOServerController.has_segmented_known_database(moduleTable, segment_value)) {
+    //                 return;
+    //             }
 
-                const table_name = moduleTable.get_segmented_full_name(segment_value);
-                segmentations_tables[table_name] = segment_value;
-            }, moduleTable.table_segmented_field_segment_type);
+    //             const table_name = moduleTable.get_segmented_full_name(segment_value);
+    //             segmentations_tables[table_name] = segment_value;
+    //         }, moduleTable.table_segmented_field_segment_type);
 
-            let request: string = null;
+    //         let request: string = null;
 
-            let fields_select: string = 't.id';
-            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
-            for (const i in fields) {
-                const field = fields[i];
+    //         let fields_select: string = 't.id';
+    //         const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
+    //         for (const i in fields) {
+    //             const field = fields[i];
 
-                fields_select += ',t.' + field.field_name;
-            }
+    //             fields_select += ',t.' + field.field_name;
+    //         }
 
-            for (const segmentation_table in segmentations_tables) {
+    //         for (const segmentation_table in segmentations_tables) {
 
-                if (!request) {
-                    request = '';
-                } else {
-                    request += ' UNION ALL ';
-                }
+    //             if (!request) {
+    //                 request = '';
+    //             } else {
+    //                 request += ' UNION ALL ';
+    //             }
 
-                request += "SELECT " + (distinct ? 'distinct' : '') + " " + fields_select + " ";
-                request += " FROM " + segmentation_table + ' t ';
-                request += (query_ ? query_.replace(/;/g, '') : '');
-            }
+    //             request += "SELECT " + (distinct ? 'distinct' : '') + " " + fields_select + " ";
+    //             request += " FROM " + segmentation_table + ' t ';
+    //             request += (query_ ? query_.replace(/;/g, '') : '');
+    //         }
 
-            if (!request) {
-                return null;
-            }
+    //         if (!request) {
+    //             return null;
+    //         }
 
-            request += (limit ? ' limit ' + limit : '');
-            request += (offset ? ' offset ' + offset : '');
+    //         request += (limit ? ' limit ' + limit : '');
+    //         request += (offset ? ' offset ' + offset : '');
 
-            const query_uid = LogDBPerfServerController.log_db_query_perf_start('selectAll', request, 'is_segmented');
-            const vos: T[] = await IDatabaseHolder.db.query(request + ';', queryParams ? queryParams : []);
-            LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectAll', request, 'is_segmented');
+    //         const query_uid = LogDBPerfServerController.log_db_query_perf_start('selectAll', request, 'is_segmented');
+    //         const vos: T[] = await IDatabaseHolder.db.query(request + ';', queryParams ? queryParams : []);
+    //         LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectAll', request, 'is_segmented');
 
-            for (const i in vos) {
-                const data = vos[i];
-                data._type = moduleTable.vo_type;
-            }
+    //         for (const i in vos) {
+    //             const data = vos[i];
+    //             data._type = moduleTable.vo_type;
+    //         }
 
-            res = ModuleTableServerController.translate_vos_from_db(vos);
-        } else {
-            const query_string = "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t " +
-                (query_ ? query_ : '') + (limit ? ' limit ' + limit : '') + (offset ? ' offset ' + offset : '');
-            const query_uid = LogDBPerfServerController.log_db_query_perf_start('selectAll', query_string, '!is_segmented');
+    //         res = ModuleTableServerController.translate_vos_from_db(vos);
+    //     } else {
+    //         const query_string = "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t " +
+    //             (query_ ? query_ : '') + (limit ? ' limit ' + limit : '') + (offset ? ' offset ' + offset : '');
+    //         const query_uid = LogDBPerfServerController.log_db_query_perf_start('selectAll', query_string, '!is_segmented');
 
-            const vos = await IDatabaseHolder.db.query(
-                query_string, queryParams ? queryParams : []) as T[];
-            for (const i in vos) {
-                const data = vos[i];
-                data._type = moduleTable.vo_type;
-            }
-            res = ModuleTableServerController.translate_vos_from_db(vos);
+    //         const vos = await IDatabaseHolder.db.query(
+    //             query_string, queryParams ? queryParams : []) as T[];
+    //         for (const i in vos) {
+    //             const data = vos[i];
+    //             data._type = moduleTable.vo_type;
+    //         }
+    //         res = ModuleTableServerController.translate_vos_from_db(vos);
 
-            LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectAll', query_string, '!is_segmented');
-        }
+    //         LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectAll', query_string, '!is_segmented');
+    //     }
 
-        // On filtre les res suivant les droits d'accès
-        res = await DAOServerController.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, res);
+    //     // On filtre les res suivant les droits d'accès
+    //     res = await DAOServerController.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, res);
 
-        if (!res) {
-            return null;
-        }
+    //     if (!res) {
+    //         return null;
+    //     }
 
-        const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
-        if (can_use_context) {
-            const uid = await StackContext.get('UID');
-            if (uid) {
-                await ServerAnonymizationController.anonymise(moduleTable, res, uid, null);
-            }
-        }
+    //     const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+    //     if (can_use_context) {
+    //         const uid = await StackContext.get('UID');
+    //         if (uid) {
+    //             await ServerAnonymizationController.anonymise(moduleTable, res, uid, null);
+    //         }
+    //     }
 
-        return res;
-    }
+    //     return res;
+    // }
 
-    /**
-     * @deprecated use context queries - will be deleted soon [utiliser la version contextquery query(API_TYPE_ID).select_vo<T>();]
-     */
-    public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query_: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null, ranges: IRange[] = null): Promise<T> {
-        const moduleTable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[API_TYPE_ID];
+    // /**
+    //  * @deprecated use context queries - will be deleted soon [utiliser la version contextquery query(API_TYPE_ID).select_vo<T>();]
+    //  */
+    // public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query_: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null, ranges: IRange[] = null): Promise<T> {
+    //     const moduleTable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[API_TYPE_ID];
 
-        // On vérifie qu'on peut faire un select
-        if (!DAOServerController.checkAccessSync(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
-            return null;
-        }
+    //     // On vérifie qu'on peut faire un select
+    //     if (!DAOServerController.checkAccessSync(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
+    //         return null;
+    //     }
 
-        let vo: T = null;
-        if (moduleTable.is_segmented) {
+    //     let vo: T = null;
+    //     if (moduleTable.is_segmented) {
 
-            // Si on est sur une table segmentée on adapte le comportement
-            if (!ranges) {
-                ranges = this.get_all_ranges_from_segmented_table(moduleTable);
-            }
+    //         // Si on est sur une table segmentée on adapte le comportement
+    //         if (!ranges) {
+    //             ranges = this.get_all_ranges_from_segmented_table(moduleTable);
+    //         }
 
-            if ((!ranges) || (RangeHandler.getCardinalFromArray(ranges) < 1)) {
-                return null;
-            }
+    //         if ((!ranges) || (RangeHandler.getCardinalFromArray(ranges) < 1)) {
+    //             return null;
+    //         }
 
-            let segmented_vo: T = null;
-            let error: boolean = false;
-            await RangeHandler.foreach_ranges(ranges, async (segment_value) => {
+    //         let segmented_vo: T = null;
+    //         let error: boolean = false;
+    //         await RangeHandler.foreach_ranges(ranges, async (segment_value) => {
 
-                if (!DAOServerController.has_segmented_known_database(moduleTable, segment_value)) {
-                    return;
-                }
+    //             if (!DAOServerController.has_segmented_known_database(moduleTable, segment_value)) {
+    //                 return;
+    //             }
 
-                const query_string = "SELECT t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " + (query_ ? query_ : '');
-                const query_uid = LogDBPerfServerController.log_db_query_perf_start('selectOne', query_string, 'is_segmented');
-                const segment_vo: T = await IDatabaseHolder.db.oneOrNone(query_string + ";", queryParams ? queryParams : []) as T;
-                LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectOne', query_string, 'is_segmented');
+    //             const query_string = "SELECT t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " + (query_ ? query_ : '');
+    //             const query_uid = LogDBPerfServerController.log_db_query_perf_start('selectOne', query_string, 'is_segmented');
+    //             const segment_vo: T = await IDatabaseHolder.db.oneOrNone(query_string + ";", queryParams ? queryParams : []) as T;
+    //             LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectOne', query_string, 'is_segmented');
 
-                if ((!!segmented_vo) && (!!segment_vo)) {
-                    ConsoleHandler.error('More than one result on selectOne on segmented table :' + moduleTable.get_segmented_full_name(segment_value) + ';');
-                    error = true;
-                }
+    //             if ((!!segmented_vo) && (!!segment_vo)) {
+    //                 ConsoleHandler.error('More than one result on selectOne on segmented table :' + moduleTable.get_segmented_full_name(segment_value) + ';');
+    //                 error = true;
+    //             }
 
-                if (!!segment_vo) {
-                    segmented_vo = segment_vo;
-                }
-            }, moduleTable.table_segmented_field_segment_type);
+    //             if (!!segment_vo) {
+    //                 segmented_vo = segment_vo;
+    //             }
+    //         }, moduleTable.table_segmented_field_segment_type);
 
-            if (error) {
-                return null;
-            }
+    //         if (error) {
+    //             return null;
+    //         }
 
-            if (!!segmented_vo) {
+    //         if (!!segmented_vo) {
 
-                segmented_vo['_type'] = moduleTable.vo_type;
-                segmented_vo = ModuleTableServerController.translate_vos_from_db(segmented_vo);
-            }
+    //             segmented_vo['_type'] = moduleTable.vo_type;
+    //             segmented_vo = ModuleTableServerController.translate_vos_from_db(segmented_vo);
+    //         }
 
-            // On filtre les vo suivant les droits d'accès
-            vo = segmented_vo;
-        } else {
-            const query_string = "SELECT t.* FROM " + moduleTable.full_name + " t " + (query_ ? query_ : '');
-            const query_uid = LogDBPerfServerController.log_db_query_perf_start('selectOne', query_string, '!is_segmented');
-            vo = await IDatabaseHolder.db.oneOrNone(query_string + ";", queryParams ? queryParams : []) as T;
-            LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectOne', query_string, '!is_segmented');
-            if (!!vo) {
-                vo['_type'] = moduleTable.vo_type;
-                vo = ModuleTableServerController.translate_vos_from_db(vo);
-            }
-        }
+    //         // On filtre les vo suivant les droits d'accès
+    //         vo = segmented_vo;
+    //     } else {
+    //         const query_string = "SELECT t.* FROM " + moduleTable.full_name + " t " + (query_ ? query_ : '');
+    //         const query_uid = LogDBPerfServerController.log_db_query_perf_start('selectOne', query_string, '!is_segmented');
+    //         vo = await IDatabaseHolder.db.oneOrNone(query_string + ";", queryParams ? queryParams : []) as T;
+    //         LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectOne', query_string, '!is_segmented');
+    //         if (!!vo) {
+    //             vo['_type'] = moduleTable.vo_type;
+    //             vo = ModuleTableServerController.translate_vos_from_db(vo);
+    //         }
+    //     }
 
-        // On filtre suivant les droits d'accès
-        vo = await this.filterVOAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vo);
+    //     // On filtre suivant les droits d'accès
+    //     vo = await this.filterVOAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vo);
 
-        if (!vo) {
-            return null;
-        }
+    //     if (!vo) {
+    //         return null;
+    //     }
 
-        const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+    //     const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
 
-        if (can_use_context) {
-            const uid = await StackContext.get('UID');
-            if (uid) {
-                await ServerAnonymizationController.anonymise(moduleTable, [vo], uid, null);
-            }
-        }
+    //     if (can_use_context) {
+    //         const uid = await StackContext.get('UID');
+    //         if (uid) {
+    //             await ServerAnonymizationController.anonymise(moduleTable, [vo], uid, null);
+    //         }
+    //     }
 
-        return vo;
-    }
+    //     return vo;
+    // }
 
     /**
      * DONT USE : N'utiliser que en cas de force majeure => exemple upgrade de format de BDD
@@ -2804,14 +2808,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+        // const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
 
-        if (can_use_context) {
-            const uid = await StackContext.get('UID');
-            if (uid) {
-                await ServerAnonymizationController.anonymise(datatable, res, uid, null);
-            }
-        }
+        // if (can_use_context) {
+        //     const uid = await StackContext.get('UID');
+        //     if (uid) {
+        //         await ServerAnonymizationController.anonymise(datatable, res, uid, null);
+        //     }
+        // }
 
         return res;
     }
@@ -2860,14 +2864,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
+        // const can_use_context = !reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE;
 
-        if (can_use_context) {
-            const uid = await StackContext.get('UID');
-            if (uid) {
-                await ServerAnonymizationController.anonymise(datatable, res, uid, null);
-            }
-        }
+        // if (can_use_context) {
+        //     const uid = await StackContext.get('UID');
+        //     if (uid) {
+        //         await ServerAnonymizationController.anonymise(datatable, res, uid, null);
+        //     }
+        // }
 
         return res;
     }
