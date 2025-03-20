@@ -10,18 +10,18 @@ import ModuleTableController from '../../../shared/modules/DAO/ModuleTableContro
 import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
+import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
+import { reflect } from '../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import { IRequestStackContext } from '../../ServerExpressController';
 import StackContext from '../../StackContext';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import DAOServerController from '../DAO/DAOServerController';
 import ContextQueryServerController from './ContextQueryServerController';
-import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
-import { reflect } from '../../../shared/tools/ObjectHandler';
-import { IRequestStackContext } from '../../ServerExpressController';
 
 export default class ContextFilterServerController {
 
@@ -2730,22 +2730,33 @@ export default class ContextFilterServerController {
                 const conditions_OR_right: string[] = [];
                 aliases_n = await ContextFilterServerController.update_where_conditions(context_query, aliases_n, query_result, conditions_OR_right, context_filter.right_hook, tables_aliases_by_type);
 
-                if (!conditions_OR_left || !conditions_OR_left.length) {
+                let new_cond = '';
 
-                    if (!conditions_OR_right || !conditions_OR_right.length) {
-                        break;
-                    }
-
-                    where_conditions.push(conditions_OR_right[0]);
-                } else {
-
-                    if (!conditions_OR_right || !conditions_OR_right.length) {
-                        where_conditions.push(conditions_OR_left[0]);
-                        break;
-                    }
-
-                    where_conditions.push('(' + conditions_OR_left[0] + ') OR (' + conditions_OR_right[0] + ')');
+                if ((conditions_OR_right.length == 1) && (conditions_OR_left.length == 1)) {
+                    new_cond += '(';
                 }
+
+                if (conditions_OR_left.length == 1) {
+                    new_cond += conditions_OR_left[0];
+                } else {
+                    new_cond += '(' + conditions_OR_left.join(') AND (') + ')';
+                }
+
+                if ((conditions_OR_right.length == 1) && (conditions_OR_left.length == 1)) {
+                    new_cond += ') OR (';
+                }
+
+                if (conditions_OR_right.length == 1) {
+                    new_cond += conditions_OR_right[0];
+                } else {
+                    new_cond += '(' + conditions_OR_right.join(') AND (') + ')';
+                }
+
+                if ((conditions_OR_right.length == 1) && (conditions_OR_left.length == 1)) {
+                    new_cond += ')';
+                }
+
+                where_conditions.push(new_cond);
 
                 break;
 
@@ -2755,13 +2766,21 @@ export default class ContextFilterServerController {
                 const conditions_AND_right: string[] = [];
                 aliases_n = await ContextFilterServerController.update_where_conditions(context_query, aliases_n, query_result, conditions_AND_right, context_filter.right_hook, tables_aliases_by_type);
 
+                let new_condition = '';
+
                 if (conditions_AND_left && conditions_AND_left.length) {
-                    where_conditions.push(conditions_AND_left[0]);
+                    new_condition += '(' + conditions_AND_left.join(') AND (') + ')';
+                }
+
+                if (conditions_AND_left && conditions_AND_left.length && conditions_AND_right && conditions_AND_right.length) {
+                    new_condition += ' AND ';
                 }
 
                 if (conditions_AND_right && conditions_AND_right.length) {
-                    where_conditions.push(conditions_AND_right[0]);
+                    new_condition += '(' + conditions_AND_right.join(') AND (') + ')';
                 }
+
+                where_conditions.push(new_condition);
 
                 break;
 
