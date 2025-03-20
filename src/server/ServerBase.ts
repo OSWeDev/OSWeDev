@@ -467,6 +467,7 @@ export default abstract class ServerBase {
                         priority: ["accept-language", "default"],
                         default: this.envParam.default_locale
                     }),
+                    ...session_dependant_middlewares,
                     this.reflect_header_middleware.bind(this),
                 ],
 

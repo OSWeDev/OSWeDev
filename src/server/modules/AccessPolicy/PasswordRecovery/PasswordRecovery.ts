@@ -103,6 +103,8 @@ export default class PasswordRecovery {
                 })
             });
         }
+
+        return true;
     }
 
     public async beginRecoverySMS(email: string): Promise<boolean> {
@@ -164,5 +166,7 @@ export default class PasswordRecovery {
                 SESSION_SHARE_SID: sid ? encodeURIComponent(sid) : null
             }),
             'PasswordRecovery');
+
+        return true;
     }
 }
