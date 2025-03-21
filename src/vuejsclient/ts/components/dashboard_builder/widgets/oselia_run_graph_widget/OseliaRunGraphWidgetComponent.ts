@@ -97,6 +97,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase{
     private hidden_links: { [from: string]: { [to: string]: boolean } } =  {};
     private has_agent: boolean = true;
     private updatedItem: OseliaRunTemplateVO = null;
+    private reDraw: boolean = false;
     @Watch('choices_of_item')
     private async onChoicesOfItemChange() {
         try {
@@ -168,6 +169,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase{
         if (this.selectedItem === itemId) {
             this.selectedItem = null;
         }
+        this.reDraw = !this.reDraw;
     }
 
     public async editSelectItem(itemId: string) {
@@ -193,6 +195,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase{
     public selectItem(itemId: string) {
         this.selectedItem = itemId;
         this.selectedLink = null;
+        this.showAddPanel = false;
     }
 
     /**
