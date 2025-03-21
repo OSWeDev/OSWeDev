@@ -428,4 +428,12 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
         })());
         await all_promises(promises);
     }
+
+    pause_tts
+    
+    private async play_tts(message: GPTAssistantAPIThreadMessageContentVO) {
+        if (!message.tts_file_id) {
+            // On utilise l'api GPT TTS pour le générer
+        }
+    }
 }

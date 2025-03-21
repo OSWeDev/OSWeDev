@@ -1,6 +1,6 @@
 import { Run } from "openai/resources/beta/threads/runs/runs";
 import { RunStep } from "openai/resources/beta/threads/runs/steps";
-import { VectorStoreFile } from "openai/resources/beta/vector-stores/files";
+import { VectorStoreFile } from "openai/resources/vector-stores/files";
 import GPTAssistantAPIErrorVO from "../../../../shared/modules/GPT/vos/GPTAssistantAPIErrorVO";
 import GPTAssistantAPIServerSyncAssistantsController from "./GPTAssistantAPIServerSyncAssistantsController";
 import GPTAssistantAPIServerSyncFilesController from "./GPTAssistantAPIServerSyncFilesController";

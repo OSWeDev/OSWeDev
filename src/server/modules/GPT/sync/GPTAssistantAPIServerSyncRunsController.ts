@@ -17,6 +17,7 @@ import GPTAssistantAPIServerSyncRunStepsController from './GPTAssistantAPIServer
 import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerSyncThreadsController';
 import { AssistantResponseFormatOption } from 'openai/resources/beta/threads/threads';
 import { StatThisMapKeys } from '../../../../shared/modules/Stats/annotations/StatThisMapKeys';
+import { Metadata } from 'openai/resources';
 
 export default class GPTAssistantAPIServerSyncRunsController {
 
@@ -102,7 +103,7 @@ export default class GPTAssistantAPIServerSyncRunsController {
                         model: vo.model,
                         max_completion_tokens: vo.max_completion_tokens,
                         max_prompt_tokens: vo.max_prompt_tokens,
-                        metadata: cloneDeep(vo.metadata),
+                        metadata: cloneDeep(vo.metadata) as Metadata,
                         temperature: vo.temperature,
                         response_format: cloneDeep(vo.response_format) as AssistantResponseFormatOption,
                         tool_choice: cloneDeep(vo.tool_choice),

@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { FunctionDefinition } from 'openai/resources';
+import { FunctionDefinition, Metadata } from 'openai/resources';
 import { Assistant, AssistantCreateParams, AssistantTool, AssistantsPage } from 'openai/resources/beta/assistants';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
@@ -217,7 +217,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                         name: vo.nom,
                         description: vo.description,
                         instructions: vo.instructions,
-                        metadata: vo.metadata ? cloneDeep(vo.metadata) : {},
+                        metadata: vo.metadata ? cloneDeep(vo.metadata) as Metadata : {},
                         response_format: "auto",
                         temperature: vo.temperature,
                         tool_resources: tool_resources,
@@ -251,7 +251,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                             name: vo.nom,
                             description: vo.description,
                             instructions: vo.instructions,
-                            metadata: vo.metadata ? cloneDeep(vo.metadata) : {},
+                            metadata: vo.metadata ? cloneDeep(vo.metadata) as Metadata : {},
                             response_format: "auto",
                             temperature: vo.temperature,
                             tool_resources: tool_resources,

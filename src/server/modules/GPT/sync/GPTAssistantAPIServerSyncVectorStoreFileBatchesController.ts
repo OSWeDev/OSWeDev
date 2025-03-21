@@ -1,4 +1,4 @@
-import { VectorStoreFileBatch } from 'openai/resources/beta/vector-stores/file-batches';
+import { VectorStoreFileBatch } from 'openai/resources/vector-stores/file-batches';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import GPTAssistantAPIVectorStoreFileBatchVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIVectorStoreFileBatchVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
@@ -60,7 +60,7 @@ export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
             }
 
             let gpt_obj: VectorStoreFileBatch = vo.gpt_id ? await GPTAssistantAPIServerController.wrap_api_call(
-                ModuleGPTServer.openai.beta.vectorStores.fileBatches.retrieve, ModuleGPTServer.openai.beta.vectorStores.fileBatches, vo.vector_store_gpt_id, vo.gpt_id) : null;
+                ModuleGPTServer.openai.vectorStores.fileBatches.retrieve, ModuleGPTServer.openai.vectorStores.fileBatches, vo.vector_store_gpt_id, vo.gpt_id) : null;
 
             if (!gpt_obj) {
 
@@ -73,8 +73,8 @@ export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
                 }
 
                 gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
-                    ModuleGPTServer.openai.beta.vectorStores.fileBatches.create,
-                    ModuleGPTServer.openai.beta.vectorStores.fileBatches,
+                    ModuleGPTServer.openai.vectorStores.fileBatches.create,
+                    ModuleGPTServer.openai.vectorStores.fileBatches,
                     vo.vector_store_gpt_id,
                     {
                         file_ids: vo.gpt_file_ids,
@@ -164,8 +164,8 @@ export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
 
             await promise_pipeline.push(async () => {
                 const vector_store_file_batch_gpt = await GPTAssistantAPIServerController.wrap_api_call(
-                    ModuleGPTServer.openai.beta.vectorStores.fileBatches.retrieve,
-                    ModuleGPTServer.openai.beta.vectorStores.fileBatches,
+                    ModuleGPTServer.openai.vectorStores.fileBatches.retrieve,
+                    ModuleGPTServer.openai.vectorStores.fileBatches,
                     vector_store_file_batch_vo.vector_store_gpt_id, vector_store_file_batch_vo.gpt_id);
 
                 if (!vector_store_file_batch_gpt) {

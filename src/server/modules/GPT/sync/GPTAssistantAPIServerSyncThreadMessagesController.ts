@@ -28,6 +28,7 @@ import GPTAssistantAPIServerSyncFilesController from './GPTAssistantAPIServerSyn
 import GPTAssistantAPIServerSyncRunsController from './GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerSyncThreadsController';
 import { StatThisMapKeys } from '../../../../shared/modules/Stats/annotations/StatThisMapKeys';
+import { Metadata } from 'openai/resources';
 
 export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
@@ -195,7 +196,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                         content: message_contents_create,
                         role: GPTAssistantAPIThreadMessageVO.TO_OPENAI_ROLE_MAP[vo.role] as "user" | "assistant",
                         attachments: attachments,
-                        metadata: vo.metadata ? cloneDeep(vo.metadata) : {},
+                        metadata: vo.metadata ? cloneDeep(vo.metadata) as Metadata : {},
                     });
 
                 if (!gpt_obj) {
@@ -222,7 +223,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                         gpt_obj.thread_id,
                         gpt_obj.id,
                         {
-                            metadata: vo.metadata ? cloneDeep(vo.metadata) : {},
+                            metadata: vo.metadata ? cloneDeep(vo.metadata) as Metadata : {},
                         });
 
                     if (!gpt_obj) {
