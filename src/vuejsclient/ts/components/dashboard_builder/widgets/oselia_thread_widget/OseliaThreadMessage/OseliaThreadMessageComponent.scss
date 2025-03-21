@@ -97,13 +97,16 @@
         .thread_message_body_content {
             display: block;
             transition: all 0.3s ease-in-out;
+
             .thread_message_body_text {
                 max-width: 600px;
+
                 pre {
                     white-space: pre-wrap;
                     word-wrap: break-word;
                 }
             }
+
             .sized_by_markdown {
 
                 width: fit-content;
@@ -129,6 +132,22 @@
                     float: right;
                     margin-bottom: -2em;
                     padding-right: 4px;
+                    padding-top: 2px;
+
+                    &:hover {
+                        opacity: 1;
+                    }
+                }
+
+                .oselia_tts_wrapper {
+                    transition: all 0.3s ease-in-out;
+                    margin: 0.1em;
+                    cursor: pointer;
+                    padding: 0;
+                    opacity: 0.5;
+                    float: right;
+                    margin-bottom: -2em;
+                    padding-right: 22px;
                     padding-top: 2px;
 
                     &:hover {
@@ -180,8 +199,9 @@
 
     .thread_message_attachments {
         flex-direction: row-reverse;
-        display:flex;
+        display: flex;
         align-items: end;
+
         .thread_message_attachment {
             display: inline-flex;
             justify-content: space-evenly;

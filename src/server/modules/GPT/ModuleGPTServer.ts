@@ -47,6 +47,7 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ParamsServerController from '../Params/ParamsServerController';
@@ -65,9 +66,6 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
-import { writeFile } from 'fs';
-import FileHandler from '../../../shared/tools/FileHandler';
-import ModuleFileServer from '../File/ModuleFileServer';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -636,11 +634,12 @@ export default class ModuleGPTServer extends ModuleServerBase {
         if (!message_content.tts_file_id) {
             // On génère via l'api GPT
             const speech_file_path = ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PATH + ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PREFIX + message_content.id + ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_SUFFIX;
+            const instructions = "Affect/personality: A cheerful guide \n\nTone: Friendly, clear, and reassuring, creating a calm atmosphere and making the listener feel confident and comfortable.\n\nPronunciation: Clear, articulate, and steady, ensuring each instruction is easily understood while maintaining a natural, conversational flow.\n\nPause: Brief, purposeful pauses after key instructions (e.g., \"cross the street\" and \"turn right\") to allow time for the listener to process the information and follow along.\n\nEmotion: Warm and supportive, conveying empathy and care, ensuring the listener feels guided and safe throughout the journey.";
             const response = await ModuleGPTServer.openai.audio.speech.create({
                 model: "gpt-4o-mini-tts",
-                voice: "coral",
+                voice: "shimmer",
                 input: message_content.content_type_text.value,
-                instructions: "Speak in a cheerful and positive tone.",
+                instructions,
             });
             // await response.stream_to_file(speech_file_path); // Doc GPT mais j'ai pas cette fonction :)
             const buffer = Buffer.from(await response.arrayBuffer());
@@ -651,6 +650,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
             file.file_access_policy_name = ModuleGPT.POLICY_BO_ACCESS;
             file.is_secured = true;
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(file);
+            message_content.tts_file_id = file.id;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message_content);
         } else {
             file = await query(FileVO.API_TYPE_ID)
                 .filter_by_id(message_content.tts_file_id)
