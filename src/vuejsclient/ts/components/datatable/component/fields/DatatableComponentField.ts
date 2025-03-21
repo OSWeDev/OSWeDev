@@ -328,12 +328,22 @@ export default class DatatableComponentField extends VueComponentBase {
                 }
 
             case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                // TODO FIXME : Faut vraiment revoir toute cette logique de raw_value, pas raw, ...
+                if (typeof val === 'string') {
+                    return val;
+                }
+
                 if (!this.filter_additional_params) {
                     return this.get_filtered_value_ungrouped(val);
                 }
 
                 return this.get_filtered_value_ungrouped(this.vo[this.field.datatable_field_uid + '__raw']);
             case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                // TODO FIXME : Faut vraiment revoir toute cette logique de raw_value, pas raw, ...
+                if (typeof val === 'string') {
+                    return val;
+                }
+
                 if (!this.filter_additional_params) {
                     return this.get_filtered_value_ungrouped(val);
                 }
@@ -354,6 +364,11 @@ export default class DatatableComponentField extends VueComponentBase {
 
                 return res_tsrange.join(' - ');
             case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                // TODO FIXME : Faut vraiment revoir toute cette logique de raw_value, pas raw, ...
+                if (typeof val === 'string') {
+                    return val;
+                }
+
                 if (!this.filter_additional_params) {
                     return this.get_filtered_value_ungrouped(val);
                 }
