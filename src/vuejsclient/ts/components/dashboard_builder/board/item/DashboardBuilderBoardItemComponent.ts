@@ -9,6 +9,9 @@ import VueComponentBase from '../../../VueComponentBase';
 import DashboardCopyWidgetComponent from '../../copy_widget/DashboardCopyWidgetComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './DashboardBuilderBoardItemComponent.scss';
+import Throttle from '../../../../../../shared/annotations/Throttle';
+import EventifyEventConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventConfVO';
+import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 
 @Component({
     template: require('./DashboardBuilderBoardItemComponent.pug'),
@@ -47,6 +50,15 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
     private widget: DashboardWidgetVO = null;
 
     @Watch('page_widget', { immediate: true })
+    @Watch('dashboard_page')
+    private async on_prop_updates() {
+        this.onchange_widget();
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 100,
+    })
     private async onchange_widget() {
         if ((!this.page_widget) || (this.page_widget.page_id != this.dashboard_page?.id)) {
             return;
