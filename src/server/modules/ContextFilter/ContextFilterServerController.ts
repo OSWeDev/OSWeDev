@@ -74,18 +74,22 @@ export default class ContextFilterServerController {
 
 
             // TODO FIXME : ok mais est-ce qu'on devrait pas faire la liaison du coup dans tous les cas ? par ce que là si on a des context filter hooks, on a pas de lien, et bah pas de filtre donc on voit tout ... ?
-            // return null;
+            // TODO FIXME BIS : Faut séparer les cas où on est en filter classique et les cas en access_hook, en access_hooks, osef les activated_api_type_id et donc si on peut link, on link.
+            //  en filtre on doit se limiter aux vos listés
+            // if (context_query.is_access_hook_def)
+            // TODO FIXME : En fait je vois pas quand ça pouvait marcher ça, puisque du coup au dessus on crée un field_name avec null pour la table donc pas crédible et les access hooks sont des requetes séparées, qui incluent leur propre liste de vos types liées à leurs propres filtres....
+            return aliases_n;
 
-            aliases_n = await ContextQueryServerController.join_api_type_id(
-                context_query,
-                aliases_n,
-                context_filter.vo_type,
-                query_result.jointures,
-                query_result.cross_joins,
-                query_result.joined_tables_by_vo_type,
-                query_result.tables_aliases_by_type,
-                ModuleDAO.DAO_ACCESS_TYPE_READ,
-                field);
+            // aliases_n = await ContextQueryServerController.join_api_type_id(
+            //     context_query,
+            //     aliases_n,
+            //     context_filter.vo_type,
+            //     query_result.jointures,
+            //     query_result.cross_joins,
+            //     query_result.joined_tables_by_vo_type,
+            //     query_result.tables_aliases_by_type,
+            //     ModuleDAO.DAO_ACCESS_TYPE_READ,
+            //     field);
         }
 
         /**

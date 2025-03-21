@@ -115,6 +115,10 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      */
     public is_server: boolean;
 
+    // /**
+    //  * Permet d'identifier une requete qui doit ignorer les base_api_type_ids, pour inclure tous les vos_types rencontrés
+    //  */
+    // public is_access_hook_filter: boolean;
 
 
     /**

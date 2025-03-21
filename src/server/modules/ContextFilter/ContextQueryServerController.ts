@@ -2272,7 +2272,7 @@ export default class ContextQueryServerController {
     private static async build_query_wrapper_where_clause(
         context_query: ContextQueryVO,
         query_wrapper: ParameterizedQueryWrapper,
-        aliases_n: number = 0,
+        aliases_n: number,
     ): Promise<string> {
 
         let WHERE = '';
