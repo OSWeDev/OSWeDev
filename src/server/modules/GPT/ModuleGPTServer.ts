@@ -1,3 +1,4 @@
+import { createReadStream } from 'fs';
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { isMainThread } from 'worker_threads';
@@ -66,6 +67,10 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
+import FileHandler from '../../../shared/tools/FileHandler';
+import path from 'path';
+import { FileLike } from 'openai/uploads';
+import { originalCreateReadStream } from '../File/ArchiveServerController';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -96,6 +101,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_ask_assistant, this.ask_assistant.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_rerun, this.rerun.bind(this));
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().get_tts_file, this.get_tts_file.bind(this));
+        APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().transcribe_file, this.transcribe_file.bind(this));
         // APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_connect_to_realtime_voice, this.connect_to_realtime_voice.bind(this));
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_sync_openai_datas] = this.sync_openai_datas;
@@ -614,6 +620,58 @@ export default class ModuleGPTServer extends ModuleServerBase {
     private pre_create_trigger_handler_for_ThreadMessageVO(vo: GPTAssistantAPIThreadMessageVO): boolean {
         vo.date = vo.created_at ? vo.created_at : Dates.now();
         return true;
+    }
+
+    private async transcribe_file(filevo_id: number): Promise<string> {
+        const filevo: FileVO = await query(FileVO.API_TYPE_ID)
+            .filter_by_id(filevo_id)
+            .exec_as_server()
+            .select_vo<FileVO>();
+
+        if (!filevo) {
+            ConsoleHandler.error('transcribe_file:File not found');
+            return null;
+        }
+
+        const file_path: string = filevo.path;
+        if (!file_path) {
+            ConsoleHandler.error('transcribe_file:File path not found');
+            return null;
+        }
+
+        let transcription = null;
+        try {
+            // const fileBuffer = await ModuleFileServer.getInstance().readFile(file_path);
+
+            // transcription = await GPTAssistantAPIServerController.wrap_api_call(
+            //     ModuleGPTServer.openai.audio.transcriptions.create,
+            //     ModuleGPTServer.openai.audio.transcriptions,
+            //     {
+            //         file: new Blob([fileBuffer], { type: 'audio/webm' }) as any,
+            //         stream: true,
+            //         model: 'gpt-4o-mini-transcribe',
+            //         language: 'fr',
+            //     });
+
+
+            transcription = await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.audio.transcriptions.create,
+                ModuleGPTServer.openai.audio.transcriptions,
+                {
+                    file: originalCreateReadStream(file_path) as unknown as FileLike,
+                    model: 'gpt-4o-transcribe',
+                    language: 'fr',
+                } as any);
+
+            if (!transcription.text) {
+                ConsoleHandler.error('transcribe_file:No transcription found');
+                return null;
+            }
+        } catch (error) {
+            ConsoleHandler.error('transcribe_file:ERROR:' + error);
+        }
+
+        return transcription.text;
     }
 
     private async get_tts_file(message_content_id: number): Promise<FileVO> {

@@ -88,6 +88,8 @@ export default class EnvParam implements IEnvParam {
      * Activate this to debug SLOW QUERIES in ModuleServiceBase
      */
     public debug_slow_queries?: boolean = false;
+    public debug_all_queries?: boolean = false;
+
     /**
      * Activate this to define threshold for SLOW QUERIES and VERY SLOW QUERIES (10*) in ModuleServiceBase
      */

@@ -280,7 +280,7 @@ async function patchedStatPromisified(filePath: PathLike): Promise<Stats> {
 // 8) fs.createReadStream - fallback ZIP
 // -----------------------------------------------------------------------------
 
-const originalCreateReadStream = fs.createReadStream;
+export const originalCreateReadStream = fs.createReadStream;
 
 /**
  * On renvoie immédiatement un PassThrough. Au sein d’une tâche asynchrone,

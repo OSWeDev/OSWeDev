@@ -98,7 +98,8 @@ export default class ModuleGPT extends Module {
         hide_content: boolean
     ) => Promise<GPTAssistantAPIThreadMessageVO[]> = APIControllerWrapper.sah<APIGPTAskAssistantParam, GPTAssistantAPIThreadMessageVO[]>(ModuleGPT.APINAME_ask_assistant);
 
-    public get_tts_file: (message_content_id: number) => Promise<FileVO> = APIControllerWrapper.sah_optimizer<number, FileVO>(this.name, reflect<this>().get_tts_file);
+    public get_tts_file: (message_content_id: number) => Promise<FileVO> = APIControllerWrapper.sah_optimizer<NumberParamVO, FileVO>(this.name, reflect<this>().get_tts_file);
+    public transcribe_file: (file_vo_id: number) => Promise<string> = APIControllerWrapper.sah_optimizer<NumberParamVO, string>(this.name, reflect<this>().transcribe_file);
 
     // /**
     //  * Demander un run d'un assistant suite à un nouveau message
@@ -151,7 +152,15 @@ export default class ModuleGPT extends Module {
             APIGPTGenerateResponseParamStatic
         ));
 
-        APIControllerWrapper.registerApi(PostAPIDefinition.new<number, FileVO>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<NumberParamVO, string>(
+            ModuleGPT.POLICY_ask_assistant,
+            this.name,
+            reflect<this>().transcribe_file,
+            null,
+            NumberParamVOStatic,
+        ));
+
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<NumberParamVO, FileVO>(
             ModuleGPT.POLICY_ask_assistant,
             this.name,
             reflect<this>().get_tts_file,

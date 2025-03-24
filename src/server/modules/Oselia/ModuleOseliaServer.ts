@@ -208,6 +208,22 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             'oselia.join_request.deny.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Maintenir appuyer et parler (nécessite d\'accepter la demande d\'accès au micro)' },
+            'oselia_thread_widget_component.thread_message_input_voice.tooltip.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Parler' },
+            'oselia_thread_widget_component.thread_message_input_voice.talk.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Écoute...' },
+            'oselia_thread_widget_component.thread_message_input_voice.listening.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Traitement...' },
+            'oselia_thread_widget_component.thread_message_input_voice.transcribing.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Cache' },
             'oselia_thread_widget_component.thread_cached_datas_header.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(

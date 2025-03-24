@@ -62,6 +62,7 @@ export default interface IEnvParam {
     debug_throttled_select?: boolean;
     debug_select_datatable_rows_query_res?: boolean;
     debug_db_full_query_perf?: boolean;
+    debug_all_queries?: boolean;
     debug_interthreads_messages?: boolean;
     debug_io_rooms?: boolean;
     debug_vo_events?: boolean;

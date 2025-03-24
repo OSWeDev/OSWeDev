@@ -187,6 +187,7 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_throttled_select, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug throttled select', true);
         // DEBUG_SELECT_DATATABLE_ROWS_query_res ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_select_datatable_rows_query_res, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug select datatable rows query res', true);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_all_queries, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug all queries', true, true, false);
         // DEBUG_DB_FULL_QUERY_PERF ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_db_full_query_perf, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug DB full query perf', true);
         // DEBUG_INTERTHREADS_MESSAGES ?: boolean;

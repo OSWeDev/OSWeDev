@@ -158,6 +158,8 @@ export default class EnvParamsVO implements IDistantVOBase {
     // DEBUG_SELECT_DATATABLE_ROWS_query_res?: boolean;
     public debug_select_datatable_rows_query_res: boolean;
 
+    public debug_all_queries: boolean;
+
     // DEBUG_DB_FULL_QUERY_PERF?: boolean;
     public debug_db_full_query_perf: boolean;
 
