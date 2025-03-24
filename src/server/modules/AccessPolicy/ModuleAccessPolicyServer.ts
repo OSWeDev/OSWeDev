@@ -202,6 +202,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public async logout_sid(sid: string) {
 
         let session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
+        if (!session) {
+            ConsoleHandler.error('ModuleAccessPolicyServer.logout_sid:session not found:SID:' + sid);
+            return;
+        }
         return new Promise(async (accept, reject) => {
 
             let user_log = null;
@@ -233,7 +237,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
                 session = Object.assign(session, session.impersonated_from);
                 delete session.impersonated_from;
-                // session = session.impersonated_from; ???
+
+                if (!session.save) {
+                    ConsoleHandler.error('ModuleAccessPolicyServer.logout_sid:session.save:session.save not found:SID:' + sid);
+                    return;
+                }
 
                 session.save((err) => {
                     if (err) {
@@ -248,6 +256,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
                 session.uid = null;
                 session.user_vo = null;
+
+                if (!session.save) {
+                    ConsoleHandler.error('ServerExpressController:post_init_session_middleware:session_no_save:catch:' + JSON.stringify(session));
+                    return;
+                }
+
                 session.save((err) => {
                     if (err) {
                         ConsoleHandler.log(err);
@@ -324,12 +338,18 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session.uid = user.id;
             session.user_vo = user;
-            session.save((error) => {
-                if (error) {
-                    ConsoleHandler.error('ModuleAccessPolicyServer.login_session:session.save:' + error);
-                }
-                session_is_saved_resolver();
-            });
+
+            if (!session.save) {
+                ConsoleHandler.error('ModuleAccessPolicyServer.login_session:session.save:session.save not found:SID:' + sid);
+            } else {
+
+                session.save((error) => {
+                    if (error) {
+                        ConsoleHandler.error('ModuleAccessPolicyServer.login_session:session.save:' + error);
+                    }
+                    session_is_saved_resolver();
+                });
+            }
 
             await session_is_saved;
 
@@ -510,11 +530,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             session.user_vo = null;
 
             if ((!email) || (!password) || (!nom)) {
-                session.save((error) => {
-                    if (error) {
-                        ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:' + error);
-                    }
-                });
+
+                if (!session.save) {
+                    ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:session.save not found:SID:' + sid);
+                } else {
+
+                    session.save((error) => {
+                        if (error) {
+                            ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:' + error);
+                        }
+                    });
+                }
 
                 return null;
             }
@@ -528,11 +554,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                     await PasswordRecovery.getInstance().beginRecovery(user.email);
 
                 }
-                session.save((error) => {
-                    if (error) {
-                        ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:' + error);
-                    }
-                });
+
+                if (!session.save) {
+                    ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:session.save not found:SID:' + sid);
+                } else {
+
+                    session.save((error) => {
+                        if (error) {
+                            ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:' + error);
+                        }
+                    });
+                }
 
                 return null;
             } else {
@@ -565,11 +597,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
             session.uid = user.id;
             session.user_vo = user;
-            session.save((error) => {
-                if (error) {
-                    ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:' + error);
-                }
-            });
+
+            if (!session.save) {
+                ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:session.save not found:SID:' + sid);
+            } else {
+
+                session.save((error) => {
+                    if (error) {
+                        ConsoleHandler.error('ModuleAccessPolicyServer.signinAndRedirect:session.save:' + error);
+                    }
+                });
+            }
 
             // On stocke le log de connexion en base
             const user_log = new UserLogVO();
@@ -656,11 +694,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session.uid = user.id;
             session.user_vo = user;
-            session.save((error) => {
-                if (error) {
-                    ConsoleHandler.error('ModuleAccessPolicyServer.loginAndRedirect:session.save:' + error);
-                }
-            });
+
+            if (!session.save) {
+                ConsoleHandler.error('ModuleAccessPolicyServer.loginAndRedirect:session.save:session.save not found:SID:' + sid);
+            } else {
+
+                session.save((error) => {
+                    if (error) {
+                        ConsoleHandler.error('ModuleAccessPolicyServer.loginAndRedirect:session.save:' + error);
+                    }
+                });
+            }
 
             // On stocke le log de connexion en base
             const user_log = new UserLogVO();
@@ -727,11 +771,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         session.impersonated_from = Object.assign({}, session);
         session.uid = user.id;
         session.user_vo = user;
-        session.save((error) => {
-            if (error) {
-                ConsoleHandler.error('ModuleAccessPolicyServer.do_impersonate:session.save:' + error);
-            }
-        });
+
+        if (!session.save) {
+            ConsoleHandler.error('ModuleAccessPolicyServer.do_impersonate:session.save:session.save not found:SID:' + sid);
+        } else {
+
+            session.save((error) => {
+                if (error) {
+                    ConsoleHandler.error('ModuleAccessPolicyServer.do_impersonate:session.save:' + error);
+                }
+            });
+        }
 
 
         // On stocke le log de connexion en base

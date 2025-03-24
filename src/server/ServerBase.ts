@@ -1631,7 +1631,12 @@ export default abstract class ServerBase {
                 (Dates.now() >= (session.last_check_blocked_or_expired + 60))) {
 
                 session.last_check_blocked_or_expired = Dates.now();
-                session.save(() => { });
+
+                if (!session.save) {
+                    ConsoleHandler.error('ServerExpressController:post_init_session_middleware:session_no_save:' + JSON.stringify(session));
+                } else {
+                    session.save(() => { });
+                }
 
                 // On doit vérifier que le compte est ni bloqué ni expiré
                 const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().set_max_age_ms(60000).select_vo<UserVO>();
