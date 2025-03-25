@@ -137,9 +137,49 @@
                         .thread_message_input_textarea
                             textarea(v-model='new_message_text' rows="1" @keydown="handle_new_message_text_keydown" ref='new_message_textarea_ref')
                         .thread_message_input_buttons
-                            template(v-if="use_realtime_voice")
-                                .thread_message_input_voice 
-                                    button.fa-solid.fa-microphone(v-on:click='start_voice_record')
+
+                            .thread_message_input_voice
+                                button.btn.btn-primary(
+                                    @mousedown="start_recording",
+                                    @mouseup="stop_recording",
+                                    @touchstart.prevent="start_recording",
+                                    @touchend.prevent="stop_recording"
+                                    v-tooltip='label("oselia_thread_widget_component.thread_message_input_voice.tooltip")'
+                                )
+                                    template(v-if='input_voice_is_recording')
+                                        .icon 
+                                            i.fa-solid.fa-microphone.fa-beat.text-danger
+                                        .text {{ label('oselia_thread_widget_component.thread_message_input_voice.listening') }}
+
+                                    template(v-else-if='input_voice_is_transcribing')
+                                        .icon 
+                                            i.fa-duotone.fa-spinner-third.fa-spin
+                                        .text {{ label('oselia_thread_widget_component.thread_message_input_voice.transcribing') }}
+
+                                    template(v-else)
+                                        .icon 
+                                            i.fa-duotone.fa-solid.fa-microphone
+                                        .text {{ label('oselia_thread_widget_component.thread_message_input_voice.talk') }}
+
+                            .thread_message_input_summary
+                                button(
+                                    @click='get_voice_summary',
+                                    v-tooltip='label("oselia_thread_widget_component.thread_message_input_summary.tooltip")'
+                                )
+                                    template(v-if='thread_message_input_summary_is_loading')
+                                        .icon 
+                                            i.fa-duotone.fa-spinner-third.fa-spin
+                                        .text {{ label('oselia_thread_widget_component.thread_message_input_summary.loading') }}
+                                    template(v-else)
+                                        .icon 
+                                            i.fa-duotone.fa-solid.fa-presentation-screen
+                                        .text {{ label('oselia_thread_widget_component.thread_message_input_summary.summarize') }}
+
+
+
+                            //- template(v-if="use_realtime_voice")
+                            //-     .thread_message_input_voice 
+                            //-         button.fa-solid.fa-microphone(v-on:click='start_voice_record')
                             .thread_message_input_button.thread_message_input_file_system
                                 button.fa-solid.fa-files(v-on:click='open_file_system_upload')
                             .thread_message_input_button.thread_message_input_file

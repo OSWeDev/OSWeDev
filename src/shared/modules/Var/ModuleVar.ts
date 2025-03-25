@@ -3,6 +3,7 @@ import ConsoleHandler from '../../tools/ConsoleHandler';
 import { field_names, reflect } from '../../tools/ObjectHandler';
 import { all_promises } from '../../tools/PromiseTools';
 import RangeHandler from '../../tools/RangeHandler';
+import TextHandler from '../../tools/TextHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import APIDefinition from '../API/vos/APIDefinition';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
@@ -21,6 +22,7 @@ import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO, { APISimpleVOsParamVOStatic } from '../DAO/vos/APISimpleVOsParamVO';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import VOFieldRefVOHandler from '../DashboardBuilder/handlers/VOFieldRefVOHandler';
 import DashboardPageWidgetVO from '../DashboardBuilder/vos/DashboardPageWidgetVO';
 import FieldFiltersVO from '../DashboardBuilder/vos/FieldFiltersVO';
 import FieldValueFilterWidgetOptionsVO from '../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
@@ -582,6 +584,10 @@ export default class ModuleVar extends Module {
             context_query_initiale,
             context_query_actuelle,
             columns);
+        await this.add_vars_params_columns_for_ref_ids_without_excluded_filters_on_dynamic_string_columns(
+            context_query_initiale,
+            context_query_actuelle,
+            columns);
     }
 
     public page_widgets_ids_to_exclude_as_alias_prefix(do_not_user_filter_active_ids: number[]): string {
@@ -643,6 +649,27 @@ export default class ModuleVar extends Module {
             switch (matroid_field.field_type) {
                 case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
                 case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+
+                    if (
+                        VOFieldRefVOHandler.is_type_string({
+                            api_type_id: column.api_type_id,
+                            field_id: column.field_id,
+                        }) &&
+                        column?.custom_values?.length &&
+                        (matroid_field.foreign_ref_vo_type == column.api_type_id)
+                    ) {
+
+                        const field_alias = this.get_var_param_field_name(column.api_type_id, 'id') + TextHandler.getInstance().formatTextsToID(column.custom_values).join('#$#$#'); // Pas dingue mais bon...
+                        if (!row[field_alias]) {
+                            refuse_param = true;
+                            break;
+                        }
+
+                        const ids: number[] = row[field_alias].map((id) => parseInt(id));
+                        var_param[matroid_field.field_name] = RangeHandler.get_ids_ranges_from_list(ids);
+                        break;
+                    }
+
                     if (matroid_field.foreign_ref_vo_type) {
 
                         const alias = this.get_var_param_field_name(matroid_field.foreign_ref_vo_type, 'id', page_widgets_ids_to_exclude_as_alias_prefix);
@@ -653,21 +680,23 @@ export default class ModuleVar extends Module {
 
                         const ids: number[] = row[alias].map((id) => parseInt(id));
                         var_param[matroid_field.field_name] = RangeHandler.get_ids_ranges_from_list(ids);
-                    } else {
-                        if (!accept_max_ranges) {
-                            // Max range étant interdit sur les registers de var, on force un retour null
-
-                            if (!refuse_param) {
-                                if (log_refuse_param) {
-                                    ConsoleHandler.error('getVarParamForExport: max range not allowed on registers of var');
-                                }
-
-                                refuse_param = true;
-                            }
-                        } else {
-                            var_param[matroid_field.field_name] = [RangeHandler.getMaxNumRange()];
-                        }
+                        break;
                     }
+
+                    if (!accept_max_ranges) {
+                        // Max range étant interdit sur les registers de var, on force un retour null
+
+                        if (!refuse_param) {
+                            if (log_refuse_param) {
+                                ConsoleHandler.error('getVarParamForExport: max range not allowed on registers of var');
+                            }
+
+                            refuse_param = true;
+                        }
+                        break;
+                    }
+
+                    var_param[matroid_field.field_name] = [RangeHandler.getMaxNumRange()];
                     break;
                 case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
                     if (!accept_max_ranges) {
@@ -685,6 +714,10 @@ export default class ModuleVar extends Module {
                     break;
                 case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                     if (
+                        VOFieldRefVOHandler.is_type_date({
+                            api_type_id: column.api_type_id,
+                            field_id: column.field_id,
+                        }) &&
                         column?.custom_values?.length
                     ) {
                         var_param[matroid_field.field_name] = column.custom_values;
@@ -1083,6 +1116,12 @@ export default class ModuleVar extends Module {
                     continue;
                 }
 
+                // Si on est sur une colonne dynamique, et qu'on est sur le champs dynamique, on ne charge pas tout c'est inutile, on chargera dans un second temps
+                // via la fonction add_vars_params_columns_for_ref_ids_without_excluded_filters_on_dynamic_string_columns
+                if (column.custom_values && column.custom_values.length && (matroid_field.foreign_ref_vo_type == column.api_type_id)) {
+                    continue;
+                }
+
                 const matroid_field_api_type_id: string = matroid_field.foreign_ref_vo_type;
                 const matroid_field_name: string = 'id';
 
@@ -1103,6 +1142,109 @@ export default class ModuleVar extends Module {
                 const field_alias = this.get_var_param_field_name(api_type_id, field_name);
 
                 context_query.add_field(field_name, field_alias, api_type_id, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
+            }
+        }
+    }
+
+    /**
+     * Cas de l'ajout de colonnes qui utilisent un comportement dynamique, et donc un filtrage de la donnée par colonne pour un champs donné du matroid
+     */
+    private add_vars_params_columns_for_ref_ids_without_excluded_filters_on_dynamic_string_columns(
+        context_query_initiale: ContextQueryVO,
+        context_query_actuelle: ContextQueryVO,
+        columns: TableColumnDescVO[]) {
+
+        let subquery_id = 0;
+
+        // On défini le besoin, en identifiant les dimensions qu'on doit charger, c'est à dire les colonnes ID des VOs qui sont utilisées pour les vars de l'export
+        for (const j in columns) {
+            const column: TableColumnDescVO = columns[j];
+
+            if (!column) {
+                continue;
+            }
+
+            if (column.type != TableColumnDescVO.TYPE_var_ref) {
+                continue;
+            }
+
+            if (!column.custom_values || !column.custom_values.length) {
+                continue;
+            }
+
+            if (column.do_not_user_filter_active_ids && column.do_not_user_filter_active_ids.length) {
+                continue;
+            }
+
+            const varconf: VarConfVO = VarsController.var_conf_by_id[column.var_id];
+
+            if (!varconf) {
+                ConsoleHandler.error('add_vars_params_columns_for_ref_ids_without_excluded_filters_on_dynamic_string_columns:varconf not found:' + column.var_id);
+                continue;
+            }
+
+            const matroid_api_type_id = varconf.var_data_vo_type;
+            const matroid_fields = MatroidController.getMatroidFields(matroid_api_type_id);
+
+            if (!matroid_fields) {
+                continue;
+            }
+
+            for (const i in matroid_fields) {
+                const matroid_field: ModuleTableFieldVO = matroid_fields[i];
+
+                if ((!matroid_field) || (!matroid_field.foreign_ref_vo_type)) {
+                    continue;
+                }
+
+                if (matroid_field.foreign_ref_vo_type != column.api_type_id) {
+                    continue;
+                }
+
+                // Crée une sous-requête
+                const sub_query = context_query_initiale.clone();
+                const sub_query_table_alias = 'sqcv_' + subquery_id++;
+
+                const target_field_api_type_id: string = matroid_field.foreign_ref_vo_type;
+                const target_field_name: string = 'id';
+                const field_alias = this.get_var_param_field_name(target_field_api_type_id, target_field_name) + TextHandler.getInstance().formatTextsToID(column.custom_values).join('#$#$#'); // Pas dingue mais bon...
+
+                // On doit ajouter le filtre sur le champ dynamique, et la requete a pour cible de sélectionner les ids du type
+                sub_query.add_field(target_field_name, field_alias, target_field_api_type_id, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
+                sub_query.filter_by_text_has(column.field_id, column.custom_values, column.api_type_id);
+
+                const sub_query_join_on_fields: ContextQueryJoinOnFieldVO[] = [];
+
+                // On ajoute la colonne à la requete actuelle - sans aggreg puisque c'est déjà fait en subquery
+                context_query_actuelle.field(null, field_alias, sub_query_table_alias);
+                for (const k in context_query_initiale.fields) {
+                    const field = context_query_initiale.fields[k];
+
+                    if (!field) {
+                        continue;
+                    }
+
+                    if (!field.alias) {
+                        throw new Error('add_vars_params_columns_for_ref_ids_without_excluded_filters_on_dynamic_string_columns: field.alias should be defined:' + JSON.stringify(field));
+                    }
+
+                    // On doit renommer les fields de la sub pour les rendre uniques (je sais pas pourquoi mais sinon le moteur psql m'indique qu'il faut group by sur le t0.id par exemple - et j'ai l'impression que c'est du à une ambiguïté sur l'alias)
+                    const sub_query_field_alias = sub_query_table_alias + '_' + field.alias;
+                    const sub_query_field = sub_query.fields.find((f) => f.alias == field.alias);
+                    if (!sub_query_field) {
+                        throw new Error('add_vars_params_columns_for_ref_ids_without_excluded_filters_on_dynamic_string_columns: sub_query_field should be defined:' + JSON.stringify(field));
+                    }
+
+                    sub_query_field.alias = sub_query_field_alias;
+
+                    sub_query_join_on_fields.push(ContextQueryJoinOnFieldVO.createNew(
+                        sub_query_table_alias,
+                        sub_query_field.alias,
+                        field.api_type_id,
+                        field.field_name
+                    ));
+                }
+                context_query_actuelle.join_context_query(sub_query, sub_query_table_alias, ContextQueryJoinVO.JOIN_TYPE_LEFT_JOIN, sub_query_join_on_fields);
             }
         }
     }

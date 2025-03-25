@@ -2194,6 +2194,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Créer un filtre favori'
         }, 'dashboard_viewer.save_favorites_filters.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Filtre enregistré'
+        }, 'dashboard_viewer.save_favorites_filters.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Enregistrement du filtre en cours...'
+        }, 'dashboard_viewer.save_favorites_filters.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors de l\'enregistrement du filtre'
+        }, 'dashboard_viewer.save_favorites_filters.failed.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
         }, 'var_pie_chart_widget_options_component.has_dimension.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({

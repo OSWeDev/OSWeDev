@@ -216,6 +216,16 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             'oselia_thread_widget_component.thread_message_input_voice.talk.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Obtenir un résumé du ticket (audio et texte)' },
+            'oselia_thread_widget_component.thread_message_input_summary.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Préparation...' },
+            'oselia_thread_widget_component.thread_message_input_summary.loading.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Résumé' },
+            'oselia_thread_widget_component.thread_message_input_summary.summarize.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Écoute...' },
             'oselia_thread_widget_component.thread_message_input_voice.listening.___LABEL___'));
 

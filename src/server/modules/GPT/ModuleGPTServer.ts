@@ -102,6 +102,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_rerun, this.rerun.bind(this));
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().get_tts_file, this.get_tts_file.bind(this));
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().transcribe_file, this.transcribe_file.bind(this));
+        APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().summerize, this.summerize.bind(this));
         // APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_connect_to_realtime_voice, this.connect_to_realtime_voice.bind(this));
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_sync_openai_datas] = this.sync_openai_datas;
@@ -654,6 +655,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
             //     });
 
 
+            const instructions = "Don't try to transcribe exactly the text but give the text that most reliably resembles the meaning. If you're unsure, you can use the word 'inaudible' to indicate that a word is unclear or inaudible. If you're unsure about a phrase, you can use the word 'inaudible' to indicate that a phrase is unclear or inaudible. If you're unsure about a sentence, you can use the word 'inaudible' to indicate that a sentence is unclear or inaudible. If you're unsure about a paragraph, you can use the word 'inaudible' to indicate that a paragraph is unclear or inaudible. If you're unsure about a section, you can use the word 'inaudible' to indicate that a section is unclear or inaudible. If you're unsure about a chapter, you can use the word 'inaudible' to indicate that a chapter is unclear or inaudible. If you're unsure about a page, you can use the word 'inaudible' to indicate that a page is unclear or inaudible. If you're unsure about a book, you can use the word 'inaudible' to indicate that a book is unclear or inaudible.";
+
             transcription = await GPTAssistantAPIServerController.wrap_api_call(
                 ModuleGPTServer.openai.audio.transcriptions.create,
                 ModuleGPTServer.openai.audio.transcriptions,
@@ -661,6 +664,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
                     file: originalCreateReadStream(file_path) as unknown as FileLike,
                     model: 'gpt-4o-transcribe',
                     language: 'fr',
+                    instructions
                 } as any);
 
             if (!transcription.text) {
@@ -692,7 +696,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
         if (!message_content.tts_file_id) {
             // On génère via l'api GPT
             const speech_file_path = ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PATH + ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PREFIX + message_content.id + ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_SUFFIX;
-            const instructions = "Affect/personality: A cheerful guide \n\nTone: Friendly, clear, and reassuring, creating a calm atmosphere and making the listener feel confident and comfortable.\n\nPronunciation: Clear, articulate, and steady, ensuring each instruction is easily understood while maintaining a natural, conversational flow.\n\nPause: Brief, purposeful pauses after key instructions (e.g., \"cross the street\" and \"turn right\") to allow time for the listener to process the information and follow along.\n\nEmotion: Warm and supportive, conveying empathy and care, ensuring the listener feels guided and safe throughout the journey.";
+            // const instructions = "Affect/personality: A cheerful guide \n\nTone: Friendly, clear, and reassuring, creating a calm atmosphere and making the listener feel confident and comfortable.\n\nPronunciation: Clear, articulate, and steady, ensuring each instruction is easily understood while maintaining a natural, conversational flow.\n\nPause: Brief, purposeful pauses after key instructions (e.g., \"cross the street\" and \"turn right\") to allow time for the listener to process the information and follow along.\n\nEmotion: Warm and supportive, conveying empathy and care, ensuring the listener feels guided and safe throughout the journey.";
+            const instructions = "Don't try to read exactly, but with the given text, try to convey the meaning in a way that is most natural and clear.";
             const response = await ModuleGPTServer.openai.audio.speech.create({
                 model: "gpt-4o-mini-tts",
                 voice: "shimmer",
@@ -701,6 +706,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
             });
             // await response.stream_to_file(speech_file_path); // Doc GPT mais j'ai pas cette fonction :)
             const buffer = Buffer.from(await response.arrayBuffer());
+            await ModuleFileServer.getInstance().makeSureThisFolderExists(ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PATH);
             await ModuleFileServer.getInstance().writeFile(speech_file_path, buffer);
 
             file = new FileVO();
@@ -718,5 +724,9 @@ export default class ModuleGPTServer extends ModuleServerBase {
         }
 
         return file;
+    }
+
+    private async summerize(thread_vo: number): Promise<FileVO> {
+        throw new Error('Not implemented');
     }
 }

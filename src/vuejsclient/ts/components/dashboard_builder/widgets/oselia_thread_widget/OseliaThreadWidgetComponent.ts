@@ -6,8 +6,6 @@ import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/Mo
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -15,7 +13,6 @@ import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBui
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
-import ModuleFile from '../../../../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../../../../shared/modules/GPT/ModuleGPT';
@@ -47,7 +44,6 @@ import OseliaRunArboComponent from './OseliaRunArbo/OseliaRunArboComponent';
 import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
 import './OseliaThreadWidgetComponent.scss';
-import ClientAPIController from '../../../../modules/API/ClientAPIController';
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
     components: {
@@ -935,6 +931,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                     this.input_voice_is_recording = false;
                     this.input_voice_is_transcribing = true;
 
+                    // Stop toutes les pistes audio pour libérer le micro
+                    this.media_recorder.stream.getTracks().forEach(track => track.stop());
+
                     const blob = new Blob(audioChunks, { type: 'audio/webm' });
                     // Téléverser le fichier une fois qu'il est créé
                     const file = new File([blob], "thread_message_input_voice_" + Dates.now_ms() + "_" + VueAppController.getInstance().data_user.id + ".webm", { type: "audio/webm" });
@@ -988,34 +987,21 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
         formData.append('file', file, file_name);
 
-        return new Promise(async (resolve, reject) => {
+        try {
 
-            try {
-
-                AjaxCacheClientController.getInstance().post(
-                    null,
-                    '/ModuleFileServer/upload',
-                    [FileVO.API_TYPE_ID],
-                    formData,
-                    null,
-                    null,
-                    false,
-                    30000)
-                    .then(
-                        async () => {
-                            // Upload via insert or update
-                            const new_file = new FileVO();
-                            new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
-                            const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
-                            new_file.id = resnew_file.id;
-                            this.thread_files.push({ ['.' + file.name.split('.').pop()]: new_file });
-
-                            resolve(new_file);
-                        });
-            } catch (error) {
-                ConsoleHandler.error('do_upload_file error:' + error);
-                reject(error);
-            }
-        });
+            const new_file_vo_json = await AjaxCacheClientController.getInstance().post(
+                null,
+                '/ModuleFileServer/upload',
+                [FileVO.API_TYPE_ID],
+                formData,
+                null,
+                null,
+                false,
+                30000);
+            return Object.assign(new FileVO(), JSON.parse(new_file_vo_json));
+        } catch (error) {
+            ConsoleHandler.error('do_upload_file error:' + error);
+            return null;
+        }
     }
 }
