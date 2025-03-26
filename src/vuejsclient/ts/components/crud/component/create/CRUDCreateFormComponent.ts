@@ -6,8 +6,8 @@ import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByV
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
+import CRUDCreateNewVOAndRefsVO from '../../../../../../shared/modules/DAO/vos/CRUDCreateNewVOAndRefsVO';
 import CRUDFieldRemoverConfVO from '../../../../../../shared/modules/DAO/vos/CRUDFieldRemoverConfVO';
-import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -16,7 +16,7 @@ import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleAlertAction } from '../../../alert/AlertStore';
 import { ModuleCRUDGetter } from '../../../crud/store/CRUDStore';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
+import { ModuleDAOAction } from '../../../dao/store/DaoStore';
 import DatatableComponent from '../../../datatable/component/DatatableComponent';
 import CRUDComponentManager from '../../CRUDComponentManager';
 import CRUDFormServices from '../CRUDFormServices';
@@ -348,75 +348,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                     // On passe la traduction depuis IHM sur les champs
                     const apiokVo = CRUDFormServices.IHMToData(self.newVO, self.crud.createDatatable, false);
 
-                    // On utilise le trigger si il est présent sur le crud
-                    if (self.crud.preCreate) {
-                        const errorMsg = await self.crud.preCreate(apiokVo, self.newVO);
-                        if (errorMsg) {
-                            //comme il a eut une erreur on abandonne la création
-                            self.creating_vo = false;
-                            reject({
-                                body: self.label(errorMsg),
-                                config: {
-                                    timeout: 10000,
-                                    showProgressBar: true,
-                                    closeOnClick: false,
-                                    pauseOnHover: true,
-                                },
-                            });
-                            return;
-                        }
-                    }
-
-                    const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(apiokVo);
-                    if ((!res) || (!res.id)) {
-                        self.creating_vo = false;
-                        reject({
-                            body: self.label('crud.create.errors.create_failure'),
-                            config: {
-                                timeout: 10000,
-                                showProgressBar: true,
-                                closeOnClick: false,
-                                pauseOnHover: true,
-                            },
-                        });
-                        return;
-                    }
-
-                    const id = res.id ? res.id : null;
-                    self.newVO.id = id;
-                    apiokVo.id = id;
-
-                    const n_createdVO = await query(self.crud.readDatatable.API_TYPE_ID).filter_by_id(id).select_vo();
-                    createdVO = n_createdVO ? n_createdVO : apiokVo;
-                    /**
-                     * A SUIVRE en prod suivant les projets
-                     *  mais a priori si on a un res.id mais qu'on peut pas recharger le vo directement, c'est qu'on a pas le droit peut-etre
-                     *  par ce qu'il est pas complet. donc on le rempli quand même
-                     */
-
-                    if (n_createdVO && ((n_createdVO.id !== id) || (n_createdVO._type !== self.crud.readDatatable.API_TYPE_ID))) {
-                        self.creating_vo = false;
-                        reject({
-                            body: self.label('crud.create.errors.create_failure'),
-                            config: {
-                                timeout: 10000,
-                                showProgressBar: true,
-                                closeOnClick: false,
-                                pauseOnHover: true,
-                            },
-                        });
-                        return;
-                    }
-
-                    // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
-                    await CRUDFormServices.updateManyToMany(self.newVO, self.crud.createDatatable, createdVO, self.removeData, self.storeData, self);
-                    await CRUDFormServices.updateOneToMany(self.newVO, self.crud.createDatatable, createdVO, self.updateData);
-
-                    if (self.crud.postCreate) {
-                        await self.crud.postCreate(self.newVO);
-                    }
-
-                    self.storeData(createdVO);
+                    createdVO = await self.create_vo_and_refs(apiokVo, reject);
                 } catch (error) {
                     ConsoleHandler.error(error);
                     self.creating_vo = false;
@@ -512,5 +444,96 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
     private async cancel() {
         this.$emit('cancel');
+    }
+
+    private async create_vo_and_refs(vo: IDistantVOBase, reject_snotify) {
+        // On utilise le trigger si il est présent sur le crud
+        if (this.crud.preCreate) {
+            const errorMsg = await this.crud.preCreate(vo, this.newVO);
+            if (errorMsg) {
+                //comme il a eut une erreur on abandonne la création
+                this.creating_vo = false;
+                reject_snotify({
+                    body: this.label(errorMsg),
+                    config: {
+                        timeout: 10000,
+                        showProgressBar: true,
+                        closeOnClick: false,
+                        pauseOnHover: true,
+                    },
+                });
+                return;
+            }
+        }
+
+        // on doit récupérer toutes les refs
+        const many_to_many_create_vos = CRUDFormServices.get_vos_to_create_ManyToMany(this.newVO, this.crud.createDatatable, vo);
+        const one_to_many_update_queries = CRUDFormServices.get_queries_to_update_OneToMany(this.newVO, this.crud.createDatatable);
+
+        const new_vo_and_refs: CRUDCreateNewVOAndRefsVO = new CRUDCreateNewVOAndRefsVO();
+        new_vo_and_refs.new_vo = vo;
+        new_vo_and_refs.many_to_many_vos = (many_to_many_create_vos && many_to_many_create_vos.length) ? many_to_many_create_vos : null;
+        new_vo_and_refs.one_to_many_vos = (one_to_many_update_queries && one_to_many_update_queries.length) ? one_to_many_update_queries : null;
+
+        const new_and_updated_vos = await ModuleDAO.getInstance().create_new_vo_and_refs(new_vo_and_refs);
+        for (const i in new_and_updated_vos) {
+            const new_or_updated_vo = new_and_updated_vos[i];
+
+            this.storeData(new_or_updated_vo);
+        }
+
+        // On renvoie le vo créé, donc le premier de la liste
+        return new_and_updated_vos[0];
+
+        // const res: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(vo);
+        // if ((!res) || (!res.id)) {
+        //     this.creating_vo = false;
+        //     reject_snotify({
+        //         body: this.label('crud.create.errors.create_failure'),
+        //         config: {
+        //             timeout: 10000,
+        //             showProgressBar: true,
+        //             closeOnClick: false,
+        //             pauseOnHover: true,
+        //         },
+        //     });
+        //     return;
+        // }
+
+        // const id = res.id ? res.id : null;
+        // this.newVO.id = id;
+        // vo.id = id;
+
+        // const n_createdVO = await query(this.crud.readDatatable.API_TYPE_ID).filter_by_id(id).select_vo();
+        // const createdVO = n_createdVO ? n_createdVO : vo;
+        // /**
+        //  * A SUIVRE en prod suivant les projets
+        //  *  mais a priori si on a un res.id mais qu'on peut pas recharger le vo directement, c'est qu'on a pas le droit peut-etre
+        //  *  par ce qu'il est pas complet. donc on le rempli quand même
+        //  */
+
+        // if (n_createdVO && ((n_createdVO.id !== id) || (n_createdVO._type !== this.crud.readDatatable.API_TYPE_ID))) {
+        //     this.creating_vo = false;
+        //     reject_snotify({
+        //         body: this.label('crud.create.errors.create_failure'),
+        //         config: {
+        //             timeout: 10000,
+        //             showProgressBar: true,
+        //             closeOnClick: false,
+        //             pauseOnHover: true,
+        //         },
+        //     });
+        //     return;
+        // }
+
+        // // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
+        // await CRUDFormServices.updateManyToMany(this.newVO, this.crud.createDatatable, createdVO, this.removeData, this.storeData, this);
+        // await CRUDFormServices.updateOneToMany(this.newVO, this.crud.createDatatable, createdVO, this.updateData);
+
+        // if (this.crud.postCreate) {
+        //     await this.crud.postCreate(this.newVO);
+        // }
+
+        // this.storeData(createdVO);
     }
 }

@@ -21,6 +21,9 @@ import ModuleTableController from '../../../shared/modules/DAO/ModuleTableContro
 import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import { IContextHookFilterVos } from '../../../shared/modules/DAO/interface/IContextHookFilterVos';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
+import CRUDCNVOManyToManyRefVO from '../../../shared/modules/DAO/vos/CRUDCNVOManyToManyRefVO';
+import CRUDCNVOOneToManyRefVO from '../../../shared/modules/DAO/vos/CRUDCNVOOneToManyRefVO';
+import CRUDCreateNewVOAndRefsVO from '../../../shared/modules/DAO/vos/CRUDCreateNewVOAndRefsVO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
@@ -61,6 +64,8 @@ import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
+import ServerAnonymizationReloadConfMessage from '../Anonymization/vos/ServerAnonymizationReloadConfMessage';
+import ForkMessageController from '../Fork/ForkMessageController';
 import IDatabaseHolder from '../IDatabaseHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleTableDBService from '../ModuleTableDBService';
@@ -82,8 +87,6 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
-import ForkMessageController from '../Fork/ForkMessageController';
-import ServerAnonymizationReloadConfMessage from '../Anonymization/vos/ServerAnonymizationReloadConfMessage';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -835,6 +838,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().truncate, this.truncate_api.bind(this));
         APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().delete_all_vos_triggers_ok, this.delete_all_vos_triggers_ok.bind(this));
+
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().create_new_vo_and_refs, this.create_new_vo_and_refs.bind(this));
     }
 
     public async preload_segmented_known_database(t: ModuleTableVO) {
@@ -3225,5 +3230,63 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 throw new Error("Impossible de créer la table segmentée, et une query a été renvoyée à faire plus tard mais ça n'a aucun sens ici: " + JSON.stringify(queries_to_try_after_creation));
             }
         }
+    }
+
+    private async create_new_vo_and_refs(new_vo_and_refs: CRUDCreateNewVOAndRefsVO): Promise<IDistantVOBase[]> {
+
+        const res: IDistantVOBase[] = [];
+
+        try {
+
+            // 1 on insert le nouveau vo
+            await ModuleDAO.instance.insertOrUpdateVO(new_vo_and_refs.new_vo);
+            res.push(new_vo_and_refs.new_vo);
+        } catch (error) {
+
+            ConsoleHandler.error('ModuleDAOServer.create_new_vo_and_refs:error while inserting new vo:' + error);
+            return null;
+        }
+
+        // 2 on insert les refs many to many, en forçant d'abord le champs de liaison à l'id de l'objet nouvellement créé
+        const promises = [];
+        for (const i in new_vo_and_refs.many_to_many_vos) {
+            const many_to_many: CRUDCNVOManyToManyRefVO = new_vo_and_refs.many_to_many_vos[i];
+
+            many_to_many.new_vo[many_to_many.field_id] = new_vo_and_refs.new_vo.id;
+            promises.push((async () => {
+                try {
+                    await ModuleDAO.instance.insertOrUpdateVO(many_to_many.new_vo);
+                    res.push(many_to_many.new_vo);
+                } catch (error) {
+
+                    ConsoleHandler.error('ModuleDAOServer.create_new_vo_and_refs:error while creating many to many vo:' + error);
+                    return null;
+                }
+            })());
+        }
+
+        // 3 on insert les refs one to many, en forçant d'abord le champs de liaison à l'id de l'objet nouvellement créé
+        for (const i in new_vo_and_refs.one_to_many_vos) {
+            const one_to_many: CRUDCNVOOneToManyRefVO = new_vo_and_refs.one_to_many_vos[i];
+
+            promises.push((async () => {
+
+                try {
+
+                    const vo = await query(one_to_many.target_vo_api_type_id).filter_by_id(one_to_many.target_vo_id).select_vo();
+                    vo[one_to_many.field_id] = new_vo_and_refs.new_vo.id;
+                    await ModuleDAO.instance.insertOrUpdateVO(vo);
+                    res.push(vo);
+                } catch (error) {
+
+                    ConsoleHandler.error('ModuleDAOServer.create_new_vo_and_refs:error while updating one to many vo:' + error);
+                    return null;
+                }
+            })());
+        }
+
+        await all_promises(promises);
+
+        return res;
     }
 }

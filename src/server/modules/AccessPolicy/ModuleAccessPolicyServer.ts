@@ -473,7 +473,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             await PushDataServerController.unregisterSession(session.sid, false);
 
             session = Object.assign(session, session.impersonated_from);
-            // delete session.impersonated_from;
+            delete session.impersonated_from; // POURQUOI c'était commenté ???
 
             const uid: number = session.uid;
 

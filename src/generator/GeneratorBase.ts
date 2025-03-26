@@ -41,6 +41,8 @@ import VersionUpdater from './version_updater/VersionUpdater';
 // import Patch20241129PreCreateEventsConfs from './patchs/premodules/Patch20241129PreCreateEventsConfs';
 import GeneratorPatchsListHandler from './GeneratorPatchsListHandler';
 import IDatabaseHolder from '../server/modules/IDatabaseHolder';
+import EventsController from '../shared/modules/Eventify/EventsController';
+import StackContext from '../server/StackContext';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -58,6 +60,7 @@ export default abstract class GeneratorBase {
         // BLOCK Stats Generator side
         StatsController.ACTIVATED = false;
 
+        EventsController.hook_stack_exec_as_server = StackContext.exec_as_server;
         ModulesManager.initialize();
 
         GeneratorBase.instance = this;

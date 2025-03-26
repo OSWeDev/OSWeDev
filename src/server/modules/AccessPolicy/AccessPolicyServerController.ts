@@ -8,13 +8,15 @@ import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import { ExecAsServer } from '../../annotations/ExecAsServer';
+import ThrottleAndExecAsServer from '../../annotations/ThrottleAndExecAsServer';
 import ConfigurationService from '../../env/ConfigurationService';
 import { IRequestStackContext } from '../../ServerExpressController';
 import StackContext from '../../StackContext';
@@ -88,10 +90,6 @@ export default class AccessPolicyServerController {
      */
 
     private static instance: AccessPolicyServerController = null;
-
-    private static throttled_reload_access_matrix_computation = ThrottleHelper.declare_throttle_without_args(
-        'AccessPolicyServerController.throttled_reload_access_matrix_computation',
-        AccessPolicyServerController.reload_access_matrix_computation.bind(this), 1000);
 
     private constructor() { }
 
@@ -281,28 +279,6 @@ export default class AccessPolicyServerController {
         }
 
         return false;
-    }
-
-    /**
-     * On commence par invalider la matrice pour indiquer qu'on ne doit plus l'utiliser, et on prévoit une refonte de la matrice rapidement
-     */
-    public static async reload_access_matrix(): Promise<boolean> {
-        AccessPolicyServerController.access_matrix_validity = false;
-        AccessPolicyServerController.access_matrix_heritance_only_validity = false;
-        AccessPolicyServerController.throttled_reload_access_matrix_computation();
-        return true;
-    }
-
-    public static reload_access_matrix_computation() {
-        /**
-         * Le changement de access_matrix et validity sont fait directement en générant la matrice
-         */
-        if (!AccessPolicyServerController.access_matrix_validity) {
-            AccessPolicyServerController.getAccessMatrix(false);
-        }
-        if (!AccessPolicyServerController.access_matrix_heritance_only_validity) {
-            AccessPolicyServerController.getAccessMatrix(true);
-        }
     }
 
     public static async preload_registered_users_roles() {
@@ -1283,5 +1259,33 @@ export default class AccessPolicyServerController {
         }
 
         return true;
+    }
+
+
+    /**
+     * On commence par invalider la matrice pour indiquer qu'on ne doit plus l'utiliser, et on prévoit une refonte de la matrice rapidement
+     */
+    @ExecAsServer
+    public static async reload_access_matrix(): Promise<boolean> {
+        AccessPolicyServerController.access_matrix_validity = false;
+        AccessPolicyServerController.access_matrix_heritance_only_validity = false;
+        AccessPolicyServerController.reload_access_matrix_computation();
+        return true;
+    }
+
+    @ThrottleAndExecAsServer({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 1000,
+    })
+    public static reload_access_matrix_computation() {
+        /**
+         * Le changement de access_matrix et validity sont fait directement en générant la matrice
+         */
+        if (!AccessPolicyServerController.access_matrix_validity) {
+            AccessPolicyServerController.getAccessMatrix(false);
+        }
+        if (!AccessPolicyServerController.access_matrix_heritance_only_validity) {
+            AccessPolicyServerController.getAccessMatrix(true);
+        }
     }
 }

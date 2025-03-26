@@ -72,6 +72,7 @@ export default abstract class ForkedProcessWrapperBase {
         PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.debug_promise_pipeline_worker_stats;
         DBDisconnectionManager.instance = new DBDisconnectionServerHandler();
         EventsController.hook_stack_incompatible = ConfigurationService.node_configuration.activate_incompatible_stack_context ? StackContext.context_incompatible : null;
+        EventsController.hook_stack_exec_as_server = StackContext.exec_as_server;
 
         ConsoleHandler.init('thread ' + threadId);
         FileLoggerHandler.getInstance().prepare().then(() => {

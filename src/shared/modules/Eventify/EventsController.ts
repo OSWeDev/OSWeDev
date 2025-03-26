@@ -24,6 +24,11 @@ export default class EventsController {
     public static hook_stack_incompatible: <T extends Array<unknown>, U>(callback: (...params: T) => U | Promise<U>, this_arg: unknown, reason_context_incompatible: string, ...params: T) => Promise<U> = null;
 
     /**
+     * Hook initialisé au début du serveur pour simplement exec_as_server sans flag
+     */
+    public static hook_stack_exec_as_server: <T extends Array<unknown>, U>(callback: (...params: T) => U | Promise<U>, this_arg: unknown, exec_as_server: boolean, ...params: T) => Promise<U> = null;
+
+    /**
      * Mis à jour automatiquement depuis la valeur des ConfigurationService.node_configuration.debug_slow_event_listeners et ConfigurationService.node_configuration.debug_slow_event_listeners_ms_limit
      */
     public static debug_slow_event_listeners: boolean = false;
@@ -468,6 +473,8 @@ export default class EventsController {
                     // Si on est throttled, on peut pas maintenir un contexte
                     if (listener.throttled && EventsController.hook_stack_incompatible) {
                         await EventsController.hook_stack_incompatible(listener.cb, listener, 'EventsController.call_listener', event, listener);
+                    } else if (listener.throttled) {
+                        await EventsController.hook_stack_exec_as_server(listener.cb, listener, true, event, listener);
                     } else {
                         await listener.cb(event, listener);
                     }

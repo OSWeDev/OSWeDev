@@ -1,8 +1,12 @@
 import { cloneDeep } from 'lodash';
+import { SnotifyToast } from 'vue-snotify';
 import Alert from '../../../../../shared/modules/Alert/vos/Alert';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
 import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
+import CRUDCNVOManyToManyRefVO from '../../../../../shared/modules/DAO/vos/CRUDCNVOManyToManyRefVO';
+import CRUDCNVOOneToManyRefVO from '../../../../../shared/modules/DAO/vos/CRUDCNVOOneToManyRefVO';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToManyReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO';
@@ -12,21 +16,20 @@ import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datat
 import RefRangesReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
 import SimpleDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ImageVO from '../../../../../shared/modules/Image/vos/ImageVO';
-import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
+import RangeHandler from '../../../../../shared/tools/RangeHandler';
+import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
-import RangeHandler from '../../../../../shared/tools/RangeHandler';
-import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
-import { SnotifyToast } from 'vue-snotify';
-import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
-import { all_promises } from '../../../../../shared/tools/PromiseTools';
 
 export default class CRUDFormServices {
 
@@ -627,6 +630,92 @@ export default class CRUDFormServices {
                     }
                 }
             }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    /**
+     * Méthode qui renvoie tous les vos qui devraient exister pour réaliser la liaison manytomany telle que vue dans le datatable
+     * @param vo
+     */
+    public static get_vos_to_create_ManyToMany(
+        datatable_vo: IDistantVOBase, datatable: Datatable<IDistantVOBase>, db_vo: IDistantVOBase,
+    ): CRUDCNVOManyToManyRefVO[] {
+        try {
+
+            const res: CRUDCNVOManyToManyRefVO[] = [];
+
+            for (const i in datatable.fields) {
+
+                if (datatable.fields[i].type != ReferenceDatatableField.MANY_TO_MANY_FIELD_TYPE) {
+                    continue;
+                }
+
+                const field: ManyToManyReferenceDatatableFieldVO<any, any> = datatable.fields[i] as ManyToManyReferenceDatatableFieldVO<any, any>;
+                const interSrcRefField = field.inter_src_ref_field_id ? field.interModuleTable.getFieldFromId(field.inter_src_ref_field_id) : field.interModuleTable.getRefFieldFromTargetVoType(db_vo._type);
+                const interDestRefField = field.inter_target_ref_field_id ? field.interModuleTable.getFieldFromId(field.inter_target_ref_field_id) : field.interModuleTable.getRefFieldFromTargetVoType(field.targetModuleTable.vo_type);
+                const new_links_target_ids: number[] = cloneDeep(datatable_vo[field.module_table_field_id]);
+
+                const sample_vo: IDistantVOBase = {
+                    id: undefined,
+                    _type: field.interModuleTable.vo_type,
+                    [interSrcRefField.field_id]: -1, // éviter les checks de null potentiels
+                };
+
+                if (new_links_target_ids) {
+                    for (const j in new_links_target_ids) {
+                        const new_link_target_id = new_links_target_ids[j];
+
+                        const link_vo: IDistantVOBase = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[field.interModuleTable.vo_type](), sample_vo);
+
+                        link_vo[interDestRefField.field_id] = new_link_target_id;
+
+                        const new_many_to_many_link = new CRUDCNVOManyToManyRefVO();
+                        new_many_to_many_link.new_vo = link_vo;
+                        new_many_to_many_link.field_id = interSrcRefField.field_id;
+                        res.push(new_many_to_many_link);
+                    }
+                }
+            }
+            return res;
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    /**
+     * Méthode qui renvoie les queries à faire côté serveur pour effectuer les modifications demandées par le datatable (au format contextquery + {field_name: value})
+     * @param vo
+     */
+    public static get_queries_to_update_OneToMany(
+        datatable_vo: IDistantVOBase, datatable: Datatable<IDistantVOBase>,
+    ): CRUDCNVOOneToManyRefVO[] {
+        try {
+
+            const res: CRUDCNVOOneToManyRefVO[] = [];
+
+            for (const i in datatable.fields) {
+
+                if (datatable.fields[i].type != ReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE) {
+                    continue;
+                }
+
+                const field: OneToManyReferenceDatatableFieldVO<any> = datatable.fields[i] as OneToManyReferenceDatatableFieldVO<any>;
+
+                const new_links_target_ids: number[] = cloneDeep(datatable_vo[field.module_table_field_id]);
+
+                for (const j in new_links_target_ids) {
+                    const new_link_target_id = new_links_target_ids[j];
+
+                    const new_one_to_many_link = new CRUDCNVOOneToManyRefVO();
+                    new_one_to_many_link.field_id = field.dest_field_id;
+                    new_one_to_many_link.target_vo_api_type_id = field.targetModuleTable.vo_type;
+                    new_one_to_many_link.target_vo_id = new_link_target_id;
+                    res.push(new_one_to_many_link);
+                }
+            }
+            return res;
         } catch (error) {
             ConsoleHandler.error(error);
         }

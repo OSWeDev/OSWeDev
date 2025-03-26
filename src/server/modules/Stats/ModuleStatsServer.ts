@@ -133,7 +133,7 @@ export default class ModuleStatsServer extends ModuleServerBase {
             StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'do_stat_requete_latence_reseau', 'IN');
 
             const start = Dates.now_ms();
-            await axios.get('https://1.1.1.1');
+            await axios.get('https://1.1.1.1', { responseType: 'text' });
 
             StatsController.register_stat_DUREE('ModuleStatsServer', 'do_stat_requete_latence_reseau', 'success', Dates.now_ms() - start);
         } catch (error) {

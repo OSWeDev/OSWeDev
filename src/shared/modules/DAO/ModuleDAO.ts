@@ -18,8 +18,10 @@ import ModuleTableController from './ModuleTableController';
 import APIDAOApiTypeAndMatroidsParamsVO, { APIDAOApiTypeAndMatroidsParamsVOStatic } from './vos/APIDAOApiTypeAndMatroidsParamsVO';
 import APIDAONamedParamVO, { APIDAONamedParamVOStatic } from './vos/APIDAONamedParamVO';
 import APIDAOParamsVO, { APIDAOParamsVOStatic } from './vos/APIDAOParamsVO';
-import APIDAOTypeLimitOffsetVO, { APIDAOTypeLimitOffsetVOStatic } from './vos/APIDAOTypeLimitOffsetVO';
 import APIDAOselectUsersForCheckUnicityVO, { APIDAOselectUsersForCheckUnicityVOStatic } from './vos/APIDAOselectUsersForCheckUnicityVO';
+import CRUDCNVOManyToManyRefVO from './vos/CRUDCNVOManyToManyRefVO';
+import CRUDCNVOOneToManyRefVO from './vos/CRUDCNVOOneToManyRefVO';
+import CRUDCreateNewVOAndRefsVO from './vos/CRUDCreateNewVOAndRefsVO';
 import CRUDFieldRemoverConfVO from './vos/CRUDFieldRemoverConfVO';
 import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
 import ModuleTableCompositePartialIndexVO from './vos/ModuleTableCompositePartialIndexVO';
@@ -53,6 +55,8 @@ export default class ModuleDAO extends Module {
 
     public selectUsersForCheckUnicity: (name: string, email: string, phone: string, user_id: number) => Promise<boolean> =
         APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleDAO>().selectUsersForCheckUnicity);
+
+    public create_new_vo_and_refs: (new_vo_and_refs: CRUDCreateNewVOAndRefsVO) => Promise<IDistantVOBase[]> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleDAO>().create_new_vo_and_refs);
 
     public truncate: (api_type_id: string) => Promise<void> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleDAO>().truncate);
     public delete_all_vos_triggers_ok: (api_type_id: string) => Promise<void> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleDAO>().delete_all_vos_triggers_ok);
@@ -199,6 +203,30 @@ export default class ModuleDAO extends Module {
         )).exec_on_api_bgthread());
         // )));
 
+        APIControllerWrapper.registerApi((PostAPIDefinition.new<CRUDCreateNewVOAndRefsVO, IDistantVOBase[]>(
+            null,
+            this.name,
+            reflect<ModuleDAO>().create_new_vo_and_refs,
+            (param: CRUDCreateNewVOAndRefsVO) => {
+                const res: { [type: string]: boolean } = {};
+
+                res[param.new_vo._type] = true;
+
+                for (const j in param.many_to_many_vos) {
+                    res[param.many_to_many_vos[j].new_vo._type] = true;
+                }
+
+                for (const j in param.one_to_many_vos) {
+                    res[param.one_to_many_vos[j].target_vo_api_type_id] = true;
+                }
+
+                return Object.keys(res);
+            },
+            null,
+            //            APIDefinition.API_RETURN_TYPE_NOTIF,
+        )).exec_on_api_bgthread());
+
+
         APIControllerWrapper.registerApi((PostAPIDefinition.new<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
             null,
             this.name,
@@ -332,6 +360,9 @@ export default class ModuleDAO extends Module {
         this.init_ModuleTableFieldVO();
         this.init_ModuleTableCompositePartialIndexVO();
         this.init_ModuleTableCompositeUniqueKeyVO();
+        this.init_CRUDCNVOManyToManyRefVO();
+        this.init_CRUDCNVOOneToManyRefVO();
+        this.init_CRUDCreateNewVOAndRefsVO();
     }
 
     public get_compute_function_uid(vo_type: string) {
@@ -463,5 +494,29 @@ export default class ModuleDAO extends Module {
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().sort_by_field, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champ de tri', false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().composite_partial_indexes, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Indexs composites partiels', false);
+    }
+
+    private init_CRUDCNVOManyToManyRefVO() {
+        ModuleTableController.create_new(this.name, CRUDCNVOManyToManyRefVO, null, "Ref ManyToMany à créer");
+
+        ModuleTableFieldController.create_new(CRUDCNVOManyToManyRefVO.API_TYPE_ID, field_names<CRUDCNVOManyToManyRefVO>().new_vo, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Nouveau vo', true);
+        ModuleTableFieldController.create_new(CRUDCNVOManyToManyRefVO.API_TYPE_ID, field_names<CRUDCNVOManyToManyRefVO>().field_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Champ de liaison', true);
+    }
+
+    private init_CRUDCNVOOneToManyRefVO() {
+        ModuleTableController.create_new(this.name, CRUDCNVOOneToManyRefVO, null, "Ref OneToMany à modifier");
+
+        ModuleTableFieldController.create_new(CRUDCNVOOneToManyRefVO.API_TYPE_ID, field_names<CRUDCNVOOneToManyRefVO>().target_vo_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'API Type Id du vo cible', true);
+        ModuleTableFieldController.create_new(CRUDCNVOOneToManyRefVO.API_TYPE_ID, field_names<CRUDCNVOOneToManyRefVO>().target_vo_id, ModuleTableFieldVO.FIELD_TYPE_int, 'Id du vo cible', true);
+
+        ModuleTableFieldController.create_new(CRUDCNVOOneToManyRefVO.API_TYPE_ID, field_names<CRUDCNVOOneToManyRefVO>().field_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Champ de liaison', true);
+    }
+
+    private init_CRUDCreateNewVOAndRefsVO() {
+        ModuleTableController.create_new(this.name, CRUDCreateNewVOAndRefsVO, null, "VO à créer");
+
+        ModuleTableFieldController.create_new(CRUDCreateNewVOAndRefsVO.API_TYPE_ID, field_names<CRUDCreateNewVOAndRefsVO>().new_vo, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Nouveau vo', true);
+        ModuleTableFieldController.create_new(CRUDCreateNewVOAndRefsVO.API_TYPE_ID, field_names<CRUDCreateNewVOAndRefsVO>().many_to_many_vos, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Ref ManyToMany à créer', false);
+        ModuleTableFieldController.create_new(CRUDCreateNewVOAndRefsVO.API_TYPE_ID, field_names<CRUDCreateNewVOAndRefsVO>().one_to_many_vos, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Ref OneToMany à modifier', false);
     }
 }
