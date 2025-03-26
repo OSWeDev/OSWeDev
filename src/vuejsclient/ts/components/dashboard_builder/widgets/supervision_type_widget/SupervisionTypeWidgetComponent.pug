@@ -60,7 +60,7 @@
                         .category_label.separator
                             p {{ cat.name }}
                             //- Icone up/down, etc. selon isPanelOpenCat[cat.id]
-                            i.btn-sm.btn-secondary.pull-right.ml-1(:class="isPanelOpenCat[cat.id] ? 'fa fa-solid fa-chevron-down' : 'fa fa-solid fa-chevron-up'")
+                            i.btn-sm.btn-secondary.pull-right.ml-1(:class="isPanelOpenCat[cat.id] ? 'fa fa-solid fa-chevron-down' : 'fa fa-solid fa-chevron-right'")
 
                         //- Compteur de la categorie affcihé si le panel est fermé
                         template(v-if="show_counter && !isPanelOpenCat[cat.id]")

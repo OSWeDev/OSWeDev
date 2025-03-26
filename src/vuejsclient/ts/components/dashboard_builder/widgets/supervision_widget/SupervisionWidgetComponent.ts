@@ -37,6 +37,7 @@ import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsType
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleSupervision from '../../../../../../shared/modules/Supervision/ModuleSupervision';
 import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
+import SupervisionCustomColumnVO from '../../../../../../shared/modules/DashboardBuilder/vos/SupervisionCustomColumnVO';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -184,6 +185,13 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
                 return true;
             }
         }
+    }
+
+    get custom_columns(): SupervisionCustomColumnVO[] {
+        if (!SupervisionWidgetManager.supervision_custom_columns?.length) {
+            return [];
+        }
+        return SupervisionWidgetManager.supervision_custom_columns;
     }
 
     @Watch('page_widget', { immediate: true })
@@ -493,4 +501,8 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         this.groups = await query(SupervisedProbeGroupVO.API_TYPE_ID).select_vos<SupervisedProbeGroupVO>();
         this.probes_by_ids = VOsTypesManager.vosArray_to_vosByIds(await query(SupervisedProbeVO.API_TYPE_ID).select_vos<SupervisedProbeVO>());
     }
+
+    // private get_split_name(item: ISupervisedItem): string {
+    //     return SupervisionController.getInstance().get_item_split_name(item?.name, this.split_char);
+    // }
 }

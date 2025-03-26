@@ -20,6 +20,7 @@ import SupervisedProbeGroupVO from "../../Supervision/vos/SupervisedProbeGroupVO
 import RangeHandler from "../../../tools/RangeHandler";
 import SupervisedProbeVO from "../../Supervision/vos/SupervisedProbeVO";
 import ObjectHandler from "../../../tools/ObjectHandler";
+import SupervisionCustomColumnVO from "../vos/SupervisionCustomColumnVO";
 
 /**
  * SupervisionWidgetManager
@@ -27,10 +28,13 @@ import ObjectHandler from "../../../tools/ObjectHandler";
  */
 export default class SupervisionWidgetManager {
 
+    public static supervision_custom_columns: SupervisionCustomColumnVO[] = [];
+
     private static instance: SupervisionWidgetManager;
 
     public is_item_accepted: { [dashboard_id: number]: (supervised_item: ISupervisedItem) => boolean } = {};
     public allowed_api_type_ids: string[] = [];
+    public custom_columns: SupervisionCustomColumnVO[] = [];
 
     protected constructor() { }
 
@@ -182,6 +186,13 @@ export default class SupervisionWidgetManager {
             context_filters_by_api_type_id,
             pagination,
         );
+    }
+
+    public static register_custom_column_component(custom_column: SupervisionCustomColumnVO) {
+        if (!this.supervision_custom_columns) {
+            this.supervision_custom_columns = [];
+        }
+        this.supervision_custom_columns.push(custom_column);
     }
 
     /**
@@ -375,4 +386,5 @@ export default class SupervisionWidgetManager {
     public set_item_filter_condition_for_key(dashboard_id: number, condition: (supervised_item: ISupervisedItem) => boolean): void {
         this.is_item_accepted[dashboard_id] = condition;
     }
+
 }
