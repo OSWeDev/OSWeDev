@@ -161,19 +161,19 @@
                                             i.fa-duotone.fa-solid.fa-microphone
                                         .text {{ label('oselia_thread_widget_component.thread_message_input_voice.talk') }}
 
-                            .thread_message_input_summary
-                                button(
-                                    @click='get_voice_summary',
-                                    v-tooltip='label("oselia_thread_widget_component.thread_message_input_summary.tooltip")'
-                                )
-                                    template(v-if='thread_message_input_summary_is_loading')
-                                        .icon 
-                                            i.fa-duotone.fa-spinner-third.fa-spin
-                                        .text {{ label('oselia_thread_widget_component.thread_message_input_summary.loading') }}
-                                    template(v-else)
-                                        .icon 
-                                            i.fa-duotone.fa-solid.fa-presentation-screen
-                                        .text {{ label('oselia_thread_widget_component.thread_message_input_summary.summarize') }}
+                            //- .thread_message_input_summary
+                            //-     button(
+                            //-         @click='get_voice_summary',
+                            //-         v-tooltip='label("oselia_thread_widget_component.thread_message_input_summary.tooltip")'
+                            //-     )
+                            //-         template(v-if='thread_message_input_summary_is_loading')
+                            //-             .icon 
+                            //-                 i.fa-duotone.fa-spinner-third.fa-spin
+                            //-             .text {{ label('oselia_thread_widget_component.thread_message_input_summary.loading') }}
+                            //-         template(v-else)
+                            //-             .icon 
+                            //-                 i.fa-duotone.fa-solid.fa-presentation-screen
+                            //-             .text {{ label('oselia_thread_widget_component.thread_message_input_summary.summarize') }}
 
 
 
