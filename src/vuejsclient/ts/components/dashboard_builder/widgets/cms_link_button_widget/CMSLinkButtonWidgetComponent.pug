@@ -1,6 +1,6 @@
 include ../../../../../views/mixins/loading.pug
 
-.cms_link_button_widget_component.text-center
+.cms_link_button_widget_component.text-center(:class="button_class")
     template(v-if='show_link_button')
         button(@click="go_to_link" :style="style")
             //- i.fa-solid.fa-spin.fa-spinner.mr-2(v-if="start_update")

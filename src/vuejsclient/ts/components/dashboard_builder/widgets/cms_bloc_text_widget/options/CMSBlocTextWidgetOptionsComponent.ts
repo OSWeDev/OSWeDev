@@ -43,6 +43,10 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
     private sur_titre_template_is_date: boolean = false;
     private contenu_template_is_date: boolean = false;
     private sous_titre_symbole: string = null;
+    private titre_class: string = null;
+    private sous_titre_class: string = null;
+    private sur_titre_class: string = null;
+    private contenu_class: string = null;
 
     private optionsEditeur = {
         modules: {
@@ -99,6 +103,10 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
             this.sur_titre_field_ref_for_template = null;
             this.contenu_field_ref_for_template = null;
             this.sous_titre_symbole = null;
+            this.titre_class = null;
+            this.sous_titre_class = null;
+            this.sur_titre_class = null;
+            this.contenu_class = null;
 
             return;
         }
@@ -112,6 +120,10 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         this.sur_titre_template_is_date = this.widget_options.sur_titre_template_is_date;
         this.contenu_template_is_date = this.widget_options.contenu_template_is_date;
         this.sous_titre_symbole = this.widget_options.sous_titre_symbole;
+        this.titre_class = this.widget_options.titre_class;
+        this.sous_titre_class = this.widget_options.sous_titre_class;
+        this.sur_titre_class = this.widget_options.sur_titre_class;
+        this.contenu_class = this.widget_options.contenu_class;
         this.titre_field_ref_for_template = this.widget_options.titre_field_ref_for_template ? Object.assign(new VOFieldRefVO(), this.widget_options.titre_field_ref_for_template) : null;
         this.sous_titre_field_ref_for_template = this.widget_options.sous_titre_field_ref_for_template ? Object.assign(new VOFieldRefVO(), this.widget_options.sous_titre_field_ref_for_template) : null;
         this.sur_titre_field_ref_for_template = this.widget_options.sur_titre_field_ref_for_template ? Object.assign(new VOFieldRefVO(), this.widget_options.sur_titre_field_ref_for_template) : null;
@@ -132,6 +144,10 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
     @Watch('sous_titre_field_ref_for_template')
     @Watch('sur_titre_field_ref_for_template')
     @Watch('contenu_field_ref_for_template')
+    @Watch('titre_class')
+    @Watch('sous_titre_class')
+    @Watch('sur_titre_class')
+    @Watch('contenu_class')
     private async onchange_bloc_text() {
         if (!this.widget_options) {
             return;
@@ -147,6 +163,10 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
             this.widget_options.sur_titre_template_is_date != this.sur_titre_template_is_date ||
             this.widget_options.contenu_template_is_date != this.contenu_template_is_date ||
             this.widget_options.sous_titre_symbole != this.sous_titre_symbole ||
+            this.widget_options.titre_class != this.titre_class ||
+            this.widget_options.sous_titre_class != this.sous_titre_class ||
+            this.widget_options.sur_titre_class != this.sur_titre_class ||
+            this.widget_options.contenu_class != this.contenu_class ||
             !isEqual(this.widget_options.titre_field_ref_for_template, this.titre_field_ref_for_template) ||
             !isEqual(this.widget_options.sous_titre_field_ref_for_template, this.sous_titre_field_ref_for_template) ||
             !isEqual(this.widget_options.sur_titre_field_ref_for_template, this.sur_titre_field_ref_for_template) ||
@@ -156,6 +176,10 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
             this.next_update_options.sous_titre = this.sous_titre;
             this.next_update_options.sur_titre = this.sur_titre;
             this.next_update_options.contenu = this.contenu;
+            this.next_update_options.titre_class = this.titre_class;
+            this.next_update_options.sous_titre_class = this.sous_titre_class;
+            this.next_update_options.sur_titre_class = this.sur_titre_class;
+            this.next_update_options.contenu_class = this.contenu_class;
             this.next_update_options.use_for_template = this.use_for_template;
             this.next_update_options.titre_template_is_date = this.titre_template_is_date;
             this.next_update_options.sous_titre_template_is_date = this.sous_titre_template_is_date;
@@ -199,6 +223,10 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
             false,
             false,
             false,
+            "",
+            "",
+            "",
+            "",
             "",
         );
     }

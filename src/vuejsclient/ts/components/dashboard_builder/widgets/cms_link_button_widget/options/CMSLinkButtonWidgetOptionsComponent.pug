@@ -44,6 +44,13 @@
                     v-tooltip='label("cms_link_button.widget_option.icone.tooltip")'
                 )
         
+        .widget_button_class_label {{ label('cms_link_button.widget_option.button_class') }}
+            .widget_button_class_wrapper
+                input(
+                    type="text"
+                    v-model="button_class"
+                )
+        
         .about_blank_label {{ label('cms_link_button.widget_option.about_blank') }}
         toggle-button(
             @change="switch_about_blank"

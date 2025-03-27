@@ -42,6 +42,10 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
     private sous_titre: string = null;
     private sur_titre: string = null;
     private contenu: string = null;
+    private sur_titre_class: string = null;
+    private titre_class: string = null;
+    private sous_titre_class: string = null;
+    private contenu_class: string = null;
 
     get widget_options(): CMSBlocTextWidgetOptionsVO {
         if (!this.page_widget) {
@@ -79,6 +83,10 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
             this.sous_titre = null;
             this.sur_titre = null;
             this.contenu = null;
+            this.sur_titre_class = null;
+            this.titre_class = null;
+            this.sous_titre_class = null;
+            this.contenu_class = null;
 
             return;
         }
@@ -90,6 +98,10 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
         }
         this.sur_titre = this.get_value(this.widget_options.sur_titre, this.widget_options.sur_titre_field_ref_for_template, this.widget_options.sur_titre_template_is_date);
         this.contenu = this.get_value(this.widget_options.contenu, this.widget_options.contenu_field_ref_for_template, this.widget_options.contenu_template_is_date);
+        this.sur_titre_class = this.widget_options.sur_titre_class;
+        this.titre_class = this.widget_options.titre_class;
+        this.sous_titre_class = this.widget_options.sous_titre_class;
+        this.contenu_class = this.widget_options.contenu_class;
     }
 
     private async mounted() {

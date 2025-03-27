@@ -4238,6 +4238,26 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Champ User" },
             'cms_boolean_button.widget_option.user_field_ref.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter une classe (CSS)" },
+            'cms_link_button.widget_option.button_class.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter une classe au titre (CSS)" },
+            'cms_bloc_text.widget_option.titre_class.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter une classe au sous-titre (CSS)" },
+            'cms_bloc_text.widget_option.sous_titre_class.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter une classe au sur-titre (CSS)" },
+            'cms_bloc_text.widget_option.sur_titre_class.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter une classe au contenu (CSS)" },
+            'cms_bloc_text.widget_option.contenu_class.___LABEL___'
+        ));
 
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);

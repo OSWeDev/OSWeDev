@@ -43,6 +43,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
     private is_text_color_white: boolean = true;
     private radius: number = null;
     private icone: string = null;
+    private button_class: string = null;
     private selected_roles: RoleVO[] = [];
     private list_roles: RoleVO[] = [];
 
@@ -80,6 +81,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             this.is_text_color_white = true;
             this.radius = 0;
             this.icone = "";
+            this.button_class = "";
             this.selected_roles = [];
 
             return;
@@ -95,6 +97,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         this.is_text_color_white = (this.widget_options.text_color == '#ffffff');
         this.radius = this.widget_options.radius;
         this.icone = this.widget_options.icone;
+        this.button_class = this.widget_options.button_class;
         this.selected_roles = this.widget_options.role_access;
     }
 
@@ -107,6 +110,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
     @Watch('about_blank')
     @Watch('radius')
     @Watch('icone')
+    @Watch('button_class')
     @Watch('selected_roles')
     private async onchange_bloc_text() {
         if (!this.widget_options) {
@@ -120,6 +124,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             this.widget_options.text_color != this.text_color ||
             this.widget_options.radius != this.radius ||
             this.widget_options.icone != this.icone ||
+            this.widget_options.button_class != this.button_class ||
             this.widget_options.is_url_field != this.is_url_field ||
             this.widget_options.color != this.color ||
             this.widget_options.role_access != this.selected_roles
@@ -135,6 +140,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             this.next_update_options.about_blank = this.about_blank;
             this.next_update_options.radius = this.radius;
             this.next_update_options.icone = this.icone;
+            this.next_update_options.button_class = this.button_class;
             this.next_update_options.role_access = this.selected_roles;
 
             this.is_text_color_white = (this.text_color == '#ffffff');
@@ -172,6 +178,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             "",
             false,
             [],
+            "",
         );
     }
 

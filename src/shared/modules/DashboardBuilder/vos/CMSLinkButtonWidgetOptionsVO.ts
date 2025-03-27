@@ -14,6 +14,7 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
     public icone: string;
     public is_url_field: boolean;
     public role_access: RoleVO[];
+    public button_class: string;
 
     public static createNew(
         url: string,
@@ -26,6 +27,7 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
         icone: string,
         is_url_field: boolean,
         role_access: RoleVO[],
+        button_class: string,
     ): CMSLinkButtonWidgetOptionsVO {
         const res = new CMSLinkButtonWidgetOptionsVO();
 
@@ -39,6 +41,7 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
         res.icone = icone;
         res.is_url_field = is_url_field;
         res.role_access = role_access;
+        res.button_class = button_class;
 
         return res;
     }

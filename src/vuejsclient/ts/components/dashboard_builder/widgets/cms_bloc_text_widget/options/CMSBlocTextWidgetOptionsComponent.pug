@@ -125,3 +125,29 @@
 
                 template(v-else)
                     Vuequilleditor(v-model='contenu', :options="optionsEditeur")
+
+        .widget_sur_titre_class_label {{ label('cms_bloc_text.widget_option.sur_titre_class') }}
+            .widget_sur_titre_class_wrapper
+                input(
+                    type="text"
+                    v-model="sur_titre_class"
+                )
+        .widget_titre_class_label {{ label('cms_bloc_text.widget_option.titre_class') }}
+            .widget_titre_class_wrapper
+                input(
+                    type="text"
+                    v-model="titre_class"
+                )
+                
+        .widget_sous_titre_class_label {{ label('cms_bloc_text.widget_option.sous_titre_class') }}
+            .widget_sous_titre_class_wrapper
+                input(
+                    type="text"
+                    v-model="sous_titre_class"
+                )
+        .widget_contenu_class_label {{ label('cms_bloc_text.widget_option.contenu_class') }}
+            .widget_contenu_class_wrapper
+                input(
+                    type="text"
+                    v-model="contenu_class"
+                )
