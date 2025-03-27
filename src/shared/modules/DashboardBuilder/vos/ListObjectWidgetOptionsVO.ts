@@ -42,6 +42,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
     public symbole_sous_titre: string;
     public filter_on_distant_vo: boolean;
     public field_filter_distant_vo: VOFieldRefVO;
+    public zoom_on_click: boolean;
 
     public static createNew(
         type_display: number,
@@ -62,6 +63,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         field_filter_cmv_vo: VOFieldRefVO,
         filter_on_distant_vo: boolean,
         field_filter_distant_vo: VOFieldRefVO,
+        zoom_on_click: boolean,
         do_not_use_page_widget_ids?: number[],
         show_message_no_data?: boolean,
         message_no_data?: string,
@@ -92,6 +94,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         res.symbole_sous_titre = symbole_sous_titre;
         res.filter_on_distant_vo = filter_on_distant_vo;
         res.field_filter_distant_vo = field_filter_distant_vo;
+        res.zoom_on_click = zoom_on_click;
 
         return res;
     }

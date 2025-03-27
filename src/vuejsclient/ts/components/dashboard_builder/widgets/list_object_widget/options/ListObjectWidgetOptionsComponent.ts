@@ -81,6 +81,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
     private field_filter_distant_vo: VOFieldRefVO = null;
     private symbole_surtitre: string = null;
     private symbole_sous_titre: string = null;
+    private zoom_on_click: boolean;
 
     private optionsEditeur = {
         modules: {
@@ -228,6 +229,30 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         await this.throttled_reload_options();
     }
 
+    @Watch('type_display')
+    @Watch('display_orientation')
+    @Watch('button_elements')
+    @Watch('is_card_display_single')
+    private async onchange_for_zoom_on_click() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if ((this.type_display == ListObjectWidgetOptionsVO.TYPE_DISPLAY_CARD) &&
+            (this.display_orientation == ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_HORIZONTAL) &&
+            (!this.button_elements) &&
+            (!this.is_card_display_single)) {
+
+            this.zoom_on_click = true;
+            this.widget_options.zoom_on_click = true;
+        } else {
+            this.zoom_on_click = false;
+            this.widget_options.zoom_on_click = false;
+        }
+
+        this.throttled_update_options();
+    }
+
     @Watch('do_not_use_page_widgets')
     private async onchange_do_not_use_page_widgets() {
         this.next_update_options = this.widget_options;
@@ -347,6 +372,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             null,
             false,
             null,
+            false,
             [],
             false,
             null,
@@ -383,6 +409,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                     options = JSON.parse(this.page_widget.json_options) as ListObjectWidgetOptionsVO;
                     if (this.widget_options &&
                         (this.widget_options.blank == options.blank) &&
+                        (this.widget_options.zoom_on_click == options.zoom_on_click) &&
                         (this.widget_options.button_elements == options.button_elements) &&
                         (this.widget_options.display_orientation == options.display_orientation) &&
                         (this.widget_options.image_id == options.image_id) &&
@@ -427,6 +454,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         options.field_filter_cmv_vo,
                         options.filter_on_distant_vo,
                         options.field_filter_distant_vo,
+                        options.zoom_on_click,
                         options.do_not_use_page_widget_ids,
                         options.show_message_no_data,
                         options.message_no_data,
@@ -464,6 +492,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.button_elements = default_options.button_elements;
             this.url = default_options.url;
             this.blank = default_options.blank;
+            this.zoom_on_click = default_options.zoom_on_click;
             this.is_card_display_single = default_options.is_card_display_single;
             this.do_not_use_page_widget_ids = default_options.do_not_use_page_widget_ids;
             this.show_message_no_data = default_options.show_message_no_data;
@@ -517,6 +546,9 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.blank != this.widget_options.blank) {
             this.blank = this.widget_options.blank;
+        }
+        if (this.zoom_on_click != this.widget_options.zoom_on_click) {
+            this.zoom_on_click = this.widget_options.zoom_on_click;
         }
         if (this.is_card_display_single != this.widget_options.is_card_display_single) {
             this.is_card_display_single = this.widget_options.is_card_display_single;
@@ -632,6 +664,18 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
 
         this.next_update_options.blank = !this.next_update_options.blank;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_zoom_on_click() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.zoom_on_click = !this.next_update_options.zoom_on_click;
 
         await this.throttled_update_options();
     }

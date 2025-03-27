@@ -4258,6 +4258,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Ajouter une classe au contenu (CSS)" },
             'cms_bloc_text.widget_option.contenu_class.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Zoomer la carte au click" },
+            'list_object_widget_options_component.zoom_on_click.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Disponible qu'en mode : Carte, horizontal, ne pas afficher une seule carte et les éléments ne sont pas des boutons" },
+            'list_object.widget_option.zoom_on_click.tooltip.___LABEL___'
+        ));
 
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);

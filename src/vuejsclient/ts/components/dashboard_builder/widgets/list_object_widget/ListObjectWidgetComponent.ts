@@ -70,6 +70,8 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
     private is_card_display_single: boolean = false;
 
+    private zoomedCardIndex: number = null;
+
     private throttle_do_update_visible_options = debounce(this.do_update_visible_options.bind(this), 500);
 
     get widget_options(): ListObjectWidgetOptionsVO {
@@ -114,6 +116,10 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
     }
 
+    get is_horizontal(): boolean {
+        return this.widget_options.display_orientation == ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_HORIZONTAL;
+    }
+
     @Watch('widget_options')
     @Watch('get_active_field_filters', { immediate: true, deep: true })
     private onchange_widget_options() {
@@ -156,6 +162,17 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         await Promise.all(promises);
 
         this.nb_elements = Array.from({ length: Math.max(...[this.titles.length, this.subtitles.length, this.surtitres.length, this.image_paths.length, this.numbers.length, this.urls.length]) }, (x, i) => i);
+    }
+
+    private toggle_zoom(i: number) {
+        // Si on reclique sur la carte déjà zoomée, on dézoome
+        if (this.zoomedCardIndex === i) {
+            this.zoomedCardIndex = null;
+            return;
+        }
+
+        // Sinon, on zoom sur la carte i
+        this.zoomedCardIndex = i;
     }
 
     private previous_card_single_display() {

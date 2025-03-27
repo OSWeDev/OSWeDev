@@ -149,6 +149,19 @@
                             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                         )
 
+        
+        .zoom_on_click
+            .input_label {{ label('list_object_widget_options_component.zoom_on_click') }}
+            .input_wrapper(v-tooltip='label("list_object.widget_option.zoom_on_click.tooltip")')
+                toggle-button(
+                    @change="switch_zoom_on_click" 
+                    :value="zoom_on_click" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    :disabled="!((type_display==TYPE_DISPLAY_CARD) && (display_orientation==DISPLAY_ORIENTATION_HORIZONTAL) && (!button_elements) && (!is_card_display_single))"
+                )
+
         .show_message_no_data
             .input_label {{ label('listobject_widget.show_message_no_data') }}
             toggle-button(

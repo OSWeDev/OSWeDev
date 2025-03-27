@@ -61,19 +61,38 @@ include ../../../../../views/mixins/loading.pug
                                     i.fa-solid.fa-chevron-right
 
                     template(v-else)
-                        .list_card_widget_component(:class="{['display_orientation_' + widget_options.display_orientation]: true}")
-                            template(v-for="i in nb_elements")
-                                a.card(:href="urls[i]" :target="(widget_options.blank ? '_blank' : '')")
-                                    .image 
-                                        template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
-                                            img(:src='image_paths[i]' alt="")
-                                    .card_content 
-                                        template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
-                                            .surtitre(v-html="surtitres[i]")
-                                        template(v-if="titles && (titles.length > 0) && titles[i]")
-                                            .title(v-html="titles[i]")
-                                        template(v-if="subtitles && (subtitles.length > 0) && subtitles[i]")
-                                            .subtitle(v-html="subtitles[i]")
-                                        .card_footer
-                                            template(v-if="numbers && (numbers.length > 0) && numbers[i]")
-                                                .number(v-html="numbers[i]")
+                        template(v-if="(is_horizontal) && (!widget_options.button_elements)")
+                            .list_card_widget_component_zoom_on_click(:class="{['display_orientation_' + widget_options.display_orientation]: true, no_scroll: zoomedCardIndex !== null}")
+                                template(v-for="i in nb_elements")
+                                    a.card(@click="toggle_zoom(i)" :class="{zoomed: zoomedCardIndex === i}")
+                                        .image 
+                                            template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
+                                                img(:src='image_paths[i]' alt="")
+                                        .card_content 
+                                            template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
+                                                .surtitre(v-html="surtitres[i]")
+                                            template(v-if="titles && (titles.length > 0) && titles[i]")
+                                                .title(v-html="titles[i]")
+                                            template(v-if="subtitles && (subtitles.length > 0) && subtitles[i]")
+                                                .subtitle(v-html="subtitles[i]")
+                                            .card_footer
+                                                template(v-if="numbers && (numbers.length > 0) && numbers[i]")
+                                                    .number(v-html="numbers[i]")
+
+                        template(v-else)
+                            .list_card_widget_component(:class="{['display_orientation_' + widget_options.display_orientation]: true}")
+                                template(v-for="i in nb_elements")
+                                    a.card(:href="urls[i]" :target="(widget_options.blank ? '_blank' : '')")
+                                        .image 
+                                            template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
+                                                img(:src='image_paths[i]' alt="")
+                                        .card_content 
+                                            template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
+                                                .surtitre(v-html="surtitres[i]")
+                                            template(v-if="titles && (titles.length > 0) && titles[i]")
+                                                .title(v-html="titles[i]")
+                                            template(v-if="subtitles && (subtitles.length > 0) && subtitles[i]")
+                                                .subtitle(v-html="subtitles[i]")
+                                            .card_footer
+                                                template(v-if="numbers && (numbers.length > 0) && numbers[i]")
+                                                    .number(v-html="numbers[i]")
