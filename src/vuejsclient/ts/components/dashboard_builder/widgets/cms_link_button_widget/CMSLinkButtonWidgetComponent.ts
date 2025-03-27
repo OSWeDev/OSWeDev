@@ -7,6 +7,12 @@ import VueComponentBase from '../../../VueComponentBase';
 import './CMSLinkButtonWidgetComponent.scss';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
+import VueAppController from '../../../../../VueAppController';
+import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import RoleVO from '../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
 
 @Component({
     template: require('./CMSLinkButtonWidgetComponent.pug'),
@@ -29,6 +35,9 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
     private about_blank: boolean = null;
     private radius: number = null;
     private start_update: boolean = false;
+
+    private show_link_button: boolean = false;
+    private user: UserVO = null;
 
     get widget_options(): CMSLinkButtonWidgetOptionsVO {
         if (!this.page_widget) {
@@ -76,6 +85,26 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
         this.text_color = this.widget_options.text_color;
         this.about_blank = this.widget_options.about_blank;
         this.radius = this.widget_options.radius;
+
+        if (!this.widget_options.role_access || this.widget_options.role_access.length == 0) {
+            this.show_link_button = true;
+        }
+
+        this.user = VueAppController.getInstance().data_user;
+
+        if (this.user?.id && this.widget_options.role_access?.length > 0) {
+
+            const user_roles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq(field_names<UserRoleVO>().user_id, this.user.id).select_vos();
+            const role_ids: number[] = user_roles.map((role: UserRoleVO) => role.role_id);
+            const roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).filter_by_ids(role_ids).select_vos();
+
+            for (const i in roles) {
+                if (this.widget_options.role_access.find((role: RoleVO) => role.id == roles[i].id)) {
+                    this.show_link_button = true;
+                    break;
+                }
+            }
+        }
     }
 
     private async mounted() {

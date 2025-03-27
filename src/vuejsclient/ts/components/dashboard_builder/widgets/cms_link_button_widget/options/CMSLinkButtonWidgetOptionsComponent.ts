@@ -14,6 +14,9 @@ import './CMSLinkButtonWidgetOptionsComponent.scss';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import { isEqual } from 'lodash';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
+import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./CMSLinkButtonWidgetOptionsComponent.pug'),
@@ -40,6 +43,8 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
     private is_text_color_white: boolean = true;
     private radius: number = null;
     private icone: string = null;
+    private selected_roles: RoleVO[] = [];
+    private list_roles: RoleVO[] = [];
 
     private next_update_options: CMSLinkButtonWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -75,6 +80,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             this.is_text_color_white = true;
             this.radius = 0;
             this.icone = "";
+            this.selected_roles = [];
 
             return;
         }
@@ -89,6 +95,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         this.is_text_color_white = (this.widget_options.text_color == '#ffffff');
         this.radius = this.widget_options.radius;
         this.icone = this.widget_options.icone;
+        this.selected_roles = this.widget_options.role_access;
     }
 
     @Watch('url')
@@ -100,6 +107,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
     @Watch('about_blank')
     @Watch('radius')
     @Watch('icone')
+    @Watch('selected_roles')
     private async onchange_bloc_text() {
         if (!this.widget_options) {
             return;
@@ -113,7 +121,9 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             this.widget_options.radius != this.radius ||
             this.widget_options.icone != this.icone ||
             this.widget_options.is_url_field != this.is_url_field ||
-            this.widget_options.color != this.color) {
+            this.widget_options.color != this.color ||
+            this.widget_options.role_access != this.selected_roles
+        ) {
 
             this.next_update_options.url = this.url;
             this.next_update_options.url_field_ref = this.url_field_ref;
@@ -125,6 +135,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             this.next_update_options.about_blank = this.about_blank;
             this.next_update_options.radius = this.radius;
             this.next_update_options.icone = this.icone;
+            this.next_update_options.role_access = this.selected_roles;
 
             this.is_text_color_white = (this.text_color == '#ffffff');
 
@@ -142,6 +153,8 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             this.next_update_options = this.widget_options;
         }
 
+        this.list_roles = await query(RoleVO.API_TYPE_ID).select_vos();
+
         await this.throttled_update_options();
     }
 
@@ -158,6 +171,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             null,
             "",
             false,
+            [],
         );
     }
 
@@ -176,6 +190,14 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
 
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
+    }
+
+    private crud_api_type_id_select_label(api_type_id: string): string {
+        return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
+    }
+
+    private multiselectRoleOptionLabel(filter_item: RoleVO): string {
+        return this.label(filter_item.translatable_name);
     }
 
     private async switch_about_blank() {

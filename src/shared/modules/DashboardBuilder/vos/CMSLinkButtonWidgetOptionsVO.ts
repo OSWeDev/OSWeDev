@@ -1,3 +1,4 @@
+import RoleVO from "../../AccessPolicy/vos/RoleVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import VOFieldRefVO from "./VOFieldRefVO";
 
@@ -12,6 +13,7 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
     public url_field_ref: VOFieldRefVO;
     public icone: string;
     public is_url_field: boolean;
+    public role_access: RoleVO[];
 
     public static createNew(
         url: string,
@@ -23,6 +25,7 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
         url_field_ref: VOFieldRefVO,
         icone: string,
         is_url_field: boolean,
+        role_access: RoleVO[],
     ): CMSLinkButtonWidgetOptionsVO {
         const res = new CMSLinkButtonWidgetOptionsVO();
 
@@ -35,6 +38,7 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
         res.url_field_ref = url_field_ref;
         res.icone = icone;
         res.is_url_field = is_url_field;
+        res.role_access = role_access;
 
         return res;
     }
