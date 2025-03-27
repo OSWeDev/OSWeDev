@@ -1,15 +1,14 @@
 import { Component } from "vue-property-decorator";
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserVO from "../../../../shared/modules/AccessPolicy/vos/UserVO";
+import ModuleTableController from "../../../../shared/modules/DAO/ModuleTableController";
+import SimpleDatatableFieldVO from "../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO";
 import NFCConnectLoginComponent from "../../../ts/components/NFCConnect/login/NFCConnectLoginComponent";
-import VueComponentBase from '../../../ts/components/VueComponentBase';
-import './AccessPolicyMyAccountComponent.scss';
 import NFCUserTagListComponent from "../../../ts/components/NFCConnect/user_tag_list/NFCUserTagListComponent";
 import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
+import VueComponentBase from '../../../ts/components/VueComponentBase';
+import './AccessPolicyMyAccountComponent.scss';
 import AccessPolicyMyAccountComponentController from "./AccessPolicyMyAccountComponentController";
-import VOsTypesManager from "../../../../shared/modules/VO/manager/VOsTypesManager";
-import SimpleDatatableFieldVO from "../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO";
-import ModuleTableController from "../../../../shared/modules/DAO/ModuleTableController";
 
 @Component({
     template: require('./AccessPolicyMyAccountComponent.pug'),
@@ -23,17 +22,6 @@ export default class AccessPolicyMyAccountComponent extends VueComponentBase {
 
     private user: UserVO = null;
     private registered_components: VueComponentBase[] = [];
-
-    private async logout() {
-        await ModuleAccessPolicy.getInstance().logout();
-    }
-    private async mounted() {
-        this.registered_components = AccessPolicyMyAccountComponentController.getInstance().registered_components;
-        this.user = await ModuleAccessPolicy.getInstance().getSelfUser();
-        if (!this.user) {
-            this.$router.push('/');
-        }
-    }
 
     get editable_login_tooltip() {
         if (!this.editable_login) {
@@ -105,6 +93,14 @@ export default class AccessPolicyMyAccountComponent extends VueComponentBase {
 
     get editable_phone() {
         return SimpleDatatableFieldVO.createNew('phone').setModuleTable(this.user_moduletable);
+    }
+
+    private async mounted() {
+        this.registered_components = AccessPolicyMyAccountComponentController.getInstance().registered_components;
+        this.user = await ModuleAccessPolicy.getInstance().getSelfUser();
+        if (!this.user) {
+            this.$router.push('/');
+        }
     }
 
     private async onchangevo() {

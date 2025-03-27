@@ -471,9 +471,9 @@ export default class EventsController {
 
                     listener.last_cb_run_start_date_ms = Dates.now_ms();
                     // Si on est throttled, on peut pas maintenir un contexte
-                    if (listener.throttled && EventsController.hook_stack_incompatible) {
+                    if (listener.throttled && EventsController.hook_stack_incompatible) { // Si on peut flag + exec_as_server, on le fait
                         await EventsController.hook_stack_incompatible(listener.cb, listener, 'EventsController.call_listener', event, listener);
-                    } else if (listener.throttled) {
+                    } else if (listener.throttled && EventsController.hook_stack_exec_as_server) { // Si on peut exec_as_server, on le fait (normalement côté serveur on peut toujours, coté client on peut jamais)
                         await EventsController.hook_stack_exec_as_server(listener.cb, listener, true, event, listener);
                     } else {
                         await listener.cb(event, listener);
