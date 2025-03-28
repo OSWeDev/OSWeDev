@@ -33,7 +33,7 @@ export default class SelectionPanel extends Vue {
 
         for (const [fname, field] of Object.entries(all)) {
 
-            if (field.field_type !== ModuleTableFieldVO.FIELD_TYPE_foreign_key) {
+            if ((field.field_type !== ModuleTableFieldVO.FIELD_TYPE_foreign_key) && (field.field_type !== ModuleTableFieldVO.FIELD_TYPE_refrange_array)) {
                 continue;
             }
 
@@ -56,14 +56,14 @@ export default class SelectionPanel extends Vue {
         return Object.keys(this.foreignKeyFieldsTOSelectedTable).length > 0;
     }
 
-    get foreignKeyFieldsTOSelectedTable(): { [fName: string]: ModuleTableFieldVO } {
+    get foreignKeyFieldsTOSelectedTable(): { [target_table_fName: string]: ModuleTableFieldVO } {
         if (!this.selectedTable) return {};
-        const res: { [fName: string]: ModuleTableFieldVO } = {};
+        const res: { [target_table_fName: string]: ModuleTableFieldVO } = {};
 
         for (const foreign_table_name in this.tables_by_table_name) {
             const fields = this.fields_by_table_name_and_field_name[foreign_table_name];
             for (const [fname, field] of Object.entries(fields)) {
-                if (field.field_type !== ModuleTableFieldVO.FIELD_TYPE_foreign_key) {
+                if ((field.field_type !== ModuleTableFieldVO.FIELD_TYPE_foreign_key) && (field.field_type !== ModuleTableFieldVO.FIELD_TYPE_refrange_array)) {
                     continue;
                 }
                 if (field.foreign_ref_vo_type != this.selectedTable) {
@@ -72,7 +72,7 @@ export default class SelectionPanel extends Vue {
                 if (field.module_table_vo_type == this.selectedTable) {
                     continue;
                 }
-                res[fname] = field;
+                res[field.module_table_vo_type + '.' + fname] = field;
             }
         }
         return res;

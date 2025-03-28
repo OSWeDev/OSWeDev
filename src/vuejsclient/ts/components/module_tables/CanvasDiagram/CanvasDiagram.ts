@@ -181,7 +181,7 @@ export default class CanvasDiagram extends Vue {
             for (const fieldName of Object.keys(fields)) {
                 const field = fields[fieldName];
                 if (this.discarded_field_paths[tableName]?.[fieldName]) continue;
-                if (field.field_type === ModuleTableFieldVO.FIELD_TYPE_foreign_key && field.foreign_ref_vo_type) {
+                if (((field.field_type === ModuleTableFieldVO.FIELD_TYPE_foreign_key) || (field.field_type === ModuleTableFieldVO.FIELD_TYPE_refrange_array)) && field.foreign_ref_vo_type) {
                     const ref = field.foreign_ref_vo_type;
                     if (ref !== tableName && this.tables_by_table_name[ref]) {
                         this.adjacency[tableName].push(ref);
@@ -560,7 +560,8 @@ export default class CanvasDiagram extends Vue {
         for (let idx = 0; idx < fieldNames.length; idx++) {
             const fieldName = fieldNames[idx];
             const f = fields[fieldName];
-            if (f.field_type !== ModuleTableFieldVO.FIELD_TYPE_foreign_key || !f.foreign_ref_vo_type) {
+            if (((f.field_type !== ModuleTableFieldVO.FIELD_TYPE_foreign_key) && (f.field_type !== ModuleTableFieldVO.FIELD_TYPE_refrange_array)) ||
+                !f.foreign_ref_vo_type) {
                 continue;
             }
             // if (this.discarded_field_paths[tableName]?.[fieldName]) continue;
