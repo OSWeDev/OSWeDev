@@ -1518,6 +1518,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Dates pour la colonne dynamique'
+        }, 'table_widget_options_component.column_dynamic_var_date_custom_filter_name.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Copie du tableau de bord en cours...'
         }, 'copy_dashboard.start.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
