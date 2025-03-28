@@ -1010,16 +1010,23 @@ export default class GPTAssistantAPIServerController {
                 }
             }
 
-            await GPTAssistantAPIServerController.handle_run(
-                run_vo,
-                oselia_run,
-                thread_vo,
-                availableFunctions,
-                availableFunctionsParameters,
-                availableFunctionsParametersByParamName,
-                referrer,
-                referrer_external_api_by_name,
-            );
+            try {
+
+                await GPTAssistantAPIServerController.handle_run(
+                    run_vo,
+                    oselia_run,
+                    thread_vo,
+                    availableFunctions,
+                    availableFunctionsParameters,
+                    availableFunctionsParametersByParamName,
+                    referrer,
+                    referrer_external_api_by_name,
+                );
+            } catch (error) {
+                ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: handle_run: ' + error);
+                await GPTAssistantAPIServerController.close_thread_oselia(thread_vo);
+                return null;
+            }
 
             // Par défaut ça charge les 20 derniers messages, et en ajoutant after on a les messages après le asking_message - donc les réponses finalement
             // const thread_messages = await ModuleGPTServer.openai.beta.threads.messages.list(thread_vo.gpt_thread_id, (asking_message_vo && asking_message_vo.gpt_id) ? {
@@ -1042,7 +1049,7 @@ export default class GPTAssistantAPIServerController {
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run_vo);
 
 
-            const new_messages = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+            new_messages = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
                 .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
                 .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
                 .filter_by_num_sup(field_names<GPTAssistantAPIThreadMessageVO>().date, asking_message_vo.date)
@@ -1259,15 +1266,15 @@ export default class GPTAssistantAPIServerController {
 
             if (has_image_file) {
                 for (const images of files_images) {
-                    const content = new GPTAssistantAPIThreadMessageContentVO();
-                    content.thread_message_id = asking_message_vo.id;
-                    content.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
-                    content.content_type_text.value = "[" + images.path + ":" + images.id.toString() + "]";
-                    content.gpt_thread_message_id = asking_message_vo.gpt_id;
-                    content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
-                    content.weight = 0;
-                    content.hidden = true;
-                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content);
+                    const c = new GPTAssistantAPIThreadMessageContentVO();
+                    c.thread_message_id = asking_message_vo.id;
+                    c.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+                    c.content_type_text.value = "[" + images.path + ":" + images.id.toString() + "]";
+                    c.gpt_thread_message_id = asking_message_vo.gpt_id;
+                    c.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+                    c.weight = 0;
+                    c.hidden = true;
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(c);
                 }
             }
             asking_message_vo.is_ready = true;
@@ -1360,7 +1367,7 @@ export default class GPTAssistantAPIServerController {
 
                                     const function_vo: GPTAssistantAPIFunctionVO = availableFunctions[tool_call.function.name];
 
-                                    const function_response = await this.do_function_call(
+                                    function_response = await this.do_function_call(
                                         oselia_run,
                                         run_vo,
                                         thread_vo,
@@ -1444,6 +1451,25 @@ export default class GPTAssistantAPIServerController {
                                     run.id,
                                     { tool_outputs: tool_outputs }
                                 );
+
+                            } else if ((error.status === 400) && error.error && error.error.message && error.error.message.includes('Runs in status ') && error.error.message.includes(' do not accept tool outputs')) {
+                                // Cas erreur : 'Error: 400 Runs in status "queued" do not accept tool outputs.'
+                                // On attend un peu et on reteste
+                                await ThreadHandler.sleep(1000, 'GPTAssistantAPIServerController.ask_assistant');
+
+                                try {
+                                    // Submit tool outputs
+                                    await GPTAssistantAPIServerController.wrap_api_call(
+                                        ModuleGPTServer.openai.beta.threads.runs.submitToolOutputs,
+                                        ModuleGPTServer.openai.beta.threads.runs,
+                                        thread_vo.gpt_thread_id,
+                                        run.id,
+                                        { tool_outputs: tool_outputs }
+                                    );
+                                } catch (e) {
+                                    ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - error - retried from error 400 Runs in status ...:new error: ' + e);
+                                    throw e;
+                                }
                             } else {
                                 ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - error: ' + error);
                                 throw error;
