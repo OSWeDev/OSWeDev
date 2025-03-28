@@ -9,6 +9,7 @@ import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeli
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
+import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import BgthreadPerfModuleNamesHolder from '../BGThread/BgthreadPerfModuleNamesHolder';
 import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
 import IBGThread from '../BGThread/interfaces/IBGThread';
@@ -301,5 +302,35 @@ export default class ForkServerController {
             'ForkServerController.checkForksAvailability',
             false,
         );
+    }
+
+    @RunsOnMainThread(null)
+    public static kill_worker(bgthread_name: string) {
+
+        if (!bgthread_name) {
+            ConsoleHandler.error('bgthread_name is not defined');
+            return;
+        }
+
+        if (!ForkServerController.fork_by_type_and_name) {
+            ConsoleHandler.error('ForkServerController.forks is not defined');
+            return;
+        }
+        if (!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType]) {
+            ConsoleHandler.error('ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType] is not defined');
+            return;
+        }
+
+        if (!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread_name]) {
+            ConsoleHandler.error('ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][' + bgthread_name + '] is not defined');
+            return;
+        }
+
+        if (!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread_name].worker) {
+            ConsoleHandler.error('ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][' + bgthread_name + '].worker is not defined');
+            return;
+        }
+
+        return ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread_name].worker.terminate();
     }
 }

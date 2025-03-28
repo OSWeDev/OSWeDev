@@ -20,9 +20,8 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
-import ForkMessageController from '../Fork/ForkMessageController';
 import ForkServerController from '../Fork/ForkServerController';
-import KillForkMessage from '../Fork/messages/KillForkMessage';
+// import KillForkMessage from '../Fork/messages/KillForkMessage';
 import RegisteredForkedTasksController from '../Fork/RegisteredForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -230,15 +229,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         ForkedTasksController.register_task(bgthread_force_run_asap_throttled_task_name, BGThreadServerController.force_run_asap_by_bgthread_name[bgthread.name].bind(bgthread));
 
 
-        ManualTasksController.getInstance().registered_manual_tasks_by_name["KILL BGTHREAD : " + bgthread.name] =
-            async () => {
-                if (ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType] &&
-                    ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread.name]) {
-                    await ForkMessageController.send(
-                        new KillForkMessage(await ParamsServerController.getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
-                        ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread.name].worker);
-                }
-            };
+        ManualTasksController.getInstance().registered_manual_tasks_by_name["KILL BGTHREAD : " + bgthread.name] = async () => ForkServerController.kill_worker(bgthread.name);
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name["RUN ASAP BGTHREAD : " + bgthread.name] =
             async () => {
