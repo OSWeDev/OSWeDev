@@ -1,13 +1,16 @@
 
-import { MessagePort, parentPort, threadId, Worker } from 'worker_threads';
+import { MessagePort, parentPort, Worker } from 'worker_threads';
 import ModuleFork from '../../../shared/modules/Fork/ModuleFork';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import PerfReportController from '../../../shared/modules/PerfReport/PerfReportController';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
+import BgthreadPerfModuleNamesHolder from '../BGThread/BgthreadPerfModuleNamesHolder';
 import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
 import ModuleServerBase from '../ModuleServerBase';
-import VarsDatasVoUpdateHandler from '../Var/VarsDatasVoUpdateHandler';
+import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
 import ForkedTasksController from './ForkedTasksController';
 import ForkMessageController from './ForkMessageController';
 import ForkServerController from './ForkServerController';
@@ -15,7 +18,7 @@ import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
 import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMessage';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
-import KillForkMessage from './messages/KillForkMessage';
+// import KillForkMessage from './messages/KillForkMessage';
 import MainProcessForwardToBGThreadForkMessage from './messages/MainProcessForwardToBGThreadForkMessage';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import PingForkACKMessage from './messages/PingForkACKMessage';
@@ -46,7 +49,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
     public async configure(): Promise<void> {
         ForkMessageController.register_message_handler(ReloadAsapForkMessage.FORK_MESSAGE_TYPE, this.prepare_reload_asap.bind(this));
-        ForkMessageController.register_message_handler(KillForkMessage.FORK_MESSAGE_TYPE, this.handle_kill_message.bind(this));
+        // ForkMessageController.register_message_handler(KillForkMessage.FORK_MESSAGE_TYPE, this.handle_kill_message.bind(this));
         ForkMessageController.register_message_handler(PingForkMessage.FORK_MESSAGE_TYPE, this.handle_ping_message.bind(this));
         ForkMessageController.register_message_handler(PingForkACKMessage.FORK_MESSAGE_TYPE, this.handle_pingack_message.bind(this));
         ForkMessageController.register_message_handler(AliveForkMessage.FORK_MESSAGE_TYPE, this.handle_alive_message.bind(this));
@@ -57,26 +60,26 @@ export default class ModuleForkServer extends ModuleServerBase {
         ForkMessageController.register_message_handler(TaskResultForkMessage.FORK_MESSAGE_TYPE, this.handle_taskresult_message.bind(this));
     }
 
-    public async kill_process(throttle: number = 10, force_empty_vars_datas_vo_update_cache: boolean = true) {
-        this.is_killing = true;
+    // public async kill_process(throttle: number = 10, force_empty_vars_datas_vo_update_cache: boolean = true) {
+    //     this.is_killing = true;
 
-        if (force_empty_vars_datas_vo_update_cache) {
-            await VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache();
-        }
+    //     if (force_empty_vars_datas_vo_update_cache) {
+    //         await VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache();
+    //     }
 
-        while (throttle > 0) {
-            ConsoleHandler.error("Received KILL SIGN from parent - KILL in " + throttle);
-            await ThreadHandler.sleep(1000, 'ModuleForkServer.kill_process');
-            throttle--;
-        }
-        ConsoleHandler.error("Received KILL SIGN from parent - Before KILL inform parent thread to reload thread asap");
-        await ForkMessageController.send(
-            new ReloadAsapForkMessage().set_message_content(threadId),
-            parentPort
-        );
-        ConsoleHandler.error("Received KILL SIGN from parent - KILL");
-        process.exit();
-    }
+    //     while (throttle > 0) {
+    //         ConsoleHandler.error("Received KILL SIGN from parent - KILL in " + throttle);
+    //         await ThreadHandler.sleep(1000, 'ModuleForkServer.kill_process');
+    //         throttle--;
+    //     }
+    //     ConsoleHandler.error("Received KILL SIGN from parent - Before KILL inform parent thread to reload thread asap");
+    //     await ForkMessageController.send(
+    //         new ReloadAsapForkMessage().set_message_content(threadId),
+    //         parentPort
+    //     );
+    //     ConsoleHandler.error("Received KILL SIGN from parent - KILL");
+    //     process.exit();
+    // }
 
     /**
      * Doit être appelé sur le main thread
@@ -247,20 +250,96 @@ export default class ModuleForkServer extends ModuleServerBase {
     }
 
     private async handle_pingack_message(msg: IForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
+
+        const now_ms = Dates.now_ms();
         ForkServerController.forks_availability[msg.message_content] = Dates.now();
+        const delay = now_ms - (msg as PingForkACKMessage).emission_date_ms;
+        const fork = ForkServerController.forks[msg.message_content];
+
+        StatsController.register_stat_COMPTEUR('ModuleForkServer', 'bgthread_ping_ack', 'received_from_' + fork.uid);
+        StatsController.register_stat_DUREE('ModuleForkServer', 'bgthread_ping_ack', 'total_delay_' + fork.uid, delay);
+        StatsController.register_stat_DUREE('ModuleForkServer', 'bgthread_ping_ack', 'main_to_bgthread_' + fork.uid + '__delay', (msg as PingForkACKMessage).response_date_ms - (msg as PingForkACKMessage).emission_date_ms);
+        StatsController.register_stat_DUREE('ModuleForkServer', 'bgthread_ping_ack', 'bgthread_' + fork.uid + '_to_main__delay', now_ms - (msg as PingForkACKMessage).response_date_ms);
+
+        PerfReportController.add_event(
+            BgthreadPerfModuleNamesHolder.BGTHREAD_PING_LATENCY_PERF_MODULE_NAME,
+            'bgthread_' + fork.uid + '_ping_latency',
+            'bgthread_' + fork.uid + '_ping_latency',
+            'bgthread_' + fork.uid + '_ping_latency',
+            (msg as PingForkACKMessage).emission_date_ms,
+            'Emission du ping par le main thread vers le bgthread [' + fork.uid + ']<br>' +
+            'Ce bgthread gère les processus : ' + Object.keys(fork.processes).join(', '),
+        );
+
+        PerfReportController.add_call(
+            BgthreadPerfModuleNamesHolder.BGTHREAD_PING_LATENCY_PERF_MODULE_NAME,
+            'bgthread_' + fork.uid + '_ping_latency',
+            'bgthread_' + fork.uid + '_ping_latency',
+            'bgthread_' + fork.uid + '_ping_latency',
+            (msg as PingForkACKMessage).emission_date_ms,
+            (msg as PingForkACKMessage).response_date_ms,
+            'Délai entre l\'émission par le main thread et la réception par le bgthread [' + fork.uid + '] : ' + ((msg as PingForkACKMessage).response_date_ms - (msg as PingForkACKMessage).emission_date_ms) + ' ms<br>' +
+            'Délai entre l\'émission de la réponse par le bgthread [' + fork.uid + ']  et sa réception sur le main thread : ' + (now_ms - (msg as PingForkACKMessage).response_date_ms) + ' ms<br>' +
+            'Délai total : ' + (now_ms - (msg as PingForkACKMessage).emission_date_ms) + ' ms<br>' +
+            'Ce bgthread gère les processus : ' + Object.keys(fork.processes).join(', ')
+        );
+
+        PerfReportController.add_cooldown(
+            BgthreadPerfModuleNamesHolder.BGTHREAD_PING_LATENCY_PERF_MODULE_NAME,
+            'bgthread_' + fork.uid + '_ping_latency',
+            'bgthread_' + fork.uid + '_ping_latency',
+            'bgthread_' + fork.uid + '_ping_latency',
+            (msg as PingForkACKMessage).response_date_ms,
+            now_ms,
+            'Délai entre l\'émission par le main thread et la réception par le bgthread [' + fork.uid + '] : ' + ((msg as PingForkACKMessage).response_date_ms - (msg as PingForkACKMessage).emission_date_ms) + ' ms<br>' +
+            'Délai entre l\'émission de la réponse par le bgthread [' + fork.uid + ']  et sa réception sur le main thread : ' + (now_ms - (msg as PingForkACKMessage).response_date_ms) + ' ms<br>' +
+            'Délai total : ' + (now_ms - (msg as PingForkACKMessage).emission_date_ms) + ' ms<br>' +
+            'Ce bgthread gère les processus : ' + Object.keys(fork.processes).join(', ')
+        );
+
+        // D'abord la console
+        let log_to_console = false;
+        if (ConfigurationService.node_configuration.debug_all_thread_ping_latency) {
+            log_to_console = true;
+        } else {
+            if (ConfigurationService.node_configuration.debug_thread_ping_latency &&
+                (delay > ConfigurationService.node_configuration.debug_thread_ping_latency_console_log_ms_limit)) {
+                log_to_console = true;
+            }
+        }
+
+        if (log_to_console) {
+            ConsoleHandler.log(
+                "Ping delay for bgthread [" + fork.uid + "] is <b>" + delay + "ms</b><br>" +
+                "Ping message sent by main process at " + (msg as PingForkACKMessage).emission_date_ms + " ms<br>" +
+                "Ping message received by bgthread at " + (msg as PingForkACKMessage).response_date_ms + " ms <b>(main -> bgthread delay: " + ((msg as PingForkACKMessage).response_date_ms - (msg as PingForkACKMessage).emission_date_ms) + " ms)</b><br>" +
+                "Ping ACK received by main process at " + now_ms + " ms <b>(bgthread -> main delay: " + (now_ms - (msg as PingForkACKMessage).response_date_ms) + " ms)</b><br>" +
+                "Processes managed by this worker : " + Object.keys(fork.processes).join(', ')
+            );
+        }
+
+        // Ensuite teams
+        if (ConfigurationService.node_configuration.debug_thread_ping_latency && (delay > ConfigurationService.node_configuration.debug_thread_ping_latency_teams_log_ms_limit)) {
+            TeamsAPIServerController.send_teams_warn(
+                'BGThreads - Ping Delay',
+                "Ping delay for bgthread [" + fork.uid + "] is <b>" + delay + "ms</b><br>" +
+                "Processes managed by this worker : " + Object.keys(fork.processes).join(', ')
+            );
+        }
+
         return true;
     }
 
-    private async handle_kill_message(msg: KillForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
+    // private async handle_kill_message(msg: KillForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
 
-        const throttle = msg ? msg.message_content : 10;
+    //     const throttle = msg ? msg.message_content : 10;
 
-        await ModuleForkServer.getInstance().kill_process(throttle, msg.force_empty_vars_datas_vo_update_cache);
-        return false;
-    }
+    //     await ModuleForkServer.getInstance().kill_process(throttle, msg.force_empty_vars_datas_vo_update_cache);
+    //     return false;
+    // }
 
     private async handle_ping_message(msg: IForkMessage, send_handle: Worker | MessagePort): Promise<boolean> {
-        await ForkMessageController.send(new PingForkACKMessage(msg.message_content), parentPort);
+        await ForkMessageController.send(new PingForkACKMessage(msg.message_content, (msg as PingForkMessage).emission_date_ms, Dates.now_ms()), parentPort);
         return true;
     }
 

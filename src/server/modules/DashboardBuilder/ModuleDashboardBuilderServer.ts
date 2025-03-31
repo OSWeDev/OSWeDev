@@ -5,6 +5,7 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import ModuleDashboardBuilder from '../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
+import DashboardGraphVORefVO from '../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardPageWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -12,11 +13,14 @@ import DefaultTranslationVO from '../../../shared/modules/Translation/vos/Defaul
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import DashboardBuilderCronWorkersHandler from './DashboardBuilderCronWorkersHandler';
+import DashboardCycleChecker from './DashboardCycleChecker';
 import FavoritesFiltersVOService from './service/FavoritesFiltersVOService';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
@@ -56,6 +60,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Max'
         }, 'StatVO.AGGREGATOR_MAX'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Ouvrir le dashboard'
+        }, 'DashboardCycleChecker.open_dashboard.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Filtres favoris'
@@ -1510,6 +1518,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Dates pour la colonne dynamique'
+        }, 'table_widget_options_component.column_dynamic_var_date_custom_filter_name.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Copie du tableau de bord en cours...'
         }, 'copy_dashboard.start.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -2185,6 +2197,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Créer un filtre favori'
         }, 'dashboard_viewer.save_favorites_filters.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Filtre enregistré'
+        }, 'dashboard_viewer.save_favorites_filters.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Enregistrement du filtre en cours...'
+        }, 'dashboard_viewer.save_favorites_filters.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors de l\'enregistrement du filtre'
+        }, 'dashboard_viewer.save_favorites_filters.failed.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
         }, 'var_pie_chart_widget_options_component.has_dimension.___LABEL___'));
@@ -3796,6 +3817,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
+
+        const postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        postUTrigger.registerHandler(DashboardGraphVORefVO.API_TYPE_ID, this, this.onUDashboardGraphVORefVO);
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -3917,5 +3941,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         e.i = max_i + 1;
 
         return;
+    }
+
+    private async onUDashboardGraphVORefVO(wrapper: DAOUpdateVOHolder<DashboardGraphVORefVO>) {
+
+        // // Si la modif est justement un changement de cycles, on ne fait rien
+        // if (DashboardCycleChecker.needs_update(wrapper.pre_update_vo, wrapper.post_update_vo.cycle_tables, wrapper.post_update_vo.cycle_fields, wrapper.post_update_vo.cycle_links)) {
+        //     return;
+        // }
+
+        DashboardCycleChecker.detectCyclesForDashboards({ [wrapper.post_update_vo.dashboard_id]: true });
     }
 }

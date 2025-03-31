@@ -1297,7 +1297,7 @@ export default class ContextFilterVOHandler {
             return RangeHandler.humanizeRanges(raw_value);
         }
 
-        // TODO FIXME JNE : c'est pas un peu bizarre ce truc qui va chercher soit disant la row data mais qui en fait prend le champs de base ? je comprends pas trop
+        // TODO FIXME JNE : c'est pas un peu bizarre ce truc qui va chercher soit disant la raw data mais qui en fait prend le champs de base ? je comprends pas trop
         // et là on a le cas d'un enum, dont le champs principal est string, et __raw est int, or dans le dataToReadIHM, on a besoin de l'enum, pas du string...
         // mais dans le même temps ça semble marcher actuellement dans les tablewidget... donc je touche pas, je rajoute juste une compatibilité vers les 2 cas, string et int dans dataToReadIHM
 
@@ -1318,7 +1318,7 @@ export default class ContextFilterVOHandler {
                     value = value.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script *>/gi, "");
                     // value = $("<p>" + value + "</p>").text();
                 } catch (error) {
-                    value = value;
+                    //
                 }
 
                 if (value.length > 300) {

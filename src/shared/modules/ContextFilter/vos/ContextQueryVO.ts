@@ -115,6 +115,10 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      */
     public is_server: boolean;
 
+    // /**
+    //  * Permet d'identifier une requete qui doit ignorer les base_api_type_ids, pour inclure tous les vos_types rencontrés
+    //  */
+    // public is_access_hook_filter: boolean;
 
 
     /**
@@ -146,6 +150,11 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * Une map des field_id par vo_type
      */
     public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    /**
+     * Pour anonymiser directement via la bdd, on stocke les fields à anonymiser
+     */
+    public anonimized_fields: { [vo_type: string]: { [field_id: string]: boolean } };
 
     /**
      * @deprecated use is_server

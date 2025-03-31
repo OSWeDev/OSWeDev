@@ -57,6 +57,11 @@ export default class GPTAssistantAPIThreadMessageContentVO implements IDistantVO
     // Dans le cas d'un email, le lien vers le mail
     public content_type_email_id: number;
 
+    /**
+     * Si on a généré un fichier audio pour ce message, on le stocke ici
+     */
+    public tts_file_id: number;
+
     public hidden: boolean;
 
     public weight: number;

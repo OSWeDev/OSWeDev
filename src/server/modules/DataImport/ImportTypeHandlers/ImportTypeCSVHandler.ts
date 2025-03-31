@@ -365,7 +365,7 @@ export default class ImportTypeCSVHandler {
             /**
              * On test le cas fichier vide :
              */
-            const file_size = fileVO ? FileHandler.getInstance().get_file_size(fileVO.path) : null;
+            const file_size = fileVO ? await FileHandler.getInstance().get_file_size(fileVO.path) : null;
             if (!file_size) {
                 if ((!!importHistoric) && (!!importHistoric.id)) {
                     resolve(null);

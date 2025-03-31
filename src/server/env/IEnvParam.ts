@@ -62,6 +62,7 @@ export default interface IEnvParam {
     debug_throttled_select?: boolean;
     debug_select_datatable_rows_query_res?: boolean;
     debug_db_full_query_perf?: boolean;
+    debug_all_queries?: boolean;
     debug_interthreads_messages?: boolean;
     debug_io_rooms?: boolean;
     debug_vo_events?: boolean;
@@ -77,6 +78,29 @@ export default interface IEnvParam {
     activate_module_perf_var_dag_nodes?: boolean;
     activate_module_perf_gpt_assistant_api?: boolean;
     activate_module_perf_gpt_sync?: boolean;
+    activate_module_perf_expressjs?: boolean;
+    activate_module_perf_worker_messages?: boolean;
+    activate_module_perf_bgthread_ping_latency?: boolean;
+    activate_module_perf_bgthread_load_balancing?: boolean;
+
+    debug_all_expressjs_perf?: boolean;
+    debug_expressjs_request_reflexion_time?: boolean;
+    debug_expressjs_request_reflexion_time_console_log_ms_limit?: number;
+    debug_expressjs_request_reflexion_time_teams_log_ms_limit?: number;
+    debug_expressjs_request_sendres_time?: boolean;
+    debug_expressjs_request_sendres_time_console_log_ms_limit?: number;
+    debug_expressjs_request_sendres_time_teams_log_ms_limit?: number;
+
+    debug_all_thread_ping_latency?: boolean;
+
+    debug_thread_ping_latency?: boolean;
+    debug_thread_ping_latency_console_log_ms_limit?: number;
+    debug_thread_ping_latency_teams_log_ms_limit?: number;
+
+    api_load_balancing?: boolean;
+    api_load_balancing_nb_workers?: number;
+
+    load_balancing_debug_log?: boolean;
 
     debug_var_get_instance_semaphored_db_loaded_var_data?: boolean;
 

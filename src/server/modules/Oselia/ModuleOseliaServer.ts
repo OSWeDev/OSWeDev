@@ -208,6 +208,32 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             'oselia.join_request.deny.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Maintenir appuyer et parler (nécessite d\'accepter la demande d\'accès au micro)' },
+            'oselia_thread_widget_component.thread_message_input_voice.tooltip.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Parler' },
+            'oselia_thread_widget_component.thread_message_input_voice.talk.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Obtenir un résumé du ticket (audio et texte)' },
+            'oselia_thread_widget_component.thread_message_input_summary.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Préparation...' },
+            'oselia_thread_widget_component.thread_message_input_summary.loading.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Résumé' },
+            'oselia_thread_widget_component.thread_message_input_summary.summarize.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Écoute...' },
+            'oselia_thread_widget_component.thread_message_input_voice.listening.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Traitement...' },
+            'oselia_thread_widget_component.thread_message_input_voice.transcribing.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Cache' },
             'oselia_thread_widget_component.thread_cached_datas_header.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
@@ -390,7 +416,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             }
 
             const image_path = file_vo.path;
-            const base64Image = fs.readFileSync(image_path, { encoding: 'base64' });
+            const base64Image = await fs.promises.readFile(image_path, { encoding: 'base64' });
 
             const response = await GPTAssistantAPIServerController.wrap_api_call(
                 ModuleGPTServer.openai.chat.completions.create,

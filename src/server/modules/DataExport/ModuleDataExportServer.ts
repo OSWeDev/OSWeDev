@@ -1921,8 +1921,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                             const var_data = await VarsServerCallBackSubsController.get_var_data(var_param.index);
                             row[column.datatable_field_uid] = var_data?.value ?? null;
-                        } catch (error) {
-                            ConsoleHandler.error('convert_varparamfields_to_vardatas:FAILED 2 get_var_data:nb :' + i + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + error);
+                        } catch (err) {
+                            ConsoleHandler.error('convert_varparamfields_to_vardatas:FAILED 2 get_var_data:nb :' + i + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + err);
                             has_errors = true;
                         }
                     }

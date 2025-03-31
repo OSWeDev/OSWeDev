@@ -332,6 +332,15 @@ $button-hover-shadow: none;
                     display: flex;
                     margin-bottom: .4em;
 
+                    .thread_message_input_voice button {
+                        display: flex;
+                        line-height: 1em;
+
+                        .icon {
+                            margin-right: .4em;
+                        }
+                    }
+
                     .thread_message_input_button {
                         margin-right: .4em;
                     }
@@ -343,6 +352,7 @@ $button-hover-shadow: none;
                         box-sizing: border-box;
                         border: none;
                         padding: 8px;
+                        margin-right: .2em;
                     }
 
                     button:hover {

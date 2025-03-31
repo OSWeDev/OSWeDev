@@ -77,6 +77,8 @@ export default class OseliaRunTemplateServerController {
             oselia_run.start_date = Dates.now();
             oselia_run.state = template.state;
             oselia_run.parent_run_id = parent_run_id;
+            oselia_run.template_id = template.id;
+            oselia_run.template_name = template.name;
 
             /**
              * Si le state de départ est pas TODO, on doit figer les dates de début et de fin des taches déjà réalisées

@@ -3,12 +3,9 @@ import Component from 'vue-class-component';
 import VueJsonPretty from 'vue-json-pretty';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -16,7 +13,6 @@ import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBui
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
-import ModuleFile from '../../../../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../../../../shared/modules/GPT/ModuleGPT';
@@ -141,8 +137,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private dashboard_export_id: number = null;
     private is_creating_thread: boolean = false;
     private send_message_create: boolean = false;
-    private is_recording_voice: boolean = false;
-    private voice_record: MediaRecorder = null;
+    // private is_recording_voice: boolean = false;
+    // private voice_record: MediaRecorder = null;
     private use_realtime_voice: boolean = false;
     private has_access_to_debug: boolean = false;
 
@@ -150,6 +146,11 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private expand_sub_threads: boolean = false;
     private expand_function_calls: boolean = false;
     private expand_oselia_runs: boolean = false;
+
+    private input_voice_is_recording = false;
+    private input_voice_is_transcribing = false;
+    private media_recorder: MediaRecorder = null;
+    private audio_chunks: Blob[] = [];
 
     private functions_by_id: { [id: number]: GPTAssistantAPIFunctionVO } = {};
 
@@ -396,76 +397,76 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
     }
 
-    private async start_voice_record() {
-        const audioChunks = [];
+    // private async start_voice_record() {
+    //     const audioChunks = [];
 
-        if (!this.is_recording_voice) {
-            // Commencer l'enregistrement vocal
-            try {
-                // await ModuleGPT.getInstance().connect_to_realtime_voice(null,null,this.data_user.id);
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                this.voice_record = new MediaRecorder(stream);
+    //     if (!this.is_recording_voice) {
+    //         // Commencer l'enregistrement vocal
+    //         try {
+    //             // await ModuleGPT.getInstance().connect_to_realtime_voice(null,null,this.data_user.id);
+    //             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    //             this.voice_record = new MediaRecorder(stream);
 
-                if (!this.voice_record) {
-                    return;
-                }
+    //             if (!this.voice_record) {
+    //                 return;
+    //             }
 
-                this.voice_record.start();
+    //             this.voice_record.start();
 
-                // Collecte des données à chaque fois que des données sont disponibles
-                this.voice_record.ondataavailable = (e) => {
-                    audioChunks.push(e.data);
-                };
+    //             // Collecte des données à chaque fois que des données sont disponibles
+    //             this.voice_record.ondataavailable = (e) => {
+    //                 audioChunks.push(e.data);
+    //             };
 
-                // Lorsque l'enregistrement est arrêté, créez le fichier audio et jouez-le
-                this.voice_record.onstop = () => {
-                    const blob = new Blob(audioChunks, { type: 'audio/mpeg-3' });
-                    // Téléverser le fichier une fois qu'il est créé
-                    const file = new File([blob], "audio.mp3", { type: "audio/mpeg-3" });
-                    this.do_upload_file(null, file);
-                };
-            } catch (err) {
-                console.error("Error accessing microphone", err);
-            }
-        } else {
-            // Arrêter l'enregistrement vocal
-            if (this.voice_record && this.voice_record.state === "recording") {
-                this.voice_record.stop();  // Cela déclenche l'événement 'onstop' ci-dessus
-            }
-        }
+    //             // Lorsque l'enregistrement est arrêté, créez le fichier audio et jouez-le
+    //             this.voice_record.onstop = () => {
+    //                 const blob = new Blob(audioChunks, { type: 'audio/mpeg-3' });
+    //                 // Téléverser le fichier une fois qu'il est créé
+    //                 const file = new File([blob], "audio.mp3", { type: "audio/mpeg-3" });
+    //                 this.do_upload_file(null, file);
+    //             };
+    //         } catch (err) {
+    //             console.error("Error accessing microphone", err);
+    //         }
+    //     } else {
+    //         // Arrêter l'enregistrement vocal
+    //         if (this.voice_record && this.voice_record.state === "recording") {
+    //             this.voice_record.stop();  // Cela déclenche l'événement 'onstop' ci-dessus
+    //         }
+    //     }
 
-        this.is_recording_voice = !this.is_recording_voice;
-    }
+    //     this.is_recording_voice = !this.is_recording_voice;
+    // }
 
-    private async do_upload_file(fileHandle?: FileSystemFileHandle, files?: File) {
-        let file: File;
-        if (files) {
-            file = files;
-        } else {
-            file = await fileHandle.getFile();
-        }
-        // Upload inspiré de feedback handler
-        const formData = new FormData();
-        const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
-        formData.append('file', file, file_name);
+    // private async do_upload_file(fileHandle?: FileSystemFileHandle, files?: File) {
+    //     let file: File;
+    //     if (files) {
+    //         file = files;
+    //     } else {
+    //         file = await fileHandle.getFile();
+    //     }
+    //     // Upload inspiré de feedback handler
+    //     const formData = new FormData();
+    //     const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
+    //     formData.append('file', file, file_name);
 
-        await AjaxCacheClientController.getInstance().post(
-            null,
-            '/ModuleFileServer/upload',
-            [FileVO.API_TYPE_ID],
-            formData,
-            null,
-            null,
-            false,
-            30000).then(async () => {
-                // Upload via insert or update
-                const new_file = new FileVO();
-                new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
-                const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
-                new_file.id = resnew_file.id;
-                this.thread_files.push({ ['.' + file.name.split('.').pop()]: new_file });
-            });
-    }
+    //     await AjaxCacheClientController.getInstance().post(
+    //         null,
+    //         '/ModuleFileServer/upload',
+    //         [FileVO.API_TYPE_ID],
+    //         formData,
+    //         null,
+    //         null,
+    //         false,
+    //         30000).then(async () => {
+    //             // Upload via insert or update
+    //             const new_file = new FileVO();
+    //             new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
+    //             const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
+    //             new_file.id = resnew_file.id;
+    //             this.thread_files.push({ ['.' + file.name.split('.').pop()]: new_file });
+    //         });
+    // }
 
     private async handle_hover() {
         alert("hover");
@@ -888,6 +889,119 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private try_set_can_run_assistant(can_run_assistant: boolean) {
         if (this.get_can_run_assistant != can_run_assistant) {
             this.set_can_run_assistant(can_run_assistant);
+        }
+    }
+
+    private async start_recording() {
+
+        if (this.input_voice_is_recording) {
+            // Pas vraiment sensé arriver...
+            ConsoleHandler.log('Already recording');
+            this.input_voice_is_recording = false;
+            this.media_recorder.stop();
+            return;
+        }
+
+        const audioChunks = [];
+
+        if (!this.input_voice_is_recording) {
+
+            this.input_voice_is_recording = true;
+
+            // Commencer l'enregistrement vocal
+            try {
+                // await ModuleGPT.getInstance().connect_to_realtime_voice(null,null,this.data_user.id);
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                this.media_recorder = new MediaRecorder(stream);
+
+                if (!this.media_recorder) {
+                    return;
+                }
+
+                this.media_recorder.start();
+
+                // Collecte des données à chaque fois que des données sont disponibles
+                this.media_recorder.ondataavailable = (e) => {
+                    audioChunks.push(e.data);
+                };
+
+                // Lorsque l'enregistrement est arrêté, créez le fichier audio et jouez-le
+                this.media_recorder.onstop = async () => {
+
+                    this.input_voice_is_recording = false;
+                    this.input_voice_is_transcribing = true;
+
+                    // Stop toutes les pistes audio pour libérer le micro
+                    this.media_recorder.stream.getTracks().forEach(track => track.stop());
+
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    // Téléverser le fichier une fois qu'il est créé
+                    const file = new File([blob], "thread_message_input_voice_" + Dates.now_ms() + "_" + VueAppController.getInstance().data_user.id + ".webm", { type: "audio/webm" });
+                    const file_vo = await this.do_upload_file(null, file);
+
+                    if (!file_vo) {
+                        this.input_voice_is_transcribing = false;
+                        ConsoleHandler.error('Error uploading file');
+                        return;
+                    }
+
+                    const transcription = await ModuleGPT.getInstance().transcribe_file(file_vo.id);
+
+                    if (!transcription) {
+                        this.input_voice_is_transcribing = false;
+                        ConsoleHandler.error('Error transcribing file');
+                        return;
+                    }
+
+                    this.new_message_text = ((this.new_message_text && (this.new_message_text != '')) ?
+                        (this.new_message_text + '\n' + transcription) :
+                        transcription);
+
+                    this.input_voice_is_transcribing = false;
+                };
+            } catch (err) {
+                console.error("Error accessing microphone", err);
+            }
+        } else {
+            // Arrêter l'enregistrement vocal
+            if (this.media_recorder && this.media_recorder.state === "recording") {
+                this.media_recorder.stop();  // Cela déclenche l'événement 'onstop' ci-dessus
+            }
+        }
+    }
+
+    private async stop_recording() {
+        this.input_voice_is_recording = false;
+        this.media_recorder.stop();
+    }
+
+    private async do_upload_file(fileHandle?: FileSystemFileHandle, files?: File): Promise<FileVO> {
+        let file: File;
+        if (files) {
+            file = files;
+        } else {
+            file = await fileHandle.getFile();
+        }
+        // Upload inspiré de feedback handler
+        const formData = new FormData();
+        const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
+        formData.append('file', file, file_name);
+
+        try {
+
+            const new_file_vo_json = await AjaxCacheClientController.getInstance().post(
+                null,
+                '/ModuleFileServer/upload',
+                [FileVO.API_TYPE_ID],
+                formData,
+                null,
+                null,
+                false,
+                30000);
+            return Object.assign(new FileVO(), JSON.parse(new_file_vo_json));
+        } catch (error) {
+            ConsoleHandler.error('do_upload_file error:' + error);
+            return null;
         }
     }
 }

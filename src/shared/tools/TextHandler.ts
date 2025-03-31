@@ -185,6 +185,14 @@ export default class TextHandler {
         return txt ? txt.trim().toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/__+/g, '_') : null;
     }
 
+    public formatTextsToID(txts: string[]): string[] {
+        const res = [];
+        for (const txt of txts) {
+            res.push(this.formatTextToID(txt));
+        }
+        return res;
+    }
+
     public generateChallenge(): string {
         // On génère un code à 8 caractères, chiffres et lettres.
         let res: string = "";

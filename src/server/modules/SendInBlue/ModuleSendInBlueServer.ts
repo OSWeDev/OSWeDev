@@ -212,7 +212,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
                 return;
         }
 
-        new_event.event_date = event.date;
+        new_event.event_date = ((typeof event.date == 'number') ? event.date : Dates.parse(event.date));
         new_event.mail_id = mail.id;
         new_event.reason = event.reason;
 

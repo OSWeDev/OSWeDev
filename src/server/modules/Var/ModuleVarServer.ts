@@ -62,10 +62,10 @@ import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
-import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ParamsServerController from '../Params/ParamsServerController';
 import PerfReportServerController from '../PerfReport/PerfReportServerController';
+import PostModulesInitHookHolder from '../PostModulesInitHookHolder';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import CurrentBatchDSCacheHolder from './CurrentBatchDSCacheHolder';
@@ -540,7 +540,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_force_delete_all_cache_except_imported_data, this.force_delete_all_cache_except_imported_data.bind(this));
 
-        ModuleServiceBase.getInstance().post_modules_installation_hooks.push(async () => {
+        PostModulesInitHookHolder.post_modules_installation_hooks.push(async () => {
 
             /**
              * Ajout des triggers d'invalidation des données de cache en BDD

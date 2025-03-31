@@ -3,6 +3,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import ActionURLCRVO from '../../../shared/modules/ActionURL/vos/ActionURLCRVO';
 import ActionURLUserVO from '../../../shared/modules/ActionURL/vos/ActionURLUserVO';
 import ActionURLVO from '../../../shared/modules/ActionURL/vos/ActionURLVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -10,10 +11,8 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import ModuleServerBase from '../ModuleServerBase';
-import ActionURLCRVO from '../../../shared/modules/ActionURL/vos/ActionURLCRVO';
 
-export default class ActionURLServerTools extends ModuleServerBase {
+export default class ActionURLServerTools {
 
     public static UID: number = 0;
 

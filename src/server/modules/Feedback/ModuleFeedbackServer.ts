@@ -137,7 +137,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             }
 
             // Remplir le feedback avec toutes les infos qui sont connues côté serveur,
-            feedback.user_connection_date = user_session.last_load_date_unix;
+            feedback.user_connection_date = user_session.last_load_date_unix ? user_session.last_load_date_unix : 0;
             feedback.user_id = user_session.uid;
             feedback.user_login_date = user_session.creation_date_unix;
 

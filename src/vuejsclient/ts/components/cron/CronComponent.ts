@@ -17,6 +17,8 @@ export default class CronComponent extends VueComponentBase {
 
     private cron_workers: CronWorkerPlanification[] = [];
     private manual_tasks: string[] = [];
+    private patch_premodules: string[] = [];
+    private patch_postmodules: string[] = [];
 
     get supervised_items(): string[] {
         return Object.keys(SupervisionController.getInstance().registered_controllers);
@@ -44,6 +46,8 @@ export default class CronComponent extends VueComponentBase {
     private async mounted() {
         this.cron_workers = await query(CronWorkerPlanification.API_TYPE_ID).select_vos<CronWorkerPlanification>();
         this.manual_tasks = await ModuleCron.getInstance().get_manual_tasks();
+        this.patch_premodules = await ModuleCron.getInstance().get_patch_premodules();
+        this.patch_postmodules = await ModuleCron.getInstance().get_patch_postmodules();
     }
 
     private async run_cron_individuel(cron_worker: CronWorkerPlanification) {
@@ -63,5 +67,19 @@ export default class CronComponent extends VueComponentBase {
         this.snotify.info(this.label('CronComponent.info.update_supervised.started'));
         await ModuleSupervision.getInstance().execute_manually(api_type_id);
         this.snotify.info(this.label('CronComponent.info.update_supervised.ended'));
+    }
+
+
+    private async rerun_patch_premodule(patch_premodule: string) {
+        this.snotify.info(this.label('CronComponent.info.patch_premodule.started'));
+        await ModuleCron.getInstance().rerun_patch(patch_premodule);
+        this.snotify.info(this.label('CronComponent.info.patch_premodule.ended'));
+    }
+
+
+    private async rerun_patch_postmodule(patch_postmodule: string) {
+        this.snotify.info(this.label('CronComponent.info.patch_postmodule.started'));
+        await ModuleCron.getInstance().rerun_patch(patch_postmodule);
+        this.snotify.info(this.label('CronComponent.info.patch_postmodule.ended'));
     }
 }

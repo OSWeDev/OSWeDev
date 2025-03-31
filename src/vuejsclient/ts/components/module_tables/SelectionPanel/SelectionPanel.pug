@@ -12,11 +12,11 @@
             )
             | {{ fieldVO.module_table_vo_type }}.{{ fName }} => {{ fieldVO.foreign_ref_vo_type }}
     h4(v-if='has_foreignKeyFieldsTOSelectedTable') X => {{ selectedTable }}
-    template(v-for="(fieldVO, fName) in foreignKeyFieldsTOSelectedTable")
-        label(:key="selectedTable + '_' + fName")
+    template(v-for="(fieldVO, target_table_fName) in foreignKeyFieldsTOSelectedTable")
+        label(:key="target_table_fName")
             input(
                 type="checkbox"
-                :checked="!discarded_field_paths[fieldVO.module_table_vo_type]?.[fName]"
-                @change="onSwitchDiscard(fieldVO.module_table_vo_type, fName, $event.target.checked)"
+                :checked="!discarded_field_paths[fieldVO.module_table_vo_type]?.[fieldVO.field_id]"
+                @change="onSwitchDiscard(fieldVO.module_table_vo_type, fieldVO.field_id, $event.target.checked)"
             )
-            | {{ fieldVO.module_table_vo_type }}.{{ fName }} => {{ fieldVO.foreign_ref_vo_type }}
+            | {{ fieldVO.module_table_vo_type }}.{{ fieldVO.field_id }} => {{ fieldVO.foreign_ref_vo_type }}

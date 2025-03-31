@@ -160,7 +160,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
         if ((!this.editable_dashboard_page) || (this.editable_dashboard_page.id != this.dashboard_page.id)) {
 
-            await this.throttled_rebuild_page_layout();
+            this.throttled_rebuild_page_layout();
         }
     }
 

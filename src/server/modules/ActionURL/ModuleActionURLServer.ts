@@ -29,6 +29,8 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
+import ActionURLServerTools from './ActionURLServerTools';
+import { ISimpleActionURLParams } from './SimpleActionURL';
 
 export default class ModuleActionURLServer extends ModuleServerBase {
 
@@ -76,9 +78,19 @@ export default class ModuleActionURLServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleActionURL.APINAME_action_url, this.action_url.bind(this));
     }
 
-    private async filterActionURLVOContextAccessHook(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    /**
+     * On renvoie simplement une redirection vers l'administration pour modifier le message
+     * @param action_url
+     * @param uid
+     * @returns
+     */
+    public async simple_open_url_from_action_url(action_url: ActionURLVO, uid: number, req: Request, call_id: number): Promise<ActionURLCRVO> {
+        const param:ISimpleActionURLParams = action_url.params as ISimpleActionURLParams;
+        await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, param.url);
+        return ActionURLServerTools.create_info_cr(action_url, 'Redirection vers ' + param.url);
+    }
 
-        const res: ContextQueryVO = query(ActionURLVO.API_TYPE_ID);
+    private async filterActionURLVOContextAccessHook(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         if (!uid) {
             return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);

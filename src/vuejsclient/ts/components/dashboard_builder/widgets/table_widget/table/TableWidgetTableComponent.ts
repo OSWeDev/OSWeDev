@@ -5,6 +5,7 @@ import { cloneDeep, debounce, isEqual } from 'lodash';
 import slug from 'slug';
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
+import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
@@ -46,8 +47,11 @@ import ModuleDataExport from '../../../../../../../shared/modules/DataExport/Mod
 import ExportVarIndicatorVO from '../../../../../../../shared/modules/DataExport/vos/ExportVarIndicatorVO';
 import ExportVarcolumnConfVO from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConfVO';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
+import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
+import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
@@ -67,6 +71,7 @@ import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText
 import VueComponentBase from '../../../../VueComponentBase';
 import CRUDComponentManager from '../../../../crud/CRUDComponentManager';
 import CRUDComponentField from '../../../../crud/component/field/CRUDComponentField';
+import { ModuleDAOAction } from '../../../../dao/store/DaoStore';
 import DatatableRowController from '../../../../datatable/component/DatatableRowController';
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
@@ -82,10 +87,6 @@ import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalCom
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import './TableWidgetTableComponent.scss';
-import { ModuleDAOAction } from '../../../../dao/store/DaoStore';
-import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
-import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
-import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -751,9 +752,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                         }
 
                         if (!!vo_field_ref_filter) {
-                            const is_type_date: boolean = VOFieldRefVOHandler.is_type_date(vo_field_ref);
 
-                            if (is_type_date) {
+                            if (VOFieldRefVOHandler.is_type_date(vo_field_ref)) {
                                 RangeHandler.foreach_ranges_sync(vo_field_ref_filter.param_tsranges, (date: number) => {
 
                                     max_id++;
@@ -796,7 +796,66 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                                     new_column.custom_values = [RangeHandler.create_single_elt_TSRange(date, column.column_dynamic_time_segment)];
                                     res.push(new_column);
                                 }, column.column_dynamic_time_segment);
+                                continue;
                             }
+
+                            // On peut aussi réaliser des colonnes dynamiques pour des champs de type number/ ids des vos à cibler sur une var ou un composant
+                            if (VOFieldRefVOHandler.is_type_string(vo_field_ref)) {
+
+                                if ((!vo_field_ref_filter.param_textarray) || (!vo_field_ref_filter.param_textarray.length)) {
+                                    ConsoleHandler.error('Not implemented');
+                                    continue;
+                                }
+
+                                for (const k in vo_field_ref_filter.param_textarray) {
+                                    const text = vo_field_ref_filter.param_textarray[k];
+
+                                    max_id++;
+
+                                    const new_column = new TableColumnDescVO();
+                                    new_column.id = max_id;
+                                    new_column.readonly = column.readonly;
+                                    new_column.exportable = column.exportable;
+                                    new_column.hide_from_table = column.hide_from_table;
+                                    new_column.sortable = column.sortable;
+                                    new_column.filter_by_access = column.filter_by_access;
+                                    new_column.show_if_any_filter_active = column.show_if_any_filter_active;
+                                    new_column.do_not_user_filter_active_ids = column.do_not_user_filter_active_ids;
+                                    new_column.enum_bg_colors = column.enum_bg_colors;
+                                    new_column.enum_fg_colors = column.enum_fg_colors;
+                                    new_column.can_filter_by = column.can_filter_by;
+                                    new_column.column_width = column.column_width;
+                                    new_column.default_sort_field = column.default_sort_field;
+                                    new_column.filter_custom_field_filters = column.filter_custom_field_filters;
+                                    new_column.kanban_column = column.kanban_column;
+                                    new_column.filter_additional_params = column.filter_additional_params;
+                                    new_column.filter_type = column.filter_type;
+                                    new_column.custom_class_css = column.custom_class_css;
+                                    new_column.api_type_id = vo_field_ref.api_type_id;
+                                    new_column.field_id = vo_field_ref.field_id;
+                                    new_column.weight = new_weight;
+
+                                    if (column.column_dynamic_component) {
+                                        new_column.type = TableColumnDescVO.TYPE_component;
+                                        new_column.component_name = column.column_dynamic_component;
+                                    } else if (column.column_dynamic_var) {
+                                        new_column.type = TableColumnDescVO.TYPE_var_ref;
+                                        new_column.var_id = VarsController.var_conf_by_name[column.column_dynamic_var].id;
+                                        new_column.var_unicity_id = Math.round(Dates.now_ms() + (Math.random() * 1000));
+                                    }
+
+                                    new_weight++;
+
+                                    new_column.custom_label = text.toString();
+                                    new_column.custom_values = [text];
+                                    res.push(new_column);
+                                }
+
+                                continue;
+                            }
+
+                            ConsoleHandler.error('Not implemented');
+                            continue;
                         }
                     }
                 }

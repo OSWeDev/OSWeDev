@@ -1,10 +1,10 @@
 import ServerExpressController from '../../../ServerExpressController';
-import IBGThread from '../../BGThread/interfaces/IBGThread';
+import LoadBalancedBGThreadBase from '../../BGThread/LoadBalancedBGThreadBase';
 
 /**
  * Coquille vide pour init un thread dédié au traitement de base des APIs
  */
-export default class APIBGThread implements IBGThread {
+export default class APIBGThread extends LoadBalancedBGThreadBase {
 
     public static BGTHREAD_name: string = 'APIBGThread';
     private static instance: APIBGThread = null;
@@ -13,12 +13,11 @@ export default class APIBGThread implements IBGThread {
     public MAX_timeout: number = 300000;
     public MIN_timeout: number = 60000;
 
-    public exec_in_dedicated_thread: boolean = true;
-
-    private constructor() {
+    public constructor() {
+        super();
     }
 
-    get name(): string {
+    get base_name(): string {
         return APIBGThread.BGTHREAD_name;
     }
 
@@ -30,9 +29,5 @@ export default class APIBGThread implements IBGThread {
             ServerExpressController.getInstance();
         }
         return APIBGThread.instance;
-    }
-
-    public async work(): Promise<number> {
-        return null;
     }
 }

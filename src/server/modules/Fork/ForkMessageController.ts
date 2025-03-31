@@ -6,11 +6,12 @@ import Throttle from '../../../shared/annotations/Throttle';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import PerfReportController from '../../../shared/modules/PerfReport/PerfReportController';
 import { StatThisArrayLength } from '../../../shared/modules/Stats/annotations/StatThisArrayLength';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
-import { all_promises } from '../../../shared/tools/PromiseTools';
+import BgthreadPerfModuleNamesHolder from '../BGThread/BgthreadPerfModuleNamesHolder';
 import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
 import ForkServerController from './ForkServerController';
 import IFork from './interfaces/IFork';
@@ -23,6 +24,7 @@ import TaskResultForkMessage from './messages/TaskResultForkMessage';
 
 export default class ForkMessageController {
 
+    public static PERF_MODULE_UID: number = 0;
     private static registered_messages_handlers: { [message_type: string]: (msg: IForkMessage, send_handle: Worker | MessagePort) => Promise<boolean> } = {};
     private static last_log_msg_error: number = 0;
     private static throttled_retry = throttle(ForkMessageController.retry.bind(ForkMessageController), 500);
@@ -45,6 +47,21 @@ export default class ForkMessageController {
             return false;
         }
 
+        const start = Dates.now_ms();
+
+        // On commence par créer l'info de perfReport event de réception de query
+        const perf_name = 'ForkMessageController.message_handler.' + msg.message_type + ' [' + (msg['PERF_MODULE_UID'] ? msg['PERF_MODULE_UID'] : ForkMessageController.PERF_MODULE_UID++) + ']';
+        const perf_line_name = msg.message_type;
+        PerfReportController.add_event(
+            BgthreadPerfModuleNamesHolder.WORKER_MESSAGES_PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            perf_line_name,
+            start,
+            perf_name + '<br>' +
+            this.to_perf_desc(msg)
+        );
+
         StatsController.register_stat_COMPTEUR('ForkMessageController', 'receive', msg.message_type);
         if ((!!msg.message_content) && (
             ((typeof msg.message_content == "string") && (!msg.message_content.startsWith('{'))) &&
@@ -54,13 +71,29 @@ export default class ForkMessageController {
             StatsController.register_stat_COMPTEUR('ForkMessageController', 'receive', msg.message_content);
         }
 
+        let res = false;
         try {
 
-            return await ForkMessageController.registered_messages_handlers[msg.message_type](msg, send_handle);
+            res = await ForkMessageController.registered_messages_handlers[msg.message_type](msg, send_handle);
+            // return await ForkMessageController.registered_messages_handlers[msg.message_type](msg, send_handle);
+
         } catch (error) {
             ConsoleHandler.error('ForkMessageController.message_handler error: ' + error);
             return false;
         }
+
+        PerfReportController.add_call(
+            BgthreadPerfModuleNamesHolder.WORKER_MESSAGES_PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            perf_line_name,
+            start,
+            Dates.now_ms(),
+            perf_name + '<br>' +
+            this.to_perf_desc(msg)
+        );
+
+        return res;
     }
 
     /**
@@ -73,7 +106,7 @@ export default class ForkMessageController {
             return ForkMessageController.send(new BroadcastWrapperForkMessage(msg), parentPort);
         } else {
 
-            const promises = [];
+            // const promises = [];
             // On doit clone le message si on utilise le même pour plusieurs envoies / ou pour du local
             let nb_uses = 0;
             for (const i in ForkServerController.forks) {
@@ -97,12 +130,14 @@ export default class ForkMessageController {
 
                 nb_uses++;
                 if (nb_uses > 1) {
-                    promises.push(ForkMessageController.send(JSON.parse(JSON.stringify(msg)), forked.worker, forked));
+                    // promises.push(ForkMessageController.send(JSON.parse(JSON.stringify(msg)), forked.worker, forked));
+                    ForkMessageController.send(JSON.parse(JSON.stringify(msg)), forked.worker, forked);
                 } else {
-                    promises.push(ForkMessageController.send(msg, forked.worker, forked));
+                    // promises.push(ForkMessageController.send(msg, forked.worker, forked));
+                    ForkMessageController.send(msg, forked.worker, forked);
                 }
             }
-            await all_promises(promises);// Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
+            // await all_promises(promises);// Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
             // Les messages de type BGThreadProcessTaskForkMessage sont envoyés uniquement au thread concerné, donc pas sur le main
             if (msg.message_type == BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE) {
@@ -112,15 +147,17 @@ export default class ForkMessageController {
             // Les messages de type TaskResultForkMessage sont envoyés uniquement au thread concerné, donc si c'est pas le main (0) on a fini
             if ((msg.message_type == TaskResultForkMessage.FORK_MESSAGE_TYPE) &&
                 (!!(msg as TaskResultForkMessage).callback_forked_uid)) {
-                return;
+                return true;
             }
 
             nb_uses++;
             if (nb_uses > 1) {
-                return ForkMessageController.message_handler(JSON.parse(JSON.stringify(msg)));
+                ForkMessageController.message_handler(JSON.parse(JSON.stringify(msg)));
+                return true;
             }
 
-            return ForkMessageController.message_handler(msg);
+            ForkMessageController.message_handler(msg);
+            return true;
         }
     }
 
@@ -142,8 +179,35 @@ export default class ForkMessageController {
             return false;
         }
 
+        const start = Dates.now_ms();
+
+        // On commence par créer l'info de perfReport event de réception de query
+        const perf_name = 'ForkMessageController.send.' + msg.message_type + ' [' + ForkMessageController.PERF_MODULE_UID++ + ']';
+        const perf_line_name = msg.message_type;
+        PerfReportController.add_event(
+            BgthreadPerfModuleNamesHolder.WORKER_MESSAGES_PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            perf_line_name,
+            start,
+            perf_name + '<br>' +
+            this.to_perf_desc(msg)
+        );
+
         try {
             send_handle.postMessage(msg);
+
+            PerfReportController.add_call(
+                BgthreadPerfModuleNamesHolder.WORKER_MESSAGES_PERF_MODULE_NAME,
+                perf_name,
+                perf_line_name,
+                perf_line_name,
+                start,
+                Dates.now_ms(),
+                perf_name + '<br>' +
+                this.to_perf_desc(msg)
+            );
+
             return true;
         } catch (error) {
             await this.handle_send_error({
@@ -177,6 +241,28 @@ export default class ForkMessageController {
         msg['message_content_params'] = ObjectHandler.reapply_prototypes(msg['message_content_params']);
 
         return msg;
+    }
+
+    public static to_perf_desc(msg: IForkMessage): string {
+        if (!msg) {
+            return null;
+        }
+
+        let res = "msg.message_type: " + msg.message_type + "<br>";
+
+        // if (msg.message_content) {
+        //     // On veut le JSON, mais limité à 1000 caractères, et surtout en enlevant les caractères spéciaux qui pourraient poser un pb en requete pgsql
+        //     // Problème c'est très lourd de JSON avant de faire le substring.
+        //     // res += "msg.message_content: " + JSON.stringify(msg.message_content).replace(/[^a-zA-Z0-9{}:,"]/g, '').substring(0, 1000) + '<br>';
+
+        // }
+
+        // if (msg['message_content_params']) {
+        //     // On veut le JSON, mais limité à 1000 caractères, et surtout en enlevant les caractères spéciaux qui pourraient poser un pb en requete pgsql
+        //     res += "msg.message_content_params: " + JSON.stringify(msg['message_content_params']).replace(/[^a-zA-Z0-9{}:,"]/g, '').substring(0, 1000) + '<br>';
+        // }
+
+        return res;
     }
 
     private static async handle_send_error(msg_wrapper: IForkMessageWrapper, error: Error) {

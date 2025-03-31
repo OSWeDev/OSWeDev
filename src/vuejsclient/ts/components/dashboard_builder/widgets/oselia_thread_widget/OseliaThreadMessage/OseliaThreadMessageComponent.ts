@@ -7,6 +7,7 @@ import { query } from '../../../../../../../shared/modules/ContextFilter/vos/Con
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
+import ModuleGPT from '../../../../../../../shared/modules/GPT/ModuleGPT';
 import GPTAssistantAPIFileVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
 import GPTAssistantAPIThreadMessageContentVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
 import GPTAssistantAPIThreadMessageVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
@@ -80,6 +81,10 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     private is_editing_content: boolean[] = [];
     private changed_input: boolean[] = [];
+
+    private audio: HTMLAudioElement = null;
+    private preparing_tts_file: boolean = false;
+    private is_tts_playing: boolean = false;
 
     private show_feedback: boolean = false;
     private markdown_options = {
@@ -427,5 +432,38 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
             this.avatar_url = await ModuleAccessPolicy.getInstance().get_avatar_url(this.thread_message.user_id);
         })());
         await all_promises(promises);
+    }
+
+    private async pause_tts() {
+        if (this.audio) {
+            this.audio.pause();
+            this.is_tts_playing = false;
+        }
+    }
+
+    private async play_tts(message: GPTAssistantAPIThreadMessageContentVO) {
+        if (this.audio) {
+            this.audio.play();
+            this.is_tts_playing = true;
+            return;
+        }
+
+        this.preparing_tts_file = true;
+        const tts_file = await ModuleGPT.getInstance().get_tts_file(message.id);
+        this.preparing_tts_file = false;
+
+        if (!tts_file) {
+            return;
+        }
+
+        this.audio = new Audio(tts_file.path);
+        this.audio.play();
+        this.is_tts_playing = true;
+
+        // Quand le fichier audio est terminé, on enlève le lien pour libérer la mémoire
+        this.audio.onended = async () => {
+            this.is_tts_playing = false;
+            this.audio = null;
+        };
     }
 }

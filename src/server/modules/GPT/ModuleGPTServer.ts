@@ -1,3 +1,4 @@
+import { createReadStream } from 'fs';
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { isMainThread } from 'worker_threads';
@@ -35,7 +36,7 @@ import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadU
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -47,6 +48,7 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ParamsServerController from '../Params/ParamsServerController';
@@ -65,9 +67,16 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
+import FileHandler from '../../../shared/tools/FileHandler';
+import path from 'path';
+import { FileLike } from 'openai/uploads';
+import { originalCreateReadStream } from '../File/ArchiveServerController';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
+    public static MESSAGE_CONTENT_TTS_FILE_PATH: string = './sfiles/message_content_tts/';
+    public static MESSAGE_CONTENT_TTS_FILE_PREFIX: string = 'message_content_tts_';
+    public static MESSAGE_CONTENT_TTS_FILE_SUFFIX: string = '.mp3';
     public static openai: OpenAI = null;
 
 
@@ -91,6 +100,9 @@ export default class ModuleGPTServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_generate_response, this.generate_response.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_ask_assistant, this.ask_assistant.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_rerun, this.rerun.bind(this));
+        APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().get_tts_file, this.get_tts_file.bind(this));
+        APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().transcribe_file, this.transcribe_file.bind(this));
+        APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().summerize, this.summerize.bind(this));
         // APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_connect_to_realtime_voice, this.connect_to_realtime_voice.bind(this));
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_sync_openai_datas] = this.sync_openai_datas;
@@ -609,5 +621,112 @@ export default class ModuleGPTServer extends ModuleServerBase {
     private pre_create_trigger_handler_for_ThreadMessageVO(vo: GPTAssistantAPIThreadMessageVO): boolean {
         vo.date = vo.created_at ? vo.created_at : Dates.now();
         return true;
+    }
+
+    private async transcribe_file(filevo_id: number): Promise<string> {
+        const filevo: FileVO = await query(FileVO.API_TYPE_ID)
+            .filter_by_id(filevo_id)
+            .exec_as_server()
+            .select_vo<FileVO>();
+
+        if (!filevo) {
+            ConsoleHandler.error('transcribe_file:File not found');
+            return null;
+        }
+
+        const file_path: string = filevo.path;
+        if (!file_path) {
+            ConsoleHandler.error('transcribe_file:File path not found');
+            return null;
+        }
+
+        let transcription = null;
+        try {
+            // const fileBuffer = await ModuleFileServer.getInstance().readFile(file_path);
+
+            // transcription = await GPTAssistantAPIServerController.wrap_api_call(
+            //     ModuleGPTServer.openai.audio.transcriptions.create,
+            //     ModuleGPTServer.openai.audio.transcriptions,
+            //     {
+            //         file: new Blob([fileBuffer], { type: 'audio/webm' }) as any,
+            //         stream: true,
+            //         model: 'gpt-4o-mini-transcribe',
+            //         language: 'fr',
+            //     });
+
+
+            const instructions = "Don't try to transcribe exactly the text but give the text that most reliably resembles the meaning. If you're unsure, you can use the word 'inaudible' to indicate that a word is unclear or inaudible. If you're unsure about a phrase, you can use the word 'inaudible' to indicate that a phrase is unclear or inaudible. If you're unsure about a sentence, you can use the word 'inaudible' to indicate that a sentence is unclear or inaudible. If you're unsure about a paragraph, you can use the word 'inaudible' to indicate that a paragraph is unclear or inaudible. If you're unsure about a section, you can use the word 'inaudible' to indicate that a section is unclear or inaudible. If you're unsure about a chapter, you can use the word 'inaudible' to indicate that a chapter is unclear or inaudible. If you're unsure about a page, you can use the word 'inaudible' to indicate that a page is unclear or inaudible. If you're unsure about a book, you can use the word 'inaudible' to indicate that a book is unclear or inaudible.";
+
+            transcription = await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.audio.transcriptions.create,
+                ModuleGPTServer.openai.audio.transcriptions,
+                {
+                    file: originalCreateReadStream(file_path) as unknown as FileLike,
+                    model: 'gpt-4o-transcribe',
+                    language: 'fr',
+                    instructions
+                } as any);
+
+            if (!transcription.text) {
+                ConsoleHandler.error('transcribe_file:No transcription found');
+                return null;
+            }
+        } catch (error) {
+            ConsoleHandler.error('transcribe_file:ERROR:' + error);
+        }
+
+        return transcription.text;
+    }
+
+    private async get_tts_file(message_content_id: number): Promise<FileVO> {
+        if (!message_content_id) {
+            return null;
+        }
+
+        const message_content: GPTAssistantAPIThreadMessageContentVO = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
+            .filter_by_id(message_content_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadMessageContentVO>();
+
+        if (!message_content) {
+            return null;
+        }
+
+        let file: FileVO = null;
+        if (!message_content.tts_file_id) {
+            // On génère via l'api GPT
+            const speech_file_path = ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PATH + ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PREFIX + message_content.id + ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_SUFFIX;
+            // const instructions = "Affect/personality: A cheerful guide \n\nTone: Friendly, clear, and reassuring, creating a calm atmosphere and making the listener feel confident and comfortable.\n\nPronunciation: Clear, articulate, and steady, ensuring each instruction is easily understood while maintaining a natural, conversational flow.\n\nPause: Brief, purposeful pauses after key instructions (e.g., \"cross the street\" and \"turn right\") to allow time for the listener to process the information and follow along.\n\nEmotion: Warm and supportive, conveying empathy and care, ensuring the listener feels guided and safe throughout the journey.";
+            const instructions = "Don't try to read exactly, but with the given text, try to convey the meaning in a way that is most natural and clear.";
+            const response = await ModuleGPTServer.openai.audio.speech.create({
+                model: "gpt-4o-mini-tts",
+                voice: "shimmer",
+                input: message_content.content_type_text.value,
+                instructions,
+            });
+            // await response.stream_to_file(speech_file_path); // Doc GPT mais j'ai pas cette fonction :)
+            const buffer = Buffer.from(await response.arrayBuffer());
+            await ModuleFileServer.getInstance().makeSureThisFolderExists(ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PATH);
+            await ModuleFileServer.getInstance().writeFile(speech_file_path, buffer);
+
+            file = new FileVO();
+            file.path = speech_file_path;
+            file.file_access_policy_name = ModuleGPT.POLICY_BO_ACCESS;
+            file.is_secured = true;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(file);
+            message_content.tts_file_id = file.id;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message_content);
+        } else {
+            file = await query(FileVO.API_TYPE_ID)
+                .filter_by_id(message_content.tts_file_id)
+                .exec_as_server()
+                .select_vo<FileVO>();
+        }
+
+        return file;
+    }
+
+    private async summerize(thread_vo: number): Promise<FileVO> {
+        throw new Error('Not implemented');
     }
 }

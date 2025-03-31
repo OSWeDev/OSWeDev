@@ -13,7 +13,7 @@
 
     //- (@click="(event) => select_widget_and_stop(event, null)")
     .grid_wrapper(:class="{ filter_plie: (dashboard_page.group_filters && !is_filtres_deplie) }")
-        template(v-if='!editable_dashboard_page')
+        template(v-if='(!editable_dashboard_page) || (editable_dashboard_page.id != dashboard_page.id)')
             i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
         template(v-else)
             Gridlayout(

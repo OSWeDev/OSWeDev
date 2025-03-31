@@ -3,9 +3,9 @@ import EventsController from '../modules/Eventify/EventsController';
 import EventifyEventInstanceVO from '../modules/Eventify/vos/EventifyEventInstanceVO';
 import EventifyEventListenerConfVO from '../modules/Eventify/vos/EventifyEventListenerConfVO';
 import EventifyEventListenerInstanceVO from '../modules/Eventify/vos/EventifyEventListenerInstanceVO';
+import ModulesManager from '../modules/ModulesManager';
 import StackContextWrapper from '../tools/StackContextWrapper';
 import ThrottleHelper from '../tools/ThrottleHelper';
-import ModulesManager from '../modules/ModulesManager';
 
 // Types pour les paramètres du décorateur
 export interface ThrottleOptions {
@@ -67,8 +67,9 @@ export default function Throttle(options: ThrottleOptions) {
         }
 
         // Récupérer les indices des paramètres spéciaux
-        const preThrottleIndex: number = Reflect.getMetadata('PreThrottleParam', target, propertyKey);
-        const postThrottleIndex: number = Reflect.getMetadata('PostThrottleParam', target, propertyKey);
+        const has_map_param_type = (options.param_type == EventifyEventListenerConfVO.PARAM_TYPE_MAP);
+        const preThrottleIndex: number = has_map_param_type ? 0 : Reflect.getMetadata('PreThrottleParam', target, propertyKey);
+        const postThrottleIndex: number = has_map_param_type ? 0 : Reflect.getMetadata('PostThrottleParam', target, propertyKey);
         const has_no_param = (options.param_type == EventifyEventListenerConfVO.PARAM_TYPE_NONE);
 
         if ((!has_no_param) && (preThrottleIndex === undefined)) {
@@ -101,8 +102,8 @@ export default function Throttle(options: ThrottleOptions) {
                 item = args[preThrottleIndex];
             }
 
-            // Le second paramètre est géré par le décorateur, pas par l'appelant
-            if (!!args[postThrottleIndex]) {
+            // Le second paramètre est géré par le décorateur, pas par l'appelant => mais les deux sont le même paramètre si on est en stack
+            if ((postThrottleIndex !== preThrottleIndex) && (!!args[postThrottleIndex])) {
                 throw new Error('The second parameter is managed by the decorator, not the caller');
             }
 
@@ -149,10 +150,9 @@ export default function Throttle(options: ThrottleOptions) {
                                         originalMethod,
                                         self,
                                         'Throttle.throttles_mappable_args',
-                                        null,
                                         l.current_params_map as { [map_elt_id: string]: unknown });
                                 } else {
-                                    await originalMethod.apply(self, l.current_params_map as { [map_elt_id: string]: unknown });
+                                    await originalMethod.apply(self, [l.current_params_map as { [map_elt_id: string]: unknown }]);
                                 }
                             },
                         );
@@ -160,7 +160,7 @@ export default function Throttle(options: ThrottleOptions) {
                         listener.cooldown_ms = options.throttle_ms;
                         // On debounce leading si on est en leading false, sachant que par défaut le leading est true
                         listener.debounce_leading = !(options.leading ?? true);
-                        listener.param_type = EventifyEventListenerConfVO.PARAM_TYPE_STACK;
+                        listener.param_type = EventifyEventListenerConfVO.PARAM_TYPE_MAP;
                         listener.is_bgthread = false;
                         listener.unlimited_calls = true;
                         EventsController.register_event_listener(listener);

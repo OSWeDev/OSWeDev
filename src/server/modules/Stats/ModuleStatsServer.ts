@@ -1,5 +1,7 @@
 
+import axios from 'axios';
 import { closeSync, existsSync, mkdirSync, openSync, unlinkSync, writeFileSync } from 'fs';
+import { threadId } from 'worker_threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleStats from '../../../shared/modules/Stats/ModuleStats';
@@ -8,16 +10,14 @@ import StatClientWrapperVO from '../../../shared/modules/Stats/vos/StatClientWra
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import IDatabaseHolder from '../IDatabaseHolder';
 import ModuleServerBase from '../ModuleServerBase';
-import ModuleServiceBase from '../ModuleServiceBase';
 import StatsInvalidatorBGThread from './bgthreads/StatsInvalidatorBGThread';
 import StatsUnstackerBGThread from './bgthreads/StatsUnstackerBGThread';
-import VarSecStatsGroupeController from './vars/controllers/VarSecStatsGroupeController';
-import axios from 'axios';
-import ConfigurationService from '../../env/ConfigurationService';
 import StatsServerController from './StatsServerController';
-import { threadId } from 'worker_threads';
+import VarSecStatsGroupeController from './vars/controllers/VarSecStatsGroupeController';
 
 export default class ModuleStatsServer extends ModuleServerBase {
 
@@ -133,7 +133,7 @@ export default class ModuleStatsServer extends ModuleServerBase {
             StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'do_stat_requete_latence_reseau', 'IN');
 
             const start = Dates.now_ms();
-            await axios.get('https://1.1.1.1');
+            await axios.get('https://1.1.1.1', { responseType: 'text' });
 
             StatsController.register_stat_DUREE('ModuleStatsServer', 'do_stat_requete_latence_reseau', 'success', Dates.now_ms() - start);
         } catch (error) {
@@ -150,7 +150,7 @@ export default class ModuleStatsServer extends ModuleServerBase {
             StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'do_stat_requete_pgsql', 'IN');
 
             const start = Dates.now_ms();
-            await ModuleServiceBase.db.query('SELECT 1');
+            await IDatabaseHolder.db.query('SELECT 1');
 
             StatsController.register_stat_DUREE('ModuleStatsServer', 'do_stat_requete_pgsql', 'success', Dates.now_ms() - start);
         } catch (error) {

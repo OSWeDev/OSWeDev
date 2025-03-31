@@ -5,7 +5,6 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MailCategoryVO from '../../../shared/modules/Mailer/vos/MailCategoryVO';
 import MailEventVO from '../../../shared/modules/Mailer/vos/MailEventVO';
 import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import SendInBlueAttachmentVO from '../../../shared/modules/SendInBlue/vos/SendInBlueAttachmentVO';
@@ -48,6 +47,8 @@ export default class SendInBlueMailServerController {
         sender: SendInBlueMailVO = null,
         reply_to: SendInBlueMailVO = null): Promise<boolean> {
 
+        // let use_sandbox: boolean = false;
+
         // On check que l'env permet d'envoyer des mails
         // On vérifie la whitelist
         if (ConfigurationService.node_configuration.block_mail_delivery) {
@@ -56,6 +57,8 @@ export default class SendInBlueMailServerController {
                 ConsoleHandler.warn('Envoi de mails interdit sur cet env mais adresses whitelistées:' + to.email + ':' + this.convert_mails_vo_to_string_list(cc) + ':' + this.convert_mails_vo_to_string_list(bcc));
 
             } else {
+                // // On utilise le mode sandbox de Brevo pour les tests => TODO FIXME quand on a validé ce mode, ne plus bloquer l'envoi
+                // use_sandbox = true;
                 ConsoleHandler.warn('Envoi de mails interdit sur cet env: ' + subject);
                 return false;
             }
@@ -96,6 +99,16 @@ export default class SendInBlueMailServerController {
             if (tags && tags.length > 0) {
                 postParams.tags = tags;
             }
+
+            // // TODO FIXME : quand on valide le mode sandbox, on arrête de bloquer l'envoi des mails, mais on les envoie en mode sandbox
+            // // Sauf que pour le moment ça marche pas du tout.... https://developers.brevo.com/docs/using-sandbox-mode-to-send-an-email
+            // // Par ailleurs, on n'aura pas de log d'après la doc dans brevo, et c'était mon but initial... donc je laisse en plan
+            // // if (use_sandbox) {
+            // if (ConfigurationService.node_configuration.block_mail_delivery) {
+            //     postParams.headers = {
+            //         'X-Sib-Sandbox': 'drop',
+            //     };
+            // }
 
             const res: { messageId: string } = await SendInBlueServerController.getInstance().sendRequestFromApp<{ messageId: string }>(
                 ModuleRequest.METHOD_POST,

@@ -55,7 +55,7 @@ export default class ModuleTablesComponent extends Vue {
 
     onAddTable(tableName: string) {
         this.$emit('addTable', tableName);
-        this.showAddPanel = false;
+        // this.showAddPanel = false;
     }
 
     select_table(tableName: string) {

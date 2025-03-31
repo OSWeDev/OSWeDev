@@ -70,22 +70,6 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     public api_type_id: string;
     public field_id: string;
 
-    get datatable_field_uid() {
-        switch (this.type) {
-            case TableColumnDescVO.TYPE_crud_actions:
-                return '__crud_actions';
-            case TableColumnDescVO.TYPE_vo_field_ref:
-                return this.api_type_id + '___' + this.field_id;
-            case TableColumnDescVO.TYPE_var_ref:
-                return this.var_id + '___' + this.var_unicity_id;
-            case TableColumnDescVO.TYPE_select_box:
-                return 'select_box';
-            case TableColumnDescVO.TYPE_component:
-                return this.component_name + '___' + this.id.toString();
-            case TableColumnDescVO.TYPE_header:
-                return this.header_name;
-        }
-    }
     /**
      * Si TYPE_header
      */
@@ -180,10 +164,42 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     public custom_class_css: string;
     public custom_values: any;
 
+    /**
+     * Filtre a utiliser pour construire les colonnes dynamiques
+     */
     public column_dynamic_page_widget_id: number;
+    /**
+     * Composant a utiliser pour construire les colonnes dynamiques
+     * (au choix il faut un component ou une var)
+     */
     public column_dynamic_component: string;
+    /**
+     * Variable a utiliser pour construire les colonnes dynamiques
+     * (au choix il faut un component ou une var)
+     */
     public column_dynamic_var: string;
+    /**
+     * Dans le cas d'un filtre de type date :
+     * Segment de temps a utiliser pour construire les colonnes dynamiques
+     */
     public column_dynamic_time_segment: number;
+
+    get datatable_field_uid() {
+        switch (this.type) {
+            case TableColumnDescVO.TYPE_crud_actions:
+                return '__crud_actions';
+            case TableColumnDescVO.TYPE_vo_field_ref:
+                return this.api_type_id + '___' + this.field_id;
+            case TableColumnDescVO.TYPE_var_ref:
+                return this.var_id + '___' + this.var_unicity_id;
+            case TableColumnDescVO.TYPE_select_box:
+                return 'select_box';
+            case TableColumnDescVO.TYPE_component:
+                return this.component_name + '___' + this.id.toString();
+            case TableColumnDescVO.TYPE_header:
+                return this.header_name;
+        }
+    }
 
     get is_enum(): boolean {
         if ((!this) || (!this.api_type_id) || (!this.field_id)) {

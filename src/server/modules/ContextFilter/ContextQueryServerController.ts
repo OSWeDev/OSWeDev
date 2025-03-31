@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash';
+import { Worker } from 'worker_threads';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
@@ -35,7 +36,6 @@ import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import { IRequestStackContext } from '../../ServerExpressController';
 import StackContext from '../../StackContext';
@@ -51,7 +51,7 @@ import ModuleTableServerController from '../DAO/ModuleTableServerController';
 import ThrottledQueryServerController from '../DAO/ThrottledQueryServerController';
 import ThrottledRefuseServerController from '../DAO/ThrottledRefuseServerController';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-import ModuleServiceBase from '../ModuleServiceBase';
+import IDatabaseHolder from '../IDatabaseHolder';
 import ParamsServerController from '../Params/ParamsServerController';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
 import ContextAccessServerController from './ContextAccessServerController';
@@ -67,6 +67,95 @@ export default class ContextQueryServerController {
 
     // istanbul ignore next: cannot test configure
     public static async configure() {
+    }
+
+    /**
+     * Check injection OK : Seul risque identifié updates_jointures > get_table_full_name, dont le check est OK
+     *
+     * @param context_query
+     * @param aliases_n
+     * @param api_type_id
+     * @param jointures
+     * @param joined_tables_by_vo_type
+     * @param tables_aliases_by_type
+     * @param access_type
+     * @param selected_field Cas d'une demande de jointure depuis un champs dont l'api_type_id n'a aucun lien avec les vos actuellement en requetes.
+     *  Dans ce cas, on doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
+     *  (qui n'aurait aucun impact positif sur le résultat de la requête)
+     * @returns
+     */
+    public static async join_api_type_id(
+        context_query: ContextQueryVO,
+        aliases_n: number,
+        api_type_id: string,
+        jointures: string[],
+        cross_joins: string[],
+        joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO },
+        tables_aliases_by_type: { [vo_type: string]: string },
+        access_type: string,
+        selected_field: ContextQueryFieldVO | ModuleTableFieldVO = null
+    ): Promise<number> {
+
+        /**
+         * Cas spécifique d'un api_type_id join qui serait en fait issu d'un join de contextquery
+         */
+        if (context_query.joined_context_queries) {
+            const context_query_join = context_query.joined_context_queries.find((joined_context_query) => joined_context_query.joined_table_alias == api_type_id);
+
+            if (context_query_join) {
+                return ContextQueryServerController.handle_join_context_query(context_query_join, jointures, tables_aliases_by_type);
+            }
+        }
+
+        /**
+         * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
+         */
+        const path: FieldPathWrapper[] = ContextFieldPathServerController.get_path_between_types(
+            context_query.discarded_field_paths,
+            context_query.use_technical_field_versioning,
+            context_query.active_api_type_ids,
+            Object.keys(joined_tables_by_vo_type),
+            api_type_id
+        );
+        if (!path) {
+
+            if (selected_field) {
+
+                /**
+                 * On doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
+                 */
+                const field_api_type_id = ((selected_field as ContextQueryFieldVO).api_type_id) ? (selected_field as ContextQueryFieldVO).api_type_id : (selected_field as ModuleTableFieldVO).module_table_vo_type;
+
+                if ((!context_query.is_server) && !await ContextAccessServerController.check_access_to_field_retrieve_roles(context_query, field_api_type_id, selected_field.field_name, access_type)) {
+                    ConsoleHandler.warn('join_api_type_id:check_access_to_field_retrieve_roles:Access denied to field ' + selected_field.field_name + ' of type ' + field_api_type_id + ' for access_type ' + access_type);
+                    return aliases_n;
+                }
+
+                return ContextFilterServerController.updates_cross_jointures(
+                    context_query,
+                    context_query.query_tables_prefix,
+                    field_api_type_id,
+                    cross_joins,
+                    context_query.filters,
+                    joined_tables_by_vo_type,
+                    tables_aliases_by_type,
+                    aliases_n
+                );
+            } else {
+                // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
+                return aliases_n;
+            }
+        }
+
+        /**
+         * On doit checker le trajet complet
+         */
+        if ((!context_query.is_server) && !ContextAccessServerController.check_access_to_fields(context_query, path, access_type)) {
+            return aliases_n;
+        }
+
+        return ContextFilterServerController.updates_jointures(
+            context_query, context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
     }
 
     /**
@@ -155,17 +244,36 @@ export default class ContextQueryServerController {
             }
         }
 
-        // FIXME TODO anonymisation incompatible avec les throttles
-        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
-            // Anonymisation
-            const uid = await StackContext.get('UID');
+        // // FIXME TODO anonymisation incompatible avec les throttles
+        // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        //     // Anonymisation
+        //     const uid = await StackContext.get('UID');
 
-            await ServerAnonymizationController.anonymise_context_filtered_rows(
-                query_res,
-                context_query.fields,
-                uid
-            );
-        }
+        //     await ServerAnonymizationController.anonymise_context_filtered_rows(
+        //         query_res,
+        //         context_query.fields,
+        //         uid
+        //     );
+        // }
+
+        /**
+         * Test de worker_thread pour séparer le traitement de translate potentiellement très long, dès qu'on a plus de 10k lignes
+         */
+
+        // if (query_res && (query_res.length > 10000)) {
+        //     ConsoleHandler.log('ContextQueryServerController.select_vos: using worker to translate ' + query_res.length + ' rows of type ' + context_query.base_api_type_id);
+        //     context_query.log(false);
+
+        //     return new Promise((resolve, reject) => {
+        //         const worker = new Worker('./node_modules/oswedev/dist/server/modules/ContextFilter/worker_ModuleTableServerController_translate_vos_from_db.js', { workerData: query_res });
+
+        //         worker.once('message', (translated) => resolve(translated));
+        //         worker.once('error', (err) => reject(err));
+        //         worker.once('exit', (code) => {
+        //             if (code !== 0) reject(new Error(`Worker stopped with exit code ${code}`));
+        //         });
+        //     });
+        // }
 
         return ModuleTableServerController.translate_vos_from_db(query_res);
     }
@@ -241,12 +349,12 @@ export default class ContextQueryServerController {
             query_res = ObjectHandler.clone_vos(query_res);
         }
 
-        // FIXME TODO anonymisation incompatible avec les throttles
-        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
-            // Anonymisation
-            const uid = await StackContext.get('UID');
-            await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
-        }
+        // // FIXME TODO anonymisation incompatible avec les throttles
+        // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        //     // Anonymisation
+        //     const uid = await StackContext.get('UID');
+        //     await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        // }
 
         return query_res;
     }
@@ -334,12 +442,12 @@ export default class ContextQueryServerController {
             query_res = ObjectHandler.clone_vos(query_res);
         }
 
-        // FIXME TODO anonymisation incompatible avec les throttles
-        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
-            // Anonymisation
-            const uid = await StackContext.get('UID');
-            await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
-        }
+        // // FIXME TODO anonymisation incompatible avec les throttles
+        // if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE)) {
+        //     // Anonymisation
+        //     const uid = await StackContext.get('UID');
+        //     await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        // }
 
         /**
          * Traitement des champs. on met dans + '__raw' les valeurs brutes, et on met dans le champ lui même la valeur formatée
@@ -760,7 +868,7 @@ export default class ContextQueryServerController {
 
                         const bdd_version = ModuleTableServerController.translate_vos_to_db(vo_to_update);
                         const query_uid = LogDBPerfServerController.log_db_query_perf_start('update_vos', 'type:' + vo_to_update._type);
-                        const db_result = await ModuleServiceBase.db.oneOrNone(sql, bdd_version).catch((reason) => {
+                        const db_result = await IDatabaseHolder.db.oneOrNone(sql, bdd_version).catch((reason) => {
                             ConsoleHandler.error('update_vos :' + reason);
                             failed = true;
                         });
@@ -974,7 +1082,7 @@ export default class ContextQueryServerController {
             const ids_to_delete: number[] = Object.keys(deleted_vos_by_id).map((id) => parseInt(id));
             try {
 
-                await ModuleServiceBase.db.none('DELETE FROM ' + moduletable.full_name + ' WHERE id IN ($1:csv)', [ids_to_delete]);
+                await IDatabaseHolder.db.none('DELETE FROM ' + moduletable.full_name + ' WHERE id IN ($1:csv)', [ids_to_delete]);
 
                 StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'WHILE_IN_TO_DB_OUT', Dates.now_ms() - while_time_in);
                 StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DB_OUT');
@@ -1012,7 +1120,7 @@ export default class ContextQueryServerController {
             } catch (error) {
                 ConsoleHandler.error('delete_vos :FAILED fast deletion of those ids:' + error + ":retrying with slow method");
 
-                await ModuleServiceBase.db.tx(async (t) => {
+                await IDatabaseHolder.db.tx(async (t) => {
 
                     const qs = [];
                     for (const i in queries) {
@@ -1065,7 +1173,7 @@ export default class ContextQueryServerController {
                 });
 
             }
-            // await ModuleServiceBase.db.tx(async (t) => {
+            // await IDatabaseHolder.db.tx(async (t) => {
 
             //     const qs = [];
             //     for (const i in queries) {
@@ -1714,6 +1822,11 @@ export default class ContextQueryServerController {
             all_required_fields = cloneDeep(all_required_fields);
         }
 
+        // Gestion de l'anonymisation
+        if (!context_query.anonimized_fields) {
+            ServerAnonymizationController.apply_anonymisation_conf_for_user_on_context_query(context_query);
+        }
+
         let aliases_n: number = 0;
         let FROM: string = null;
 
@@ -2053,6 +2166,9 @@ export default class ContextQueryServerController {
                     throw new Error('Not Implemented');
             }
 
+            // Handle anonymisation
+            field_full_name = ServerAnonymizationController.handle_anon_field_name(context_query, context_field.api_type_id, context_field.field_name, field_full_name, !!field_alias);
+
             /**
              * Check injection OK :
              *  - aggregator_prefix && aggregator_suffix: rempli par le serveur et si infos étranges, throw
@@ -2156,7 +2272,7 @@ export default class ContextQueryServerController {
     private static async build_query_wrapper_where_clause(
         context_query: ContextQueryVO,
         query_wrapper: ParameterizedQueryWrapper,
-        aliases_n: number = 0,
+        aliases_n: number,
     ): Promise<string> {
 
         let WHERE = '';
@@ -2183,8 +2299,9 @@ export default class ContextQueryServerController {
             /**
              * Check injection : OK
              */
-            await ContextFilterServerController.update_where_conditions(
+            aliases_n = await ContextFilterServerController.update_where_conditions(
                 context_query,
+                aliases_n,
                 query_wrapper,
                 where_conditions,
                 context_filter,
@@ -2462,93 +2579,6 @@ export default class ContextQueryServerController {
             '(' + joined_query_str + ') ' + context_query_join.joined_table_alias +
             ' ON ' + join_on_fields.join(' AND ')
         );
-    }
-
-    /**
-     * Check injection OK : Seul risque identifié updates_jointures > get_table_full_name, dont le check est OK
-     *
-     * @param context_query
-     * @param aliases_n
-     * @param api_type_id
-     * @param jointures
-     * @param joined_tables_by_vo_type
-     * @param tables_aliases_by_type
-     * @param access_type
-     * @param selected_field Cas d'une demande de jointure depuis un champs dont l'api_type_id n'a aucun lien avec les vos actuellement en requetes.
-     *  Dans ce cas, on doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
-     *  (qui n'aurait aucun impact positif sur le résultat de la requête)
-     * @returns
-     */
-    private static async join_api_type_id(
-        context_query: ContextQueryVO,
-        aliases_n: number,
-        api_type_id: string,
-        jointures: string[],
-        cross_joins: string[],
-        joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO },
-        tables_aliases_by_type: { [vo_type: string]: string },
-        access_type: string,
-        selected_field: ContextQueryFieldVO = null
-    ): Promise<number> {
-
-        /**
-         * Cas spécifique d'un api_type_id join qui serait en fait issu d'un join de contextquery
-         */
-        if (context_query.joined_context_queries) {
-            const context_query_join = context_query.joined_context_queries.find((joined_context_query) => joined_context_query.joined_table_alias == api_type_id);
-
-            if (context_query_join) {
-                return ContextQueryServerController.handle_join_context_query(context_query_join, jointures, tables_aliases_by_type);
-            }
-        }
-
-        /**
-         * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
-         */
-        const path: FieldPathWrapper[] = ContextFieldPathServerController.get_path_between_types(
-            context_query.discarded_field_paths,
-            context_query.use_technical_field_versioning,
-            context_query.active_api_type_ids,
-            Object.keys(joined_tables_by_vo_type),
-            api_type_id
-        );
-        if (!path) {
-
-            if (selected_field) {
-
-                /**
-                 * On doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
-                 */
-                if ((!context_query.is_server) && !await ContextAccessServerController.check_access_to_field_retrieve_roles(context_query, selected_field.api_type_id, selected_field.field_name, access_type)) {
-                    ConsoleHandler.warn('join_api_type_id:check_access_to_field_retrieve_roles:Access denied to field ' + selected_field.field_name + ' of type ' + selected_field.api_type_id + ' for access_type ' + access_type);
-                    return aliases_n;
-                }
-
-                return ContextFilterServerController.updates_cross_jointures(
-                    context_query,
-                    context_query.query_tables_prefix,
-                    selected_field.api_type_id,
-                    cross_joins,
-                    context_query.filters,
-                    joined_tables_by_vo_type,
-                    tables_aliases_by_type,
-                    aliases_n
-                );
-            } else {
-                // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
-                return aliases_n;
-            }
-        }
-
-        /**
-         * On doit checker le trajet complet
-         */
-        if ((!context_query.is_server) && !ContextAccessServerController.check_access_to_fields(context_query, path, access_type)) {
-            return aliases_n;
-        }
-
-        return ContextFilterServerController.updates_jointures(
-            context_query, context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
     }
 
     /**

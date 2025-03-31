@@ -392,6 +392,11 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         }
     }
 
+    /**
+     * FIXME TODO : NON compatible avec les archives pour le moment : statSync, existsSync
+     * @param dirPath
+     * @returns
+     */
     private getAllFiles(dirPath: string): string[] {
         let files: string[] = [];
 

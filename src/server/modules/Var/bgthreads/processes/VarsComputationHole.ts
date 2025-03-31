@@ -259,8 +259,14 @@ export default class VarsComputationHole {
                 start_date = Dates.now();
                 const nodes_to_reinsert: VarDAGNode[] = [];
                 const event_to_call: { [event_name: string]: boolean } = {};
+                const nodes_by_state: { [state: number]: VarDAGNode[] } = {};
                 for (const i in CurrentVarDAGHolder.current_vardag.nodes) {
                     const node = CurrentVarDAGHolder.current_vardag.nodes[i];
+
+                    if (!nodes_by_state[node.current_step]) {
+                        nodes_by_state[node.current_step] = [];
+                    }
+                    nodes_by_state[node.current_step].push(node);
 
                     // Si le noeud n'a pas d'état en cours, on doit indiquer une grosse erreur, et tenter de le réinsérer
                     const tags = Object.keys(node.tags).join(',');
@@ -281,6 +287,27 @@ export default class VarsComputationHole {
 
                     if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                         ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:node:' + node.var_data.index + ':' + tags);
+                    }
+                }
+
+                /**
+                 * On se rajoute un log des noeuds de l'arbre qui sont en VarDAGNode.TAG_2_DEPLOYING ou en VarDAGNode.TAG_3_DATA_LOADING
+                 *  Pour tenter d'identifier les noeuds bloqués plus précisément
+                 */
+                for (const state in nodes_by_state) {
+                    let limit = 100; // On limite à 100 logs par état
+                    if ((state == VarDAGNode.TAG_2_DEPLOYING) || (state == VarDAGNode.TAG_3_DATA_LOADING)) {
+                        for (const i in nodes_by_state[state]) {
+
+                            if (!limit--) {
+                                break;
+                            }
+
+                            const node = nodes_by_state[state][i];
+                            ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:node:' + node.var_data.index +
+                                ':current_state:' + (state == VarDAGNode.TAG_2_DEPLOYING ? 'TAG_2_DEPLOYING' : 'TAG_3_DATA_LOADING') +
+                                ':' + Object.keys(node.tags).join(','));
+                        }
                     }
                 }
 

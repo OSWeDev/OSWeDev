@@ -3,11 +3,14 @@
 import path from 'path';
 import { Worker } from 'worker_threads';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import PerfReportController from '../../../shared/modules/PerfReport/PerfReportController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
+import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
+import BgthreadPerfModuleNamesHolder from '../BGThread/BgthreadPerfModuleNamesHolder';
 import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
 import IBGThread from '../BGThread/interfaces/IBGThread';
 import CronServerController from '../Cron/CronServerController';
@@ -178,9 +181,31 @@ export default class ForkServerController {
             ForkServerController.load_worker(forked);
         });
 
-        forked.worker.on('message', async (msg: IForkMessage) => {
-            msg = ForkMessageController.reapply_prototypes_on_msg(msg);
-            return ForkMessageController.message_handler(msg, forked.worker);
+        forked.worker.on('message', (msg: IForkMessage) => {
+
+            // On commence par créer l'info de perfReport event de réception de query
+            msg['PERF_MODULE_UID'] = msg['PERF_MODULE_UID'] ? msg['PERF_MODULE_UID'] : ForkMessageController.PERF_MODULE_UID++;
+            const perf_name = 'ForkMessageController.message_handler.' + msg.message_type + ' [' + msg['PERF_MODULE_UID'] + ']';
+            const perf_line_name = msg.message_type;
+            PerfReportController.add_event(
+                BgthreadPerfModuleNamesHolder.EXPRESSJS_PERF_MODULE_NAME,
+                perf_name,
+                perf_line_name,
+                perf_line_name,
+                Dates.now_ms(),
+                perf_name + '<br>' +
+                ForkMessageController.to_perf_desc(msg)
+            );
+
+            // cf GPT4.5 : Les messages reçus par un worker Node.js sont traités en série, car ils sont traités par un seul thread/event-loop.
+            // Donc on await surtout pas ici et on renvoie pas la promise et on renvoie asap la main au worker
+            setTimeout(() => {
+                msg = ForkMessageController.reapply_prototypes_on_msg(msg);
+
+                ForkMessageController.message_handler(msg, forked.worker);
+            }, 1);
+
+            // On rend la main
         });
     }
 
@@ -270,12 +295,42 @@ export default class ForkServerController {
                         continue;
                     }
 
-                    await ForkMessageController.send(new PingForkMessage(forked.uid), forked.worker, forked);
+                    await ForkMessageController.send(new PingForkMessage(forked.uid, Dates.now_ms()), forked.worker, forked);
                 }
             },
             10000,
             'ForkServerController.checkForksAvailability',
             false,
         );
+    }
+
+    @RunsOnMainThread(null)
+    public static kill_worker(bgthread_name: string) {
+
+        if (!bgthread_name) {
+            ConsoleHandler.error('bgthread_name is not defined');
+            return;
+        }
+
+        if (!ForkServerController.fork_by_type_and_name) {
+            ConsoleHandler.error('ForkServerController.forks is not defined');
+            return;
+        }
+        if (!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType]) {
+            ConsoleHandler.error('ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType] is not defined');
+            return;
+        }
+
+        if (!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread_name]) {
+            ConsoleHandler.error('ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][' + bgthread_name + '] is not defined');
+            return;
+        }
+
+        if (!ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread_name].worker) {
+            ConsoleHandler.error('ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][' + bgthread_name + '].worker is not defined');
+            return;
+        }
+
+        return ForkServerController.fork_by_type_and_name[BGThreadServerDataManager.ForkedProcessType][bgthread_name].worker.terminate();
     }
 }

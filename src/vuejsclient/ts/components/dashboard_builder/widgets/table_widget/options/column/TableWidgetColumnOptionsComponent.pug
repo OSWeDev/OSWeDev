@@ -458,6 +458,23 @@
                                         :deselect-label='label("multiselect.deselectLabel")'
                                         :deselect-group-label='label("multiselect.deselectGroupLabel")'
                                     )
+                        template(v-if="column_dynamic_page_widget_is_type_string")
+                            .column_dynamic_var_date_custom_filter_name.mt-1
+                                .input_label {{ label('table_widget_options_component.column_dynamic_var_date_custom_filter_name') }}
+                                template(v-if='fields_that_could_get_custom_filter && fields_that_could_get_custom_filter.length')
+                                    .fields_that_could_get_custom_filter
+                                        template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter')
+                                            .field_that_could_get_custom_filter
+                                                .field_id {{ field_that_could_get_custom_filter }}
+                                                .custom_filter 
+                                                    input(
+                                                        type="text"
+                                                        v-model="custom_filter_names[field_that_could_get_custom_filter]"
+                                                        :disabled="true"
+                                                    )
+                                                .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                                                    template(v-for='custom_filter in get_custom_filters')
+                                                        .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
 
                         .column_dynamic_component.mt-1
                             .input_label {{ label('table_widget_options_component.column_dynamic_component') }}

@@ -50,3 +50,27 @@
                             button.btn.btn-sm.btn-primary.col.h-100(@click='run_manual_task(manual_task)')
                                 i.fa-solid.fa-play.btn_icon(aria-hidden="true")
                                 | {{ label('cron.manual_task', {manual_task: manual_task}) }}
+
+    .row
+        .col-sm-12
+            .jumbotron
+                p.lead.import_title {{ label('cron.patch_premodule.head') }}
+                hr
+                .row
+                    template(v-for='patch_premodule in patch_premodules')
+                        .col-sm-3.mb-2
+                            button.btn.btn-sm.btn-primary.col.h-100(@click='rerun_patch_premodule(patch_premodule)')
+                                i.fa-solid.fa-play.btn_icon(aria-hidden="true")
+                                | {{ label('cron.patch_premodule', {patch_premodule: patch_premodule}) }}
+
+    .row
+        .col-sm-12
+            .jumbotron
+                p.lead.import_title {{ label('cron.patch_postmodule.head') }}
+                hr
+                .row
+                    template(v-for='patch_postmodule in patch_postmodules')
+                        .col-sm-3.mb-2
+                            button.btn.btn-sm.btn-primary.col.h-100(@click='rerun_patch_postmodule(patch_postmodule)')
+                                i.fa-solid.fa-play.btn_icon(aria-hidden="true")
+                                | {{ label('cron.patch_postmodule', {patch_postmodule: patch_postmodule}) }}

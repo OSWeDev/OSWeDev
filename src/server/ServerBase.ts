@@ -1,6 +1,7 @@
 import child_process from 'child_process';
-import cookieParser from 'cookie-parser';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
+import mime from 'mime-types';
 // import csrf from 'csurf';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import createLocaleMiddleware from 'express-locale';
@@ -10,7 +11,7 @@ import fs from 'fs';
 import helmet from 'helmet';
 import path from 'path';
 import pg from 'pg';
-import pg_promise, { IDatabase, IEventContext, IResultExt, ITaskContext } from 'pg-promise';
+import pg_promise, { IDatabase, IEventContext, IResultExt } from 'pg-promise';
 import socketIO from 'socket.io';
 import winston from 'winston';
 import winston_daily_rotate_file from 'winston-daily-rotate-file';
@@ -52,30 +53,33 @@ import PushDataServerController from './modules/PushData/PushDataServerControlle
 import StatsServerController from './modules/Stats/StatsServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 // import { createTerminus } from '@godaddy/terminus';
+import expressStaticGzip from 'express-static-gzip';
 import { IClient } from 'pg-promise/typescript/pg-subset';
+import APIDefinition from '../shared/modules/API/vos/APIDefinition';
 import EventsController from '../shared/modules/Eventify/EventsController';
+import OseliaReferrerVO from '../shared/modules/Oselia/vos/OseliaReferrerVO';
+import PerfReportController from '../shared/modules/PerfReport/PerfReportController';
 import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
 import { field_names } from '../shared/tools/ObjectHandler';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
+import StackContextWrapper from '../shared/tools/StackContextWrapper';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
 import BGThreadServerDataManager from './modules/BGThread/BGThreadServerDataManager';
+import BgthreadPerfModuleNamesHolder from './modules/BGThread/BgthreadPerfModuleNamesHolder';
 import RunsOnBgThreadDataController from './modules/BGThread/annotations/RunsOnBGThread';
 import RunsOnMainThreadDataController from './modules/BGThread/annotations/RunsOnMainThread';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
+import { fs_stream_zipped_archive } from './modules/File/ArchiveServerController';
 import ForkMessageController from './modules/Fork/ForkMessageController';
 import IFork from './modules/Fork/interfaces/IFork';
 import PingForkMessage from './modules/Fork/messages/PingForkMessage';
 import OseliaServerController from './modules/Oselia/OseliaServerController';
 import ParamsServerController from './modules/Params/ParamsServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
-import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
-import APIDefinition from '../shared/modules/API/vos/APIDefinition';
-import expressStaticGzip from 'express-static-gzip';
-import StackContextWrapper from '../shared/tools/StackContextWrapper';
 import AsyncHookPromiseWatchController from './modules/Stats/AsyncHookPromiseWatchController';
-import OseliaReferrerVO from '../shared/modules/Oselia/vos/OseliaReferrerVO';
-import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
+import TeamsAPIServerController from './modules/TeamsAPI/TeamsAPIServerController';
+import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 
 export default abstract class ServerBase {
 
@@ -129,7 +133,7 @@ export default abstract class ServerBase {
         PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.debug_promise_pipeline_worker_stats;
         DBDisconnectionManager.instance = new DBDisconnectionServerHandler();
         EventsController.hook_stack_incompatible = ConfigurationService.node_configuration.activate_incompatible_stack_context ? StackContext.context_incompatible : null;
-
+        EventsController.hook_stack_exec_as_server = StackContext.exec_as_server;
         ConsoleHandler.init('main');
         FileLoggerHandler.getInstance().prepare().then(() => {
             ConsoleHandler.logger_handler = FileLoggerHandler.getInstance();
@@ -337,6 +341,10 @@ export default abstract class ServerBase {
         this.app = express();
         this.app.disable('x-powered-by'); // On ne veut pas communiquer la techno utilisée
 
+        // On commence par le système de perf
+        this.app.use(this.response_time_middleware.bind(this));
+        this.app.use(this.response_time_middleware_err_handler.bind(this));
+
         if (this.envParam.compress) {
             const shouldCompress = function (req, res) {
                 if (req.headers['x-no-compression']) {
@@ -369,7 +377,8 @@ export default abstract class ServerBase {
             cookie: {
                 maxAge: 30 * 24 * 60 * 60 * 1000, // 30 jours
                 httpOnly: true,  // empêche l'accès au cookie depuis le JS
-                secure: !ConfigurationService.node_configuration.isdev,    // n'envoie le cookie qu'en HTTPS
+                secure: false, // TODO FIXME ne fonctionne pas, même en HTTPS !!! pourquoi ?
+                // secure: (!ConfigurationService.node_configuration.isdev) && (!ConfigurationService.node_configuration.base_url.startsWith('http://localhost')),    // n'envoie le cookie qu'en HTTPS
                 sameSite: 'lax', // bloque largement les requêtes cross-site
             },
         });
@@ -423,9 +432,12 @@ export default abstract class ServerBase {
 
         const middlewares_by_urls_and_methd: { [method: number]: { [url: string]: ((req: Request, res: Response, next: NextFunction) => void)[] } } = {
             [APIDefinition.API_TYPE_GET]: {
-                [ModuleFile.SECURED_FILES_ROOT.replace(/^[.][/]/, '/') + '(:folder1/)?(:folder2/)?(:folder3/)?(:folder4/)?(:folder5/)?:file_name']: [
+                [ModuleFile.SECURED_FILES_ROOT.replace(/^[.][/]/, '/') + '(:folder1/)?(:folder2/)?(:folder3/)?(:folder4/)?(:folder5/)?(:folder6/)?(:folder7/)?:file_name']: [
                     ...session_dependant_middlewares,
                     this.sfiles_middleware.bind(this),
+                ],
+                [ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/') + '(:folder1/)?(:folder2/)?(:folder3/)?(:folder4/)?(:folder5/)?(:folder6/)?(:folder7/)?:file_name']: [
+                    this.files_middleware.bind(this),
                 ],
                 '/api_handler/*': [
                     ...session_dependant_middlewares,
@@ -455,6 +467,7 @@ export default abstract class ServerBase {
                         priority: ["accept-language", "default"],
                         default: this.envParam.default_locale
                     }),
+                    ...session_dependant_middlewares,
                     this.reflect_header_middleware.bind(this),
                 ],
 
@@ -875,19 +888,24 @@ export default abstract class ServerBase {
             },
         }));
 
-        // Cache sur les files
-        this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), expressStaticGzip(ModuleFile.FILES_ROOT.replace(/^[.][/]/, ''), {
-            enableBrotli: true,
-            orderPreference: ['br', 'gz'],
-            index: false,
-            serveStatic: {
-                cacheControl: true,
-                lastModified: true,
-                etag: true,
-                maxAge: cache_duration,
-                fallthrough: false,
-            },
-        }));
+        // // Cache sur les files => TODO FIXME ya plus de cache a priori du coup avec l'archivage à ce niveau. faudra ptetre revoir la copie quand même du coup
+        // this.app.use(
+        //     ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'),
+        //     this.files_middleware.bind(this),
+        //     // /*expressStaticGzip(ModuleFile.FILES_ROOT.replace(/^[.][/]/, ''), */
+        //     // {
+        //     //     enableBrotli: true,
+        //     //     orderPreference: ['br', 'gz'],
+        //     //     index: false,
+        //     //     serveStatic: {
+        //     //         cacheControl: true,
+        //     //         lastModified: true,
+        //     //         etag: true,
+        //     //         maxAge: cache_duration,
+        //     //         fallthrough: false,
+        //     //     },
+        //     // })
+        // );
 
         // Pour activation auto let's encrypt - pas de cache
         this.app.use('/.well-known', express.static('.well-known', {
@@ -925,34 +943,38 @@ export default abstract class ServerBase {
     }
 
     /**
-     * Pas trouvé à faire une route récursive propre, on limite à 5 sous-reps
+     * Pas trouvé à faire une route récursive propre, on limite à 7 sous-reps
      */
     private async sfiles_middleware(req: Request, res: Response, next: NextFunction) {
         const folders = (req.params.folder1 ? req.params.folder1 + '/' + (
             req.params.folder2 ? req.params.folder2 + '/' + (
                 req.params.folder3 ? req.params.folder3 + '/' + (
                     req.params.folder4 ? req.params.folder4 + '/' + (
-                        req.params.folder5 ? req.params.folder5 + '/' : ''
+                        req.params.folder5 ? req.params.folder5 + '/' + (
+                            req.params.folder6 ? req.params.folder6 + '/' + (
+                                req.params.folder7 ? req.params.folder7 + '/' : ''
+                            ) : ''
+                        ) : ''
                     ) : ''
                 ) : ''
             ) : ''
         ) : '');
         const file_name = req.params.file_name;
 
-        if (file_name.indexOf(';') >= 0) {
-            next();
-            return;
-        }
+        // if (file_name.indexOf(';') >= 0) {
+        //     next();
+        //     return;
+        // }
 
-        if (file_name.indexOf(')') >= 0) {
-            next();
-            return;
-        }
+        // if (file_name.indexOf(')') >= 0) {
+        //     next();
+        //     return;
+        // }
 
-        if (file_name.indexOf("'") >= 0) {
-            next();
-            return;
-        }
+        // if (file_name.indexOf("'") >= 0) {
+        //     next();
+        //     return;
+        // }
 
         const session: IServerUserSession = req.session as IServerUserSession;
         let file: FileVO = null;
@@ -976,8 +998,94 @@ export default abstract class ServerBase {
             await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
             return;
         }
+
+        /**
+         * Gestion de l'archivage des fichiers /files
+         */
+        if (file && file.is_archived && file.archive_path) {
+
+            // On doit charger le fichier avec fs.promises.readFile et le renvoyer
+            //  readFile a été modifié pour réaliser du stream depuis le zip en cas d'archivage ce qui est le cas ici, donc on peut le renvoyer directement
+            const zipData = await fs_stream_zipped_archive(file);
+
+            // On déduit le type mime de l'extension du fichier
+            const mime_type = mime.contentType(file_name);
+            res.setHeader('Content-Type', mime_type);
+            res.setHeader('Content-Length', zipData.length);
+            res.setHeader('Content-Disposition', 'attachment; filename=' + file_name);
+            res.end(zipData);
+
+            return;
+        }
+
         res.sendFile(path.resolve(file.path));
     }
+
+    /**
+     * Pas trouvé à faire une route récursive propre, on limite à 7 sous-reps
+     */
+    private async files_middleware(req: Request, res: Response, next: NextFunction) {
+        const folders = (req.params.folder1 ? req.params.folder1 + '/' + (
+            req.params.folder2 ? req.params.folder2 + '/' + (
+                req.params.folder3 ? req.params.folder3 + '/' + (
+                    req.params.folder4 ? req.params.folder4 + '/' + (
+                        req.params.folder5 ? req.params.folder5 + '/' + (
+                            req.params.folder6 ? req.params.folder6 + '/' + (
+                                req.params.folder7 ? req.params.folder7 + '/' : ''
+                            ) : ''
+                        ) : ''
+                    ) : ''
+                ) : ''
+            ) : ''
+        ) : '');
+        const file_name = req.params.file_name;
+
+        // if (file_name.indexOf(';') >= 0) {
+        //     next();
+        //     return;
+        // }
+
+        // if (file_name.indexOf(')') >= 0) {
+        //     next();
+        //     return;
+        // }
+
+        // if (file_name.indexOf("'") >= 0) {
+        //     next();
+        //     return;
+        // }
+
+        let file: FileVO = null;
+        const file_path = ModuleFile.FILES_ROOT + folders + file_name;
+
+        file = await query(FileVO.API_TYPE_ID)
+            .filter_is_false(field_names<FileVO>().is_secured)
+            .filter_by_text_eq(field_names<FileVO>().path, file_path)
+            .exec_as_server()
+            .select_vo<FileVO>();
+
+        /**
+         * Gestion de l'archivage des fichiers /files
+         */
+        if (file && file.is_archived && file.archive_path) {
+
+            // On doit charger le fichier avec fs.promises.readFile et le renvoyer
+            //  readFile a été modifié pour réaliser du stream depuis le zip en cas d'archivage ce qui est le cas ici, donc on peut le renvoyer directement
+            const zipData = await fs_stream_zipped_archive(file);
+
+            // On déduit le type mime de l'extension du fichier
+            const mime_type = mime.contentType(file_name);
+            res.setHeader('Content-Type', mime_type);
+            res.setHeader('Content-Length', zipData.length);
+            res.setHeader('Content-Disposition', 'attachment; filename=' + file_name);
+            res.end(zipData);
+
+            return;
+        }
+
+        res.sendFile(path.resolve(file_path));
+    }
+
 
     private apply_middlewares(middlewares_by_urls_and_methdods: { [url: string]: { [method: string]: ((req: Request, res: Response, next: NextFunction) => void)[] } }) {
         for (const method_s in middlewares_by_urls_and_methdods) {
@@ -999,6 +1107,160 @@ export default abstract class ServerBase {
                 }
             }
         }
+    }
+
+    // Middleware pour mesurer le temps
+    private response_time_middleware(req: Request, res: Response, next: NextFunction) {
+        const start = Dates.now_ms();
+        (req as any).startTime = start;
+
+        // On commence par créer l'info de perfReport event de réception de query
+        const perf_name = 'expressjs.response_time_middleware.' + req.method + '.' + req.originalUrl + ' [' + ServerExpressController.PERF_MODULE_UID++ + ']';
+        const perf_line_name = req.method + ' ' + req.originalUrl;
+        PerfReportController.add_event(
+            BgthreadPerfModuleNamesHolder.EXPRESSJS_PERF_MODULE_NAME,
+            perf_name,
+            perf_line_name,
+            perf_line_name,
+            start,
+            "uid: " + (req.session?.uid || 'anonymous') + "<br>" +
+            "method: " + req.method + "<br>" +
+            "url: " + req.originalUrl + "<br>" +
+            "query: " + JSON.stringify(req.query) + "<br>" +
+            "body: " + JSON.stringify(req.body)
+        );
+
+        const interceptResponse = () => {
+            const calculationEnd = Dates.now_ms();
+            const calculationDurationMs = calculationEnd - start;
+
+            PerfReportController.add_call(
+                BgthreadPerfModuleNamesHolder.EXPRESSJS_PERF_MODULE_NAME,
+                perf_name,
+                perf_line_name,
+                perf_line_name,
+                start,
+                calculationEnd,
+                "uid: " + (req.session?.uid || 'anonymous') + "<br>" +
+                "method: " + req.method + "<br>" +
+                "url: " + req.originalUrl + "<br>" +
+                "query: " + JSON.stringify(req.query) + "<br>" +
+                "body: " + JSON.stringify(req.body) + "<br>" +
+                "statusCode: " + res.statusCode
+            );
+
+            res.once('finish', () => {
+                const totalEnd = Dates.now_ms();
+                const sendingDurationMs = totalEnd - calculationEnd;
+
+                const log = {
+                    uid: req.session?.uid || 'anonymous',
+                    method: req.method,
+                    url: req.originalUrl,
+                    query: req.query,
+                    body: req.body,
+                    calculationDurationMs,
+                    sendingDurationMs,
+                    statusCode: res.statusCode,
+                };
+
+
+                /**
+                 * On applique les params de log pour cette perf
+                 */
+
+                // D'abord la console
+                let log_to_console = false;
+                if (ConfigurationService.node_configuration.debug_all_expressjs_perf) {
+                    log_to_console = true;
+                } else {
+                    if (ConfigurationService.node_configuration.debug_expressjs_request_reflexion_time) {
+                        if (calculationDurationMs > ConfigurationService.node_configuration.debug_expressjs_request_reflexion_time_console_log_ms_limit) {
+                            log_to_console = true;
+                        }
+                    }
+
+                    if (ConfigurationService.node_configuration.debug_expressjs_request_sendres_time) {
+                        if (sendingDurationMs > ConfigurationService.node_configuration.debug_expressjs_request_sendres_time_console_log_ms_limit) {
+                            log_to_console = true;
+                        }
+                    }
+                }
+
+                if (log_to_console) {
+                    ConsoleHandler.log('ServerBase:response_time_middleware:' + JSON.stringify(log));
+                }
+
+                // Ensuite teams
+                let log_to_teams = false;
+
+                if (ConfigurationService.node_configuration.debug_expressjs_request_reflexion_time) {
+                    if (calculationDurationMs > ConfigurationService.node_configuration.debug_expressjs_request_reflexion_time_teams_log_ms_limit) {
+                        log_to_teams = true;
+                    }
+                }
+
+                if (ConfigurationService.node_configuration.debug_expressjs_request_sendres_time) {
+                    if (sendingDurationMs > ConfigurationService.node_configuration.debug_expressjs_request_sendres_time_teams_log_ms_limit) {
+                        log_to_teams = true;
+                    }
+                }
+
+                if (log_to_teams) {
+                    TeamsAPIServerController.send_teams_warn(
+                        'ServerBase response_time_middleware',
+                        JSON.stringify(log)
+                    );
+                }
+
+                PerfReportController.add_cooldown(
+                    BgthreadPerfModuleNamesHolder.EXPRESSJS_PERF_MODULE_NAME,
+                    perf_name,
+                    perf_line_name,
+                    perf_line_name,
+                    calculationEnd,
+                    totalEnd,
+                    "uid: " + (req.session?.uid || 'anonymous') + "<br>" +
+                    "method: " + req.method + "<br>" +
+                    "url: " + req.originalUrl + "<br>" +
+                    "query: " + JSON.stringify(req.query) + "<br>" +
+                    "body: " + JSON.stringify(req.body) + "<br>" +
+                    "statusCode: " + res.statusCode
+                );
+
+            });
+        };
+
+        ['send', 'json', 'redirect', 'end'].forEach(method => {
+            const original = (res as any)[method].bind(res);
+            (res as any)[method] = (...args: any[]) => {
+                interceptResponse();
+                return original(...args);
+            };
+        });
+
+        next();
+    }
+
+    // Middleware pour mesurer le temps des erreurs
+    private response_time_middleware_err_handler(err: any, req: Request, res: Response, next: NextFunction) {
+        const endTime = Dates.now_ms();
+        const durationMs = endTime - (req as any).startTime;
+
+        const log = {
+            uid: req.session?.uid || 'anonymous',
+            method: req.method,
+            url: req.originalUrl,
+            query: req.query,
+            body: req.body,
+            error: err.message,
+            durationMs,
+            statusCode: res.statusCode || 500,
+        };
+
+        ConsoleHandler.error(JSON.stringify(log));
+
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 
     // private response_time_middleware(req: Request, res: Response, next: NextFunction) {
@@ -1053,13 +1315,21 @@ export default abstract class ServerBase {
         // On se laisse 10 minutes pour recharger les partenaires
         const oselia_parteners: OseliaReferrerVO[] = await query(OseliaReferrerVO.API_TYPE_ID).set_max_age_ms(1000 * 60 * 10).exec_as_server().select_vos<OseliaReferrerVO>();
         for (const i in oselia_parteners) {
-            authorized_origins.push(oselia_parteners[i].referrer_origin);
+            const oselia_partener = oselia_parteners[i];
+            const oselia_parteners_hostname = oselia_partener.referrer_origin ? new URL(oselia_partener.referrer_origin).hostname : null;
+            authorized_origins.push(oselia_parteners_hostname);
         }
 
-        const origin_hostname = origin ? new URL(origin).hostname : null;
-        if (!(origin && authorized_origins.indexOf(origin_hostname) >= 0)) {
-            res.status(403).send('Forbidden - Invalid Origin');
-            return;
+        // TODO FIXME on ouvre tout pour le moment, on log simplement
+        try {
+            const origin_hostname = origin ? new URL(origin).hostname : null;
+            if (authorized_origins.indexOf(origin_hostname) < 0) {
+                ConsoleHandler.error("check_origin_or_referer_middleware:un_authorized_origins:" + origin + ":origin_hostname:" + origin_hostname + ":authorized_origins:" + authorized_origins.join(','));
+                // res.status(403).send('Forbidden - Invalid Origin');
+                // return;
+            }
+        } catch (error) {
+            ConsoleHandler.error("check_origin_or_referer_middleware:ERROR:" + error);
         }
 
         next();
@@ -1128,15 +1398,33 @@ export default abstract class ServerBase {
 
         // On stocke le log de connexion en base
         let session: IServerUserSession = req ? req.session as IServerUserSession : null;
+        if (req && req.session) {
+            session = req.session as IServerUserSession;
+
+            session.last_load_date_unix = Dates.now();
+        }
 
         if (session && session.uid) {
             const uid: number = session.uid;
+
+            // On doit vérifier que le compte est ni bloqué ni expiré
+            const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().set_max_age_ms(60000).select_vo<UserVO>();
+            if ((!user) || user.blocked || user.invalidated) {
+
+                await ConsoleHandler.warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
+
+                await PushDataServerController.unregisterSession(session.sid);
+                session.destroy(async () => {
+                    await ServerBase.getInstance().redirect_login_or_home(req, res, session.uid);
+                });
+                return;
+            }
 
             const user_log: UserLogVO = new UserLogVO();
             user_log.user_id = uid;
             user_log.log_time = Dates.now();
             user_log.impersonated = false;
-            user_log.referer = req.headers.referer;
+            user_log.referer = (req.headers.origin || req.headers.referer) as string;
             user_log.log_type = UserLogVO.LOG_TYPE_CSRF_REQUEST;
 
             /**
@@ -1255,41 +1543,56 @@ export default abstract class ServerBase {
         }
 
 
-        // Middleware pour définir dynamiquement les en-têtes X-Frame-Options
-        let origin = req.get('Origin');
-        if ((!origin) || !(origin.length)) {
-            origin = req.get('Referer');
-        }
+        // // Middleware pour définir dynamiquement les en-têtes X-Frame-Options
+        // let origin = req.get('Origin');
+        // if ((!origin) || !(origin.length)) {
+        //     origin = req.get('Referer');
+        // }
 
-        if (!/^(https?:\/\/[^/]+\/).*/i.test(origin)) {
-            origin = origin + '/';
-        }
+        //     if (!/^(https?:\/\/[^/]+\/).*/i.test(origin)) {
+        //         origin = origin + '/';
+        //     }
 
-        // On veut que la partie de l'URL qui nous intéresse (https://www.monsite.com) et pas le reste
-        origin = origin.replace(/^(https?:\/\/[^/]+)\/?.*/i, '$1');
+        //     // On veut que la partie de l'URL qui nous intéresse (https://www.monsite.com) et pas le reste
+        //     origin = origin.replace(/^(https?:\/\/[^/]+)\/?.*/i, '$1');
 
-        if (origin && (ConfigurationService.node_configuration.base_url.toLowerCase().startsWith(origin.toLowerCase()) || OseliaServerController.has_authorization(origin))) {
-            res.setHeader('X-Frame-Options', `ALLOW-FROM ${origin}`);
+        //     if (origin && (ConfigurationService.node_configuration.base_url.toLowerCase().startsWith(origin.toLowerCase()) || OseliaServerController.has_authorization(origin))) {
+        //         res.setHeader('X-Frame-Options', `ALLOW-FROM ${origin}`);
 
-            if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
-                ConsoleHandler.log("ServerExpressController:origin:" + origin + ":X-Frame-Options:ALLOW-FROM");
-            }
+        //         if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
+        //             ConsoleHandler.log("ServerExpressController:origin:" + origin + ":X-Frame-Options:ALLOW-FROM");
+        //         }
 
+        //     } else {
+        //         res.setHeader('X-Frame-Options', 'DENY');
+
+        //         if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
+        //             ConsoleHandler.log("ServerExpressController:origin:" + origin + ":X-Frame-Options:DENY");
+        //         }
+        //     }
+
+        // // allow cors
+        // res.header('Access-Control-Allow-Credentials', 'true');
+        // res.header('Access-Control-Allow-Origin', (req.headers.origin ? req.headers.origin.toString() : ""));
+        // res.header('Access-Control-Allow-Methods', 'OPTIONS,GET,PUT,POST,DELETE');
+        // res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
+
+
+        const origin = req.get('Origin') || req.get('Referer') || '';
+        const allowedOrigin = ConfigurationService.node_configuration.base_url.toLowerCase();
+
+        if (origin && (allowedOrigin.startsWith(origin.toLowerCase()) || OseliaServerController.has_authorization(origin))) {
+            res.header('Access-Control-Allow-Origin', origin);
+            res.header('X-Frame-Options', `ALLOW-FROM ${origin}`);
         } else {
-            res.setHeader('X-Frame-Options', 'DENY');
-
-            if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
-                ConsoleHandler.log("ServerExpressController:origin:" + origin + ":X-Frame-Options:DENY");
-            }
+            res.header('Access-Control-Allow-Origin', allowedOrigin);
+            res.header('X-Frame-Options', 'DENY');
         }
 
-        // allow cors
+        // autres headers CORS
         res.header('Access-Control-Allow-Credentials', 'true');
-        res.header('Access-Control-Allow-Origin', (req.headers.origin ? req.headers.origin.toString() : ""));
         res.header('Access-Control-Allow-Methods', 'OPTIONS,GET,PUT,POST,DELETE');
         res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
-
-
 
 
 
@@ -1297,10 +1600,6 @@ export default abstract class ServerBase {
         let session: IServerUserSession = null;
         if (req && !!req.session) {
             session = req.session as IServerUserSession;
-
-            if (!!session) {
-                await PushDataServerController.registerSession(session);
-            }
 
             if (!session.returning) {
                 // session was just created
@@ -1332,7 +1631,12 @@ export default abstract class ServerBase {
                 (Dates.now() >= (session.last_check_blocked_or_expired + 60))) {
 
                 session.last_check_blocked_or_expired = Dates.now();
-                session.save(() => { });
+
+                if (!session.save) {
+                    ConsoleHandler.error('ServerExpressController:post_init_session_middleware:session_no_save:' + JSON.stringify(session));
+                } else {
+                    session.save(() => { });
+                }
 
                 // On doit vérifier que le compte est ni bloqué ni expiré
                 const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().set_max_age_ms(60000).select_vo<UserVO>();
@@ -1389,8 +1693,6 @@ export default abstract class ServerBase {
     //             return;
     //         }
     //         session.last_check_blocked_or_expired = Dates.now();
-
-    //         await PushDataServerController.registerSession(session);
 
     //         // On stocke le log de connexion en base
     //         const user_log: UserLogVO = new UserLogVO();
@@ -1571,7 +1873,7 @@ export default abstract class ServerBase {
             return;
         }
 
-        let msg = new PingForkMessage(fork.uid);
+        let msg = new PingForkMessage(fork.uid, Dates.now_ms());
 
         let is_alive: boolean = await ForkMessageController.send(msg, fork.worker, fork);
 

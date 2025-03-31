@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { VectorStore, VectorStoresPage } from 'openai/resources/beta/vector-stores/vector-stores';
+import { VectorStore, VectorStoresPage } from 'openai/resources/vector-stores/vector-stores';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import GPTAssistantAPIVectorStoreVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIVectorStoreVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
@@ -12,6 +12,7 @@ import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncCont
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
+import { Metadata } from 'openai/resources';
 
 export default class GPTAssistantAPIServerSyncVectorStoresController {
 
@@ -61,7 +62,7 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
             }
 
             let gpt_obj: VectorStore = vo.gpt_id ? await GPTAssistantAPIServerController.wrap_api_call(
-                ModuleGPTServer.openai.beta.vectorStores.retrieve, ModuleGPTServer.openai.beta.vectorStores, vo.gpt_id) : null;
+                ModuleGPTServer.openai.vectorStores.retrieve, ModuleGPTServer.openai.vectorStores, vo.gpt_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -82,14 +83,14 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
                 }
 
                 gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
-                    ModuleGPTServer.openai.beta.vectorStores.create,
-                    ModuleGPTServer.openai.beta.vectorStores,
+                    ModuleGPTServer.openai.vectorStores.create,
+                    ModuleGPTServer.openai.vectorStores,
                     {
                         expires_after: {
                             anchor: GPTAssistantAPIVectorStoreVO.TO_OPENAI_EXPIRES_AFTER_ANCHOR_MAP[vo.expires_after_anchor] as 'last_active_at',
                             days: vo.expires_after_days
                         },
-                        metadata: cloneDeep(vo.metadata),
+                        metadata: cloneDeep(vo.metadata) as Metadata,
                         name: vo.name
                     });
 
@@ -109,15 +110,15 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
 
                     // On doit mettre à jour
                     await GPTAssistantAPIServerController.wrap_api_call(
-                        ModuleGPTServer.openai.beta.vectorStores.update,
-                        ModuleGPTServer.openai.beta.vectorStores,
+                        ModuleGPTServer.openai.vectorStores.update,
+                        ModuleGPTServer.openai.vectorStores,
                         gpt_obj.id,
                         {
                             expires_after: {
                                 anchor: GPTAssistantAPIVectorStoreVO.TO_OPENAI_EXPIRES_AFTER_ANCHOR_MAP[vo.expires_after_anchor] as 'last_active_at',
                                 days: vo.expires_after_days
                             },
-                            metadata: cloneDeep(vo.metadata),
+                            metadata: cloneDeep(vo.metadata) as Metadata,
                             name: vo.name
                         });
 
@@ -251,7 +252,7 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
 
         let res: VectorStore[] = [];
 
-        let vector_stores_page: VectorStoresPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.vectorStores.list, ModuleGPTServer.openai.beta.vectorStores);
+        let vector_stores_page: VectorStoresPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.vectorStores.list, ModuleGPTServer.openai.vectorStores);
 
         if (!vector_stores_page) {
             return res;

@@ -64,10 +64,10 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
             const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
 
             if (file) {
-                this.path = file.path;
+                this.path = file.path.replace(/[^/]+$/, match => encodeURIComponent(match));
             }
         } else {
-            this.path = this.file_path;
+            this.path = this.file_path.replace(/[^/]+$/, match => encodeURIComponent(match));
         }
 
         if (this.path) {

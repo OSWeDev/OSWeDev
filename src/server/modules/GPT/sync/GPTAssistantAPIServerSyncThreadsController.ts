@@ -19,6 +19,7 @@ import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
 import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
 import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 import { APIPromise, RequestOptions } from 'openai/core';
+import { Metadata } from 'openai/resources';
 
 export default class GPTAssistantAPIServerSyncThreadsController {
 
@@ -137,7 +138,7 @@ export default class GPTAssistantAPIServerSyncThreadsController {
                         gpt_obj.id,
                         {
                             tool_resources: tool_resources,
-                            metadata: cloneDeep(vo.metadata),
+                            metadata: cloneDeep(vo.metadata) as Metadata,
                         });
 
                     if (!gpt_obj) {

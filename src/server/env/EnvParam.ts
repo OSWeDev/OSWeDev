@@ -88,6 +88,8 @@ export default class EnvParam implements IEnvParam {
      * Activate this to debug SLOW QUERIES in ModuleServiceBase
      */
     public debug_slow_queries?: boolean = false;
+    public debug_all_queries?: boolean = false;
+
     /**
      * Activate this to define threshold for SLOW QUERIES and VERY SLOW QUERIES (10*) in ModuleServiceBase
      */
@@ -136,6 +138,42 @@ export default class EnvParam implements IEnvParam {
     public activate_module_perf_var_dag_nodes?: boolean = false;
     public activate_module_perf_gpt_assistant_api?: boolean = false;
     public activate_module_perf_gpt_sync?: boolean = false;
+    public activate_module_perf_expressjs?: boolean = false;
+    public activate_module_perf_worker_messages?: boolean = false;
+    public activate_module_perf_bgthread_ping_latency?: boolean = false;
+    public activate_module_perf_bgthread_load_balancing?: boolean = false;
+
+    // Lenteurs sur ExpressJS - lenteurs sur la partie réflexion (calculs, requetes, ...) et sur la partie envoie de la réponse
+    /**
+     * Pour debug toutes les requetes à expressjs
+     */
+    public debug_all_expressjs_perf?: boolean = false;
+
+    /**
+     * Activer le log (console et teams) des requetes expressjs qui prennent trop de temps
+     */
+    public debug_expressjs_request_reflexion_time?: boolean = false;
+    public debug_expressjs_request_reflexion_time_console_log_ms_limit?: number = 5000; // Si une requete prend plus de 5000ms à être réfléchie, on log dans la console
+    public debug_expressjs_request_reflexion_time_teams_log_ms_limit?: number = 30000; // Si une requete prend plus de 30000ms à être réfléchie, on log dans Teams
+
+    public debug_expressjs_request_sendres_time?: boolean = false;
+    public debug_expressjs_request_sendres_time_console_log_ms_limit?: number = 1000; // Si une requete prend plus de 1000ms à être renvoyée, on log dans la console
+    public debug_expressjs_request_sendres_time_teams_log_ms_limit?: number = 5000; // Si une requete prend plus de 5000ms à être renvoyée, on log dans Teams
+
+    /**
+     * Logs autour des latences entre les threads (visibles depuis le ping)
+     */
+    public debug_all_thread_ping_latency?: boolean = false;
+
+    public debug_thread_ping_latency?: boolean = true;
+    public debug_thread_ping_latency_console_log_ms_limit?: number = 1000;
+    public debug_thread_ping_latency_teams_log_ms_limit?: number = 10000;
+
+    // Conf load balancing des apis
+    public api_load_balancing?: boolean = false;
+    public api_load_balancing_nb_workers?: number = 5;
+
+    public load_balancing_debug_log?: boolean = false;
 
     // TEAMS Webhooks
     public teams_webhook_send_message?: string = null;

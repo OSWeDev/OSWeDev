@@ -79,10 +79,11 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     }
 
     public async getParamLigneCommandeById(num: number, text: string): Promise<ParamLigneCommandeVO> {
-        return await ModuleDAOServer.instance.selectOne<ParamLigneCommandeVO>(
-            text,
-            ' WHERE t.ligne_commande_id = $1', [num]
-        );
+        throw new Error('Not implemented');
+        // return await ModuleDAOServer.instance.selectOne<ParamLigneCommandeVO>(
+        //     text,
+        //     ' WHERE t.ligne_commande_id = $1', [num]
+        // );
     }
 
     private async ajouterLigneCommande(commande: CommandeVO, produitParam: ProduitParamLigneParamVO): Promise<void> {
