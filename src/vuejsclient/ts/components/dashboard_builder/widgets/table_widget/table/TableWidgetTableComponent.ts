@@ -48,7 +48,6 @@ import ExportVarIndicatorVO from '../../../../../../../shared/modules/DataExport
 import ExportVarcolumnConfVO from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConfVO';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
-import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
@@ -56,6 +55,7 @@ import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsT
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
+import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ModuleVocus from '../../../../../../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { reflect } from '../../../../../../../shared/tools/ObjectHandler';
@@ -218,6 +218,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private has_selected_all: boolean = false;
     private max_export_limit: number = null;
     private min_export_limit: number = null;
+
+    // Stockage des params de variable de chaque colonne/ligne, pour aggrégation en ligne de total
+    private var_params_by_column_id: { [column_id: number]: { [index: string]: VarDataBaseVO } } = {};
+    private clear_var_params_by_column_id_on_next_push: boolean = false;
 
     private throttle_update_query_strings = ThrottleHelper.declare_throttle_without_args(
         'TableWidgetTableComponent.throttle_update_query_strings',
@@ -1363,6 +1367,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private async onchange_active_field_filters() {
 
         this.selected_vos = {};
+        this.clear_var_params_by_column_id_on_next_push = true;
 
         await this.throttle_update_visible_options();
     }
@@ -1385,6 +1390,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             return;
         }
 
+        this.clear_var_params_by_column_id_on_next_push = true;
         this.old_columns = cloneDeep(this.columns);
 
         await this.throttle_update_visible_options();
@@ -1444,6 +1450,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         this.limit = (!this.widget_options || (this.widget_options.limit == null)) ? TableWidgetOptionsVO.DEFAULT_LIMIT : this.widget_options.limit;
         this.tmp_nbpages_pagination_list = (!this.widget_options || (this.widget_options.nbpages_pagination_list == null)) ? TableWidgetOptionsVO.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
+
+        this.clear_var_params_by_column_id_on_next_push = true;
 
         const promises = [
             this.throttle_update_visible_options(), // Pour éviter de forcer le chargement de la table sans avoir cliqué sur le bouton de validation des filtres
@@ -2099,6 +2107,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
      * @returns
      */
     private async update_visible_options(force: boolean = false) {
+
         // Si j'ai mon bouton de validation des filtres qui est actif,
         // je vérifie s'il me permet de faire un update
         const validation_filters: DashboardPageWidgetVO[] = this.get_validation_page_widgets();
@@ -2129,12 +2138,26 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
 
     private async reset_visible_options() {
+
         // Reset des filtres
         this.clear_active_field_filters();
 
         // TODO FIXME JNE : A mon avis on devrait plutôt vider la table, revenir à l'état initial et utiliser throttle_update_visible_options pour pas charger sans filtre quand ya un bouton de validation des filtres...
         // On update le visuel de tout le monde suite au reset
         await this.throttle_do_update_visible_options();
+    }
+
+    private on_register_param_for_column(column_id: number, param: VarDataBaseVO) {
+        if (this.clear_var_params_by_column_id_on_next_push) {
+            this.var_params_by_column_id = {};
+            this.clear_var_params_by_column_id_on_next_push = false;
+        }
+
+        if (!this.var_params_by_column_id[column_id]) {
+            Vue.set(this.var_params_by_column_id, column_id, {});
+        }
+
+        Vue.set(this.var_params_by_column_id[column_id], param.index, param);
     }
 
     private async do_update_visible_options() {

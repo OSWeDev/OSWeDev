@@ -102,6 +102,7 @@ export default class FieldFiltersVOManager {
                 try {
                     widget_options = WidgetOptionsVOManager.create_widget_options_vo_by_name(
                         widget.name,
+                        widget.is_filter,
                         json_options
                     );
                 } catch (e) {

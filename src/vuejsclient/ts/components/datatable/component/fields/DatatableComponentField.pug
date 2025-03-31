@@ -100,6 +100,7 @@
                     :table_is_busy="table_is_busy"
                     :editable="editable"
                     :var_value_callback="handle_var_value_callback",
+                    @register_param_for_column='on_register_param_for_column'
                 )
 
             template(v-else)

@@ -51,17 +51,17 @@ export default class TableWidgetManager {
     public static cb_bulk_actions_by_translatable_title: { [translatable_title: string]: BulkActionVO } = {};
 
     /**
-     * create_exportable_valuetables_xlsx_params
-     * - All valuetables on the actual page to be exported
+     * create_exportable_datatables_xlsx_params
+     * - All datatables on the actual page to be exported
      * - All vars indicator on the actual page to be exported
      *
      * @param {DashboardVO} dashboard
      * @param {DashboardPageWidgetVO} dashboard_page
-     * @param {{ [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number } }} valuetables_widgets_options
+     * @param {{ [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number } }} datatables_widgets_options
      * @param {FieldFiltersVO} active_field_filters
      * @returns {{ [title_name_code: string]: ExportContextQueryToXLSXParamVO }}
      */
-    public static async create_exportable_valuetables_xlsx_params(
+    public static async create_exportable_datatables_xlsx_params(
         dashboard: DashboardVO,
         dashboard_page: DashboardPageVO,
         active_field_filters: FieldFiltersVO,
@@ -82,17 +82,17 @@ export default class TableWidgetManager {
 
         export_name = slug(export_name, { lower: false }) + "{#Date}.xlsx";
 
-        const valuetables_widgets_options = await TableWidgetManager.get_valuetables_widgets_options(dashboard_page.id);
+        const datatables_widgets_options = await TableWidgetManager.get_datatables_widgets_options(dashboard_page.id);
 
         const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(dashboard.id);
 
-        for (const name in valuetables_widgets_options) {
+        for (const name in datatables_widgets_options) {
 
             const {
                 dashboard_page_id,
                 page_widget_id,
                 widget_options,
-            } = valuetables_widgets_options[name];
+            } = datatables_widgets_options[name];
 
             const widget_options_fields = TableWidgetManager.get_table_fields_by_widget_options(
                 dashboard,
@@ -164,22 +164,22 @@ export default class TableWidgetManager {
     }
 
     /**
-     * Get Valuetable Widgets Options
+     * Get datatable Widgets Options
      *
      * @return {{ [title_name_code: string]: { widget_options: TableWidgetOptions, widget_name: string, dashboard_page_id: number, page_widget_id: number } }}
      */
-    public static async get_valuetables_widgets_options(
+    public static async get_datatables_widgets_options(
         dashboard_page_id: number
     ): Promise<{ [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number } }> {
 
-        const valuetable_page_widgets: {
+        const datatable_page_widgets: {
             [page_widget_id: string]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }
-        } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name([dashboard_page_id], 'valuetable');
+        } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name([dashboard_page_id], DashboardWidgetVO.WIDGET_NAME_datatable);
 
         const res: { [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number } } = {};
 
-        for (const key in valuetable_page_widgets) {
-            const options = valuetable_page_widgets[key];
+        for (const key in datatable_page_widgets) {
+            const options = datatable_page_widgets[key];
 
             const widget_options = new TableWidgetOptionsVO().from(options.widget_options);
             const name = widget_options.get_title_name_code_text(options.page_widget_id);

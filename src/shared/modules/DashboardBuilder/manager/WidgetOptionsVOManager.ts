@@ -1,15 +1,15 @@
 import ConsoleHandler from "../../../tools/ConsoleHandler";
 import WeightHandler from "../../../tools/WeightHandler";
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
+import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import { query } from "../../ContextFilter/vos/ContextQueryVO";
+import ModuleDAO from "../../DAO/ModuleDAO";
 import InsertOrDeleteQueryResult from "../../DAO/vos/InsertOrDeleteQueryResult";
+import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
+import DashboardWidgetVO from "../vos/DashboardWidgetVO";
 import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
 import MonthFilterWidgetOptionsVO from "../vos/MonthFilterWidgetOptionsVO";
 import YearFilterWidgetOptionsVO from "../vos/YearFilterWidgetOptionsVO";
-import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
-import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
-import { query } from "../../ContextFilter/vos/ContextQueryVO";
-import DashboardWidgetVO from "../vos/DashboardWidgetVO";
-import ModuleDAO from "../../DAO/ModuleDAO";
 import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
 import MonthFilterWidgetManager from "./MonthFilterWidgetManager";
 import YearFilterWidgetManager from "./YearFilterWidgetManager";
@@ -91,7 +91,12 @@ export default class WidgetOptionsVOManager {
      * @param {string | Object} json_options
      * @returns {any}
      */
-    public static create_widget_options_vo_by_name(widget_name: string, json_options?: any): any {
+    public static create_widget_options_vo_by_name(widget_name: string, is_filter: boolean, json_options?: any): any {
+
+        if (!is_filter) {
+            // not a filter, osef
+            return null;
+        }
 
         if (typeof json_options === 'string') {
             json_options = JSON.parse(json_options);
@@ -105,6 +110,7 @@ export default class WidgetOptionsVOManager {
             case DashboardWidgetVO.WIDGET_NAME_yearfilter:
                 return new YearFilterWidgetOptionsVO().from(json_options);
             default:
+                ConsoleHandler.error('WidgetOptionsVOManager: create_widget_options_vo_by_name: widget_name not implemented: ', widget_name);
                 throw new Error(
                     `Factory for the given WidgetOptionsVO ` +
                     `widget_name: "${widget_name}" is not implemented yet!`

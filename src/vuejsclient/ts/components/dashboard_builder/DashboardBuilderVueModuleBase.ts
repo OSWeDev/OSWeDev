@@ -116,7 +116,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_BulkOps();
 
         await this.initializeWidget_Var();
-        await this.initializeWidget_ValueTable();
         await this.initializeWidget_DataTable();
 
         await this.initializeWidget_PageSwitch();
@@ -273,28 +272,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Oseliathreadwidgeticoncomponent', () => import('./widgets/oselia_thread_widget/icon/OseliaThreadWidgetIconComponent'));
     }
 
-
-    private async initializeWidget_ValueTable() {
-        const Table = new DashboardWidgetVO();
-
-        Table.default_height = 35;
-        Table.default_width = 12;
-        Table.name = DashboardWidgetVO.WIDGET_NAME_valuetable;
-        Table.widget_component = 'Tablewidgetcomponent';
-        Table.options_component = 'Tablewidgetoptionscomponent';
-        Table.weight = 20;
-        Table.default_background = '#f5f5f5';
-        Table.icon_component = 'Tablewidgeticoncomponent';
-
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptionsVO(
-            null, false, 100, null, false, false, false, false, false, true, true, true, true, true, true, false, null, false, 5, false,
-            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false, [], null
-        ), TableWidgetOptionsVO.get_selected_fields);
-
-        Vue.component('Tablewidgetcomponent', () => import('./widgets/table_widget/TableWidgetComponent'));
-        Vue.component('Tablewidgetoptionscomponent', () => import('./widgets/table_widget/options/TableWidgetOptionsComponent'));
-        Vue.component('Tablewidgeticoncomponent', () => import('./widgets/table_widget/icon/TableWidgetIconComponent'));
-    }
 
     private async initializeWidget_FieldValueFilter() {
         const fieldValueFilter = new DashboardWidgetVO();

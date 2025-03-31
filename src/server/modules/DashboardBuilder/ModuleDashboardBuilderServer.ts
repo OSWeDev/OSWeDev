@@ -1727,9 +1727,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Table de données. Permet de lister, modifier et supprimer des données de l\'application.'
         }, 'dashboards.widgets.icons_tooltips.datatable.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Table de valeurs. Pour aggréger les données (et variables) suivant les filtres sélectionnés et les colonnes affichées.'
-        }, 'dashboards.widgets.icons_tooltips.valuetable.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Filtre sur la valeur d\'un champs. Sélectionner un champs et les paramètres de filtrage. Le filtre est appliqué à toutes les pages du Tableau de bord.'
         }, 'dashboards.widgets.icons_tooltips.fieldvaluefilter.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({

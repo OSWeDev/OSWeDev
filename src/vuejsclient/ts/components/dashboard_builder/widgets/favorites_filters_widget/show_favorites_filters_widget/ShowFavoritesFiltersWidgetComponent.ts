@@ -173,10 +173,13 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             return;
         }
 
-        const field_filters = this.tmp_active_favorites_filters_option?.field_filters;
+        // Chargement initial
+        if (!this.old_tmp_active_favorites_filters_option) {
+            this.old_tmp_active_favorites_filters_option = cloneDeep(this.tmp_active_favorites_filters_option);
+        }
 
         if (
-            isEmpty(field_filters) ||
+            isEmpty(this.tmp_active_favorites_filters_option?.field_filters) ||
             !isEqual(this.tmp_active_favorites_filters_option, this.old_tmp_active_favorites_filters_option)
         ) {
             this.old_active_field_filters = cloneDeep(this.get_active_field_filters);
@@ -479,7 +482,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     private async get_exportable_xlsx_params(limit_to_page: boolean = true): Promise<{ [title_name_code: string]: ExportContextQueryToXLSXParamVO }> {
 
-        const exportable_xlsx_params = await TableWidgetManager.create_exportable_valuetables_xlsx_params(
+        const exportable_xlsx_params = await TableWidgetManager.create_exportable_datatables_xlsx_params(
             this.dashboard,
             this.dashboard_page,
             this.get_active_field_filters,

@@ -259,6 +259,10 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
             this.var_param = new_param;
         }
 
+        if (!!this.var_param) {
+            this.$emit('register_param_for_column', this.var_param);
+        }
+
         if (!this.var_param) {
             this.var_param_no_value_or_param_is_invalid = true;
         } else {
