@@ -3,13 +3,14 @@ import { Component, Prop } from 'vue-property-decorator';
 import { ItemInterface } from '../interface';
 import './SelectionPanel.scss';
 import OseliaRunTemplateVO from '../../../../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
+import OseliaRunVO from '../../../../../../../shared/modules/Oselia/vos/OseliaRunVO';
 @Component({
     template: require('./SelectionPanel.pug'),
 })
 export default class SelectionPanel extends Vue {
 
     @Prop({ default: () => ({}) })
-    public items!: { [id: string]: OseliaRunTemplateVO };
+    public items!: { [id: string]: OseliaRunTemplateVO | OseliaRunVO };
 
     @Prop({ default: null })
     public selectedItem!: string | null;
@@ -22,7 +23,7 @@ export default class SelectionPanel extends Vue {
     @Prop({ type: Function, required: true })
     public editItemFn!: (itemId: string) => void;
 
-    get currentItem(): OseliaRunTemplateVO | null {
+    get currentItem(): OseliaRunTemplateVO | OseliaRunVO | null {
         if (!this.selectedItem) {
             return null;
         }

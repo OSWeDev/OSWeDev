@@ -14,6 +14,7 @@ import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSe
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
+import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 
 interface LinkDrawInfo {
     sourceItemId: string;
@@ -33,7 +34,10 @@ interface AgentLayoutInfo {
 export default class CanvasDiagram extends Vue {
 
     @Prop()
-    readonly items!: { [id: string]: OseliaRunTemplateVO };
+    readonly items!: { [id: string]: OseliaRunTemplateVO | OseliaRunVO};
+
+    @Prop()
+    private isRunVo !: boolean;
 
     @Prop({ default: null })
     private selectedItem!: string | null;
@@ -50,6 +54,9 @@ export default class CanvasDiagram extends Vue {
     @ModuleDAOAction
     private storeDatas!: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
+    private throttle_drawDiagram = ThrottleHelper.declare_throttle_with_stackable_args(
+        'OseliaRunGraphWidgetComponent.drawDiagram',
+        this.throttled_drawDiagram.bind(this), 100);
     // -------------------------------------------------------------------------
     // GESTION DU CANVAS (Zoom, pan, etc.)
     private isDraggingCanvas = false;
@@ -120,81 +127,90 @@ export default class CanvasDiagram extends Vue {
     // WATCHERS
     // =========================================================================
     @Watch('selectedItem')
-    private onSelectedItemChange() {
-        this.drawDiagram();
+    private async onSelectedItemChange() {
+        await this.throttle_drawDiagram();
     }
 
     @Watch('reDraw')
-    private onReDrawChange() {
-        this.drawDiagram();
+    private async onReDrawChange() {
+        await this.throttle_drawDiagram();
     }
 
     @Watch('updatedItem')
-    private onUpdatedItemChange() {
+    private async onUpdatedItemChange() {
         if (this.updatedItem) {
             this.items[this.updatedItem.id] = this.updatedItem;
-            this.drawDiagram();
+            await this.throttle_drawDiagram();
         }
     }
 
     @Watch('items', { deep: true, immediate: true })
     private async onItemsChange() {
-        // 1) Reconstruire l'adjacence
-        this.adjacency = {};
-        for (const itemId of Object.keys(this.items)) {
-            this.adjacency[itemId] = [];
-        }
+        if (this.isRunVo) {
+            const _items: { [id: string]: OseliaRunVO } = (this.items as { [id: string]: OseliaRunVO });
+        } else {
+            const _items : {[id:string]: OseliaRunTemplateVO} = (this.items as { [id: string]: OseliaRunTemplateVO });
 
-        // insérer les blocs "add_XXX" et remplir adjacency
-        for (const itemId of Object.keys(this.items)) {
-            const item = this.items[itemId];
-            if (item.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
-                const addId = 'add_' + itemId;
-                if (!this.items[addId]) {
-                    const fakeAdd = new OseliaRunTemplateVO();
-                    fakeAdd.id = -1;
-                    fakeAdd.run_type = 9999;
-                    fakeAdd.name = '+';
-                    this.$set(this.items, addId, fakeAdd);
-                }
-                if (!this.adjacency[addId]) {
-                    this.adjacency[addId] = [];
-                }
+            // 1) Reconstruire l'adjacence
+            this.adjacency = {};
+            for (const itemId of Object.keys(_items)) {
+                this.adjacency[itemId] = [];
+            }
 
-                const childrenIds: string[] = [];
-                if (item.children && item.children.length) {
-                    for (const c of item.children) {
-                        const _children = await query(OseliaRunTemplateVO.API_TYPE_ID)
-                            .filter_by_ids([c])
-                            .set_sort(new SortByVO(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().weight, true))
-                            .select_vos<OseliaRunTemplateVO>();
-                        for (const child of _children) {
-                            const cid = String(child.id);
-                            childrenIds.push(cid);
-                            if (!this.items[cid]) {
-                                this.$set(this.items, cid, child);
+            // insérer les blocs "add_XXX" et remplir adjacency
+            for (const itemId of Object.keys(_items)) {
+                const item = _items[itemId];
+                if (item.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
+                    const addId = 'add_' + itemId;
+                    if (!_items[addId]) {
+                        const fakeAdd = new OseliaRunTemplateVO();
+                        fakeAdd.id = -1;
+                        fakeAdd.run_type = 9999;
+                        fakeAdd.name = '+';
+                        this.$set(this.items, addId, fakeAdd);
+                    }
+                    if (!this.adjacency[addId]) {
+                        this.adjacency[addId] = [];
+                    }
+
+                    const childrenIds: string[] = [];
+                    if (item.children && item.children.length) {
+                        for (const c of item.children) {
+                            const _children = await query(OseliaRunTemplateVO.API_TYPE_ID)
+                                .filter_by_ids([c])
+                                .set_sort(new SortByVO(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().weight, true))
+                                .select_vos<OseliaRunTemplateVO>();
+                            for (const child of _children) {
+                                const cid = String(child.id);
+                                childrenIds.push(cid);
+                                if (!_items[cid]) {
+                                    this.$set(this.items, cid, child);
+                                }
                             }
                         }
                     }
-                }
 
-                for (const cid of childrenIds) {
-                    this.adjacency[itemId].push(cid);
-                    if (!this.adjacency[cid]) {
-                        this.adjacency[cid] = [];
+                    for (const cid of childrenIds) {
+                        this.adjacency[itemId].push(cid);
+                        if (!this.adjacency[cid]) {
+                            this.adjacency[cid] = [];
+                        }
+                        this.adjacency[cid].push(itemId);
                     }
-                    this.adjacency[cid].push(itemId);
+                    this.adjacency[itemId].push(addId);
+                    this.adjacency[addId].push(itemId);
                 }
-                this.adjacency[itemId].push(addId);
-                this.adjacency[addId].push(itemId);
             }
         }
+
+
 
         // 2) Mettre à jour le layout
         await this.defineFixedLayout();
         // 3) Redessiner
-        this.drawDiagram();
+        await this.throttle_drawDiagram();
     }
+
 
     // =========================================================================
     // HOOKS
@@ -223,6 +239,30 @@ export default class CanvasDiagram extends Vue {
         window.removeEventListener('resize', this.onResize);
     }
 
+    private async throttled_drawDiagram() {
+        if (!this.ctx) return;
+        const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
+        const ctx = this.ctx;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.save();
+        ctx.translate(this.offsetX, this.offsetY);
+        ctx.scale(this.scale, this.scale);
+
+        this.drawLinks(ctx);
+
+        for (const itemId of Object.keys(this.items)) {
+            this.drawBlock(ctx, itemId);
+        }
+
+        if (this.menuBlock.visible && this.menuBlock.plusItemId) {
+            this.drawMenuBlock(ctx);
+        }
+
+        ctx.restore();
+    }
+
     // =========================================================================
     // INIT CANVAS
     // =========================================================================
@@ -236,14 +276,14 @@ export default class CanvasDiagram extends Vue {
         this.offsetY = canvas.height / 2;
     }
 
-    private onResize() {
+    private async onResize() {
         const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
         if (!canvas) return;
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
         this.offsetX = canvas.width / 2;
         this.offsetY = canvas.height / 2;
-        this.drawDiagram();
+        await this.throttle_drawDiagram();
     }
 
     // =========================================================================
@@ -308,82 +348,64 @@ export default class CanvasDiagram extends Vue {
             return nextY;
         }
 
-        // Déplié => on récupère enfants et on place
-        const item = this.items[agentId];
-        const childrenIds: string[] = [];
-        if (item.children && item.children.length) {
-            for (const c of item.children) {
-                const _children = await query(OseliaRunTemplateVO.API_TYPE_ID)
-                    .filter_by_ids([c])
-                    .set_sort(new SortByVO(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().weight, true))
-                    .select_vos<OseliaRunTemplateVO>();
-                for (const child of _children) {
-                    const cid = String(child.id);
-                    childrenIds.push(cid);
+        if (this.isRunVo) {
+            const _items: { [id: string]: OseliaRunVO } = (this.items as { [id: string]: OseliaRunVO });
+        } else {
+            const _items: { [id: string]: OseliaRunTemplateVO } = (this.items as { [id: string]: OseliaRunTemplateVO });
+            // Déplié => on récupère enfants et on place
+            const item = _items[agentId];
+            const childrenIds: string[] = [];
+            if (item.children && item.children.length) {
+                for (const c of item.children) {
+                    const _children = await query(OseliaRunTemplateVO.API_TYPE_ID)
+                        .filter_by_ids([c])
+                        .set_sort(new SortByVO(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().weight, true))
+                        .select_vos<OseliaRunTemplateVO>();
+                    for (const child of _children) {
+                        const cid = String(child.id);
+                        childrenIds.push(cid);
+                    }
                 }
             }
-        }
-        this.agentLayoutInfos[agentId].childrenIds = childrenIds;
+            this.agentLayoutInfos[agentId].childrenIds = childrenIds;
 
-        for (const cId of childrenIds) {
-            const childVo = this.items[cId];
-            const childY = nextY + verticalSpacing;
+            for (const cId of childrenIds) {
+                const childVo = this.items[cId];
+                const childY = nextY + verticalSpacing;
 
-            if (childVo.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
-                nextY = await this.layoutAgentRecursively(cId, childY, level + 1);
-            } else {
-                const childW = 200;
-                const childH = 40;
-                const cx = x + indentX * (level + 1);
-                this.blockPositions[cId] = {
-                    x: cx,
-                    y: childY,
-                    w: childW,
-                    h: childH,
-                };
-                nextY = childY + childH;
+                if (childVo.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
+                    nextY = await this.layoutAgentRecursively(cId, childY, level + 1);
+                } else {
+                    const childW = 200;
+                    const childH = 40;
+                    const cx = x + indentX * (level + 1);
+                    this.blockPositions[cId] = {
+                        x: cx,
+                        y: childY,
+                        w: childW,
+                        h: childH,
+                    };
+                    nextY = childY + childH;
+                }
             }
+
+            // Place le bloc "+"
+            const plusY = nextY + verticalSpacing;
+            this.blockPositions[plusId] = {
+                x: x + agentW / 2 - plusW / 2,
+                y: plusY,
+                w: plusW,
+                h: plusH,
+            };
+            nextY = plusY + plusH + deltaYBetweenAgents;
+
+            return nextY;
         }
-
-        // Place le bloc "+"
-        const plusY = nextY + verticalSpacing;
-        this.blockPositions[plusId] = {
-            x: x + agentW / 2 - plusW / 2,
-            y: plusY,
-            w: plusW,
-            h: plusH,
-        };
-        nextY = plusY + plusH + deltaYBetweenAgents;
-
-        return nextY;
     }
 
     // =========================================================================
     // DESSIN
     // =========================================================================
-    private drawDiagram() {
-        if (!this.ctx) return;
-        const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
-        const ctx = this.ctx;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        ctx.save();
-        ctx.translate(this.offsetX, this.offsetY);
-        ctx.scale(this.scale, this.scale);
-
-        this.drawLinks(ctx);
-
-        for (const itemId of Object.keys(this.items)) {
-            this.drawBlock(ctx, itemId);
-        }
-
-        if (this.menuBlock.visible && this.menuBlock.plusItemId) {
-            this.drawMenuBlock(ctx);
-        }
-
-        ctx.restore();
-    }
 
     private drawBlock(ctx: CanvasRenderingContext2D, itemId: string) {
         const pos = this.blockPositions[itemId];
@@ -526,7 +548,7 @@ export default class CanvasDiagram extends Vue {
     // EVENTS SOURIS (Pan, Zoom, Drag & Drop)
     // =========================================================================
 
-    private onWheel(e: WheelEvent) {
+    private async onWheel(e: WheelEvent) {
         e.preventDefault();
         if (!this.ctx) return;
 
@@ -545,7 +567,7 @@ export default class CanvasDiagram extends Vue {
         this.offsetX += dx * this.scale;
         this.offsetY += dy * this.scale;
 
-        this.drawDiagram();
+        await this.throttle_drawDiagram();
     }
 
     private onMouseDown(e: MouseEvent) {
@@ -596,6 +618,12 @@ export default class CanvasDiagram extends Vue {
 
         // Sinon, on a cliqué sur un bloc
         const itemId = clickedOnAnyBlock;
+        // Bloc "+"
+        if (itemId.startsWith('add_')) {
+            const agentId = itemId.substring(4);
+            this.menuBlock.visible ? this.hideMenu() : this.showMenu(itemId, agentId);
+            return;
+        }
         this.$emit('select_item', itemId);
 
         // Stocker la position initiale de la souris pour distinguer clic / drag
@@ -603,12 +631,6 @@ export default class CanvasDiagram extends Vue {
         this.mouseDownY = diagPos.y;
         this.possibleDrag = false; // on l’activera si on détecte que c’est un enfant réordonnable
 
-        // Bloc "+"
-        if (itemId.startsWith('add_')) {
-            const agentId = itemId.substring(4);
-            this.menuBlock.visible ? this.hideMenu() : this.showMenu(itemId, agentId);
-            return;
-        }
 
         // Vérif si c'est un enfant potentiellement reorder
         const vo = this.items[itemId];
@@ -620,6 +642,8 @@ export default class CanvasDiagram extends Vue {
             this.dragParentAgentId = parentId;
             const pos = this.blockPositions[itemId];
             this.dragOffsetY = diagPos.y - pos.y;
+        } else {
+            this.draggingChildId = itemId;
         }
 
         // Si on n'a pas de parent agent, ce bloc n'est pas reorderable
@@ -627,7 +651,7 @@ export default class CanvasDiagram extends Vue {
         // ou juste rien s'il est assistant / foreach top-level.
     }
 
-    private onMouseMove(e: MouseEvent) {
+    private async onMouseMove(e: MouseEvent) {
         const canvas = this.$refs.diagramCanvas as HTMLCanvasElement;
         const rect = canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
@@ -639,7 +663,7 @@ export default class CanvasDiagram extends Vue {
             const hoveredIndex = this.checkMenuBlockClick(diagPos.x, diagPos.y);
             if (hoveredIndex !== this.menuBlock.hoveredIndex) {
                 this.menuBlock.hoveredIndex = hoveredIndex;
-                this.drawDiagram();
+                await this.throttle_drawDiagram();
             }
         }
 
@@ -652,7 +676,7 @@ export default class CanvasDiagram extends Vue {
 
             this.lastPanX = mx;
             this.lastPanY = my;
-            this.drawDiagram();
+            await this.throttle_drawDiagram();
             return;
         }
 
@@ -676,11 +700,11 @@ export default class CanvasDiagram extends Vue {
 
             const newY = diagPos.y - this.dragOffsetY;
             this.blockPositions[itemId].y = newY;
-            this.drawDiagram();
+            await this.throttle_drawDiagram();
         }
     }
 
-    private onMouseUp(e: MouseEvent) {
+    private async onMouseUp(e: MouseEvent) {
         // Fin du drag du canvas
         this.isDraggingCanvas = false;
 
@@ -703,8 +727,8 @@ export default class CanvasDiagram extends Vue {
             this.onChildReordered(parentId, childrenIds);
 
             // On relance le layout
-            this.defineFixedLayout().then(() => {
-                this.drawDiagram();
+            this.defineFixedLayout().then(async () => {
+                await this.throttle_drawDiagram();
             });
         } else {
             // Sinon, c'était un clic (ou un drag insuffisant pour reorder)
@@ -718,8 +742,8 @@ export default class CanvasDiagram extends Vue {
                 if (vo.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
                     // Inverse expanded
                     this.expandedAgents[itemId] = !this.expandedAgents[itemId];
-                    this.defineFixedLayout().then(() => {
-                        this.drawDiagram();
+                    this.defineFixedLayout().then(async () => {
+                        await this.throttle_drawDiagram();
                     });
                 }
             }
@@ -734,20 +758,20 @@ export default class CanvasDiagram extends Vue {
     // =========================================================================
     // MENU "+"
     // =========================================================================
-    private showMenu(plusId: string, agentId: string) {
+    private async showMenu(plusId: string, agentId: string) {
         this.menuBlock.visible = true;
         this.menuBlock.plusItemId = plusId;
         this.menuBlock.agentId = agentId;
         this.menuBlock.hoveredIndex = -1;
-        this.drawDiagram();
+        await this.throttle_drawDiagram();
     }
 
-    private hideMenu() {
+    private async hideMenu() {
         this.menuBlock.visible = false;
         this.menuBlock.plusItemId = null;
         this.menuBlock.agentId = null;
         this.menuBlock.hoveredIndex = -1;
-        this.drawDiagram();
+        await this.throttle_drawDiagram();
     }
 
     private drawMenuBlock(ctx: CanvasRenderingContext2D) {
@@ -841,18 +865,22 @@ export default class CanvasDiagram extends Vue {
             false,
             async (vo: OseliaRunTemplateVO) => {
                 const parentId = vo.parent_run_id;
-                if (!this.items[parentId].children) {
-                    this.items[parentId].children = [];
-                }
-                this.items[parentId].children.push(
-                    RangeHandler.create_single_elt_NumRange(vo.id, NumSegment.TYPE_INT)
-                );
-                vo.parent_id = parentId;
-                this.$set(this.items, vo.id, vo);
+                if (this.isRunVo) {
+                    const _items: { [id: string]: OseliaRunVO } = (this.items as { [id: string]: OseliaRunVO });
+                } else {
+                    const _items: { [id: string]: OseliaRunTemplateVO } = (this.items as { [id: string]: OseliaRunTemplateVO });
+                    if (!_items[parentId].children) {
+                        _items[parentId].children = [];
+                    }
+                    _items[parentId].children.push(
+                        RangeHandler.create_single_elt_NumRange(vo.id, NumSegment.TYPE_INT)
+                    );
+                    vo.parent_id = parentId;
+                    this.$set(this.items, vo.id, vo);
 
-                await ModuleDAO.instance.insertOrUpdateVO(this.items[parentId]);
-                // this.drawDiagram();
-                return;
+                    await ModuleDAO.instance.insertOrUpdateVO(this.items[parentId]);
+                    return;
+                }
             }
         );
     }
@@ -861,18 +889,23 @@ export default class CanvasDiagram extends Vue {
     // GESTION DU RÉORDONNANCEMENT
     // =========================================================================
     private async onChildReordered(parentId: string, newChildrenOrder: string[]) {
-        const parentVO = this.items[parentId];
-        parentVO.children = [];
-        let weight = 0;
-        for (const childId of newChildrenOrder) {
-            this.items[childId].weight = weight;
-            await ModuleDAO.instance.insertOrUpdateVO(this.items[childId]);
-            parentVO.children.push(
-                RangeHandler.create_single_elt_NumRange(Number(childId), NumSegment.TYPE_INT)
-            );
-            weight++;
+        if (this.isRunVo) {
+            const _items: { [id: string]: OseliaRunVO } = (this.items as { [id: string]: OseliaRunVO });
+        } else {
+            const _items: { [id: string]: OseliaRunTemplateVO } = (this.items as { [id: string]: OseliaRunTemplateVO });
+            const parentVO = _items[parentId];
+            parentVO.children = [];
+            let weight = 0;
+            for (const childId of newChildrenOrder) {
+                this.items[childId].weight = weight;
+                await ModuleDAO.instance.insertOrUpdateVO(this.items[childId]);
+                parentVO.children.push(
+                    RangeHandler.create_single_elt_NumRange(Number(childId), NumSegment.TYPE_INT)
+                );
+                weight++;
+            }
+            this.$set(this.items, parentId, parentVO);
         }
-        this.$set(this.items, parentId, parentVO);
     }
 
     // =========================================================================
