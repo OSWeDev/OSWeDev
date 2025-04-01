@@ -140,7 +140,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     // -------------------------------------------------------------------------
     // WATCHERS
     // -------------------------------------------------------------------------
-    @Watch('choices_of_item')
+    @Watch('choices_of_item', {deep: true})
     private async onChoicesOfItemChange() {
         // Si on est en mode single run, on n’utilise pas le vieux mécanisme
         if (this.is_single_run_found) {
@@ -155,7 +155,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
                 if (Object.values(this.items).length > 0) {
                     return;
                 }
-                this.$set(this.items, this.choices_of_item[0].id, this.choices_of_item[0]);
+                this.addItem(String(this.choices_of_item[0].id));
                 this.choices_of_item = [];
                 this.showAddPanel = false;
                 this.showPlusButton = false;
@@ -187,51 +187,9 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
 
     @Watch('get_active_field_filters', { deep: true })
     private async onActiveFieldFiltersChange() {
-        // ---------------------------------------------------------------------
-        // 1) On essaie d’abord de récupérer les OseliaRunVO
-        //    avec les filtres actifs (comme pour les templates)
-        // ---------------------------------------------------------------------
-        const active_filters = FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters);
-        const context_filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_filters);
-
-        const found_runs = await query(OseliaRunVO.API_TYPE_ID)
-            .add_filters(context_filters)
-            .select_vos<OseliaRunVO>();
-
-        if (found_runs.length === 1) {
-            // => On a EXACTEMENT 1 run => on adopte la nouvelle logique
-            this.is_single_run_found = true;
-            this.single_run = found_runs[0];
-
-            // On construit nos items depuis ce run unique
-            await this.buildItemsFromSingleRun();
-
-            // On peut éventuellement enregistrer un callback pour mettre à jour
-            // en direct ce run si le DAO est réactif, ou tout rafraîchir :
-            // (optionnel, selon vos besoins)
-            // await this.register_vo_updates_on_list(OseliaRunVO.API_TYPE_ID, ...);
-            // Inscription sur la liste des OseliaRunVO aussi (mais ici on gère l’ajout dans choices_of_item)
-            // await this.register_vo_updates_on_list(
-            //     OseliaRunVO.API_TYPE_ID,
-            //     reflect<OseliaRunGraphWidgetComponent>().choices_of_item,
-            //     context_filters,
-            // );
-            return;
-        } else {
-            this.is_single_run_found = false;
-            this.choices_of_item = await query(OseliaRunTemplateVO.API_TYPE_ID)
-                .add_filters(context_filters)
-                .select_vos<OseliaRunTemplateVO>();
-            // Si un des choix est dans this.items, on le retire
-            for (const item of this.choices_of_item) {
-                if (this.items[item.id]) {
-                    this.choices_of_item.splice(this.choices_of_item.findIndex((i) => i.id == item.id), 1);
-                }
-            }
-
-            return;
-        }
+        await this.chargeChoices();
     }
+
 
     // -------------------------------------------------------------------------
     // CHANGEMENT : Gestion du bouton "Edit" en mode Single Run
@@ -260,20 +218,14 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     // MOUNTED
     // -------------------------------------------------------------------------
     public async mounted() {
-
-        // ---------------------------------------------------------------------
-        // 2) Sinon, fallback sur l’ancienne logique (templates)
-        //    - Soit 0 run => on récupère les templates
-        //    - Soit plusieurs => même logique
-        // ---------------------------------------------------------------------
-
+        await this.chargeChoices();
         // Inscription sur la liste des OseliaRunTemplateVO (filtre run_type = AGENT)
-        await this.register_vo_updates_on_list(
-            OseliaRunTemplateVO.API_TYPE_ID,
-            reflect<OseliaRunGraphWidgetComponent>().choices_of_item,
-            [filter(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().run_type)
-                .by_num_eq(OseliaRunVO.RUN_TYPE_AGENT)],
-        );
+        // await this.register_vo_updates_on_list(
+        //     OseliaRunTemplateVO.API_TYPE_ID,
+        //     reflect<OseliaRunGraphWidgetComponent>().choices_of_item,
+        //     [filter(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().run_type)
+        //         .by_num_eq(OseliaRunVO.RUN_TYPE_AGENT)],
+        // );
 
     }
 
@@ -285,16 +237,23 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
         this.showAddPanel = false;
         const itemAdded: OseliaRunTemplateVO | OseliaRunVO = this.choices_of_item.find((item) => item.id == Number(itemId));
         if (itemAdded._type == OseliaRunTemplateVO.API_TYPE_ID) {
-            const _children = await query(OseliaRunTemplateVO.API_TYPE_ID)
-                .filter_by_ids((itemAdded as OseliaRunTemplateVO).children)
-                .set_sort(new SortByVO(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().weight, true))
-                .select_vos<OseliaRunTemplateVO>();
-            for (const child of _children) {
-                this.choices_of_item.splice(this.choices_of_item.findIndex((childVO) => childVO.id == Number(child.id)), 1);
+            const local_itemAdded = itemAdded as OseliaRunTemplateVO;
+            if (local_itemAdded.children && local_itemAdded.children.length) {
+                const _children = await query(OseliaRunTemplateVO.API_TYPE_ID)
+                    .filter_by_ids(local_itemAdded.children)
+                    .set_sort(new SortByVO(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().weight, true))
+                    .select_vos<OseliaRunTemplateVO>();
+                for (const child of _children) {
+                    if(this.choices_of_item.findIndex((item) => item.id == Number(child.id)) != -1) {
+                        this.choices_of_item.splice(this.choices_of_item.findIndex((item) => item.id == Number(child.id)), 1);
+                    }
+                }
             }
         }
-        this.$set(this.items, itemId, this.choices_of_item.find((item) => item.id == Number(itemId)));
-        this.choices_of_item.splice(this.choices_of_item.findIndex((item) => item.id == Number(itemId)), 1);
+        this.$set(this.items, itemId, itemAdded);
+        if(this.choices_of_item.findIndex((item) => item.id == Number(itemId)) != -1) {
+            this.choices_of_item.splice(this.choices_of_item.findIndex((item) => item.id == Number(itemId)), 1);
+        }
     }
 
     public removeItem(itemId: string) {
@@ -377,6 +336,54 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
         if (this.single_run.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
             this.has_agent = true;
             await this.addRunChildrenRecursively(this.single_run.id);
+        }
+    }
+
+    private async chargeChoices() {
+        // ---------------------------------------------------------------------
+        // 1) On essaie d’abord de récupérer les OseliaRunVO
+        //    avec les filtres actifs (comme pour les templates)
+        // ---------------------------------------------------------------------
+        const active_filters = FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters);
+        const context_filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_filters);
+
+        const found_runs = await query(OseliaRunVO.API_TYPE_ID)
+            .add_filters(context_filters)
+            .select_vos<OseliaRunVO>();
+
+        if (found_runs.length === 1) {
+            // => On a EXACTEMENT 1 run => on adopte la nouvelle logique
+            this.is_single_run_found = true;
+            this.single_run = found_runs[0];
+
+            // On construit nos items depuis ce run unique
+            await this.buildItemsFromSingleRun();
+
+            // await this.register_vo_updates_on_list(
+            //     OseliaRunVO.API_TYPE_ID,
+            //     reflect<OseliaRunGraphWidgetComponent>().choices_of_item,
+            //     context_filters,
+            // );
+            return;
+        } else {
+            this.is_single_run_found = false;
+            this.choices_of_item = await query(OseliaRunTemplateVO.API_TYPE_ID)
+                .add_filters(
+                    [
+                        filter(OseliaRunTemplateVO.API_TYPE_ID,
+                            field_names<OseliaRunTemplateVO>().run_type)
+                            .by_num_eq(OseliaRunVO.RUN_TYPE_AGENT)
+                    ])
+                .select_vos<OseliaRunTemplateVO>();
+            for (const item of this.choices_of_item) {
+                if (this.items[item.id]) {
+                    if(this.choices_of_item.findIndex((i) => i.id == item.id) != -1) {
+                        this.choices_of_item.splice(this.choices_of_item.findIndex((i) => i.id == item.id), 1);
+                    }
+                }
+            }
+
+            return;
         }
     }
 

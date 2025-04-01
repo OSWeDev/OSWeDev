@@ -13,8 +13,10 @@ import { query } from '../../../../../../../shared/modules/ContextFilter/vos/Con
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
-import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
+import OseliaRunFunctionCallVO from '../../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
+import VueComponentBase from '../../../../VueComponentBase';
 
 interface LinkDrawInfo {
     sourceItemId: string;
@@ -31,7 +33,7 @@ interface AgentLayoutInfo {
 @Component({
     template: require('./CanvasDiagram.pug'),
 })
-export default class CanvasDiagram extends Vue {
+export default class CanvasDiagram extends VueComponentBase {
 
     @Prop()
     readonly items!: { [id: string]: OseliaRunTemplateVO | OseliaRunVO};
@@ -56,7 +58,7 @@ export default class CanvasDiagram extends Vue {
 
     private throttle_drawDiagram = ThrottleHelper.declare_throttle_with_stackable_args(
         'OseliaRunGraphWidgetComponent.drawDiagram',
-        this.throttled_drawDiagram.bind(this), 100);
+        this.throttled_drawDiagram.bind(this), 50);
     // -------------------------------------------------------------------------
     // GESTION DU CANVAS (Zoom, pan, etc.)
     private isDraggingCanvas = false;
@@ -148,6 +150,44 @@ export default class CanvasDiagram extends Vue {
     private async onItemsChange() {
         if (this.isRunVo) {
             const _items: { [id: string]: OseliaRunVO } = (this.items as { [id: string]: OseliaRunVO });
+            // Si on a un Run Instancié, il faut récup les fonctions liés au run et du coup, on a qu'un seul run instancié
+
+            this.adjacency = {};
+            for (const itemId of Object.keys(_items)) {
+                this.adjacency[itemId] = [];
+            }
+
+            // insérer les blocs "add_XXX" et remplir adjacency
+            for (const itemId of Object.keys(_items)) {
+                const item = _items[itemId];
+                if(!item) continue; // sécurité
+                const runFunctions : OseliaRunFunctionCallVO[] = await query(OseliaRunFunctionCallVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<OseliaRunFunctionCallVO>().oselia_run_id, Number(Object.keys(_items)[0]))
+                    .select_vos<OseliaRunFunctionCallVO>();
+
+                // Il faudrait registrer les fonctions liées au run mais pas sûr de comment faire / TODO
+
+                // await this.register_vo_updates_on_list(
+                //     OseliaRunFunctionCallVO.API_TYPE_ID,
+                //     reflect(runFunctions),
+                //     context_filters,
+                // );
+                if (runFunctions && runFunctions.length) {
+                    for (const _function of runFunctions) {
+                        this.$set(this.items, _function.id, _function);
+                    }
+                }
+
+                // for (const cid of childrenIds) {
+                //     this.adjacency[itemId].push(cid);
+                //     if (!this.adjacency[cid]) {
+                //         this.adjacency[cid] = [];
+                //     }
+                //     this.adjacency[cid].push(itemId);
+                // }
+                // this.adjacency[itemId].push(addId);
+                // this.adjacency[addId].push(itemId);
+            }
         } else {
             const _items : {[id:string]: OseliaRunTemplateVO} = (this.items as { [id: string]: OseliaRunTemplateVO });
 
@@ -160,6 +200,7 @@ export default class CanvasDiagram extends Vue {
             // insérer les blocs "add_XXX" et remplir adjacency
             for (const itemId of Object.keys(_items)) {
                 const item = _items[itemId];
+                if(!item) continue; // sécurité
                 if (item.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
                     const addId = 'add_' + itemId;
                     if (!_items[addId]) {
