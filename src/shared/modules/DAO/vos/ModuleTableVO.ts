@@ -424,15 +424,17 @@ export default class ModuleTableVO implements IDistantVOBase {
      *
      * @param field_names_
      * @param context_filters
+     * @param overload_index_name_schema pour forcer un nom d'index avec un param {table_name} qui sera remplacé par le nom de la table (typiquement sur une segmented)
      * @returns
      */
-    public add_composite_partial_index(field_names_: string[], context_filters: ContextFilterVO[]): ModuleTableVO {
+    public add_composite_partial_index(field_names_: string[], context_filters: ContextFilterVO[], overload_index_name_schema: string): ModuleTableVO {
 
         const composite_partial_index = new ModuleTableCompositePartialIndexVO();
 
         composite_partial_index.vo_type = this.vo_type;
         composite_partial_index.field_names = field_names_;
         composite_partial_index.context_filters = context_filters;
+        composite_partial_index.overload_index_name_schema = overload_index_name_schema;
 
         if (!this.composite_partial_indexes) {
             this.composite_partial_indexes = [];

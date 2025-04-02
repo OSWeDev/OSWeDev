@@ -878,7 +878,8 @@ export default class ModuleTableDBService {
     }
 
     private async get_composite_partial_index_string(composite_partial_index: ModuleTableCompositePartialIndexVO, schema_name: string, table_name: string): Promise<string> {
-        let res = "CREATE INDEX IF NOT EXISTS " + composite_partial_index.index_name + " ON " + schema_name + '.' + table_name + "(" + composite_partial_index.field_names.join(', ') + ")";
+        const index_name = composite_partial_index.index_name;
+        let res = "CREATE INDEX IF NOT EXISTS " + index_name.replace('{table_name}', table_name) + " ON " + schema_name + '.' + table_name + "(" + composite_partial_index.field_names.join(', ') + ")";
         if (composite_partial_index.context_filters) {
             const conditions: string[] = [];
             const tables_aliases_by_type: { [type: string]: string } = {

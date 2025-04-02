@@ -411,6 +411,7 @@ export default class ModuleDAO extends Module {
         ModuleTableFieldController.create_new(ModuleTableCompositePartialIndexVO.API_TYPE_ID, field_names<ModuleTableCompositePartialIndexVO>().field_names, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Champs - Noms', true);
         ModuleTableFieldController.create_new(ModuleTableCompositePartialIndexVO.API_TYPE_ID, field_names<ModuleTableCompositePartialIndexVO>().vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Table - Nom', true);
         ModuleTableFieldController.create_new(ModuleTableCompositePartialIndexVO.API_TYPE_ID, field_names<ModuleTableCompositePartialIndexVO>().context_filters, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Filtres pour clé partielle', false);
+        ModuleTableFieldController.create_new(ModuleTableCompositePartialIndexVO.API_TYPE_ID, field_names<ModuleTableCompositePartialIndexVO>().overload_index_name_schema, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'index - surcharge', false);
     }
 
     private init_ModuleTableCompositeUniqueKeyVO() {
