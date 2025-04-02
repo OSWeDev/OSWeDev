@@ -37,6 +37,7 @@ import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegme
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import OseliaRunFunctionCallVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 
 @Component({
     components: {
@@ -121,6 +122,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     // Sélections (hérité du code existant)
     // -------------------------------------------------------------------------
     public selectedItem: string | null = null;
+    public selectedItemRunInfo: OseliaRunFunctionCallVO | null = null;
     public selectedLink: { from: string; to: string } | null = null;
 
     /**
@@ -219,14 +221,6 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     // -------------------------------------------------------------------------
     public async mounted() {
         await this.chargeChoices();
-        // Inscription sur la liste des OseliaRunTemplateVO (filtre run_type = AGENT)
-        // await this.register_vo_updates_on_list(
-        //     OseliaRunTemplateVO.API_TYPE_ID,
-        //     reflect<OseliaRunGraphWidgetComponent>().choices_of_item,
-        //     [filter(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().run_type)
-        //         .by_num_eq(OseliaRunVO.RUN_TYPE_AGENT)],
-        // );
-
     }
 
     // -------------------------------------------------------------------------
@@ -274,6 +268,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
 
         if (this.selectedItem === itemId) {
             this.selectedItem = null;
+            this.selectedItemRunInfo = null;
         }
         this.reDraw = !this.reDraw;
     }
@@ -298,7 +293,10 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     // -------------------------------------------------------------------------
     // Sélection & liens
     // -------------------------------------------------------------------------
-    public selectItem(itemId: string) {
+    public selectItem(itemId: string, runInfo?: OseliaRunFunctionCallVO) {
+        if (runInfo) {
+            this.selectedItemRunInfo = runInfo;
+        }
         this.selectedItem = itemId;
         this.selectedLink = null;
         this.showAddPanel = false;
@@ -307,6 +305,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     public selectLink(linkObj: { from: string; to: string }) {
         this.selectedLink = linkObj;
         this.selectedItem = null;
+        this.selectedItemRunInfo = null;
     }
 
     public onSwitchHidden(itemId: string, linkTo: string, hidden: boolean) {
@@ -366,7 +365,16 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
             // );
             return;
         } else {
-            this.is_single_run_found = false;
+            // Si on avait un run unique avant, on le supprime
+            if(this.is_single_run_found) {
+                this.is_single_run_found = false;
+                this.single_run = null;
+                this.items = {};
+                if (this.selectedItem) {
+                    this.selectedItem = null;
+                    this.selectedItemRunInfo = null;
+                }
+            }
             this.choices_of_item = await query(OseliaRunTemplateVO.API_TYPE_ID)
                 .add_filters(
                     [

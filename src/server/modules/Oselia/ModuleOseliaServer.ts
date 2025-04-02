@@ -249,6 +249,52 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             { 'fr-fr': 'Tâches Osélia' },
             'oselia_thread_widget_component.oselia_runs_header.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'À faire' },
+            'OseliaRunVO.STATE_TODO'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'En cours de division' },
+            'OseliaRunVO.STATE_SPLITTING'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Division terminé' },
+            'OseliaRunVO.STATE_SPLIT_ENDED'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'En attente de la fin des divisions' },
+            'OseliaRunVO.STATE_WAITING_SPLITS_END'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Fin de l\'attente des divisions' },
+            'OseliaRunVO.STATE_WAIT_SPLITS_END_ENDED'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'En cours d\'exécution' },
+            'OseliaRunVO.STATE_RUNNING'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Exécution terminée' },
+            'OseliaRunVO.STATE_RUN_ENDED'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'En cours de validation' },
+            'OseliaRunVO.STATE_VALIDATING'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Validation terminée' },
+            'OseliaRunVO.STATE_VALIDATION_ENDED'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Terminé' },
+            'OseliaRunVO.STATE_DONE'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Erreur' },
+            'OseliaRunVO.STATE_ERROR'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Annulé' },
+            'OseliaRunVO.STATE_CANCELLED'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Expiré' },
+            'OseliaRunVO.STATE_EXPIRED'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Nécessite une réexécution' },
+            'OseliaRunVO.STATE_NEEDS_RERUN'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Réexecution demandée' },
+            'OseliaRunVO.STATE_RERUN_ASKED'));
+
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaThreadTitleBuilderBGThread.getInstance());
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaOldRunsResyncBGThread.getInstance());
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaRunBGThread.getInstance());

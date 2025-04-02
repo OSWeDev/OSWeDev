@@ -1,11 +1,36 @@
 // SelectionPanel.pug
 .selection-panel
-    h3  {{ currentItem ? currentItem.name : 'Aucun' }}
-    hr
-    .buttons
-        .edit_button
-            button.btn.btn-primary(@click="onEditSelectItem") Modifier 
-        .remove_button
-            button.btn.btn-danger(@click="onRemoveSelectedItem") Retirer
-    hr
+    template(v-if="!hasSelectedFunction")
+        h3  {{ currentItem ? currentItem.name : 'Aucun' }}
+        hr
+        .buttons
+            .edit_button
+                button.btn.btn-primary(@click="onEditSelectItem") Modifier 
+            .remove_button
+                button.btn.btn-danger(@click="onRemoveSelectedItem") Retirer
+        hr
+    template(v-else)
+        .function_call_name
+            h3 {{ currentItem ? currentItem.gpt_function_name : 'Aucun' }}
+            i(@click='replay_from_id(selectedItemRunInfo.id)').fa-duotone.fa-play-circle
+
+        .scrollable-content
+            .label Paramètres
+            vue-json-pretty.function_call_function_call_parameters_initial(
+                :data='try_parse_json(selectedItemRunInfo.function_call_parameters_initial)', 
+                :deep='1'
+            )
+            
+            .label Résultat
+            vue-json-pretty.function_call_result(
+                :data='try_parse_json(selectedItemRunInfo.result)', 
+                :deep='1'
+            )
+
+        .buttons
+            .edit_button
+                button.btn.btn-primary(@click="onEditSelectItem") Modifier 
+            .remove_button
+                button.btn.btn-danger(@click="onRemoveSelectedItem") Retirer
+        hr
 
