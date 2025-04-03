@@ -857,7 +857,9 @@ export default class ModuleTableDBService {
         for (const i in indexs) {
             const index = indexs[i];
 
-            const index_name = index.index_name;
+            let index_name = index.index_name;
+            // cas des template de nom pour les indexs sur les tables segmentées
+            index_name = index_name.replace('{table_name}', table_name);
             const index_str = await this.get_composite_partial_index_string(index, database_name, table_name);
 
             if (!index_str) {
