@@ -12,6 +12,7 @@ import CRUDFormServices from '../../crud/component/CRUDFormServices';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import CheckListControllerBase from '../CheckListControllerBase';
 import "./CheckListModalComponent.scss";
+import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 
 @Component({
     template: require('./CheckListModalComponent.pug')
@@ -102,6 +103,7 @@ export default class CheckListModalComponent extends VueComponentBase {
     }
 
     private onchangevo(vo: IDistantVOBase, field: DatatableField<any, any>, value: any) {
+        ConsoleHandler.error('TODO FIXME DELETE ME : CheckListModalComponent::onchangevo:' + JSON.stringify(vo) + ':' + JSON.stringify(value));
         this.$emit('onchangevo', vo, field, value);
     }
 
