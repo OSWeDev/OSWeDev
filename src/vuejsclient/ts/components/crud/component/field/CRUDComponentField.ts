@@ -250,7 +250,7 @@ export default class CRUDComponentField extends VueComponentBase
     private vo_of_field_value: IDistantVOBase = null;
 
     private debounced_reload_field_value = debounce(this.reload_field_value, 30);
-    private debounced_onchangevo_emitter = debounce(this.onchangevo_emitter, 30);
+    // private debounced_onchangevo_emitter = debounce(this.onchangevo_emitter, 30);
 
     private has_focus: boolean = false;
 
