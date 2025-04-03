@@ -69,6 +69,7 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
     private has_access_to_delete: boolean = false;
 
     private user: UserVO = null;
+    private base_url: string = null;
 
     get widget_options(): CMSCrudButtonsWidgetOptionsVO {
         if (!this.page_widget) {
@@ -165,6 +166,9 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
                 this.has_access_to_delete = await ModuleAccessPolicy.getInstance().testAccess(
                     DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.vo_type));
             })());
+            promises.push((async () => {
+                this.base_url = VueAppController.getInstance().base_url;
+            })());
 
             await Promise.all(promises);
         }
@@ -195,9 +199,12 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
             this.show_add_edit_fk
         );
     }
-    private open_delete_modal() {
+    private async open_delete_modal() {
         if (this.vo_type && this.get_cms_vo.id) {
-            CRUDHandler.getDeleteLink(this.vo_type, this.get_cms_vo.id);
+            const vo = await query(this.vo_type).filter_by_id(this.get_cms_vo.id).select_vo();
+            await ModuleDAO.getInstance().deleteVOs([vo]);
+
+            this.$router.push({ name: 'Home' });
         }
     }
 }
