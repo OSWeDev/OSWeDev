@@ -159,7 +159,7 @@ export default class ContextFilterVOManager {
             const field_filters = active_field_filters[key_i];
 
             if (!ObjectHandler.hasAtLeastOneAttribute(field_filters)) {
-                return context_filters;
+                continue;
             }
 
             for (const key_j in field_filters) {
