@@ -65,6 +65,9 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     @Prop({ default: false })
     private show_placeholder: boolean;
 
+    @Prop({ default: false })
+    private inline_form_in_crud: boolean;
+
     private editableVO: IDistantVOBase = null;
     private newVO: IDistantVOBase = null;
 
@@ -113,6 +116,14 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         }
 
         return false;
+    }
+
+    get input_label(): string {
+        if (this.inline_form_in_crud) {
+            return this.label('crud.create.modal.add_continue');
+        }
+
+        return this.label('crud.create.modal.add');
     }
 
     @Watch("api_type_id", { immediate: true })

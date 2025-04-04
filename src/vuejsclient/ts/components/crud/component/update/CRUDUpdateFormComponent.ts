@@ -60,6 +60,9 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     @Prop({ default: false })
     private show_delete_button: boolean;
 
+    @Prop({ default: false })
+    private inline_form_in_crud: boolean;
+
     private editableVO: IDistantVOBase = null;
 
     private api_types_involved: string[] = [];
@@ -103,6 +106,14 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
         }
 
         return this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID]?.label?.code_text);
+    }
+
+    get input_label(): string {
+        if (this.inline_form_in_crud) {
+            return this.label('crud.update.modal.save_continue');
+        }
+
+        return this.label('crud.update.modal.save');
     }
 
     @Watch("api_type_id", { immediate: true })

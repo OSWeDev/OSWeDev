@@ -216,6 +216,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             'fr-fr': 'Ajouter'
         }, 'crud.create.modal.add.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Valider et poursuivre'
+        }, 'crud.create.modal.add_continue.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Annuler'
         }, 'crud.create.modal.cancel.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -275,6 +278,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Enregistrer'
         }, 'crud.update.modal.save.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Valider et poursuivre'
+        }, 'crud.update.modal.save_continue.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mettre à jour'
         }, 'crud.update.modal.update.___LABEL___'));

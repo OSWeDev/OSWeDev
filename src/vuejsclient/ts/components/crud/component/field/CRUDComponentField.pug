@@ -56,6 +56,7 @@ include ../../../../../views/mixins/loading.pug
                                 :api_type_id="field.targetModuleTable.vo_type"
                                 :vo_init="vo_of_field_value"
                                 :show_placeholder="show_placeholder"
+                                :inline_form_in_crud="true"
                                 @close='close_inline_form_in_crud'
                                 @cancel='close_inline_form_in_crud'
                                 @vo_create="create_inline_form_in_crud"
@@ -68,6 +69,7 @@ include ../../../../../views/mixins/loading.pug
                                 :selected_vo="vo_of_field_value"
                                 :show_insert_or_update_target="show_insert_or_update_target"
                                 :show_placeholder="show_placeholder"
+                                :inline_form_in_crud="true"
                                 @close='close_inline_form_in_crud'
                                 @cancel='close_inline_form_in_crud'
                                 @vo_update="update_inline_form_in_crud"
