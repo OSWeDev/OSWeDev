@@ -103,7 +103,7 @@ export default class CheckListModalComponent extends VueComponentBase {
     }
 
     private onchangevo(vo: IDistantVOBase, field: DatatableField<any, any>, value: any) {
-        ConsoleHandler.error('TODO FIXME DELETE ME : CheckListModalComponent::onchangevo:' + JSON.stringify(vo) + ':' + JSON.stringify(value));
+        // ConsoleHandler.error('TODO FIXME DELETE ME : CheckListModalComponent::onchangevo:' + JSON.stringify(vo) + ':' + JSON.stringify(value));
         this.$emit('onchangevo', vo, field, value);
     }
 

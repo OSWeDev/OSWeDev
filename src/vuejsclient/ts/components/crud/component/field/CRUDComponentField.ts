@@ -1886,7 +1886,7 @@ export default class CRUDComponentField extends VueComponentBase
 
     private async inputValue(value: any) {
 
-        ConsoleHandler.error('TODO FIXME DELETE ME : CRUDComponentField.inputValue:IN:' + JSON.stringify(this.field_value) + ':' + JSON.stringify(value));
+        // ConsoleHandler.error('TODO FIXME DELETE ME : CRUDComponentField.inputValue:IN:' + JSON.stringify(this.field_value) + ':' + JSON.stringify(value));
 
         if (this.is_custom_field_type) {
             this.field_value = value;
@@ -1894,7 +1894,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         if (this.inline_input_mode) {
             await this.prepare_auto_validate();
-            ConsoleHandler.error('TODO FIXME DELETE ME : CRUDComponentField.inputValue:inline_input_mode:prepare_auto_validate:' + JSON.stringify(this.field_value) + ':' + JSON.stringify(value));
+            // ConsoleHandler.error('TODO FIXME DELETE ME : CRUDComponentField.inputValue:inline_input_mode:prepare_auto_validate:' + JSON.stringify(this.field_value) + ':' + JSON.stringify(value));
             return;
         }
 
@@ -1903,7 +1903,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.auto_update_field_value) {
-            ConsoleHandler.error('TODO FIXME DELETE ME : CRUDComponentField.inputValue:auto_update_field_value:' + JSON.stringify(value));
+            // ConsoleHandler.error('TODO FIXME DELETE ME : CRUDComponentField.inputValue:auto_update_field_value:' + JSON.stringify(value));
             await this.changeValue();
         }
 
@@ -1917,13 +1917,13 @@ export default class CRUDComponentField extends VueComponentBase
             }
         }
 
-        ConsoleHandler.error('TODO FIXME DELETE ME : CRUDComponentField.inputValue:debounced_onchangevo_emitter:' + JSON.stringify(this.field_value) + ':' + JSON.stringify(value));
+        // ConsoleHandler.error('TODO FIXME DELETE ME : CRUDComponentField.inputValue:debounced_onchangevo_emitter:' + JSON.stringify(this.field_value) + ':' + JSON.stringify(value));
         // this.debounced_onchangevo_emitter();
         this.onchangevo_emitter();
     }
 
     private onchangevo_emitter() {
-        ConsoleHandler.error('TODO FIXME DELETE ME : CRUDComponentField.inputValue:onchangevo_emitter:' + JSON.stringify(this.field_value));
+        // ConsoleHandler.error('TODO FIXME DELETE ME : CRUDComponentField.inputValue:onchangevo_emitter:' + JSON.stringify(this.field_value));
         this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
