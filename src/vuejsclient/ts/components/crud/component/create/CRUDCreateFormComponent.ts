@@ -86,9 +86,16 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         }
 
         return this.label('crud.read.title', {
-            datatable_title:
-                this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].label.code_text)
+            datatable_title: this.datatable_title
         });
+    }
+
+    get datatable_title(): string {
+        if (!this.crud) {
+            return null;
+        }
+
+        return this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID]?.label?.code_text);
     }
 
     get callback_route(): string {
