@@ -19,6 +19,8 @@ import CRUDFormServices from '../CRUDFormServices';
 import "./CRUDUpdateFormComponent.scss";
 import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableVO from '../../../../../../shared/modules/DAO/vos/ModuleTableVO';
+import { cloneDeep, isEqual } from 'lodash';
 
 @Component({
     template: require('./CRUDUpdateFormComponent.pug'),
@@ -64,6 +66,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     private inline_form_in_crud: boolean;
 
     private editableVO: IDistantVOBase = null;
+    private editableVO_initial: IDistantVOBase = null;
 
     private api_types_involved: string[] = [];
 
@@ -77,6 +80,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     private crud_field_remover_conf_edit: boolean = false;
     private crud_field_remover_conf: CRUDFieldRemoverConfVO = null;
     private POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS: boolean = false;
+    private snotify_cancel = null;
 
     get api_type_id(): string {
         if (this.selected_vo) {
@@ -177,6 +181,8 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     private updateSelected_vo() {
         if (!this.selected_vo) {
             this.editableVO = null;
+            this.editableVO_initial = null;
+            this.snotify_cancel = null;
             return;
         }
 
@@ -187,7 +193,9 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
             } else {
                 // On passe la traduction en IHM sur les champs
                 self.editableVO = CRUDFormServices.dataToIHM(self.selected_vo, self.crud.updateDatatable, true);
+                self.editableVO_initial = cloneDeep(self.editableVO);
                 self.onChangeVO(self.editableVO);
+                this.snotify_cancel = null;
             }
         };
 
@@ -504,7 +512,47 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     }
 
     private async cancel() {
-        this.$emit('cancel');
+        const moduletable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[this.api_type_id];
+
+        if (!moduletable?.prevent_close_modal) {
+            this.$emit('cancel');
+            return;
+        }
+
+        if (isEqual(this.editableVO, this.editableVO_initial)) {
+            this.$emit('cancel');
+            return;
+        }
+
+        if (this.snotify_cancel) {
+            return;
+        }
+
+        this.snotify_cancel = this.snotify.confirm(this.label('cancel.update.confirmation.body'), this.label('cancel.update.confirmation.title'), {
+            timeout: 0,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            titleMaxLength: 100,
+            buttons: [
+                {
+                    text: this.t('YES'),
+                    action: async (toast) => {
+                        this.$snotify.remove(toast.id);
+                        this.snotify_cancel = null;
+
+                        this.$emit('cancel');
+                    },
+                },
+                {
+                    text: this.t('NO'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                        this.snotify_cancel = null;
+                    }
+                }
+            ]
+        });
     }
 
     private async deleteVO() {

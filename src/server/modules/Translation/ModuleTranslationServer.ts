@@ -639,6 +639,18 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Merci de recharger votre page suite à votre problème de connexion internet'
         }, 'observer_error_no_internet.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Voulez-vous annuler les modifications en cours ?'
+        }, 'cancel.update.confirmation.body.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Modifications en cours'
+        }, 'cancel.update.confirmation.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Voulez-vous annuler la création en cours ?'
+        }, 'cancel.create.confirmation.body.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Création en cours'
+        }, 'cancel.create.confirmation.title.___LABEL___'));
     }
 
     /**

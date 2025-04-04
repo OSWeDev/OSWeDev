@@ -21,6 +21,8 @@ import DatatableComponent from '../../../datatable/component/DatatableComponent'
 import CRUDComponentManager from '../../CRUDComponentManager';
 import CRUDFormServices from '../CRUDFormServices';
 import "./CRUDCreateFormComponent.scss";
+import { cloneDeep, isEqual } from 'lodash';
+import ModuleTableVO from '../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 
 @Component({
     template: require('./CRUDCreateFormComponent.pug'),
@@ -70,6 +72,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
     private editableVO: IDistantVOBase = null;
     private newVO: IDistantVOBase = null;
+    private newVO_initial: IDistantVOBase = null;
 
     private api_types_involved: string[] = [];
 
@@ -82,6 +85,8 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     private crud_field_remover_conf_edit: boolean = false;
     private crud_field_remover_conf: CRUDFieldRemoverConfVO = null;
     private POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS: boolean = false;
+
+    private snotify_cancel = null;
 
     get CRUDTitle(): string {
         if (!this.crud) {
@@ -320,6 +325,8 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         this.newVO = await CRUDFormServices.getNewVO(
             this.crud, this.vo_init, this.onChangeVO
         );
+        this.newVO_initial = cloneDeep(this.newVO);
+        this.snotify_cancel = null;
     }
 
     private async createVO() {
@@ -532,6 +539,46 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     }
 
     private async cancel() {
-        this.$emit('cancel');
+        const moduletable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[this.api_type_id];
+
+        if (!moduletable?.prevent_close_modal) {
+            this.$emit('cancel');
+            return;
+        }
+
+        if (isEqual(this.newVO, this.newVO_initial)) {
+            this.$emit('cancel');
+            return;
+        }
+
+        if (this.snotify_cancel) {
+            return;
+        }
+
+        this.snotify_cancel = this.snotify.confirm(this.label('cancel.create.confirmation.body'), this.label('cancel.create.confirmation.title'), {
+            timeout: 0,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            titleMaxLength: 100,
+            buttons: [
+                {
+                    text: this.t('YES'),
+                    action: async (toast) => {
+                        this.$snotify.remove(toast.id);
+                        this.snotify_cancel = null;
+
+                        this.$emit('cancel');
+                    },
+                },
+                {
+                    text: this.t('NO'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                        this.snotify_cancel = null;
+                    }
+                }
+            ]
+        });
     }
 }
