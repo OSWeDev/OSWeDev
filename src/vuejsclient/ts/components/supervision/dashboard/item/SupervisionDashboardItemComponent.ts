@@ -32,11 +32,15 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     @Prop({ default: false })
     private nameabove: boolean;
 
+    @Prop({ default: null })
+    private split_char: string;
+
     @Prop({ default: false })
     private coche: boolean;
 
     private state_classname: string = 'STATE_UNKNOWN';
     private fa_class_name: string = null;
+    private read_fa_class_name: string = null;
     private formatted_date: string = null;
     private formatted_last_value: string = null;
 
@@ -130,10 +134,12 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     private set_fa_class_name() {
         if (!this.state_classname) {
             this.fa_class_name = "";
+            this.read_fa_class_name = "";
             return;
         }
 
         let fa_class_name: string = null;
+        let read_fa_class_name: string = null;
 
         switch (this.state_classname) {
             case "STATE_ERROR":
@@ -141,6 +147,7 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
                 break;
             case "STATE_ERROR_READ":
                 fa_class_name = "fa-exclamation-triangle";
+                read_fa_class_name = "fa-envelope-open";
                 break;
             case "STATE_OK":
                 fa_class_name = "fa-check";
@@ -156,12 +163,14 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
                 break;
             case "STATE_WARN_READ":
                 fa_class_name = "fa-exclamation";
+                read_fa_class_name = "fa-envelope-open";
                 break;
             default:
                 break;
         }
 
         this.fa_class_name = fa_class_name;
+        this.read_fa_class_name = read_fa_class_name;
     }
 
     private set_formatted_date() {
@@ -191,12 +200,8 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
         this.$emit('item_selected', this.item);
     }
 
-    private get_name_above(): string {
-        // découpage arbitraire : retour à la ligne à chaque occurence : ' - '
-        const name: string = this.item.name;
-        const name_parts: string[] = name.split(' - ');
-
-        return name_parts.join('<br/>');
+    private get_split_name(): string {
+        return SupervisionController.getInstance().get_item_split_name(this.item?.name, this.split_char);
     }
 
 }

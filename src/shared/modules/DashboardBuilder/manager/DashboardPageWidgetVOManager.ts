@@ -1,4 +1,4 @@
-import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import VOFieldRefVO from '../vos/VOFieldRefVO';
 import WidgetOptionsMetadataVO from '../vos/WidgetOptionsMetadataVO';
 import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";

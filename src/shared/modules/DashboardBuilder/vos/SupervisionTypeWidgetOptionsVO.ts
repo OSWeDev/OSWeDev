@@ -21,6 +21,14 @@ export default class SupervisionTypeWidgetOptionsVO extends AbstractVO {
          */
         public order_by_categories?: boolean,
         /***
+         *  if true, the supervision probes will display active_selection
+         */
+        public show_active_selection?: boolean,
+        /***
+         *  if true, the supervision probes will display state buttons
+         */
+        public show_state_btn?: boolean,
+        /***
          *  if true, the supervision probes will display a counter
          */
         public show_counter?: boolean,

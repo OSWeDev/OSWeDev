@@ -36,6 +36,8 @@ import { query } from '../../../../../../shared/modules/ContextFilter/vos/Contex
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleSupervision from '../../../../../../shared/modules/Supervision/ModuleSupervision';
+import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
+import SupervisionCustomColumnVO from '../../../../../../shared/modules/DashboardBuilder/vos/SupervisionCustomColumnVO';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -99,6 +101,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     private groups: SupervisedProbeGroupVO[] = [];
     private probes_by_ids: { [id: number]: SupervisedProbeVO } = {};
     private has_access_pause: boolean = false;
+    private split_char: string = null;
 
     get refresh_button(): boolean {
         return this.widget_options && this.widget_options.refresh_button;
@@ -184,6 +187,13 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         }
     }
 
+    get custom_columns(): SupervisionCustomColumnVO[] {
+        if (!SupervisionWidgetManager.supervision_custom_columns?.length) {
+            return [];
+        }
+        return SupervisionWidgetManager.supervision_custom_columns;
+    }
+
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
         this.available_supervision_api_type_ids = SupervisionTypeWidgetManager.load_supervision_api_type_ids_by_dashboard(
@@ -220,6 +230,8 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     private async mounted() {
         this.stopLoading();
         this.has_access_pause = await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS);
+        this.split_char = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervision.PARAM_NAME_sup_item_name_split_char, null);
+
         if (this.widget_options && this.widget_options.auto_refresh) {
             await this.start_auto_refresh();
         }
@@ -305,7 +317,10 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             {
                 offset: this.pagination_offset,
                 limit: this.limit,
-                sorts: [new SortByVO(null, 'name', true)],
+                sorts: [
+                    new SortByVO(null, field_names<ISupervisedItem>().state, true),
+                    new SortByVO(null, field_names<ISupervisedItem>().name, true)
+                ],
             },
         );
 
@@ -378,7 +393,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     }
 
     private openModal(item: ISupervisedItem) {
-        this.get_Supervisionitemmodal.openmodal(item, this.has_access_pause);
+        this.get_Supervisionitemmodal.openmodal(item, this.has_access_pause, this.split_char);
     }
 
     private get_date(item: ISupervisedItem): string {
@@ -486,4 +501,8 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         this.groups = await query(SupervisedProbeGroupVO.API_TYPE_ID).select_vos<SupervisedProbeGroupVO>();
         this.probes_by_ids = VOsTypesManager.vosArray_to_vosByIds(await query(SupervisedProbeVO.API_TYPE_ID).select_vos<SupervisedProbeVO>());
     }
+
+    // private get_split_name(item: ISupervisedItem): string {
+    //     return SupervisionController.getInstance().get_item_split_name(item?.name, this.split_char);
+    // }
 }

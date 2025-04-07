@@ -29,6 +29,9 @@ export default class ModuleSupervision extends Module {
     public static APINAME_execute_manually: string = 'execute_manually';
     public static APINAME_refresh_one_manually: string = 'refresh_one_manually';
 
+    public static PARAM_NAME_sup_item_name_split_char: string = 'supervision.item.name_split_char';
+
+
     private static instance: ModuleSupervision = null;
 
     public execute_manually: (api_type_id: string) => void = APIControllerWrapper.sah(ModuleSupervision.APINAME_execute_manually);
