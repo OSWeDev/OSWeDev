@@ -627,7 +627,7 @@ export default class ModuleDashboardBuilder extends Module {
     private initialize_DashboardGraphColorPaletteVO() {
         ModuleTableFieldController.create_new(DashboardGraphColorPaletteVO.API_TYPE_ID, field_names<DashboardGraphColorPaletteVO>().colors, ModuleTableFieldVO.FIELD_TYPE_color_array, 'colors', true, false, false);
         ModuleTableFieldController.create_new(DashboardGraphColorPaletteVO.API_TYPE_ID, field_names<DashboardGraphColorPaletteVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'name', true, false, false);
-
+        ModuleTableFieldController.create_new(DashboardGraphColorPaletteVO.API_TYPE_ID, field_names<DashboardGraphColorPaletteVO>().border_colors, ModuleTableFieldVO.FIELD_TYPE_color_array, 'border_colors', false, false, false);
         ModuleTableController.create_new(this.name, DashboardGraphColorPaletteVO, null, "Palettes de couleurs");
     }
 }

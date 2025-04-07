@@ -6,4 +6,5 @@ export default class DashboardGraphColorPaletteVO implements IDistantVOBase {
     public _type: string = DashboardGraphColorPaletteVO.API_TYPE_ID;
     public name: string;
     public colors: string[];
+    public border_colors: string[];
 }
