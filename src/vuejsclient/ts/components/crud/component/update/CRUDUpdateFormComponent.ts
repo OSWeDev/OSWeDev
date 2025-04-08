@@ -208,6 +208,56 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
         }
     }
 
+    public cancel() {
+        if (this.vo_is_equal_for_prevent()) {
+            this.$emit('cancel');
+            return;
+        }
+
+        if (this.snotify_cancel) {
+            return;
+        }
+
+        this.snotify_cancel = this.snotify.confirm(this.label('cancel.update.confirmation.body'), this.label('cancel.update.confirmation.title'), {
+            timeout: 0,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            titleMaxLength: 100,
+            buttons: [
+                {
+                    text: this.t('YES'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                        this.snotify_cancel = null;
+
+                        // On met le VO aux valeurs initiales
+                        this.editableVO = cloneDeep(this.editableVO_initial);
+
+                        this.$emit('cancel');
+                    },
+                },
+                {
+                    text: this.t('NO'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                        this.snotify_cancel = null;
+                    }
+                }
+            ]
+        });
+    }
+
+    public vo_is_equal_for_prevent(): boolean {
+        const moduletable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[this.api_type_id];
+
+        if (!moduletable?.prevent_close_modal) {
+            return true;
+        }
+
+        return isEqual(this.editableVO, this.editableVO_initial);
+    }
+
     private async delete_removed_crud_field_id(module_table_field_id: string) {
         if ((!this.crud_field_remover_conf) || (!this.crud_field_remover_conf.module_table_field_ids) || (this.crud_field_remover_conf.module_table_field_ids.indexOf(module_table_field_id) < 0)) {
             return;
@@ -509,50 +559,6 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
         if (this.crud && this.crud.callback_function_update) {
             await this.crud.callback_function_update(this.editableVO);
         }
-    }
-
-    private async cancel() {
-        const moduletable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[this.api_type_id];
-
-        if (!moduletable?.prevent_close_modal) {
-            this.$emit('cancel');
-            return;
-        }
-
-        if (isEqual(this.editableVO, this.editableVO_initial)) {
-            this.$emit('cancel');
-            return;
-        }
-
-        if (this.snotify_cancel) {
-            return;
-        }
-
-        this.snotify_cancel = this.snotify.confirm(this.label('cancel.update.confirmation.body'), this.label('cancel.update.confirmation.title'), {
-            timeout: 0,
-            showProgressBar: true,
-            closeOnClick: false,
-            pauseOnHover: true,
-            titleMaxLength: 100,
-            buttons: [
-                {
-                    text: this.t('YES'),
-                    action: async (toast) => {
-                        this.$snotify.remove(toast.id);
-                        this.snotify_cancel = null;
-
-                        this.$emit('cancel');
-                    },
-                },
-                {
-                    text: this.t('NO'),
-                    action: (toast) => {
-                        this.$snotify.remove(toast.id);
-                        this.snotify_cancel = null;
-                    }
-                }
-            ]
-        });
     }
 
     private async deleteVO() {

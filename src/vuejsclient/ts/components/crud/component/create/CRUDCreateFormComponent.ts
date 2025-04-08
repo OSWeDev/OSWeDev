@@ -203,6 +203,56 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         }
     }
 
+    public cancel() {
+        if (this.vo_is_equal_for_prevent()) {
+            this.$emit('cancel');
+            return;
+        }
+
+        if (this.snotify_cancel) {
+            return;
+        }
+
+        this.snotify_cancel = this.snotify.confirm(this.label('cancel.create.confirmation.body'), this.label('cancel.create.confirmation.title'), {
+            timeout: 0,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            titleMaxLength: 100,
+            buttons: [
+                {
+                    text: this.t('YES'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                        this.snotify_cancel = null;
+
+                        // On met le VO aux valeurs initiales
+                        this.newVO = cloneDeep(this.newVO_initial);
+
+                        this.$emit('cancel');
+                    },
+                },
+                {
+                    text: this.t('NO'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                        this.snotify_cancel = null;
+                    }
+                }
+            ]
+        });
+    }
+
+    public vo_is_equal_for_prevent(): boolean {
+        const moduletable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[this.api_type_id];
+
+        if (!moduletable?.prevent_close_modal) {
+            return true;
+        }
+
+        return isEqual(this.newVO, this.newVO_initial);
+    }
+
     private async mounted() {
         this.POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS = await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS);
     }
@@ -536,49 +586,5 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
             this.crud.createDatatable.refresh();
             this.crud_createDatatable_key = this.crud.createDatatable.key;
         }
-    }
-
-    private async cancel() {
-        const moduletable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[this.api_type_id];
-
-        if (!moduletable?.prevent_close_modal) {
-            this.$emit('cancel');
-            return;
-        }
-
-        if (isEqual(this.newVO, this.newVO_initial)) {
-            this.$emit('cancel');
-            return;
-        }
-
-        if (this.snotify_cancel) {
-            return;
-        }
-
-        this.snotify_cancel = this.snotify.confirm(this.label('cancel.create.confirmation.body'), this.label('cancel.create.confirmation.title'), {
-            timeout: 0,
-            showProgressBar: true,
-            closeOnClick: false,
-            pauseOnHover: true,
-            titleMaxLength: 100,
-            buttons: [
-                {
-                    text: this.t('YES'),
-                    action: async (toast) => {
-                        this.$snotify.remove(toast.id);
-                        this.snotify_cancel = null;
-
-                        this.$emit('cancel');
-                    },
-                },
-                {
-                    text: this.t('NO'),
-                    action: (toast) => {
-                        this.$snotify.remove(toast.id);
-                        this.snotify_cancel = null;
-                    }
-                }
-            ]
-        });
     }
 }
