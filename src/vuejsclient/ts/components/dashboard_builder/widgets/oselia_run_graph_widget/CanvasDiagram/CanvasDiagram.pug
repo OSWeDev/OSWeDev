@@ -1,61 +1,36 @@
-// CanvasDiagram.pug
-.canvas-diagram-container(ref="diagramContainer" 
-                           @mousedown="onMouseDown" 
-                           @mousemove="onMouseMove" 
-                           @mouseup="onMouseUp" 
-                           @wheel="onWheel")
-
-  // -- wrapper pour zoom/pan
+.diagram-container(ref="diagramContainer"
+  @wheel.prevent="onWheel"
+  @mousedown="onMouseDown"
+  @mousemove="onMouseMove"
+  @mouseup="onMouseUp")
   .diagram-wrapper(:style="wrapperStyle")
 
-    // On dessine le <svg> pour les liens
-    svg.diagram-links-svg
-      DiagramLink(
-        v-for="(link, idx) in drawnLinks"
-        :key="idx"
-        :link="link"
-      )
-
-    // On dessine les blocs
+    // blocks
     DiagramBlock(
       v-for="(pos, itemId) in blockPositions"
       :key="itemId"
-      :item="items[itemId]"
       :block-pos="pos"
-      :is-selected="(selectedItem === itemId)"
-      :is-run-vo="isRunVo"
-      :get-state-icon="getStateIcon"
+      :item="items[itemId]"
+      :getStateIcon="getStateIcon"
+      :isSelected="itemId === selectedItem"
+      @clickBlock="onBlockClicked"
     )
 
-    // Ghost block (pour drag & drop). 
-    // => On affiche un block "fantôme" superposé, si isReorderingChild
-    .ghost-block(
-      v-if="draggingChildId && draggingGhostPos && isReorderingChild"
-      :style="ghostBlockStyle"
-    )
-      // On peut y inclure un composant DiagramBlock 
-      // ou juste un div stylisé. Ici, on fait simple :
-      DiagramBlock(
-        :item="items[draggingChildId]"
-        :block-pos="{ x:0,y:0,w:blockPositions[draggingChildId].w,h:blockPositions[draggingChildId].h }"
-        :is-selected="false"
-        :is-run-vo="isRunVo"
-        :ghost="true"
-        :get-state-icon="getStateIcon"
-      )
-
-    // Menu "+"
     AddMenu(
-      v-if="menuBlock.visible && menuBlock.plusItemId"
-      :plus-position="menuBlockPosition"
-      :options="menuBlock.options"
-      @selectOption="addChild"
-      @close="hideMenu"
+      v-if="menuPlus.visible"
+      :style="{ position: 'absolute', left: (menuPlus.x + 'px'), top: (menuPlus.y + 'px') }"
+      :agentId="menuPlus.agentId"
+      :options="menuPlus.options"
+      @close="closePlusMenu"
+      @selectOption="onAddChild"
+    )
+    // liens
+    DiagramLink(
+      v-for="(lk, idx) in drawnLinks"
+      :key="lk.sourceItemId + '_' + lk.targetItemId + '_' + idx"
+      :link="lk"
     )
 
-  // Tooltip
-  if hoveredItemId
-    .diagram-tooltip(:style="tooltipStyle") {{ tooltipText }}
-
-  // Mouse events sur container
-  // => on les gère en @mousedown,@mouseup,@mousemove,@wheel dans le .ts
+  // tooltip
+  .diagram-tooltip(v-if="hoveredItemId" :style="{position: 'absolute',left: hoveredX + 10 + 'px',top: hoveredY + 10 + 'px',background: 'rgba(0,0,0,0.7)',color: '#fff',padding: '4px 6px',borderRadius: '4px',pointerEvents: 'none'}")
+    | {{ hoveredItemId }}

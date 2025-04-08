@@ -3,6 +3,7 @@
 .diagram-block {
     border-radius: 4px;
     overflow: hidden;
+    z-index: 2;
   
     &.selected {
       box-shadow: 0 0 8px rgba(0,0,255,0.5);

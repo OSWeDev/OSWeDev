@@ -1,35 +1,17 @@
-/* CanvasDiagram.scss */
-
-.canvas-diagram-container {
+.diagram-container {
     position: relative;
     width: 100%;
     height: 100%;
     overflow: hidden;
+    cursor: grab;
 }
-  
 .diagram-wrapper {
     position: absolute;
-    transform-origin: 0 0;
-}
-  
-.diagram-links-svg {
-    position: absolute;
-    width: 2000px;
-    height: 2000px;
     top: 0;
     left: 0;
+    transform-origin: 0 0;
 }
-  
 .diagram-tooltip {
-    position: absolute;
     z-index: 999;
     font-size: 13px;
 }
-  
-.ghost-block {
-    position: absolute;
-    z-index: 1000;
-    pointer-events: none;
-    opacity: 0.7;
-}
-  

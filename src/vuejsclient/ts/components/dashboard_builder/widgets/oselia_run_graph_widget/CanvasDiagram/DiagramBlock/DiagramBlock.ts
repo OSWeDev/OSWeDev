@@ -46,13 +46,24 @@ export default class DiagramBlock extends Vue {
             return func.gpt_function_name || 'Function';
         }
         const tpl = this.item as OseliaRunTemplateVO;
+        if(tpl.name.startsWith('add_')) {
+            return '+';
+        }
         return tpl.name || '+';
     }
 
     get iconInfo(): StateIconInfo {
     // On récupère l'état
-        const st = (this.item as any).state || OseliaRunVO.STATE_TODO;
-        return this.getStateIcon(st);
+        if (this.isRunVo) {
+            const st = (this.item as any).state || OseliaRunVO.STATE_TODO;
+            return this.getStateIcon(st);
+        } else {
+            return  {
+                info: '',
+                icon: '',
+                color: '',
+            };
+        }
     }
 
     get blockStyle() {
@@ -62,13 +73,31 @@ export default class DiagramBlock extends Vue {
             top: this.blockPos.y + 'px',
             width: this.blockPos.w + 'px',
             height: this.blockPos.h + 'px',
-            border: this.isSelected ? `3px solid blue` : `2px solid ${this.iconInfo.color || '#4A90E2'}`,
+            border: this.resolveBorderColor(),
             backgroundColor: this.resolveFillColor(),
             boxSizing: 'border-box',
             opacity: this.ghost ? 0.8 : 1,
             userSelect: 'none',
             pointerEvents: this.ghost ? 'none' : 'auto'
         };
+    }
+    /**
+     * Quand on clique : on émet un event "clickBlock"
+     */
+    onClickBlock(e: MouseEvent) {
+        e.stopPropagation();
+        // On peut émettre l'ID + l'item
+        this.$emit('clickBlock', this.item.id, this.item);
+    }
+    private resolveBorderColor(): string {
+        if(String(this.item.id).startsWith("add_")) {
+            return '#999';
+        }
+        if (this.isSelected) {
+            return '3px solid blue';
+        } else {
+            return `2px solid ${this.iconInfo.color || '#999'}`;
+        }
     }
 
     private resolveFillColor(): string {

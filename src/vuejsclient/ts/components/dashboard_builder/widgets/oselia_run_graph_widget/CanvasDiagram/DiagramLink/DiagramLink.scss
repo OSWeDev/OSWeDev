@@ -1,0 +1,12 @@
+.svg-link {
+    position: absolute;
+    pointer-events: none;
+    svg {
+        overflow: visible;
+    }
+    path {
+        stroke: #333;
+        fill: none;
+        stroke-width: 2;
+    }
+}

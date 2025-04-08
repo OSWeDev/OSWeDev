@@ -1,5 +1,6 @@
 // DiagramBlock.pug
 .diagram-block(:style="blockStyle"
-              :class="{ selected: isSelected, ghost: ghost }")
+              :class="{ selected: isSelected, ghost: ghost }"
+              @click="onClickBlock")
     .diagram-block-text {{ displayText }}
     .diagram-block-icon {{ iconInfo.icon }}
