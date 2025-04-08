@@ -82,6 +82,7 @@ import ValidationFiltersWidgetController from '../../validation_filters_widget/V
 import ValidationFiltersWidgetOptions from '../../validation_filters_widget/options/ValidationFiltersWidgetOptions';
 import VarWidgetComponent from '../../var_widget/VarWidgetComponent';
 import VarWidgetOptions from '../../var_widget/options/VarWidgetOptions';
+import TableWidgetExternalSelectorController from '../TableWidgetExternalSelectorController';
 import TableWidgetController from './../TableWidgetController';
 import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
@@ -212,6 +213,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private already_use_load_widgets_prevalidation: boolean = false;
 
     private export_to: boolean = false;
+    private export_registered_component_UID: number = null;
     private export_limit: NumRange = null;
     private export_count: number = 0;
     private selected_row_export = [];
@@ -2519,7 +2521,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         if (this.export_count > this.max_export_limit) {
             return;
         }
-        window.opener.postMessage(this.selected_row_export);
+        window.opener.postMessage({
+            [TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME]: this.export_registered_component_UID,
+            [TableWidgetExternalSelectorController.EXPORT_SELECTED_ROWS_FIELD_NAME]: this.selected_row_export,
+        });
         window.close();
     }
 
@@ -2544,9 +2549,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
 
         if (window.opener && window.opener.instructions) {
-            if (window.opener.instructions["Export"]) {
+            if (window.opener.instructions[TableWidgetExternalSelectorController.NUM_RANGE_FIELD_NAME] && window.opener.instructions[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME]) {
                 this.export_to = true;
-                this.export_limit = window.opener.instructions["Export"];
+                this.export_limit = window.opener.instructions[TableWidgetExternalSelectorController.NUM_RANGE_FIELD_NAME];
+                this.export_registered_component_UID = window.opener.instructions[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME];
                 this.max_export_limit = NumRange.getSegmentedMax(
                     this.export_limit.min,
                     this.export_limit.min_inclusiv,

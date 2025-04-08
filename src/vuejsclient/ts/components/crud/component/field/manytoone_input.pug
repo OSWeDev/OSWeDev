@@ -24,6 +24,11 @@
                 i.fa-duotone.fa-pencil
         a.btn.btn-sm.btn-success(@click="set_show_inline_form_in_crud(true)")
             i.fa-duotone.fa-plus-circle
+        
+    template(v-if="can_open_external_selector")
+        .open_external_selector
+            a.btn.btn-sm.btn-primary(@click='open_external_selector')
+                i.fa-duotone.fa-solid.fa-filter-list
 
     template(v-if="!show_inline_form_in_crud || (show_inline_form_in_crud && !show_inline_form_in_crud_is_create)")
         template(v-if='field.can_use_async_load_options')

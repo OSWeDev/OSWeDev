@@ -5,9 +5,10 @@ import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 // import { Throttle, THROTTLED_METHOD_PARAM_TYPE } from '../../../../../../shared/annotations/Throttle';
+import { isArray } from 'lodash';
+import Throttle from '../../../../../../shared/annotations/Throttle';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
-import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DAOController from '../../../../../../shared/modules/DAO/DAOController';
@@ -30,19 +31,23 @@ import DataFilterOption from '../../../../../../shared/modules/DataRender/vos/Da
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleAlertAction, ModuleAlertGetter } from '../../../alert/AlertStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
+import TableWidgetExternalSelectorController from '../../../dashboard_builder/widgets/table_widget/TableWidgetExternalSelectorController';
 import FileComponent from '../../../file/FileComponent';
 import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputComponent';
 import ImageComponent from '../../../image/ImageComponent';
@@ -59,12 +64,7 @@ import CRUDCreateFormComponent from '../create/CRUDCreateFormComponent';
 import CRUDCreateFormController from '../create/CRUDCreateFormController';
 import CRUDFormServices from '../CRUDFormServices';
 import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
-import Throttle from '../../../../../../shared/annotations/Throttle';
 import './CRUDComponentField.scss';
-import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
-import ArrayHandler from '../../../../../../shared/tools/ArrayHandler';
-import { isArray } from 'lodash';
-import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 const debounce = require('lodash/debounce');
 
 @Component({
@@ -248,6 +248,8 @@ export default class CRUDComponentField extends VueComponentBase
     private show_inline_form_in_crud: boolean = false;
     private show_inline_form_in_crud_is_create: boolean = false;
     private vo_of_field_value: IDistantVOBase = null;
+
+    private can_open_external_selector: boolean = false;
 
     private debounced_reload_field_value = debounce(this.reload_field_value, 30);
     // private debounced_onchangevo_emitter = debounce(this.onchangevo_emitter, 30);
@@ -524,6 +526,48 @@ export default class CRUDComponentField extends VueComponentBase
     // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
     // @Watch('field_select_options_enabled')
     @Watch('field', { immediate: true })
+    public async on_field_change() {
+        await all_promises([
+            this.on_reload_field_value(),
+            (async () => {
+                if (!this.field) {
+                    if (this.can_open_external_selector) {
+                        this.can_open_external_selector = false;
+                    }
+                    return;
+                }
+
+                if (this.field.is_readonly) {
+                    if (this.can_open_external_selector) {
+                        this.can_open_external_selector = false;
+                    }
+                    return;
+                }
+
+                // On configure suivant le type de liaison
+                if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
+
+                    const external_selector_dashboard_id = await ModuleParams.getInstance().getParamValueAsInt(
+                        'TableWidgetExternalSelectorController.' + this.field.vo_type_id + '.' + this.field.datatable_field_uid,
+                        null,
+                        10000);
+                    if (!external_selector_dashboard_id) {
+                        if (this.can_open_external_selector) {
+                            this.can_open_external_selector = false;
+                        }
+                        return;
+                    }
+
+                    TableWidgetExternalSelectorController.init_external_selector(this, external_selector_dashboard_id, (data: any) => {
+                        this.field_value = data[0]['__crud_actions'];
+                    });
+
+                    this.can_open_external_selector = true;
+                }
+            })(),
+        ]);
+    }
+
     @Watch('vo', { deep: true })
     @Watch('datatable')
     @Watch('default_field_data')
@@ -2521,5 +2565,9 @@ export default class CRUDComponentField extends VueComponentBase
 
         this.actual_query = _query;
         this.update_visible_options.bind(this)();
+    }
+
+    private open_external_selector() {
+        TableWidgetExternalSelectorController.open_external_selector(this);
     }
 }
