@@ -43,6 +43,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
     public filter_on_distant_vo: boolean;
     public field_filter_distant_vo: VOFieldRefVO;
     public zoom_on_click: boolean;
+    public card_footer_label: VOFieldRefVO;
 
     public static createNew(
         type_display: number,
@@ -64,6 +65,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         filter_on_distant_vo: boolean,
         field_filter_distant_vo: VOFieldRefVO,
         zoom_on_click: boolean,
+        card_footer_label: VOFieldRefVO,
         do_not_use_page_widget_ids?: number[],
         show_message_no_data?: boolean,
         message_no_data?: string,
@@ -95,6 +97,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         res.filter_on_distant_vo = filter_on_distant_vo;
         res.field_filter_distant_vo = field_filter_distant_vo;
         res.zoom_on_click = zoom_on_click;
+        res.card_footer_label = card_footer_label;
 
         return res;
     }

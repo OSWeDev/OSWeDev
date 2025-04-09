@@ -36,15 +36,18 @@ include ../../../../../views/mixins/loading.pug
                                         .image 
                                             img(:src='image_paths[i]' alt="")
                                     .card_content 
-                                        template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
-                                            .surtitre(v-html="surtitres[i]")
+                                        .header-bottom
+                                            template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
+                                                .surtitre(v-html="surtitres[i]")
+                                            template(v-if="numbers && (numbers.length > 0) && numbers[i]")
+                                                .number(v-html="numbers[i]")
                                         template(v-if="titles && (titles.length > 0) && titles[i]")
                                             .title(v-html="titles[i]")
                                         template(v-if="subtitles && (subtitles.length > 0) && subtitles[i]")
                                             .subtitle(v-html="subtitles[i]")
                                         .card_footer
-                                            template(v-if="numbers && (numbers.length > 0) && numbers[i]")
-                                                .number(v-html="numbers[i]")
+                                            template(v-if="card_footer_labels && (card_footer_labels.length > 0) && card_footer_labels[i]")
+                                                .card_footer_label(v-html="card_footer_labels[i]")
                         .bottom_pagination
                             .button_arrow.prev 
                                 .input(@click="previous_card_single_display" type="button" :class="{navigation_disabled: current_element == 0}")
@@ -69,15 +72,19 @@ include ../../../../../views/mixins/loading.pug
                                             template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
                                                 img(:src='image_paths[i]' alt="")
                                         .card_content 
-                                            template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
-                                                .surtitre(v-html="surtitres[i]")
+                                            .header-bottom
+                                                template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
+                                                    .surtitre(v-html="surtitres[i]")
+                                                template(v-if="numbers && (numbers.length > 0) && numbers[i]")
+                                                    .number(v-html="numbers[i]")
                                             template(v-if="titles && (titles.length > 0) && titles[i]")
                                                 .title(v-html="titles[i]")
                                             template(v-if="subtitles && (subtitles.length > 0) && subtitles[i]")
                                                 .subtitle(v-html="subtitles[i]")
                                             .card_footer
-                                                template(v-if="numbers && (numbers.length > 0) && numbers[i]")
-                                                    .number(v-html="numbers[i]")
+                                                template(v-if="card_footer_labels && (card_footer_labels.length > 0) && card_footer_labels[i]")
+                                                    .card_footer_label(v-html="card_footer_labels[i]")
+                                                    
 
                         template(v-else)
                             .list_card_widget_component(:class="{['display_orientation_' + widget_options.display_orientation]: true}")
@@ -87,12 +94,16 @@ include ../../../../../views/mixins/loading.pug
                                             template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
                                                 img(:src='image_paths[i]' alt="")
                                         .card_content 
-                                            template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
-                                                .surtitre(v-html="surtitres[i]")
+                                            .header-bottom
+                                                template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
+                                                    .surtitre(v-html="surtitres[i]")
+                                                template(v-if="numbers && (numbers.length > 0) && numbers[i]")
+                                                    .number(v-html="numbers[i]")
                                             template(v-if="titles && (titles.length > 0) && titles[i]")
                                                 .title(v-html="titles[i]")
                                             template(v-if="subtitles && (subtitles.length > 0) && subtitles[i]")
                                                 .subtitle(v-html="subtitles[i]")
                                             .card_footer
-                                                template(v-if="numbers && (numbers.length > 0) && numbers[i]")
-                                                    .number(v-html="numbers[i]")
+                                                template(v-if="card_footer_labels && (card_footer_labels.length > 0) && card_footer_labels[i]")
+                                                    .card_footer_label(v-html="card_footer_labels[i]")
+                                                

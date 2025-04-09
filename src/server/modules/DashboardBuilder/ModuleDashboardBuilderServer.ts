@@ -4263,6 +4263,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'list_object_widget_options_component.zoom_on_click.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Texte de bas de carte" },
+            'list_object_widget_options_component.widget_card_footer_label.card_footer_label.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Disponible qu'en mode : Carte, horizontal, ne pas afficher une seule carte et les éléments ne sont pas des boutons" },
             'list_object.widget_option.zoom_on_click.tooltip.___LABEL___'
         ));

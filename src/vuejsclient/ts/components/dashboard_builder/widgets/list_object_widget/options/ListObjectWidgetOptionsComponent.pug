@@ -34,6 +34,16 @@
             .widget_symbole_sous_titre {{ label('list_object_widget_options_component.symbole_sous_titre') }}
                 input.form-control(type='text' v-model='symbole_sous_titre')
 
+        .card_footer_label
+            .widget_card_footer_label_label {{ label('list_object_widget_options_component.widget_card_footer_label.card_footer_label') }}
+            .widget_card_footer_label_wrapper
+                .field_ref
+                    .input_wrapper
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="card_footer_label_field_ref" @remove_field_ref="remove_card_footer_label_field_ref" @add_field_ref="add_card_footer_label_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
+
         .image
             .widget_image_label {{ label('list_object_widget_options_component.widget_image.image') }}
             .widget_image_wrapper

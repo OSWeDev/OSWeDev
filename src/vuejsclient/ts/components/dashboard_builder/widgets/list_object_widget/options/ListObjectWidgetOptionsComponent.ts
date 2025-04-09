@@ -65,6 +65,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
     private subtitle: VOFieldRefVO = null;
     private surtitre: VOFieldRefVO = null;
     private number: VOFieldRefVO = null;
+    private card_footer_label: VOFieldRefVO = null;
     private sort_field_ref: VOFieldRefVO = null;
     private button_elements: boolean = false;
     private url: VOFieldRefVO = null;
@@ -112,6 +113,16 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
 
         return Object.assign(new VOFieldRefVO(), options.title);
+    }
+
+    get card_footer_label_field_ref(): VOFieldRefVO {
+        const options: ListObjectWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.card_footer_label)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.card_footer_label);
     }
 
     get field_filter_cmv_vo_field_ref(): VOFieldRefVO {
@@ -373,6 +384,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             false,
             null,
             false,
+            null,
             [],
             false,
             null,
@@ -420,6 +432,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         (this.widget_options.subtitle == options.subtitle) &&
                         (this.widget_options.surtitre == options.surtitre) &&
                         (this.widget_options.title == options.title) &&
+                        (this.widget_options.card_footer_label == options.card_footer_label) &&
                         (this.widget_options.url == options.url) &&
                         (this.widget_options.is_card_display_single == options.is_card_display_single) &&
                         (this.widget_options.show_message_no_data == options.show_message_no_data) &&
@@ -455,6 +468,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         options.filter_on_distant_vo,
                         options.field_filter_distant_vo,
                         options.zoom_on_click,
+                        options.card_footer_label,
                         options.do_not_use_page_widget_ids,
                         options.show_message_no_data,
                         options.message_no_data,
@@ -485,6 +499,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.sort_dimension_by = default_options.sort_dimension_by;
             this.image_id = default_options.image_id;
             this.title = default_options.title;
+            this.card_footer_label = default_options.card_footer_label;
             this.subtitle = default_options.subtitle;
             this.surtitre = default_options.surtitre;
             this.number = default_options.number;
@@ -525,6 +540,9 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.title != this.widget_options.title) {
             this.title = this.widget_options.title;
+        }
+        if (this.card_footer_label != this.widget_options.card_footer_label) {
+            this.card_footer_label = this.widget_options.card_footer_label;
         }
         if (this.subtitle != this.widget_options.subtitle) {
             this.subtitle = this.widget_options.subtitle;
@@ -746,6 +764,22 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         await this.throttled_update_options();
     }
 
+    private async remove_card_footer_label_field_ref() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            return null;
+        }
+
+        if (!this.next_update_options.card_footer_label) {
+            return null;
+        }
+
+        this.next_update_options.card_footer_label = null;
+
+        await this.throttled_update_options();
+    }
+
     private async add_title_field_ref(api_type_id: string, field_id: string) {
         this.next_update_options = this.widget_options;
 
@@ -759,6 +793,23 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         dimension_vo_field_ref.weight = 0;
 
         this.next_update_options.title = dimension_vo_field_ref;
+
+        await this.throttled_update_options();
+    }
+
+    private async add_card_footer_label_field_ref(api_type_id: string, field_id: string) {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        const dimension_vo_field_ref = new VOFieldRefVO();
+        dimension_vo_field_ref.api_type_id = api_type_id;
+        dimension_vo_field_ref.field_id = field_id;
+        dimension_vo_field_ref.weight = 0;
+
+        this.next_update_options.card_footer_label = dimension_vo_field_ref;
 
         await this.throttled_update_options();
     }

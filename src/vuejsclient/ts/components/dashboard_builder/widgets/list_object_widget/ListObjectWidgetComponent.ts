@@ -62,6 +62,7 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     private titles: any[] = [];
     private subtitles: any[] = [];
     private surtitres: any[] = [];
+    private card_footer_labels: any[] = [];
     private image_paths: string[] = [];
     private numbers: any[] = [];
     private urls: any[] = [];
@@ -146,6 +147,10 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         })());
 
         promises.push((async () => {
+            this.card_footer_labels = await this.get_card_footer_labels();
+        })());
+
+        promises.push((async () => {
             this.image_paths = await this.get_image_paths();
         })());
 
@@ -161,7 +166,7 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
         await Promise.all(promises);
 
-        this.nb_elements = Array.from({ length: Math.max(...[this.titles.length, this.subtitles.length, this.surtitres.length, this.image_paths.length, this.numbers.length, this.urls.length]) }, (x, i) => i);
+        this.nb_elements = Array.from({ length: Math.max(...[this.titles.length, this.subtitles.length, this.surtitres.length, this.card_footer_labels.length, this.image_paths.length, this.numbers.length, this.urls.length]) }, (x, i) => i);
     }
 
     private toggle_zoom(i: number) {
@@ -189,6 +194,49 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
     private getTransformStyle(): string {
         return "transform: translateX(-" + (this.current_element * 100) + "vw);";
+    }
+
+    private async get_card_footer_labels() {
+        if (!this.widget_options.card_footer_label || !this.widget_options.card_footer_label.api_type_id || !this.widget_options.card_footer_label.field_id) {
+            return [];
+        }
+        const query_ = await query(this.widget_options.card_footer_label.api_type_id)
+            .set_limit(this.widget_options.number_of_elements)
+            .using(this.get_dashboard_api_type_ids)
+            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                FieldFiltersVOManager.clean_field_filters_for_request(
+                    TableWidgetManager.get_active_field_filters(
+                        this.get_active_field_filters,
+                        this.widget_options.do_not_use_page_widget_ids,
+                        this.all_page_widgets_by_id,
+                        this.widgets_by_id,
+                    ))));
+
+        if (this.get_cms_vo && this.widget_options?.filter_on_cmv_vo && this.widget_options?.field_filter_cmv_vo) {
+            query_.filter_by_num_eq(this.widget_options.field_filter_cmv_vo.field_id, this.get_cms_vo.id);
+        }
+
+        if (this.widget_options?.filter_on_distant_vo && this.widget_options?.field_filter_distant_vo) {
+            query_.filter_by_id_in(
+                query(this.widget_options.field_filter_distant_vo.api_type_id)
+                    .filter_by_id(this.get_cms_vo.id)
+                    .field(this.widget_options.field_filter_distant_vo.field_id)
+            );
+        }
+
+        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
+
+        if (this.widget_options.sort_dimension_by && this.widget_options.sort_field_ref) {
+            query_.set_sort(new SortByVO(
+                this.widget_options.sort_field_ref.api_type_id,
+                this.widget_options.sort_field_ref.field_id,
+                this.sort_by_asc
+            ));
+        }
+
+        const card_footer_labels = await query_.select_vos();
+
+        return this.get_values_formatted(card_footer_labels, this.widget_options.card_footer_label.field_id, this.widget_options.card_footer_label.api_type_id);
     }
 
     private async get_titles() {

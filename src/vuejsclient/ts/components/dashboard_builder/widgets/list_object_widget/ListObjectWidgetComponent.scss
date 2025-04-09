@@ -112,7 +112,26 @@
             }
 
             .card_content {
-                padding: 15px;
+                padding: 10px 15px;
+
+                .header-bottom {
+                    display: flex;
+                    justify-content: space-between;
+
+                    .surtitre {
+                        display: flex;
+                        justify-content: flex-start;
+                        font-size: 14px;
+                        color: #888;
+                    }
+
+                    .number {
+                        display: flex;
+                        justify-content: flex-end;
+                        font-size: 14px;
+                        color: #888;
+                    }
+                }
 
                 .title {
                     font-size: 16px;
@@ -127,13 +146,10 @@
                 }
 
                 .card_footer {
-                    display: flex;
-                    justify-content: flex-end;
-
-                    .number {
-                        font-size: 14px;
-                        color: #888
-                    }
+                    position: relative;
+                    font-size: 10px;
+                    color: #888;
+                    font-style: italic;
                 }
             }
         }
@@ -196,7 +212,26 @@
             }
 
             .card_content {
-                padding: 15px;
+                padding: 10px 15px;
+
+                .header-bottom {
+                    display: flex;
+                    justify-content: space-between;
+
+                    .surtitre {
+                        display: flex;
+                        justify-content: flex-start;
+                        font-size: 14px;
+                        color: #888;
+                    }
+
+                    .number {
+                        display: flex;
+                        justify-content: flex-end;
+                        font-size: 14px;
+                        color: #888;
+                    }
+                }
 
                 .title {
                     font-size: 16px;
@@ -211,13 +246,10 @@
                 }
 
                 .card_footer {
-                    display: flex;
-                    justify-content: flex-end;
-
-                    .number {
-                        font-size: 14px;
-                        color: #888
-                    }
+                    position: relative;
+                    font-size: 10px;
+                    color: #888;
+                    font-style: italic;
                 }
             }
         }
@@ -333,7 +365,26 @@
             }
 
             .card_content {
-                padding: 15px;
+                padding: 10px 15px;
+
+                .header-bottom {
+                    display: flex;
+                    justify-content: space-between;
+
+                    .surtitre {
+                        display: flex;
+                        justify-content: flex-start;
+                        font-size: 14px;
+                        color: #888;
+                    }
+
+                    .number {
+                        display: flex;
+                        justify-content: flex-end;
+                        font-size: 14px;
+                        color: #888;
+                    }
+                }
 
                 .title {
                     font-size: 16px;
@@ -346,17 +397,16 @@
                     color: #555;
                     margin: 0 0 15px;
                 }
-
+                
                 .card_footer {
-                    display: flex;
-                    justify-content: flex-end;
-
-                    .number {
-                        font-size: 14px;
-                        color: #888
-                    }
+                    position: relative;
+                    font-size: 10px;
+                    color: #888;
+                    font-style: italic;
                 }
             }
+
+            
         }
     }
 
