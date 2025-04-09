@@ -142,6 +142,8 @@ import ModuleVocusServer from './Vocus/ModuleVocusServer';
 import ParamsManager from '../../shared/modules/Params/ParamsManager';
 import ModuleLogger from '../../shared/modules/Logger/ModuleLogger';
 import ModuleLoggerServer from './Logger/ModuleLoggerServer';
+import ModulePWA from '../../shared/modules/PWA/ModulePWA';
+import ModulePWAServer from './PWA/ModulePWAServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -617,6 +619,7 @@ export default abstract class ModuleServiceBase {
             ModuleDAO.getInstance(),
             ModuleTranslation.getInstance(),
             ModuleAccessPolicy.getInstance(),
+            ModulePWA.getInstance(),
             ModuleAPI.getInstance(),
             ModuleAjaxCache.getInstance(),
             ModuleFile.getInstance(),
@@ -687,6 +690,7 @@ export default abstract class ModuleServiceBase {
             ModuleDAOServer.getInstance(),
             ModuleTranslationServer.getInstance(),
             ModuleAccessPolicyServer.getInstance(),
+            ModulePWAServer.getInstance(),
             ModuleAPIServer.getInstance(),
             ModuleAjaxCacheServer.getInstance(),
             ModuleFileServer.getInstance(),
