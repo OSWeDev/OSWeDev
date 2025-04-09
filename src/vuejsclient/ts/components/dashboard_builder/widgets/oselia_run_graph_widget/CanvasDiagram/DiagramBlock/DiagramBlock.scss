@@ -1,25 +1,27 @@
 // DiagramBlock.scss
 
 .diagram-block {
-    border-radius: 4px;
-    overflow: hidden;
-  
-    &.selected {
-      box-shadow: 0 0 8px rgba(0,0,255,0.5);
-    }
-    &.ghost {
-      pointer-events: none;
-    }
-  
-    .diagram-block-text {
-      padding: 4px;
-      font-size: 14px;
-    }
-    .diagram-block-icon {
-      position: absolute;
-      right: 4px;
-      bottom: 4px;
-      font-size: 14px;
-    }
+  border-radius: 4px;
+  overflow: hidden;
+
+  &.selected {
+    box-shadow: 0 0 8px rgba(0, 0, 255, 0.5);
+  }
+
+  &.ghost {
+    pointer-events: none;
+  }
+
+  .diagram-block-text {
+    padding: 4px;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  .diagram-block-icon {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    font-size: 14px;
+  }
 }
-  

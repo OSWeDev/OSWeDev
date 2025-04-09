@@ -1,61 +1,50 @@
-// CanvasDiagram.pug
-.canvas-diagram-container(ref="diagramContainer" 
-                           @mousedown="onMouseDown" 
-                           @mousemove="onMouseMove" 
-                           @mouseup="onMouseUp" 
-                           @wheel="onWheel")
-
-  // -- wrapper pour zoom/pan
+.diagram-container(ref="diagramContainer" 
+  @wheel="onWheel"
+  @mousedown="onMouseDown"
+  @mousemove="onMouseMove"
+  @mouseup="onMouseUp")
+  // Le wrapper (transform: translate + scale)
   .diagram-wrapper(:style="wrapperStyle")
 
-    // On dessine le <svg> pour les liens
-    svg.diagram-links-svg
-      DiagramLink(
-        v-for="(link, idx) in drawnLinks"
-        :key="idx"
-        :link="link"
-      )
-
-    // On dessine les blocs
-    DiagramBlock(
-      v-for="(pos, itemId) in blockPositions"
+    // On parcourt blockPositions pour dessiner les blocs
+    // (on ne fait pas forcément un "v-for" ; en TS, on peut boucler autrement)
+    DiagramBlock(v-for="(pos, itemId) in blockPositions"
       :key="itemId"
-      :item="items[itemId]"
       :block-pos="pos"
-      :is-selected="(selectedItem === itemId)"
-      :is-run-vo="isRunVo"
-      :get-state-icon="getStateIcon"
+      :item="items[itemId]"
+      :isSelected="itemId === selectedItem"
+      :isRunVo="isRunVo"
+      :ghost="false"
+      :getStateIcon="getStateIcon"
     )
 
-    // Ghost block (pour drag & drop). 
-    // => On affiche un block "fantôme" superposé, si isReorderingChild
-    .ghost-block(
-      v-if="draggingChildId && draggingGhostPos && isReorderingChild"
-      :style="ghostBlockStyle"
-    )
-      // On peut y inclure un composant DiagramBlock 
-      // ou juste un div stylisé. Ici, on fait simple :
-      DiagramBlock(
+    // On dessine ensuite les liens
+    DiagramLink(v-for="(linkInfo, idx) in drawnLinks"
+      :key="linkInfo.sourceItemId + '_' + linkInfo.targetItemId + '_' + idx"
+      :link="linkInfo")
+
+    // Le bloc "ghost" (drag en cours)
+    .drag-ghost
+      // on pourrait y inclure un DiagramBlock en mode ghost si besoin
+      // ou laisser vide
+      DiagramBlock(v-if="draggingGhostPos"
+        :block-pos="draggingGhostPos"
         :item="items[draggingChildId]"
-        :block-pos="{ x:0,y:0,w:blockPositions[draggingChildId].w,h:blockPositions[draggingChildId].h }"
-        :is-selected="false"
-        :is-run-vo="isRunVo"
+        :isSelected="false"
+        :isRunVo="isRunVo"
         :ghost="true"
-        :get-state-icon="getStateIcon"
+        :getStateIcon="getStateIcon"
       )
 
     // Menu "+"
-    AddMenu(
-      v-if="menuBlock.visible && menuBlock.plusItemId"
-      :plus-position="menuBlockPosition"
+    AddMenu(v-if="menuBlock.visible"
       :options="menuBlock.options"
-      @selectOption="addChild"
+      :plus-position="menuBlockPosition"
+      :selectOption="addChild"
       @close="hideMenu"
     )
 
   // Tooltip
-  if hoveredItemId
-    .diagram-tooltip(:style="tooltipStyle") {{ tooltipText }}
-
-  // Mouse events sur container
-  // => on les gère en @mousedown,@mouseup,@mousemove,@wheel dans le .ts
+  .diagram-tooltip(v-if="tooltipText!=''"
+    :style="tooltipStyle")
+    | {{ tooltipText }}

@@ -136,13 +136,14 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
 
     private updatedItem: OseliaRunTemplateVO | OseliaRunVO = null;
     private reDraw: boolean = false;
+
+    get showClearButton(): boolean {
+        return Object.keys(this.items).length > 0;
+    }
     // -------------------------------------------------------------------------
     // WATCHERS
     // -------------------------------------------------------------------------
-    // -------------------------------------------------------------------------
-    // WATCHERS
-    // -------------------------------------------------------------------------
-    @Watch('choices_of_item', {deep: true})
+    @Watch('choices_of_item', { immediate:true, deep: true})
     private async onChoicesOfItemChange() {
         // Si on est en mode single run, on n’utilise pas le vieux mécanisme
         if (this.is_single_run_found) {
@@ -250,6 +251,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
         }
     }
 
+
     public removeItem(itemId: string) {
         if (!this.items[itemId]) {
             return;
@@ -336,6 +338,18 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
             this.has_agent = true;
             await this.addRunChildrenRecursively(this.single_run.id);
         }
+    }
+
+    private async clearAll() {
+        this.items = {};
+        this.selectedItem = null;
+        this.selectedItemRunInfo = null;
+        this.selectedLink = null;
+        this.showAddPanel = false;
+        this.showPlusButton = true;
+        this.has_agent = false;
+        this.choices_of_item = [];
+        await this.chargeChoices();
     }
 
     private async chargeChoices() {

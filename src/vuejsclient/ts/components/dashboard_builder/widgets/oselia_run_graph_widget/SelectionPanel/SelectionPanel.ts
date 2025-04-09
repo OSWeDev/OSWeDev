@@ -34,20 +34,30 @@ export default class SelectionPanel extends Vue {
     public editItemFn!: (itemId: string) => void;
 
     private hasSelectedFunction: boolean = false;
+    private hasSelectedCall: boolean = false;
 
-    get currentItem(): OseliaRunTemplateVO | OseliaRunVO | null {
+    get currentItem(): OseliaRunTemplateVO | OseliaRunVO | OseliaRunFunctionCallVO | null {
         if (!this.selectedItem) {
             return null;
         }
         if (this.items[this.selectedItem]) {
             if (this.items[this.selectedItem]._type === GPTAssistantAPIFunctionVO.API_TYPE_ID) {
                 this.hasSelectedFunction = true;
+            } else if (this.items[this.selectedItem]._type === OseliaRunFunctionCallVO.API_TYPE_ID) {
+                this.hasSelectedCall = true;
             } else {
                 this.hasSelectedFunction = false;
             }
             return this.items[this.selectedItem];
         }
         return null;
+    }
+
+    get parameters(){
+        if (this.currentItem && this.currentItem._type === OseliaRunFunctionCallVO.API_TYPE_ID) {
+            return JSON.stringify((this.currentItem as OseliaRunFunctionCallVO).function_call_parameters_initial);
+        }
+        return {};
     }
     // On conserve un event pour switchHidden, par exemple
     public onSwitchHidden(itemId: string, linkTo: string, newIsActive: boolean) {
@@ -67,6 +77,11 @@ export default class SelectionPanel extends Vue {
 
     private async replay_from_id(function_call_id: number) {
         await ModuleOselia.getInstance().replay_function_call(function_call_id);
+    }
+
+    private onJsonChange(newData) {
+        console.log('JSON modifié :', newData);
+        // Met à jour la source si nécessaire
     }
 
     private try_parse_json(json: string): any {

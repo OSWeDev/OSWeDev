@@ -1,6 +1,6 @@
 // SelectionPanel.pug
 .selection-panel
-    template(v-if="!hasSelectedFunction")
+    template(v-if="!hasSelectedCall")
         h3  {{ currentItem ? currentItem.name : 'Aucun' }}
         hr
         .buttons
@@ -11,19 +11,21 @@
         hr
     template(v-else)
         .function_call_name
-            h3 {{ currentItem ? currentItem.gpt_function_name : 'Aucun' }}
-            i(@click='replay_from_id(selectedItemRunInfo.id)').fa-duotone.fa-play-circle
+            h3 {{ 'Rejouer :' }}
+            i(@click='replay_from_id(currentItem.id)').fa-duotone.fa-play-circle
 
         .scrollable-content
             .label Paramètres
             vue-json-pretty.function_call_function_call_parameters_initial(
-                :data='try_parse_json(selectedItemRunInfo.function_call_parameters_initial)', 
+                :data='try_parse_json(currentItem.function_call_parameters_initial)', 
                 :deep='1'
+                :editable="true"
             )
+            input(type="text" v-model="parameters")
             
             .label Résultat
             vue-json-pretty.function_call_result(
-                :data='try_parse_json(selectedItemRunInfo.result)', 
+                :data='try_parse_json(currentItem.result)', 
                 :deep='1'
             )
 

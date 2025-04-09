@@ -2,4 +2,8 @@
 .diagram-block(:style="blockStyle"
               :class="{ selected: isSelected, ghost: ghost }")
     .diagram-block-text {{ displayText }}
-    .diagram-block-icon {{ iconInfo.icon }}
+    template(v-if="iconInfo.icon=='function'")
+        .diagram-block-icon
+            i.fa-solid.fa-function
+    template(v-else)
+        .diagram-block-icon {{ iconInfo.icon }}

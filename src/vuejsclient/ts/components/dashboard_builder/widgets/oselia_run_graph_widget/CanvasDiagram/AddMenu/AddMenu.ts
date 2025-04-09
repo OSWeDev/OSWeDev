@@ -14,6 +14,10 @@ export default class AddMenu extends Vue {
     @Prop({ default: () => [] })
         options!: string[];
 
+    // Nouvelle prop : la fonction pour supprimer un item
+    @Prop({ type: Function, required: true })
+    public selectOption!: (type: string) => void;
+
     get menuStyle() {
         return {
             position: 'absolute',
@@ -27,12 +31,12 @@ export default class AddMenu extends Vue {
             zIndex: 999
         };
     }
-    onOptionClick(option: string) {
-        this.$emit('selectOption', option);
+    private onOptionClick(option: string) {
+        this.selectOption(option);
     }
 
-    onClose() {
-        this.$emit('close');
+    private async onClose() {
+        await this.$emit('close');
     }
 
 }

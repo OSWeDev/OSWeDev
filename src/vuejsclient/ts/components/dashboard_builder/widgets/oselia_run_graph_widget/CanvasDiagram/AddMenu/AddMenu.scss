@@ -1,20 +1,19 @@
 // AddMenu.scss
 
 .add-menu {
-    .add-menu-option {
-      padding: 4px;
-      border-bottom: 1px solid #eee;
-      cursor: pointer;
-  
-      &:hover {
-        background-color: #f2f2f2;
-      }
-    }
-  
-    .add-menu-close {
-      margin-top: 4px;
-      background: #ccc;
-      cursor: pointer;
+  .add-menu-option {
+    padding: 4px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #f2f2f2;
     }
   }
-  
+
+  .add-menu-close {
+    margin-top: 4px;
+    background: #ccc;
+    cursor: pointer;
+  }
+}

@@ -5,8 +5,13 @@
     overflow: hidden;
 
     .add-button {
-        position: absolute;
-        right: 1%;
+        position: fixed;
+        right: 15%;
+    }
+
+    .clear-button {
+        position: fixed;
+        right: 17%;
     }
 
     .link-panel,
