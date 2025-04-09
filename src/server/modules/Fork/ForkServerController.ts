@@ -170,6 +170,11 @@ export default class ForkServerController {
             }
         }
 
+        /**
+         * On contrôle à 3 minutes du lancement pour vérifier qu'on a bien un ALIVE de ce bgthread, et sinon on kill/restart le bgthread
+         */
+        ForkServerController.check_is_alive_after_timeout(forked, 3 * 60 * 1000);
+
         forked.worker.on('error', (error) => {
             ConsoleHandler.error('Erreur du worker uid:' + forked.uid + ' qui gère les processus : ' + Object.keys(forked.processes).join(', ') + ' : ' + error);
         });
@@ -302,6 +307,41 @@ export default class ForkServerController {
             'ForkServerController.checkForksAvailability',
             false,
         );
+    }
+
+    /**
+     * JNE : 09/04/2025 suite cas en PROD d'un plantage de tous les bgthreads, tous redémarrent mais 4/6 ALIVE,
+     * Pas de reboot probablement par ce que les threads continuent de répondre au ping, mais comme la bdd était pas dispo, les 2 premiers se sont pas chargés correctement et ont pas ALIVE
+     * On rajoute du coup un contrôle à 3 minutes du lancement pour vérifier qu'on a bien un ALIVE de ce bgthread, et sinon on kill/restart le bgthread
+     * On rajoute aussi un check de l'uid du worker, pour être sûr qu'on a pas un worker qui a été remplacé par un autre
+     */
+    private static async check_is_alive_after_timeout(forked: IFork, timeout_ms: number) {
+
+        try {
+
+            await ThreadHandler.sleep(timeout_ms, 'ForkServerController.check_is_alive_after_timeout', true);
+
+            // On check que le thread a pas déjà exit et replace
+            if (!forked.worker) {
+                ConsoleHandler.warn('ForkServerController.check_is_alive_after_timeout : checked after ' + (timeout_ms / 1000 / 60) + ' minutes : fork ' + forked.uid + ' has no worker - probably existed already, ignoring it');
+                return;
+            }
+
+            if (ForkServerController.forks_alive[forked.uid] && ForkServerController.forks_availability[forked.uid]) {
+                ConsoleHandler.log('ForkServerController.check_is_alive_after_timeout : checked after ' + (timeout_ms / 1000 / 60) + ' minutes : fork ' + forked.uid + ' is alive');
+                return;
+            }
+
+            ConsoleHandler.error('ForkServerController.check_is_alive_after_timeout : checked after ' + (timeout_ms / 1000 / 60) + ' minutes : fork ' + forked.uid + ' is NOT alive, killing it');
+
+            // On kill le fork => le reload se fait par le callback du exit normalement...
+            if (forked.worker) {
+                forked.worker.terminate();
+                forked.worker = null;
+            }
+        } catch (error) {
+            ConsoleHandler.error('ForkServerController.check_is_alive_after_timeout : error while checking if alive : ' + error);
+        }
     }
 
     @RunsOnMainThread(null)
