@@ -499,6 +499,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                 await self.callCallbackFunctionUpdate();
 
                 if (self.close_on_submit) {
+                    self.editableVO_initial = cloneDeep(self.editableVO);
                     self.$emit('close');
                 }
 

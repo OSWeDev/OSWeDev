@@ -520,6 +520,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                 }
 
                 if (self.close_on_submit) {
+                    this.newVO_initial = cloneDeep(this.newVO);
                     self.$emit('close');
                 } else {
                     self.crud.createDatatable.refresh();
