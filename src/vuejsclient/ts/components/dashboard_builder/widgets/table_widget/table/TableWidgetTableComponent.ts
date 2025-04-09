@@ -216,6 +216,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private export_registered_component_UID: number = null;
     private export_limit: NumRange = null;
     private export_count: number = 0;
+    private export_parent_check_interval = null;
+
     private selected_row_export = [];
     private has_selected_all: boolean = false;
     private max_export_limit: number = null;
@@ -2528,20 +2530,21 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         window.close();
     }
 
-    private async do_select_all() {
-        if (this.has_selected_all) {
-            for (let row of this.data_rows) {
-                row['selected'] = false;
-            }
-            this.export_count = 0;
-            this.selected_row_export = [];
-        } else {
-            for (let row of this.data_rows) {
-                row['selected'] = true;
-                this.selected_row_export.push(row);
-            }
-            this.export_count = this.data_rows.length;
+    private async do_unselect_all() {
+        for (const row of this.data_rows) {
+            row['selected'] = false;
         }
+        this.export_count = 0;
+        this.selected_row_export = [];
+        this.has_selected_all = !this.has_selected_all;
+    }
+
+    private async do_select_all() {
+        for (const row of this.data_rows) {
+            row['selected'] = true;
+            this.selected_row_export.push(row);
+        }
+        this.export_count = this.data_rows.length;
         this.has_selected_all = !this.has_selected_all;
     }
 
@@ -2566,6 +2569,19 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     this.export_limit.max,
                     this.export_limit.max_inclusiv,
                     this.export_limit.segment_type);
+
+                // On se crée un interval pour vérifier toutes les x secondes que le parent est toujours ouvert, sinon on ferme cet onglet
+                if (this.export_parent_check_interval) {
+                    clearInterval(this.export_parent_check_interval);
+                }
+
+                this.export_parent_check_interval = setInterval(() => {
+                    if (!window.opener || window.opener.closed) {
+                        clearInterval(this.export_parent_check_interval);
+                        this.export_parent_check_interval = null;
+                        window.close();
+                    }
+                }, 1000);
             }
         }
 

@@ -1,4 +1,3 @@
-import Vue from "vue";
 import NumRange from "../../../../../../shared/modules/DataRender/vos/NumRange";
 import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegment";
 import VueComponentBase from "../../../VueComponentBase";
@@ -74,9 +73,9 @@ export default class TableWidgetExternalSelectorController {
         });
 
         // On rajoute dans le composant Vue, la définition du beforeDestroy pour enlever l'écouteur et fermer la popup si elle est ouverte
-        const current_before_destroy = component.$options.beforeDestroy;
+        component.$options.beforeDestroy = (((typeof component.$options.beforeDestroy === 'function') ? [component.$options.beforeDestroy] : component.$options.beforeDestroy) || []) as any;
 
-        component.$options.beforeDestroy = function () {
+        component.$options.beforeDestroy["push"](function () {
 
             if (!!component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME]) {
                 window.removeEventListener("message", this);
@@ -87,11 +86,7 @@ export default class TableWidgetExternalSelectorController {
                 delete component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME];
                 delete TableWidgetExternalSelectorController.window_url_by_registered_component_UID[component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME]];
             }
-
-            if (current_before_destroy) {
-                current_before_destroy.call(this);
-            }
-        };
+        });
     }
 
     /**

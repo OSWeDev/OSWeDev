@@ -18,6 +18,7 @@ import StatsInvalidatorBGThread from './bgthreads/StatsInvalidatorBGThread';
 import StatsUnstackerBGThread from './bgthreads/StatsUnstackerBGThread';
 import StatsServerController from './StatsServerController';
 import VarSecStatsGroupeController from './vars/controllers/VarSecStatsGroupeController';
+import ThrottledQueryServerController from '../DAO/ThrottledQueryServerController';
 
 export default class ModuleStatsServer extends ModuleServerBase {
 
@@ -152,7 +153,10 @@ export default class ModuleStatsServer extends ModuleServerBase {
             const start = Dates.now_ms();
             await IDatabaseHolder.db.query('SELECT 1');
 
-            StatsController.register_stat_DUREE('ModuleStatsServer', 'do_stat_requete_pgsql', 'success', Dates.now_ms() - start);
+            const duration = Dates.now_ms() - start;
+            ThrottledQueryServerController.check_select_1_latency(duration);
+
+            StatsController.register_stat_DUREE('ModuleStatsServer', 'do_stat_requete_pgsql', 'success', duration);
         } catch (error) {
             StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'do_stat_requete_pgsql', 'error');
             ConsoleHandler.error('do_stat_requete_pgsql error:', error);

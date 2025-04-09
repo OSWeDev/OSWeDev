@@ -217,6 +217,12 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             'fr-fr': 'Tout sélectionner'
         }, 'crud.actions.select_all.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Tout désélectionner'
+        }, 'crud.actions.unselect_all.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Valider la sélection'
+        }, 'crud.actions.validate_selection.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Exporter'
         }, 'crud.actions.export_to.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
