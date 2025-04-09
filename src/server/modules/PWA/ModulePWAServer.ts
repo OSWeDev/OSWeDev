@@ -68,15 +68,16 @@ export default class ModulePWAServer extends ModuleServerBase {
                 }
             };
 
+            const params = JSON.stringify(PwaNotification.createNew(
+                ConfigurationService.node_configuration.app_title,
+                message,
+                ConfigurationService.node_configuration.base_url + icon,
+                ConfigurationService.node_configuration.base_url + icon,
+                url ?? ConfigurationService.node_configuration.base_url,
+            ));
             await webPush.sendNotification(
                 subscription,
-                JSON.stringify(PwaNotification.createNew(
-                    ConfigurationService.node_configuration.app_title,
-                    message,
-                    ConfigurationService.node_configuration.base_url + icon,
-                    ConfigurationService.node_configuration.base_url + icon,
-                    url ?? ConfigurationService.node_configuration.base_url,
-                ))
+                params
             );
         } catch (e) {
             ConsoleHandler.error(e);

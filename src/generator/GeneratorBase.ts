@@ -54,6 +54,7 @@ import Patch20230519AddRightsFeedbackStateVO from './patchs/postmodules/Patch202
 import Patch20230927AddAliveTimeoutToSomeBGThreads from './patchs/postmodules/Patch20230927AddAliveTimeoutToSomeBGThreads';
 import Patch20230927AddSupervisionToCrons from './patchs/postmodules/Patch20230927AddSupervisionToCrons';
 import Patch20231123AddRightsSharedFilters from './patchs/postmodules/Patch20231123AddRightsSharedFilters';
+import Patch20250409AddRightsPWA from './patchs/postmodules/Patch20250409AddRightsPWA';
 import Patch20240612DbbAdvancedDateFilterChangeIsFilter from './patchs/postmodules/Patch20240612DbbAdvancedDateFilterChangeIsFilter';
 import Patch20240305MigrationCodesTradsMinusculesENV from './patchs/postmodules/Patch20240305MigrationCodesTradsMinusculesENV';
 import Patch20240307DuplicateRightsSupervision from './patchs/postmodules/Patch20240307DuplicateRightsSupervision';
@@ -237,6 +238,7 @@ export default abstract class GeneratorBase {
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
             Patch20240917ParamShowCmsPages.getInstance(),
             Patch20240923AddViewportDatas.getInstance(),
+            Patch20250409AddRightsPWA.getInstance(),
         ];
     }
 
