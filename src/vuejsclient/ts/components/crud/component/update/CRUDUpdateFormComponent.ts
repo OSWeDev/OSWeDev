@@ -577,6 +577,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                         await query(this.selected_vo._type).filter_by_id(this.selected_vo.id).delete_vos();
 
                         if (this.close_on_submit) {
+                            this.editableVO_initial = cloneDeep(this.editableVO);
                             this.$emit('close');
                         }
                     },
