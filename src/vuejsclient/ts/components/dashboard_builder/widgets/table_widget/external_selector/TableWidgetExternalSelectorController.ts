@@ -1,6 +1,8 @@
-import NumRange from "../../../../../../shared/modules/DataRender/vos/NumRange";
-import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegment";
-import VueComponentBase from "../../../VueComponentBase";
+import NumRange from "../../../../../../../shared/modules/DataRender/vos/NumRange";
+import NumSegment from "../../../../../../../shared/modules/DataRender/vos/NumSegment";
+import IDistantVOBase from "../../../../../../../shared/modules/IDistantVOBase";
+import VueComponentBase from "../../../../VueComponentBase";
+import TableWidgetExternalSelectorConf from "./TableWidgetExternalSelectorConf";
 
 /**
  * Controleur pour le système de sélection externe par popup (pour le moment)
@@ -11,17 +13,7 @@ export default class TableWidgetExternalSelectorController {
     public static NUM_RANGE_FIELD_NAME: string = 'external_selector_num_range';
     public static EXPORT_SELECTED_ROWS_FIELD_NAME: string = 'external_selector_export_selected_rows';
 
-    /**
-     * Pour identifier de manière unique le composant qui souhaite faire appel à ce système
-     */
-    private static registered_component_UID: number = 1;
-
-    private static export_windows_by_registered_component_UID: { [registered_component_UID: number]: Window } = {};
-    private static window_url_by_registered_component_UID: { [registered_component_UID: number]: string } = {};
-
-    public static get_registered_component_UID(): number {
-        return TableWidgetExternalSelectorController.registered_component_UID++;
-    }
+    private static registered_confs: { [registered_component_UID: number]: TableWidgetExternalSelectorConf<any> } = {};
 
     /**
      * On init un external_selector pour un composant, avec comme identifiant le registered_component_UID qui est retourné
@@ -37,7 +29,8 @@ export default class TableWidgetExternalSelectorController {
     public static init_external_selector<T extends VueComponentBase>(
         component: T,
         selector_dashboard_id: number,
-        data_received_callback: (datas: any[]) => void): number {
+        data_received_callback: (datas: any[]) => void,
+        params_builder: (vo: IDistantVOBase) => string = null): TableWidgetExternalSelectorConf<T> {
 
         if (!selector_dashboard_id) {
             // RAS on a pas d'id de dashboard
@@ -49,22 +42,30 @@ export default class TableWidgetExternalSelectorController {
             return component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME];
         }
 
-        const registered_component_UID = TableWidgetExternalSelectorController.get_registered_component_UID();
-        // On enregistre le registered_component_UID dans le composant
-        component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME] = registered_component_UID;
+        const conf = new TableWidgetExternalSelectorConf<T>(component, selector_dashboard_id, data_received_callback, params_builder);
+        TableWidgetExternalSelectorController.registered_confs[conf.registered_component_UID] = conf;
 
-        const { protocol, hostname, port } = window.location;
-        const file_system_url = `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard/view/`;
+        // On enregistre la conf dans le composant
+        component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME] = conf;
 
-        TableWidgetExternalSelectorController.window_url_by_registered_component_UID[registered_component_UID] = file_system_url + selector_dashboard_id;
+        const { protocol, hostname, port, pathname } = window.location;
+        const isAdmin = pathname.startsWith('/admin');
+        const basePath = isAdmin ? '/admin' : '/';
+        const file_system_url = `${protocol}//${hostname}${port ? `:${port}` : ''}${basePath}#/dashboard/view/`;
+
+        conf.selector_window_base_url = file_system_url + selector_dashboard_id;
 
         window.addEventListener("message", (event: MessageEvent) => {
             const source = event.source as Window;
-            if ((source.location.href !== file_system_url + selector_dashboard_id)) {
+
+            const normalizedHref = TableWidgetExternalSelectorController.strip_query(source.location.href);
+            const normalizedTarget = TableWidgetExternalSelectorController.strip_query(file_system_url + selector_dashboard_id);
+
+            if ((normalizedHref !== normalizedTarget)) {
                 return;
             } else {
 
-                if (event.data[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME] !== registered_component_UID) {
+                if (event.data[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME] !== conf.registered_component_UID) {
                     return;
                 }
 
@@ -78,13 +79,14 @@ export default class TableWidgetExternalSelectorController {
         component.$options.beforeDestroy["push"](function () {
 
             if (!!component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME]) {
+
+                const conf_: TableWidgetExternalSelectorConf<T> = component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME];
                 window.removeEventListener("message", this);
-                if (!!TableWidgetExternalSelectorController.export_windows_by_registered_component_UID[component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME]]) {
-                    TableWidgetExternalSelectorController.export_windows_by_registered_component_UID[component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME]].close();
+                if (!!conf_.selector_window) {
+                    conf_.selector_window.close();
                 }
-                delete TableWidgetExternalSelectorController.export_windows_by_registered_component_UID[component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME]];
+                delete conf_.selector_window;
                 delete component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME];
-                delete TableWidgetExternalSelectorController.window_url_by_registered_component_UID[component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME]];
             }
         });
     }
@@ -94,21 +96,37 @@ export default class TableWidgetExternalSelectorController {
      * @param component
      * @param num_range
      */
-    public static open_external_selector<T extends VueComponentBase>(
+    public static open_external_selector<T extends VueComponentBase, VOType extends IDistantVOBase>(
         component: T,
         num_range: NumRange = NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT),
+        vo: VOType = null,
     ) {
         if (!component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME]) {
             throw new Error("Component not registered : you have to call init_external_selector before");
         }
 
+        const conf: TableWidgetExternalSelectorConf<T> = component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME];
+
         (window as any).instructions = {
             [TableWidgetExternalSelectorController.NUM_RANGE_FIELD_NAME]: num_range,
-            [TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME]: component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME],
+            [TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME]: conf.registered_component_UID,
         };
 
-        TableWidgetExternalSelectorController.export_windows_by_registered_component_UID[component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME]] = window.open(
-            TableWidgetExternalSelectorController.window_url_by_registered_component_UID[component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME]],
+        // Si on a un param builder, on ajoute une section ? entre l'url et le # du dashboard
+        let selector_window_url = conf.selector_window_base_url;
+        if (conf.params_builder) {
+            const params = conf.params_builder(vo);
+
+            if (params) {
+
+                // On découpe l'url en deux parties : avant le # et après le #
+                const parts = selector_window_url.split('#');
+                selector_window_url = parts[0] + '?' + params + '#' + parts[1];
+            }
+        }
+        conf.selector_window = window.open(
+            selector_window_url,
+            "_blank",
             // Proposition GPT .... :
             // "external_selector_" + component[TableWidgetExternalSelectorController.REGISTERED_COMPONENT_UID_FIELD_NAME],
             // "width=800,height=600,scrollbars=yes,resizable=yes,toolbar=no,location=no,status=no,menubar=no,copyhistory=no" +
@@ -126,5 +144,11 @@ export default class TableWidgetExternalSelectorController {
             // ",status=no" +
             // ",titlebar=no"
         );
+    }
+
+    private static strip_query(url: string): string {
+        const [base, hash] = url.split('#');
+        const cleanBase = base.split('?')[0]; // retire query
+        return hash ? `${cleanBase}#${hash}` : cleanBase;
     }
 }

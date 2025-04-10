@@ -26,6 +26,7 @@ import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFilter
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import './FieldValueFilterEnumWidgetComponent.scss';
+import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 
 @Component({
     template: require('./FieldValueFilterEnumWidgetComponent.pug'),
@@ -90,6 +91,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private should_load_filter_visible_options: boolean = true;
 
     private last_calculation_cpt: number = 0;
+
+    private already_loaded_query_params: boolean = false;
 
     private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(
         'FieldValueFilterEnumWidgetComponent.throttled_update_visible_options',
@@ -268,6 +271,88 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         }
 
         return options.get_exclude_values();
+    }
+
+    @Watch('filter_visible_options', { deep: true, immediate: true })
+    @Watch('vo_field_ref')
+    @Watch('widget_options')
+    private async try_apply_query_params() {
+
+        if (this.already_loaded_query_params) {
+            return;
+        }
+        if (!this.widget_options) {
+            return;
+        }
+        if (!this.vo_field_ref) {
+            return;
+        }
+        if ((!this.filter_visible_options) || (!this.filter_visible_options.length)) {
+            return;
+        }
+
+        /**
+         * Try apply query params
+         */
+        let update_tmp_active_filter_options: boolean = false;
+        const updated_tmp_active_filter_options: DataFilterOption[] = [];
+
+        // get all search params (including ?)
+        const queryString = window.location.search;
+        // it will look like this: ?product=shirt&color=blue&newuser&size=m
+
+        // parse the query string's paramters
+        const urlParams = new URLSearchParams(queryString);
+
+        // On tente de forcer même si on trouve pas dans la liste déjà chargée
+        // Pour l'instant c'est très lié à un type number, à voir comment on adapte par la suite
+        const param_name = FieldValueFilterWidgetController.get_query_param_filter_name(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id);
+        const filter_value_str: string = urlParams.get(param_name);
+        if (filter_value_str != null) {
+            const filter_value_number: number = parseInt(filter_value_str);
+
+            // On doit retrouver la valeur dans les options disponibles
+            let filter_value: DataFilterOption = null;
+            for (const i in this.filter_visible_options) {
+                const filter_opt = this.filter_visible_options[i];
+                if (filter_opt.numeric_value == filter_value_number) {
+                    filter_value = filter_opt;
+                    break;
+                }
+            }
+
+            if (filter_value) {
+                update_tmp_active_filter_options = true;
+                updated_tmp_active_filter_options.push(filter_value);
+            } else {
+                filter_value = new DataFilterOption(
+                    DataFilterOption.STATE_SELECTED,
+                    filter_value_str,
+                    null,
+                    false,
+                    false,
+                    false,
+                    null,
+                    null,
+                    null,
+                    filter_value_number,
+                    null,
+                    null,
+                    true,
+                    [],
+                    filter_value_str
+                );
+                update_tmp_active_filter_options = true;
+                updated_tmp_active_filter_options.push(filter_value);
+                this.filter_visible_options.push(filter_value);
+            }
+        }
+
+        if (update_tmp_active_filter_options) {
+            this.tmp_active_filter_options = updated_tmp_active_filter_options;
+            this.already_loaded_query_params = true;
+            this.onchange_tmp_active_filter_options();
+        }
     }
 
     /**

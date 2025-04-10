@@ -9,7 +9,7 @@ import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
-import TableWidgetExternalSelectorController from '../../table_widget/TableWidgetExternalSelectorController';
+import TableWidgetExternalSelectorController from '../../table_widget/external_selector/TableWidgetExternalSelectorController';
 import OseliaLastThreadsComponent from '../OseliaLastThreads/OseliaLastThreadsComponent';
 import { ModuleOseliaAction } from '../OseliaStore';
 import './OseliaSelectThreadComponent.scss';

@@ -47,7 +47,7 @@ import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleAlertAction, ModuleAlertGetter } from '../../../alert/AlertStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
-import TableWidgetExternalSelectorController from '../../../dashboard_builder/widgets/table_widget/TableWidgetExternalSelectorController';
+import TableWidgetExternalSelectorController from '../../../dashboard_builder/widgets/table_widget/external_selector/TableWidgetExternalSelectorController';
 import FileComponent from '../../../file/FileComponent';
 import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputComponent';
 import ImageComponent from '../../../image/ImageComponent';
@@ -558,9 +558,14 @@ export default class CRUDComponentField extends VueComponentBase
                         return;
                     }
 
-                    TableWidgetExternalSelectorController.init_external_selector(this, external_selector_dashboard_id, (data: any) => {
-                        this.field_value = data[0]['__crud_actions'];
-                    });
+                    TableWidgetExternalSelectorController.init_external_selector(
+                        this,
+                        external_selector_dashboard_id, (data: any) => {
+                            this.field_value = data[0]['__crud_actions'];
+                            this.onChangeField();
+                        },
+                        this.field.external_selector_params_builder,
+                    );
 
                     this.can_open_external_selector = true;
                 }
@@ -2568,6 +2573,6 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     private open_external_selector() {
-        TableWidgetExternalSelectorController.open_external_selector(this);
+        TableWidgetExternalSelectorController.open_external_selector(this, RangeHandler.create_single_elt_NumRange(1, NumSegment.TYPE_INT), this.vo);
     }
 }

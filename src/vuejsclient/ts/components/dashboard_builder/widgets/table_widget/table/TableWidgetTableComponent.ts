@@ -82,7 +82,7 @@ import ValidationFiltersWidgetController from '../../validation_filters_widget/V
 import ValidationFiltersWidgetOptions from '../../validation_filters_widget/options/ValidationFiltersWidgetOptions';
 import VarWidgetComponent from '../../var_widget/VarWidgetComponent';
 import VarWidgetOptions from '../../var_widget/options/VarWidgetOptions';
-import TableWidgetExternalSelectorController from '../TableWidgetExternalSelectorController';
+import TableWidgetExternalSelectorController from '../external_selector/TableWidgetExternalSelectorController';
 import TableWidgetController from './../TableWidgetController';
 import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
@@ -2504,7 +2504,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
 
     private async select_row(row: any) {
-        if (this.max_export_limit - this.min_export_limit == 1) {
+        if ((this.max_export_limit == this.min_export_limit) && (this.min_export_limit == 1)) {
             this.selected_row_export.push(row);
             this.do_export();
         }

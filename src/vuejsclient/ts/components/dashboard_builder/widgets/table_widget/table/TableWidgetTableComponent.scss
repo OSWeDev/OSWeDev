@@ -12,6 +12,29 @@
         border-spacing: 0 !important;
     }
 
+    .export_to_actions {
+        display: flex;
+        margin: .4em;
+
+        .selected_count {
+            width: fit-content;
+            margin: .0 .4em;
+
+            &.no_exceed {
+                border-radius: 20em;
+                padding: 0.2em 0.6em;
+                text-align: center;
+            }
+
+            &.exceed {
+                border-radius: 20em;
+                padding: 0.2em 0.6em;
+                text-align: center;
+            }
+        }
+    }
+
+
     .table_header {
         font-size: 1.2em;
         margin-bottom: 0.4em;
@@ -70,22 +93,6 @@
             font-size: 14px;
         }
 
-        .col-sm-2 {
-            margin-top: 6px;
-            margin-bottom: 0.2em;
-
-            .exceed {
-                border-radius: 20em;
-                padding: 0.2em;
-                text-align: center;
-            }
-
-            .no_exceed {
-                border-radius: 20em;
-                padding: 0.2em;
-                text-align: center;
-            }
-        }
     }
 
     .crud_actions.btn-group.d-print-none {
