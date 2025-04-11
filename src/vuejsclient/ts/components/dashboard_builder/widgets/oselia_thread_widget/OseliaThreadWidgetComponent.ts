@@ -44,6 +44,7 @@ import OseliaRunArboComponent from './OseliaRunArbo/OseliaRunArboComponent';
 import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
 import './OseliaThreadWidgetComponent.scss';
+import OseliaRunGraphWidgetComponent from '../oselia_run_graph_widget/OseliaRunGraphWidgetComponent';
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
     components: {
@@ -55,6 +56,7 @@ import './OseliaThreadWidgetComponent.scss';
         Oselialeftpanelcomponent: OseliaLeftPanelComponent,
         VueJsonPretty,
         Oseliarunarbocomponent: OseliaRunArboComponent,
+        Oselirungraphwidgetcomponent: OseliaRunGraphWidgetComponent
     }
 })
 export default class OseliaThreadWidgetComponent extends VueComponentBase {

@@ -235,7 +235,7 @@ export default class ModuleOselia extends Module {
 
     public initializeOseliaRunVO() {
 
-        const label = ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().template_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du template', true, true, 'N/A');
+        const label = ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().template_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du template', false, true, 'N/A');
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'étape', true);
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().template_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template', false)
             .set_many_to_one_target_moduletable_name(OseliaRunTemplateVO.API_TYPE_ID);

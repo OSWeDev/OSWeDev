@@ -4,6 +4,11 @@
         v-if="showPlusButton"
         @click="showAddPanel = !showAddPanel"
     ) +
+
+    button.clear-button(
+        v-if="showClearButton"
+        @click="clearAll"
+    ) Clear
     template(v-if='has_agent')
        
         // On insère le Canvas

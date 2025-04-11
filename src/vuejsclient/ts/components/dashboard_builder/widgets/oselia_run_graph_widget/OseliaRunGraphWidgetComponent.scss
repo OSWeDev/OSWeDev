@@ -1,12 +1,17 @@
 .OseliaRunGraphWidgetComponent {
-    position: absolute;
-    width: 80%;
-    height: 80%;
+    position: relative;
+    width: 768px;
+    height: 500px;
     overflow: hidden;
 
     .add-button {
         position: absolute;
-        right: 1%;
+        right: 15%;
+    }
+
+    .clear-button {
+        position: absolute;
+        right: 20%;
     }
 
     .link-panel,

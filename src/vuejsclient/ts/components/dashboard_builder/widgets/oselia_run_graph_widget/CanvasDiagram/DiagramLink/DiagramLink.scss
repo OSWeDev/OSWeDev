@@ -1,9 +1,12 @@
 .svg-link {
     position: absolute;
     pointer-events: none;
+    z-index: 10;
+
     svg {
         overflow: visible;
     }
+
     path {
         stroke: #333;
         fill: none;

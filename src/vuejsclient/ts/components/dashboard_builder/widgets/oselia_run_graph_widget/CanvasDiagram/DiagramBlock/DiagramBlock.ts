@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
+import { Prop, Watch } from 'vue-property-decorator';
 
 // On importe le template Pug et le style
 import './DiagramBlock.scss';
@@ -10,6 +10,8 @@ import { StateIconInfo } from '../CanvasDiagram';
 import GPTAssistantAPIFunctionVO from '../../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
 import OseliaRunTemplateVO from '../../../../../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
 import OseliaRunVO from '../../../../../../../../shared/modules/Oselia/vos/OseliaRunVO';
+import OseliaRunFunctionCallVO from '../../../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
+import { fontWeight } from 'html2canvas/dist/types/css/property-descriptors/font-weight';
 
 @Component({
     template: require('./DiagramBlock.pug')
@@ -17,7 +19,7 @@ import OseliaRunVO from '../../../../../../../../shared/modules/Oselia/vos/Oseli
 export default class DiagramBlock extends Vue {
 
     @Prop({ required: true })
-        item!: OseliaRunVO | OseliaRunTemplateVO | GPTAssistantAPIFunctionVO;
+        item!: OseliaRunVO | OseliaRunTemplateVO | GPTAssistantAPIFunctionVO | OseliaRunFunctionCallVO;
 
     @Prop({ required: true })
         blockPos!: { x: number; y: number; w: number; h: number };
@@ -33,7 +35,7 @@ export default class DiagramBlock extends Vue {
 
     // Le parent nous donne une fonction pour récupérer l'icône/état
     @Prop({ required: true })
-        getStateIcon! : (state: number) => StateIconInfo;
+        getStateIcon!: (state: number) => StateIconInfo;
 
     get displayText(): string {
     // Même logique qu'avant
@@ -45,6 +47,11 @@ export default class DiagramBlock extends Vue {
             const func = this.item as GPTAssistantAPIFunctionVO;
             return func.gpt_function_name || 'Function';
         }
+
+        if ((this.item as any)._type === OseliaRunFunctionCallVO.API_TYPE_ID) {
+            const func = this.item as OseliaRunFunctionCallVO;
+            return func.result || 'Function Call';
+        }
         const tpl = this.item as OseliaRunTemplateVO;
         if(tpl.name.startsWith('add_')) {
             return '+';
@@ -53,15 +60,25 @@ export default class DiagramBlock extends Vue {
     }
 
     get iconInfo(): StateIconInfo {
-    // On récupère l'état
+        if (this.item === undefined) {
+            return { icon: '', color: '#4A90E2', info: '' };
+        }
+        // On récupère l'état
         if (this.isRunVo) {
-            const st = (this.item as any).state || OseliaRunVO.STATE_TODO;
+            if (this.item._type === GPTAssistantAPIFunctionVO.API_TYPE_ID) {
+                return {
+                    icon: 'function',
+                    color: '#f2dfda',
+                    info: ''
+                };
+            }
+            const st = (this.item as any).state;
             return this.getStateIcon(st);
         } else {
-            return  {
-                info: '',
+            return {
                 icon: '',
-                color: '',
+                color: (this.item as any).run_type === 9999 ? '#999' : '#4A90E2',
+                info: ''
             };
         }
     }
@@ -78,29 +95,35 @@ export default class DiagramBlock extends Vue {
             boxSizing: 'border-box',
             opacity: this.ghost ? 0.8 : 1,
             userSelect: 'none',
-            pointerEvents: this.ghost ? 'none' : 'auto'
+            pointerEvents: this.ghost ? 'none' : 'auto',
+            fontWeight: this.item._type==GPTAssistantAPIFunctionVO.API_TYPE_ID ? 'bold' : 'normal',
+            'z-index': 25,
+            'box-shadow': this.item._type==GPTAssistantAPIFunctionVO.API_TYPE_ID ? '0 0 8px rgba(242, 0, 218, 0.5)' : ''
         };
     }
-    /**
-     * Quand on clique : on émet un event "clickBlock"
-     */
-    onClickBlock(e: MouseEvent) {
-        e.stopPropagation();
-        // On peut émettre l'ID + l'item
-        this.$emit('clickBlock', this.item.id, this.item);
-    }
     private resolveBorderColor(): string {
-        if(String(this.item.id).startsWith("add_")) {
-            return '#999';
-        }
-        if (this.isSelected) {
+        if(this.isSelected) {
             return '3px solid blue';
         } else {
-            return `2px solid ${this.iconInfo.color || '#999'}`;
+            return `2px solid ${this.iconInfo.color || '#4A90E2'}`;
         }
     }
-
     private resolveFillColor(): string {
+        if ((this.item as any)._type === OseliaRunFunctionCallVO.API_TYPE_ID) {
+            const func = this.item as OseliaRunFunctionCallVO;
+            if (func.result) {
+                return '#5AD8A6';
+            } else if (func.state === OseliaRunFunctionCallVO.STATE_RUNNING) {
+                return '#F6BD16';
+            } else if (func.state === OseliaRunFunctionCallVO.STATE_ERROR) {
+                return '#F4664A';
+            } else if (func.state === OseliaRunFunctionCallVO.STATE_TODO) {
+                return '#5B8FF9';
+            }
+        }
+        if (!this.item) {
+            return '#f2dfda';
+        }
         if (String(this.item.id).startsWith('add_') || (this.item as any).run_type === 9999) {
             return '#999';
         } else if ((this.item as any).run_type === OseliaRunVO.RUN_TYPE_AGENT) {

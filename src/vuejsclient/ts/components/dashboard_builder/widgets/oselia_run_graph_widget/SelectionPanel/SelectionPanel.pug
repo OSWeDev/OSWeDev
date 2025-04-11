@@ -1,29 +1,78 @@
 // SelectionPanel.pug
 .selection-panel
-    template(v-if="!hasSelectedFunction")
-        h3  {{ currentItem ? currentItem.name : 'Aucun' }}
-        hr
-        .buttons
-            .edit_button
-                button.btn.btn-primary(@click="onEditSelectItem") Modifier 
-            .remove_button
-                button.btn.btn-danger(@click="onRemoveSelectedItem") Retirer
-        hr
+    template(v-if="!hasSelectedCall")
+        template(v-if="!hasSelectedFunction")
+            template(v-if="hasSelectedRun")
+                h3  {{ currentItem ? currentItem.name : 'Aucun' }}
+                .scrollable-content
+                    .assistant_instructions(v-if="runTypeIsAssistant")
+                        .scrollable-content
+                            .json-editor
+                                .label.json-editor__label Instructions
+                                pre.text_input
+                                    code(contenteditable @input="onInstructionsChange" v-html="assistantInstructionsHtml")
+                        .buttons(v-if="saveInstructions")
+                            .save_button
+                                button.btn.btn-success(@click="onSaveInstructions") Sauvegarder
+                    .oselia_prompt
+                        .scrollable-content
+                            .json-editor
+                                .label.json-editor__label Prompt - Params
+                                pre.text_input
+                                    code(contenteditable @input="onPromptParamChange" v-html="runPromptParamHtml")
+                        .buttons(v-if="savePromptParam")
+                            .save_button
+                                button.btn.btn-success(@click="onSavePromptParam") Sauvegarder
+                        .scrollable-content
+                            .json-editor
+                                .label.json-editor__label Prompt
+                                pre.text_input
+                                    code(contenteditable @input="onPromptChange" v-html="runPromptHtml")
+                        .buttons(v-if="savePrompt")
+                            .save_button
+                                button.btn.btn-success(@click="onSavePrompt") Sauvegarder
+                hr
+                .buttons
+                    .edit_button
+                        button.btn.btn-primary(@click="onEditSelectItem") Modifier
+                    .remove_button
+                        button.btn.btn-danger(@click="onRemoveSelectedItem") Retirer
+                hr
+            template(v-else)
+                h3  {{ currentItem ? currentItem.name : 'Aucun' }}
+                hr
+                .buttons
+                    .edit_button
+                        button.btn.btn-primary(@click="onEditSelectItem") Modifier 
+                    .remove_button
+                        button.btn.btn-danger(@click="onRemoveSelectedItem") Retirer
+                hr
+        template(v-else)
+            h3 {{ currentItem.gpt_function_name }}
+            hr
+            .buttons
+                .edit_button
+                    button.btn.btn-primary(@click="onEditSelectItem") Modifier
+                .remove_button
+                    button.btn.btn-danger(@click="onRemoveSelectedItem") Retirer
+            hr
     template(v-else)
         .function_call_name
-            h3 {{ currentItem ? currentItem.gpt_function_name : 'Aucun' }}
-            i(@click='replay_from_id(selectedItemRunInfo.id)').fa-duotone.fa-play-circle
+            h3 {{ 'Rejouer :' }}
+            i(@click='replay_from_id(currentItem.id)').fa-duotone.fa-play-circle
 
         .scrollable-content
-            .label Paramètres
-            vue-json-pretty.function_call_function_call_parameters_initial(
-                :data='try_parse_json(selectedItemRunInfo.function_call_parameters_initial)', 
-                :deep='1'
-            )
-            
+            .json-editor
+                .label.json-editor__label Paramètres
+                pre.text_input
+                    code(v-html="highlightedJson" contenteditable @input="onParamsChange")
+            .buttons(v-if="saveParams")
+                .save_button
+                    button.btn.btn-success(@click="onSaveParams") Sauvegarder
+        
             .label Résultat
             vue-json-pretty.function_call_result(
-                :data='try_parse_json(selectedItemRunInfo.result)', 
+                :data='try_parse_json(currentItem.result)', 
                 :deep='1'
             )
 
@@ -33,4 +82,3 @@
             .remove_button
                 button.btn.btn-danger(@click="onRemoveSelectedItem") Retirer
         hr
-

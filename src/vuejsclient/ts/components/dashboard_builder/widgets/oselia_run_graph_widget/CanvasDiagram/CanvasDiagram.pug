@@ -1,36 +1,50 @@
-.diagram-container(ref="diagramContainer"
-  @wheel.prevent="onWheel"
+.diagram-container(ref="diagramContainer" 
+  @wheel="onWheel"
   @mousedown="onMouseDown"
   @mousemove="onMouseMove"
   @mouseup="onMouseUp")
+  // Le wrapper (transform: translate + scale)
   .diagram-wrapper(:style="wrapperStyle")
 
-    // blocks
-    DiagramBlock(
-      v-for="(pos, itemId) in blockPositions"
+    // On parcourt blockPositions pour dessiner les blocs
+    // (on ne fait pas forcément un "v-for" ; en TS, on peut boucler autrement)
+    DiagramBlock(v-for="(pos, itemId) in blockPositions"
       :key="itemId"
       :block-pos="pos"
       :item="items[itemId]"
-      :getStateIcon="getStateIcon"
       :isSelected="itemId === selectedItem"
-      @clickBlock="onBlockClicked"
+      :isRunVo="isRunVo"
+      :ghost="false"
+      :getStateIcon="getStateIcon"
     )
 
-    AddMenu(
-      v-if="menuPlus.visible"
-      :style="{ position: 'absolute', left: (menuPlus.x + 'px'), top: (menuPlus.y + 'px') }"
-      :agentId="menuPlus.agentId"
-      :options="menuPlus.options"
-      @close="closePlusMenu"
-      @selectOption="onAddChild"
-    )
-    // liens
-    DiagramLink(
-      v-for="(lk, idx) in drawnLinks"
-      :key="lk.sourceItemId + '_' + lk.targetItemId + '_' + idx"
-      :link="lk"
+    // On dessine ensuite les liens
+    DiagramLink(v-for="(linkInfo, idx) in drawnLinks"
+      :key="linkInfo.sourceItemId + '_' + linkInfo.targetItemId + '_' + idx"
+      :link="linkInfo")
+
+    // Le bloc "ghost" (drag en cours)
+    .drag-ghost
+      // on pourrait y inclure un DiagramBlock en mode ghost si besoin
+      // ou laisser vide
+      DiagramBlock(v-if="draggingGhostPos"
+        :block-pos="draggingGhostPos"
+        :item="items[draggingChildId]"
+        :isSelected="false"
+        :isRunVo="isRunVo"
+        :ghost="true"
+        :getStateIcon="getStateIcon"
+      )
+
+    // Menu "+"
+    AddMenu(v-if="menuBlock.visible"
+      :options="menuBlock.options"
+      :plus-position="menuBlockPosition"
+      :selectOption="addChild"
+      @close="hideMenu"
     )
 
-  // tooltip
-  .diagram-tooltip(v-if="hoveredItemId" :style="{position: 'absolute',left: hoveredX + 10 + 'px',top: hoveredY + 10 + 'px',background: 'rgba(0,0,0,0.7)',color: '#fff',padding: '4px 6px',borderRadius: '4px',pointerEvents: 'none'}")
-    | {{ hoveredItemId }}
+  // Tooltip
+  .diagram-tooltip(v-if="tooltipText!=''"
+    :style="tooltipStyle")
+    | {{ tooltipText }}
