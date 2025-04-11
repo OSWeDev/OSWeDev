@@ -35,7 +35,7 @@
                                     ) 2 - {{ label('dashboard_viewer.favorites_filters.export_tab') }}
 
                         .tab-content
-                            #selection_tab(v-show="active_tab_view == 'selection_tab'")
+                            #selection_tab(v-if="active_tab_view == 'selection_tab'")
                                 template
 
                                     div.favorites_filters_name
@@ -113,7 +113,7 @@
                                                         )                            
                                                     .input_label {{ get_translation_by_vo_field_ref_name_code_text(translatable_field_filters_code) }}: {{ option.readable_field_filters }}
 
-                            #export_tab(v-show="active_tab_view == 'export_tab'")
+                            #export_tab(v-if="active_tab_view == 'export_tab'")
                                 template 
 
                                     div.favorites_filters_options
@@ -188,7 +188,7 @@
                                                         )
 
 
-                                            .export_to_users(v-if='!!favorites_filters?.export_params')
+                                            .export_to_users(v-if='!!(favorites_filters?.export_params)')
                                                 .input_label {{ label('dashboard_viewer.favorites_filters.export_to_users') }}
                                                 .row.select_export_to_users_options
                                                     div.option.col-md-12

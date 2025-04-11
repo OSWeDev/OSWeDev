@@ -578,7 +578,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // Sheet for active field filters
         if (export_active_field_filters) {
             const active_filters_sheet = await this.create_active_filters_xlsx_sheet(active_field_filters);
-            sheets.push(active_filters_sheet);
+
+            if (!!active_filters_sheet) {
+                sheets.push(active_filters_sheet);
+            }
         }
 
         // Sheet for Vars Indicator
@@ -593,7 +596,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     discarded_field_paths,
                 );
 
-                sheets.push(vars_indicator_sheet);
+                if (!!vars_indicator_sheet) {
+
+                    sheets.push(vars_indicator_sheet);
+                }
 
             } catch (error) {
                 ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
@@ -1213,6 +1219,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // For each sheet that we want to export
         for (const sheeti in sheets) {
             const sheet = sheets[sheeti];
+
+            if (!sheet) {
+                continue;
+            }
 
             const ws_formats: { [cell: string]: string } = {};
             const ws_data = [];

@@ -27,37 +27,83 @@
         a.btn.btn-sm.btn-success(@click="set_show_inline_form_in_crud(true)")
             i.fa-duotone.fa-plus-circle
 
+    template(v-if='field.can_use_async_load_options')
+        //- div PASTEQUE
+        multiselect(
+            v-if='can_insert_or_update_target_first_loading_ok'
+                
+            v-model="async_load_options_field_value",
+            label="label"
+            :options="filter_visible_options",
+            :placeholder="t(placeholder_string)",
+            :multiple="true"
+            :close-on-select="false"
+            autocomplete="off"
+            :internal-search="false",
+            :searchable="true",
+            
+            :id="field.datatable_field_uid",
+            :allow-empty="!field.is_required",
+            :disabled="is_readonly",
 
-    multiselect(
-        :class="{'valign-middle': show_pencil_btn}"
-        :preselect-first="false",
-        :multiple="true",
-        :close-on-select="false"
-        v-model="field_value_refranges_selected_ids_datafilteroptions",
-        label="label",
-        :options="select_options",
-        :placeholder="t(placeholder_string)",
-        :loading="isLoadingOptions",
-        autocomplete="off"
-        :id="field.datatable_field_uid",
-        :searchable="searchable",
-        :internal-search="false",
-        :allow-empty="!field.is_required",
-        :disabled="is_readonly",
-        @search-change="asyncLoadOptions",
-        @input="onChangeField"
 
-        track-by="id",
+            @input="onChangeField",
+            :loading="isLoadingOptions",
+            
+            track-by="id",
 
-        :select-label='label("multiselect.selectLabel")'
-        :select-group-label='label("multiselect.selectGroupLabel")'
-        :selected-label='label("multiselect.selectedLabel")'
-        :deselect-label='label("multiselect.deselectLabel")'
-        :deselect-group-label='label("multiselect.deselectGroupLabel")'
-    )
-    template(v-if="!is_readonly && !hide_text_cliquable")
-        .text_cliquable.ml-1(@click='select_all') {{ label('select_all') }}
-        .inter_text -
-        .text_cliquable(@click='select_none') {{ label('select_none') }}
+            :select-label='label("multiselect.selectLabel")'
+            :select-group-label='label("multiselect.selectGroupLabel")'
+            :selected-label='label("multiselect.selectedLabel")'
+            :deselect-label='label("multiselect.deselectLabel")'
+            :deselect-group-label='label("multiselect.deselectGroupLabel")'
 
-    include ./CRUDComponentFieldFooter
+            @search-change="query_update_visible_options"
+        )
+
+            span(slot="noOptions") -
+
+            template(slot="option", slot-scope="props")
+                span.option__title {{ props.option.label }}
+
+            template(slot="tag", slot-scope="props")
+                .pill_wrapper.bg-success
+                    span.option__tag {{ props.option.label }}
+                    i.fa-solid.fa-square-x(@click='props.remove(props.option)')
+
+            //- ??? track-by="text_uid"
+
+    template(v-else)
+        //- div RAAAAAAAAAAAAAAAA
+        multiselect(
+            v-model="async_load_options_field_value",
+
+            label="label",
+            :options="select_options",
+            :placeholder="t(placeholder_string)",
+            :loading="isLoadingOptions",
+            autocomplete="off"
+            :id="field.datatable_field_uid",
+            :searchable="searchable",
+            :internal-search="false",
+            :allow-empty="!field.is_required",
+            :preselect-first="false",
+            :disabled="is_readonly",
+            @search-change="asyncLoadOptions",
+            @input="onChangeField",
+            :multiple="true"
+            :close-on-select="false"
+            track-by="id",
+
+            :select-label='label("multiselect.selectLabel")'
+            :select-group-label='label("multiselect.selectGroupLabel")'
+            :selected-label='label("multiselect.selectedLabel")'
+            :deselect-label='label("multiselect.deselectLabel")'
+            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+        )
+        template(v-if="!is_readonly && !hide_text_cliquable")
+            .text_cliquable.ml-1(@click='select_all') {{ label('select_all') }}
+            .inter_text -
+            .text_cliquable(@click='select_none') {{ label('select_none') }}
+
+        include ./CRUDComponentFieldFooter

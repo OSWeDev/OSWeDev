@@ -449,46 +449,6 @@ export default class CRUDComponentField extends VueComponentBase
         return res;
     }
 
-    get field_value_refranges_selected_ids_datafilteroptions() {
-
-        const res: DataFilterOption[] = [];
-
-        if (!this.field_value_refranges_selected_ids) {
-            return res;
-        }
-
-        for (const id of this.field_value_refranges_selected_ids) {
-
-            // Si on a pas chargé les labels des field_value actuels, on peut pas les afficher
-            if ((!this.field_value_labels_by_id) || (!this.field_value_labels_by_id[id])) {
-                continue;
-            }
-
-            res.push(new DataFilterOption(
-                DataFilterOption.STATE_SELECTED,
-                this.field_value_labels_by_id[id],
-                id,
-            ));
-        }
-
-        return res;
-
-    }
-
-    set field_value_refranges_selected_ids_datafilteroptions(values: DataFilterOption | DataFilterOption[]) {
-
-        const value = values as DataFilterOption;
-        const field_value_refranges_selected_ids: number[] = [];
-
-        for (const i in value) {
-            field_value_refranges_selected_ids.push(value[i].id);
-        }
-
-        if (!ObjectHandler.are_equal(field_value_refranges_selected_ids, this.field_value_refranges_selected_ids)) {
-            this.field_value_refranges_selected_ids = field_value_refranges_selected_ids;
-        }
-    }
-
     set async_load_options_field_value(values: DataFilterOption | DataFilterOption[]) {
 
         const value = values as DataFilterOption;
@@ -717,9 +677,9 @@ export default class CRUDComponentField extends VueComponentBase
         for (const i in this_fields) {
             const field = this_fields[i];
 
-            if ((field.field_type != ModuleTableFieldVO.FIELD_TYPE_refrange_array) ||
-                (field.field_type != ModuleTableFieldVO.FIELD_TYPE_foreign_key) ||
-                (field.field_type != ModuleTableFieldVO.FIELD_TYPE_file_ref) ||
+            if ((field.field_type != ModuleTableFieldVO.FIELD_TYPE_refrange_array) &&
+                (field.field_type != ModuleTableFieldVO.FIELD_TYPE_foreign_key) &&
+                (field.field_type != ModuleTableFieldVO.FIELD_TYPE_file_ref) &&
                 (field.field_type != ModuleTableFieldVO.FIELD_TYPE_image_ref)) {
                 continue;
             }
@@ -742,7 +702,7 @@ export default class CRUDComponentField extends VueComponentBase
                 continue;
             }
 
-            // Sur Manytoone on peut se baser sur this_field module_table_field_id pour ignorer les autres
+            // Sur Manytoone ou RefRanges on peut se baser sur this_field module_table_field_id pour ignorer les autres
             if (field.field_name != this.field.module_table_field_id) {
                 context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
                 if (query_currently_selected_vos) {
@@ -754,9 +714,9 @@ export default class CRUDComponentField extends VueComponentBase
         for (const i in target_fields) {
             const field = target_fields[i];
 
-            if ((field.field_type != ModuleTableFieldVO.FIELD_TYPE_refrange_array) ||
-                (field.field_type != ModuleTableFieldVO.FIELD_TYPE_foreign_key) ||
-                (field.field_type != ModuleTableFieldVO.FIELD_TYPE_file_ref) ||
+            if ((field.field_type != ModuleTableFieldVO.FIELD_TYPE_refrange_array) &&
+                (field.field_type != ModuleTableFieldVO.FIELD_TYPE_foreign_key) &&
+                (field.field_type != ModuleTableFieldVO.FIELD_TYPE_file_ref) &&
                 (field.field_type != ModuleTableFieldVO.FIELD_TYPE_image_ref)) {
                 continue;
             }
@@ -772,6 +732,16 @@ export default class CRUDComponentField extends VueComponentBase
 
             // Sur ManyToOne, on a aucun field à garder sur target
             if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
+                context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                if (query_currently_selected_vos) {
+                    query_currently_selected_vos.set_discarded_field_path(field.module_table_vo_type, field.field_name);
+                }
+                continue;
+            }
+
+
+            // Sur un refranges, on a aucun field à garder sur les sources et dest
+            if (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE) {
                 context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
                 if (query_currently_selected_vos) {
                     query_currently_selected_vos.set_discarded_field_path(field.module_table_vo_type, field.field_name);
