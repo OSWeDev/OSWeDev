@@ -4,14 +4,9 @@ import APIDefinition from '../API/vos/APIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import UserVO from '../AccessPolicy/vos/UserVO';
-import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
-import ContextQueryVO from '../ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import DatatableField from '../DAO/vos/datatable/DatatableField';
-import FieldFiltersVO from '../DashboardBuilder/vos/FieldFiltersVO';
-import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
@@ -22,7 +17,6 @@ import ExportContextQueryToXLSXQueryVO from './vos/ExportContextQueryToXLSXQuery
 import ExportHistoricVO from './vos/ExportHistoricVO';
 import ExportVarIndicatorVO from './vos/ExportVarIndicatorVO';
 import ExportVarcolumnConfVO from './vos/ExportVarcolumnConfVO';
-import ExportContextQueryToXLSXParamVO, { ExportContextQueryToXLSXParamVOStatic } from './vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportDataToMultiSheetsXLSXParamVO from './vos/apis/ExportDataToMultiSheetsXLSXParamVO';
 import ExportDataToXLSXParamVO, { ExportDataToXLSXParamVOStatic } from './vos/apis/ExportDataToXLSXParamVO';
 import ExportLogVO from './vos/apis/ExportLogVO';
@@ -35,37 +29,36 @@ export default class ModuleDataExport extends Module {
     public static APINAME_ExportDataToXLSXParamVOFile: string = 'ExportDataToXLSXParamVOFile';
     public static APINAME_ExportDataToMultiSheetsXLSXParamVO: string = 'ExportDataToMultiSheetsXLSXParamVO';
     public static APINAME_ExportDataToMultiSheetsXLSXParamVOFile: string = 'ExportDataToMultiSheetsXLSXParamVOFile';
-    public static APINAME_ExportContextQueryToXLSXParamVO: string = 'ExportContextQueryToXLSXParamVO';
 
     private static instance: ModuleDataExport = null;
 
-    public exportContextQueryToXLSX: (
-        filename: string,
-        context_query: ContextQueryVO,
-        ordered_column_list: string[],
-        column_labels: { [field_name: string]: string },
-        exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string },
+    // public exportContextQueryToXLSX: (
+    //     filename: string,
+    //     context_query: ContextQueryVO,
+    //     ordered_column_list: string[],
+    //     column_labels: { [field_name: string]: string },
+    //     exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string },
 
-        columns: TableColumnDescVO[],
-        fields: { [datatable_field_uid: string]: DatatableField<any, any> },
-        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO },
-        active_field_filters: FieldFiltersVO,
-        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } },
-        active_api_type_ids: string[],
-        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
+    //     columns: TableColumnDescVO[],
+    //     fields: { [datatable_field_uid: string]: DatatableField<any, any> },
+    //     varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO },
+    //     active_field_filters: FieldFiltersVO,
+    //     custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } },
+    //     active_api_type_ids: string[],
+    //     discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
 
-        is_secured: boolean,
-        file_access_policy_name: string,
-        target_user_id: number,
-        do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } },
+    //     is_secured: boolean,
+    //     file_access_policy_name: string,
+    //     target_user_id: number,
+    //     do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } },
 
-        export_active_field_filters: boolean,
-        export_vars_indicator: boolean,
-        send_email_with_export_notification: boolean,
+    //     export_active_field_filters: boolean,
+    //     export_vars_indicator: boolean,
+    //     send_email_with_export_notification: boolean,
 
-        // vars_indicator: ExportVarIndicatorVO[],
-        vars_indicator: ExportVarIndicatorVO,
-    ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO);
+    //     // vars_indicator: ExportVarIndicatorVO[],
+    //     vars_indicator: ExportVarIndicatorVO,
+    // ) => Promise<string> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleDataExport>().exportContextQueryToXLSX);
 
     public exportDataToXLSX: (
         filename: string,
@@ -124,12 +117,12 @@ export default class ModuleDataExport extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<ExportContextQueryToXLSXParamVO, string>(
-            ModuleAccessPolicy.POLICY_FO_ACCESS,
-            ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO,
-            [FileVO.API_TYPE_ID],
-            ExportContextQueryToXLSXParamVOStatic
-        ));
+        // APIControllerWrapper.registerApi(new PostAPIDefinition<ExportContextQueryToXLSXParamVO, string>(
+        //     ModuleAccessPolicy.POLICY_FO_ACCESS,
+        //     ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO,
+        //     [FileVO.API_TYPE_ID],
+        //     ExportContextQueryToXLSXParamVOStatic
+        // ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, string>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
@@ -209,7 +202,8 @@ export default class ModuleDataExport extends Module {
 
     private initializeExportContextQueryToXLSXQueryVO() {
         const filename = ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().filename, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Nom du fichier" }), true);
-        const target_user_id = ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().target_user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateur" }), true);
+        const target_user_id = ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().target_user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, DefaultTranslationVO.create_new({ 'fr-fr': "Destinataires" }), false)
+            .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
         const datatable_fields = [
             filename,
@@ -231,6 +225,7 @@ export default class ModuleDataExport extends Module {
             ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().do_not_use_filter_by_datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, DefaultTranslationVO.create_new({ 'fr-fr': "Filtres à ignorer" }), false),
 
             ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().export_active_field_filters, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': "Exporter les filtres actifs" }), false),
+            ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().active_field_filters_column_labels, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, DefaultTranslationVO.create_new({ 'fr-fr': "Libellés des filtres actifs" }), false),
             ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().export_vars_indicator, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': "Exporter les KPIs" }), false),
             ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().send_email_with_export_notification, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': "Envoyer par mail à un destinataire spécifique" }), false),
 

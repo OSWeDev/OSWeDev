@@ -134,7 +134,7 @@
 
                                             .row.export_frequency_wrapper 
                                             
-                                                .export_frequency_every.col-md-6
+                                                .export_frequency_every.col-md-6(v-if='!!export_frequency')
                                                     .input_label {{ label('dashboard_viewer.favorites_filters.export_frequency_every') }}
                                                     .input_wrapper
                                                         input(
@@ -154,7 +154,7 @@
                                                             :searchable="false"
                                                             :allow-empty="true"
                                                             track-by="value"
-                                                            :custom-label='(e) => label(e.label)'
+                                                            :custom-label='(e) => t(e.label)'
                                                             
                                                             :deselect-group-label='label("multiselect.deselectGroupLabel")'
                                                             :select-group-label='label("multiselect.selectGroupLabel")'
@@ -177,7 +177,29 @@
                                                             max='31'
                                                             min='1'
                                                         )
-                                    
+
+                                                .export_frequency_prefered_time.col-md-12(v-if='export_frequency != null')
+                                                    .input_label {{ label('dashboard_viewer.favorites_filters.export_frequency_prefered_time') }}
+                                                    .input_wrapper
+                                                        input(
+                                                            type="time",
+                                                            :value="floatToTime(export_frequency.prefered_time)",
+                                                            @input="updateValue($event.target.value)"
+                                                        )
+
+
+                                            .export_to_users(v-if='!!favorites_filters?.export_params')
+                                                .input_label {{ label('dashboard_viewer.favorites_filters.export_to_users') }}
+                                                .row.select_export_to_users_options
+                                                    div.option.col-md-12
+                                                        Crudcomponentfield(
+                                                            @onchangevo='on_edit_export_to_user_id_ranges'
+                                                            :field="editable_field_export_to_user_id_ranges"
+                                                            :vo="favorites_filters.export_params"
+                                                            :auto_update_field_value='true'
+                                                        )
+
+
                                             hr.my-12
 
                                             h5.input_label {{ label('dashboard_viewer.favorites_filters.exportable_data') }}

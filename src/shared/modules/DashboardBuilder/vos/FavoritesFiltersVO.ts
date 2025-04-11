@@ -1,10 +1,10 @@
 
 
-import IFavoritesFiltersOptions from '../interfaces/IFavoritesFiltersOptions';
-import IExportParamsProps from '../interfaces/IExportParamsProps';
-import DashboardBuilderController from "../DashboardBuilderController";
 import IDistantVOBase from "../../IDistantVOBase";
 import AbstractVO from '../../VO/abstract/AbstractVO';
+import DashboardBuilderController from "../DashboardBuilderController";
+import IFavoritesFiltersOptions from '../interfaces/IFavoritesFiltersOptions';
+import FavoritesFiltersExportParamsVO from './FavoritesFiltersExportParamsVO';
 import FieldFiltersVO from './FieldFiltersVO';
 
 /**
@@ -31,7 +31,7 @@ export default class FavoritesFiltersVO extends AbstractVO implements IDistantVO
     public field_filters: FieldFiltersVO;
 
     // JSON object of export configurations
-    public export_params: IExportParamsProps;
+    public export_params: FavoritesFiltersExportParamsVO;
 
     // JSON object of favorites filters behaviors options (ex: overwrite active_field_filters, etc...)
     public options: IFavoritesFiltersOptions;

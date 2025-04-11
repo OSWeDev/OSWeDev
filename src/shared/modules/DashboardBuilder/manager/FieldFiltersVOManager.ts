@@ -250,6 +250,78 @@ export default class FieldFiltersVOManager {
         );
     }
 
+    public static async get_readable_field_ref_labels_from_filters(
+        field_filters: FieldFiltersVO,
+        page_id?: number // Case when we need to be specific to a page (TODO: should always be specific)
+    ): Promise<{ [vo_field_ref_id: string]: string }> {
+
+        field_filters = cloneDeep(field_filters);
+
+        // Get all required filters props from widgets_options
+        let field_filters_porps: Array<{ is_filter_hidden: boolean, vo_field_ref: VOFieldRefVO }> = [];
+
+        const res: { [vo_field_ref_id: string]: string } = {};
+
+        if (page_id != null) {
+            // Get all widgets_options of the given dashboard_page id
+            const widgets_options = await DashboardPageWidgetVOManager.find_all_widgets_options_by_page_id(
+                page_id
+            );
+
+            // Get all field_filters_porps from widgets_options
+            field_filters_porps = widgets_options.map((widget_options) => {
+                const vo_field_ref: VOFieldRefVO = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+                    widget_options,
+                );
+
+                return {
+                    is_filter_hidden: widget_options.hide_filter ?? false,
+                    vo_field_ref,
+                };
+            });
+        }
+
+        for (const api_type_id in field_filters) {
+            const filters = field_filters[api_type_id];
+
+            for (const field_id in filters) {
+                let vo_field_ref: VOFieldRefVO = null;
+
+                // Path to find the actual filter
+                if (field_filters_porps?.length > 0) {
+
+                    // Find vo_field_ref_vo from vo_field_ref_vos
+                    const field_filters_prop = field_filters_porps.find((props) => {
+                        const _vo_field_ref = props.vo_field_ref;
+
+                        const has_api_type_id = _vo_field_ref?.api_type_id == api_type_id;
+                        const has_field_id = _vo_field_ref?.field_id == field_id;
+
+                        return has_api_type_id && has_field_id;
+                    });
+
+                    vo_field_ref = field_filters_prop?.vo_field_ref ?? null;
+                }
+
+                if (!vo_field_ref) {
+                    vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+                        { vo_field_ref: { api_type_id, field_id } }
+                    );
+                }
+
+                // The actual label of the filter
+                const label_code_text: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
+                    vo_field_ref,
+                    page_id
+                );
+
+                res[vo_field_ref.api_type_id + '.' + vo_field_ref.field_id] = label_code_text;
+            }
+        }
+
+        return res;
+    }
+
     /**
      * merge_readable_field_filters
      * - Merge readable_field_filters with each other

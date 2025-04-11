@@ -73,7 +73,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
                     next_export.discarded_field_paths,
                     next_export.is_secured,
                     next_export.file_access_policy_name,
-                    next_export.target_user_id,
+                    next_export.target_user_id_ranges,
                     next_export.do_not_use_filter_by_datatable_field_uid,
                     next_export.export_active_field_filters,
                     next_export.export_vars_indicator,

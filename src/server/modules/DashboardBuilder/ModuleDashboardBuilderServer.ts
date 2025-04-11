@@ -62,6 +62,30 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'StatVO.AGGREGATOR_MAX'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Heure'
+        }, 'export_frequency_prefered_time.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Envoyer aux utilisateurs suivants'
+        }, 'dashboard_viewer.favorites_filters.export_to_users.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Heure préférée'
+        }, 'dashboard_viewer.favorites_filters.export_frequency_prefered_time.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Jour'
+        }, 'favorites_filters_export_frequency.GRANULARITY_DAY'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Mois'
+        }, 'favorites_filters_export_frequency.GRANULARITY_MONTH'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Année'
+        }, 'favorites_filters_export_frequency.GRANULARITY_YEAR'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Ouvrir le dashboard'
         }, 'DashboardCycleChecker.open_dashboard.___LABEL___'));
 

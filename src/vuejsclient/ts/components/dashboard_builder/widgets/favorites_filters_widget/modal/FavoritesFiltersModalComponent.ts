@@ -1,42 +1,38 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
-import MonthFilterWidgetOptionsButtonSetterComponent from '../../month_filter_widget/options_button_setter/MonthFilterWidgetOptionsButtonSetterComponent';
-import YearFilterWidgetOptionsButtonSetterComponent from '../../year_filter_widget/options_button_setter/YearFilterWidgetOptionsButtonSetterComponent';
-import IReadableFieldFilters from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IReadableFieldFilters';
-import IFavoritesFiltersOptions from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IFavoritesFiltersOptions';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../../../../../shared/modules/DAO/ModuleTableFieldController';
+import RefRangesReferenceDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
+import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
+import IFavoritesFiltersOptions from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IFavoritesFiltersOptions';
+import IReadableFieldFilters from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IReadableFieldFilters';
 import DashboardPageWidgetVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
-import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import VOFieldRefVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
-import IExportFrequency from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IExportFrequency';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
+import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import FavoritesFiltersExportFrequencyVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersExportFrequencyVO';
+import FavoritesFiltersExportParamsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersExportParamsVO';
+import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
 import FavoritesFiltersWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
-import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import MonthFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
-import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
-import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
+import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
+import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
+import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../../../VueAppController';
 import VueComponentBase from '../../../../VueComponentBase';
+import MonthFilterWidgetOptionsButtonSetterComponent from '../../month_filter_widget/options_button_setter/MonthFilterWidgetOptionsButtonSetterComponent';
+import YearFilterWidgetOptionsButtonSetterComponent from '../../year_filter_widget/options_button_setter/YearFilterWidgetOptionsButtonSetterComponent';
 import './FavoritesFiltersModalComponent.scss';
-
-export enum ExportFrequencyGranularity {
-    DAY = "day",
-    MONTH = "month",
-    YEAR = "year",
-}
-
-export const ExportFrequencyGranularityLabel: { [granularity in ExportFrequencyGranularity]: string } = {
-    [ExportFrequencyGranularity.DAY]: 'label.day',
-    [ExportFrequencyGranularity.MONTH]: 'label.month',
-    [ExportFrequencyGranularity.YEAR]: 'label.year',
-};
 
 // TODO: load all configurable dates page_widgets of the page
 // TODO: the FavoritesFiltersWidgetOptionsVO should have a property to know if we should refer to its dates configuration or not (while exporting)
@@ -48,6 +44,7 @@ export const ExportFrequencyGranularityLabel: { [granularity in ExportFrequencyG
     components: {
         Monthfilterwidgetoptionsbuttonsettercomponent: MonthFilterWidgetOptionsButtonSetterComponent,
         Yearfilterwidgetoptionsbuttonsettercomponent: YearFilterWidgetOptionsButtonSetterComponent,
+        Crudcomponentfield: () => import('../../../../crud/component/field/CRUDComponentField'),
     }
 })
 export default class FavoritesFiltersModalComponent extends VueComponentBase {
@@ -76,11 +73,9 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
     // Depend on if the the user can modify dates filters parameters|configuration for the export
     private is_field_filters_fixed_dates: boolean = true;
 
-    private export_frequency: IExportFrequency = { every: null, granularity: null, day_in_month: null };
+    private export_frequency: FavoritesFiltersExportFrequencyVO = null;
 
-    private selected_export_frequency_granularity: {
-        label?: string, value: 'day' | 'month' | 'year'
-    } = { label: null, value: null }; // e.g. day, month, year
+    private selected_export_frequency_granularity: { label: string, value: number } = { label: FavoritesFiltersExportFrequencyVO.GRANULARITY_LABELS[FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY], value: FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY };
 
     private selected_favorite_field_filters: FieldFiltersVO = null;
     private selected_exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO } = null;
@@ -113,6 +108,147 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         50,
         false
     );
+
+
+
+    /**
+     * Get Frequency Granularity Options
+     *
+     * @return {Array<{ label: string, value: number }>}
+     */
+    get export_frequency_granularity_options(): Array<{ label: string, value: number }> {
+        const options: Array<{ label: string, value: number }> = [];
+
+        for (const key in FavoritesFiltersExportFrequencyVO.GRANULARITY_LABELS) {
+            options.push({ label: FavoritesFiltersExportFrequencyVO.GRANULARITY_LABELS[key], value: parseInt(key) });
+        }
+
+        return options;
+    }
+
+    get can_configure_export(): boolean {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return this.widget_options?.can_configure_export ?? false;
+    }
+
+    get can_configure_date_filters(): boolean {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return this.widget_options?.can_configure_date_filters ?? false;
+    }
+
+    get send_email_with_export_notification(): boolean {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return this.widget_options?.send_email_with_export_notification ?? false;
+    }
+
+    /**
+     * Get base_filter
+     */
+    get base_filter(): string {
+        return 'filter_opt_';
+    }
+
+
+    get editable_field_export_to_user_id_ranges(): RefRangesReferenceDatatableFieldVO<any> {
+        const field = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[FavoritesFiltersExportParamsVO.API_TYPE_ID][field_names<FavoritesFiltersExportParamsVO>().export_to_user_id_ranges];
+        const foreign_table = ModuleTableController.module_tables_by_vo_type[field.foreign_ref_vo_type];
+
+        return RefRangesReferenceDatatableFieldVO.createNew(
+            field.field_name,
+            ModuleTableController.module_tables_by_vo_type[field.foreign_ref_vo_type],
+            [SimpleDatatableFieldVO.createNew(foreign_table.default_label_field.field_id)],
+        ).setModuleTable(ModuleTableController.module_tables_by_vo_type[FavoritesFiltersExportParamsVO.API_TYPE_ID]);
+    }
+
+    /**
+     * Watch on page_widget
+     */
+    @Watch('page_widget', { immediate: true, deep: true })
+    private async onchange_page_widget() {
+        if (!this.page_widget) {
+            return;
+        }
+
+        this.widget_options = this.get_widget_options();
+
+        // Throttle load_all_dates_page_widgets
+        this.throttled_load_all_dates_page_widgets();
+    }
+
+    /**
+     * Watch on selectionnable_active_field_filters
+     *  - Happen on component each time selectionnable_active_field_filters changes
+     *  - Load readable_field_filters
+     */
+    @Watch('selectionnable_active_field_filters', { immediate: true })
+    private async onchange_selectionnable_active_field_filters() {
+        // Throttle load_readable_field_filters
+        this.throttled_load_readable_field_filters();
+    }
+
+    /**
+     * Watch on is_field_filters_fixed_dates
+     *  - Happen on component each time is_field_filters_fixed_dates changes
+     *  - Load readable_field_filters
+     */
+    @Watch('is_field_filters_fixed_dates', { immediate: true })
+    private async onchange_is_field_filters_fixed_dates() {
+        // Throttle load_readable_field_filters
+        this.throttled_load_readable_field_filters();
+
+        this.init_dates_page_widgets_custom_options_by_field_id();
+    }
+
+    /**
+     * Watch on is_modal_open
+     *  - Happen on component each time is_modal_open changes
+     *
+     * @returns {void}
+     */
+    @Watch('is_modal_open', { immediate: true })
+    private is_modal_open_watcher(): void {
+        this.handle_modal_state();
+    }
+
+    /**
+     * Watch on selected_export_frequency_granularity
+     *  - Happen on component each time selected_export_frequency_granularity changes
+     *
+     * @returns {void}
+     */
+    @Watch('selected_export_frequency_granularity', { immediate: true })
+    private onchange_selected_export_frequency_granularity_watcher(): void {
+        if (!this.export_frequency) {
+            return;
+        }
+        this.export_frequency.granularity = this.selected_export_frequency_granularity?.value;
+    }
+
+    /**
+     * Watch on can_configure_date_filters
+     *
+     * @returns {void}
+     */
+    @Watch('can_configure_date_filters', { immediate: true })
+    private onchange_can_configure_date_filters(): void {
+        if (this.can_configure_date_filters) {
+            // TODO: load the dates configuration of the page_widget
+            // TODO: Display to the user the date widgets for clickables configuration
+            // TODO: remove date context_filters from the readable_field_filters
+        } else {
+            // TODO: keep the date context_filters of the entered field_filters
+        }
+    }
+
 
     /**
      * Open Modal For Creation
@@ -222,87 +358,6 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
     }
 
     /**
-     * Watch on page_widget
-     */
-    @Watch('page_widget', { immediate: true, deep: true })
-    private async onchange_page_widget() {
-        if (!this.page_widget) {
-            return;
-        }
-
-        this.widget_options = this.get_widget_options();
-
-        // Throttle load_all_dates_page_widgets
-        this.throttled_load_all_dates_page_widgets();
-    }
-
-    /**
-     * Watch on selectionnable_active_field_filters
-     *  - Happen on component each time selectionnable_active_field_filters changes
-     *  - Load readable_field_filters
-     */
-    @Watch('selectionnable_active_field_filters', { immediate: true })
-    private async onchange_selectionnable_active_field_filters() {
-        // Throttle load_readable_field_filters
-        this.throttled_load_readable_field_filters();
-    }
-
-    /**
-     * Watch on is_field_filters_fixed_dates
-     *  - Happen on component each time is_field_filters_fixed_dates changes
-     *  - Load readable_field_filters
-     */
-    @Watch('is_field_filters_fixed_dates', { immediate: true })
-    private async onchange_is_field_filters_fixed_dates() {
-        // Throttle load_readable_field_filters
-        this.throttled_load_readable_field_filters();
-
-        this.init_dates_page_widgets_custom_options_by_field_id();
-    }
-
-    /**
-     * Watch on is_modal_open
-     *  - Happen on component each time is_modal_open changes
-     *
-     * @returns {void}
-     */
-    @Watch('is_modal_open', { immediate: true })
-    private is_modal_open_watcher(): void {
-        this.handle_modal_state();
-    }
-
-    /**
-     * Watch on selected_export_frequency_granularity
-     *  - Happen on component each time selected_export_frequency_granularity changes
-     *
-     * @returns {void}
-     */
-    @Watch('selected_export_frequency_granularity', { immediate: true })
-    private onchange_selected_export_frequency_granularity_watcher(): void {
-        this.export_frequency.granularity = this.selected_export_frequency_granularity?.value ?? null;
-
-        if (this.selected_export_frequency_granularity?.value != 'month') {
-            this.export_frequency.day_in_month = null;
-        }
-    }
-
-    /**
-     * Watch on can_configure_date_filters
-     *
-     * @returns {void}
-     */
-    @Watch('can_configure_date_filters', { immediate: true })
-    private onchange_can_configure_date_filters(): void {
-        if (this.can_configure_date_filters) {
-            // TODO: load the dates configuration of the page_widget
-            // TODO: Display to the user the date widgets for clickables configuration
-            // TODO: remove date context_filters from the readable_field_filters
-        } else {
-            // TODO: keep the date context_filters of the entered field_filters
-        }
-    }
-
-    /**
      * load_modal_data_from_favorite_filters
      *
      * @returns {void}
@@ -338,17 +393,23 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
 
         // Export settings
         this.is_export_planned = favorites_filters.export_params?.is_export_planned ?? false;
-        this.export_frequency = favorites_filters.export_params?.export_frequency ?? {
-            every: null, granularity: null, day_in_month: null
-        };
+        this.export_frequency = favorites_filters.export_params?.export_frequency ?? new FavoritesFiltersExportFrequencyVO();
+        this.export_frequency.every = (this.export_frequency?.every != null) ? this.export_frequency.every : 1;
+        this.export_frequency.granularity = (this.export_frequency?.granularity != null) ? this.export_frequency.granularity : FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY;
+        this.export_frequency.day_in_month = (this.export_frequency?.day_in_month != null) ? this.export_frequency.day_in_month : 1;
+        this.export_frequency.prefered_time = (this.export_frequency?.prefered_time != null) ? this.export_frequency.prefered_time : 3;
 
-        const export_frequency_granularity = this.export_frequency.granularity ?? null;
-        if (export_frequency_granularity) {
+        const export_frequency_granularity = this.export_frequency?.granularity ?? FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY;
+        if (export_frequency_granularity != null) {
             this.selected_export_frequency_granularity = {
-                label: ExportFrequencyGranularityLabel[export_frequency_granularity],
+                label: FavoritesFiltersExportFrequencyVO.GRANULARITY_LABELS[export_frequency_granularity],
                 value: export_frequency_granularity
             };
         }
+
+        favorites_filters.export_params.export_to_user_id_ranges = (favorites_filters.export_params?.export_to_user_id_ranges) ?
+            favorites_filters.export_params.export_to_user_id_ranges :
+            [RangeHandler.create_single_elt_NumRange(VueAppController.getInstance().data_user.id, NumSegment.TYPE_INT)];
 
         // Exportable data settings
         this.selected_exportable_data = favorites_filters.export_params?.exportable_data ?? null;
@@ -478,7 +539,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
             custom_dates_widgets_options_by_field_id,
         };
 
-        const export_frequency: IExportFrequency = is_export_planned ? this.export_frequency : null;
+        const export_frequency: FavoritesFiltersExportFrequencyVO = is_export_planned ? this.export_frequency : null;
 
         const exportable_data: {
             [title_name_code: string]: ExportContextQueryToXLSXParamVO
@@ -495,22 +556,39 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
             exportable.send_email_with_export_notification = this.send_email_with_export_notification;
         }
 
-        const favorites_filters: FavoritesFiltersVO = new FavoritesFiltersVO().from({
-            ...this.favorites_filters,
-            field_filters: this.selected_favorite_field_filters,
-            name: this.favorites_filters_name,
-            export_params: {
-                ...this.favorites_filters?.export_params,
-                is_export_planned,
-                export_frequency,
-                exportable_data,
-            },
-            options,
-        });
+        const favorites_filters: FavoritesFiltersVO = Object.assign(new FavoritesFiltersVO(), this.favorites_filters);
+        favorites_filters.field_filters = this.selected_favorite_field_filters;
+        favorites_filters.name = this.favorites_filters_name;
+        favorites_filters.export_params = favorites_filters.export_params ? favorites_filters.export_params : new FavoritesFiltersExportParamsVO();
+        favorites_filters.export_params.is_export_planned = is_export_planned;
+        favorites_filters.export_params.export_frequency = export_frequency;
+        favorites_filters.export_params.exportable_data = exportable_data;
+        favorites_filters.export_params.field_filters_column_translatable_titles = this.get_field_filters_column_translatable_titles();
+        favorites_filters.export_params.export_to_user_id_ranges = favorites_filters.export_params.export_to_user_id_ranges ? RangeHandler.cloneArrayFrom(favorites_filters.export_params.export_to_user_id_ranges) : [RangeHandler.create_single_elt_NumRange(VueAppController.getInstance().data_user.id, NumSegment.TYPE_INT)];
+        favorites_filters.options = options;
 
         await this.on_validation_callback(favorites_filters);
 
         this.is_modal_open = false;
+    }
+
+    private get_field_filters_column_translatable_titles(): { [vo_field_ref_id: string]: string } {
+        const res: { [vo_field_ref_id: string]: string } = {};
+
+        for (const i in this.readable_field_filters) {
+            const readable_field_filter = this.readable_field_filters[i];
+
+            if (!readable_field_filter) {
+                continue;
+            }
+
+            const field_id = readable_field_filter.vo_field_ref.field_id;
+            const api_type_id = readable_field_filter.vo_field_ref.api_type_id;
+
+            res[`${api_type_id}.${field_id}`] = readable_field_filter.label;
+        }
+
+        return res;
     }
 
     /**
@@ -546,11 +624,11 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
                 this.form_errors.push(this.label('dashboard_viewer.favorites_filters.export_frequency_every_required'));
             }
 
-            if (!(this.export_frequency.granularity?.length > 0)) {
+            if (this.export_frequency.granularity == null) {
                 this.form_errors.push(this.label('dashboard_viewer.favorites_filters.export_frequency_granularity_required'));
             }
 
-            if (this.export_frequency.granularity === 'month' && !(this.export_frequency.day_in_month > 0)) {
+            if ((this.export_frequency.granularity === FavoritesFiltersExportFrequencyVO.GRANULARITY_MONTH) && !(this.export_frequency.day_in_month > 0)) {
                 this.form_errors.push(this.label('dashboard_viewer.favorites_filters.export_frequency_day_in_month_required'));
             }
 
@@ -600,8 +678,8 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
     private reset_modal(): void {
         this.form_errors = [];
         this.active_tab_view = 'selection_tab';
-        this.export_frequency = { every: null, granularity: null, day_in_month: null };
-        this.selected_export_frequency_granularity = { label: null, value: null };
+        this.export_frequency = new FavoritesFiltersExportFrequencyVO();
+        this.selected_export_frequency_granularity = { label: FavoritesFiltersExportFrequencyVO.GRANULARITY_LABELS[FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY], value: FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY };
         this.dates_page_widgets_custom_options_by_field_id = {};
         this.dates_page_widgets_by_field_id = {};
         this.selected_favorite_field_filters = null;
@@ -621,11 +699,16 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
      */
     private reset_export_plan(): void {
         this.is_export_planned = false;
-        this.selected_export_frequency_granularity = null;
+        this.selected_export_frequency_granularity = { label: FavoritesFiltersExportFrequencyVO.GRANULARITY_LABELS[FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY], value: FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY };
 
-        this.export_frequency.day_in_month = null;
-        this.export_frequency.granularity = null;
-        this.export_frequency.every = null;
+        if (this.favorites_filters && this.favorites_filters.export_params && this.favorites_filters.export_params.export_to_user_id_ranges) {
+            this.favorites_filters.export_params.export_to_user_id_ranges = [RangeHandler.create_single_elt_NumRange(VueAppController.getInstance().data_user.id, NumSegment.TYPE_INT)];
+        }
+
+        this.export_frequency.day_in_month = 1;
+        this.export_frequency.granularity = FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY;
+        this.export_frequency.every = 1;
+        this.export_frequency.prefered_time = 3;
     }
 
     /**
@@ -709,7 +792,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
      * @return {boolean}
      */
     private can_add_export_frequency_day_in_month(): boolean {
-        return this.selected_export_frequency_granularity?.value == 'month';
+        return this.selected_export_frequency_granularity?.value == FavoritesFiltersExportFrequencyVO.GRANULARITY_MONTH;
     }
 
     /**
@@ -921,49 +1004,34 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         return options;
     }
 
-    /**
-     * Get Frequency Granularity Options
-     *
-     * @return {Array<{ label: string, value: string }>}
-     */
-    get export_frequency_granularity_options(): Array<{ label: string, value: string }> {
-        const options: Array<{ label: string, value: string }> = [];
-
-        for (const key in ExportFrequencyGranularityLabel) {
-            options.push({ label: ExportFrequencyGranularityLabel[key], value: key });
-        }
-
-        return options;
+    private floatToTime(value: number): string {
+        // // On décale en fonction du décalage horaire
+        // const offset = new Date().getTimezoneOffset() / 60;
+        const hours = Math.floor(value);
+        // const hours = Math.floor(value) + offset;
+        const minutes = Math.round((value - hours) * 60);
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     }
 
-    get can_configure_export(): boolean {
-        if (!this.widget_options) {
-            return false;
-        }
+    private timeToFloat(value: string): number {
+        const [hours, minutes] = value.split(':').map(Number);
 
-        return this.widget_options?.can_configure_export ?? false;
+        // // On décale en fonction du décalage horaire
+        // const offset = new Date().getTimezoneOffset() / 60;
+
+        // return (hours - offset) + (minutes / 60);
+        return hours + (minutes / 60);
     }
 
-    get can_configure_date_filters(): boolean {
-        if (!this.widget_options) {
-            return false;
+    private updateValue(value: string) {
+        if (!this.export_frequency) {
+            return;
         }
 
-        return this.widget_options?.can_configure_date_filters ?? false;
+        const floatValue = this.timeToFloat(value);
+        this.export_frequency.prefered_time = floatValue;
     }
 
-    get send_email_with_export_notification(): boolean {
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return this.widget_options?.send_email_with_export_notification ?? false;
-    }
-
-    /**
-     * Get base_filter
-     */
-    get base_filter(): string {
-        return 'filter_opt_';
+    private on_edit_export_to_user_id_ranges() {
     }
 }

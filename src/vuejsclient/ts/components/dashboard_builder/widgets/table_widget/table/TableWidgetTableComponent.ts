@@ -43,7 +43,7 @@ import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import ModuleDataExport from '../../../../../../../shared/modules/DataExport/ModuleDataExport';
+import ExportContextQueryToXLSXQueryVO from '../../../../../../../shared/modules/DataExport/vos/ExportContextQueryToXLSXQueryVO';
 import ExportVarIndicatorVO from '../../../../../../../shared/modules/DataExport/vos/ExportVarIndicatorVO';
 import ExportVarcolumnConfVO from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConfVO';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
@@ -88,6 +88,7 @@ import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalCom
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import './TableWidgetTableComponent.scss';
+import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -2981,7 +2982,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 return;
             }
 
-            await ModuleDataExport.getInstance().exportContextQueryToXLSX(
+            const query_param_vo: ExportContextQueryToXLSXQueryVO = ExportContextQueryToXLSXQueryVO.create_new(
                 param.filename,
                 param.context_query,
                 param.ordered_column_list,
@@ -2996,13 +2997,15 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 param.discarded_field_paths,
                 param.is_secured,
                 param.file_access_policy_name,
-                VueAppBase.getInstance().appController?.data_user?.id,
+                VueAppBase.getInstance().appController.data_user ? [RangeHandler.create_single_elt_NumRange(VueAppBase.getInstance().appController.data_user.id, NumSegment.TYPE_INT)] : null,
                 param.do_not_use_filter_by_datatable_field_uid,
                 param.export_active_field_filters,
+                await this.get_field_filters_column_translatable_titles(),
                 param.export_vars_indicator,
                 param.send_email_with_export_notification,
                 param.vars_indicator,
             );
+            await ModuleDAO.getInstance().insertOrUpdateVO(query_param_vo);
         }
     }
 
@@ -3279,5 +3282,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
 
         return exportable_datatable_data;
+    }
+
+    private async get_field_filters_column_translatable_titles(): Promise<{ [vo_field_ref_id: string]: string }> {
+        const active_field_filters = cloneDeep(this.get_active_field_filters);
+
+        return await FieldFiltersVOManager.get_readable_field_ref_labels_from_filters(
+            active_field_filters,
+            this.dashboard_page?.id,
+        );
     }
 }

@@ -640,7 +640,8 @@ export default class CRUDComponentField extends VueComponentBase
         // On peut gérer que des refs
         if ((this.field.type != DatatableField.MANY_TO_ONE_FIELD_TYPE) &&
             (this.field.type != DatatableField.MANY_TO_MANY_FIELD_TYPE) &&
-            (this.field.type != DatatableField.ONE_TO_MANY_FIELD_TYPE)) {
+            (this.field.type != DatatableField.ONE_TO_MANY_FIELD_TYPE) &&
+            (this.field.type != DatatableField.REF_RANGES_FIELD_TYPE)) {
 
             throw new Error('CRUDComponentField.update_visible_options: Not implemented for field type: ' + this.field.type);
         }
