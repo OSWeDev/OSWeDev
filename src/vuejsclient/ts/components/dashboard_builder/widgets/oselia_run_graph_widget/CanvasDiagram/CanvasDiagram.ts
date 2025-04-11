@@ -63,7 +63,7 @@ export default class CanvasDiagram extends VueComponentBase {
     // PROPS
     // --------------------------------------------------------------------------
     @Prop({ required: true })
-        items!: { [id: string]: OseliaRunTemplateVO | OseliaRunVO | GPTAssistantAPIFunctionVO | OseliaRunFunctionCallVO};
+        items!: { [id: string]: OseliaRunTemplateVO | OseliaRunVO | GPTAssistantAPIFunctionVO | OseliaRunFunctionCallVO };
 
     @Prop({ required: true })
         isRunVo!: boolean;
@@ -76,6 +76,9 @@ export default class CanvasDiagram extends VueComponentBase {
 
     @Prop({ default: false })
         reDraw!: boolean;
+
+    @Prop({ default: false })
+        executeAutofit!: boolean;
 
     // --------------------------------------------------------------------------
     // STORE GETTERS / ACTIONS
@@ -107,7 +110,7 @@ export default class CanvasDiagram extends VueComponentBase {
     private mouseDownX: number = 0;
     private mouseDownY: number = 0;
     private moveThreshold: number = 5;
-    private draggingGhostPos: { x: number; y: number; w: number;  h:number} | null = null;
+    private draggingGhostPos: { x: number; y: number; w: number; h: number } | null = null;
 
     // MENU "+"
     private menuBlock: MenuBlockState = {
@@ -147,9 +150,19 @@ export default class CanvasDiagram extends VueComponentBase {
         },
         20
     );
+
     // --------------------------------------------------------------------------
-    // COMPUTED (façon "getter") : blockPositions / drawnLinks
+    // COMPUTED
     // --------------------------------------------------------------------------
+
+    /**
+     * [MODIF] Indique s'il y a des données ou non.
+     * S'il n'y a pas de données, on désactive les interactions (zoom, drag, etc.).
+     */
+    get hasData(): boolean {
+        return !!this.items && Object.keys(this.items).length > 0;
+    }
+
     get blockPositions(): { [id: string]: BlockPosition } {
         if (this.isRunVo) {
             const { blockPositions } = DiagramLayout.layoutRunDiagram(
@@ -275,8 +288,8 @@ export default class CanvasDiagram extends VueComponentBase {
         }
     }
 
-    @Watch('reDraw')
-    onReDrawChange() {
+    @Watch('reDraw', { immediate: true })
+    async onReDrawChange() {
         // On est dans le cas d'un clear
         if (!this.items) {
             this.adjacency = {};
@@ -284,49 +297,57 @@ export default class CanvasDiagram extends VueComponentBase {
             this.hoveredItemId = null;
         }
         // On force un simple re-render
+        await this.prepareData();
         this.throttle_reRender();
+    }
+
+    @Watch('executeAutofit', { immediate: true })
+    async onExecuteAutofitChange() {
+        if (this.executeAutofit) {
+            this.autoFit();
+        }
     }
 
     // --------------------------------------------------------------------------
     // TRADUCTION ETAT
     // --------------------------------------------------------------------------
-    // On le garde ici, mais on l’utilise plutôt dans DiagramBlock
-    public getStateIcon(state: number): { info: string; icon: string, color?: string } {
+    public getStateIcon(state: number): StateIconInfo {
         switch (state) {
             case OseliaRunVO.STATE_TODO:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🕗', color: '#3498DB' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🕗', color: '#B0BEC5' };
             case OseliaRunVO.STATE_SPLITTING:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔀' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔀', color: '#64B5F6' };
             case OseliaRunVO.STATE_SPLIT_ENDED:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '✅' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '✅', color: '#42A5F5' };
             case OseliaRunVO.STATE_WAITING_SPLITS_END:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '⌛' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '⌛', color: '#4FC3F7' };
             case OseliaRunVO.STATE_WAIT_SPLITS_END_ENDED:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔚' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔚', color: '#29B6F6' };
             case OseliaRunVO.STATE_RUNNING:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🏃', color: '#9B59B6' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🏃', color: '#81C784' };
             case OseliaRunVO.STATE_RUN_ENDED:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🏁' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🏁', color: '#66BB6A' };
             case OseliaRunVO.STATE_VALIDATING:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔎' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔎', color: '#FFD54F' };
             case OseliaRunVO.STATE_VALIDATION_ENDED:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔏' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔏', color: '#FFCA28' };
             case OseliaRunVO.STATE_DONE:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '✔️', color: '#2ECC71' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '✔️', color: '#4CAF50' };
             case OseliaRunVO.STATE_ERROR:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '❌', color: '#E74C3C' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '❌', color: '#E57373' };
             case OseliaRunVO.STATE_CANCELLED:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🚫', color: '#7F8C8D' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🚫', color: '#9E9E9E' };
             case OseliaRunVO.STATE_EXPIRED:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '⏰', color: '#E67E22' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '⏰', color: '#FF8A65' };
             case OseliaRunVO.STATE_NEEDS_RERUN:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '↩️', color: '#F1C40F' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '↩️', color: '#BA68C8' };
             case OseliaRunVO.STATE_RERUN_ASKED:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔄' };
+                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔄', color: '#AB47BC' };
             default:
                 return { info: 'Inconnu', icon: '❔' };
         }
     }
+
     // --------------------------------------------------------------------------
     // HOOKS
     // --------------------------------------------------------------------------
@@ -335,6 +356,10 @@ export default class CanvasDiagram extends VueComponentBase {
         if (container) {
             this.offsetX = container.offsetWidth / 2;
             this.offsetY = container.offsetHeight / 2;
+
+            // [MODIF] On écoute l'événement mouseleave : si la souris sort du container,
+            // on arrête tout drag.
+            container.addEventListener('mouseleave', this.onMouseLeave);
         }
         window.addEventListener('resize', this.onResize);
 
@@ -344,8 +369,13 @@ export default class CanvasDiagram extends VueComponentBase {
 
     beforeDestroy() {
         window.removeEventListener('resize', this.onResize);
-    }
 
+        // [MODIF] Ne pas oublier de désabonner l'événement mouseleave
+        const container = this.$refs.diagramContainer as HTMLDivElement;
+        if (container) {
+            container.removeEventListener('mouseleave', this.onMouseLeave);
+        }
+    }
 
     // --------------------------------------------------------------------------
     // PRÉPARATION DONNÉES
@@ -377,7 +407,6 @@ export default class CanvasDiagram extends VueComponentBase {
         }
     }
 
-
     // --------------------------------------------------------------------------
     // EVENTS
     // --------------------------------------------------------------------------
@@ -397,13 +426,24 @@ export default class CanvasDiagram extends VueComponentBase {
     }
 
     private onWheel(e: WheelEvent) {
+        // [MODIF] Désactiver le zoom si pas de data
+        if (!this.hasData) {
+            return;
+        }
+
         e.preventDefault();
         const delta = (e.deltaY > 0) ? -0.1 : 0.1;
         this.scale = Math.max(0.05, this.scale + delta);
+        this.$emit('canAutofit', true);
         this.throttle_reRender();
     }
 
     private onMouseDown(e: MouseEvent) {
+        // [MODIF] Désactiver si pas de data
+        if (!this.hasData) {
+            return;
+        }
+
         const container = this.$refs.diagramContainer as HTMLDivElement;
         if (!container) return;
 
@@ -469,7 +509,7 @@ export default class CanvasDiagram extends VueComponentBase {
                 const bp = this.blockPositions[clickedBlock];
                 this.dragOffsetY = diagPos.y - bp.y;
                 const horizontalSpace = 20;
-                this.draggingGhostPos = { x: bp.x+bp.w+horizontalSpace, y: bp.y, w: bp.w, h: bp.h };
+                this.draggingGhostPos = { x: bp.x + bp.w + horizontalSpace, y: bp.y, w: bp.w, h: bp.h };
             } else {
                 this.draggingChildId = String(vo.id);
             }
@@ -477,6 +517,11 @@ export default class CanvasDiagram extends VueComponentBase {
     }
 
     private onMouseMove(e: MouseEvent) {
+        // [MODIF] Désactiver si pas de data
+        if (!this.hasData) {
+            return;
+        }
+
         const container = this.$refs.diagramContainer as HTMLDivElement;
         if (!container) return;
 
@@ -496,6 +541,7 @@ export default class CanvasDiagram extends VueComponentBase {
             this.offsetY += dy;
             this.lastPanX = mx;
             this.lastPanY = my;
+            this.$emit('canAutofit', true);
             this.throttle_reRender();
             return;
         }
@@ -504,7 +550,7 @@ export default class CanvasDiagram extends VueComponentBase {
         if (this.possibleDrag && this.draggingChildId) {
             const distX = diagPos.x - this.mouseDownX;
             const distY = diagPos.y - this.mouseDownY;
-            const dist = Math.sqrt(distX*distX + distY*distY);
+            const dist = Math.sqrt(distX * distX + distY * distY);
             if (dist > this.moveThreshold) {
                 this.isReorderingChild = true;
                 this.possibleDrag = false;
@@ -525,6 +571,11 @@ export default class CanvasDiagram extends VueComponentBase {
     }
 
     private onMouseUp(e: MouseEvent) {
+        // [MODIF] Désactiver si pas de data
+        if (!this.hasData) {
+            return;
+        }
+
         this.isDraggingCanvas = false;
 
         if (this.isReorderingChild && this.draggingChildId && this.dragParentAgentId) {
@@ -546,9 +597,9 @@ export default class CanvasDiagram extends VueComponentBase {
             childIds.splice(childIds.indexOf(draggedId), 1);
             let insertIndex = 0;
             for (let i = 0; i < childIds.length; i++) {
-                const midY = this.blockPositions[childIds[i]].y + this.blockPositions[childIds[i]].h/2;
+                const midY = this.blockPositions[childIds[i]].y + this.blockPositions[childIds[i]].h / 2;
                 if (ghostY > midY) {
-                    insertIndex = i+1;
+                    insertIndex = i + 1;
                 } else {
                     break;
                 }
@@ -573,7 +624,24 @@ export default class CanvasDiagram extends VueComponentBase {
         this.dragParentAgentId = null;
         this.draggingGhostPos = null;
         this.possibleDrag = false;
-        // this.throttle_reRender();
+    }
+
+    /**
+     * [MODIF]
+     * Si la souris sort du conteneur (mouseleave),
+     * on arrête tout drag en cours (canvas ou reorder).
+     */
+    private onMouseLeave() {
+        if (this.isDraggingCanvas) {
+            this.isDraggingCanvas = false;
+        }
+        if (this.isReorderingChild) {
+            this.isReorderingChild = false;
+            this.draggingChildId = null;
+            this.dragParentAgentId = null;
+            this.draggingGhostPos = null;
+            this.possibleDrag = false;
+        }
     }
 
     private updateHoveredItem(dx: number, dy: number, sx: number, sy: number) {
@@ -614,6 +682,100 @@ export default class CanvasDiagram extends VueComponentBase {
         this.throttle_reRender();
     }
 
+    private getFunctionsInfos(itemId: string) {
+        if (!this.items[itemId]) return null;
+        if (this.items[itemId]._type == OseliaRunFunctionCallVO.API_TYPE_ID) {
+            return this.functionsInfos[(this.items[itemId] as OseliaRunFunctionCallVO).oselia_run_id] || null;
+        }
+    }
+
+    // --------------------------------------------------------------------------
+    // AUTO-FIT
+    // --------------------------------------------------------------------------
+    private autoFit() {
+        const container = this.$refs.diagramContainer as HTMLDivElement;
+        if (!container) {
+            return;
+        }
+
+        const containerWidth = container.offsetWidth;
+        const containerHeight = container.offsetHeight;
+
+        const itemIds = Object.keys(this.blockPositions);
+        if (!itemIds.length) {
+            return;
+        }
+
+        let minX = Infinity, maxX = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
+
+        for (const id of itemIds) {
+            const bp = this.blockPositions[id];
+            if (!bp) {
+                continue;
+            }
+            minX = Math.min(minX, bp.x);
+            maxX = Math.max(maxX, bp.x + bp.w);
+            minY = Math.min(minY, bp.y);
+            maxY = Math.max(maxY, bp.y + bp.h);
+        }
+
+        if (minX === Infinity) {
+            return;
+        }
+
+        const margin = 20;
+        const diagWidth = maxX - minX + margin * 2;
+        const diagHeight = maxY - minY + margin * 2;
+
+        const scaleX = containerWidth / diagWidth;
+        const scaleY = containerHeight / diagHeight;
+        let newScale = Math.min(scaleX, scaleY);
+
+        const MIN_SCALE = 0.05;
+        const MAX_SCALE = 2;
+        newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+
+        const diagCenterX = (minX + maxX) / 2;
+        const diagCenterY = (minY + maxY) / 2;
+
+        const containerCenterX = containerWidth / 2;
+        const containerCenterY = containerHeight / 2;
+
+        this.scale = newScale;
+        this.offsetX = containerCenterX - (this.scale * diagCenterX);
+        this.offsetY = containerCenterY - (this.scale * diagCenterY);
+
+        this.$emit('canAutofit', false);
+        this.throttle_reRender();
+    }
+
+    // --------------------------------------------------------------------------
+    // REORDER
+    // --------------------------------------------------------------------------
+    private async onChildReordered(parentId: string, newChildrenOrder: string[]) {
+        if (this.isRunVo) return;
+
+        const parentVO = this.items[parentId] as OseliaRunTemplateVO;
+        parentVO.children = [];
+        let weight = 0;
+
+        for (const cid of newChildrenOrder) {
+            const cvo = this.items[cid] as OseliaRunTemplateVO;
+            cvo.weight = weight;
+            await ModuleDAO.instance.insertOrUpdateVO(cvo);
+
+            parentVO.children.push(
+                RangeHandler.create_single_elt_NumRange(cvo.id, NumSegment.TYPE_INT)
+            );
+            weight++;
+        }
+        await ModuleDAO.instance.insertOrUpdateVO(parentVO);
+    }
+
+    // --------------------------------------------------------------------------
+    // CRÉATION D'ENFANT
+    // --------------------------------------------------------------------------
     private async addChild(type: string) {
         const init_vo = new OseliaRunTemplateVO();
         if (type === 'ASSISTANT') {
@@ -652,28 +814,4 @@ export default class CanvasDiagram extends VueComponentBase {
         );
         this.hideMenu();
     }
-
-    // --------------------------------------------------------------------------
-    // REORDER
-    // --------------------------------------------------------------------------
-    private async onChildReordered(parentId: string, newChildrenOrder: string[]) {
-        if (this.isRunVo) return;
-
-        const parentVO = this.items[parentId] as OseliaRunTemplateVO;
-        parentVO.children = [];
-        let weight = 0;
-
-        for (const cid of newChildrenOrder) {
-            const cvo = this.items[cid] as OseliaRunTemplateVO;
-            cvo.weight = weight;
-            await ModuleDAO.instance.insertOrUpdateVO(cvo);
-
-            parentVO.children.push(
-                RangeHandler.create_single_elt_NumRange(cvo.id, NumSegment.TYPE_INT)
-            );
-            weight++;
-        }
-        await ModuleDAO.instance.insertOrUpdateVO(parentVO);
-    }
-
 }

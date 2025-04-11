@@ -1,9 +1,7 @@
 // DiagramBlock.pug
 .diagram-block(:style="blockStyle"
               :class="{ selected: isSelected, ghost: ghost }")
-    .diagram-block-text {{ displayText }}
-    template(v-if="iconInfo.icon=='function'")
-        .diagram-block-icon
-            i.fa-solid.fa-function
-    template(v-else)
-        .diagram-block-icon {{ iconInfo.icon }}
+    .diagram-block-text 
+        .diagram-block-text.time(v-if="displayText.time") {{ displayText.time }}
+        .diagram-block-text.function {{ displayText.function }}
+    .diagram-block-icon {{ iconInfo.icon }}

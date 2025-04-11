@@ -130,16 +130,11 @@ export default class DiagramDataService {
     }
 
     /**
-     * Prépare un diagramme en 3 niveaux :
-     *  1) OseliaRunVO
-     *  2) GPTAssistantAPIFunctionVO
-     *  3) OseliaRunFunctionCallVO
+     * Prépare un diagramme :
+     *   OseliaRunVO -> OseliaRunFunctionCallVO
      *
-     * L'adjacence devient :
-     *   runId -> gptFunctionId
-     *   gptFunctionId -> "call_" + runFunctionCall.id
-     *
-     * On stocke chaque runFunctionCall dans items sous la clé "call_XXX".
+     * Les appels de fonction sont ordonnés par end_date.
+     * On ne crée plus de liaison avec les GPTAssistantAPIFunctionVO.
      */
     public static async prepareRunData(
         currentItems: { [id: string]: OseliaRunVO | GPTAssistantAPIFunctionVO | OseliaRunFunctionCallVO }
@@ -160,10 +155,10 @@ export default class DiagramDataService {
             return { adjacency, functionsInfos, items: currentItems };
         }
 
-        // 3) Récupérer les RunFunctionCall (Appels de fonctions dans ces runs)
-        const allRunIdsNum = runIds.map(r => Number(r));
+        // 3) Récupérer tous les appels de fonction (runFunctionCall) liés aux runs trouvés
+        const runIdsNum = runIds.map(rid => Number(rid));
         const allRunFunctions = await query(OseliaRunFunctionCallVO.API_TYPE_ID)
-            .filter_by_num_has(field_names<OseliaRunFunctionCallVO>().oselia_run_id, allRunIdsNum)
+            .filter_by_num_has(field_names<OseliaRunFunctionCallVO>().oselia_run_id, runIdsNum)
             .select_vos<OseliaRunFunctionCallVO>();
 
         // 4) GPT Functions associées
@@ -183,26 +178,29 @@ export default class DiagramDataService {
             mapGpt[gf.id] = gf;
         }
 
-        // 5) Construisons : runId -> GPTFunctionVO
-        //                 GPTFunctionVO -> runFunctionCall (sous forme "call_X")
-        //
-        //    + On alimente functionsInfos
-        //
-        // Remarque :
-        //  - On veut voir en 2ème niveau : GPTFunction
-        //  - 3ème niveau : OseliaRunFunctionCallVO (chacun)
-        //  => On crée un "call_XX" pour les stocker dans items, adjacency
+        // 4) Pour chaque run, trier les appels sur end_date
         for (const rid of runIds) {
-
-            // On s'assure que adjacency[rid] existe
-            if (!adjacency[rid]) {
-                adjacency[rid] = [];
-            }
-
             const runNum = Number(rid);
 
-            // Filtrer tous les functionCalls pour ce run
-            const runCalls = allRunFunctions.filter(rf => rf.oselia_run_id === runNum);
+            // Filtre des calls pour ce run
+            const runCalls = allRunFunctions.filter(rc => rc.oselia_run_id === runNum);
+
+            // Tri par end_date (montant ou descendant, à adapter)
+            runCalls.sort((a, b) => {
+                // Par défaut, on peut traiter l'absence de end_date en bas de liste
+                if (!a.end_date && !b.end_date) {
+                    return 0;
+                } else if (!a.end_date) {
+                    return 1;
+                } else if (!b.end_date) {
+                    return -1;
+                }
+                // Si end_date est un nombre (timestamp) :
+                return a.end_date - b.end_date;
+
+                // Si end_date est un string (format date), on peut faire :
+                // return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
+            });
 
             // Trouver l'ensemble des GPT functions de ce run
             const uniqueFids = new Set(runCalls.map(rc => rc.gpt_function_id));
@@ -217,49 +215,35 @@ export default class DiagramDataService {
                 // Alimente la "has many" runFunction
                 const callsForThisFunction = runCalls.filter(c => c.gpt_function_id === fid);
 
-                // Ajoute la GPTFunction dans items, si besoin
-                if (!currentItems[fid]) {
-                    currentItems[fid] = gfVO; // GPT function
-                    adjacency[String(fid)] = [];
-                }
-
-                // Adjacence : run -> GPTFunction
-                if (!adjacency[rid].includes(String(fid))) {
-                    adjacency[rid].push(String(fid));
-                }
-
                 // MàJ du functionsInfos
                 // => stocke la liste complète des runFunctionCall
-                functionsInfos[String(fid)] = {
+                functionsInfos[rid] = {
                     gptFunction: gfVO,
                     runFunction: callsForThisFunction
                 };
+            }
 
-                // 6) On crée un nœud "call_XXX" pour chaque OseliaRunFunctionCallVO
-                for (const callVO of callsForThisFunction) {
-                    const callNodeId = "call_" + callVO.id;
+            // 5) Ajouter chaque call dans le graphe
+            for (const callVO of runCalls) {
+                const callNodeId = `call_${callVO.id}`;
 
-                    // On le stocke dans items s'il n'existe pas déjà
-                    if (!currentItems[callNodeId]) {
-                        currentItems[callNodeId] = callVO;
-                        adjacency[callNodeId] = [];
-                    }
+                // On stocke dans items si pas déjà présent
+                if (!currentItems[callNodeId]) {
+                    currentItems[callNodeId] = callVO;
+                    adjacency[callNodeId] = [];
+                }
 
-                    // Adjacence : GPTFunction -> ce call
-                    if (!adjacency[String(fid)].includes(callNodeId)) {
-                        adjacency[String(fid)].push(callNodeId);
-                    }
+                // Adjacence : run -> ce call
+                if (!adjacency[rid].includes(callNodeId)) {
+                    adjacency[rid].push(callNodeId);
                 }
             }
         }
 
+        // On renvoie le résultat
         return {
             adjacency,
             functionsInfos,
-            // "items" contient maintenant :
-            // - OseliaRunVO (initialement)
-            // - GPTAssistantAPIFunctionVO (ajoutées si manquantes)
-            // - OseliaRunFunctionCallVO (sous la forme "call_...")
             items: currentItems
         };
     }

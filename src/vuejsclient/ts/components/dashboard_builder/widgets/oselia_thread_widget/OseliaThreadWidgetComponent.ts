@@ -56,7 +56,7 @@ import OseliaRunGraphWidgetComponent from '../oselia_run_graph_widget/OseliaRunG
         Oselialeftpanelcomponent: OseliaLeftPanelComponent,
         VueJsonPretty,
         Oseliarunarbocomponent: OseliaRunArboComponent,
-        Oselirungraphwidgetcomponent: OseliaRunGraphWidgetComponent
+        Oseliarungraphwidgetcomponent: OseliaRunGraphWidgetComponent
     }
 })
 export default class OseliaThreadWidgetComponent extends VueComponentBase {
@@ -205,7 +205,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private async onchange_data_received() {
         const files = [];
         if (this.data_received.length > 0) {
-            for (let row of this.data_received) {
+            for (const row of this.data_received) {
                 if (row['file___id']) {
                     const file = await query(FileVO.API_TYPE_ID)
                         .filter_by_id(row['file___id'])
@@ -217,7 +217,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             }
         }
 
-        for (let file of files) {
+        for (const file of files) {
             this.thread_files.push({ ['.' + file.path.split('.').pop()]: file });
         }
     }
@@ -506,11 +506,11 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         return files;
     }
     private async get_files_system(): Promise<FileVO[]> {
-        let files = await query(FileVO.API_TYPE_ID)
+        const files = await query(FileVO.API_TYPE_ID)
             .set_limit(10)
             .select_vos<FileVO>().then((files_) => {
-                return files_;
-            });
+            return files_;
+        });
         return [];
     }
 
@@ -748,7 +748,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         const self = this;
         this.assistant_is_busy = true;
 
-        let files = self.thread_files.map((file) => {
+        const files = self.thread_files.map((file) => {
             return file[Object.keys(file)[0]];
         });
         try {

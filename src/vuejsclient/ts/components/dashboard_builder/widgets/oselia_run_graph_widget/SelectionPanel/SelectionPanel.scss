@@ -13,6 +13,7 @@
     flex-direction: column;
     max-height: 85%; // adapte la hauteur max si nécessaire
     z-index: 10;
+    width: 70%;
 
     h3 {
         text-align: center;
@@ -46,11 +47,11 @@
             flex-direction: column;
             gap: 0.5rem;
             font-family: monospace;
-            
+
             &__label {
                 font-weight: bold;
             }
-            
+
             .text_input {
                 min-height: 150px;
                 padding: 0.5rem;
@@ -58,29 +59,37 @@
                 border-radius: 4px;
                 background: #1e1e1e;
                 color: #d4d4d4;
-                outline: none; /* pour enlever le focus bleu */
-                white-space: pre-wrap; /* autorise le retour à la ligne */
+                outline: none;
+                /* pour enlever le focus bleu */
+                white-space: pre-wrap;
+                /* autorise le retour à la ligne */
                 overflow-wrap: break-word;
                 max-height: 200px;
                 overflow: auto;
+
                 // Couleurs pour le JSON highlight
                 .string {
-                color: #ce9178;
+                    color: #ce9178;
                 }
+
                 .number {
-                color: #b5cea8;
+                    color: #b5cea8;
                 }
+
                 .boolean {
-                color: #569cd6;
+                    color: #569cd6;
                 }
+
                 .null {
-                color: #569cd6;
+                    color: #569cd6;
                 }
+
                 .key {
-                color: #9cdcfe;
+                    color: #9cdcfe;
                 }
             }
         }
+
         .label {
             font-weight: bold;
             margin-top: 12px;

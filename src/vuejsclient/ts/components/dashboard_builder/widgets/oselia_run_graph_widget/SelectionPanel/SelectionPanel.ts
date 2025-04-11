@@ -132,10 +132,6 @@ export default class SelectionPanel extends VueComponentBase {
         }
     }
 
-    public onSwitchHidden(itemId: string, linkTo: string, newIsActive: boolean) {
-        this.$emit('switchHidden', itemId, linkTo, !newIsActive);
-    }
-
     public onRemoveSelectedItem() {
         if (!this.selectedItem) return;
         this.removeItemFn(this.selectedItem);
@@ -212,7 +208,9 @@ export default class SelectionPanel extends VueComponentBase {
     }
 
     private async replay_from_id(function_call_id: number) {
-        await ModuleOselia.getInstance().replay_function_call(function_call_id);
+        await ModuleOselia.getInstance().replay_function_call(function_call_id).then(() => {
+            this.$emit('replayFunctionCall');
+        });
     }
 
     private onJsonInput(event: Event) {

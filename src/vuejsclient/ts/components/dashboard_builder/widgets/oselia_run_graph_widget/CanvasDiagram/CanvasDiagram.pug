@@ -13,9 +13,11 @@
       :block-pos="pos"
       :item="items[itemId]"
       :isSelected="itemId === selectedItem"
+      :functionsInfos="getFunctionsInfos(itemId)"
       :isRunVo="isRunVo"
       :ghost="false"
       :getStateIcon="getStateIcon"
+      @first_autofit="autoFit"
     )
 
     // On dessine ensuite les liens

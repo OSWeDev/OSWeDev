@@ -124,7 +124,7 @@ export default class DiagramLayout {
     }
 
     public static layoutRunDiagram(
-        items: { [id: string]: OseliaRunVO | GPTAssistantAPIFunctionVO | OseliaRunFunctionCallVO },
+        items: { [id: string]: OseliaRunVO | OseliaRunFunctionCallVO },
         adjacency: { [id: string]: string[] }
     ): {
             blockPositions: { [id: string]: BlockPosition };
@@ -139,10 +139,10 @@ export default class DiagramLayout {
             return items[id]._type === OseliaRunVO.API_TYPE_ID;
         });
 
-        // On parcourt chaque run, on le place, puis on place ses fonctions GPT, puis leurs calls
+        // On parcourt chaque run, on le place, puis on place directement ses Calls
         let currentY = 0;
         for (const runId of runIds) {
-            currentY = this.layoutOneRunHierarchy(
+            currentY = this.layoutOneRunWithCalls(
                 runId,
                 currentY,
                 adjacency,
@@ -159,113 +159,103 @@ export default class DiagramLayout {
     }
 
     /**
-     * Place un RUN, puis ses Fonctions GPT, puis leurs Calls (OseliaRunFunctionCallVO).
-     * Retourne le Y final pour chaîner plusieurs runs verticalement.
+     * Place un RUN et ses Calls dans un diagramme,
+     * en triant les Calls par end_date.
+     *
+     * Retourne le Y final pour enchaîner si on a plusieurs runs à afficher.
      */
-    private static layoutOneRunHierarchy(
+    private static layoutOneRunWithCalls(
         runId: string,
         startY: number,
         adjacency: { [id: string]: string[] },
-        items: { [id: string]: any },
+        items: { [id: string]: OseliaRunVO | OseliaRunFunctionCallVO },
         positions: { [id: string]: BlockPosition },
         links: LinkDrawInfo[]
     ): number {
-        // Dimensions basiques
+        // Dimensions par bloc
         const w = 200, h = 40;
-        const indentX = 300;
-        const verticalSpacing = 30;
+        const verticalSpacing = 50;
 
-        // 1) On place le run
-        //    disons qu'on le place dans la "colonne 0", centré en x = 0
-        const xRun = 0;
+        // On place le RUN
+        const runX = 0; // Centré sur x=0 (arbitraire)
         positions[runId] = {
-            x: xRun - w / 2,
+            x: runX - w / 2,
             y: startY,
             w,
             h
         };
 
-        // Invoquons "niveau" pour enchaîner verticalement
-        // => On démarre le prochain bloc en dessous
+        // Coordonnées du milieu du Run (pour le lien)
+        const runCenterX = runX;
+        const runCenterY = startY;
+
+        // On récupère la liste des Calls pour ce run
+        //  => On suppose que l’adjacence donne: adjacency[runId] = ["call_12", "call_13", ...]
+        let callIds = adjacency[runId] || [];
+
+        // Filtrer pour ne garder que de vrais appels de fonction
+        // (si tu as un préfixe "call_", c’est encore plus sûr)
+        callIds = callIds.filter(cid => cid.startsWith("call_"));
+
+        // On veut trier par end_date
+        // => Il faut caster l’item en OseliaRunFunctionCallVO
+        callIds.sort((a, b) => {
+            const callA = items[a] as OseliaRunFunctionCallVO;
+            const callB = items[b] as OseliaRunFunctionCallVO;
+            if (!callA && !callB) {
+                return 0;
+            }
+            if (!callA) {
+                return 1;
+            }
+            if (!callB) {
+                return -1;
+            }
+            if (!callA.end_date && !callB.end_date) {
+                return 0;
+            } else if (!callA.end_date) {
+                return 1;
+            } else if (!callB.end_date) {
+                return -1;
+            }
+            // Si end_date est un timestamp (number)
+            return callA.end_date - callB.end_date;
+            // ou si c'est un string:
+            // return new Date(callA.end_date).getTime() - new Date(callB.end_date).getTime();
+        });
+
+        // On place chaque call en-dessous du RUN
         let localY = startY + h + verticalSpacing;
-
-        // 2) Retrouver ses enfants = les Fonctions GPT
-        //    (vous pouvez filtrer : items[cid]._type === GPTAssistantAPIFunctionVO.API_TYPE_ID
-        //     ou reconnaître "call_XX" si vous utilisez un ID préfixé)
-        const functionIds = (adjacency[runId] || []).filter(cid =>
-            items[cid]?._type === GPTAssistantAPIFunctionVO.API_TYPE_ID
-        );
-
-        // Coordonnées pour tracer les liens : le run sortira "par le milieu"
-        const runCenterX = (xRun - w / 2) + w / 2;
-        const runCenterY = startY + h / 2;
-
-        // Pour éviter que les fonctions se chevauchent, on se contente de placer
-        // chaque fonction GPT en-dessous de la précédente.
-        for (const fId of functionIds) {
-
-            // 2a) Placer la fonction GPT dans une colonne "x = indentX"
-            const fX = xRun + indentX;
-            positions[fId] = {
-                x: fX,
+        for (const cId of callIds) {
+            // Place le Call à x = 300 par ex, sous le run
+            const callX = 100;
+            positions[cId] = {
+                x: callX,
                 y: localY,
                 w,
                 h
             };
 
-            // On trace un lien "run -> fonction"
-            const fCenterX = fX + w / 2;
-            const fCenterY = localY + h / 2;
+            // Tracer un lien run -> call
+            const callCenterX = callX + w / 2;
+            const callCenterY = localY + h / 2;
             links.push({
                 sourceItemId: runId,
-                targetItemId: fId,
+                targetItemId: cId,
                 pathPoints: this.createElbowPoints(
                     runCenterX, runCenterY,
-                    fCenterX,   fCenterY
+                    callCenterX, callCenterY
                 )
             });
 
-            // On stocke la coordonnée "bas" de la fonction pour enchaîner
-            let nextY = localY + h + verticalSpacing;
-
-            // 3) Les "calls" de cette fonction
-            //    (On va chercher adjacency[fId], et on filtre "call_XXX")
-            const callIds = (adjacency[fId] || []).filter(cid => cid.startsWith('call_'));
-
-            // On place chaque call dans une colonne "indentX * 2"
-            for (const cId of callIds) {
-                const cX = xRun + (indentX * 2);
-                positions[cId] = {
-                    x: cX,
-                    y: nextY,
-                    w,
-                    h
-                };
-
-                // Lien fonction -> call
-                const cCenterX = cX + w / 2;
-                const cCenterY = nextY + h / 2;
-                links.push({
-                    sourceItemId: fId,
-                    targetItemId: cId,
-                    pathPoints: this.createElbowPoints(
-                        fCenterX, fCenterY,
-                        cCenterX, cCenterY
-                    )
-                });
-
-                // On descend encore
-                nextY += h + verticalSpacing;
-            }
-
-            // Au final, on met localY = la position sous le dernier call (ou la fonction s'il n'y a pas de calls)
-            localY = Math.max(localY, nextY);
+            // Descendre pour le prochain call
+            localY += h + verticalSpacing;
         }
 
-        // 4) On renvoie la position en Y où on s'est arrêté pour que le "run suivant"
-        //    se place plus bas
+        // On renvoie la position en Y où on s’est arrêté pour empiler d’éventuels autres runs
         return localY;
     }
+
 
     /**
      * Crée un chemin "en L" (3 points) allant de (startX, startY) à (endX, endY).

@@ -1,9 +1,7 @@
-import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 
 import CanvasDiagram from './CanvasDiagram/CanvasDiagram';
 import SelectionPanel from './SelectionPanel/SelectionPanel';
-import LinkPanel from './LinkPanel/LinkPanel';
 import AddPanel from './AddPanel/AddPanel';
 import './OseliaRunGraphWidgetComponent.scss';
 
@@ -17,33 +15,29 @@ import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/Tr
 import { ModuleDashboardPageGetter, ModuleDashboardPageAction } from '../../page/DashboardPageStore';
 import { ModuleOseliaGetter, ModuleOseliaAction } from '../oselia_thread_widget/OseliaStore';
 
-import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import OseliaRunTemplateVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
 import OseliaRunVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunVO';
 
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
-import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 
 import VueComponentBase from '../../../VueComponentBase';
-import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 
 import CRUDUpdateModalComponent from '../table_widget/crud_modals/update/CRUDUpdateModalComponent';
 import { ModuleDAOAction } from '../../../dao/store/DaoStore';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 
-import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
-import RangeHandler from '../../../../../../shared/tools/RangeHandler';
-import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import OseliaRunFunctionCallVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
+import Throttle from '../../../../../../shared/annotations/Throttle';
+import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 
 @Component({
     components: {
         CanvasDiagram,
         SelectionPanel,
-        LinkPanel,
         AddPanel
     },
     template: require('./OseliaRunGraphWidgetComponent.pug')
@@ -86,6 +80,9 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private all_page_widget: DashboardPageWidgetVO[];
 
+    @Prop({ default: null })
+    private readonly thread_id: number;
+
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
@@ -123,19 +120,18 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     // -------------------------------------------------------------------------
     public selectedItem: string | null = null;
     public selectedItemRunInfo: OseliaRunFunctionCallVO | null = null;
-    public selectedLink: { from: string; to: string } | null = null;
 
     /**
      * items : c’est ce qui est réellement passé au CanvasDiagram (dictionnaire d’items).
      */
     private items: { [id: string]: OseliaRunTemplateVO | OseliaRunVO } = {};
 
-    private links: { [id: string]: string[] } = {};
-    private hidden_links: { [from: string]: { [to: string]: boolean } } = {};
-
+    private showAutofitButton: boolean = false;
 
     private updatedItem: OseliaRunTemplateVO | OseliaRunVO = null;
     private reDraw: boolean = false;
+    private localThreadId: number = null;
+    private executeAutofit: boolean = false;
 
     get showClearButton(): boolean {
         return Object.keys(this.items).length > 0;
@@ -151,7 +147,6 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
         }
 
         try {
-            this.links = {};
 
             if (this.choices_of_item.length === 1 && Object.values(this.items).length === 0) {
                 // Ancienne logique : on suppose qu’on a choisi un agent template
@@ -177,6 +172,14 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
         }
     }
 
+    @Watch('thread_id', { immediate: true })
+    private async onThreadIdChange() {
+        // Si le thread_id a changé, on le met à jour dans le store
+        if (this.thread_id !== this.localThreadId) {
+            this.localThreadId = this.thread_id;
+            await this.chargeChoices();
+        }
+    }
     // -------------------------------------------------------------------------
     // Mise à jour d’un item déjà affiché (ex: après CRUDUpdateModal)
     // -------------------------------------------------------------------------
@@ -191,6 +194,87 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     @Watch('get_active_field_filters', { deep: true })
     private async onActiveFieldFiltersChange() {
         await this.chargeChoices();
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 100,
+        leading: true,
+    })
+    private async chargeChoices() {
+        // ---------------------------------------------------------------------
+        // 1) On essaie d’abord de récupérer les OseliaRunVO
+        //    avec les filtres actifs (comme pour les templates)
+        // ---------------------------------------------------------------------
+        if (this.localThreadId != null) {
+            // => On a un thread_id => on charge les runs de ce thread
+            const found_runs = await query(OseliaRunVO.API_TYPE_ID)
+                .filter_by_num_eq('thread_id', this.localThreadId)
+                .select_vos<OseliaRunVO>();
+
+            if (found_runs.length === 1) {
+                // => On a trouvé exactement un run => on l’affiche
+                this.is_single_run_found = true;
+                this.single_run = found_runs[0];
+                await this.buildItemsFromSingleRun();
+                return;
+            } else {
+                this.localThreadId = null;
+                await this.chargeChoices();
+                return;
+            }
+        } else {
+            const active_filters = FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters);
+            const context_filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_filters);
+
+            const found_runs = await query(OseliaRunVO.API_TYPE_ID)
+                .add_filters(context_filters)
+                .select_vos<OseliaRunVO>();
+
+            if (found_runs.length === 1) {
+                // => On a EXACTEMENT 1 run => on adopte la nouvelle logique
+                this.is_single_run_found = true;
+                this.single_run = found_runs[0];
+
+                // On construit nos items depuis ce run unique
+                await this.buildItemsFromSingleRun();
+
+                // await this.register_vo_updates_on_list(
+                //     OseliaRunVO.API_TYPE_ID,
+                //     reflect<OseliaRunGraphWidgetComponent>().choices_of_item,
+                //     context_filters,
+                // );
+                return;
+            } else {
+                // Si on avait un run unique avant, on le supprime
+                if(this.is_single_run_found) {
+                    this.is_single_run_found = false;
+                    this.single_run = null;
+                    this.items = {};
+                    if (this.selectedItem) {
+                        this.selectedItem = null;
+                        this.selectedItemRunInfo = null;
+                    }
+                }
+                this.choices_of_item = await query(OseliaRunTemplateVO.API_TYPE_ID)
+                    .add_filters(
+                        [
+                            filter(OseliaRunTemplateVO.API_TYPE_ID,
+                                field_names<OseliaRunTemplateVO>().run_type)
+                                .by_num_eq(OseliaRunVO.RUN_TYPE_AGENT)
+                        ])
+                    .select_vos<OseliaRunTemplateVO>();
+                for (const item of this.choices_of_item) {
+                    if (this.items[item.id]) {
+                        if(this.choices_of_item.findIndex((i) => i.id == item.id) != -1) {
+                            this.choices_of_item.splice(this.choices_of_item.findIndex((i) => i.id == item.id), 1);
+                        }
+                    }
+                }
+            }
+
+            return;
+        }
     }
 
 
@@ -260,18 +344,14 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
 
         this.$delete(this.items, itemId);
 
-        // Nettoyage des links
-        if (this.links[itemId]) {
-            this.$delete(this.links, itemId);
-        }
-        for (const fromId in this.links) {
-            this.links[fromId] = this.links[fromId].filter(to => to !== itemId);
-        }
-
         if (this.selectedItem === itemId) {
             this.selectedItem = null;
             this.selectedItemRunInfo = null;
         }
+        this.reDraw = !this.reDraw;
+    }
+
+    public replayFunctionCall() {
         this.reDraw = !this.reDraw;
     }
 
@@ -300,22 +380,14 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
             this.selectedItemRunInfo = runInfo;
         }
         this.selectedItem = itemId;
-        this.selectedLink = null;
         this.showAddPanel = false;
     }
 
-    public selectLink(linkObj: { from: string; to: string }) {
-        this.selectedLink = linkObj;
-        this.selectedItem = null;
-        this.selectedItemRunInfo = null;
+    public canAutofit(_canAutofit: boolean) {
+        this.showAutofitButton = _canAutofit;
+        this.executeAutofit = false;
     }
 
-    public onSwitchHidden(itemId: string, linkTo: string, hidden: boolean) {
-        if (!this.hidden_links[itemId]) {
-            this.$set(this.hidden_links, itemId, {});
-        }
-        this.$set(this.hidden_links[itemId], linkTo, hidden);
-    }
 
     /**
      * CHANGEMENT : Construit le dictionnaire this.items à partir du run unique
@@ -344,69 +416,13 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
         this.items = {};
         this.selectedItem = null;
         this.selectedItemRunInfo = null;
-        this.selectedLink = null;
         this.showAddPanel = false;
         this.showPlusButton = true;
         this.has_agent = false;
         this.choices_of_item = [];
+        this.localThreadId = null;
+        this.canAutofit(false);
         await this.chargeChoices();
-    }
-
-    private async chargeChoices() {
-        // ---------------------------------------------------------------------
-        // 1) On essaie d’abord de récupérer les OseliaRunVO
-        //    avec les filtres actifs (comme pour les templates)
-        // ---------------------------------------------------------------------
-        const active_filters = FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters);
-        const context_filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_filters);
-
-        const found_runs = await query(OseliaRunVO.API_TYPE_ID)
-            .add_filters(context_filters)
-            .select_vos<OseliaRunVO>();
-
-        if (found_runs.length === 1) {
-            // => On a EXACTEMENT 1 run => on adopte la nouvelle logique
-            this.is_single_run_found = true;
-            this.single_run = found_runs[0];
-
-            // On construit nos items depuis ce run unique
-            await this.buildItemsFromSingleRun();
-
-            // await this.register_vo_updates_on_list(
-            //     OseliaRunVO.API_TYPE_ID,
-            //     reflect<OseliaRunGraphWidgetComponent>().choices_of_item,
-            //     context_filters,
-            // );
-            return;
-        } else {
-            // Si on avait un run unique avant, on le supprime
-            if(this.is_single_run_found) {
-                this.is_single_run_found = false;
-                this.single_run = null;
-                this.items = {};
-                if (this.selectedItem) {
-                    this.selectedItem = null;
-                    this.selectedItemRunInfo = null;
-                }
-            }
-            this.choices_of_item = await query(OseliaRunTemplateVO.API_TYPE_ID)
-                .add_filters(
-                    [
-                        filter(OseliaRunTemplateVO.API_TYPE_ID,
-                            field_names<OseliaRunTemplateVO>().run_type)
-                            .by_num_eq(OseliaRunVO.RUN_TYPE_AGENT)
-                    ])
-                .select_vos<OseliaRunTemplateVO>();
-            for (const item of this.choices_of_item) {
-                if (this.items[item.id]) {
-                    if(this.choices_of_item.findIndex((i) => i.id == item.id) != -1) {
-                        this.choices_of_item.splice(this.choices_of_item.findIndex((i) => i.id == item.id), 1);
-                    }
-                }
-            }
-
-            return;
-        }
     }
 
     /**
@@ -480,5 +496,9 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     // -------------------------------------------------------------------------
     private async beforeDestroy() {
         await this.unregister_all_vo_event_callbacks();
+    }
+
+    private async doAutofit() {
+        this.executeAutofit = true;
     }
 }

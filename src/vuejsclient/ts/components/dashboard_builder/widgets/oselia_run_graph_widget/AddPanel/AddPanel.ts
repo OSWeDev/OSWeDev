@@ -1,13 +1,13 @@
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
-import { ItemInterface } from '../interface';
 import './AddPanel.scss';
 import OseliaRunTemplateVO from '../../../../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
+import VueComponentBase from '../../../../VueComponentBase';
 
 @Component({
     template: require('./AddPanel.pug'),
 })
-export default class AddPanel extends Vue {
+export default class AddPanel extends VueComponentBase {
 
     @Prop({ default: () => ({}) })
     public items!: { [id: string]: OseliaRunTemplateVO };

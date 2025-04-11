@@ -1,33 +1,38 @@
 .OseliaRunGraphWidgetComponent
     // Le bouton + pour afficher/cacher le AddPanel
-    button.add-button(
-        v-if="showPlusButton"
-        @click="showAddPanel = !showAddPanel"
-    ) +
+    .buttons
+        button.add-button.btn-success(
+            v-if="showPlusButton"
+            @click="showAddPanel = !showAddPanel"
+        ) +
 
-    button.clear-button(
-        v-if="showClearButton"
-        @click="clearAll"
-    ) Clear
+        button.clear-button.btn-danger(
+            v-if="showClearButton"
+            @click="clearAll"
+        ) {{ label('oselia_run_graph_widget_component.clear_button') }}
+
+        button.autofit-button.btn-primary(
+            v-if="showAutofitButton"
+            @click="doAutofit"
+        ) {{ label('oselia_run_graph_widget_component.autofit_button') }}
+
     template(v-if='has_agent')
        
         // On insère le Canvas
         CanvasDiagram(
             :items="items"
-            :links="links"
-            :hidden_links="hidden_links"
             :selectedItem.sync="selectedItem"
-            :selectedLink.sync="selectedLink"
             :updatedItem="updatedItem"
             :reDraw="reDraw"
             :isRunVo="is_single_run_found"
+            :executeAutofit="executeAutofit"
             @select_item="selectItem"
-            @select_link="selectLink"
+            @canAutofit="canAutofit"
         )
     template(v-else)
-        h1 Vous n'avez pas d'agent
-        p Vous devez ajouter un agent pour pouvoir utiliser ce widget
-
+        h1 {{ label('oselia_run_graph_widget_component.no_agent') }}
+        p {{ label('oselia_run_graph_widget_component.no_agent_description') }}
+        
     
         
     // Panel de sélection d'item
@@ -38,15 +43,7 @@
         :selectedItemRunInfo="selectedItemRunInfo"
         :removeItemFn="removeItem"
         :editItemFn="editSelectItem"
-        @switchHidden="onSwitchHidden"
-    )
-
-    // Panel de lien
-    LinkPanel(
-        v-if="selectedLink"
-        :selectedLink="selectedLink"
-        :hidden_links="hidden_links"
-        @switchHidden="onSwitchHidden"
+        @replayFunctionCall="replayFunctionCall"
     )
 
     // Panel d'ajout
