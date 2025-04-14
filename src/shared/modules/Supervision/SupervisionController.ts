@@ -174,4 +174,15 @@ export default class SupervisionController {
             }
         }
     }
+
+    public get_item_split_name(item_name: string, split_char: string): string {
+        if (!split_char || !item_name) {
+            return item_name;
+        }
+        // découpage arbitraire : retour à la ligne à chaque occurence : ' - '
+        const name: string = item_name;
+        const name_parts: string[] = name.split(split_char);
+
+        return name_parts.join('<br/>');
+    }
 }

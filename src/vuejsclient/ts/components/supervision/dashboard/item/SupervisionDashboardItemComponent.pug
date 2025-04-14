@@ -7,25 +7,23 @@
                 .row.has_checkbox
                     .col-sm-1.supervision_dashboard_item_type
                         i.fa-solid.fa-fw(aria-hidden="true" :class='fa_class_name')
+                        i.fa-solid.fa-fw(v-if="read_fa_class_name" aria-hidden="true" :class='read_fa_class_name')
                     .col-sm-7.supervision_dashboard_item_name {{ item.name }}
-                    .col-sm-3.supervision_dashboard_item_date {{ formatted_date }}
+                    .col-sm-3.supervision_dashboard_item_date
+                        i.fa-solid.fa-fw.fa-hourglass-half(v-if="item.invalid" aria-hidden="true" v-tooltip='label("supervision_widget_component.tooltip.item.invalid")')
+                        span {{ formatted_date }}
                     .col-sm-1.supervision_dashboard_item_value {{ formatted_last_value }}
 
 
         template(v-else)
-            .col-sm-12.supervision_dashboard_item_name.nameabove(v-if="nameabove" v-html="get_name_above()")
+            .col-sm-12.supervision_dashboard_item_name.nameabove(v-if="nameabove" v-html="get_split_name()")
 
             .supervision_dashboard_item.noclick(:class='state_classname')
                 .row
-                    template(v-if="nameabove")
-                        .col-sm-2.supervision_dashboard_item_type
-                            i.fa-solid.fa-fw(aria-hidden="true" :class='fa_class_name')
-                        .col-sm-8.supervision_dashboard_item_date {{ formatted_date }}
-                        .col-sm-2.supervision_dashboard_item_value {{ formatted_last_value }}
-
-                    template(v-else)
-                        .col-sm-1.supervision_dashboard_item_type
-                            i.fa-solid.fa-fw(aria-hidden="true" :class='fa_class_name')
-                        .col-sm-7.supervision_dashboard_item_name {{ item.name }}
-                        .col-sm-3.supervision_dashboard_item_date {{ formatted_date }}
-                        .col-sm-1.supervision_dashboard_item_value {{ formatted_last_value }}
+                    .col-sm-2.supervision_dashboard_item_type
+                        i.fa-solid.fa-fw(aria-hidden="true" :class='fa_class_name')
+                        i.fa-solid.fa-fw(v-if="read_fa_class_name" aria-hidden="true" :class='read_fa_class_name')
+                    .col-sm-8.supervision_dashboard_item_date
+                        i.fa-solid.fa-fw.fa-hourglass-half(v-if="item.invalid" aria-hidden="true" v-tooltip='label("supervision_widget_component.tooltip.item.invalid")')
+                        span {{ formatted_date }}
+                    .col-sm-2.supervision_dashboard_item_value {{ formatted_last_value }}

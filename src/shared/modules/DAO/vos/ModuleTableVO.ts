@@ -44,6 +44,7 @@ export default class ModuleTableVO implements IDistantVOBase {
     public is_segmented: boolean;
     public is_versioned: boolean;
     public is_archived: boolean;
+    public prevent_close_modal: boolean = true;
     public table_segmented_field: ModuleTableFieldVO;
     public table_segmented_field_range_type: number;
     public table_segmented_field_segment_type: number;
@@ -408,6 +409,12 @@ export default class ModuleTableVO implements IDistantVOBase {
         this.is_archived = true;
 
         ModuleTableFieldController.create_new(this.vo_type, field_names<IArchivedVOBase>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé ?', true, true, false);
+
+        return this;
+    }
+
+    public set_prevent_close_modal(prevent_close_modal: boolean): ModuleTableVO {
+        this.prevent_close_modal = prevent_close_modal;
 
         return this;
     }

@@ -37,6 +37,12 @@ export default class SupervisedItemComponent extends VueComponentBase {
     @Prop({ default: false })
     private embed: boolean;
 
+    @Prop({ default: false })
+    private has_access_pause: boolean;
+
+    @Prop({ default: null })
+    private split_char: string;
+
     private show_graph: boolean = false;
     private supervised_item: ISupervisedItem = null;
     private debounced_load_supervised_item = debounce(this.load_supervised_item, 200);
@@ -168,6 +174,9 @@ export default class SupervisedItemComponent extends VueComponentBase {
     }
 
     private async switch_paused() {
+        if (!this.has_access_pause) {
+            return;
+        }
         if (this.supervised_item.state == SupervisionController.STATE_PAUSED) {
             this.supervised_item.state = this.supervised_item.state_before_pause;
         } else {
@@ -187,7 +196,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
     }
 
     private async load_supervised_item() {
-        console.log('load_supervised_item', this.supervised_item_id, this.supervised_item_vo_type);
+        // console.log('load_supervised_item', this.supervised_item_id, this.supervised_item_vo_type);
 
         if ((!this.supervised_item_id) || (!this.supervised_item_vo_type)) {
             this.supervised_item = null;
@@ -205,7 +214,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
             .filter_by_id(this.supervised_item_id)
             .select_vo<ISupervisedItem>();
 
-        console.log('load_supervised_item', this.supervised_item);
+        // console.log('load_supervised_item', this.supervised_item);
 
         const promises = [];
         let tmp_hist: ISupervisedItem[] = null;

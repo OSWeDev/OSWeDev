@@ -2433,7 +2433,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         await all_promises([
             (async () => {
-                ConsoleHandler.log('select_datatable_rows');
                 await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query, this.columns);
                 rows = await ModuleContextFilter.instance.select_datatable_rows(context_query, this.columns_by_field_id, fields);
             })(),
@@ -2642,7 +2641,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             if (column.filter_by_access) {
                 promises.push((async () => {
                     VueAppBase.getInstance().vueInstance.$set(self.filter_by_access_cache, column.filter_by_access, await ModuleAccessPolicy.getInstance().checkAccess(column.filter_by_access));
-                    ConsoleHandler.log(column.filter_by_access + ':' + self.filter_by_access_cache[column.filter_by_access]);
                 })());
             }
         }

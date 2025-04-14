@@ -1853,7 +1853,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user.recovery_expiration = Dates.add(Dates.now(), await ParamsServerController.getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
 
             await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
-                [field_names<UserVO>().recovery_expiration]: user.recovery_expiration
+                [field_names<UserVO>().recovery_expiration]: user.recovery_expiration,
+                [field_names<UserVO>().invalidated]: user.invalidated,
+                [field_names<UserVO>().password]: user.password,
+                [field_names<UserVO>().reminded_pwd_1]: user.reminded_pwd_1,
+                [field_names<UserVO>().reminded_pwd_2]: user.reminded_pwd_2,
             });
             return;
         }
@@ -1865,7 +1869,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
             [field_names<UserVO>().recovery_expiration]: user.recovery_expiration,
-            [field_names<UserVO>().recovery_challenge]: user.recovery_challenge
+            [field_names<UserVO>().recovery_challenge]: user.recovery_challenge,
+            [field_names<UserVO>().invalidated]: user.invalidated,
+            [field_names<UserVO>().password]: user.password,
+            [field_names<UserVO>().reminded_pwd_1]: user.reminded_pwd_1,
+            [field_names<UserVO>().reminded_pwd_2]: user.reminded_pwd_2,
         });
     }
 

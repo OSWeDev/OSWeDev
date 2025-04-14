@@ -5,7 +5,7 @@ include ../../../../../views/mixins/loading.pug
         form(v-on:submit.prevent="updateVO")
             .crud_update_form_header
                 a.btn.close.f-r(@click="cancel") &times;
-                .title.d-ib {{ label('crud.update.modal.title') }}
+                .title.d-ib {{ label('crud.update.modal.title') }} {{ datatable_title }}
 
             .crud_update_form_body
                 .alert.alert-danger(v-if="is_only_readable") {{ label('crud.update.modal.readonly') }}
@@ -48,4 +48,4 @@ include ../../../../../views/mixins/loading.pug
                     a.btn.btn-danger.mr-1(@click="deleteVO") {{ label('crud.update.modal.delete') }}
                 a.btn.btn-default.mr-1(v-if="!updating_vo", @click="cancel") {{ label('crud.update.modal.cancel') }}
                 template(v-if="selected_vo && editableVO && !updating_vo && !is_only_readable")
-                    input.btn.btn-primary(type="submit" :value="label('crud.update.modal.save')")
+                    input.btn.btn-primary(type="submit" :value="input_label")

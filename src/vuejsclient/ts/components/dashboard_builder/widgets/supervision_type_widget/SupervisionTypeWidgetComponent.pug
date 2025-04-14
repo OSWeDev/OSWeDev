@@ -2,8 +2,8 @@
     .component_header
         label(v-if="title_name_code_text") {{ t(title_name_code_text) }}
 
-        template(v-if='loaded_once')
-            template(v-if='loaded_once && is_busy')
+        template(v-if='is_busy')
+            template(v-if='is_busy && is_busy')
                 .is_busy
                     i.fa-duotone.fa-refresh.fa-spin(aria-hidden="true")
 
@@ -14,6 +14,37 @@
                         | {{ label('crud.actions.refresh') }}
 
     .available_api_type_ids(v-if="available_api_type_ids && (available_api_type_ids.length > 0)")
+        template(v-if='show_active_selection')
+            .separator
+                div {{ label('supervision_type_widget_component.title') }}
+                    i.pull-right.fa-solid.fa-times.x-large(
+                        v-if='selected_api_type_id !== null || selected_state !== null'
+                        v-tooltip='label("supervision_type_widget_component.unselect_all")'
+                        @click="handle_select_api_type_id_and_state(null, null)"
+                    )
+                    br
+                    span {{ label('supervision_type_widget_component.selected_state') }}
+                        template(v-if='selected_state !== null')
+                            i.fa-solid.fa-fw(aria-hidden="true" :class='state_fa_class[selected_state]')
+                            i.fa-solid.fa-fw(v-if="state_read_fa_class[selected_state]" aria-hidden="true" :class='state_read_fa_class[selected_state]')
+                            span {{ t(state_label[selected_state]) }}
+                        template(v-else)
+                            span {{ label('supervision_type_widget_component.selected_state_none') }}
+                    br
+                    span {{ label('supervision_type_widget_component.selected_api_type_id') }}
+                        span(v-if='selected_api_type_id') {{ label('supervision_widget_component.' + selected_api_type_id) }}
+                        span(v-else) {{ label('supervision_type_widget_component.selected_api_type_id_none') }}
+
+        template(v-if='show_state_btn')
+            .separator
+                template(v-for="state in all_states")
+                    .sup_cnt.btn.btn-sm.mr-1.caption(
+                        v-tooltip='t(state_label[state])'
+                        :class="['STATE_' + state, 'tt_states_' + all_states.length, { selected: selectedApitypeState === 'null_' + state}]"
+                        @click="handle_select_api_type_id_and_state(state, null)"
+                    )
+                        i.fa-solid.fa-fw(aria-hidden="true" :class='state_fa_class[state]')
+                        i.fa-solid.fa-fw(v-if="state_read_fa_class[state]" aria-hidden="true" :class='state_read_fa_class[state]')
 
         template(v-if="order_by_categories")
             template(v-for="cat in categories_ordered")
@@ -26,17 +57,17 @@
                         :aria-controls="'collapse_cat_' + cat.id"
                         @click="togglePanelCat(cat.id)"
                     )
-                        .category_label
+                        .category_label.separator
                             p {{ cat.name }}
                             //- Icone up/down, etc. selon isPanelOpenCat[cat.id]
-                            i.btn-sm.btn-secondary.pull-right.ml-1(:class="isPanelOpenCat[cat.id] ? 'fa fa-solid fa-chevron-down' : 'fa fa-solid fa-chevron-up'")
+                            i.btn-sm.btn-secondary.pull-right.ml-1(:class="isPanelOpenCat[cat.id] ? 'fa fa-solid fa-chevron-down' : 'fa fa-solid fa-chevron-right'")
 
                         //- Compteur de la categorie affcihé si le panel est fermé
                         template(v-if="show_counter && !isPanelOpenCat[cat.id]")
                             div
                                 template(v-for="state in all_states")
                                     .sup_cnt.btn.btn-sm.mr-1(
-                                        :class="['STATE_' + state, { opacity_1:opacityApitypeState[cat.id + '_' + state]}]"
+                                        :class="['STATE_' + state, 'tt_states_' + all_states.length, { opacity_1:opacityApitypeState[cat.id + '_' + state]}]"
                                     )
                                         template(v-if="!!count_by_sup_by_cat && !!count_by_sup_by_cat[cat.id]")
                                             span {{ count_by_sup_by_cat[cat.id][state] }}
@@ -51,12 +82,12 @@
                         .accordion-panel-body
                             template(v-for="api_type_id in available_api_type_ids_by_cat_ids[cat.id]")
                                 template(v-if="show_counter")
-                                    p.probe_label {{ label('supervision_widget_component.' + api_type_id)}}
+                                    p.probe_label(:class="{'bold':selected_api_type_id == api_type_id}") {{ label('supervision_widget_component.' + api_type_id)}}
                                     template(v-if="!!count_by_sup_api_type_ids && !!count_by_sup_api_type_ids[api_type_id]")
                                         template(v-for="state in all_states")
                                             .sup_cnt.btn.btn-sm.mr-1(
-                                                @click="handle_select_api_type_id_and_state(state, api_type_id, null)"
-                                                :class="['STATE_' + state, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
+                                                @click="handle_select_api_type_id_and_state(state, api_type_id)"
+                                                :class="['STATE_' + state, 'tt_states_' + all_states.length, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
                                             )
                                                 span {{ count_by_sup_api_type_ids[api_type_id][state] }}
 
@@ -69,15 +100,16 @@
         //- endOf if (order_by_categories)
         template(v-else)
             template(v-if="show_counter")
-                template(v-for="api_type_id in available_api_type_ids")
-                    p.probe_label {{ label('supervision_widget_component.' + api_type_id)}}
-                    template(v-if="!!count_by_sup_api_type_ids && !!count_by_sup_api_type_ids[api_type_id]")
-                        template(v-for="state in all_states")
-                            .sup_cnt.btn.btn-sm.mr-1(
-                                @click="handle_select_api_type_id_and_state(state, api_type_id, null)"
-                                :class="['STATE_' + state, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
-                            )
-                                span {{ count_by_sup_api_type_ids[api_type_id][state] }}
+                .separator
+                    template(v-for="api_type_id in available_api_type_ids")
+                        p.probe_label(:class="{'bold':selected_api_type_id == api_type_id}") {{ label('supervision_widget_component.' + api_type_id)}}
+                        template(v-if="!!count_by_sup_api_type_ids && !!count_by_sup_api_type_ids[api_type_id]")
+                            template(v-for="state in all_states")
+                                .sup_cnt.btn.btn-sm.mr-1(
+                                    @click="handle_select_api_type_id_and_state(state, api_type_id)"
+                                    :class="['STATE_' + state, 'tt_states_' + all_states.length, { selected: selectedApitypeState === api_type_id + '_' + state, opacity_1:opacityApitypeState[api_type_id + '_' + state] || selectedApitypeState === api_type_id + '_' + state}]"
+                                )
+                                    span {{ count_by_sup_api_type_ids[api_type_id][state] }}
 
             template(v-else)
                 template

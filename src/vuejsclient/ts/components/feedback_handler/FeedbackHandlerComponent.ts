@@ -62,6 +62,22 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
     private file_path_field: DatatableField<any, any> = null;
 
+    get isActive(): boolean {
+        return ModuleFeedback.getInstance().actif && VueAppController.getInstance().has_access_to_feedback;
+    }
+
+    @Watch('get_hidden', { immediate: true })
+    private async onchange_get_hidden() {
+        // If first time, store date + url
+        if (!this.tmp_start_date) {
+            this.tmp_start_date = Dates.now();
+            this.tmp_start_url = this.$route.fullPath;
+        }
+
+        if (!this.get_hidden && this.$refs.ScreenshotComponent1) {
+            await (this.$refs.ScreenshotComponent1 as ScreenshotComponent).take_screenshot();
+        }
+    }
     private mounted() {
         this.reload();
     }
@@ -90,19 +106,6 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         this.tmp_capture_3_vo = null;
 
         this.is_already_sending_feedback = false;
-    }
-
-    @Watch('get_hidden', { immediate: true })
-    private async onchange_get_hidden() {
-        // If first time, store date + url
-        if (!this.tmp_start_date) {
-            this.tmp_start_date = Dates.now();
-            this.tmp_start_url = this.$route.fullPath;
-        }
-
-        if (!this.get_hidden && this.$refs.ScreenshotComponent1) {
-            await (this.$refs.ScreenshotComponent1 as ScreenshotComponent).take_screenshot();
-        }
     }
 
     private switch_hidden() {
@@ -311,9 +314,5 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         }
 
         return res;
-    }
-
-    get isActive(): boolean {
-        return ModuleFeedback.getInstance().actif && VueAppController.getInstance().has_access_to_feedback;
     }
 }

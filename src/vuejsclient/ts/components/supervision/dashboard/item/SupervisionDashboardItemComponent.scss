@@ -1,9 +1,5 @@
 .supervision_dashboard_item_wrapper {
 
-    .supervision_dashboard_item_name.nameabove {
-        margin: 1rem 0;
-    }
-
     .checkbox_supervised_item_read {
         display: inline-block;
         vertical-align: middle;
@@ -40,7 +36,7 @@
         }
 
         &.noclick {
-            margin-left: 15px;
+            margin-left: 13px;
             margin-right: 0;
         }
 
@@ -70,6 +66,22 @@
 
         &.STATE_UNKOWN {
             background-color: grey;
+        }
+    }
+
+    .supervision_dashboard_item_name.nameabove {
+        margin: 0 0 0.5rem 0;
+    }
+}
+
+.supervised_item.embedded {
+    .supervised_item_header {
+        .supervision_dashboard_item_wrapper {
+            .supervision_dashboard_item {
+                padding: 0.1em 0em;
+                cursor: auto;
+                font-size: unset;
+            }
         }
     }
 }

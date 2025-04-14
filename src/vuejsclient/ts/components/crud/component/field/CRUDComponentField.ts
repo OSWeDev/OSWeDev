@@ -337,6 +337,10 @@ export default class CRUDComponentField extends VueComponentBase
         return HourrangeInputComponent;
     }
 
+    get tstz_input_component() {
+        return TSTZInputComponent;
+    }
+
     get alert_path(): string {
         if (!this.field) {
             return null;
@@ -447,6 +451,28 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         return res;
+    }
+
+    get field_description(): string {
+        if (this.description) {
+            return this.description;
+        }
+
+        if (
+            !this.field?.module_table_field_id ||
+            !this.field?.vo_type_id ||
+            !ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.field.vo_type_id]
+        ) {
+            return null;
+        }
+
+        const vo_field: ModuleTableFieldVO = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.field.vo_type_id][this.field.module_table_field_id];
+
+        if (!vo_field) {
+            return null;
+        }
+
+        return vo_field.description;
     }
 
     set async_load_options_field_value(values: DataFilterOption | DataFilterOption[]) {

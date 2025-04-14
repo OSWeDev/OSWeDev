@@ -4,6 +4,7 @@ import ModuleTableFieldController from '../../shared/modules/DAO/ModuleTableFiel
 import ModuleTableCompositePartialIndexVO from '../../shared/modules/DAO/vos/ModuleTableCompositePartialIndexVO';
 import ModuleTableFieldVO from '../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../shared/modules/DAO/vos/ModuleTableVO';
+import DashboardGraphVORefVO from '../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import IRange from '../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../shared/modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../../shared/modules/IDistantVOBase';
@@ -655,6 +656,27 @@ export default class ModuleTableDBService {
                 try {
                     pgSQL = pgSQL + field.getPGSqlFieldDescription() + ';';
                     await this.db.none(pgSQL);
+
+                    // Si champ de référence vers un autre VO, on va rajouter le champ dans la table DashboardGraphVORefVO
+                    // s'il y a des DBB déjà existants pour éviter de rajouter une liaison que l'on ne voudrait pas de base
+                    // Cela permet de ne pas avoir à faire de migration sur les DBB existants
+                    if (
+                        database_name == "ref" &&
+                        !!ModuleTableController.module_tables_by_vo_type[DashboardGraphVORefVO.API_TYPE_ID] &&
+                        (
+                            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) ||
+                            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_foreign_key)
+                        )
+                    ) {
+                        await this.db.none(
+                            `UPDATE ` + ModuleTableController.module_tables_by_vo_type[DashboardGraphVORefVO.API_TYPE_ID].full_name + `
+                            SET ` + field_names<DashboardGraphVORefVO>().values_to_exclude + ` = array_append(COALESCE(` + field_names<DashboardGraphVORefVO>().values_to_exclude + `, '{}'), '` + field.field_name + `')
+                            WHERE vo_type='` + field.module_table_vo_type + `'
+                            AND (` + field_names<DashboardGraphVORefVO>().values_to_exclude + ` IS NULL
+                            OR NOT('` + field.field_name + `' = ANY(` + field_names<DashboardGraphVORefVO>().values_to_exclude + `)));`
+                        );
+                    }
+
                     res = true;
                     ConsoleHandler.error('ACTION: OK');
                 } catch (error) {

@@ -1,13 +1,12 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
-import VueComponentBase from '../../../ts/components/VueComponentBase';
-import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
-import { field_names } from '../../../../shared/tools/ObjectHandler';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
+import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
+import VueComponentBase from '../../../ts/components/VueComponentBase';
 
 @Component({
     template: require('./FileComponent.pug'),

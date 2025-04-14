@@ -4,7 +4,8 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
@@ -197,6 +198,9 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Supervision selectionnée"
         }, 'supervision.item_drag_panel.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Afficher les boutons de filtre par état"
+        }, 'supervision_type_widget_component.show_btn_state.___LABEL___'));
 
         /**
          * On gère l'historique des valeurs
@@ -250,9 +254,31 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         fo_access_dependency.src_pol_id = fo_access.id;
         fo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
         fo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(fo_access_dependency);
+
+        let action_pause_access: AccessPolicyVO = new AccessPolicyVO();
+        action_pause_access.group_id = group.id;
+        action_pause_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        action_pause_access.translatable_name = ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS;
+        action_pause_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(action_pause_access, DefaultTranslationVO.create_new({
+            'fr-fr': 'acces à la mise en pause des items de Supervision'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let action_pause_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        action_pause_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        action_pause_access_dependency.src_pol_id = action_pause_access.id;
+        action_pause_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+        action_pause_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(action_pause_access_dependency);
     }
 
     private async onPreU_SUP_ITEM_HISTORIZE(vo_update_handler: DAOUpdateVOHolder<ISupervisedItem>): Promise<boolean> {
+
+        // si on passe en pause : on rejete la modification si on a les pas droits de mise en pause
+        if ((vo_update_handler.pre_update_vo.state != SupervisionController.STATE_PAUSED) && (vo_update_handler.post_update_vo.state == SupervisionController.STATE_PAUSED)) {
+            const has_access_pause: boolean = await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS);
+            if (!has_access_pause) {
+                return false;
+            }
+        }
 
         /**
          * On veut changer la date et historiser que si on est en train de stocker une nouvelle valeur.
@@ -284,6 +310,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
             if (has_new_value) {
                 const moduletablefields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_update_handler.post_update_vo._type];
+                let has_any_diff: boolean = false;
                 for (const i in moduletablefields) {
                     const moduletablefield = moduletablefields[i];
 
@@ -298,9 +325,17 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
                             break;
                         default:
                             if (vo_update_handler.pre_update_vo[moduletablefield.field_name] != vo_update_handler.post_update_vo[moduletablefield.field_name]) {
-                                has_new_value = false;
+                                has_any_diff = true;
                             }
                     }
+
+                    if (!!has_any_diff) {
+                        break;
+                    }
+                }
+
+                if (!has_any_diff) {
+                    has_new_value = false;
                 }
             }
         }
@@ -357,6 +392,23 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
                 probe = new SupervisedProbeVO();
                 probe.sup_item_api_type_id = supervised_item._type;
                 probe.category_id = supervised_item.category_id;
+
+                const query_other_probe: ContextQueryVO = query(SupervisedProbeVO.API_TYPE_ID);
+                if (!!supervised_item.category_id) {
+                    query_other_probe.filter_by_num_eq(field_names<SupervisedProbeVO>().category_id, supervised_item.category_id);
+                } else {
+                    query_other_probe.filter_is_null_or_empty(field_names<SupervisedProbeVO>().category_id);
+                }
+                query_other_probe.filter_by_num_sup_eq(field_names<SupervisedProbeVO>().weight, 0);
+                query_other_probe.set_sort(new SortByVO(SupervisedProbeVO.API_TYPE_ID, field_names<SupervisedProbeVO>().weight, false));
+                query_other_probe.set_limit(1);
+
+                const other_probe: SupervisedProbeVO = await query_other_probe.select_vo<SupervisedProbeVO>();
+
+                if (!!other_probe) {
+                    probe.weight = other_probe.weight + 1;
+                }
+
                 const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(probe);
 
                 if (!res) {

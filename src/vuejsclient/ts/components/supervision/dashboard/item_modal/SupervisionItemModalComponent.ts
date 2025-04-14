@@ -21,8 +21,14 @@ export default class SupervisionItemModalComponent extends VueComponentBase {
     @ModuleSupervisionGetter
     private get_selected_item: ISupervisedItem;
 
+    @ModuleSupervisionGetter
+    private get_has_access_pause: boolean;
+
     @Prop({ default: false })
     private noclick: boolean;
+
+    @Prop({ default: null })
+    private split_char: string;
 
     // get supervised_item_controller(): ISupervisedItemController<any> {
     //     return SupervisionController.getInstance().registered_controllers[this.item._type];
@@ -42,6 +48,10 @@ export default class SupervisionItemModalComponent extends VueComponentBase {
             },
         });
         $('#supervision_item_modal').modal('hide');
+    }
+
+    private get_split_name(): string {
+        return SupervisionController.getInstance().get_item_split_name(this.get_selected_item?.name, this.split_char);
     }
 
 }

@@ -46,14 +46,16 @@ include ../../../../../views/mixins/loading.pug
             table.table-hover
                 thead
                     tr
-                        //- Checkboxes 
+                        //- Checkboxes
                         template(v-if="show_bulk_edit")
-                            th 
+                            th
                         //- Popup actions
-                        th
+                        th {{ label('supervision_widget_component.table.show_detail') }}
                         th {{ label('supervision_widget_component.table.name') }}
                         th {{ label('supervision_widget_component.table.last_update') }}
                         th {{ label('supervision_widget_component.table.last_value') }}
+                        template(v-for='column in custom_columns')
+                            th {{ label(column.title) }}
                 tbody
                     template(v-for="row in items")
                         tr(:class="'STATE_' + row.state")
@@ -61,16 +63,24 @@ include ../../../../../views/mixins/loading.pug
                                 td.text-center
                                     input(
                                         :checked="selected_items[get_identifier(row)]",
-                                        v-model="selected_items[get_identifier(row)]", 
-                                        type="checkbox", 
+                                        v-model="selected_items[get_identifier(row)]",
+                                        type="checkbox",
                                     )
                             td.text-center
                                 .show_detail.clickable(
                                     @click="openModal(row)"
-                                ) 
-                                    i.fa-duotone.fa-eye.mr-1
-                                    span {{ label('supervision_widget_component.table.show_detail') }}
+                                )
+                                    i.fa-duotone.fa-eye.mr-1(v-tooltip='label("supervision_widget_component.table.show_detail")')
 
                             td {{ row.name }}
-                            td {{ get_date(row) }}
-                            td {{ row.last_value }}
+                                //- span(v-if="!!split_char" v-html="get_split_name(row)")
+                                //- span(v-else) {{ row.name }}
+
+                            td.text-right
+                                i.fa-solid.fa-fw.fa-hourglass-half(v-if="row.invalid" aria-hidden="true" v-tooltip='label("supervision_widget_component.tooltip.item.invalid")')
+                                span.mr-1 {{ get_date(row) }}
+                            td.text-right
+                                span.mr-1 {{ row.last_value }}
+                            template(v-for='column in custom_columns')
+                                td
+                                    .custom_column(:is='column.component', :item='row')

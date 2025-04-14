@@ -21,6 +21,8 @@ import DatatableComponent from '../../../datatable/component/DatatableComponent'
 import CRUDComponentManager from '../../CRUDComponentManager';
 import CRUDFormServices from '../CRUDFormServices';
 import "./CRUDCreateFormComponent.scss";
+import { cloneDeep, isEqual } from 'lodash';
+import ModuleTableVO from '../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 
 @Component({
     template: require('./CRUDCreateFormComponent.pug'),
@@ -62,8 +64,12 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     @Prop({ default: false })
     private show_placeholder: boolean;
 
+    @Prop({ default: false })
+    private inline_form_in_crud: boolean;
+
     private editableVO: IDistantVOBase = null;
     private newVO: IDistantVOBase = null;
+    private newVO_initial: IDistantVOBase = null;
 
     private api_types_involved: string[] = [];
 
@@ -77,15 +83,24 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     private crud_field_remover_conf: CRUDFieldRemoverConfVO = null;
     private POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS: boolean = false;
 
+    private snotify_cancel = null;
+
     get CRUDTitle(): string {
         if (!this.crud) {
             return null;
         }
 
         return this.label('crud.read.title', {
-            datatable_title:
-                this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].label.code_text)
+            datatable_title: this.datatable_title
         });
+    }
+
+    get datatable_title(): string {
+        if (!this.crud) {
+            return null;
+        }
+
+        return this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID]?.label?.code_text);
     }
 
     get callback_route(): string {
@@ -103,6 +118,14 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         }
 
         return false;
+    }
+
+    get input_label(): string {
+        if (this.inline_form_in_crud) {
+            return this.label('crud.create.modal.add_continue');
+        }
+
+        return this.label('crud.create.modal.add');
     }
 
     @Watch("api_type_id", { immediate: true })
@@ -175,6 +198,56 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
             this.crud_createDatatable_key = this.crud.createDatatable.key;
         }
+    }
+
+    public cancel() {
+        if (this.vo_is_equal_for_prevent()) {
+            this.$emit('cancel');
+            return;
+        }
+
+        if (this.snotify_cancel) {
+            return;
+        }
+
+        this.snotify_cancel = this.snotify.confirm(this.label('cancel.create.confirmation.body'), this.label('cancel.create.confirmation.title'), {
+            timeout: 0,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            titleMaxLength: 100,
+            buttons: [
+                {
+                    text: this.t('YES'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                        this.snotify_cancel = null;
+
+                        // On met le VO aux valeurs initiales
+                        this.newVO = cloneDeep(this.newVO_initial);
+
+                        this.$emit('cancel');
+                    },
+                },
+                {
+                    text: this.t('NO'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                        this.snotify_cancel = null;
+                    }
+                }
+            ]
+        });
+    }
+
+    public vo_is_equal_for_prevent(): boolean {
+        const moduletable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[this.api_type_id];
+
+        if (!moduletable?.prevent_close_modal) {
+            return true;
+        }
+
+        return isEqual(this.newVO, this.newVO_initial);
     }
 
     private async mounted() {
@@ -299,6 +372,8 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         this.newVO = await CRUDFormServices.getNewVO(
             this.crud, this.vo_init, this.onChangeVO
         );
+        this.newVO_initial = cloneDeep(this.newVO);
+        this.snotify_cancel = null;
     }
 
     private async createVO() {
@@ -374,6 +449,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                 }
 
                 if (self.close_on_submit) {
+                    this.newVO_initial = cloneDeep(this.newVO);
                     self.$emit('close');
                 } else {
                     self.crud.createDatatable.refresh();
@@ -441,10 +517,6 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
             this.crud.createDatatable.refresh();
             this.crud_createDatatable_key = this.crud.createDatatable.key;
         }
-    }
-
-    private async cancel() {
-        this.$emit('cancel');
     }
 
     private async create_vo_and_refs(vo: IDistantVOBase, reject_snotify) {

@@ -3,13 +3,18 @@
         .modal-dialog.modal-lg(role='document')
             .modal-content(v-if="selected_item")
                 .modal-header
-                    h4.modal-title {{ selected_item.name }}
+                    h4.modal-title.col-sm-11
+                        span(v-if="!!split_char" v-html="get_split_name()")
+                        span(v-else) {{ selected_item.name }}
                     a.btn.close(@click="closemodal") &times;
 
                 .modal-body
                     Superviseditemcomponent(
                         :supervised_item_id='selected_item.id'
                         :supervised_item_vo_type='selected_item._type'
+                        :has_access_pause='has_access_pause'
+                        :split_char='split_char'
+                        :noclick="true"
                     )
 
                 .modal-footer
