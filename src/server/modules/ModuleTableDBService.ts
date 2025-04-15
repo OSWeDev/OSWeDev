@@ -1,6 +1,7 @@
 import UserVO from '../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleTableController from '../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldController from '../../shared/modules/DAO/ModuleTableFieldController';
+import CustomComputedFieldInitVO from '../../shared/modules/DAO/vos/CustomComputedFieldInitVO';
 import ModuleTableCompositePartialIndexVO from '../../shared/modules/DAO/vos/ModuleTableCompositePartialIndexVO';
 import ModuleTableFieldVO from '../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../shared/modules/DAO/vos/ModuleTableVO';
@@ -504,6 +505,7 @@ export default class ModuleTableDBService {
                     '    and kcu.table_schema = tco.table_schema ' +
                     '  where tco.constraint_type = \'FOREIGN KEY\' and kcu.column_name = \'' + field.field_name + '\' and kcu.table_name = \'' + table_name + '\' and kcu.table_schema = \'' + database_name + '\';');
             } catch (error) {
+                //
             }
             const actual_constraint_names: Array<{ constraint_name: string }> = (actual_constraint_name_res && actual_constraint_name_res.length > 0) ? actual_constraint_name_res : null;
 
@@ -522,6 +524,7 @@ export default class ModuleTableDBService {
                             ConsoleHandler.warn('SUPRRESION d\'une contrainte incohérente en base VS code :' + full_name + ':' + actual_constraint_name + ':');
                             res = true;
                         } catch (error) {
+                            //
                         }
                     }
                 }
@@ -539,7 +542,9 @@ export default class ModuleTableDBService {
 
                     try {
                         await this.db.none('ALTER TABLE ' + full_name + ' DROP CONSTRAINT ' + actual_constraint_name + ';');
-                    } catch (error) { }
+                    } catch (error) {
+                        //
+                    }
                 }
             }
 
@@ -645,6 +650,7 @@ export default class ModuleTableDBService {
         for (const i in fields) {
             const field = fields[i];
 
+            let has_added_field: boolean = false;
             if (!table_cols_by_name[field.field_name.toLowerCase()]) {
                 ConsoleHandler.error('-');
                 ConsoleHandler.error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + field.field_name + ':table:' + full_name + ':');
@@ -665,6 +671,8 @@ export default class ModuleTableDBService {
                     }
                 }
                 ConsoleHandler.error('---');
+
+                has_added_field = true;
             }
 
             /**
@@ -697,6 +705,42 @@ export default class ModuleTableDBService {
                         }
                     }
                     console.error('---');
+                }
+            }
+
+            /**
+             * Cas des champs custom_computed : on doit alors planifier un patch dédié
+             */
+            if (has_added_field) {
+                if (field.is_custom_computed) {
+
+                    // Sur une table segmentée, pas encore implémenté
+                    if (moduleTable.is_segmented) {
+                        throw new Error('ModuleTableDBService:checkMissingInDB: custom_computed field on segmented table not implemented');
+                    }
+
+                    // On ajoute une demande d'init en base si elle existe pas déjà
+                    const custom_computed_field_init: CustomComputedFieldInitVO = new CustomComputedFieldInitVO();
+                    custom_computed_field_init.vo_type = moduleTable.vo_type;
+                    custom_computed_field_init.field_name = field.field_name;
+                    custom_computed_field_init.next_limit = 100;
+                    custom_computed_field_init.next_offset = 0;
+                    custom_computed_field_init.message = null;
+                    custom_computed_field_init.state = CustomComputedFieldInitVO.STATE_TODO;
+
+                    // On vérifie l'existence de la table de configuration (normalement c'est dans le DAO tout en haut, on devrait être ok)
+                    const db_table_test: IDistantVOBase[] = await this.db.query("SELECT FROM pg_catalog.pg_tables WHERE schemaname = 'ref' AND tablename = 'module_dao_custom_computed_field_init';");
+                    if ((!db_table_test) || (!db_table_test.length)) {
+                        throw new Error('ModuleTableDBService:checkMissingInDB: no ref table module_dao_custom_computed_field_init: it needs to be created at this point');
+                    }
+
+                    // Puis on checke si la ligne (vo_type/field_name) existe déjà. si oui osef, si non il faut en créer une
+                    const db_table_test2: IDistantVOBase[] = await this.db.query("SELECT * FROM ref.module_dao_custom_computed_field_init WHERE vo_type = '" + moduleTable.vo_type + "' AND field_name = '" + field.field_name + "';");
+                    if ((!db_table_test2) || (!db_table_test2.length)) {
+                        await this.db.query("INSERT INTO ref.module_dao_custom_computed_field_init (vo_type, field_name, next_limit, next_offset, message, state) VALUES ('" + moduleTable.vo_type + "', '" + field.field_name + "', " + custom_computed_field_init.next_limit + ", " + custom_computed_field_init.next_offset + ", null, " + custom_computed_field_init.state + ");");
+                    }
+
+                    ConsoleHandler.log('ModuleTableDBService:checkMissingInDB: custom_computed field init created for field:' + field.field_name + ':vo_type:' + moduleTable.vo_type);
                 }
             }
         }

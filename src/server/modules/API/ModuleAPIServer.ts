@@ -385,7 +385,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
     private async api_request_handler<T, U>(api: APIDefinition<T, U>, req: Request, res: Response): Promise<void> {
 
-        if (!req?.session?.uid) {
+        if (!req?.session) {
             ConsoleHandler.error('API called without session:' + req.url);
             res.end();
             return;

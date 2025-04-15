@@ -9,11 +9,14 @@ export interface ISemaphoreHandlerCallInstance<T> {
 
 export default class SemaphoreHandler {
 
-    @StatThisMapKeys('SemaphoreHandler')
+    @StatThisMapKeys('SemaphoreHandler', null)
     private static SEMAPHORES: { [key: string]: boolean } = {};
 
     @StatThisMapKeys('SemaphoreHandler', null, 1, true)
     private static SEMAPHORES_call_instances: { [key: string]: ISemaphoreHandlerCallInstance<unknown>[] } = {};
+
+    @StatThisMapKeys('SemaphoreHandler', null)
+    private static SEMAPHORES_promises: { [key: string]: Promise<unknown> } = {};
 
     /**
      * Cette méthode permet de vérifier la dispo d'un semaphore
@@ -80,18 +83,25 @@ export default class SemaphoreHandler {
 
     /**
      * En only_once, on peut être appelé plusieurs fois, mais on ne fait le traitement qu'une seule fois
+     * On peut attendre la réponse du sémaphore pour attendre la fin du call réalisé une seule fois
      * @param key
      * @param cb
      * @returns
      */
-    public static do_only_once(key: string, cb: () => any | Promise<any>): Promise<any> {
+    public static async do_only_once(key: string, cb: () => any | Promise<any>): Promise<unknown> {
 
         if (SemaphoreHandler.SEMAPHORES[key]) {
-            return null;
+            return SemaphoreHandler.SEMAPHORES_promises[key];
         }
 
         SemaphoreHandler.SEMAPHORES[key] = true;
-        const res = cb();
+        let resolver = null;
+        SemaphoreHandler.SEMAPHORES_promises[key] = new Promise((resolve, reject) => {
+            resolver = resolve;
+        });
+        const res = await cb();
+
+        resolver(res);
 
         return res;
     }

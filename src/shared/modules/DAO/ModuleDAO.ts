@@ -23,6 +23,7 @@ import CRUDCNVOManyToManyRefVO from './vos/CRUDCNVOManyToManyRefVO';
 import CRUDCNVOOneToManyRefVO from './vos/CRUDCNVOOneToManyRefVO';
 import CRUDCreateNewVOAndRefsVO from './vos/CRUDCreateNewVOAndRefsVO';
 import CRUDFieldRemoverConfVO from './vos/CRUDFieldRemoverConfVO';
+import CustomComputedFieldInitVO from './vos/CustomComputedFieldInitVO';
 import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
 import ModuleTableCompositePartialIndexVO from './vos/ModuleTableCompositePartialIndexVO';
 import ModuleTableCompositeUniqueKeyVO from './vos/ModuleTableCompositeUniqueKeyVO';
@@ -355,6 +356,7 @@ export default class ModuleDAO extends Module {
     }
 
     public initialize() {
+        this.init_CustomComputedFieldInitVO();
         this.init_CRUDFieldRemoverConfVO();
         this.init_ModuleTableVO();
         this.init_ModuleTableFieldVO();
@@ -426,6 +428,17 @@ export default class ModuleDAO extends Module {
         ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>()._bdd_only_index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique().readonly();
     }
 
+    private init_CustomComputedFieldInitVO() {
+        ModuleTableController.create_new(this.name, CustomComputedFieldInitVO, null, "Initialisation des Champs calculés");
+
+        ModuleTableFieldController.create_new(CustomComputedFieldInitVO.API_TYPE_ID, field_names<CustomComputedFieldInitVO>().vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'API_TYPE_ID du champs', true);
+        ModuleTableFieldController.create_new(CustomComputedFieldInitVO.API_TYPE_ID, field_names<CustomComputedFieldInitVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du champs', true);
+        ModuleTableFieldController.create_new(CustomComputedFieldInitVO.API_TYPE_ID, field_names<CustomComputedFieldInitVO>().next_offset, ModuleTableFieldVO.FIELD_TYPE_int, 'Offset du prochain traitement', true, true, 0);
+        ModuleTableFieldController.create_new(CustomComputedFieldInitVO.API_TYPE_ID, field_names<CustomComputedFieldInitVO>().next_limit, ModuleTableFieldVO.FIELD_TYPE_int, 'Limite du prochain traitement', true, true, 100);
+        ModuleTableFieldController.create_new(CustomComputedFieldInitVO.API_TYPE_ID, field_names<CustomComputedFieldInitVO>().state, ModuleTableFieldVO.FIELD_TYPE_int, 'Etat du traitement', true, true, CustomComputedFieldInitVO.STATE_TODO).setEnumValues(CustomComputedFieldInitVO.STATE_LABELS);
+        ModuleTableFieldController.create_new(CustomComputedFieldInitVO.API_TYPE_ID, field_names<CustomComputedFieldInitVO>().message, ModuleTableFieldVO.FIELD_TYPE_string, 'Message', false);
+    }
+
     private init_ModuleTableFieldVO() {
 
         const label_field = ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
@@ -441,6 +454,9 @@ export default class ModuleDAO extends Module {
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().max_values, ModuleTableFieldVO.FIELD_TYPE_int, 'Valeurs max', true, true, 999);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().force_index, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Toujours indexer', true, true, false);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Lecture seule', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().is_custom_computed, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Champs calculé', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().custom_computed_function_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Champs calculé - Fonction', false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().custom_computed_module_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Champs calculé - Module', false);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().format_localized_time, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Date localisée', true, true, false);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().translatable_params_field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Champ contenant les paramètres de traduction', false);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().is_inclusive_data, ModuleTableFieldVO.FIELD_TYPE_boolean, 'La donnée est inclusive - [] vs ()', true, true, false);
