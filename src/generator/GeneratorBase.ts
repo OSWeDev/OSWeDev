@@ -36,6 +36,7 @@ import ActivateDataImport from './inits/premodules/ActivateDataImport';
 import ActivateDataRender from './inits/premodules/ActivateDataRender';
 import CheckBasicSchemas from './inits/premodules/CheckBasicSchemas';
 import CheckExtensions from './inits/premodules/CheckExtensions';
+import CheckExtensionsV2 from './inits/premodules/CheckExtensionsV2';
 // import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
 import VersionUpdater from './version_updater/VersionUpdater';
 // import Patch20241129PreCreateEventsConfs from './patchs/premodules/Patch20241129PreCreateEventsConfs';
@@ -74,6 +75,7 @@ export default abstract class GeneratorBase {
             CheckBasicSchemas.getInstance(),
             ActivateDataImport.getInstance(),
             ActivateDataRender.getInstance(),
+            CheckExtensionsV2.getInstance(),
         ];
 
         this.init_post_modules_workers = [
