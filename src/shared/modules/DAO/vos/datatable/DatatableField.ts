@@ -66,6 +66,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      * Used in the CREATE or UPDATE views to show infos that are not editable
      */
     public is_readonly: boolean = false;
+    public is_hide_download_label: boolean = false;
 
     /**
      * Show/Hide field from datatable
@@ -399,6 +400,14 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      */
     public readonly(): this {
         this.is_readonly = true;
+        return this;
+    }
+
+    /**
+     * Force hide_download_label
+     */
+    public hide_download_label(): this {
+        this.is_hide_download_label = true;
         return this;
     }
 

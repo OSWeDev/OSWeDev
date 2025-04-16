@@ -24,7 +24,7 @@ export default class FileComponent extends VueComponentBase {
     public storeData: (vo: IDistantVOBase) => void;
 
     @Prop({ default: false })
-    protected readonly: boolean;
+    protected disabled: boolean;
 
     @Prop({ default: null })
     protected filevo: IDistantVOBase;

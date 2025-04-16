@@ -20,7 +20,7 @@ export default class ImageComponent extends VueComponentBase {
     public storeData: (vo: IDistantVOBase) => void;
 
     @Prop({ default: false })
-    protected readonly: boolean;
+    protected disabled: boolean;
 
     @Prop()
     protected field: DatatableField<any, any>;
