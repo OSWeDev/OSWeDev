@@ -45,7 +45,6 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
     public zoom_on_click: boolean;
     public card_footer_label: VOFieldRefVO;
     public activate_like_button: boolean;
-    public element_user_likes: { [element_id: number]: number[] };
 
 
     public static createNew(
@@ -69,7 +68,6 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         zoom_on_click: boolean,
         card_footer_label: VOFieldRefVO,
         activate_like_button: boolean,
-        element_user_likes: { [element_id: number]: number[] },
 
         do_not_use_page_widget_ids?: number[],
         show_message_no_data?: boolean,
@@ -103,7 +101,6 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         res.zoom_on_click = zoom_on_click;
         res.card_footer_label = card_footer_label;
         res.activate_like_button = activate_like_button;
-        res.element_user_likes = element_user_likes;
 
         return res;
     }

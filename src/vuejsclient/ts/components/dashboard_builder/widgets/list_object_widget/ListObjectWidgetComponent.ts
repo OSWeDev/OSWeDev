@@ -75,7 +75,9 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     private nb_elements: number[] = [];
     private current_element: number = 0;
 
-    private element_ids: number[] = [];
+    private api_type_id: string = null;
+    private vo_id_by_index: { [index: number]: number } = null;
+
     private user_id: number = null;
     private semaphore_toggleLike: boolean = false;
 
@@ -99,11 +101,6 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             }
         } catch (error) {
             ConsoleHandler.error(error);
-        }
-
-        // Ici on s'assure que la propriété est définie
-        if (options && !options.element_user_likes) {
-            options.element_user_likes = {};
         }
 
         return options;
@@ -164,31 +161,7 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
      * Bascule le like pour l'élément à l'indice i
      */
     private toggleLike(i: number) {
-
-        // Sécurité : si on n'a pas d'ID pour cet index, on ne fait rien
-        if (!this.element_ids || !this.element_ids[i]) {
-            return;
-        }
-        const item_id = this.element_ids[i];
-
-        // On s'assure que la map de likes existe bien
-        if (!this.widget_options.element_user_likes[item_id]) {
-            this.widget_options.element_user_likes[item_id] = [];
-        }
-
-        // Vérifie si l'utilisateur courant est déjà dans la liste
-        const userIndex = this.widget_options.element_user_likes[item_id].indexOf(this.user_id);
-
-        if (userIndex >= 0) {
-            // Il avait déjà liké => on retire
-            this.widget_options.element_user_likes[item_id].splice(userIndex, 1);
-        } else {
-            // Il n'avait pas liké => on ajoute
-            this.widget_options.element_user_likes[item_id].push(this.user_id);
-        }
-
-        this.next_update_options = cloneDeep(this.widget_options);
-        this.throttled_update_options();
+        // Appel de l'api pour ajouter ou supprimer le like
 
         this.semaphore_toggleLike = true;
     }
@@ -197,14 +170,7 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
      * Renvoie le nombre de likes pour l'élément à l'indice i
      */
     private getLikeCount(i: number): number {
-        if (!this.element_ids || !this.element_ids[i]) {
-            return 0;
-        }
-        const item_id = this.element_ids[i];
-        if (!this.widget_options.element_user_likes[item_id]) {
-            return 0;
-        }
-        return this.widget_options.element_user_likes[item_id].length;
+        return null;
     }
 
     private async do_update_visible_options() {
@@ -363,7 +329,12 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
         const titles = await query_.select_vos();
 
-        this.element_ids = titles.map((title) => title.id);
+        // On set l'api_type_id pour les likes
+        this.api_type_id = this.widget_options.title.api_type_id;
+        this.vo_id_by_index = {};
+        for (const i in titles) {
+            this.vo_id_by_index[i] = titles[i].id;
+        }
 
         return this.get_values_formatted(titles, this.widget_options.title.field_id, this.widget_options.title.api_type_id);
     }

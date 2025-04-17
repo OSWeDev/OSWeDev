@@ -84,7 +84,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
     private symbole_sous_titre: string = null;
     private zoom_on_click: boolean;
     private activate_like_button: boolean;
-    private element_user_likes: { [element_id: number]: number[] };
 
     private optionsEditeur = {
         modules: {
@@ -377,7 +376,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             false,
             null,
             false,
-            {},
             [],
             false,
         );
@@ -415,7 +413,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         (this.widget_options.blank == options.blank) &&
                         (this.widget_options.zoom_on_click == options.zoom_on_click) &&
                         (this.widget_options.activate_like_button == options.activate_like_button) &&
-                        (this.widget_options.element_user_likes == options.element_user_likes) &&
                         (this.widget_options.button_elements == options.button_elements) &&
                         (this.widget_options.display_orientation == options.display_orientation) &&
                         (this.widget_options.image_id == options.image_id) &&
@@ -462,7 +459,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         options.zoom_on_click,
                         options.card_footer_label,
                         options.activate_like_button,
-                        options.element_user_likes,
                         options.do_not_use_page_widget_ids,
                         options.show_message_no_data,
                         options.message_no_data,
@@ -511,7 +507,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.symbole_sous_titre = default_options.symbole_sous_titre;
             this.filter_on_distant_vo = default_options.filter_on_distant_vo;
             this.field_filter_distant_vo = default_options.field_filter_distant_vo;
-            this.element_user_likes = default_options.element_user_likes;
             this.activate_like_button = default_options.activate_like_button;
 
             this.widget_options = default_options;
@@ -589,9 +584,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.field_filter_distant_vo != this.widget_options.field_filter_distant_vo) {
             this.field_filter_distant_vo = this.widget_options.field_filter_distant_vo;
-        }
-        if (this.element_user_likes != this.widget_options.element_user_likes) {
-            this.element_user_likes = this.widget_options.element_user_likes;
         }
         if (this.activate_like_button != this.widget_options.activate_like_button) {
             this.activate_like_button = this.widget_options.activate_like_button;

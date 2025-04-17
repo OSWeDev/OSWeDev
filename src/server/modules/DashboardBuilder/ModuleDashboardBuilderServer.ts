@@ -3702,6 +3702,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Titres" },
             'list_object_widget_options_component.widget_title.title.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Titres (champ obligatoire)" },
+            'list_object_widget_options_component.widget_title.title_mandaroty.___LABEL___'
+        ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Sous-titres" },

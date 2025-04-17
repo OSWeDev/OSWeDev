@@ -34,6 +34,7 @@ import DashboardViewportVO from './vos/DashboardViewportVO';
 import DashboardWidgetVO from './vos/DashboardWidgetVO';
 import FavoritesFiltersVO from './vos/FavoritesFiltersVO';
 import LinkDashboardAndApiTypeIdVO from './vos/LinkDashboardAndApiTypeIdVO';
+import ListObjectLikesVO from './vos/ListObjectLikesVO';
 import SharedFiltersVO from './vos/SharedFiltersVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
 import VOFieldRefVO from './vos/VOFieldRefVO';
@@ -113,6 +114,8 @@ export default class ModuleDashboardBuilder extends Module {
         this.initialize_DashboardViewportVO();
         this.initialize_DashboardActiveonViewportVO();
         this.initialize_LinkDashboardAndApiTypeIdVO();
+
+        this.initialize_ListObjectLikesVO();
     }
 
     private init_DashboardVO(): ModuleTableVO {
@@ -644,6 +647,14 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().nb_columns, ModuleTableFieldVO.FIELD_TYPE_int, 'Nombre de colonnes');
 
         ModuleTableController.create_new(this.name, DashboardViewportVO, field_name, "Viewport de Dashboard");
+    }
+
+    private initialize_ListObjectLikesVO() {
+        ModuleTableFieldController.create_new(ListObjectLikesVO.API_TYPE_ID, field_names<ListObjectLikesVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'api type id de l\'objet');
+        ModuleTableFieldController.create_new(ListObjectLikesVO.API_TYPE_ID, field_names<ListObjectLikesVO>().vo_id, ModuleTableFieldVO.FIELD_TYPE_int, 'ID de l\'objet');
+        ModuleTableFieldController.create_new(ListObjectLikesVO.API_TYPE_ID, field_names<ListObjectLikesVO>().list_user_likes, ModuleTableFieldVO.FIELD_TYPE_int_array, 'Liste des IDs des users');
+
+        ModuleTableController.create_new(this.name, ListObjectLikesVO, null, "Likes pour les listes d'objets");
     }
 
     private initialize_DashboardActiveonViewportVO() {
