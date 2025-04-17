@@ -335,13 +335,81 @@
 				],
 				"type": "object",
 				"additionalProperties": false
+			},
+			"SonicWallAPIThreatLogDataInfo": {
+				"properties": {
+					"fname": {
+						"type": "string"
+					},
+					"startTime": {
+						"type": "number",
+						"format": "double"
+					},
+					"endTime": {
+						"type": "number",
+						"format": "double"
+					},
+					"count": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"fname",
+					"startTime",
+					"endTime",
+					"count"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SonicWallAPIThreatLogData": {
+				"properties": {
+					"threatlogDbEntriesPerFile": {
+						"type": "number",
+						"format": "double"
+					},
+					"threatlogDbFiles": {
+						"$ref": "#/components/schemas/SonicWallAPIThreatLogDataInfo"
+					}
+				},
+				"required": [
+					"threatlogDbEntriesPerFile",
+					"threatlogDbFiles"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SonicWallAPIThreatLog": {
+				"properties": {
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/SonicWallAPIThreatLogData"
+						},
+						"type": "array"
+					},
+					"systime": {
+						"type": "number",
+						"format": "double"
+					},
+					"loggedin": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"data",
+					"systime",
+					"loggedin"
+				],
+				"type": "object",
+				"additionalProperties": false
 			}
 		},
 		"securitySchemes": {}
 	},
 	"info": {
 		"title": "oswedev",
-		"version": "0.34.64",
+		"version": "0.34.64-dev.1",
 		"license": {
 			"name": "Apache-2.0"
 		},
@@ -389,6 +457,8 @@
 						}
 					}
 				},
+				"description": "Permet de démarrer le mode de gestion de l'API SonicWall",
+				"summary": "Démarrage du mode de gestion de l'API SonicWall",
 				"tags": [
 					"SonicWallAPI"
 				],
@@ -411,6 +481,8 @@
 						}
 					}
 				},
+				"description": "Permet de se déconnecter de l'API SonicWall",
+				"summary": "Déconnexion de l'API SonicWall",
 				"tags": [
 					"SonicWallAPI"
 				],
@@ -433,6 +505,8 @@
 						}
 					}
 				},
+				"description": "Permet de passer en mode de configuration de l'API SonicWall",
+				"summary": "Activation du mode de configuration de l'API SonicWall",
 				"tags": [
 					"SonicWallAPI"
 				],
@@ -455,6 +529,8 @@
 						}
 					}
 				},
+				"description": "Permet de désactiver le mode de configuration de l'API SonicWall",
+				"summary": "Désactivation du mode de configuration de l'API SonicWall",
 				"tags": [
 					"SonicWallAPI"
 				],
@@ -477,6 +553,8 @@
 						}
 					}
 				},
+				"description": "Permet de récupérer les politiques NAT IPv4 de l'API SonicWall",
+				"summary": "Récupération des politiques NAT IPv4 de l'API SonicWall",
 				"tags": [
 					"SonicWallAPI"
 				],
@@ -499,12 +577,15 @@
 						}
 					}
 				},
+				"description": "Permet de récupérer les objets d'adresse IPv4 de l'API SonicWall par nom",
+				"summary": "Récupération des objets d'adresse IPv4 de l'API SonicWall par nom",
 				"tags": [
 					"SonicWallAPI"
 				],
 				"security": [],
 				"parameters": [
 					{
+						"description": "Le nom de l'objet d'adresse IPv4 à récupérer",
 						"in": "path",
 						"name": "text",
 						"required": true,
@@ -530,17 +611,21 @@
 						}
 					}
 				},
+				"description": "Permet de créer des objets d'adresse IPv4 dans l'API SonicWall",
+				"summary": "Création d'objets d'adresse IPv4 dans l'API SonicWall",
 				"tags": [
 					"SonicWallAPI"
 				],
 				"security": [],
 				"parameters": [],
 				"requestBody": {
+					"description": "Les données des objets d'adresse IPv4 à créer",
 					"required": true,
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/SonicWallAPIAddressObjects"
+								"$ref": "#/components/schemas/SonicWallAPIAddressObjects",
+								"description": "Les données des objets d'adresse IPv4 à créer"
 							}
 						}
 					}
@@ -560,11 +645,95 @@
 						}
 					}
 				},
+				"description": "Permet de récupérer la configuration en attente de l'API SonicWall",
+				"summary": "Récupération de la configuration en attente de l'API SonicWall",
 				"tags": [
 					"SonicWallAPI"
 				],
 				"security": [],
 				"parameters": []
+			}
+		},
+		"/api_handler/sonicwallapi__save_config_pending": {
+			"post": {
+				"operationId": "Save_config_pending",
+				"responses": {
+					"200": {
+						"description": "Sauvegarde de la configuration en attente réussie",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SonicWallAPIResult"
+								}
+							}
+						}
+					}
+				},
+				"description": "Permet de sauvegarder la configuration en attente de l'API SonicWall",
+				"summary": "Sauvegarde de la configuration en attente de l'API SonicWall",
+				"tags": [
+					"SonicWallAPI"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/api_handler/sonicwallapi__get_dynamic_files_threat_log": {
+			"get": {
+				"operationId": "Get_dynamic_files_threat_log",
+				"responses": {
+					"200": {
+						"description": "Récupération du fichier de journal des menaces réussie",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SonicWallAPIThreatLog"
+								}
+							}
+						}
+					}
+				},
+				"description": "Permet de récupérer le fichier de journal des menaces de l'API SonicWall",
+				"summary": "Récupération du fichier de journal des menaces de l'API SonicWall",
+				"tags": [
+					"SonicWallAPI"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/api_handler/sonicwallapi__get_export_sysfile_threat_log_csv/{text}": {
+			"get": {
+				"operationId": "Get_export_sysfile_threat_log_csv",
+				"responses": {
+					"200": {
+						"description": "Exportation réussie",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				},
+				"description": "Permet d'exporter le fichier de journal des menaces au format CSV",
+				"summary": "Exportation du fichier de journal des menaces au format CSV",
+				"tags": [
+					"SonicWallAPI"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"description": "Le nom du fichier à exporter",
+						"in": "path",
+						"name": "text",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
 			}
 		}
 	},

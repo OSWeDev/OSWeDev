@@ -81,6 +81,8 @@ import AsyncHookPromiseWatchController from './modules/Stats/AsyncHookPromiseWat
 import TeamsAPIServerController from './modules/TeamsAPI/TeamsAPIServerController';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './swagger/swagger.json';
+import { merge } from 'lodash';
 
 export default abstract class ServerBase {
 
@@ -855,31 +857,27 @@ export default abstract class ServerBase {
         }
     }
 
-    protected add_swagger() {
+    protected setup_swagger(custom_swaggerSpec: unknown) {
+        if (!swaggerSpec && !custom_swaggerSpec) {
+            return;
+        }
+
+        let swagger_setup = null;
+
+        if (swaggerSpec && custom_swaggerSpec) {
+            swagger_setup = merge({}, swaggerSpec, custom_swaggerSpec);
+        } else if (swaggerSpec) {
+            swagger_setup = swaggerSpec;
+        } else if (custom_swaggerSpec) {
+            swagger_setup = custom_swaggerSpec;
+        }
+
+        if (!swagger_setup) {
+            return;
+        }
+
         // On génère le swagger
-        this.app.use('/swagger', swaggerUi.serve, swaggerUi.setup(this.get_swagger_file_content()));
-    }
-
-    protected get_swagger_file_content() {
-        // On récupère le contenu du fichier
-        let swagger_file_content = null;
-        try {
-            swagger_file_content = fs.readFileSync('../server/swagger/swagger.json', 'utf8');
-        } catch (e) {
-            ConsoleHandler.error('Impossible de lire le fichier swagger.json: ' + e);
-            return null;
-        }
-        // On le parse pour le transformer en JSON
-        let swagger_json = null;
-
-        try {
-            swagger_json = JSON.parse(swagger_file_content);
-        } catch (e) {
-            ConsoleHandler.error('Impossible de parser le fichier swagger.json: ' + e);
-            return null;
-        }
-
-        return swagger_json;
+        this.app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swagger_setup));
     }
 
     /**

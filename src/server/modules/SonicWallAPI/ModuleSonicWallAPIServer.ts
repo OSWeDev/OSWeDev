@@ -36,9 +36,7 @@ export default class ModuleSonicWallAPIServer extends ModuleServerBase {
 
     /**
      * Permet de s'authentifier à l'API SonicWall
-     * @returns SonicWallAPIResult
      * @summary Authentification de l'API SonicWall
-     * @description Authentification de l'API SonicWall
      */
     @SuccessResponse('200', "Authentification réussie")
     @Post('sonicwallapi__auth')
@@ -46,6 +44,10 @@ export default class ModuleSonicWallAPIServer extends ModuleServerBase {
         return this.sendRequest<SonicWallAPIResult>('auth', ModuleRequest.METHOD_POST);
     }
 
+    /**
+     * Permet de démarrer le mode de gestion de l'API SonicWall
+     * @summary Démarrage du mode de gestion de l'API SonicWall
+     */
     @SuccessResponse('200', "Activation du mode de gestion réussie")
     @Post('sonicwallapi__start_management')
     public async start_management(): Promise<SonicWallAPIResult> {
@@ -53,12 +55,20 @@ export default class ModuleSonicWallAPIServer extends ModuleServerBase {
         return this.sendRequest<SonicWallAPIResult>('start-management', ModuleRequest.METHOD_POST);
     }
 
+    /**
+     * Permet de se déconnecter de l'API SonicWall
+     * @summary Déconnexion de l'API SonicWall
+     */
     @SuccessResponse('200', "Déconnexion réussie")
     @Post('sonicwallapi__logout')
     public async logout(): Promise<SonicWallAPIResult> {
         return this.sendRequest<SonicWallAPIResult>('auth', ModuleRequest.METHOD_DELETE);
     }
 
+    /**
+     * Permet de passer en mode de configuration de l'API SonicWall
+     * @summary Activation du mode de configuration de l'API SonicWall
+     */
     @SuccessResponse('200', "Activation du mode de configuration réussie")
     @Post('sonicwallapi__config_mode')
     public async config_mode(): Promise<SonicWallAPIResult> {
@@ -66,12 +76,20 @@ export default class ModuleSonicWallAPIServer extends ModuleServerBase {
         return this.sendRequest<SonicWallAPIResult>('config-mode', ModuleRequest.METHOD_POST);
     }
 
+    /**
+     * Permet de désactiver le mode de configuration de l'API SonicWall
+     * @summary Désactivation du mode de configuration de l'API SonicWall
+     */
     @SuccessResponse('200', "Désactivation du mode de configuration réussie")
     @Post('sonicwallapi__non_config_mode')
     public async non_config_mode(): Promise<SonicWallAPIResult> {
         return this.sendRequest<SonicWallAPIResult>('non-config-mode', ModuleRequest.METHOD_POST);
     }
 
+    /**
+     * Permet de récupérer les politiques NAT IPv4 de l'API SonicWall
+     * @summary Récupération des politiques NAT IPv4 de l'API SonicWall
+     */
     @SuccessResponse('200', "Récupération des politiques NAT IPv4 réussie")
     @Get('sonicwallapi__get_nat_policies_ipv4')
     public async get_nat_policies_ipv4(): Promise<SonicWallAPINatPolicies> {
@@ -84,6 +102,11 @@ export default class ModuleSonicWallAPIServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * Permet de récupérer les objets d'adresse IPv4 de l'API SonicWall par nom
+     * @summary Récupération des objets d'adresse IPv4 de l'API SonicWall par nom
+     * @param name Le nom de l'objet d'adresse IPv4 à récupérer
+     */
     @SuccessResponse('200', "Récupération des objets d'adresse IPv4 réussie")
     @Get('sonicwallapi__get_address_objects_ipv4_name/{text}')
     public async get_address_objects_ipv4_name(
@@ -102,6 +125,11 @@ export default class ModuleSonicWallAPIServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * Permet de créer des objets d'adresse IPv4 dans l'API SonicWall
+     * @summary Création d'objets d'adresse IPv4 dans l'API SonicWall
+     * @param data Les données des objets d'adresse IPv4 à créer
+     */
     @SuccessResponse('200', "Création d'objets d'adresse IPv4 réussie")
     @Post('sonicwallapi__create_address_objects_ipv4')
     public async create_address_objects_ipv4(
@@ -120,6 +148,10 @@ export default class ModuleSonicWallAPIServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * Permet de récupérer la configuration en attente de l'API SonicWall
+     * @summary Récupération de la configuration en attente de l'API SonicWall
+     */
     @SuccessResponse('200', "Récupération de la configuration en attente réussie")
     @Get('sonicwallapi__get_config_pending')
     public async get_config_pending(): Promise<unknown> {
@@ -132,6 +164,12 @@ export default class ModuleSonicWallAPIServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * Permet de sauvegarder la configuration en attente de l'API SonicWall
+     * @summary Sauvegarde de la configuration en attente de l'API SonicWall
+     */
+    @SuccessResponse('200', "Sauvegarde de la configuration en attente réussie")
+    @Post('sonicwallapi__save_config_pending')
     public async save_config_pending(): Promise<SonicWallAPIResult> {
         await this.config_mode();
 
@@ -142,6 +180,12 @@ export default class ModuleSonicWallAPIServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * Permet de récupérer le fichier de journal des menaces de l'API SonicWall
+     * @summary Récupération du fichier de journal des menaces de l'API SonicWall
+     */
+    @SuccessResponse('200', "Récupération du fichier de journal des menaces réussie")
+    @Get('sonicwallapi__get_dynamic_files_threat_log')
     public async get_dynamic_files_threat_log(): Promise<SonicWallAPIThreatLog> {
         await this.start_management();
 
@@ -152,7 +196,16 @@ export default class ModuleSonicWallAPIServer extends ModuleServerBase {
         return res;
     }
 
-    public async get_export_sysfile_threat_log_csv(name: string): Promise<string> {
+    /**
+     * Permet d'exporter le fichier de journal des menaces au format CSV
+     * @summary Exportation du fichier de journal des menaces au format CSV
+     * @param name Le nom du fichier à exporter
+     */
+    @SuccessResponse('200', "Exportation réussie")
+    @Get('sonicwallapi__get_export_sysfile_threat_log_csv/{text}')
+    public async get_export_sysfile_threat_log_csv(
+        @Path('text') name: string,
+    ): Promise<string> {
         if (!name) {
             throw new Error('Name is required');
         }
