@@ -1,3 +1,4 @@
+import NumRange from "../../DataRender/vos/NumRange";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import VOFieldRefVO from "./VOFieldRefVO";
 
@@ -27,7 +28,6 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
     public title: VOFieldRefVO;
     public surtitre: VOFieldRefVO;
     public subtitle: VOFieldRefVO;
-    public number: VOFieldRefVO;
     public sort_field_ref: VOFieldRefVO;
     public button_elements: boolean;
     public url: VOFieldRefVO;
@@ -44,6 +44,9 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
     public field_filter_distant_vo: VOFieldRefVO;
     public zoom_on_click: boolean;
     public card_footer_label: VOFieldRefVO;
+    public activate_like_button: boolean;
+    public element_user_likes: { [element_id: number]: number[] };
+
 
     public static createNew(
         type_display: number,
@@ -54,7 +57,6 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         title: VOFieldRefVO,
         subtitle: VOFieldRefVO,
         surtitre: VOFieldRefVO,
-        number: VOFieldRefVO,
         sort_field_ref: VOFieldRefVO,
         button_elements: boolean,
         url: VOFieldRefVO,
@@ -66,6 +68,9 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         field_filter_distant_vo: VOFieldRefVO,
         zoom_on_click: boolean,
         card_footer_label: VOFieldRefVO,
+        activate_like_button: boolean,
+        element_user_likes: { [element_id: number]: number[] },
+
         do_not_use_page_widget_ids?: number[],
         show_message_no_data?: boolean,
         message_no_data?: string,
@@ -81,7 +86,6 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         res.title = title;
         res.subtitle = subtitle;
         res.surtitre = surtitre;
-        res.number = number;
         res.sort_field_ref = sort_field_ref;
         res.button_elements = button_elements;
         res.url = url;
@@ -98,6 +102,8 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
         res.field_filter_distant_vo = field_filter_distant_vo;
         res.zoom_on_click = zoom_on_click;
         res.card_footer_label = card_footer_label;
+        res.activate_like_button = activate_like_button;
+        res.element_user_likes = element_user_likes;
 
         return res;
     }

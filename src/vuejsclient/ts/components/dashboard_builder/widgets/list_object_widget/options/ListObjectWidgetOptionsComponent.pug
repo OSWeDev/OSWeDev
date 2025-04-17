@@ -54,15 +54,16 @@
                             :page_widget_id='page_widget ? page_widget.id : null'
                         )
 
-        .number        
-            .widget_number_label {{ label('list_object_widget_options_component.widget_number.number') }}
-            .widget_number_wrapper
-                .field_ref
-                    .input_wrapper
-                        Singlevofieldrefholdercomponent(
-                            :vo_field_ref="number_field_ref" @remove_field_ref="remove_number_field_ref" @add_field_ref="add_number_field_ref"
-                            :page_widget_id='page_widget ? page_widget.id : null'
-                        )
+        .activate_like_button
+            .input_label {{ label('list_object_widget_options_component.activate_like_button') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_activate_like_button" 
+                    :value="activate_like_button" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                )
 
         .sort_field_ref
             .input_label {{ label('list_object_widget_options_component.sort_field_ref') }}

@@ -1,4 +1,4 @@
-import { debounce } from 'lodash';
+import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
@@ -23,9 +23,13 @@ import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsType
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import './ListObjectWidgetComponent.scss';
+import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 
 @Component({
     template: require('./ListObjectWidgetComponent.pug'),
@@ -57,6 +61,9 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_cms_vo: IDistantVOBase;
 
+    @ModuleDashboardPageAction
+    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+
     private next_update_options: ListObjectWidgetOptionsVO = null;
 
     private titles: any[] = [];
@@ -64,15 +71,19 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     private surtitres: any[] = [];
     private card_footer_labels: any[] = [];
     private image_paths: string[] = [];
-    private numbers: any[] = [];
     private urls: any[] = [];
     private nb_elements: number[] = [];
     private current_element: number = 0;
+
+    private element_ids: number[] = [];
+    private user_id: number = null;
+    private semaphore_toggleLike: boolean = false;
 
     private is_card_display_single: boolean = false;
 
     private zoomedCardIndex: number = null;
 
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
     private throttle_do_update_visible_options = debounce(this.do_update_visible_options.bind(this), 500);
 
     get widget_options(): ListObjectWidgetOptionsVO {
@@ -88,6 +99,11 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             }
         } catch (error) {
             ConsoleHandler.error(error);
+        }
+
+        // Ici on s'assure que la propriété est définie
+        if (options && !options.element_user_likes) {
+            options.element_user_likes = {};
         }
 
         return options;
@@ -127,6 +143,70 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         this.throttle_do_update_visible_options();
     }
 
+    private async update_options() {
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
+
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.set_page_widget(this.page_widget);
+        this.$emit('update_layout_widget', this.page_widget);
+    }
+
+    /**
+     * Bascule le like pour l'élément à l'indice i
+     */
+    private toggleLike(i: number) {
+
+        // Sécurité : si on n'a pas d'ID pour cet index, on ne fait rien
+        if (!this.element_ids || !this.element_ids[i]) {
+            return;
+        }
+        const item_id = this.element_ids[i];
+
+        // On s'assure que la map de likes existe bien
+        if (!this.widget_options.element_user_likes[item_id]) {
+            this.widget_options.element_user_likes[item_id] = [];
+        }
+
+        // Vérifie si l'utilisateur courant est déjà dans la liste
+        const userIndex = this.widget_options.element_user_likes[item_id].indexOf(this.user_id);
+
+        if (userIndex >= 0) {
+            // Il avait déjà liké => on retire
+            this.widget_options.element_user_likes[item_id].splice(userIndex, 1);
+        } else {
+            // Il n'avait pas liké => on ajoute
+            this.widget_options.element_user_likes[item_id].push(this.user_id);
+        }
+
+        this.next_update_options = cloneDeep(this.widget_options);
+        this.throttled_update_options();
+
+        this.semaphore_toggleLike = true;
+    }
+
+    /**
+     * Renvoie le nombre de likes pour l'élément à l'indice i
+     */
+    private getLikeCount(i: number): number {
+        if (!this.element_ids || !this.element_ids[i]) {
+            return 0;
+        }
+        const item_id = this.element_ids[i];
+        if (!this.widget_options.element_user_likes[item_id]) {
+            return 0;
+        }
+        return this.widget_options.element_user_likes[item_id].length;
+    }
+
     private async do_update_visible_options() {
         if (!this.widget_options) {
             return;
@@ -155,10 +235,6 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         })());
 
         promises.push((async () => {
-            this.numbers = await this.get_numbers();
-        })());
-
-        promises.push((async () => {
             this.urls = await this.get_urls();
         })());
 
@@ -166,10 +242,14 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
         await Promise.all(promises);
 
-        this.nb_elements = Array.from({ length: Math.max(...[this.titles.length, this.subtitles.length, this.surtitres.length, this.card_footer_labels.length, this.image_paths.length, this.numbers.length, this.urls.length]) }, (x, i) => i);
+        this.nb_elements = Array.from({ length: Math.max(...[this.titles.length, this.subtitles.length, this.surtitres.length, this.card_footer_labels.length, this.image_paths.length, this.urls.length]) }, (x, i) => i);
     }
 
     private toggle_zoom(i: number) {
+        if (this.semaphore_toggleLike) {
+            this.semaphore_toggleLike = false;
+            return;
+        }
         // Si on reclique sur la carte déjà zoomée, on dézoome
         if (this.zoomedCardIndex === i) {
             this.zoomedCardIndex = null;
@@ -194,6 +274,10 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
     private getTransformStyle(): string {
         return "transform: translateX(-" + (this.current_element * 100) + "vw);";
+    }
+
+    private async mounted() {
+        this.user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId();
     }
 
     private async get_card_footer_labels() {
@@ -278,6 +362,8 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         }
 
         const titles = await query_.select_vos();
+
+        this.element_ids = titles.map((title) => title.id);
 
         return this.get_values_formatted(titles, this.widget_options.title.field_id, this.widget_options.title.api_type_id);
     }
@@ -460,50 +546,6 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         }
 
         return res;
-    }
-
-    private async get_numbers() {
-        if (!this.widget_options.number || !this.widget_options.number.api_type_id || !this.widget_options.number.field_id) {
-            return [];
-        }
-        const query_ = await query(this.widget_options.number.api_type_id)
-            .set_limit(this.widget_options.number_of_elements)
-            .using(this.get_dashboard_api_type_ids)
-            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(
-                    TableWidgetManager.get_active_field_filters(
-                        this.get_active_field_filters,
-                        this.widget_options.do_not_use_page_widget_ids,
-                        this.all_page_widgets_by_id,
-                        this.widgets_by_id,
-                    ))
-            ));
-
-        if (this.get_cms_vo && this.widget_options?.filter_on_cmv_vo && this.widget_options?.field_filter_cmv_vo) {
-            query_.filter_by_num_eq(this.widget_options.field_filter_cmv_vo.field_id, this.get_cms_vo.id);
-        }
-
-        if (this.widget_options?.filter_on_distant_vo && this.widget_options?.field_filter_distant_vo) {
-            query_.filter_by_id_in(
-                query(this.widget_options.field_filter_distant_vo.api_type_id)
-                    .filter_by_id(this.get_cms_vo.id)
-                    .field(this.widget_options.field_filter_distant_vo.field_id)
-            );
-        }
-
-        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
-
-        if (this.widget_options.sort_dimension_by && this.widget_options.sort_field_ref) {
-            query_.set_sort(new SortByVO(
-                this.widget_options.sort_field_ref.api_type_id,
-                this.widget_options.sort_field_ref.field_id,
-                this.sort_by_asc
-            ));
-        }
-
-        const numbers = await query_.select_vos();
-
-        return this.get_values_formatted(numbers, this.widget_options.number.field_id, this.widget_options.number.api_type_id);
     }
 
     private async get_urls() {

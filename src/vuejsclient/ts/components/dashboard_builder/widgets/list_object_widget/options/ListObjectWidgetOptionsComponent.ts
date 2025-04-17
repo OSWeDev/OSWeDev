@@ -20,6 +20,7 @@ import ObjectHandler, { field_names } from '../../../../../../../shared/tools/Ob
 import { cloneDeep } from 'lodash';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
 
 @Component({
     template: require('./ListObjectWidgetOptionsComponent.pug'),
@@ -64,7 +65,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
     private title: VOFieldRefVO = null;
     private subtitle: VOFieldRefVO = null;
     private surtitre: VOFieldRefVO = null;
-    private number: VOFieldRefVO = null;
     private card_footer_label: VOFieldRefVO = null;
     private sort_field_ref: VOFieldRefVO = null;
     private button_elements: boolean = false;
@@ -83,6 +83,8 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
     private symbole_surtitre: string = null;
     private symbole_sous_titre: string = null;
     private zoom_on_click: boolean;
+    private activate_like_button: boolean;
+    private element_user_likes: { [element_id: number]: number[] };
 
     private optionsEditeur = {
         modules: {
@@ -173,16 +175,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
 
         return Object.assign(new VOFieldRefVO(), options.image_id);
-    }
-
-    get number_field_ref(): VOFieldRefVO {
-        const options: ListObjectWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.number)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.number);
     }
 
     get url_field_ref(): VOFieldRefVO {
@@ -374,10 +366,9 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             null,
             null,
             null,
+            false,
             null,
-            null,
-            null,
-            null,
+            false,
             false,
             false,
             null,
@@ -385,9 +376,10 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             null,
             false,
             null,
+            false,
+            {},
             [],
             false,
-            null,
         );
     }
 
@@ -422,11 +414,12 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                     if (this.widget_options &&
                         (this.widget_options.blank == options.blank) &&
                         (this.widget_options.zoom_on_click == options.zoom_on_click) &&
+                        (this.widget_options.activate_like_button == options.activate_like_button) &&
+                        (this.widget_options.element_user_likes == options.element_user_likes) &&
                         (this.widget_options.button_elements == options.button_elements) &&
                         (this.widget_options.display_orientation == options.display_orientation) &&
                         (this.widget_options.image_id == options.image_id) &&
                         (this.widget_options.sort_field_ref == options.sort_field_ref) &&
-                        (this.widget_options.number == options.number) &&
                         (this.widget_options.number_of_elements == options.number_of_elements) &&
                         (this.widget_options.sort_dimension_by == options.sort_dimension_by) &&
                         (this.widget_options.subtitle == options.subtitle) &&
@@ -457,7 +450,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         options.title,
                         options.subtitle,
                         options.surtitre,
-                        options.number,
                         options.sort_field_ref,
                         options.button_elements,
                         options.url,
@@ -469,6 +461,8 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         options.field_filter_distant_vo,
                         options.zoom_on_click,
                         options.card_footer_label,
+                        options.activate_like_button,
+                        options.element_user_likes,
                         options.do_not_use_page_widget_ids,
                         options.show_message_no_data,
                         options.message_no_data,
@@ -502,7 +496,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.card_footer_label = default_options.card_footer_label;
             this.subtitle = default_options.subtitle;
             this.surtitre = default_options.surtitre;
-            this.number = default_options.number;
             this.sort_field_ref = default_options.sort_field_ref;
             this.button_elements = default_options.button_elements;
             this.url = default_options.url;
@@ -518,6 +511,8 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.symbole_sous_titre = default_options.symbole_sous_titre;
             this.filter_on_distant_vo = default_options.filter_on_distant_vo;
             this.field_filter_distant_vo = default_options.field_filter_distant_vo;
+            this.element_user_likes = default_options.element_user_likes;
+            this.activate_like_button = default_options.activate_like_button;
 
             this.widget_options = default_options;
             return;
@@ -549,9 +544,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.surtitre != this.widget_options.surtitre) {
             this.surtitre = this.widget_options.surtitre;
-        }
-        if (this.number != this.widget_options.number) {
-            this.number = this.widget_options.number;
         }
         if (this.sort_field_ref != this.widget_options.sort_field_ref) {
             this.sort_field_ref = this.widget_options.sort_field_ref;
@@ -597,6 +589,12 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.field_filter_distant_vo != this.widget_options.field_filter_distant_vo) {
             this.field_filter_distant_vo = this.widget_options.field_filter_distant_vo;
+        }
+        if (this.element_user_likes != this.widget_options.element_user_likes) {
+            this.element_user_likes = this.widget_options.element_user_likes;
+        }
+        if (this.activate_like_button != this.widget_options.activate_like_button) {
+            this.activate_like_button = this.widget_options.activate_like_button;
         }
 
         if (this.next_update_options != this.widget_options) {
@@ -694,6 +692,18 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
 
         this.next_update_options.zoom_on_click = !this.next_update_options.zoom_on_click;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_activate_like_button() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.activate_like_button = !this.next_update_options.activate_like_button;
 
         await this.throttled_update_options();
     }
@@ -975,39 +985,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         dimension_vo_field_ref.weight = 0;
 
         this.next_update_options.image_id = dimension_vo_field_ref;
-
-        await this.throttled_update_options();
-    }
-
-    private async remove_number_field_ref() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            return null;
-        }
-
-        if (!this.next_update_options.number) {
-            return null;
-        }
-
-        this.next_update_options.number = null;
-
-        await this.throttled_update_options();
-    }
-
-    private async add_number_field_ref(api_type_id: string, field_id: string) {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        const dimension_vo_field_ref = new VOFieldRefVO();
-        dimension_vo_field_ref.api_type_id = api_type_id;
-        dimension_vo_field_ref.field_id = field_id;
-        dimension_vo_field_ref.weight = 0;
-
-        this.next_update_options.number = dimension_vo_field_ref;
 
         await this.throttled_update_options();
     }

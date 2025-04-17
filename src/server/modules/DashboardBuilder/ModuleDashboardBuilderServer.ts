@@ -3753,6 +3753,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'ListObjectWidgetOptionsVO.display_orientation_vertical.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Activer le bouton like" },
+            'list_object_widget_options_component.activate_like_button.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Type d'affichage" },
             'list_object_widget_options_component.type_display.___LABEL___'
         ));
