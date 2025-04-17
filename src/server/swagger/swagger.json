@@ -1,0 +1,576 @@
+{
+	"openapi": "3.0.0",
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"SonicWallAPIResultStatusInfo": {
+				"properties": {
+					"level": {
+						"type": "string"
+					},
+					"code": {
+						"type": "string"
+					},
+					"auth_code": {
+						"type": "string"
+					},
+					"read_only": {
+						"type": "string"
+					},
+					"privilege": {
+						"type": "string"
+					},
+					"model": {
+						"type": "string"
+					},
+					"inactivity_timer": {
+						"type": "number",
+						"format": "double"
+					},
+					"session_limit": {
+						"type": "number",
+						"format": "double"
+					},
+					"show_status": {
+						"type": "boolean"
+					},
+					"heart_beat_interval_second": {
+						"type": "number",
+						"format": "double"
+					},
+					"popup_window": {
+						"type": "boolean"
+					},
+					"user_protocol": {
+						"type": "string"
+					},
+					"mgmt_protocol": {
+						"type": "string"
+					},
+					"message": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"level",
+					"code",
+					"auth_code",
+					"read_only",
+					"privilege",
+					"model",
+					"inactivity_timer",
+					"session_limit",
+					"show_status",
+					"heart_beat_interval_second",
+					"popup_window",
+					"user_protocol",
+					"mgmt_protocol",
+					"message"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SonicWallAPIResultStatus": {
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"info": {
+						"items": {
+							"$ref": "#/components/schemas/SonicWallAPIResultStatusInfo"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"success",
+					"info"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SonicWallAPIResult": {
+				"properties": {
+					"status": {
+						"$ref": "#/components/schemas/SonicWallAPIResultStatus"
+					}
+				},
+				"required": [
+					"status"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"NATValue": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"group": {
+						"type": "string"
+					},
+					"any": {
+						"type": "boolean"
+					},
+					"original": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"name",
+					"group",
+					"any",
+					"original"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Priority": {
+				"properties": {
+					"auto": {
+						"type": "boolean"
+					},
+					"manual": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"auto",
+					"manual"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Ticket": {
+				"properties": {
+					"tag1": {
+						"type": "string"
+					},
+					"tag2": {
+						"type": "string"
+					},
+					"tag3": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"tag1",
+					"tag2",
+					"tag3"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SonicWallAPINatPoliciesIPInfo": {
+				"properties": {
+					"uuid": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"inbound": {
+						"type": "string"
+					},
+					"outbound": {
+						"type": "string"
+					},
+					"source": {
+						"$ref": "#/components/schemas/NATValue"
+					},
+					"translated_source": {
+						"$ref": "#/components/schemas/NATValue"
+					},
+					"destination": {
+						"$ref": "#/components/schemas/NATValue"
+					},
+					"translated_destination": {
+						"$ref": "#/components/schemas/NATValue"
+					},
+					"service": {
+						"$ref": "#/components/schemas/NATValue"
+					},
+					"translated_service": {
+						"$ref": "#/components/schemas/NATValue"
+					},
+					"enable": {
+						"type": "boolean"
+					},
+					"priority": {
+						"$ref": "#/components/schemas/Priority"
+					},
+					"comment": {
+						"type": "string"
+					},
+					"dns_doctoring": {
+						"type": "boolean"
+					},
+					"ticket": {
+						"$ref": "#/components/schemas/Ticket"
+					},
+					"source_port_remap": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"uuid",
+					"name",
+					"inbound",
+					"outbound",
+					"source",
+					"translated_source",
+					"destination",
+					"translated_destination",
+					"service",
+					"translated_service",
+					"enable",
+					"priority",
+					"comment",
+					"dns_doctoring",
+					"ticket",
+					"source_port_remap"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SonicWallAPINatPoliciesIP": {
+				"properties": {
+					"ipv4": {
+						"$ref": "#/components/schemas/SonicWallAPINatPoliciesIPInfo"
+					},
+					"ipv6": {
+						"$ref": "#/components/schemas/SonicWallAPINatPoliciesIPInfo"
+					}
+				},
+				"required": [
+					"ipv4",
+					"ipv6"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SonicWallAPINatPolicies": {
+				"properties": {
+					"nat_policies": {
+						"items": {
+							"$ref": "#/components/schemas/SonicWallAPINatPoliciesIP"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"nat_policies"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"HostValue": {
+				"properties": {
+					"ip": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"ip"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SonicWallAPIAddressObjectsIPInfo": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"uuid": {
+						"type": "string"
+					},
+					"zone": {
+						"type": "string"
+					},
+					"host": {
+						"$ref": "#/components/schemas/HostValue"
+					}
+				},
+				"required": [
+					"name",
+					"uuid",
+					"zone",
+					"host"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SonicWallAPIAddressObjectsIP": {
+				"properties": {
+					"ipv4": {
+						"$ref": "#/components/schemas/SonicWallAPIAddressObjectsIPInfo"
+					},
+					"ipv6": {
+						"$ref": "#/components/schemas/SonicWallAPIAddressObjectsIPInfo"
+					}
+				},
+				"required": [
+					"ipv4",
+					"ipv6"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SonicWallAPIAddressObjects": {
+				"properties": {
+					"address_objects": {
+						"items": {
+							"$ref": "#/components/schemas/SonicWallAPIAddressObjectsIP"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"address_objects"
+				],
+				"type": "object",
+				"additionalProperties": false
+			}
+		},
+		"securitySchemes": {}
+	},
+	"info": {
+		"title": "oswedev",
+		"version": "0.34.64",
+		"license": {
+			"name": "Apache-2.0"
+		},
+		"contact": {
+			"name": "Wedev"
+		}
+	},
+	"paths": {
+		"/api_handler/sonicwallapi__auth": {
+			"post": {
+				"operationId": "Auth",
+				"responses": {
+					"200": {
+						"description": "Authentification réussie",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SonicWallAPIResult"
+								}
+							}
+						}
+					}
+				},
+				"description": "Permet de s'authentifier à l'API SonicWall",
+				"summary": "Authentification de l'API SonicWall",
+				"tags": [
+					"SonicWallAPI"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/api_handler/sonicwallapi__start_management": {
+			"post": {
+				"operationId": "Start_management",
+				"responses": {
+					"200": {
+						"description": "Activation du mode de gestion réussie",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SonicWallAPIResult"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"SonicWallAPI"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/api_handler/sonicwallapi__logout": {
+			"post": {
+				"operationId": "Logout",
+				"responses": {
+					"200": {
+						"description": "Déconnexion réussie",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SonicWallAPIResult"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"SonicWallAPI"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/api_handler/sonicwallapi__config_mode": {
+			"post": {
+				"operationId": "Config_mode",
+				"responses": {
+					"200": {
+						"description": "Activation du mode de configuration réussie",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SonicWallAPIResult"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"SonicWallAPI"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/api_handler/sonicwallapi__non_config_mode": {
+			"post": {
+				"operationId": "Non_config_mode",
+				"responses": {
+					"200": {
+						"description": "Désactivation du mode de configuration réussie",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SonicWallAPIResult"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"SonicWallAPI"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/api_handler/sonicwallapi__get_nat_policies_ipv4": {
+			"get": {
+				"operationId": "Get_nat_policies_ipv4",
+				"responses": {
+					"200": {
+						"description": "Récupération des politiques NAT IPv4 réussie",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SonicWallAPINatPolicies"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"SonicWallAPI"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/api_handler/sonicwallapi__get_address_objects_ipv4_name/{text}": {
+			"get": {
+				"operationId": "Get_address_objects_ipv4_name",
+				"responses": {
+					"200": {
+						"description": "Récupération des objets d'adresse IPv4 réussie",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SonicWallAPIAddressObjects"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"SonicWallAPI"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "text",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api_handler/sonicwallapi__create_address_objects_ipv4": {
+			"post": {
+				"operationId": "Create_address_objects_ipv4",
+				"responses": {
+					"200": {
+						"description": "Création d'objets d'adresse IPv4 réussie",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SonicWallAPIResult"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"SonicWallAPI"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SonicWallAPIAddressObjects"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api_handler/sonicwallapi__get_config_pending": {
+			"get": {
+				"operationId": "Get_config_pending",
+				"responses": {
+					"200": {
+						"description": "Récupération de la configuration en attente réussie",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					}
+				},
+				"tags": [
+					"SonicWallAPI"
+				],
+				"security": [],
+				"parameters": []
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/"
+		}
+	]
+}

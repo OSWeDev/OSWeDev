@@ -80,6 +80,7 @@ import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import AsyncHookPromiseWatchController from './modules/Stats/AsyncHookPromiseWatchController';
 import TeamsAPIServerController from './modules/TeamsAPI/TeamsAPIServerController';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
+import swaggerUi from 'swagger-ui-express';
 
 export default abstract class ServerBase {
 
@@ -852,6 +853,33 @@ export default abstract class ServerBase {
         if (options.exit) {
             process.exit();
         }
+    }
+
+    protected add_swagger() {
+        // On génère le swagger
+        this.app.use('/swagger', swaggerUi.serve, swaggerUi.setup(this.get_swagger_file_content()));
+    }
+
+    protected get_swagger_file_content() {
+        // On récupère le contenu du fichier
+        let swagger_file_content = null;
+        try {
+            swagger_file_content = fs.readFileSync('../server/swagger/swagger.json', 'utf8');
+        } catch (e) {
+            ConsoleHandler.error('Impossible de lire le fichier swagger.json: ' + e);
+            return null;
+        }
+        // On le parse pour le transformer en JSON
+        let swagger_json = null;
+
+        try {
+            swagger_json = JSON.parse(swagger_file_content);
+        } catch (e) {
+            ConsoleHandler.error('Impossible de parser le fichier swagger.json: ' + e);
+            return null;
+        }
+
+        return swagger_json;
     }
 
     /**
