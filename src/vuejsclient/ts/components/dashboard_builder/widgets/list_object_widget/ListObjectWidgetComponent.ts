@@ -30,6 +30,8 @@ import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import ListObjectLikesVO from '../../../../../../shared/modules/DashboardBuilder/vos/ListObjectLikesVO';
+import ModuleDashboardBuilder from '../../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 
 @Component({
     template: require('./ListObjectWidgetComponent.pug'),
@@ -77,6 +79,8 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
     private api_type_id: string = null;
     private vo_id_by_index: { [index: number]: number } = null;
+    private likesByKey: { [key: string]: ListObjectLikesVO } = {};
+    private element_ids: number[] = null;
 
     private user_id: number = null;
     private semaphore_toggleLike: boolean = false;
@@ -157,22 +161,6 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         this.$emit('update_layout_widget', this.page_widget);
     }
 
-    /**
-     * Bascule le like pour l'élément à l'indice i
-     */
-    private toggleLike(i: number) {
-        // Appel de l'api pour ajouter ou supprimer le like
-
-        this.semaphore_toggleLike = true;
-    }
-
-    /**
-     * Renvoie le nombre de likes pour l'élément à l'indice i
-     */
-    private getLikeCount(i: number): number {
-        return null;
-    }
-
     private async do_update_visible_options() {
         if (!this.widget_options) {
             return;
@@ -209,6 +197,62 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         await Promise.all(promises);
 
         this.nb_elements = Array.from({ length: Math.max(...[this.titles.length, this.subtitles.length, this.surtitres.length, this.card_footer_labels.length, this.image_paths.length, this.urls.length]) }, (x, i) => i);
+    }
+
+    // Méthode utilitaire pour générer la clé unique
+    private getKey(api_type_id: string, item_id: number): string {
+        return `${api_type_id}__${item_id}`;
+    }
+
+    /**
+     * Bascule le like pour l'élément à l'indice i
+     */
+    private async toggleLike(i: number) {
+        const api_type_id = this.api_type_id;
+        const item_id = this.vo_id_by_index[i];
+
+        // Appel de l'api pour ajouter ou supprimer le like
+        // 1) On cherche s'il existe déjà un ListObjectLikesVO en local
+        const key = this.getKey(api_type_id, item_id);
+        let existing = this.likesByKey[key];
+
+        // 2) Appel à l'API pour créer ou updater l'objet côté serveur
+        //    On transmettra l'api_type_id, l'item_id, et l'id user => le serveur fait le "toggle" 
+        //    (s'il n'existe pas, il le crée. S'il existe, il ajoute ou retire l'user)
+        const list_object_likes_vo = new ListObjectLikesVO();
+        list_object_likes_vo.api_type_id = api_type_id;
+        list_object_likes_vo.vo_id = item_id;
+        list_object_likes_vo.list_user_likes = [this.user_id];
+
+        const updatedLikeVO = await ModuleDashboardBuilder.getInstance().list_object_widget_toggle_like(list_object_likes_vo);
+
+        // 3) On stocke la version renvoyée par le serveur en local => RÉACTIF
+        //    Pour que Vue détecte l'ajout d'une nouvelle clé, on utilise this.$set
+        if (!existing) {
+            this.$set(this.likesByKey, key, updatedLikeVO);
+        } else {
+            // la clé existe déjà => on écrase la valeur
+            this.likesByKey[key] = updatedLikeVO;
+        }
+
+        this.semaphore_toggleLike = true;
+    }
+
+    /**
+     * Renvoie le nombre de likes pour l'élément à l'indice i
+     */
+    private getLikeCount(i: number): number {
+        const api_type_id = this.api_type_id;
+        const item_id = this.vo_id_by_index[i];
+
+        const key = this.getKey(api_type_id, item_id);
+        let existing = this.likesByKey[key];
+
+        if (!existing) {
+            return 0;
+        }
+
+        return existing.list_user_likes ? existing.list_user_likes.length : 0;
     }
 
     private toggle_zoom(i: number) {
@@ -334,6 +378,25 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         this.vo_id_by_index = {};
         for (const i in titles) {
             this.vo_id_by_index[i] = titles[i].id;
+        }
+
+        // 1) On récupère les ids des éléments à afficher
+        this.element_ids = this.vo_id_by_index ? Object.values(this.vo_id_by_index) : [];
+        if (!this.element_ids || this.element_ids.length == 0) {
+            return;
+        }
+
+        // 2) On récupère les likes pour ces éléments
+        const allLikes = await ModuleDashboardBuilder.getInstance().fetch_likes_for_items(
+            this.api_type_id,
+            this.element_ids
+        );
+
+        // 4) Stocker dans likesByKey pour initialiser les compteurs
+        for (let i in allLikes) {
+            const likeVO = allLikes[i];
+            const key = this.getKey(likeVO.api_type_id, likeVO.vo_id);
+            this.$set(this.likesByKey, key, likeVO);
         }
 
         return this.get_values_formatted(titles, this.widget_options.title.field_id, this.widget_options.title.api_type_id);

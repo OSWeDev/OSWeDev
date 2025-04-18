@@ -24,6 +24,7 @@ import VarDatatableFieldVO from '../DAO/vos/datatable/VarDatatableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import VarConfVO from '../Var/vos/VarConfVO';
+import FetchLikesParamParam, { FetchLikesParamParamStatic } from './params/FetchLikesParam';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
 import DashboardActiveonViewportVO from './vos/DashboardActiveonViewportVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
@@ -53,10 +54,14 @@ export default class ModuleDashboardBuilder extends Module {
     public static POLICY_DBB_FILTERS_VISIBLE_ON_CMS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.CMS_VERSION + ".DBB_FILTERS_VISIBLE_ON_CMS";
 
     public static APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE: string = "start_export_favorites_filters_datatable";
+    public static APINAME_LIST_OBJECT_WIDGET_TOGGLE_LIKE: string = "list_object_widget_toggle_like";
+    public static APINAME_FETCH_LIKES_FOR_ITEMS: string = "fetch_likes_for_items";
     public static PARAM_NAME_SHOW_CMS_DASHBOARD_PAGES: string = "param_name_show_cms_dashboard_pages";
 
     private static instance: ModuleDashboardBuilder = null;
     public start_export_favorites_filters_datatable: () => Promise<void> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE);
+    public list_object_widget_toggle_like: (given_list_object_likes: ListObjectLikesVO) => Promise<ListObjectLikesVO> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_LIST_OBJECT_WIDGET_TOGGLE_LIKE);
+    public fetch_likes_for_items: (api_type_id: string, item_ids: number[]) => Promise<ListObjectLikesVO[]> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_LIST_OBJECT_WIDGET_TOGGLE_LIKE);
 
     private constructor() {
 
@@ -80,6 +85,17 @@ export default class ModuleDashboardBuilder extends Module {
             DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, FavoritesFiltersVO.API_TYPE_ID),
             ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE,
             [FavoritesFiltersVO.API_TYPE_ID]
+        ));
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ListObjectLikesVO, ListObjectLikesVO>(
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ListObjectLikesVO.API_TYPE_ID),
+            ModuleDashboardBuilder.APINAME_LIST_OBJECT_WIDGET_TOGGLE_LIKE,
+            [ListObjectLikesVO.API_TYPE_ID]
+        ));
+        APIControllerWrapper.registerApi(new PostAPIDefinition<FetchLikesParamParam, ListObjectLikesVO[]>(
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ListObjectLikesVO.API_TYPE_ID),
+            ModuleDashboardBuilder.APINAME_FETCH_LIKES_FOR_ITEMS,
+            [ListObjectLikesVO.API_TYPE_ID],
+            FetchLikesParamParamStatic
         ));
     }
 

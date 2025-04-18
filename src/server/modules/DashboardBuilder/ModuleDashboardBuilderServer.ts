@@ -28,6 +28,7 @@ import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import DashboardBuilderCronWorkersHandler from './DashboardBuilderCronWorkersHandler';
 import FavoritesFiltersVOService from './service/FavoritesFiltersVOService';
 import DashboardGraphVORefVO from '../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
+import ListObjectLikesVO from '../../../shared/modules/DashboardBuilder/vos/ListObjectLikesVO';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -4299,6 +4300,60 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE,
             this.start_export_favorites_filters_datatable.bind(this)
         );
+
+        APIControllerWrapper.registerServerApiHandler(
+            ModuleDashboardBuilder.APINAME_LIST_OBJECT_WIDGET_TOGGLE_LIKE,
+            this.list_object_widget_toggle_like.bind(this)
+        );
+
+        APIControllerWrapper.registerServerApiHandler(
+            ModuleDashboardBuilder.APINAME_FETCH_LIKES_FOR_ITEMS,
+            this.fetch_likes_for_items.bind(this)
+        );
+    }
+
+    public async fetch_likes_for_items(api_type_id: string, vo_ids: number[]): Promise<ListObjectLikesVO[]> {
+        return await query(ListObjectLikesVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<ListObjectLikesVO>().api_type_id, api_type_id)
+            .filter_by_num_has(field_names<ListObjectLikesVO>().vo_id, vo_ids)
+            .select_vos();
+    }
+
+    public async list_object_widget_toggle_like(given_list_object_likes: ListObjectLikesVO): Promise<ListObjectLikesVO> {
+        // On regarde si l'objet existe déjà
+        let exist_list_object_likes: ListObjectLikesVO =
+            await query(ListObjectLikesVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<ListObjectLikesVO>().api_type_id, given_list_object_likes.api_type_id)
+                .filter_by_num_eq(field_names<ListObjectLikesVO>().vo_id, given_list_object_likes.vo_id)
+                .select_vo();
+
+        if (!exist_list_object_likes) {
+            exist_list_object_likes = new ListObjectLikesVO();
+            exist_list_object_likes.api_type_id = given_list_object_likes.api_type_id;
+            exist_list_object_likes.vo_id = given_list_object_likes.vo_id;
+        }
+
+        // On regarde si l'utilisateur a déjà liké l'objet
+        const user_id: number = given_list_object_likes.list_user_likes[0];
+
+        // On vérifie si la liste des utilisateurs est vide
+        if (!exist_list_object_likes.list_user_likes) {
+            exist_list_object_likes.list_user_likes = [];
+        }
+
+        const index: number = exist_list_object_likes.list_user_likes.indexOf(user_id);
+        if (index === -1) {
+            // L'utilisateur n'a pas liké l'objet, on l'ajoute
+            exist_list_object_likes.list_user_likes.push(user_id);
+        } else {
+            // L'utilisateur a déjà liké l'objet, on le retire
+            exist_list_object_likes.list_user_likes.splice(index, 1);
+        }
+
+        // On sauvegarde l'objet
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(exist_list_object_likes)
+
+        return exist_list_object_likes;
     }
 
     /**
