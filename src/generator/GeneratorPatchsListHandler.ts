@@ -110,6 +110,7 @@ import Patch20250106createTableSupProbe from './patchs/premodules/Patch20250106c
 import Patch20250228DeleteDuplicateGraphVO from './patchs/premodules/Patch20250228DeleteDuplicateGraphVO';
 import Patch20250304DropArchivesConfVO from './patchs/premodules/Patch20250304TruncateArchivesConfVO';
 import Patch20250214AddRightsSupervisedPAUSE from './patchs/postmodules/Patch20250214AddRightsSupervisedPAUSE';
+import Patch20250422SetGraphDetailed from './patchs/postmodules/Patch20250422SetGraphDetailed';
 
 export default class GeneratorPatchsListHandler {
 
@@ -236,6 +237,7 @@ export default class GeneratorPatchsListHandler {
 
         Patch20250303CheckDBsCycles.getInstance(),
         Patch20250331RenameFavoriteFilterOptions.getInstance(),
+        Patch20250422SetGraphDetailed.getInstance(),
         Patch20250331RemoveValueTables.getInstance(),
     ];
 }
