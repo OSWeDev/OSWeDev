@@ -43,8 +43,11 @@ export default class DiagramBlock extends Vue {
     @Prop({ required: true })
         getStateIcon!: (state: number) => StateIconInfo;
 
-    get displayText(): {time:string, function:string} {
-    // Même logique qu'avant
+    get displayText(): { time: string, function: string } {
+        if (!this.item){
+            return { time: '', function: '' };
+        }
+        // Même logique qu'avant
         if ((this.item as any)._type === OseliaRunVO.API_TYPE_ID) {
             const run = this.item as OseliaRunVO;
             return { time:'', function:run.name || 'Run' };
