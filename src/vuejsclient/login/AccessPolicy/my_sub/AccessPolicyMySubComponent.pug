@@ -1,0 +1,8 @@
+.AccessPolicyMySubComponent
+    toggle-button(
+        @change="switch_sub" 
+        :value="current_value" 
+        :sync="true"
+        :width="100"
+        :labels="{checked: label('AccessPolicyMySubComponent.subbed'), unchecked: label('AccessPolicyMySubComponent.unsubbed')}")
+        

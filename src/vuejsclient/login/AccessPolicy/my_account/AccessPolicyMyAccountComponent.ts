@@ -9,13 +9,15 @@ import SessionShareComponent from "../../../ts/components/session_share/SessionS
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './AccessPolicyMyAccountComponent.scss';
 import AccessPolicyMyAccountComponentController from "./AccessPolicyMyAccountComponentController";
+import AccessPolicyMySubsComponent from "../my_subs/AccessPolicyMySubsComponent";
 
 @Component({
     template: require('./AccessPolicyMyAccountComponent.pug'),
     components: {
         Nfcusertaglistcomponent: NFCUserTagListComponent,
         Nfcconnectlogincomponent: NFCConnectLoginComponent,
-        Sessionsharecomponent: SessionShareComponent
+        Sessionsharecomponent: SessionShareComponent,
+        Accesspolicymysubscomponent: AccessPolicyMySubsComponent,
     }
 })
 export default class AccessPolicyMyAccountComponent extends VueComponentBase {

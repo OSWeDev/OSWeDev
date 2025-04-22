@@ -759,6 +759,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }, 'crud_create_form_body.add_removed_crud_field_id.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Outil d'aide à la sélection. Une nouvelle fenêtre va s'ouvrir pour vous aider à choisir un élément."
+        }, 'crud.field.open_external_selector.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification en cours..."
         }, 'crud_create_form_body_delete_removed_crud_field_id.start.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({

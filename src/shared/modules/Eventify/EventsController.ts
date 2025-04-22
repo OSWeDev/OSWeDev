@@ -172,11 +172,18 @@ export default class EventsController {
 
             // Si le listener est throttled, on doit stocker les params pour le prochain appel
             if (listener.param_type == EventifyEventListenerConfVO.PARAM_TYPE_STACK) {
-                const stack = event.param ? (isArray(event.param) ? event.param : [event.param]) : [];
-                if (!listener.next_params_stack) {
-                    listener.next_params_stack = stack;
+                if (isArray(event.param)) {
+                    if (!listener.next_params_stack) {
+                        listener.next_params_stack = event.param;
+                    } else {
+                        listener.next_params_stack.push(...event.param);
+                    }
                 } else {
-                    listener.next_params_stack = listener.next_params_stack.concat(stack);
+                    if (!listener.next_params_stack) {
+                        listener.next_params_stack = [event.param];
+                    } else {
+                        listener.next_params_stack.push(event.param);
+                    }
                 }
             } else if (listener.param_type == EventifyEventListenerConfVO.PARAM_TYPE_MAP) {
                 if (!listener.next_params_map) {

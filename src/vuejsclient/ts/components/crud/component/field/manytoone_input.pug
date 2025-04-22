@@ -26,7 +26,7 @@
             i.fa-duotone.fa-plus-circle
         
     template(v-if="can_open_external_selector")
-        .open_external_selector
+        .open_external_selector(v-tooltip="label('crud.field.open_external_selector')")
             a.btn.btn-sm.btn-primary(@click='open_external_selector')
                 i.fa-duotone.fa-solid.fa-filter-list
 

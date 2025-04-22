@@ -8,14 +8,14 @@ import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFeedback from '../shared/modules/Feedback/ModuleFeedback';
 import ModuleSurvey from '../shared/modules/Survey/ModuleSurvey';
 
+import Throttle from '../shared/annotations/Throttle';
+import EventifyEventListenerConfVO from '../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import TranslationManager from '../shared/modules/Translation/Manager/TranslationManager';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
 import LocaleManager from '../shared/tools/LocaleManager';
 import { all_promises } from '../shared/tools/PromiseTools';
-import MenuController from './ts/components/menu/MenuController';
 import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
-import ThrottleHelper from '../shared/tools/ThrottleHelper';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 
 export default abstract class VueAppController {
@@ -52,10 +52,6 @@ export default abstract class VueAppController {
     public has_access_to_feedback: boolean = false;
     public has_access_to_survey: boolean = false;
 
-    public throttled_register_translation = ThrottleHelper.declare_throttle_with_stackable_args(
-        'VueAppController.throttled_register_translation',
-        this.register_translation.bind(this), 1000);
-
     protected constructor(public app_name: "client" | "admin" | "login") {
         VueAppController.instance_ = this;
     }
@@ -66,6 +62,15 @@ export default abstract class VueAppController {
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         return VueAppController.instance_;
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_MAP,
+        throttle_ms: 1000,
+        leading: false,
+    })
+    public register_translation(translations: { [translation_code: string]: boolean }) {
+        AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/registerPageTranslations', translations);
     }
 
     public async initializeFlatLocales() {
@@ -284,9 +289,5 @@ export default abstract class VueAppController {
         } else if (start_exact) {
             return start_exact.code_lang.toLowerCase();
         }
-    }
-
-    private register_translation(translations: Array<{ translation_code: string, missing: boolean }>) {
-        AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/registerPageTranslations', translations);
     }
 }

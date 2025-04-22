@@ -74,6 +74,20 @@ export default class ModuleMailerServer extends ModuleServerBase {
         }, 'mail_event.EVENT_Bloque'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Optin'
+        }, 'mail_category.type_optin.optin'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Optout'
+        }, 'mail_category.type_optin.optout'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Abonné'
+        }, 'AccessPolicyMySubComponent.subbed.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Pas abonné'
+        }, 'AccessPolicyMySubComponent.unsubbed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mails envoyés par cet utilisateur'
         }, 'fields.labels.ref.module_mailer_mail.___LABEL____sent_by_id'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({

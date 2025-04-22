@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree } from "vuex";
-import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
+import { namespace } from 'vuex-class/lib/bindings';
 import IStoreModule from '../../../store/IStoreModule';
 import { store_mutations_names } from '../../../store/StoreModuleBase';
 import OnPageTranslationItem from '../vos/OnPageTranslationItem';
@@ -21,23 +21,21 @@ export default class OnPageTranslationStore implements IStoreModule<IOnPageTrans
     public getters: GetterTree<IOnPageTranslationState, OnPageTranslationContext>;
     public mutations = {
 
-        registerPageTranslation(state: IOnPageTranslationState, infos: { translation_code: string, missing: boolean }) {
-            if (state.page_translations[infos.translation_code]) {
+        registerPageTranslations(state: IOnPageTranslationState, infos: { [translation_code: string]: boolean }) {
 
-                // Si on a déjà le code, mais qu'on a en info missing, cette info doit être prioritaire
-                if (infos.missing) {
-                    state.page_translations[infos.translation_code].missing = true;
+            for (const code in infos) {
+                const missing = infos[code];
+
+                if (state.page_translations[code]) {
+
+                    // Si on a déjà le code, mais qu'on a en info missing, cette info doit être prioritaire
+                    if (missing) {
+                        state.page_translations[code].missing = true;
+                    }
+                    return;
                 }
-                return;
-            }
 
-            Vue.set(state.page_translations, infos.translation_code, new OnPageTranslationItem(infos.translation_code, infos.missing));
-        },
-
-        registerPageTranslations(state: IOnPageTranslationState, infos: Array<{ translation_code: string, missing: boolean }>) {
-
-            for (const i in infos) {
-                OnPageTranslationStore_.mutations.registerPageTranslation(state, infos[i]);
+                Vue.set(state.page_translations, code, new OnPageTranslationItem(code, missing));
             }
         },
 
@@ -74,8 +72,7 @@ export default class OnPageTranslationStore implements IStoreModule<IOnPageTrans
         };
 
         this.actions = {
-            registerPageTranslation: (context: OnPageTranslationContext, infos: { translation_code: string, missing: boolean }) => context.commit(store_mutations_names(this).registerPageTranslation, infos),
-            registerPageTranslations: (context: OnPageTranslationContext, infos: Array<{ translation_code: string, missing: boolean }>) => context.commit(store_mutations_names(this).registerPageTranslations, infos),
+            registerPageTranslations: (context: OnPageTranslationContext, infos: { [translation_code: string]: boolean }) => context.commit(store_mutations_names(this).registerPageTranslations, infos),
             clear: (context: OnPageTranslationContext) => context.commit(store_mutations_names(this).clear, null),
         };
     }
