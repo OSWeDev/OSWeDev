@@ -1,0 +1,10 @@
+{
+    "entryFile": "src/server/ServerBase.ts",
+    "noImplicitAdditionalProperties": "throw-on-extras",
+    "controllerPathGlobs": ["src/server/modules/**/*.ts"],
+    "spec": {
+        "outputDirectory": "src/server/swagger",
+        "specVersion": 3,
+        "outputFileName": "swagger.json"
+    }
+}

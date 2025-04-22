@@ -80,6 +80,9 @@ import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import AsyncHookPromiseWatchController from './modules/Stats/AsyncHookPromiseWatchController';
 import TeamsAPIServerController from './modules/TeamsAPI/TeamsAPIServerController';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './swagger/swagger.json';
+import { merge } from 'lodash';
 
 export default abstract class ServerBase {
 
@@ -852,6 +855,29 @@ export default abstract class ServerBase {
         if (options.exit) {
             process.exit();
         }
+    }
+
+    protected setup_swagger(custom_swaggerSpec: unknown) {
+        if (!swaggerSpec && !custom_swaggerSpec) {
+            return;
+        }
+
+        let swagger_setup = null;
+
+        if (swaggerSpec && custom_swaggerSpec) {
+            swagger_setup = merge({}, swaggerSpec, custom_swaggerSpec);
+        } else if (swaggerSpec) {
+            swagger_setup = swaggerSpec;
+        } else if (custom_swaggerSpec) {
+            swagger_setup = custom_swaggerSpec;
+        }
+
+        if (!swagger_setup) {
+            return;
+        }
+
+        // On génère le swagger
+        this.app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swagger_setup));
     }
 
     /**

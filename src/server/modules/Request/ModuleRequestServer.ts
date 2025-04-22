@@ -103,7 +103,11 @@ export default class ModuleRequestServer extends ModuleServerBase {
                     }
 
                     if (res.statusCode >= 400) {
-                        reject({ message: 'Request failed with status code ' + res.statusCode + ' :buffer: ' + JSON.stringify(buffer), headers: res.headers });
+                        reject({
+                            message: 'Request failed with status code ' + res.statusCode + ' :buffer: ' + JSON.stringify(buffer),
+                            headers: res.headers,
+                            datas: buffer
+                        });
                         ConsoleHandler.error('Request failed with status code ' + res.statusCode + ' : ' + path + ' : ' + JSON.stringify(buffer) + ' : ' + JSON.stringify(res.headers));
                         return;
                     }

@@ -24,7 +24,8 @@
         "experimentalDecorators": true,
         "declaration": true,
         "useDefineForClassFields": false,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "resolveJsonModule": true
     },
     "include": [
         "src/server/**/*.ts",
