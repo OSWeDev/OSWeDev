@@ -208,6 +208,8 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
      * Bascule le like pour l'élément à l'indice i
      */
     private async toggleLike(i: number) {
+        this.semaphore_toggleLike = true;
+
         const api_type_id = this.api_type_id;
         const item_id = this.vo_id_by_index[i];
 
@@ -217,7 +219,7 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         let existing = this.likesByKey[key];
 
         // 2) Appel à l'API pour créer ou updater l'objet côté serveur
-        //    On transmettra l'api_type_id, l'item_id, et l'id user => le serveur fait le "toggle" 
+        //    On transmettra l'api_type_id, l'item_id, et l'id user => le serveur fait le "toggle"
         //    (s'il n'existe pas, il le crée. S'il existe, il ajoute ou retire l'user)
         const list_object_likes_vo = new ListObjectLikesVO();
         list_object_likes_vo.api_type_id = api_type_id;
@@ -234,8 +236,6 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
             // la clé existe déjà => on écrase la valeur
             this.likesByKey[key] = updatedLikeVO;
         }
-
-        this.semaphore_toggleLike = true;
     }
 
     /**
@@ -288,6 +288,8 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
     private async mounted() {
         this.user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId();
+
+        this.get_titles();
     }
 
     private async get_card_footer_labels() {

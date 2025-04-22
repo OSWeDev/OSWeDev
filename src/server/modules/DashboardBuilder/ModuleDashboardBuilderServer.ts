@@ -4313,10 +4313,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     }
 
     public async fetch_likes_for_items(api_type_id: string, vo_ids: number[]): Promise<ListObjectLikesVO[]> {
-        return await query(ListObjectLikesVO.API_TYPE_ID)
+        const res: ListObjectLikesVO[] = await query(ListObjectLikesVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<ListObjectLikesVO>().api_type_id, api_type_id)
             .filter_by_num_has(field_names<ListObjectLikesVO>().vo_id, vo_ids)
             .select_vos();
+
+        return res;
     }
 
     public async list_object_widget_toggle_like(given_list_object_likes: ListObjectLikesVO): Promise<ListObjectLikesVO> {
@@ -4351,7 +4353,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }
 
         // On sauvegarde l'objet
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(exist_list_object_likes)
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(exist_list_object_likes);
 
         return exist_list_object_likes;
     }

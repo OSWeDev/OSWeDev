@@ -61,7 +61,7 @@ export default class ModuleDashboardBuilder extends Module {
     private static instance: ModuleDashboardBuilder = null;
     public start_export_favorites_filters_datatable: () => Promise<void> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE);
     public list_object_widget_toggle_like: (given_list_object_likes: ListObjectLikesVO) => Promise<ListObjectLikesVO> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_LIST_OBJECT_WIDGET_TOGGLE_LIKE);
-    public fetch_likes_for_items: (api_type_id: string, item_ids: number[]) => Promise<ListObjectLikesVO[]> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_LIST_OBJECT_WIDGET_TOGGLE_LIKE);
+    public fetch_likes_for_items: (api_type_id: string, item_ids: number[]) => Promise<ListObjectLikesVO[]> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_FETCH_LIKES_FOR_ITEMS);
 
     private constructor() {
 
