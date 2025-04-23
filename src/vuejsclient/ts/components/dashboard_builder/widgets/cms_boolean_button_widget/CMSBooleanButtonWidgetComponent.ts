@@ -50,7 +50,7 @@ export default class CMSBooleanButtonWidgetComponent extends VueComponentBase {
     }
 
     get style(): string {
-        return 'background-color: ' + this.color + '; color: ' + this.text_color + ';' + (this.radius ? 'border-radius: ' + this.radius + 'px;' : '');
+        return 'background-color: ' + this.color + '; color: ' + this.text_color + '; border: 1px solid ' + this.text_color + ';' + (this.radius ? 'border-radius: ' + this.radius + 'px;' : '');
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
