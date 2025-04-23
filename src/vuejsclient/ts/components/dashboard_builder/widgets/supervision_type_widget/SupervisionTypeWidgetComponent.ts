@@ -24,6 +24,7 @@ import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheCl
 import SupervisedProbeGroupVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeGroupVO';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleSupervision from '../../../../../../shared/modules/Supervision/ModuleSupervision';
+import { Route } from 'vue-router';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
@@ -72,6 +73,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
     private categories_ordered: SupervisedCategoryVO[] = [];
     private probes_by_sup_api_type_ids: { [sup_api_type_id: string]: SupervisedProbeVO } = {};
+    private is_load_all_supervised_probes: boolean = false;
     private groups: SupervisedProbeGroupVO[] = [];
 
     private opacityApitypeState: { [sup_api_type_id_state: string]: boolean } = {};
@@ -401,6 +403,27 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         }
     }
 
+    @Watch('$route', { immediate: true, deep: false })
+    private async onRouteChanged(newRoute: Route, oldRoute: Route) {
+
+        const route: Route = Object.assign({}, this.$router.currentRoute);
+        const supItemId = route.query.sup_item_id;
+        const type = route.query.type;
+
+        if (!!supItemId && !!type) {
+            this.set_active_api_type_ids([type]);
+            this.selected_api_type_id = type;
+            if (!this.is_load_all_supervised_probes) {
+                await this.load_all_supervised_probes();
+            }
+            const probe: SupervisedProbeVO = this.probes_by_sup_api_type_ids[this.selected_api_type_id];
+            if (!!probe?.category_id) {
+                this.togglePanelCat(probe.category_id);
+            }
+
+        }
+    }
+
     private async mounted() {
         this.has_access_pause = await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS);
         const all_states_: number[] = [
@@ -445,7 +468,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
         // this.categories_by_id = VOsTypesManager.vosArray_to_vosByIds(sup_categories);
 
-        this.categories_ordered = !!sup_categories.length
+        this.categories_ordered = !!sup_categories?.length
             ? sup_categories.sort((a: SupervisedCategoryVO, b: SupervisedCategoryVO) => {
                 if (a.weight < b.weight) { return -1; }
                 if (a.weight > b.weight) { return 1; }
@@ -464,6 +487,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
      */
     private async load_all_supervised_probes(): Promise<void> {
         this.probes_by_sup_api_type_ids = await SupervisionTypeWidgetManager.find_all_supervised_probes_by_sup_api_type_ids();
+        this.is_load_all_supervised_probes = true;
     }
 
     /**
