@@ -126,8 +126,9 @@ export default class TeamsAPIServerController {
         groupid_default_value: string = null,
         channelid_param_name: string = null,
         channelid_default_value: string = null,
+        message_size: string = 'default'
     ) {
-        await TeamsAPIServerController.send_teams_level('error', title, message, actions, groupid_param_name, groupid_default_value, channelid_param_name, channelid_default_value);
+        await TeamsAPIServerController.send_teams_level('error', title, message, actions, groupid_param_name, groupid_default_value, channelid_param_name, channelid_default_value, message_size);
     }
 
     // istanbul ignore next: nothing to test : send_teams
@@ -139,8 +140,9 @@ export default class TeamsAPIServerController {
         groupid_default_value: string = null,
         channelid_param_name: string = null,
         channelid_default_value: string = null,
+        message_size: string = 'default'
     ) {
-        await TeamsAPIServerController.send_teams_level('info', title, message, actions, groupid_param_name, groupid_default_value, channelid_param_name, channelid_default_value);
+        await TeamsAPIServerController.send_teams_level('info', title, message, actions, groupid_param_name, groupid_default_value, channelid_param_name, channelid_default_value, message_size);
     }
 
     // istanbul ignore next: nothing to test : send_teams
@@ -152,8 +154,9 @@ export default class TeamsAPIServerController {
         groupid_default_value: string = null,
         channelid_param_name: string = null,
         channelid_default_value: string = null,
+        message_size: string = 'default'
     ) {
-        await TeamsAPIServerController.send_teams_level('warn', title, message, actions, groupid_param_name, groupid_default_value, channelid_param_name, channelid_default_value);
+        await TeamsAPIServerController.send_teams_level('warn', title, message, actions, groupid_param_name, groupid_default_value, channelid_param_name, channelid_default_value, message_size);
     }
 
     // istanbul ignore next: nothing to test : send_teams
@@ -165,8 +168,9 @@ export default class TeamsAPIServerController {
         groupid_default_value: string = null,
         channelid_param_name: string = null,
         channelid_default_value: string = null,
+        message_size: string = 'default'
     ) {
-        await TeamsAPIServerController.send_teams_level('success', title, message, actions, groupid_param_name, groupid_default_value, channelid_param_name, channelid_default_value);
+        await TeamsAPIServerController.send_teams_level('success', title, message, actions, groupid_param_name, groupid_default_value, channelid_param_name, channelid_default_value, message_size);
     }
 
     public static async update_teams_message(message_id: string, channel_id: string, group_id: string, message: TeamsWebhookContentVO) {
@@ -286,6 +290,7 @@ export default class TeamsAPIServerController {
         groupid_default_value: string = null,
         channelid_param_name: string = null,
         channelid_default_value: string = null,
+        message_size: string = 'default'
     ) {
         try {
             let group_id: string = groupid_param_name ? await ModuleParams.getInstance().getParamValueAsString(groupid_param_name, groupid_default_value, 180000) : null;
@@ -306,7 +311,7 @@ export default class TeamsAPIServerController {
             }
 
             title = (ConfigurationService.node_configuration.is_main_prod_env ? '' : (title.startsWith('[TEST] ') ? '' : '[TEST] ')) + title;
-            const param = new SendTeamsLevelParam(level, title, message, actions, group_id, channel_id);
+            const param = new SendTeamsLevelParam(level, title, message, actions, group_id, channel_id, message_size);
             await (TeamsAPIServerController.get_throttle_send_teams_level()(param));
         } catch (error) {
             ConsoleHandler.error(error);
@@ -348,12 +353,20 @@ export default class TeamsAPIServerController {
             const body = [];
             const actions = []; // Pour le moment les actions ne sont pas gérés dans le cadre d'un throttle de messgae, il faudrait cumuler les actions ? ou juste refuser de throttle les messages avec actions ?
 
+            let message_size: string = 'default';
+
             for (const i in key_params) {
                 const key_param = key_params[i];
 
                 if (key_param.actions && (key_param.actions.length > 0)) {
-                    ConsoleHandler.error('NOT IMPLEMENTED : TeamsAPIServerController.throttled_send_teams_level:Impossible de gérer les actions dans le cadre d\'un throttle de messages');
-                    break;
+                    // ConsoleHandler.error('NOT IMPLEMENTED : TeamsAPIServerController.throttled_send_teams_level:Impossible de gérer les actions dans le cadre d\'un throttle de messages');
+                    actions.push(...key_param.actions);
+                    // break;
+                }
+
+                if (key_param.message_size) {
+                    // DIRTY Allowed values: ["default", "small", "medium", "large", "extraLarge"]
+                    message_size = key_param.message_size;
                 }
             }
 
@@ -391,7 +404,7 @@ export default class TeamsAPIServerController {
             body.push(title_Text);
             const activity_Image = new TeamsWebhookContentImageVO().set_url(ConfigurationService.node_configuration.base_url + "public/vuejsclient/img/" + level.toLowerCase() + ".png").set_size("small");
             body.push(activity_Image);
-            const message_Text = new TeamsWebhookContentTextBlockVO().set_text(message);
+            const message_Text = new TeamsWebhookContentTextBlockVO().set_text(message).set_size(message_size);
             body.push(message_Text);
 
             const attachments = new TeamsWebhookContentAttachmentsVO().set_name("Teams Level Attachment").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions));

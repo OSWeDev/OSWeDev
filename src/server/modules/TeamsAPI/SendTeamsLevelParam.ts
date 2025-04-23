@@ -9,5 +9,6 @@ export default class SendTeamsLevelParam {
         public actions: TeamsWebhookContentActionOpenUrlVO[],
         public groupid: string,
         public channelid: string,
+        public message_size: string
     ) { }
 }
