@@ -2,12 +2,11 @@ import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
-import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleMenu from '../../../../../shared/modules/Menu/ModuleMenu';
 import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
 import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
+import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
-import VueAppController from '../../../../VueAppController';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextAction, ModuleTranslatableTextGetter } from '../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../VueComponentBase';
@@ -36,8 +35,6 @@ export default class MenuOrganizerComponent extends VueComponentBase {
     @ModuleTranslatableTextGetter
     private get_initialized: boolean;
 
-    @ModuleTranslatableTextAction
-    private set_flat_locale_translations: (translations: { [code_text: string]: string }) => void;
     @ModuleTranslatableTextAction
     private set_initialized: (initialized: boolean) => void;
 
@@ -230,7 +227,7 @@ export default class MenuOrganizerComponent extends VueComponentBase {
         if ((!this.get_initialized) && (!this.get_initializing)) {
             this.set_initializing(true);
 
-            this.set_flat_locale_translations(VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS);
+            await LocaleManager.get_all_flat_locale_translations(true);
 
             this.set_initializing(false);
             this.set_initialized(true);

@@ -81,6 +81,10 @@ export default class ModuleMailerServer extends ModuleServerBase {
         }, 'mail_category.type_optin.optout'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Mes abonnements'
+        }, 'AccessPolicyMySubsComponent.header.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Abonné'
         }, 'AccessPolicyMySubComponent.subbed.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({

@@ -4,20 +4,17 @@ import 'bootstrap';
 import $ from 'jquery';
 import 'jquery-ui-dist/jquery-ui';
 import 'jquery-ui-dist/jquery-ui.css';
-// import 'jquery-ui-themes/themes/base/jquery-ui.min.css';
 
-// import $ from 'jquery';
 import moment from 'moment';
-import "moment/locale/fr";
-import 'moment/locale/en-gb';
 import 'moment/locale/de';
+import 'moment/locale/en-gb';
 import 'moment/locale/es';
+import "moment/locale/fr";
 
 import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import { ColorPanel, ColorPicker } from 'one-colorpicker';
 import 'select2';
 import VCalendar from 'v-calendar';
-// import 'v-calendar/lib/v-calendar.min.css';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
 import VueCookies from 'vue-cookies-ts';
@@ -50,6 +47,7 @@ import ConsoleHandler from "../shared/tools/ConsoleHandler";
 import EnvHandler from '../shared/tools/EnvHandler';
 import LocaleManager from '../shared/tools/LocaleManager';
 import { all_promises } from "../shared/tools/PromiseTools";
+import VueAppBaseInstanceHolder from "./VueAppBaseInstanceHolder";
 import VueAppController from './VueAppController';
 import PWAController from "./public/pwa/PWAController";
 import SuiviCompetencesVueController from "./ts/components/SuiviCompetences/SuiviCompetencesVueController";
@@ -82,8 +80,6 @@ import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 
 export default abstract class VueAppBase {
 
-    public static instance_: VueAppBase;
-
     public vueInstance: VueComponentBase & Vue;
     public vueRouter: VueRouter;
 
@@ -91,12 +87,12 @@ export default abstract class VueAppBase {
         public appController: VueAppController,
         private initializeModulesDatas: () => Promise<unknown>,
     ) {
-        VueAppBase.instance_ = this;
+        VueAppBaseInstanceHolder.instance = this;
     }
 
     // istanbul ignore next: nothing to test
     public static getInstance(): VueAppBase {
-        return this.instance_;
+        return VueAppBaseInstanceHolder.instance as VueAppBase;
     }
 
     public async runApp() {
@@ -182,7 +178,7 @@ export default abstract class VueAppBase {
             ) as VueModuleBase;
 
             if (module_) {
-                await module_.initializeAsync();
+                await module_.initializeAsync(this);
             }
         }
 
@@ -192,7 +188,7 @@ export default abstract class VueAppBase {
 
         ConsoleLogLogger.getInstance().prepare_console_logger();
 
-        const default_locale = LocaleManager.getInstance().getDefaultLocale();
+        const default_locale = LocaleManager.getDefaultLocale();
         // let uiDebug = this.appController.data_ui_debug == "1" || window.location.search.indexOf('ui-debug=1') != -1;
         moment.locale(default_locale);
 
@@ -203,23 +199,43 @@ export default abstract class VueAppBase {
         //     }
         // };
 
+        /**
+         * On ajoute aussi un handler si on a un import qui ne marche pas, ya eu recompilation probablement donc on reload
+         */
+        window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
+            const errorMessage = event.reason?.message || '';
+
+            if (errorMessage.includes('Failed to fetch dynamically imported module')) {
+                const lastReload = localStorage.getItem('lastReloadTimestamp');
+                const now = Date.now();
+
+                if (!lastReload || now - parseInt(lastReload, 10) > 60_000) {
+                    localStorage.setItem('lastReloadTimestamp', now.toString());
+                    window.location.reload();
+                } else {
+                    console.warn('Rechargement récent détecté, pas de reload supplémentaire.');
+                }
+            }
+        });
+
         Vue.use(ColorPanel);
         Vue.use(ColorPicker);
 
         Vue.use(ClientTable);
         Vue.use(VueI18n);
         Vue.use(VueCookies);
-        LocaleManager.getInstance().i18n = new VueI18n({
-            locale: default_locale,
-            messages: this.appController.ALL_LOCALES,
-            fallbackLocale: this.appController.data_default_locale,
-            missing: (locale, key, vm) => {
-                VueAppController.getInstance().register_translation({
-                    [key]: true,
-                });
-            },
-            silentTranslationWarn: true,
-        });
+
+        // LocaleManager.getInstance().i18n = new VueI18n({
+        //     locale: default_locale,
+        //     messages: this.appController.ALL_LOCALES,
+        //     fallbackLocale: this.appController.data_default_locale,
+        //     missing: (locale, key, vm) => {
+        //         VueAppController.getInstance().register_translation({
+        //             [key]: true,
+        //         });
+        //     },
+        //     silentTranslationWarn: true,
+        // });
         // TODO : il faudrait probablement forcer ce param côté client non ? LocaleManager.getInstance().i18n.nsSeparator = '¤';
         Vue.config['lang'] = default_locale;
 
@@ -517,6 +533,7 @@ export default abstract class VueAppBase {
 
         this.vueInstance = this.createVueMain();
         this.vueInstance.$mount('#vueDIV');
+        LocaleManager.vue_instance_ref = this.vueInstance;
 
         await this.postMountHook();
 

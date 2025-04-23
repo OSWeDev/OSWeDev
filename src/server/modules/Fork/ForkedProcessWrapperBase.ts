@@ -195,7 +195,7 @@ export default abstract class ForkedProcessWrapperBase {
             }
         }
         const i18nextInit = I18nextInit.getInstance(locales_corrected);
-        LocaleManager.getInstance().i18n = i18nextInit.i18next;
+        LocaleManager.i18n = i18nextInit.i18next;
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:END');
         }

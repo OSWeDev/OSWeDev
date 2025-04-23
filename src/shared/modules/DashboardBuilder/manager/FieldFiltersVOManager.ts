@@ -1,4 +1,5 @@
 import { cloneDeep } from "lodash";
+import LocaleManager from "../../../tools/LocaleManager";
 import ObjectHandler from "../../../tools/ObjectHandler";
 import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
@@ -6,7 +7,6 @@ import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import ModuleTableController from "../../DAO/ModuleTableController";
 import ModuleTableFieldVO from "../../DAO/vos/ModuleTableFieldVO";
 import ModuleTableVO from "../../DAO/vos/ModuleTableVO";
-import TranslationManager from "../../Translation/manager/TranslationManager";
 import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
 import IReadableFieldFilters from "../interfaces/IReadableFieldFilters";
 import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
@@ -17,6 +17,7 @@ import VOFieldRefVO from '../vos/VOFieldRefVO';
 import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 import VOFieldRefVOManager from "./VOFieldRefVOManager";
 import WidgetOptionsVOManager from "./WidgetOptionsVOManager";
+import ModuleTranslation from "../../Translation/ModuleTranslation";
 
 /**
  * FieldFiltersVOManager
@@ -106,7 +107,7 @@ export default class FieldFiltersVOManager {
                         json_options
                     );
                 } catch (e) {
-
+                    //
                 }
 
                 // We must have widget_options to keep proceed
@@ -157,7 +158,8 @@ export default class FieldFiltersVOManager {
 
         field_filters = cloneDeep(field_filters);
 
-        const translations = await TranslationManager.get_all_flat_locale_translations();
+        LocaleManager.getALL_FLAT_LOCALE_TRANSLATIONS = ModuleTranslation.getInstance().getALL_FLAT_LOCALE_TRANSLATIONS;
+        const translations = await LocaleManager.get_all_flat_locale_translations();
 
         // Get all required filters props from widgets_options
         let field_filters_porps: Array<{ is_filter_hidden: boolean, vo_field_ref: VOFieldRefVO }> = [];
@@ -554,7 +556,7 @@ export default class FieldFiltersVOManager {
         active_field_filters: FieldFiltersVO,
         required_api_type_ids: string[],
         all_possible_api_type_ids: string[],
-        options?: {},
+        options?: any,
     ): { [api_type_id: string]: FieldFiltersVO } {
 
         active_field_filters = cloneDeep(active_field_filters);

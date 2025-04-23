@@ -363,7 +363,7 @@ export default class VueComponentBase extends Vue
             });
         }
 
-        return LocaleManager.getInstance().t(txt, params);
+        return LocaleManager.t(txt, params);
     }
 
     public label(txt, params = {}): string {

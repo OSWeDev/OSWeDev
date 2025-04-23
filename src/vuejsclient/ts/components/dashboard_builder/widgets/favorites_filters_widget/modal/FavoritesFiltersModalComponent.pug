@@ -100,7 +100,7 @@
                                         h5.input_label {{ label('dashboard_viewer.favorites_filters.select_favorites') }}
                                         .row.select_favorites_filters_options
                                             template(v-for="(option, translatable_field_filters_code) in readable_field_filters")
-                                                div.option.col-md-12
+                                                div.option.col-md-12(v-show='!option.is_filter_hidden')
                                                     .input_wrapper  
                                                         toggle-button(
                                                             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"

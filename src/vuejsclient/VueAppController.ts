@@ -10,7 +10,6 @@ import ModuleSurvey from '../shared/modules/Survey/ModuleSurvey';
 
 import Throttle from '../shared/annotations/Throttle';
 import EventifyEventListenerConfVO from '../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
-import TranslationManager from '../shared/modules/Translation/Manager/TranslationManager';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
 import LocaleManager from '../shared/tools/LocaleManager';
@@ -34,8 +33,7 @@ export default abstract class VueAppController {
     // public data_base_api_url;
     public data_default_locale;
     public ALL_LANGS: LangVO[];
-    public ALL_LOCALES: any;
-    public ALL_FLAT_LOCALE_TRANSLATIONS: { [code_text: string]: string };
+    // public ALL_LOCALES: any;
     public SERVER_HEADERS;
     public base_url: string;
 
@@ -71,10 +69,6 @@ export default abstract class VueAppController {
     })
     public register_translation(translations: { [translation_code: string]: boolean }) {
         AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/registerPageTranslations', translations);
-    }
-
-    public async initializeFlatLocales() {
-        this.ALL_FLAT_LOCALE_TRANSLATIONS = await TranslationManager.get_all_flat_locale_translations();
     }
 
     public async initialize() {
@@ -145,7 +139,7 @@ export default abstract class VueAppController {
                 const filtered = self.try_language(user_lang);
 
                 if (filtered) {
-                    LocaleManager.getInstance().setDefaultLocale(filtered);
+                    LocaleManager.setDefaultLocale(filtered);
                     language_found = true;
                 }
             }
@@ -154,7 +148,7 @@ export default abstract class VueAppController {
                 const filtered = self.try_language(accepted_language);
 
                 if (filtered) {
-                    LocaleManager.getInstance().setDefaultLocale(filtered);
+                    LocaleManager.setDefaultLocale(filtered);
                     language_found = true;
                 }
             }
@@ -163,7 +157,7 @@ export default abstract class VueAppController {
                 const filtered = self.try_language(navigator.language);
 
                 if (filtered) {
-                    LocaleManager.getInstance().setDefaultLocale(filtered);
+                    LocaleManager.setDefaultLocale(filtered);
                     language_found = true;
                 }
             }
@@ -172,38 +166,44 @@ export default abstract class VueAppController {
                 const filtered = self.try_language(self.data_default_locale);
 
                 if (filtered) {
-                    LocaleManager.getInstance().setDefaultLocale(filtered);
+                    LocaleManager.setDefaultLocale(filtered);
                     language_found = true;
                 }
             }
 
             if (!language_found) {
-                LocaleManager.getInstance().setDefaultLocale('fr-fr');
+                LocaleManager.setDefaultLocale('fr-fr');
             }
 
-            await self.initializeFlatLocales();
-            self.ALL_LOCALES = {};
+            LocaleManager.sync_with_translation_store = true;
+            LocaleManager.ajax_cache_client_controller = AjaxCacheClientController.getInstance();
+            LocaleManager.i18n = {
+                t: LocaleManager.t,
+            };
+            LocaleManager.getALL_FLAT_LOCALE_TRANSLATIONS = ModuleTranslation.getInstance().getALL_FLAT_LOCALE_TRANSLATIONS;
+            await LocaleManager.get_all_flat_locale_translations();
+            // self.ALL_LOCALES = {};
 
-            self.ALL_LOCALES[LocaleManager.getInstance().getDefaultLocale()] = {};
-            for (const code_text in self.ALL_FLAT_LOCALE_TRANSLATIONS) {
-                const translation = self.ALL_FLAT_LOCALE_TRANSLATIONS[code_text];
+            // self.ALL_LOCALES[LocaleManager.getDefaultLocale()] = {};
+            // for (const code_text in LocaleManager.ALL_FLAT_LOCALE_TRANSLATIONS) {
+            //     const translation = LocaleManager.ALL_FLAT_LOCALE_TRANSLATIONS[code_text];
 
-                const code_text_split = code_text.split('.');
+            //     const code_text_split = code_text.split('.');
 
-                let current = self.ALL_LOCALES[LocaleManager.getInstance().getDefaultLocale()];
-                for (const j in code_text_split) {
-                    const code_text_split_j = code_text_split[j];
+            //     let current = self.ALL_LOCALES[LocaleManager.getDefaultLocale()];
+            //     for (const j in code_text_split) {
+            //         const code_text_split_j = code_text_split[j];
 
-                    if (parseInt(j) == (code_text_split.length - 1)) {
-                        current[code_text_split_j] = translation;
-                    } else {
-                        if (!current[code_text_split_j]) {
-                            current[code_text_split_j] = {};
-                        }
-                        current = current[code_text_split_j];
-                    }
-                }
-            }
+            //         if (parseInt(j) == (code_text_split.length - 1)) {
+            //             current[code_text_split_j] = translation;
+            //         } else {
+            //             if (!current[code_text_split_j]) {
+            //                 current[code_text_split_j] = {};
+            //             }
+            //             current = current[code_text_split_j];
+            //         }
+            //     }
+            // }
         })());
 
         await all_promises(promises);

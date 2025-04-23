@@ -1,25 +1,25 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import IReadableFieldFilters from '../../../../../../shared/modules/DashboardBuilder/interfaces/IReadableFieldFilters';
 import DashboardPageFieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/DashboardPageFieldFiltersVOManager';
 import DashboardPageVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
+import DashboardVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import VOFieldRefVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
-import DashboardVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import SharedFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
-import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ISelectionnableFieldFilters from '../interface/ISelectionnableFieldFilters';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import SharedFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
+import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
-import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import LocaleManager from '../../../../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
-import VueAppController from '../../../../../VueAppController';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
+import ISelectionnableFieldFilters from '../interface/ISelectionnableFieldFilters';
 import './SharedFiltersModalComponent.scss';
 @Component({
     template: require('./SharedFiltersModalComponent.pug'),
@@ -891,7 +891,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
      * @returns {string}
      */
     private get_translation_by_vo_field_ref_name_code_text(name_code_text: string): string {
-        let translation: string = VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
+        let translation: string = LocaleManager.ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
 
         if (!translation) {
             translation = name_code_text;

@@ -25,6 +25,7 @@ import YearFilterWidgetOptionsVO from '../../../../../../../shared/modules/Dashb
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import LocaleManager from '../../../../../../../shared/tools/LocaleManager';
 import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
@@ -867,7 +868,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
      * @returns {string}
      */
     private get_translation_by_vo_field_ref_name_code_text(name_code_text: string): string {
-        let translation: string = VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
+        let translation: string = LocaleManager.ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
 
         if (!translation) {
             translation = name_code_text;

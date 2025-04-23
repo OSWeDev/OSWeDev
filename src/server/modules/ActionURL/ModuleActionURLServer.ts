@@ -85,7 +85,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
      * @returns
      */
     public async simple_open_url_from_action_url(action_url: ActionURLVO, uid: number, req: Request, call_id: number): Promise<ActionURLCRVO> {
-        const param:ISimpleActionURLParams = action_url.params as ISimpleActionURLParams;
+        const param: ISimpleActionURLParams = action_url.params as ISimpleActionURLParams;
         await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, param.url);
         return ActionURLServerTools.create_info_cr(action_url, 'Redirection vers ' + param.url);
     }
@@ -205,7 +205,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
                     const title_translation = await ModuleTranslation.getInstance().getTranslation(lang.id, title_text.id);
 
                     if (title_translation) {
-                        title_content = LocaleManager.getInstance().t(title_translation.translated, action_cr.translatable_cr_title_params_json);
+                        title_content = LocaleManager.t(title_translation.translated, action_cr.translatable_cr_title_params_json);
                     }
                 }
 
@@ -213,7 +213,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
                     const content_translation = await ModuleTranslation.getInstance().getTranslation(lang.id, content_text.id);
 
                     if (content_translation) {
-                        message_content = LocaleManager.getInstance().t(content_translation.translated, action_cr.translatable_cr_content_params_json);
+                        message_content = LocaleManager.t(content_translation.translated, action_cr.translatable_cr_content_params_json);
                     }
                 }
             }

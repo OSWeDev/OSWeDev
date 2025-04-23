@@ -3,6 +3,7 @@ import { ActionContext, ActionTree, GetterTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import IStoreModule from '../../store/IStoreModule';
 import { store_mutations_names } from '../../store/StoreModuleBase';
+import LocaleManager from '../../../../shared/tools/LocaleManager';
 
 export type TranslatableTextContext = ActionContext<ITranslatableTextState, any>;
 
@@ -36,7 +37,10 @@ export default class TranslatableTextStore implements IStoreModule<ITranslatable
             state.initializing = initializing;
         },
 
-        set_flat_locale_translation(state: ITranslatableTextState, flat_locale_translation: { code_text: string, value: string }) {
+        set_flat_locale_translation(state: ITranslatableTextState, flat_locale_translation: { code_text: string, value: string, synced?: boolean }) {
+            if (!flat_locale_translation.synced) {
+                LocaleManager.set_translation(flat_locale_translation.code_text, flat_locale_translation.value, true);
+            }
             Vue.set(state.flat_locale_translations, flat_locale_translation.code_text, flat_locale_translation.value);
         },
     };
