@@ -6,6 +6,7 @@ Lancer la commande npm run tsoa:spec pour générer le fichier swagger.json
 Dans tous les tsconfig.json, ajouter dans la section "compilerOptions" => "skipLibCheck": true
 Dans le fichier package.json, ajouter "--skipLibCheck" dans "build-static-env"
 Dans le fichier package.json, ajouter "tsoa:spec": "tsoa spec" dans "scripts"
+Dans le fichier package.json, ajouter "tsoa": "6.6.0" dans "devDependencies"
 
 ## Pour générer le fichier swagger.json
 Lancer la commande npm run tsoa:app pour générer le fichier swagger.json
