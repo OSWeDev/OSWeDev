@@ -19,6 +19,8 @@ import CRUDFormServices from '../CRUDFormServices';
 import "./CRUDUpdateFormComponent.scss";
 import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableVO from '../../../../../../shared/modules/DAO/vos/ModuleTableVO';
+import { cloneDeep, isEqual } from 'lodash';
 
 @Component({
     template: require('./CRUDUpdateFormComponent.pug'),
@@ -60,7 +62,11 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     @Prop({ default: false })
     private show_delete_button: boolean;
 
+    @Prop({ default: false })
+    private inline_form_in_crud: boolean;
+
     private editableVO: IDistantVOBase = null;
+    private editableVO_initial: IDistantVOBase = null;
 
     private api_types_involved: string[] = [];
 
@@ -74,6 +80,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     private crud_field_remover_conf_edit: boolean = false;
     private crud_field_remover_conf: CRUDFieldRemoverConfVO = null;
     private POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS: boolean = false;
+    private snotify_cancel = null;
 
     get api_type_id(): string {
         if (this.selected_vo) {
@@ -93,9 +100,24 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
         }
 
         return this.label('crud.read.title', {
-            datatable_title:
-                this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].label.code_text)
+            datatable_title: this.datatable_title
         });
+    }
+
+    get datatable_title(): string {
+        if (!this.crud) {
+            return null;
+        }
+
+        return this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID]?.label?.code_text);
+    }
+
+    get input_label(): string {
+        if (this.inline_form_in_crud) {
+            return this.label('crud.update.modal.save_continue');
+        }
+
+        return this.label('crud.update.modal.save');
     }
 
     @Watch("api_type_id", { immediate: true })
@@ -159,6 +181,8 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     private updateSelected_vo() {
         if (!this.selected_vo) {
             this.editableVO = null;
+            this.editableVO_initial = null;
+            this.snotify_cancel = null;
             return;
         }
 
@@ -169,7 +193,9 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
             } else {
                 // On passe la traduction en IHM sur les champs
                 self.editableVO = CRUDFormServices.dataToIHM(self.selected_vo, self.crud.updateDatatable, true);
+                self.editableVO_initial = cloneDeep(self.editableVO);
                 self.onChangeVO(self.editableVO);
+                this.snotify_cancel = null;
             }
         };
 
@@ -180,6 +206,56 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
         if (this.crud && (this.crud_updateDatatable_key != this.crud.updateDatatable.key)) {
             this.crud_updateDatatable_key = this.crud.updateDatatable.key;
         }
+    }
+
+    public cancel() {
+        if (this.vo_is_equal_for_prevent()) {
+            this.$emit('cancel');
+            return;
+        }
+
+        if (this.snotify_cancel) {
+            return;
+        }
+
+        this.snotify_cancel = this.snotify.confirm(this.label('cancel.update.confirmation.body'), this.label('cancel.update.confirmation.title'), {
+            timeout: 0,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            titleMaxLength: 100,
+            buttons: [
+                {
+                    text: this.t('YES'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                        this.snotify_cancel = null;
+
+                        // On met le VO aux valeurs initiales
+                        this.editableVO = cloneDeep(this.editableVO_initial);
+
+                        this.$emit('cancel');
+                    },
+                },
+                {
+                    text: this.t('NO'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                        this.snotify_cancel = null;
+                    }
+                }
+            ]
+        });
+    }
+
+    public vo_is_equal_for_prevent(): boolean {
+        const moduletable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[this.api_type_id];
+
+        if (!moduletable?.prevent_close_modal) {
+            return true;
+        }
+
+        return isEqual(this.editableVO, this.editableVO_initial);
     }
 
     private async delete_removed_crud_field_id(module_table_field_id: string) {
@@ -423,6 +499,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                 await self.callCallbackFunctionUpdate();
 
                 if (self.close_on_submit) {
+                    self.editableVO_initial = cloneDeep(self.editableVO);
                     self.$emit('close');
                 }
 
@@ -485,10 +562,6 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
         }
     }
 
-    private async cancel() {
-        this.$emit('cancel');
-    }
-
     private async deleteVO() {
         this.snotify.confirm(this.label('TableWidgetComponent.confirm_delete.body'), this.label('TableWidgetComponent.confirm_delete.title'), {
             timeout: 10000,
@@ -504,6 +577,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                         await query(this.selected_vo._type).filter_by_id(this.selected_vo.id).delete_vos();
 
                         if (this.close_on_submit) {
+                            this.editableVO_initial = cloneDeep(this.editableVO);
                             this.$emit('close');
                         }
                     },

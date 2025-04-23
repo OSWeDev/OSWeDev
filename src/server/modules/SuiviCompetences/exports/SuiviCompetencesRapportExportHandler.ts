@@ -1,5 +1,4 @@
 import APIControllerWrapper from "../../../../shared/modules/API/APIControllerWrapper";
-import UserVO from "../../../../shared/modules/AccessPolicy/vos/UserVO";
 import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import IExportableDatas from "../../../../shared/modules/DataExport/interfaces/IExportableDatas";
 import ExportHistoricVO from "../../../../shared/modules/DataExport/vos/ExportHistoricVO";
@@ -19,6 +18,7 @@ import VOsTypesManager from "../../../../shared/modules/VO/manager/VOsTypesManag
 import ObjectHandler, { field_names } from "../../../../shared/tools/ObjectHandler";
 import RangeHandler from "../../../../shared/tools/RangeHandler";
 import ExportHandlerBase from "../../DataExport/ExportHandlerBase";
+import striptags from 'striptags';
 
 export default class SuiviCompetencesRapportExportHandler extends ExportHandlerBase {
 
@@ -131,11 +131,11 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
                         if (item_rapport) {
                             let item_rapport_indicateur: SuiviCompetencesIndicateurVO = (item_rapport.indicateur > 0) ? indicateurs[(item_rapport.indicateur - 1)] : null;
 
-                            data['commentaires_' + rapport_id] = item_rapport.etat_des_lieux;
-                            data['cible_' + rapport_id] = item_rapport.cible;
-                            data['delais_' + rapport_id] = item_rapport.delais;
-                            data['bilan_precedent_' + rapport_id] = item_rapport.bilan_precedent;
-                            data['plan_action_' + rapport_id] = item_rapport.plan_action;
+                            data['commentaires_' + rapport_id] = striptags(item_rapport.etat_des_lieux);
+                            data['cible_' + rapport_id] = striptags(item_rapport.cible);
+                            data['delais_' + rapport_id] = striptags(item_rapport.delais);
+                            data['bilan_precedent_' + rapport_id] = striptags(item_rapport.bilan_precedent);
+                            data['plan_action_' + rapport_id] = striptags(item_rapport.plan_action);
 
                             if (item_rapport_indicateur) {
                                 data['indicateur_' + rapport_id] = item_rapport_indicateur.titre;
@@ -157,6 +157,8 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
         let show_column_rapport_delais: boolean = false;
         let show_column_rapport_bilan_precedent: boolean = false;
         let show_column_rapport_indicateur: boolean = false;
+        let show_btn_details: boolean = false;
+        let show_column_name: boolean = false;
 
         for (let i in rapport_by_ids) {
             let grille: SuiviCompetencesGrilleVO = grille_by_ids[rapport_by_ids[i].suivi_comp_grille_id];
@@ -183,6 +185,12 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
             if (grille.show_column_rapport_indicateur) {
                 show_column_rapport_indicateur = true;
             }
+            if (grille.show_btn_details) {
+                show_btn_details = true;
+            }
+            if (grille.show_column_name) {
+                show_column_name = true;
+            }
         }
 
         this.set_ordered_column_list(
@@ -193,6 +201,8 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
             show_column_rapport_delais,
             show_column_rapport_bilan_precedent,
             show_column_rapport_indicateur,
+            show_btn_details,
+            show_column_name,
         );
 
         return res;
@@ -232,13 +242,21 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
         show_column_rapport_delais: boolean,
         show_column_rapport_bilan_precedent: boolean,
         show_column_rapport_indicateur: boolean,
+        show_btn_details: boolean,
+        show_column_name: boolean,
     ) {
         let res: string[] = [
             'groupe',
             'sous_groupe',
-            'item',
-            'kpi',
         ];
+
+        if (show_column_name) {
+            res.push('item');
+        }
+
+        if (show_btn_details) {
+            res.push('kpi');
+        }
 
         RangeHandler.foreach_ranges_sync(rapport_id_ranges, (rapport_id: number) => {
             if (show_column_rapport_indicateur) {

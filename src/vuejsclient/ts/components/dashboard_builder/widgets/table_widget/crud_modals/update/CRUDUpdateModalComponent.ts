@@ -36,6 +36,7 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
     ) {
         const crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[vo._type];
         this.api_type_id = vo._type;
+        const self = this;
 
         this.show_insert_or_update_target = show_insert_or_update_target;
         this.show_delete_button = show_delete_button;
@@ -62,6 +63,14 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
 
             if (!this.on_hidden_initialized) {
                 this.on_hidden_initialized = true;
+                $('#crud_update_modal_' + this.api_type_id).on("hide.bs.modal", function (e) {
+                    if (!(self.$refs['Crudupdateformcomponent'] as CRUDUpdateFormComponent).vo_is_equal_for_prevent()) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        (self.$refs['Crudupdateformcomponent'] as CRUDUpdateFormComponent).cancel();
+                        return false;
+                    }
+                });
                 $('#crud_update_modal_' + this.api_type_id).on("hidden.bs.modal", async () => {
                     if (this.onclose_callback) {
                         await this.onclose_callback();

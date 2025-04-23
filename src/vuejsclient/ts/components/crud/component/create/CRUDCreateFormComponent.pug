@@ -4,7 +4,7 @@ include ../../../../../views/mixins/loading.pug
         form(v-on:submit.prevent="createVO")
             .crud_create_form_header
                 a.btn.close(@click="cancel") &times;
-                .title.d-ib {{ label('crud.create.modal.title') }}
+                .title.d-ib {{ label('crud.create.modal.title') }} {{ datatable_title }}
 
             .crud_create_form_body
                 .alert.alert-warning(v-if="is_only_readable") {{ label('crud.create.modal.readonly') }}
@@ -14,14 +14,14 @@ include ../../../../../views/mixins/loading.pug
                         .edit_removed_crud_fields
                             .btn.btn-primary.btn-block.btn-flat(@click="crud_field_remover_conf_edit = true" v-if='!crud_field_remover_conf_edit') {{ label('crud_create_form_body.edit_removed_crud_fields') }}
                             .btn.btn-primary.btn-block.btn-flat(@click="crud_field_remover_conf_edit = false" v-if='!!crud_field_remover_conf_edit') {{ label('crud_create_form_body.donot_edit_removed_crud_fields') }}
-                        
+
                         template(v-if='crud_field_remover_conf_edit && crud_field_remover_conf && crud_field_remover_conf.module_table_field_ids && (crud_field_remover_conf.module_table_field_ids.length > 0)')
                             template(v-for='(module_table_field_id, edit_removed_crud_field_i) in crud_field_remover_conf.module_table_field_ids')
                                 .delete_removed_crud_field_id
                                     .btn.btn-warning.btn-block.btn-flat(@click="delete_removed_crud_field_id(module_table_field_id)") {{ label('crud_create_form_body.delete_removed_crud_field_id', {field_id: module_table_field_id}) }}
 
 
-                    template(v-if="has_createDatatable", v-for="field in crud.createDatatable.fields")
+                    template(v-if="has_createDatatable" v-for="field in crud.createDatatable.fields")
                         Crudcomponentfield(
                             v-show="!field.hidden",
                             :key="newVO._type + '_createDatatable_' + field.datatable_field_uid + '_' + crud_createDatatable_key",
@@ -37,7 +37,7 @@ include ../../../../../views/mixins/loading.pug
                         )
                         template(v-if='POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS && crud_field_remover_conf_edit')
                             .add_removed_crud_field_id
-                                    .btn.btn-danger.btn-block.btn-flat(@click="add_removed_crud_field_id(field.module_table_field_id)") {{ label('crud_create_form_body.add_removed_crud_field_id', {field_id: field.module_table_field_id}) }}
+                                .btn.btn-danger.btn-block.btn-flat(@click="add_removed_crud_field_id(field.module_table_field_id)") {{ label('crud_create_form_body.add_removed_crud_field_id', {field_id: field.module_table_field_id}) }}
 
 
                 template(v-else)
@@ -46,4 +46,4 @@ include ../../../../../views/mixins/loading.pug
             .crud_create_form_footer
                 a.btn.btn-default(v-if="!creating_vo", @click="cancel") {{ label('crud.create.modal.cancel') }}
                 template(v-if="newVO && !creating_vo && !is_only_readable")
-                    input.btn.btn-primary(type="submit" :value="label('crud.create.modal.add')")
+                    input.btn.btn-primary.ml-1(type="submit" :value="input_label")
