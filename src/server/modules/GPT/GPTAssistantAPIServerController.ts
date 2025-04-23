@@ -40,12 +40,12 @@ import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
-
 export default class GPTAssistantAPIServerController {
 
     public static promise_pipeline_by_function: { [function_id: number]: PromisePipeline } = {};
 
     public static PERF_MODULE_NAME: string = 'gpt_assistant_api';
+    private static wss: any | null = null;
 
     /**
      * Cette méthode a pour but de wrapper l'appel aux APIs OpenAI
@@ -1081,42 +1081,109 @@ export default class GPTAssistantAPIServerController {
     }
 
 
-    // /**
-    //  * Demander un run d'un assistant suite à un nouveau message
-    //  * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
-    //  * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
-    //  * @param user_id contenu text du nouveau message
-    //  * @returns
-    //  */
-    // public static async connect_to_realtime_voice(
-    //     session_id: string,
-    //     conversation_id: string,
-    //     user_id: number): Promise<GPTRealtimeAPIConversationItemVO[]> {
-    //     try {
-    //         if(!session_id) {
-    //             // Création d'une nouvelle session
-    //             this.create_realtime_session();
-    //         }
-    //     } catch(error) {
-    //         ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: ' + error);
-    //     }
-    //     return;
-    // }
+    /**
+     * Demander un run d'un assistant suite à un nouveau message
+     * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
+     * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
+     * @param user_id contenu text du nouveau message
+     * @returns
+     */
+    public static async connect_to_realtime_voice(
+        session_id: string,
+        conversation_id: string,
+        user_id: number): Promise<void> {
+        try {
+            if(!session_id) {
+                this.create_realtime_session();
+            }
+        } catch(error) {
+            ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: ' + error);
+        }
+        return;
+    }
 
-    // private static async create_realtime_session(): Promise<GPTRealtimeAPISessionVO> {
-    //     try {
-    //         const session = new GPTRealtimeAPISessionVO();
-    //         session.object = "realtime.session";
-    //         session.model = "gpt-4o-realtime-preview-2024-10-01";
-    //         session.modalities = ["text", "voice"];
-    //         session.voice = "alloy";
-    //         session.instructions = "";
-    //         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(session);
-    //     } catch(error) {
 
-    //     }
-    //     return;
-    // }
+    private static async create_realtime_session(): Promise<void> {
+        try {
+            // On vérifie si le wss existe déjà
+            if (!this.wss) {
+                const WebSocket = require('ws');
+                const PORT = parseInt(ConfigurationService.node_configuration.port) + 10;
+
+                // On crée le serveur WebSocket qu'une seule fois
+                this.wss = new WebSocket.Server({ port: PORT });
+
+                this.wss.on('connection', (clientSocket) => {
+                    const openaiSocket = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01', {
+                        headers: {
+                            Authorization: `Bearer ${ConfigurationService.node_configuration.open_api_api_key}`,
+                            'OpenAI-Beta': 'realtime=v1',
+                        },
+                    });
+
+                    openaiSocket.on('open', () => {
+                        const sessionUpdate = {
+                            type: 'session.update',
+                            session: {
+                                modalities: ['audio', 'text'],
+                                voice: 'alloy',
+                                input_audio_format: 'pcm16',
+                                output_audio_format: 'pcm16',
+                                turn_detection: {
+                                    type: 'server_vad',
+                                    silence_duration_ms: 500,
+                                },
+                            },
+                        };
+                        openaiSocket.send(JSON.stringify(sessionUpdate));
+
+                        // Préviens le client que tout est prêt
+                        clientSocket.send(JSON.stringify({ type: 'ready' }));
+                    });
+
+                    openaiSocket.on('message', (data: Buffer) => {
+                        try {
+                            // On tente de parser en JSON
+                            const strData = data.toString('utf8');
+                            const parsedMsg = JSON.parse(strData);
+
+                            // Si c'est un message audio => on décode base64 et on l'envoie en binaire
+                            if (parsedMsg?.type === 'output_audio_buffer' && parsedMsg?.audio) {
+                                const rawBinary = Buffer.from(parsedMsg.audio, 'base64');
+                                clientSocket.send(rawBinary, { binary: true });
+                            } else {
+                                // Sinon, on renvoie simplement la chaîne JSON telle quelle
+                                // ou on peut renvoyer l'objet re-stringifié :
+                                clientSocket.send(strData);
+                            }
+                        } catch (err) {
+                            // Si ce n'est pas du JSON, on l'envoie tel quel en binaire
+                            clientSocket.send(data, { binary: true });
+                        }
+                    });
+                    clientSocket.on('message', (data) => openaiSocket.send(data));
+
+                    const closeSockets = () => {
+                        if (openaiSocket.readyState === WebSocket.OPEN) openaiSocket.close();
+                        if (clientSocket.readyState === WebSocket.OPEN) clientSocket.close();
+                    };
+
+                    clientSocket.on('close', closeSockets);
+                    openaiSocket.on('close', closeSockets);
+                });
+
+                ConsoleHandler.log(`WebSocket Server en écoute sur ws://localhost:${PORT}`);
+            }
+
+            // On peut renvoyer un objet si besoin,
+            // ou rien du tout (void)
+            return;
+
+        } catch (error) {
+            ConsoleHandler.error('create_realtime_session: ' + error);
+            return;
+        }
+    }
 
     private static async resync_thread_messages(thread_vo: GPTAssistantAPIThreadVO) {
         try {
@@ -1135,10 +1202,10 @@ export default class GPTAssistantAPIServerController {
             .filter_by_id(thread_vo.id)
             .exec_as_server()
             .update_vos<GPTAssistantAPIThreadVO>({
-                oselia_is_running: false,
-                current_oselia_assistant_id: null,
-                current_oselia_prompt_id: null,
-            });
+            oselia_is_running: false,
+            current_oselia_assistant_id: null,
+            current_oselia_prompt_id: null,
+        });
     }
 
     private static async get_asking_message(
@@ -1150,7 +1217,7 @@ export default class GPTAssistantAPIServerController {
         hide_content: boolean = false
     ): Promise<GPTAssistantAPIThreadMessageVO> {
         let has_image_file: boolean = false;
-        let has_sound_file: boolean = false;
+        const has_sound_file: boolean = false;
         let asking_message_vo: GPTAssistantAPIThreadMessageVO = null;
         const files_images: FileVO[] = [];
         if (new_msg_content_text || (new_msg_files && new_msg_files.length)) {

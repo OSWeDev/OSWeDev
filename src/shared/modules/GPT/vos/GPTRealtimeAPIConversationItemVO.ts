@@ -11,5 +11,4 @@ export default class GPTRealtimeAPIConversationItemVO implements IDistantVOBase 
     public type: string;
     public status: string;
     public role: string;
-    
 }

@@ -45,6 +45,8 @@ import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
 import './OseliaThreadWidgetComponent.scss';
 import OseliaRunGraphWidgetComponent from '../oselia_run_graph_widget/OseliaRunGraphWidgetComponent';
+import voiceActivityDetection from 'voice-activity-detection';
+
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
     components: {
@@ -155,6 +157,22 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private audio_chunks: Blob[] = [];
 
     private functions_by_id: { [id: number]: GPTAssistantAPIFunctionVO } = {};
+
+
+    private socket: WebSocket | null = null;
+    private audioContext: AudioContext | null = null;
+
+    // VAD via la lib voice-activity-detection
+    private vadController: any = null;
+
+    private mediaStream: MediaStream | null = null;
+    private scriptProcessor: ScriptProcessorNode  | null = null;
+
+    private isSpeech: boolean = false;
+    private audioChunks: Int16Array[] = [];
+
+    private is_connected_to_realtime: boolean = false;
+    private realtime_is_loading: boolean = false;
 
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(
         'OseliaThreadWidgetComponent.throttle_load_thread',
@@ -912,7 +930,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
             // Commencer l'enregistrement vocal
             try {
-                // await ModuleGPT.getInstance().connect_to_realtime_voice(null,null,this.data_user.id);
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 this.media_recorder = new MediaRecorder(stream);
 
@@ -1006,4 +1023,255 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             return null;
         }
     }
+
+    private async start_realtime() {
+        if (!this.is_connected_to_realtime) {
+            this.realtime_is_loading = true;
+
+            // Exemple d’appel vers votre module
+            await ModuleGPT.getInstance().connect_to_realtime_voice(null, this.thread?.gpt_thread_id, VueAppController.getInstance().data_user.id);
+
+            const { port } = window.location;
+            // Suppose qu'on ouvre un WS sur localhost:<port + 10>
+            this.socket = new WebSocket(`ws://localhost:${parseInt(port) + 10}`);
+            this.socket.binaryType = 'arraybuffer';
+
+            this.socket.onopen = () => {
+                ConsoleHandler.log('WS Opened');
+            };
+
+            this.socket.onmessage = (event) => {
+                if (typeof event.data === 'string') {
+
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'ready') {
+                        // Le serveur nous indique qu'il est prêt
+                        this.realtime_is_loading = false;
+                        this.startVAD(); // Lance la VAD
+                    } else if (msg.type === 'output_audio_buffer') {
+                    // Lecture d'un buffer audio PCM16 reçu
+                        const binaryString = atob(msg.audio);
+                        const audioData = new Uint8Array(binaryString.length);
+                        for (let i = 0; i < binaryString.length; i++) {
+                            audioData[i] = binaryString.charCodeAt(i);
+                        }
+                        this.playAudio(audioData);
+                    }
+                } else {
+                    // Si c'est pas un string, on suppose que c'est un buffer audio PCM16
+                    this.playAudio(new Uint8Array(event.data));
+                }
+            };
+
+            this.socket.onclose = () => this.close_realtime();
+            this.socket.onerror = () => this.close_realtime();
+
+            this.is_connected_to_realtime = true;
+        } else {
+            this.close_realtime();
+        }
+    }
+
+    /**
+   * Initialise l'accès micro + VAD via voice-activity-detection.
+   */
+    private async startVAD() {
+        try {
+            // 1) Demande d’accès au micro
+            this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            // 2) Création du contexte audio
+            const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+            if (!AudioCtx) {
+                throw new Error('AudioContext non supporté dans ce navigateur.');
+            }
+            this.audioContext = new AudioCtx({ sampleRate: 16000 });
+            if (!this.audioContext) {
+                throw new Error('Impossible de créer un AudioContext.');
+            }
+            const sourceNode = await this.audioContext.createMediaStreamSource(this.mediaStream);
+
+            // 3) Chargement du worklet externe
+            await this.audioContext.audioWorklet.addModule('./public/vuejsclient/vad-processor.js');
+            const audioWorkletNode = new AudioWorkletNode(this.audioContext, 'vad-processor');
+
+            // Écoute les messages provenant du processeur (blocs audio)
+            audioWorkletNode.port.onmessage = (event) => {
+                const float32Data = event.data;
+                const pcm16Data = this.floatTo16BitPCM(float32Data);
+
+                if (this.isSpeech) {
+                    this.audioChunks.push(pcm16Data);
+                }
+            };
+
+            // Connexion du graphe audio
+            sourceNode.connect(audioWorkletNode).connect(this.audioContext.destination);
+
+            // 4) Lance la détection VAD
+            const vadOptions = {
+                audioContext: this.audioContext,
+                source: sourceNode,
+                fftSize: 512,
+                minDecibels: -40,
+                maxDecibels: -20,
+                voiceStopThreshold: 3,
+                voiceStartThreshold: 3,
+                smoothingTimeConstant: 0.2,
+                useMedian: true,
+
+                onVoiceStart: () => {
+                    ConsoleHandler.log('Voice started');
+                    this.isSpeech = true;
+                    this.audioChunks = [];
+                },
+
+                onVoiceStop: () => {
+                    ConsoleHandler.log('Voice ended');
+                    this.isSpeech = false;
+
+                    const fullAudio = this.concatInt16Arrays(this.audioChunks);
+                    this.audioChunks = [];
+
+                    const base64Audio = this.base64ArrayBuffer(fullAudio.buffer as ArrayBuffer);
+
+                    if (this.socket?.readyState === WebSocket.OPEN) {
+                        this.socket.send(JSON.stringify({
+                            type: 'input_audio_buffer.append',
+                            audio: base64Audio,
+                        }));
+
+                        this.socket.send(JSON.stringify({ type: 'input_audio_buffer.commit' }));
+
+                        this.socket.send(JSON.stringify({
+                            type: 'response.create',
+                            response: {
+                                modalities: ['text', 'audio'],
+                                instructions: 'Assist the user.',
+                                voice: 'sage',
+                                output_audio_format: 'pcm16',
+                                tool_choice: 'auto',
+                                temperature: 0.8,
+                                max_output_tokens: 1024,
+                            },
+                        }));
+                    }
+                },
+
+                onUpdate: (val: number) => {
+                    // Debug VAD
+                    // ConsoleHandler.log(`VAD val => ${val}`);
+                },
+            };
+
+            this.vadController = voiceActivityDetection(vadOptions.audioContext, this.mediaStream,vadOptions);
+        } catch (error) {
+            ConsoleHandler.log('Erreur VAD : ' + error);
+            this.close_realtime();
+        }
+    }
+
+
+    /**
+   * Ferme le WS et arrête tout (micro, audioContext, VAD).
+   */
+    private close_realtime() {
+    // Arrêt voice-activity-detection
+        if (this.vadController) {
+            this.vadController.destroy();
+            this.vadController = null;
+        }
+
+        // Arrêt du ScriptProcessor
+        if (this.scriptProcessor) {
+            this.scriptProcessor.disconnect();
+            this.scriptProcessor = null;
+        }
+
+        // Fermeture de l'audioContext
+        if (this.audioContext) {
+            this.audioContext.close();
+            this.audioContext = null;
+        }
+
+        // Stop des tracks du micro
+        if (this.mediaStream) {
+            this.mediaStream.getTracks().forEach(track => track.stop());
+            this.mediaStream = null;
+        }
+
+        // Fermeture du WS
+        if (this.socket) {
+            this.socket.close();
+            this.socket = null;
+        }
+
+        // Réinitialise les flags
+        this.is_connected_to_realtime = false;
+        this.realtime_is_loading = false;
+        this.isSpeech = false;
+        this.audioChunks = [];
+    }
+
+    /**
+   * Joue un buffer PCM16 (échantillonnage 24000 Hz) reçu du serveur.
+   */
+    private playAudio(pcmData: Uint8Array) {
+        const audioContext = new AudioContext({ sampleRate: 24000 });
+        const audioBuffer = audioContext.createBuffer(1, pcmData.length, 24000);
+        const channelData = audioBuffer.getChannelData(0);
+
+        for (let i = 0; i < pcmData.length; i++) {
+            channelData[i] = pcmData[i] / 32768; // 16 bits => -1.0 à +1.0
+        }
+
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioContext.destination);
+        source.start();
+    }
+
+    //#endregion
+
+    //#region Utils
+
+    /**
+   * Convertit un tableau Float32Array en Int16Array
+   */
+    private floatTo16BitPCM(input: Float32Array): Int16Array {
+        const output = new Int16Array(input.length);
+        for (let i = 0; i < input.length; i++) {
+            const s = Math.max(-1, Math.min(1, input[i]));
+            output[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        }
+        return output;
+    }
+
+    /**
+   * Concatène plusieurs Int16Array en un seul
+   */
+    private concatInt16Arrays(chunks: Int16Array[]): Int16Array {
+        const totalLength = chunks.reduce((sum, arr) => sum + arr.length, 0);
+        const result = new Int16Array(totalLength);
+
+        let offset = 0;
+        for (const arr of chunks) {
+            result.set(arr, offset);
+            offset += arr.length;
+        }
+        return result;
+    }
+
+    /**
+   * Encode un ArrayBuffer en base64
+   */
+    private base64ArrayBuffer(arrayBuffer: ArrayBuffer): string {
+        let binary = '';
+        const bytes = new Uint8Array(arrayBuffer);
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+    }
+
 }

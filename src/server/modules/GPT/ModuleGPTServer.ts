@@ -103,7 +103,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().get_tts_file, this.get_tts_file.bind(this));
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().transcribe_file, this.transcribe_file.bind(this));
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().summerize, this.summerize.bind(this));
-        // APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_connect_to_realtime_voice, this.connect_to_realtime_voice.bind(this));
+        APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().connect_to_realtime_voice, this.connect_to_realtime_voice.bind(this));
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_sync_openai_datas] = this.sync_openai_datas;
     }
@@ -164,20 +164,20 @@ export default class ModuleGPTServer extends ModuleServerBase {
         return GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, thread_title, content, files, user_id, hide_content);
     }
 
-    // /**
-    //  * Demander un run d'un assistant suite à un nouveau message
-    //  * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
-    //  * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
-    //  * @param user_id contenu text du nouveau message
-    //  * @returns
-    //  */
-    // public async connect_to_realtime_voice(
-    //     session_id: string,
-    //     conversation_id: string,
-    //     user_id: number
-    // ): Promise<GPTRealtimeAPIConversationItemVO[]> {
-    //     return await GPTAssistantAPIServerController.connect_to_realtime_voice(session_id, conversation_id, user_id);
-    // }
+    /**
+     * Demander un run d'un assistant suite à un nouveau message
+     * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
+     * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
+     * @param user_id contenu text du nouveau message
+     * @returns
+     */
+    public async connect_to_realtime_voice(
+        session_id: string,
+        conversation_id: string,
+        user_id: number
+    ): Promise<void> {
+        return await GPTAssistantAPIServerController.connect_to_realtime_voice(session_id, conversation_id, user_id);
+    }
 
     public async assistant_function_get_vo_type_description_controller(
         thread_vo: GPTAssistantAPIThreadVO,
@@ -417,8 +417,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
                 .filter_by_id(run.thread_id)
                 .exec_as_server()
                 .update_vos<GPTAssistantAPIThreadVO>({
-                    oselia_is_running: false,
-                });
+                oselia_is_running: false,
+            });
         }
         await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(runs);
 
@@ -600,8 +600,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     private async api_response_handler(conversation: GPTCompletionAPIConversationVO, result: any): Promise<GPTCompletionAPIMessageVO> {
         try {
-            let responseText = result?.choices?.length ? result.choices.shift().message.content : null;
-            let responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
+            const responseText = result?.choices?.length ? result.choices.shift().message.content : null;
+            const responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
             responseMessage.date = Dates.now();
             responseMessage.content = responseText;
             responseMessage.role_type = GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;

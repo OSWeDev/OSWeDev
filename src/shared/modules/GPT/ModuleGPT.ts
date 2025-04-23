@@ -21,6 +21,7 @@ import OseliaUserPromptVO from '../Oselia/vos/OseliaUserPromptVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import APIGPTAskAssistantParam, { APIGPTAskAssistantParamStatic } from './api/APIGPTAskAssistantParam';
 import APIGPTGenerateResponseParam, { APIGPTGenerateResponseParamStatic } from './api/APIGPTGenerateResponseParam';
+import APIRealtimeVoiceConnectParam, { APIRealtimeVoiceConnectParamStatic } from './api/APIRealtimeVoiceConnectParam';
 import GPTAssistantAPIAssistantFunctionVO from './vos/GPTAssistantAPIAssistantFunctionVO';
 import GPTAssistantAPIAssistantVO from './vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIErrorVO from './vos/GPTAssistantAPIErrorVO';
@@ -103,19 +104,18 @@ export default class ModuleGPT extends Module {
 
     public summerize: (thread_id: number) => Promise<FileVO> = APIControllerWrapper.sah_optimizer<NumberParamVO, FileVO>(this.name, reflect<this>().summerize);
 
-    // /**
-    //  * Demander un run d'un assistant suite à un nouveau message
-    //  * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
-    //  * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
-    //  * @param user_id contenu text du nouveau message
-    //  * @returns
-    //  */
-    // public connect_to_realtime_voice: (
-    //     session_id: string,
-    //     conversation_id: string,
-    //     user_id: number,
-
-    // ) => Promise<GPTRealtimeAPIConversationItemVO[]> = APIControllerWrapper.sah<APIRealtimeVoiceConnectParam, GPTRealtimeAPIConversationItemVO[]>(ModuleGPT.APINAME_connect_to_realtime_voice); 
+    /**
+     * Demander un run d'un assistant suite à un nouveau message
+     * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
+     * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
+     * @param user_id contenu text du nouveau message
+     * @returns
+     */
+    public connect_to_realtime_voice: (
+        session_id: string,
+        conversation_id: string,
+        user_id: number,
+    ) => void = APIControllerWrapper.sah_optimizer<APIRealtimeVoiceConnectParam, void>(this.name, reflect<this>().connect_to_realtime_voice);
 
     /**
      * Re-run un run d'un assistant suite à un nouveau message par exemple ou pour essayer d'avoir une réponse plus pertinente
@@ -178,6 +178,13 @@ export default class ModuleGPT extends Module {
             NumberParamVOStatic,
         ));
 
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<APIRealtimeVoiceConnectParam, void>(
+            ModuleGPT.POLICY_ask_assistant,
+            this.name,
+            reflect<this>().connect_to_realtime_voice,
+            null,
+            APIRealtimeVoiceConnectParamStatic,
+        ));
         /**
          * Depuis la synchro auto en cas de données manquantes, on peut impacter tout type de données en fait sur une ask_assistant...
          */
