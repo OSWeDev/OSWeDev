@@ -8,6 +8,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import VueAppController from '../../../VueAppController';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
+
 import './ScreenshotComponent.scss';
 
 @Component({
@@ -20,6 +21,10 @@ export default class ScreenshotComponent extends VueComponentBase {
 
     @Prop({ default: null })
     protected filevo: FileVO;
+
+    @Prop({ default: 'VueMain' })
+    private dom_id_to_capture: string;
+
     protected has_valid_file_linked: boolean = false;
 
     protected uid: number = null;
@@ -158,7 +163,7 @@ export default class ScreenshotComponent extends VueComponentBase {
             const { default: html2canvas } = await import('html2canvas');
 
             await html2canvas(
-                document.getElementById("VueMain"),
+                document.getElementById(this.dom_id_to_capture), //VueMain || page-top || AdminVueMain
                 {
                     ignoreElements: function (el: HTMLElement) {
                         return el.classList.contains('hide_from_screenshot');
