@@ -155,7 +155,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private input_voice_is_transcribing = false;
     private media_recorder: MediaRecorder = null;
     private audio_chunks: Blob[] = [];
-
+    private incomingAudioChunks: Uint8Array[] = [];
     private functions_by_id: { [id: number]: GPTAssistantAPIFunctionVO } = {};
 
 
@@ -170,9 +170,12 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     private isSpeech: boolean = false;
     private audioChunks: Int16Array[] = [];
+    private audioChunkInterval: ReturnType<typeof setInterval> | null = null;
 
     private is_connected_to_realtime: boolean = false;
-    private realtime_is_loading: boolean = false;
+    private realtime_is_sending: boolean = false;
+    private realtime_is_recording: boolean = false;
+    private connection_ready: boolean = false;
 
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(
         'OseliaThreadWidgetComponent.throttle_load_thread',
@@ -237,6 +240,15 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
         for (const file of files) {
             this.thread_files.push({ ['.' + file.path.split('.').pop()]: file });
+        }
+    }
+
+    @Watch('connection_ready')
+    private on_connection_ready_to_realtime_change() {
+        if (this.connection_ready) {
+            this.send_audio();
+        } else {
+            this.stop_realtime();
         }
     }
 
@@ -1026,7 +1038,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     private async start_realtime() {
         if (!this.is_connected_to_realtime) {
-            this.realtime_is_loading = true;
 
             // Exemple d’appel vers votre module
             await ModuleGPT.getInstance().connect_to_realtime_voice(null, this.thread?.gpt_thread_id, VueAppController.getInstance().data_user.id);
@@ -1042,23 +1053,32 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
             this.socket.onmessage = (event) => {
                 if (typeof event.data === 'string') {
-
                     const msg = JSON.parse(event.data);
+
                     if (msg.type === 'ready') {
-                        // Le serveur nous indique qu'il est prêt
-                        this.realtime_is_loading = false;
-                        this.startVAD(); // Lance la VAD
-                    } else if (msg.type === 'output_audio_buffer') {
-                    // Lecture d'un buffer audio PCM16 reçu
-                        const binaryString = atob(msg.audio);
-                        const audioData = new Uint8Array(binaryString.length);
-                        for (let i = 0; i < binaryString.length; i++) {
-                            audioData[i] = binaryString.charCodeAt(i);
+                        this.connection_ready = true;
+                    }
+                    else if (msg.type === 'response.audio.delta') {
+                        if (msg.delta) {
+                            const binaryString = atob(msg.delta);
+                            const audioData = new Uint8Array(binaryString.length);
+                            for (let i = 0; i < binaryString.length; i++) {
+                                audioData[i] = binaryString.charCodeAt(i);
+                            }
+                            // Stockage du chunk audio
+                            this.incomingAudioChunks.push(audioData);
                         }
-                        this.playAudio(audioData);
+                    }
+                    else if (msg.type === 'response.audio.done') {
+                        // Audio complet reçu : concaténation et lecture
+                        const fullAudio = this.concatUint8Arrays(this.incomingAudioChunks);
+                        this.playAudio(fullAudio);
+
+                        // Réinitialise pour la prochaine réponse
+                        this.incomingAudioChunks = [];
                     }
                 } else {
-                    // Si c'est pas un string, on suppose que c'est un buffer audio PCM16
+                    // Cas improbable : sécurité supplémentaire
                     this.playAudio(new Uint8Array(event.data));
                 }
             };
@@ -1075,142 +1095,96 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     /**
    * Initialise l'accès micro + VAD via voice-activity-detection.
    */
+
     private async startVAD() {
         try {
-            // 1) Demande d’accès au micro
+            if(!this.is_connected_to_realtime){
+                await this.start_realtime(); // Assure que la connexion WebSocket est établie avant tout
+            }
+            this.realtime_is_recording = true;
+            this.audioChunks = [];
+
             this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.audioContext = new AudioContext({ sampleRate: 24000 });
 
-            // 2) Création du contexte audio
-            const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-            if (!AudioCtx) {
-                throw new Error('AudioContext non supporté dans ce navigateur.');
-            }
-            this.audioContext = new AudioCtx({ sampleRate: 16000 });
-            if (!this.audioContext) {
-                throw new Error('Impossible de créer un AudioContext.');
-            }
-            const sourceNode = await this.audioContext.createMediaStreamSource(this.mediaStream);
+            const sourceNode = this.audioContext.createMediaStreamSource(this.mediaStream);
 
-            // 3) Chargement du worklet externe
-            await this.audioContext.audioWorklet.addModule('./public/vuejsclient/vad-processor.js');
-            const audioWorkletNode = new AudioWorkletNode(this.audioContext, 'vad-processor');
+            this.scriptProcessor = this.audioContext.createScriptProcessor(4096, 1, 1);
 
-            // Écoute les messages provenant du processeur (blocs audio)
-            audioWorkletNode.port.onmessage = (event) => {
-                const float32Data = event.data;
-                const pcm16Data = this.floatTo16BitPCM(float32Data);
-
-                if (this.isSpeech) {
-                    this.audioChunks.push(pcm16Data);
-                }
+            this.scriptProcessor.onaudioprocess = (event: AudioProcessingEvent) => {
+                const audioBuffer = event.inputBuffer.getChannelData(0);
+                const pcmData = this.floatTo16BitPCM(audioBuffer);
+                this.audioChunks.push(pcmData);
             };
 
-            // Connexion du graphe audio
-            sourceNode.connect(audioWorkletNode).connect(this.audioContext.destination);
+            sourceNode.connect(this.scriptProcessor);
+            this.scriptProcessor.connect(this.audioContext.destination);
 
-            // 4) Lance la détection VAD
-            const vadOptions = {
-                audioContext: this.audioContext,
-                source: sourceNode,
-                fftSize: 512,
-                minDecibels: -40,
-                maxDecibels: -20,
-                voiceStopThreshold: 3,
-                voiceStartThreshold: 3,
-                smoothingTimeConstant: 0.2,
-                useMedian: true,
-
-                onVoiceStart: () => {
-                    ConsoleHandler.log('Voice started');
-                    this.isSpeech = true;
-                    this.audioChunks = [];
-                },
-
-                onVoiceStop: () => {
-                    ConsoleHandler.log('Voice ended');
-                    this.isSpeech = false;
-
-                    const fullAudio = this.concatInt16Arrays(this.audioChunks);
-                    this.audioChunks = [];
-
-                    const base64Audio = this.base64ArrayBuffer(fullAudio.buffer as ArrayBuffer);
-
-                    if (this.socket?.readyState === WebSocket.OPEN) {
-                        this.socket.send(JSON.stringify({
-                            type: 'input_audio_buffer.append',
-                            audio: base64Audio,
-                        }));
-
-                        this.socket.send(JSON.stringify({ type: 'input_audio_buffer.commit' }));
-
-                        this.socket.send(JSON.stringify({
-                            type: 'response.create',
-                            response: {
-                                modalities: ['text', 'audio'],
-                                instructions: 'Assist the user.',
-                                voice: 'sage',
-                                output_audio_format: 'pcm16',
-                                tool_choice: 'auto',
-                                temperature: 0.8,
-                                max_output_tokens: 1024,
-                            },
-                        }));
-                    }
-                },
-
-                onUpdate: (val: number) => {
-                    // Debug VAD
-                    // ConsoleHandler.log(`VAD val => ${val}`);
-                },
-            };
-
-            this.vadController = voiceActivityDetection(vadOptions.audioContext, this.mediaStream,vadOptions);
-        } catch (error) {
-            ConsoleHandler.log('Erreur VAD : ' + error);
-            this.close_realtime();
+        } catch (err) {
+            ConsoleHandler.log("Erreur accès micro : " + err);
+            this.realtime_is_recording = false;
         }
     }
 
+    private async stop_realtime() {
+        if (!this.realtime_is_recording) return;
 
-    /**
-   * Ferme le WS et arrête tout (micro, audioContext, VAD).
-   */
-    private close_realtime() {
-    // Arrêt voice-activity-detection
-        if (this.vadController) {
-            this.vadController.destroy();
-            this.vadController = null;
-        }
+        this.realtime_is_recording = false;
+        this.realtime_is_sending = true;
 
-        // Arrêt du ScriptProcessor
+        // Arrêt et nettoyage
         if (this.scriptProcessor) {
             this.scriptProcessor.disconnect();
             this.scriptProcessor = null;
         }
 
-        // Fermeture de l'audioContext
         if (this.audioContext) {
             this.audioContext.close();
             this.audioContext = null;
         }
 
-        // Stop des tracks du micro
         if (this.mediaStream) {
             this.mediaStream.getTracks().forEach(track => track.stop());
             this.mediaStream = null;
         }
 
-        // Fermeture du WS
+        if(this.connection_ready) {
+            await this.send_audio();
+        }
+
+        this.realtime_is_sending = false;
+    }
+
+
+    private close_realtime() {
         if (this.socket) {
             this.socket.close();
             this.socket = null;
         }
-
-        // Réinitialise les flags
         this.is_connected_to_realtime = false;
-        this.realtime_is_loading = false;
-        this.isSpeech = false;
+        this.realtime_is_recording = false;
+        if(this.media_recorder) {
+            this.media_recorder.stop();
+        }
+    }
+
+
+    private async send_audio() {
+        // Préparation finale de l'audio
+        const fullAudio = this.concatInt16Arrays(this.audioChunks);
         this.audioChunks = [];
+
+        const base64Audio = this.base64ArrayBuffer(fullAudio.buffer as ArrayBuffer);
+
+        if (this.socket?.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify({
+                type: 'input_audio_buffer.append',
+                audio: base64Audio
+            }));
+
+            this.socket.send(JSON.stringify({ type: 'input_audio_buffer.commit' }));
+            this.socket.send(JSON.stringify({ type: 'response.create' }));
+        }
     }
 
     /**
@@ -1218,13 +1192,13 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
    */
     private playAudio(pcmData: Uint8Array) {
         const audioContext = new AudioContext({ sampleRate: 24000 });
-        const audioBuffer = audioContext.createBuffer(1, pcmData.length, 24000);
+        const numSamples = pcmData.length / 2; // 2 bytes par échantillon PCM16
+        const audioBuffer = audioContext.createBuffer(1, numSamples, 24000);
         const channelData = audioBuffer.getChannelData(0);
-
-        for (let i = 0; i < pcmData.length; i++) {
-            channelData[i] = pcmData[i] / 32768; // 16 bits => -1.0 à +1.0
+        const dataView = new DataView(pcmData.buffer);
+        for (let i = 0; i < numSamples; i++) {
+            channelData[i] = dataView.getInt16(i * 2, true) / 32768; // PCM16 vers Float32 (-1 à +1)
         }
-
         const source = audioContext.createBufferSource();
         source.buffer = audioBuffer;
         source.connect(audioContext.destination);
@@ -1274,4 +1248,15 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         return btoa(binary);
     }
 
+    private concatUint8Arrays(chunks: Uint8Array[]): Uint8Array {
+        const totalLength = chunks.reduce((sum, arr) => sum + arr.length, 0);
+        const result = new Uint8Array(totalLength);
+
+        let offset = 0;
+        for (const arr of chunks) {
+            result.set(arr, offset);
+            offset += arr.length;
+        }
+        return result;
+    }
 }

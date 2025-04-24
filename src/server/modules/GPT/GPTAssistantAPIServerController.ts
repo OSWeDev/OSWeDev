@@ -1123,22 +1123,20 @@ export default class GPTAssistantAPIServerController {
 
                     openaiSocket.on('open', () => {
                         const sessionUpdate = {
-                            type: 'session.update',
-                            session: {
-                                modalities: ['audio', 'text'],
-                                voice: 'alloy',
-                                input_audio_format: 'pcm16',
-                                output_audio_format: 'pcm16',
-                                turn_detection: {
-                                    type: 'server_vad',
-                                    silence_duration_ms: 500,
+                            "type": "session.update",
+                            "session": {
+                                "turn_detection": null,
+                                "modalities": ["text", "audio"],
+                                "output_audio_format": "pcm16",
+                                "input_audio_transcription": {
+                                    "model": "whisper-1"
                                 },
-                            },
+                                "input_audio_format": "pcm16",
+                                "voice": "alloy",
+                                "instructions": "Tu es un assistant vocal réactif et agréable, réponds rapidement en français."
+                            }
                         };
                         openaiSocket.send(JSON.stringify(sessionUpdate));
-
-                        // Préviens le client que tout est prêt
-                        clientSocket.send(JSON.stringify({ type: 'ready' }));
                     });
 
                     openaiSocket.on('message', (data: Buffer) => {
@@ -1146,7 +1144,7 @@ export default class GPTAssistantAPIServerController {
                             // On tente de parser en JSON
                             const strData = data.toString('utf8');
                             const parsedMsg = JSON.parse(strData);
-
+                            ConsoleHandler.log('WebSocket Server received message: ', parsedMsg);
                             // Si c'est un message audio => on décode base64 et on l'envoie en binaire
                             if (parsedMsg?.type === 'output_audio_buffer' && parsedMsg?.audio) {
                                 const rawBinary = Buffer.from(parsedMsg.audio, 'base64');
@@ -1154,14 +1152,31 @@ export default class GPTAssistantAPIServerController {
                             } else {
                                 // Sinon, on renvoie simplement la chaîne JSON telle quelle
                                 // ou on peut renvoyer l'objet re-stringifié :
-                                clientSocket.send(strData);
+                                if(parsedMsg?.type === 'session.updated') {
+                                    // Préviens le client que tout est prêt
+                                    clientSocket.send(JSON.stringify({ type: 'ready' }));
+                                } else {
+                                    clientSocket.send(strData);
+                                }
                             }
                         } catch (err) {
                             // Si ce n'est pas du JSON, on l'envoie tel quel en binaire
                             clientSocket.send(data, { binary: true });
                         }
                     });
-                    clientSocket.on('message', (data) => openaiSocket.send(data));
+                    clientSocket.on('message', (data) => {
+                        try {
+                            // On tente de parser en JSON
+                            const strData = data.toString('utf8');
+                            const parsedMsg = JSON.parse(strData);
+                            ConsoleHandler.log('WebSocket Server sending message: ', parsedMsg);
+                            // Si c'est un message audio => on décode base64 et on l'envoie en binaire
+                            openaiSocket.send(JSON.stringify(parsedMsg));
+                        } catch (err) {
+                            // Si ce n'est pas du JSON, on l'envoie tel quel en binaire
+                            openaiSocket.send(data, { binary: true });
+                        }
+                    });
 
                     const closeSockets = () => {
                         if (openaiSocket.readyState === WebSocket.OPEN) openaiSocket.close();
