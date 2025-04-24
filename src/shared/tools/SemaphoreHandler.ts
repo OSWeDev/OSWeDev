@@ -88,10 +88,10 @@ export default class SemaphoreHandler {
      * @param cb
      * @returns
      */
-    public static async do_only_once(key: string, cb: () => any | Promise<any>): Promise<unknown> {
+    public static async do_only_once<T>(key: string, cb: () => T | Promise<T>): Promise<T> {
 
         if (SemaphoreHandler.SEMAPHORES[key]) {
-            return SemaphoreHandler.SEMAPHORES_promises[key];
+            return SemaphoreHandler.SEMAPHORES_promises[key] as Promise<T>;
         }
 
         SemaphoreHandler.SEMAPHORES[key] = true;

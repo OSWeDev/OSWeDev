@@ -66,6 +66,8 @@ import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import APIBGThread from '../API/bgthreads/APIBGThread';
 import { IRequestStackContext } from '../../ServerExpressController';
 import ExpressDBSessionsServerCacheHolder from '../ExpressDBSessions/ExpressDBSessionsServerCacheHolder';
+import EnvHandler from '../../../shared/tools/EnvHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -140,7 +142,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         const user: UserVO = await ModuleAccessPolicyServer.getSelfUser();
         if (!user) {
-            return null;
+            return query(LangVO.API_TYPE_ID).filter_by_text_eq(field_names<LangVO>().code_lang, ConfigurationService.node_configuration.default_locale).set_max_age_ms(10000).exec_as_server().select_vo<LangVO>();
         }
         return query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).set_max_age_ms(10000).select_vo<LangVO>(); // On veut pas faire 1000 requêtes par seconde, on peut utiliser une data de compte de quelques secondes sans que ce soit un drame a priori
     }

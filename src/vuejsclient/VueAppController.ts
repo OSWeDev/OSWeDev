@@ -16,6 +16,7 @@ import LocaleManager from '../shared/tools/LocaleManager';
 import { all_promises } from '../shared/tools/PromiseTools';
 import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
+import VueAppBaseDatasHolder from './VueAppBaseInstanceHolder';
 
 export default abstract class VueAppController {
 
@@ -43,12 +44,6 @@ export default abstract class VueAppController {
 
     public is_mobile: boolean = false;
 
-    /**
-     * Module un peu spécifique qui peut avoir un impact sur les perfs donc on gère son accès le plus vite possible
-     */
-    public has_access_to_onpage_translation: boolean = false;
-    public has_access_to_feedback: boolean = false;
-    public has_access_to_survey: boolean = false;
 
     protected constructor(public app_name: "client" | "admin" | "login") {
         VueAppController.instance_ = this;
@@ -60,15 +55,6 @@ export default abstract class VueAppController {
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         return VueAppController.instance_;
-    }
-
-    @Throttle({
-        param_type: EventifyEventListenerConfVO.PARAM_TYPE_MAP,
-        throttle_ms: 1000,
-        leading: false,
-    })
-    public register_translation(translations: { [translation_code: string]: boolean }) {
-        AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/registerPageTranslations', translations);
     }
 
     public async initialize() {
@@ -88,20 +74,20 @@ export default abstract class VueAppController {
 
         if (ModuleTranslation.getInstance().actif) {
             promises.push((async () => {
-                self.has_access_to_onpage_translation = await ModuleAccessPolicy.getInstance().testAccess(ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS);
+                VueAppBaseDatasHolder.has_access_to_onpage_translation = await ModuleAccessPolicy.getInstance().testAccess(ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS);
             })());
         }
 
         if (ModuleFeedback.getInstance().actif) {
             promises.push((async () => {
-                self.has_access_to_feedback = await ModuleAccessPolicy.getInstance().testAccess(ModuleFeedback.POLICY_FO_ACCESS);
+                VueAppBaseDatasHolder.has_access_to_feedback = await ModuleAccessPolicy.getInstance().testAccess(ModuleFeedback.POLICY_FO_ACCESS);
             })());
         }
 
         if (this.app_name !== VueAppController.APP_NAME_LOGIN) {
             if (ModuleSurvey.getInstance().actif) {
                 promises.push((async () => {
-                    self.has_access_to_survey = await ModuleAccessPolicy.getInstance().testAccess(ModuleSurvey.POLICY_FO_ACCESS);
+                    VueAppBaseDatasHolder.has_access_to_survey = await ModuleAccessPolicy.getInstance().testAccess(ModuleSurvey.POLICY_FO_ACCESS);
                 })());
             }
         }

@@ -3,6 +3,9 @@ import { Component, Vue, Watch } from "vue-property-decorator";
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleGPT from '../../../../../shared/modules/GPT/ModuleGPT';
+import GPTCompletionAPIConversationVO from '../../../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
+import GPTCompletionAPIMessageVO from '../../../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTranslation from "../../../../../shared/modules/Translation/ModuleTranslation";
 import LangVO from '../../../../../shared/modules/Translation/vos/LangVO';
@@ -10,19 +13,16 @@ import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/Tr
 import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
+import ObjectHandler, { field_names } from '../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import VueComponentBase from "../../../../ts/components/VueComponentBase";
+import VueAppBaseDatasHolder from '../../../../VueAppBaseInstanceHolder';
 import VueAppController from '../../../../VueAppController';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import { ModuleOnPageTranslationGetter } from '../store/OnPageTranslationStore';
 import EditablePageTranslationItem from '../vos/EditablePageTranslationItem';
 import OnPageTranslationItem from '../vos/OnPageTranslationItem';
 import './OnPageTranslation.scss';
-import ObjectHandler, { field_names } from '../../../../../shared/tools/ObjectHandler';
-import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
-import ModuleGPT from '../../../../../shared/modules/GPT/ModuleGPT';
-import GPTCompletionAPIMessageVO from '../../../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
-import GPTCompletionAPIConversationVO from '../../../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 
 @Component({
     template: require('./OnPageTranslation.pug')
@@ -109,7 +109,7 @@ export default class OnPageTranslation extends VueComponentBase {
     }
 
     get isActive(): boolean {
-        return ModuleTranslation.getInstance().actif && VueAppController.getInstance().has_access_to_onpage_translation;
+        return ModuleTranslation.getInstance().actif && VueAppBaseDatasHolder.has_access_to_onpage_translation;
     }
 
     private openModule() {

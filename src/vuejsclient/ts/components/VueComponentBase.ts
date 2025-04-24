@@ -21,7 +21,6 @@ import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedCeilFilter, toFixedFilter, toFixedFloorFilter, truncateFilter, tstzFilter } from '../../../shared/tools/Filters';
-import LocaleManager from "../../../shared/tools/LocaleManager";
 import { all_promises } from "../../../shared/tools/PromiseTools";
 import VocusHandler from '../../../shared/tools/VocusHandler';
 import VueAppController from "../../VueAppController";
@@ -30,6 +29,7 @@ import VOEventRegistrationKey from "../modules/PushData/VOEventRegistrationKey";
 import VOEventRegistrationsHandler from "../modules/PushData/VOEventRegistrationsHandler";
 import AppVuexStoreManager from "../store/AppVuexStoreManager";
 import IDeclareVueComponent from "./IDeclareVueComponent";
+import { useTranslation } from "./InlineTranslatableText/TranslatableTextStore";
 
 // MONTHS MIXIN
 const months = [
@@ -287,6 +287,8 @@ export default class VueComponentBase extends Vue
         tstz: tstzFilter,
     };
 
+    public t = useTranslation().t;
+
     public $snotify: any;
 
     public segment_type_rolling_year_month_start: number = TimeSegment.TYPE_ROLLING_YEAR_MONTH_START;
@@ -348,22 +350,6 @@ export default class VueComponentBase extends Vue
     }
     get printComponent(): VueComponentBase {
         return AppVuexStoreManager.getInstance().appVuexStore.getters.print_component;
-    }
-
-    // TRANSLATION MIXIN
-    public t(txt, params = {}): string {
-        if (!txt) {
-            return txt;
-        }
-
-        // return txt;
-        if (VueAppController.getInstance().has_access_to_onpage_translation) {
-            VueAppController.getInstance().register_translation({
-                [txt]: false,
-            });
-        }
-
-        return LocaleManager.t(txt, params);
     }
 
     public label(txt, params = {}): string {
