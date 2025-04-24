@@ -91,8 +91,8 @@ export default class LocaleManager {
             const translation = LocaleManager.ALL_FLAT_LOCALE_TRANSLATIONS[txt];
 
             // Si la traduction existe dans le store
-            if (translation) {
-                return translation.replace(/{{(\w+)}}/g, (_, key) => params[key] ?? `{{${key}}}`);
+            if (translation != null) {
+                return translation.replace(/{(\w+)}/g, (_, key) => params[key] ?? `{{${key}}}`);
             }
 
             // Si store est initialisé mais pas de traduction
