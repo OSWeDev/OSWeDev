@@ -9,6 +9,7 @@ import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/Dash
 import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
+import VueAppController from '../../../../VueAppController';
 import { ModuleTranslatableTextGetter } from '../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
@@ -142,6 +143,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
 
         const dashboard_pages_field_filters_map = await DashboardPageFieldFiltersVOManager.find_dashboard_pages_field_filters_by_dashboard_id(
             this.dashboard.id,
+            VueAppController.getInstance().data_user_lang.code_lang,
         );
 
         this.dashboard_pages_field_filters_map = dashboard_pages_field_filters_map;
@@ -246,7 +248,8 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
         self.snotify.async(self.label('dashboard_builder.shared_filters.save_start'), () =>
             new Promise(async (resolve, reject) => {
                 const success = await SharedFiltersVOManager.save_shared_filters(
-                    shared_filters
+                    shared_filters,
+                    VueAppController.getInstance().data_user_lang.code_lang,
                 );
 
                 if (success) {

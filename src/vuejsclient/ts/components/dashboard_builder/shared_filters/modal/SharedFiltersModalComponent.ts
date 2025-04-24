@@ -21,6 +21,7 @@ import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import ISelectionnableFieldFilters from '../interface/ISelectionnableFieldFilters';
 import './SharedFiltersModalComponent.scss';
+import VueAppController from '../../../../../VueAppController';
 @Component({
     template: require('./SharedFiltersModalComponent.pug'),
     components: {}
@@ -483,6 +484,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
 
         const dashboard_pages_field_filters_map = await DashboardPageFieldFiltersVOManager.find_dashboard_pages_field_filters_by_dashboard_ids(
             this.selected_dashboards_shared_from.map((dashboard) => dashboard.id),
+            VueAppController.getInstance().data_user_lang.code_lang,
         );
 
         const dashboard_pages_field_filters = DashboardPageFieldFiltersVOManager.get_INTERSECTION_all_dashboard_pages_field_filters(//merge_all_dashboard_pages_field_filters(

@@ -533,7 +533,7 @@ export default abstract class VueAppBase {
 
         this.vueInstance = this.createVueMain();
         this.vueInstance.$mount('#vueDIV');
-        LocaleManager.vue_instance_ref = this.vueInstance;
+        LocaleManager.set_vue_instance_ref(this.vueInstance);
 
         await this.postMountHook();
 

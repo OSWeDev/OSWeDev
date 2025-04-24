@@ -891,6 +891,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         // Get the available readable field filters from the active field filters
         const available_readable_field_filters = await FieldFiltersVOManager.create_readable_filters_text_from_field_filters(
             active_field_filters,
+            VueAppController.getInstance().data_user_lang.code_lang,
             this.dashboard_page?.id,
         );
 

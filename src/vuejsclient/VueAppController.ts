@@ -175,7 +175,6 @@ export default abstract class VueAppController {
                 LocaleManager.setDefaultLocale('fr-fr');
             }
 
-            LocaleManager.sync_with_translation_store = true;
             LocaleManager.ajax_cache_client_controller = AjaxCacheClientController.getInstance();
             LocaleManager.i18n = {
                 t: LocaleManager.t,

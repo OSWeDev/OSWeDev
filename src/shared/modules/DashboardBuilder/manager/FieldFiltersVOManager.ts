@@ -153,13 +153,13 @@ export default class FieldFiltersVOManager {
      */
     public static async create_readable_filters_text_from_field_filters(
         field_filters: FieldFiltersVO,
-        page_id?: number // Case when we need to be specific to a page (TODO: should always be specific)
+        code_lang: string,
+        page_id?: number, // Case when we need to be specific to a page (TODO: should always be specific)
     ): Promise<{ [translatable_label_code: string]: IReadableFieldFilters }> {
 
         field_filters = cloneDeep(field_filters);
 
-        LocaleManager.getALL_FLAT_LOCALE_TRANSLATIONS = ModuleTranslation.getInstance().getALL_FLAT_LOCALE_TRANSLATIONS;
-        const translations = await LocaleManager.get_all_flat_locale_translations();
+        const translations = await ModuleTranslation.getInstance().getALL_FLAT_LOCALE_TRANSLATIONS(code_lang);
 
         // Get all required filters props from widgets_options
         let field_filters_porps: Array<{ is_filter_hidden: boolean, vo_field_ref: VOFieldRefVO }> = [];
