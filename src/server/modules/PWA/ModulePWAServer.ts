@@ -1,14 +1,14 @@
 import webPush from 'web-push';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModulePWA from '../../../shared/modules/PWA/ModulePWA';
 import PwaClientSubscriptionVO from '../../../shared/modules/PWA/vos/PwaClientSubscriptionVO';
-import { field_names } from '../../../shared/tools/ObjectHandler';
-import ModuleServerBase from '../ModuleServerBase';
-import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ConfigurationService from '../../env/ConfigurationService';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import PwaNotification from '../../../shared/modules/PWA/vos/PwaNotification';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
+import ConfigurationService from '../../env/ConfigurationService';
+import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModulePWAServer extends ModuleServerBase {
 
@@ -41,10 +41,10 @@ export default class ModulePWAServer extends ModuleServerBase {
         }
 
         try {
-            const publicKey = await ModuleParams.getInstance().getParamValueAsString(ModulePWA.PARAM_PWA_PUSH_PUBLIC_KEY);
-            const privateKey = await ModuleParams.getInstance().getParamValueAsString(ModulePWA.PARAM_PWA_PUSH_PRIVATE_KEY);
-            const mailto = await ModuleParams.getInstance().getParamValueAsString(ModulePWA.PARAM_PWA_PUSH_MAILTO);
-            const icon = await ModuleParams.getInstance().getParamValueAsString(ModulePWA.PARAM_PWA_PUSH_ICON);
+            const publicKey = await ModuleParams.getInstance().getParamValueAsString(ModulePWA.PARAM_PWA_PUSH_PUBLIC_KEY, null, 60000);
+            const privateKey = await ModuleParams.getInstance().getParamValueAsString(ModulePWA.PARAM_PWA_PUSH_PRIVATE_KEY, null, 60000);
+            const mailto = await ModuleParams.getInstance().getParamValueAsString(ModulePWA.PARAM_PWA_PUSH_MAILTO, null, 60000);
+            const icon = await ModuleParams.getInstance().getParamValueAsString(ModulePWA.PARAM_PWA_PUSH_ICON, null, 60000);
 
             if (!publicKey || !privateKey || !mailto) {
                 return;

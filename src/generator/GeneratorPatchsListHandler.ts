@@ -71,6 +71,7 @@ import Patch20250303CheckDBsCycles from './patchs/postmodules/Patch20250303Check
 import Patch20250331RemoveValueTables from './patchs/postmodules/Patch20250331RemoveValueTables';
 import Patch20250331RenameFavoriteFilterOptions from './patchs/postmodules/Patch20250331RenameFavoriteFilterOptions';
 import Patch20250409AddRightsPWA from './patchs/postmodules/Patch20250409AddRightsPWA';
+import Patch20250422SetGraphDetailed from './patchs/postmodules/Patch20250422SetGraphDetailed';
 import Patch20250425RenameTradsMenuCMS from './patchs/postmodules/Patch20250425RenameTradsMenuCMS';
 import Patch20122024TruncateLogsUpdated from './patchs/premodules/Patch20122024TruncateLogsUpdated';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
@@ -114,8 +115,6 @@ import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patc
 import Patch20250106createTableSupProbe from './patchs/premodules/Patch20250106createTableSupProbe';
 import Patch20250228DeleteDuplicateGraphVO from './patchs/premodules/Patch20250228DeleteDuplicateGraphVO';
 import Patch20250304DropArchivesConfVO from './patchs/premodules/Patch20250304TruncateArchivesConfVO';
-import Patch20250214AddRightsSupervisedPAUSE from './patchs/postmodules/Patch20250214AddRightsSupervisedPAUSE';
-import Patch20250422SetGraphDetailed from './patchs/postmodules/Patch20250422SetGraphDetailed';
 
 export default class GeneratorPatchsListHandler {
 

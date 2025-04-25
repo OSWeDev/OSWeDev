@@ -1,6 +1,6 @@
+import { Body, Get, Path, Post, Route, SuccessResponse, Tags } from 'tsoa';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import SonicWallAPIAddressObjects from '../../../shared/modules/SonicWallAPI/apis/address_objects/SonicWallAPIAddressObjects';
 import SonicWallAPINatPolicies from '../../../shared/modules/SonicWallAPI/apis/nat_policies/SonicWallAPINatPolicies';
@@ -11,7 +11,6 @@ import SonicWallAPIParamVO from '../../../shared/modules/SonicWallAPI/vos/SonicW
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { reflect } from '../../../shared/tools/ObjectHandler';
 import ModuleServerBase from '../ModuleServerBase';
-import { Controller, Post, Route, Body, SuccessResponse, Delete, Tags, Get, Path } from 'tsoa';
 
 @Route('api_handler')
 @Tags('SonicWallAPI')
