@@ -27,6 +27,7 @@ import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/opti
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
 import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
+import OseliaRunGraphWidgetComponent from './widgets/oselia_run_graph_widget/OseliaRunGraphWidgetComponent';
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
     protected static instance: DashboardBuilderVueModuleBase = null;
@@ -165,6 +166,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_DataTable();
 
         await this.initializeWidget_PageSwitch();
+        await this.initializeWidget_OseliaRunGraphWidget();
 
         await this.initializeWidget_ValidationFilters();
 
@@ -387,6 +389,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Monthfilterwidgetoptionscomponent', () => import('./widgets/month_filter_widget/options/MonthFilterWidgetOptionsComponent'));
         Vue.component('Monthfilterwidgeticoncomponent', () => import('./widgets/month_filter_widget/icon/MonthFilterWidgetIconComponent'));
     }
+
 
     private async initializeWidget_AdvancedDateFilter() {
         const AdvancedDateFilter = new DashboardWidgetVO();
@@ -896,5 +899,24 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('CMSVisionneusePdfwidgetcomponent', () => import('./widgets/cms_visionneuse_pdf/CMSVisionneusePdfWidgetComponent'));
         Vue.component('CMSVisionneusePdfwidgetoptionscomponent', () => import('./widgets/cms_visionneuse_pdf/options/CMSVisionneusePdfWidgetOptionsComponent'));
         Vue.component('CMSVisionneusePdfwidgeticoncomponent', () => import('./widgets/cms_visionneuse_pdf/icon/CMSVisionneusePdfWidgetIconComponent'));
+    }
+
+    private async initializeWidget_OseliaRunGraphWidget() {
+        const OseliaRunGraphWidget = new DashboardWidgetVO();
+
+        OseliaRunGraphWidget.default_height = 5;
+        OseliaRunGraphWidget.default_width = 4;
+        OseliaRunGraphWidget.name = DashboardWidgetVO.WIDGET_NAME_oseliarungraphwidget;
+        OseliaRunGraphWidget.widget_component = 'Oseliarungraphwidgetcomponent';
+        OseliaRunGraphWidget.options_component = 'Oseliarungraphwidgetoptionscomponent';
+        OseliaRunGraphWidget.weight = 2;
+        OseliaRunGraphWidget.default_background = '#f5f5f5';
+        OseliaRunGraphWidget.icon_component = 'Oseliarungraphwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(OseliaRunGraphWidget, () => new OseliaRunGraphWidgetComponent(), () => null);
+
+        Vue.component('Oseliarungraphwidgetcomponent', () => import('./widgets/oselia_run_graph_widget/OseliaRunGraphWidgetComponent'));
+        Vue.component('Oseliarungraphwidgetoptionscomponent', () => import('./widgets/oselia_run_graph_widget/options/OseliaRunGraphWidgetOptionsComponent'));
+        Vue.component('Oseliarungraphwidgeticoncomponent', () => import('./widgets/oselia_run_graph_widget/icon/OseliaRunGraphWidgetIconComponent'));
     }
 }

@@ -249,6 +249,52 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             { 'fr-fr': 'Tâches Osélia' },
             'oselia_thread_widget_component.oselia_runs_header.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'À faire' },
+            'OseliaRunVO.STATE_TODO'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'En cours de division' },
+            'OseliaRunVO.STATE_SPLITTING'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Division terminé' },
+            'OseliaRunVO.STATE_SPLIT_ENDED'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'En attente de la fin des divisions' },
+            'OseliaRunVO.STATE_WAITING_SPLITS_END'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Fin de l\'attente des divisions' },
+            'OseliaRunVO.STATE_WAIT_SPLITS_END_ENDED'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'En cours d\'exécution' },
+            'OseliaRunVO.STATE_RUNNING'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Exécution terminée' },
+            'OseliaRunVO.STATE_RUN_ENDED'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'En cours de validation' },
+            'OseliaRunVO.STATE_VALIDATING'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Validation terminée' },
+            'OseliaRunVO.STATE_VALIDATION_ENDED'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Terminé' },
+            'OseliaRunVO.STATE_DONE'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Erreur' },
+            'OseliaRunVO.STATE_ERROR'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Annulé' },
+            'OseliaRunVO.STATE_CANCELLED'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Expiré' },
+            'OseliaRunVO.STATE_EXPIRED'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Nécessite une réexécution' },
+            'OseliaRunVO.STATE_NEEDS_RERUN'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Réexecution demandée' },
+            'OseliaRunVO.STATE_RERUN_ASKED'));
+
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaThreadTitleBuilderBGThread.getInstance());
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaOldRunsResyncBGThread.getInstance());
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaRunBGThread.getInstance());
@@ -1259,7 +1305,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
          * Si un assistant est passé en param, on le force dans le thread
          */
         let openai_assistant_id = null;
-        let openai_thread_id = null;
+        const openai_thread_id = null;
         if ((!openai_assistant_id) && referrer.default_assistant_id) {
             const default_assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
                 .filter_by_id(referrer.default_assistant_id)
@@ -2713,7 +2759,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
 
         const run_template: OseliaRunTemplateVO = await query(OseliaRunTemplateVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<OseliaRunTemplateVO>().template_name, listener.oselia_run_template_name)
+            .filter_by_text_eq(field_names<OseliaRunTemplateVO>().name, listener.oselia_run_template_name)
             .exec_as_server()
             .select_vo<OseliaRunTemplateVO>();
 

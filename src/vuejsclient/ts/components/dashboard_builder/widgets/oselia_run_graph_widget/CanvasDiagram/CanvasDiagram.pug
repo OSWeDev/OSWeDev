@@ -1,0 +1,52 @@
+.diagram-container(ref="diagramContainer" 
+  @wheel="onWheel"
+  @mousedown="onMouseDown"
+  @mousemove="onMouseMove"
+  @mouseup="onMouseUp")
+  // Le wrapper (transform: translate + scale)
+  .diagram-wrapper(:style="wrapperStyle")
+
+    // On parcourt blockPositions pour dessiner les blocs
+    // (on ne fait pas forcément un "v-for" ; en TS, on peut boucler autrement)
+    DiagramBlock(v-for="(pos, itemId) in blockPositions"
+      :key="itemId"
+      :block-pos="pos"
+      :item="items[itemId]"
+      :isSelected="itemId === selectedItem"
+      :functionsInfos="getFunctionsInfos(itemId)"
+      :isRunVo="isRunVo"
+      :ghost="false"
+      :getStateIcon="getStateIcon"
+      @first_autofit="autoFit"
+    )
+
+    // On dessine ensuite les liens
+    DiagramLink(v-for="(linkInfo, idx) in drawnLinks"
+      :key="linkInfo.sourceItemId + '_' + linkInfo.targetItemId + '_' + idx"
+      :link="linkInfo")
+
+    // Le bloc "ghost" (drag en cours)
+    .drag-ghost
+      // on pourrait y inclure un DiagramBlock en mode ghost si besoin
+      // ou laisser vide
+      DiagramBlock(v-if="draggingGhostPos"
+        :block-pos="draggingGhostPos"
+        :item="items[draggingChildId]"
+        :isSelected="false"
+        :isRunVo="isRunVo"
+        :ghost="true"
+        :getStateIcon="getStateIcon"
+      )
+
+    // Menu "+"
+    AddMenu(v-if="menuBlock.visible"
+      :options="menuBlock.options"
+      :plus-position="menuBlockPosition"
+      :selectOption="addChild"
+      @close="hideMenu"
+    )
+
+  // Tooltip
+  .diagram-tooltip(v-if="tooltipText!=''"
+    :style="tooltipStyle")
+    | {{ tooltipText }}

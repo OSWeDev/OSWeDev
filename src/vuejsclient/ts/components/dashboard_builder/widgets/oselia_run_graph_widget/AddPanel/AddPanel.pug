@@ -1,0 +1,8 @@
+.add-panel
+    h3 {{ label('oselia_run_graph_widget_component.add_panel.title') }}
+
+    input(type="text" v-model="addSearch" :placeholder=" label('oselia_run_graph_widget_component.add_panel.search_placeholder') " )
+
+    ul
+        li(v-for="tmpl in items" :key="tmpl.id" @click="onAddItem(tmpl.id)" style="cursor:pointer;")
+            | {{ tmpl.name }}
