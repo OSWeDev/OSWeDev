@@ -64,6 +64,7 @@ import Patch20241216LowerDefaultDBLogTypeToWARN from './patchs/postmodules/Patch
 import Patch20241224SupervisionFillProbe from './patchs/postmodules/Patch20241224SupervisionFillProbe';
 import Patch20250102AddRightsSupervisedProbe from './patchs/postmodules/Patch20250102AddRightsSupervisedProbe';
 import Patch20250115UpdateGraphsPalettes from './patchs/postmodules/Patch20250115UpdateGraphsPalettes';
+import Patch20250214AddRightsSupervisedPAUSE from './patchs/postmodules/Patch20250214AddRightsSupervisedPAUSE';
 import Patch20250224AddDbbTrad from './patchs/postmodules/Patch20250224AddDbbTrad';
 import Patch20250224AddDefaultPalette from './patchs/postmodules/Patch20250224AddDefaultPalette';
 import Patch20250303CheckDBsCycles from './patchs/postmodules/Patch20250303CheckDBsCycles';
@@ -228,6 +229,7 @@ export default class GeneratorPatchsListHandler {
         Patch20241030SuiviCompetencesGroupeShortName.getInstance(),
         Patch20241224SupervisionFillProbe.getInstance(),
         Patch20250102AddRightsSupervisedProbe.getInstance(),
+        Patch20250214AddRightsSupervisedPAUSE.getInstance(),
         // Patch20240409AddOseliaPromptForFeedback.getInstance(),
 
         Patch20241023AddOseliaFunction_azure_get_last_unread_email.getInstance(),

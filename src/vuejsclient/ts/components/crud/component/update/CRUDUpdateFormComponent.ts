@@ -1,25 +1,28 @@
+import { cloneDeep, isEqual } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../shared/annotations/Throttle';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
 import CRUDFieldRemoverConfVO from '../../../../../../shared/modules/DAO/vos/CRUDFieldRemoverConfVO';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import ModuleTableVO from '../../../../../../shared/modules/DAO/vos/ModuleTableVO';
+import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import { ModuleAlertAction } from '../../../alert/AlertStore';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
+import { ModuleDAOAction } from '../../../dao/store/DaoStore';
 import DatatableComponent from '../../../datatable/component/DatatableComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import CRUDComponentManager from '../../CRUDComponentManager';
 import CRUDFormServices from '../CRUDFormServices';
 import "./CRUDUpdateFormComponent.scss";
-import { field_names } from '../../../../../../shared/tools/ObjectHandler';
-import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
-import { cloneDeep } from 'lodash';
 
 @Component({
     template: require('./CRUDUpdateFormComponent.pug'),
