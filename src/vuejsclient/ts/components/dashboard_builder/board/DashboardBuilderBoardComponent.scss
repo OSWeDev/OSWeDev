@@ -62,41 +62,41 @@
         }
     }
 
-    @media(max-width:1030px) {
-        .grid_wrapper {
-            .vue-grid-layout {
-                display: flex;
-                flex-wrap: wrap;
-                flex-direction: row;
-                align-content: flex-start;
+    // @media(max-width:1030px) {
+    //     .grid_wrapper {
+    //         .vue-grid-layout {
+    //             display: flex;
+    //             flex-wrap: wrap;
+    //             flex-direction: row;
+    //             align-content: flex-start;
 
-                .grid_item_wrapper {
-                    flex: 48%;
-                    margin: 1%;
+    //             .grid_item_wrapper {
+    //                 flex: 48%;
+    //                 margin: 1%;
 
-                    &.widget_name__datatable {
-                        flex: 100%;
-                        margin: 1% 0;
-                    }
+    //                 &.widget_name__datatable {
+    //                     flex: 100%;
+    //                     margin: 1% 0;
+    //                 }
 
-                    .vue-grid-item {
-                        transform: none !important;
-                        position: initial !important;
-                        width: 100% !important;
-                    }
-                }
-            }
-        }
-    }
+    //                 .vue-grid-item {
+    //                     transform: none !important;
+    //                     position: initial !important;
+    //                     width: 100% !important;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
-    @media (max-width:767px) {
-        .grid_wrapper {
-            .vue-grid-layout {
-                .grid_item_wrapper {
-                    flex: 100%;
-                    margin: 1% 0;
-                }
-            }
-        }
-    }
+    // @media (max-width:767px) {
+    //     .grid_wrapper {
+    //         .vue-grid-layout {
+    //             .grid_item_wrapper {
+    //                 flex: 100%;
+    //                 margin: 1% 0;
+    //             }
+    //         }
+    //     }
+    // }
 }

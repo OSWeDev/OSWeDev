@@ -37,10 +37,16 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         if (!this.policies_needed) {
             this.policies_needed = [
-                ModuleDashboardBuilder.POLICY_FO_ACCESS
+                ModuleDashboardBuilder.POLICY_FO_ACCESS,
+                ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS
             ];
-        } else if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_FO_ACCESS) < 0) {
-            this.policies_needed.push(ModuleDashboardBuilder.POLICY_FO_ACCESS);
+        } else {
+            if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_FO_ACCESS) < 0) {
+                this.policies_needed.push(ModuleDashboardBuilder.POLICY_FO_ACCESS);
+            }
+            if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS) < 0) {
+                this.policies_needed.push(ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS);
+            }
         }
     }
 
@@ -55,42 +61,82 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
     public async initializeAsync() {
 
-        if (!this.policies_loaded[ModuleDashboardBuilder.POLICY_FO_ACCESS]) {
+        if (!this.policies_loaded[ModuleDashboardBuilder.POLICY_FO_ACCESS] &&
+            !this.policies_loaded[ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS]) {
             return;
         }
 
-        // On crée les routes names, mais pas les liens de menus qui seront créés dans le dashboard builder directement
-        let url: string = "/dashboard/view/:dashboard_id";
-        let main_route_name: string = 'Dashboard View';
+        if (this.policies_loaded[ModuleDashboardBuilder.POLICY_FO_ACCESS]) {
 
-        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
-            url,
-            main_route_name,
-            () => import('./viewer/DashboardViewerComponent'),
-            true,
-        ));
+            // On crée les routes names, mais pas les liens de menus qui seront créés dans le dashboard builder directement
+            let url: string = "/dashboard/view/:dashboard_id";
 
-        url = "/dashboard_builder";
-        main_route_name = 'DashboardBuilder';
+            this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
+                url,
+                DashboardBuilderController.ROUTE_NAME_DASHBOARD_VIEW,
+                () => import('./viewer/DashboardViewerComponent'),
+                true,
+            ));
 
-        this.routes.push({
-            path: url,
-            name: main_route_name,
-            component: () => import('./DashboardBuilderComponent'),
-            props: (route) => ({
-                dashboard_id: null
-            })
-        });
+            url = "/dashboard_builder";
 
-        url = "/dashboard_builder" + "/:dashboard_id";
-        main_route_name = 'DashboardBuilder_id';
+            this.routes.push({
+                path: url,
+                name: DashboardBuilderController.ROUTE_NAME_DASHBOARD_BUILDER,
+                component: () => import('./DashboardBuilderComponent'),
+                props: (route) => ({
+                    dashboard_id: null
+                })
+            });
 
-        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
-            url,
-            main_route_name,
-            () => import('./DashboardBuilderComponent'),
-            true,
-        ));
+            url = "/dashboard_builder" + "/:dashboard_id";
+
+            this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
+                url,
+                DashboardBuilderController.ROUTE_NAME_DASHBOARD_BUILDER_ID,
+                () => import('./DashboardBuilderComponent'),
+                true,
+            ));
+        }
+
+        if (this.policies_loaded[ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS]) {
+
+            // On crée les routes names, mais pas les liens de menus qui seront créés dans le cms builder directement
+            this.routes.push({
+                path: '/cms/view/:dashboard_id',
+                name: DashboardBuilderController.ROUTE_NAME_CMS_VIEW,
+                component: () => import('./viewer/DashboardViewerComponent'),
+                props: true,
+            });
+
+            this.routes.push({
+                path: '/cms/vo/:cms_vo_api_type_id/:cms_vo_id',
+                name: DashboardBuilderController.ROUTE_NAME_CMS_VO_FOR_CONTENT,
+                component: () => import('./viewer/vo/VoViewerComponent'),
+                props: true,
+            });
+
+            this.routes.push({
+                path: '/cms_builder',
+                name: DashboardBuilderController.ROUTE_NAME_CMS_BUILDER,
+                component: () => import('./cms_builder/CMSBuilderComponent'),
+                props: true,
+            });
+
+            this.routes.push({
+                path: "/cms_builder" + "/:dashboard_id",
+                name: DashboardBuilderController.ROUTE_NAME_CMS_BUILDER_ID,
+                component: () => import('./cms_builder/CMSBuilderComponent'),
+                props: true,
+            });
+
+            this.routes.push({
+                path: '/cms_config',
+                name: DashboardBuilderController.ROUTE_NAME_CMS_CONFIG,
+                component: () => import('./cms_config/CMSConfigComponent'),
+                props: true,
+            });
+        }
 
         await this.initializeDefaultWidgets();
     }
@@ -124,6 +170,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await this.initializeWidget_ResetFilters();
         await this.initializeWidget_BlocText();
+        await this.initializeWidget_ListObject();
         await this.initializeWidget_SuiviCompetences();
 
         await this.initializeWidget_SaveFavoritesFilters();
@@ -133,6 +180,14 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_OseliaThread();
 
         await this.initializeWidget_PerfReportGraph();
+        await this.initializeWidget_CMSBlocText();
+        await this.initializeWidget_CMSImage();
+        await this.initializeWidget_CMSLinkButton();
+        await this.initializeWidget_CMSLikeButton();
+        await this.initializeWidget_CrudButtons();
+        await this.initializeWidget_CMSPrintParam();
+        await this.initializeWidget_CMSVisionneusePdf();
+        await this.initializeWidget_CMSBooleanButton();
     }
 
     private async initializeWidget_PerfReportGraph() {
@@ -419,7 +474,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_VarRadarChart() {
-        let VarRadarChart = new DashboardWidgetVO();
+        const VarRadarChart = new DashboardWidgetVO();
 
         VarRadarChart.default_height = 10;
         VarRadarChart.default_width = 2;
@@ -438,7 +493,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_VarMixedChart() {
-        let VarMixedChart = new DashboardWidgetVO();
+        const VarMixedChart = new DashboardWidgetVO();
 
         VarMixedChart.default_height = 10;
         VarMixedChart.default_width = 2;
@@ -577,13 +632,13 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         BlocText.default_height = 5;
         BlocText.default_width = 2;
-        BlocText.name = 'BlocText';
+        BlocText.name = DashboardWidgetVO.WIDGET_NAME_bloctext;
         BlocText.widget_component = 'BlocTextwidgetcomponent';
         BlocText.options_component = 'BlocTextwidgetoptionscomponent';
         BlocText.weight = 3;
         BlocText.default_background = '#f5f5f5';
         BlocText.icon_component = 'BlocTextwidgeticoncomponent';
-        BlocText.is_filter = true;
+        BlocText.is_filter = false;
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(BlocText, null, null);
 
@@ -591,8 +646,51 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('BlocTextwidgetoptionscomponent', () => import('./widgets/bloc_text_widget/options/BlocTextWidgetOptionsComponent'));
         Vue.component('BlocTextwidgeticoncomponent', () => import('./widgets/bloc_text_widget/icon/BlocTextWidgetIconComponent'));
     }
+
+    private async initializeWidget_CrudButtons() {
+        const CrudButtons = new DashboardWidgetVO();
+
+        CrudButtons.default_height = 5;
+        CrudButtons.default_width = 2;
+        CrudButtons.name = DashboardWidgetVO.WIDGET_NAME_crudbuttons;
+        CrudButtons.widget_component = 'Cmscrudbuttonswidgetcomponent';
+        CrudButtons.options_component = 'Cmscrudbuttonswidgetoptionscomponent';
+        CrudButtons.weight = 3;
+        CrudButtons.default_background = '#f5f5f5';
+        CrudButtons.icon_component = 'Cmscrudbuttonswidgeticoncomponent';
+        CrudButtons.is_filter = false;
+        CrudButtons.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CrudButtons, null, null);
+
+        Vue.component('Cmscrudbuttonswidgetcomponent', () => import('./widgets/cms_crud_buttons_widget/CMSCrudButtonsWidgetComponent'));
+        Vue.component('Cmscrudbuttonswidgetoptionscomponent', () => import('./widgets/cms_crud_buttons_widget/options/CMSCrudButtonsWidgetOptionsComponent'));
+        Vue.component('Cmscrudbuttonswidgeticoncomponent', () => import('./widgets/cms_crud_buttons_widget/icon/CMSCrudButtonsWidgetIconComponent'));
+    }
+
+    private async initializeWidget_ListObject() {
+        const ListObject = new DashboardWidgetVO();
+
+        ListObject.default_height = 5;
+        ListObject.default_width = 2;
+        ListObject.name = DashboardWidgetVO.WIDGET_NAME_listobject;
+        ListObject.widget_component = 'ListObjectwidgetcomponent';
+        ListObject.options_component = 'ListObjectwidgetoptionscomponent';
+        ListObject.weight = 3;
+        ListObject.default_background = '#f5f5f5';
+        ListObject.icon_component = 'ListObjectwidgeticoncomponent';
+        ListObject.is_filter = false;
+        ListObject.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(ListObject, null, null);
+
+        Vue.component('ListObjectwidgetcomponent', () => import('./widgets/list_object_widget/ListObjectWidgetComponent'));
+        Vue.component('ListObjectwidgetoptionscomponent', () => import('./widgets/list_object_widget/options/ListObjectWidgetOptionsComponent'));
+        Vue.component('ListObjectwidgeticoncomponent', () => import('./widgets/list_object_widget/icon/ListObjectWidgetIconComponent'));
+    }
+
     private async initializeWidget_SuiviCompetences() {
-        let SuiviCompetences = new DashboardWidgetVO();
+        const SuiviCompetences = new DashboardWidgetVO();
 
         SuiviCompetences.default_height = 5;
         SuiviCompetences.default_width = 2;
@@ -651,5 +749,152 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Pageswitchwidgetcomponent', () => import('./widgets/page_switch_widget/PageSwitchWidgetComponent'));
         Vue.component('Pageswitchwidgetoptionscomponent', () => import('./widgets/page_switch_widget/options/PageSwitchWidgetOptionsComponent'));
         Vue.component('Pageswitchwidgeticoncomponent', () => import('./widgets/page_switch_widget/icon/PageSwitchWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSBlocText() {
+        const CMSBlocText = new DashboardWidgetVO();
+
+        CMSBlocText.default_height = 5;
+        CMSBlocText.default_width = 2;
+        CMSBlocText.name = DashboardWidgetVO.WIDGET_NAME_cmsbloctext;
+        CMSBlocText.widget_component = 'CMSBlocTextwidgetcomponent';
+        CMSBlocText.options_component = 'CMSBlocTextwidgetoptionscomponent';
+        CMSBlocText.weight = 3;
+        CMSBlocText.default_background = '#f5f5f5';
+        CMSBlocText.icon_component = 'CMSBlocTextwidgeticoncomponent';
+        CMSBlocText.is_filter = false;
+        CMSBlocText.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSBlocText, null, null);
+
+        Vue.component('CMSBlocTextwidgetcomponent', () => import('./widgets/cms_bloc_text_widget/CMSBlocTextWidgetComponent'));
+        Vue.component('CMSBlocTextwidgetoptionscomponent', () => import('./widgets/cms_bloc_text_widget/options/CMSBlocTextWidgetOptionsComponent'));
+        Vue.component('CMSBlocTextwidgeticoncomponent', () => import('./widgets/cms_bloc_text_widget/icon/CMSBlocTextWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSImage() {
+        const CMSImage = new DashboardWidgetVO();
+
+        CMSImage.default_height = 5;
+        CMSImage.default_width = 2;
+        CMSImage.name = DashboardWidgetVO.WIDGET_NAME_cmsimage;
+        CMSImage.widget_component = 'CMSImagewidgetcomponent';
+        CMSImage.options_component = 'CMSImagewidgetoptionscomponent';
+        CMSImage.weight = 3;
+        CMSImage.default_background = '#f5f5f5';
+        CMSImage.icon_component = 'CMSImagewidgeticoncomponent';
+        CMSImage.is_filter = false;
+        CMSImage.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSImage, null, null);
+
+        Vue.component('CMSImagewidgetcomponent', () => import('./widgets/cms_image_widget/CMSImageWidgetComponent'));
+        Vue.component('CMSImagewidgetoptionscomponent', () => import('./widgets/cms_image_widget/options/CMSImageWidgetOptionsComponent'));
+        Vue.component('CMSImagewidgeticoncomponent', () => import('./widgets/cms_image_widget/icon/CMSImageWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSLinkButton() {
+        const CMSLinkButton = new DashboardWidgetVO();
+
+        CMSLinkButton.default_height = 5;
+        CMSLinkButton.default_width = 2;
+        CMSLinkButton.name = DashboardWidgetVO.WIDGET_NAME_cmslinkbutton;
+        CMSLinkButton.widget_component = 'CMSLinkButtonwidgetcomponent';
+        CMSLinkButton.options_component = 'CMSLinkButtonwidgetoptionscomponent';
+        CMSLinkButton.weight = 3;
+        CMSLinkButton.default_background = '#f5f5f5';
+        CMSLinkButton.icon_component = 'CMSLinkButtonwidgeticoncomponent';
+        CMSLinkButton.is_filter = false;
+        CMSLinkButton.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSLinkButton, null, null);
+
+        Vue.component('CMSLinkButtonwidgetcomponent', () => import('./widgets/cms_link_button_widget/CMSLinkButtonWidgetComponent'));
+        Vue.component('CMSLinkButtonwidgetoptionscomponent', () => import('./widgets/cms_link_button_widget/options/CMSLinkButtonWidgetOptionsComponent'));
+        Vue.component('CMSLinkButtonwidgeticoncomponent', () => import('./widgets/cms_link_button_widget/icon/CMSLinkButtonWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSBooleanButton() {
+        const CMSBooleanButton = new DashboardWidgetVO();
+
+        CMSBooleanButton.default_height = 5;
+        CMSBooleanButton.default_width = 2;
+        CMSBooleanButton.name = DashboardWidgetVO.WIDGET_NAME_cmsbooleanbutton;
+        CMSBooleanButton.widget_component = 'CMSBooleanButtonwidgetcomponent';
+        CMSBooleanButton.options_component = 'CMSBooleanButtonwidgetoptionscomponent';
+        CMSBooleanButton.weight = 3;
+        CMSBooleanButton.default_background = '#f5f5f5';
+        CMSBooleanButton.icon_component = 'CMSBooleanButtonwidgeticoncomponent';
+        CMSBooleanButton.is_filter = false;
+        CMSBooleanButton.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSBooleanButton, null, null);
+
+        Vue.component('CMSBooleanButtonwidgetcomponent', () => import('./widgets/cms_boolean_button_widget/CMSBooleanButtonWidgetComponent'));
+        Vue.component('CMSBooleanButtonwidgetoptionscomponent', () => import('./widgets/cms_boolean_button_widget/options/CMSBooleanButtonWidgetOptionsComponent'));
+        Vue.component('CMSBooleanButtonwidgeticoncomponent', () => import('./widgets/cms_boolean_button_widget/icon/CMSBooleanButtonWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSLikeButton() {
+        const CMSLikeButton = new DashboardWidgetVO();
+
+        CMSLikeButton.default_height = 5;
+        CMSLikeButton.default_width = 2;
+        CMSLikeButton.name = DashboardWidgetVO.WIDGET_NAME_cmslikebutton;
+        CMSLikeButton.widget_component = 'CMSLikeButtonwidgetcomponent';
+        CMSLikeButton.options_component = 'CMSLikeButtonwidgetoptionscomponent';
+        CMSLikeButton.weight = 3;
+        CMSLikeButton.default_background = '#f5f5f5';
+        CMSLikeButton.icon_component = 'CMSLikeButtonwidgeticoncomponent';
+        CMSLikeButton.is_filter = false;
+        CMSLikeButton.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSLikeButton, null, null);
+
+        Vue.component('CMSLikeButtonwidgetcomponent', () => import('./widgets/cms_like_button_widget/CMSLikeButtonWidgetComponent'));
+        Vue.component('CMSLikeButtonwidgetoptionscomponent', () => import('./widgets/cms_like_button_widget/options/CMSLikeButtonWidgetOptionsComponent'));
+        Vue.component('CMSLikeButtonwidgeticoncomponent', () => import('./widgets/cms_like_button_widget/icon/CMSLikeButtonWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSPrintParam() {
+        const CMSPrintParam = new DashboardWidgetVO();
+
+        CMSPrintParam.default_height = 5;
+        CMSPrintParam.default_width = 2;
+        CMSPrintParam.name = DashboardWidgetVO.WIDGET_NAME_cmsprintparam;
+        CMSPrintParam.widget_component = 'CMSPrintParamwidgetcomponent';
+        CMSPrintParam.options_component = 'CMSPrintParamwidgetoptionscomponent';
+        CMSPrintParam.weight = 3;
+        CMSPrintParam.default_background = '#f5f5f5';
+        CMSPrintParam.icon_component = 'CMSPrintParamwidgeticoncomponent';
+        CMSPrintParam.is_filter = false;
+        CMSPrintParam.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSPrintParam, null, null);
+
+        Vue.component('CMSPrintParamwidgetcomponent', () => import('./widgets/cms_print_param_widget/CMSPrintParamWidgetComponent'));
+        Vue.component('CMSPrintParamwidgetoptionscomponent', () => import('./widgets/cms_print_param_widget/options/CMSPrintParamWidgetOptionsComponent'));
+        Vue.component('CMSPrintParamwidgeticoncomponent', () => import('./widgets/cms_print_param_widget/icon/CMSPrintParamWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSVisionneusePdf() {
+        const CMSVisionneusePdf = new DashboardWidgetVO();
+
+        CMSVisionneusePdf.default_height = 5;
+        CMSVisionneusePdf.default_width = 2;
+        CMSVisionneusePdf.name = DashboardWidgetVO.WIDGET_NAME_cmsvisionneusepdf;
+        CMSVisionneusePdf.widget_component = 'CMSVisionneusePdfwidgetcomponent';
+        CMSVisionneusePdf.options_component = 'CMSVisionneusePdfwidgetoptionscomponent';
+        CMSVisionneusePdf.weight = 3;
+        CMSVisionneusePdf.default_background = '#f5f5f5';
+        CMSVisionneusePdf.icon_component = 'CMSVisionneusePdfwidgeticoncomponent';
+        CMSVisionneusePdf.is_filter = false;
+        CMSVisionneusePdf.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSVisionneusePdf, null, null);
+
+        Vue.component('CMSVisionneusePdfwidgetcomponent', () => import('./widgets/cms_visionneuse_pdf/CMSVisionneusePdfWidgetComponent'));
+        Vue.component('CMSVisionneusePdfwidgetoptionscomponent', () => import('./widgets/cms_visionneuse_pdf/options/CMSVisionneusePdfWidgetOptionsComponent'));
+        Vue.component('CMSVisionneusePdfwidgeticoncomponent', () => import('./widgets/cms_visionneuse_pdf/icon/CMSVisionneusePdfWidgetIconComponent'));
     }
 }

@@ -2,17 +2,21 @@
 
 import pg_promise, { IDatabase } from 'pg-promise';
 import FileLoggerHandler from '../server/FileLoggerHandler';
+import StackContext from '../server/StackContext';
 import ConfigurationService from '../server/env/ConfigurationService';
 import EnvParam from '../server/env/EnvParam';
 import ModuleAccessPolicyServer from '../server/modules/AccessPolicy/ModuleAccessPolicyServer';
+import IDatabaseHolder from '../server/modules/IDatabaseHolder';
 import ModuleServiceBase from '../server/modules/ModuleServiceBase';
 import ModuleSASSSkinConfiguratorServer from '../server/modules/SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import DefaultTranslationsServerManager from '../server/modules/Translation/DefaultTranslationsServerManager';
 import VarsServerController from '../server/modules/Var/VarsServerController';
+import EventsController from '../shared/modules/Eventify/EventsController';
 import ModulesManager from '../shared/modules/ModulesManager';
 import StatsController from '../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
+import GeneratorPatchsListHandler from './GeneratorPatchsListHandler';
 import IGeneratorWorker from './IGeneratorWorker';
 import ModulesClientInitializationDatasGenerator from './ModulesClientInitializationDatasGenerator';
 import AddMaintenanceCreationPolicy from './inits/postmodules/AddMaintenanceCreationPolicy';
@@ -36,14 +40,7 @@ import ActivateDataImport from './inits/premodules/ActivateDataImport';
 import ActivateDataRender from './inits/premodules/ActivateDataRender';
 import CheckBasicSchemas from './inits/premodules/CheckBasicSchemas';
 import CheckExtensions from './inits/premodules/CheckExtensions';
-// import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
 import VersionUpdater from './version_updater/VersionUpdater';
-// import Patch20241129PreCreateEventsConfs from './patchs/premodules/Patch20241129PreCreateEventsConfs';
-import GeneratorPatchsListHandler from './GeneratorPatchsListHandler';
-import IDatabaseHolder from '../server/modules/IDatabaseHolder';
-import EventsController from '../shared/modules/Eventify/EventsController';
-import StackContext from '../server/StackContext';
-// import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
 

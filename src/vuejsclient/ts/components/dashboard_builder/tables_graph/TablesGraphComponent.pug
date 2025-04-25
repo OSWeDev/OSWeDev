@@ -14,12 +14,13 @@
             .container(ref="container")
     
         .col-sm-3.fields_wrapper
-            .sidebar(ref="sidebar")
+            .sidebar(ref="sidebar") 
                 Tablesgrapheditformcomponent(
                     :maxgraph="maxgraph"
                     :current_cell_mapper ="current_cell_mapper"
                     @remap="throttle_init_or_update_graph"
-                    :dashboard='dashboard'
+                    :dashboard='current_dashboard'
+                    :cms_compatible_dashboards='cms_compatible_dashboards'
                     @update_discarded_field_paths="update_discarded_field_paths"
                     :graph_mapper='graph_mapper'
                     @delete_cell="delete_cell"

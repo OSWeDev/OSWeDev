@@ -352,6 +352,20 @@ export default class TSRangeInputComponent extends VueComponentBase {
         return null;
     }
 
+    /**
+     * Désactivation côté datepicker
+     */
+    get disabled_dates_end() {
+        if (!this.tsrange_start) {
+            return {};
+        }
+        // Désactive toute date strictement antérieure à this.tsrange_start
+        const startOfDay = moment(this.tsrange_start).startOf('day');
+        return {
+            to: new Date(startOfDay.valueOf() - 1)
+        };
+    }
+
     @Watch('vo', { immediate: true })
     private onchange_vo() {
         if (!this.vo) {
@@ -437,6 +451,17 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Watch('tsrange_end')
     private emitInput(): void {
 
+        // On vérifie d’abord la cohérence : on force la date de fin à ne pas être < date de début
+        if (this.tsrange_start && this.tsrange_end) {
+            if (moment(this.tsrange_end).isBefore(moment(this.tsrange_start))) {
+                // Forcer la date de fin
+                this.tsrange_end = new Date(this.tsrange_start.getTime());
+                // Forcer l'heure de fin si le segmentation_type le requiert
+                this.tsrange_end_time = this.tsrange_start_time;
+            }
+        }
+
+        // Calcul de ts_start / ts_end existants
         let new_value: TSRange = RangeHandler.createNew(
             TSRange.RANGE_TYPE,
             this.ts_start ? this.ts_start : RangeHandler.MIN_TS,

@@ -37,17 +37,19 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public static WIDGET_NAME_varchoroplethchart: string = 'varchoroplethchart';
     public static WIDGET_NAME_varradarchart: string = 'varradarchart';
     public static WIDGET_NAME_varmixedcharts: string = 'varmixedcharts';
+    public static WIDGET_NAME_bloctext: string = 'bloctext';
+    public static WIDGET_NAME_listobject: string = 'listobject';
+    public static WIDGET_NAME_cmsbloctext: string = 'cmsbloctext';
+    public static WIDGET_NAME_cmsimage: string = 'cmsimage';
+    public static WIDGET_NAME_cmslinkbutton: string = 'cmslinkbutton';
+    public static WIDGET_NAME_cmslikebutton: string = 'cmslikebutton';
+    public static WIDGET_NAME_crudbuttons: string = 'crudbuttons';
+    public static WIDGET_NAME_cmsprintparam: string = 'cmsprintparam';
+    public static WIDGET_NAME_cmsvisionneusepdf: string = 'cmsvisionneusepdf';
+    public static WIDGET_NAME_cmsbooleanbutton: string = 'cmsbooleanbutton';
 
     public id: number;
     public _type: string = DashboardWidgetVO.API_TYPE_ID;
-
-    get translatable_name_code_text(): string {
-
-        if (!this.id) {
-            return null;
-        }
-        return DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + this.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-    }
 
     public weight: number;
 
@@ -60,11 +62,20 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
 
     /**
      * Needs to be unique for ergonomy and widget retrieval
-     */
+    */
     public name: string;
 
     public default_background: string;
 
     public is_filter: boolean;
     public is_validation_filters: boolean;
+    public is_cms_compatible: boolean;
+
+    get translatable_name_code_text(): string {
+
+        if (!this.id) {
+            return null;
+        }
+        return DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + this.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+    }
 }

@@ -61,7 +61,7 @@
                             .cancel(@click="reload_from_db")
                                 i.fa-solid.fa-refresh.fa-fw(aria-hidden="true")
                                 | {{ label('menu_organizer.cancel') }}
-                                
+
             template(v-if='selected_item && selected_item.id')
                 .selected_item_wrapper
                     .unselect(@click='unselect')
@@ -136,6 +136,12 @@
                                 .cancel(@click="reload_selected")
                                     i.fa-solid.fa-refresh.fa-fw(aria-hidden="true")
                                     | {{ label('menu_organizer.cancel_selected') }}
+
+                    .row
+                        .col-sm-10
+                        .col-sm-2
+                            .cancel(@click="trash_selected")
+                                i.fa-solid.fa-trash.fa-fw(aria-hidden="true")
 
             template(v-if='(!selected_item) && app_names && !!app_names.length')
                 .select_app_wrapper

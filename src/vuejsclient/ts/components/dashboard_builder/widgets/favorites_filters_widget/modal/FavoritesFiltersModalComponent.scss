@@ -2,7 +2,6 @@
 
 .favorites_filters_modal_component_wrapper {
     height: 100%;
-    padding: 0.5em;
 
     .favorites_filters_name {
         .input_wrapper {
@@ -17,6 +16,7 @@
             padding: 0;
             list-style-type: none;
         }
+
         .error {
             list-style: none;
         }
@@ -35,6 +35,7 @@
             display: inline;
             margin-right: 10px;
         }
+
         .input_label {
             display: inline;
             position: relative;
@@ -48,6 +49,7 @@
                 display: inline;
                 margin-right: 10px;
             }
+
             .input_label {
                 display: inline;
                 position: relative;
@@ -62,6 +64,7 @@
                 display: inline;
                 margin-right: 10px;
             }
+
             .input_label {
                 display: inline;
                 position: relative;
@@ -76,6 +79,7 @@
                 display: inline;
                 margin-right: 10px;
             }
+
             .input_label {
                 display: inline;
                 position: relative;
@@ -146,7 +150,7 @@
     .nav-pills {
         margin-bottom: 16px;
 
-        > li > a {
+        >li>a {
             width: 100%;
             background: #f5f5f5;
             margin-bottom: 2px;
@@ -156,15 +160,15 @@
             cursor: pointer;
         }
 
-        > li.active > a,
-        > li.active > a:focus,
-        > li.active > a:hover {
+        >li.active>a,
+        >li.active>a:focus,
+        >li.active>a:hover {
             color: #fff;
             background-color: $button_primary_bg_color;
             border-top-color: $button_primary_bg_color;
         }
 
-        li + li {
+        li+li {
             margin-left: 0;
         }
     }

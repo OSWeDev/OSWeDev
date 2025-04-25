@@ -1,13 +1,20 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ContextFilterVO, { filter } from '../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
+import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import VueComponentBase from '../../VueComponentBase';
-import DashboardBuilderWidgetsController from './DashboardBuilderWidgetsController';
 import './DashboardBuilderWidgetsComponent.scss';
+import DashboardBuilderWidgetsController from './DashboardBuilderWidgetsController';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),
@@ -24,6 +31,12 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
 
     @Prop()
     private dashboard_pages: DashboardPageVO[];
+
+    @Prop()
+    private viewports: DashboardViewportVO[];
+
+    @Prop()
+    private selected_viewport: DashboardViewportVO;
 
     @Prop({ default: null })
     private selected_widget: DashboardPageWidgetVO;
@@ -70,7 +83,37 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
     private async mounted() {
 
         await DashboardBuilderWidgetsController.getInstance().initialize();
-        this.widgets = DashboardBuilderWidgetsController.getInstance().sorted_widgets;
+        if (this.dashboard?.is_cms_compatible) {
+
+            let sorted_widgets: DashboardWidgetVO[] = null;
+            if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleDashboardBuilder.POLICY_DBB_FILTERS_VISIBLE_ON_CMS)) {
+
+                sorted_widgets = await query(DashboardWidgetVO.API_TYPE_ID)
+                    .add_filters([
+                        ContextFilterVO.or([
+                            filter(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().is_cms_compatible).is_true(),
+                            filter(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().is_filter).is_true(),
+                        ]),
+                    ])
+                    .select_vos<DashboardWidgetVO>();
+            } else {
+
+                sorted_widgets = await query(DashboardWidgetVO.API_TYPE_ID)
+                    .filter_is_true(field_names<DashboardWidgetVO>().is_cms_compatible)
+                    .select_vos<DashboardWidgetVO>();
+            }
+
+            if (sorted_widgets) {
+                WeightHandler.getInstance().sortByWeight(
+                    sorted_widgets
+                );
+                this.widgets = sorted_widgets;
+            }
+
+        } else {
+
+            this.widgets = DashboardBuilderWidgetsController.getInstance().sorted_widgets;
+        }
 
         await this.onchange_selected_widget();
 

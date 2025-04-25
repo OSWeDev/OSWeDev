@@ -9,6 +9,7 @@ import RangeHandler from "../../../tools/RangeHandler";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
 import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
 import { field_names } from "../../../tools/ObjectHandler";
+import { filter } from "../../ContextFilter/vos/ContextFilterVO";
 
 /**
  * DashboardVOManager
@@ -197,7 +198,8 @@ export default class DashboardVOManager {
         options?: {
             select_filter_visible_options?: boolean
             refresh?: boolean
-        }
+        },
+        is_cms_compatible?: boolean,
     ): Promise<DashboardVO[]> {
         const self = DashboardVOManager.getInstance();
 
@@ -225,6 +227,18 @@ export default class DashboardVOManager {
 
         if (pagination?.sorts?.length > 0) {
             context_query.set_sorts(pagination.sorts);
+        }
+
+        if (is_cms_compatible) {
+            context_query.add_filters(
+                [filter(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().is_cms_compatible).is_true()]
+            );
+        } else {
+            context_query.add_filters(
+                [filter(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().is_cms_compatible).is_false().or(
+                    filter(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().is_cms_compatible).is_null_or_empty()
+                )]
+            );
         }
 
         const dashboards = await context_query.set_limit(limit)

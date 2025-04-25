@@ -4,7 +4,19 @@ include ../../../../../views/mixins/loading.pug
         form(v-on:submit.prevent="createVO")
             .crud_create_form_header
                 a.btn.close(@click="cancel") &times;
-                .title.d-ib {{ label('crud.create.modal.title') }}
+                //- .title.d-ib {{ label('crud.create.modal.title') }}
+
+                .title
+                    template(v-if='!is_editing_title')
+                        span.crud-title {{ get_crud_title }}
+                    template(v-else)
+                        Inlinetranslatabletext(
+                            :code_text="label_title"
+                            :is_editable="true"
+                        )
+
+                    template(v-if='has_access_to_admin')
+                        i.fa.fa-pen.edit-icon.ml-3(@click.stop="toggle_edit_title")
 
             .crud_create_form_body
                 .alert.alert-warning(v-if="is_only_readable") {{ label('crud.create.modal.readonly') }}

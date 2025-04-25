@@ -52,6 +52,8 @@ export default class TableWidgetOptionsVO extends AbstractVO {
         public has_export_maintenance_alert?: boolean,
         public do_not_use_page_widget_ids?: number[],
         public legende_tableau?: string,
+        public show_message_no_data?: boolean,
+        public message_no_data?: string,
     ) {
         super();
     }
@@ -93,7 +95,6 @@ export default class TableWidgetOptionsVO extends AbstractVO {
 
         return res;
     }
-
 
     public get_title_name_code_text(page_widget_id: number): string {
 

@@ -23,6 +23,12 @@ export default class ModuleFormatDatesNombres extends Module {
     public static FORMAT_HH: string = 'HH:';
 
     public static TRANSLATION_date_format_fullyear_month_day = 'YYYY-MM-DD';
+    public static TRANSLATION_date_format_hour = 'Y-MM-DD HH:--';
+    public static TRANSLATION_date_format_minute = 'Y-MM-DD HH:mm';
+    public static TRANSLATION_date_format_second = 'Y-MM-DD HH:mm:ss';
+    public static TRANSLATION_date_format_year_month = 'Y-MM';
+    public static TRANSLATION_date_format_year_month_day = 'Y-MM-DD';
+    public static TRANSLATION_date_format_milliseconds = 'YYYY-MM-DD HH:mm:ss.';
 
     // Pour migrer en ParamVOs on passe par un cache applicatif chargé au lancement et jamais mis à jour, donc si d'aventure on change les formats de dates (ce qui est peu probable), on devra relancer le pool
     //  et si un projet a besoin de mettre à jour souvent ces éléments il peut toujours utiliser les nouveaux params plutôt
@@ -33,12 +39,12 @@ export default class ModuleFormatDatesNombres extends Module {
     public static CACHE_nombre_separateur_1000: string = null;
     public static CACHE_nombre_separateur_decimal: string = null;
 
-    /* istanbul ignore next: nothing to test here */
-    public static getInstance(): ModuleFormatDatesNombres {
-        if (!ModuleFormatDatesNombres.instance) {
-            ModuleFormatDatesNombres.instance = new ModuleFormatDatesNombres();
-        }
-        return ModuleFormatDatesNombres.instance;
+    private static instance: ModuleFormatDatesNombres = null;
+
+    private constructor() {
+
+        super("format_dates_nombres", "FormatDatesNombres");
+        this.forceActivationOnInstallation();
     }
 
     public static get FORMAT_MMDD(): string {
@@ -67,12 +73,12 @@ export default class ModuleFormatDatesNombres extends Module {
         return ModuleFormatDatesNombres.CACHE_date_format_fullyear_month_day_date + " HH:";
     }
 
-    private static instance: ModuleFormatDatesNombres = null;
-
-    private constructor() {
-
-        super("format_dates_nombres", "FormatDatesNombres");
-        this.forceActivationOnInstallation();
+    /* istanbul ignore next: nothing to test here */
+    public static getInstance(): ModuleFormatDatesNombres {
+        if (!ModuleFormatDatesNombres.instance) {
+            ModuleFormatDatesNombres.instance = new ModuleFormatDatesNombres();
+        }
+        return ModuleFormatDatesNombres.instance;
     }
 
     // On peut avoir des Dates ou des strings en entrée des fonctions, on crée un traducteur assez flexible qui renvoie une date

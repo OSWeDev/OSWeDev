@@ -549,18 +549,13 @@ i.fa-spin:before {
 
 @media (max-width: 640px) {
 
-    html {
-        background: none !important;
-        background-color: white !important;
-    }
-
-    header,
-    footer {
-        display: none;
-    }
-
     /** SKIN spécifique pour Oselia */
     body.page-oselia {
+
+        header,
+        footer {
+            display: none;
+        }
 
         .content {
             padding: 0 !important;
@@ -607,10 +602,10 @@ i.fa-spin:before {
                 margin: 0 !important;
             }
         }
-    }
 
-    .vars_manager,
-    .footer_fixed {
-        display: none;
+        .vars_manager,
+        .footer_fixed {
+            display: none;
+        }
     }
 }

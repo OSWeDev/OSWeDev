@@ -8,31 +8,19 @@
         margin: 0 auto;
     }
 
+    .login-logo,
+    .signin-logo,
+    .register-logo {
+        img {
+            max-width: 100%;
+        }
+    }
+
     .login-box,
     .register-box {
         width: 360px;
         margin: 7% auto;
         margin-bottom: 2em;
-
-        .login-logo,
-        .register-logo {
-            font-size: 35px;
-            text-align: center;
-            font-weight: 300;
-            margin-bottom: 50px;
-            margin-top: 20px;
-
-            height: 2em;
-            width: 100%;
-
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
-
-            @if $logo_url {
-                background: url(#{$logo_url});
-            }
-        }
 
         .login-box-body,
         .register-box-body {

@@ -1,7 +1,8 @@
 .login-page
+    .login-logo(v-if='logo_url')
+        img(:src='logo_url' alt='Logo')
     .login-box
         .login-box-body
-            .login-logo(v-if='logo_url')
             h1.text-center(v-if='!logo_url') {{ label('login.reset.title') }}
             h2.text-center {{ label('login.reset.sub_title') }}
             p.server-answer(v-if='message') {{ message }}
@@ -14,13 +15,13 @@
                 .send_init_pwd_sms.btn.btn-light.btn-block.btn-flat(v-if="show_init_link && has_sms_activation" @click="recoversms") {{ label('login.reset.send_init_pwd_sms') }}
                 form(v-on:submit.prevent="")
                     .form-group.has-feedback(v-if='!is_simplified')
-                        input.form-control(type='email', v-model='email', name="email", :placeholder='label("login.email_placeholder")', autocomplete="off")
+                        input.form-control(type='email' v-model='email' name="email", :placeholder='label("login.email_placeholder")' autocomplete="off")
                         i.fa-solid.fa-id-card.pull-right.fa-fw(aria-hidden="true")
                     .form-group.has-feedback(v-if='!is_simplified')
-                        input.form-control(type='text', v-model='challenge', name="challenge", :placeholder='label("login.code_placeholder")', autocomplete="off")
+                        input.form-control(type='text' v-model='challenge' name="challenge", :placeholder='label("login.code_placeholder")' autocomplete="off")
                         i.fa-solid.fa-paste.pull-right.fa-fw(aria-hidden="true")
                     .form-group.has-feedback
-                        input.form-control(type='password', v-model='new_pwd1', name="new_pwd1", :placeholder='label("login.password_placeholder")', autocomplete="off")
+                        input.form-control(type='password' v-model='new_pwd1' name="new_pwd1", :placeholder='label("login.password_placeholder")' autocomplete="off")
                         i.fa-solid.fa-lock.pull-right.fa-fw(aria-hidden="true")
 
                     .center

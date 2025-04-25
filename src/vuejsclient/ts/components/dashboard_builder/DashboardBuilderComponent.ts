@@ -48,6 +48,8 @@ import MaxGraphMapper from './tables_graph/graph_mapper/MaxGraphMapper';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
+import DashboardViewportVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
+import DashboardActiveonViewportVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -149,6 +151,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private can_use_clipboard: boolean = false;
 
+    private viewports: DashboardViewportVO[] = [];
+    private selected_viewport: DashboardViewportVO = null;
+    private is_dbb_actived_on_viewport: boolean = false;
+
     private throttle_on_dashboard_loaded = ThrottleHelper.declare_throttle_without_args(
         'DashboardBuilderComponent.throttle_on_dashboard_loaded',
         this.on_dashboard_loaded, 50);
@@ -218,6 +224,15 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         return this.dashboards;
     }
 
+    get viewports_options() {
+
+        if (!this.viewports) {
+            return [];
+        }
+
+        return this.viewports;
+    }
+
     get pages_name_code_text(): string[] {
         const res: string[] = [];
 
@@ -232,6 +247,31 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         return res;
+    }
+
+    @Watch('selected_viewport')
+    private async onchange_selected_viewport() {
+
+        if (!this.selected_viewport || !this.page) {
+            return;
+        }
+
+        // Check de l'activation du viewport pour le dashboard (couple FKs unique => Patch20240925AddUnicityForFieldsCouple)
+        const action_viewport: DashboardActiveonViewportVO = await query(DashboardActiveonViewportVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_page_id, this.page.id)
+            .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_viewport_id, this.selected_viewport.id)
+            .select_vo();
+
+        // NOK or NULL => on demande à l'utilisateur s'il veut générer un layout par défaut
+        if (!action_viewport || !action_viewport.active) {
+            this.is_dbb_actived_on_viewport = false;
+        }
+
+        if (action_viewport?.active == true) {
+            this.is_dbb_actived_on_viewport = true;
+        }
+
+        this.throttle_on_dashboard_loaded();
     }
 
     @Watch('page')
@@ -295,6 +335,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         return dashboard.id + ' | ' + this.t(dashboard.translatable_name_code_text);
+    }
+
+    private viewport_label(viewport: DashboardViewportVO): string {
+        if ((viewport == null) || (typeof viewport == 'undefined')) {
+            return '';
+        }
+
+        return viewport.id + ' | ' + viewport.name + ' | ' + viewport.screen_min_width + ' px | ' + viewport.nb_columns + this.label('dashboard_builder.viewport.columns');
     }
 
     private async update_layout_widget(widget: DashboardPageWidgetVO) {
@@ -517,7 +565,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         for (const i in pages) {
             const page = pages[i];
 
-            const this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, page.id).select_vos<DashboardPageWidgetVO>();
+            const this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, page.id)
+                .select_vos<DashboardPageWidgetVO>();
             if (this_page_widgets && this_page_widgets.length) {
                 export_vos = export_vos.concat(this_page_widgets.map((p) => ModuleTableController.translate_vos_to_api(p)));
                 page_widgets = page_widgets ? page_widgets.concat(this_page_widgets) : this_page_widgets;
@@ -775,9 +825,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             await this.create_dashboard_page();
         }
 
-        const page_widgets: DashboardPageWidgetVO[] = await this.load_page_widgets_by_page_ids(
+        let page_widgets: DashboardPageWidgetVO[] = await this.load_page_widgets_by_page_ids(
             this.pages.map((p) => p.id),
         );
+
+        // On ne prend que les widgets du viewport actif
+        if (this.selected_viewport?.id) {
+            page_widgets = page_widgets.filter((pw) => pw.dashboard_viewport_id == this.selected_viewport.id);
+        }
 
         this.set_page_widgets(page_widgets);
 
@@ -808,6 +863,26 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         WeightHandler.getInstance().sortByWeight(this.pages);
 
         this.page = this.pages[0];
+
+        if (this.page?.id && this.selected_viewport?.id) {
+            // Check de l'activation du viewport pour le dashboard (couple FKs unique => Patch20240925AddUnicityForFieldsCouple)
+            const action_viewport: DashboardActiveonViewportVO = await query(DashboardActiveonViewportVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_page_id, this.page.id)
+                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_viewport_id, this.selected_viewport.id)
+                .select_vo();
+
+            // NOK or NULL => on demande à l'utilisateur s'il veut générer un layout par défaut
+            if (!action_viewport || !action_viewport.active) {
+                this.is_dbb_actived_on_viewport = false;
+            }
+
+            if (action_viewport?.active == true) {
+                this.is_dbb_actived_on_viewport = true;
+            }
+        } else {
+            this.is_dbb_actived_on_viewport = false;
+        }
+
     }
 
     private removed_widget_from_page(page_widget: DashboardPageWidgetVO) {
@@ -1147,6 +1222,83 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.set_discarded_field_paths(discarded_field_paths);
     }
 
+    private async set_dbb_actived_on_viewport(set_position_default: boolean) {
+        if (!this.page?.id || !this.selected_viewport?.id) {
+            return;
+        }
+
+        // Check de l'activation du viewport pour le dashboard, si on n'en a pas on le crée
+        let action_viewport: DashboardActiveonViewportVO = await query(DashboardActiveonViewportVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_page_id, this.page.id)
+            .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_viewport_id, this.selected_viewport.id)
+            .select_vo();
+
+        if (!action_viewport) {
+            action_viewport = new DashboardActiveonViewportVO();
+            action_viewport.dashboard_page_id = this.page.id;
+            action_viewport.dashboard_viewport_id = this.selected_viewport.id;
+        }
+
+        // On récupère tous les pages widgets de la page
+        const page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, this.page.id)
+            .select_vos();
+
+        // On récupère toutes les positions des pages widgets pour le viewport par défaut
+        const default_viewport: DashboardViewportVO = this.viewports.find((v) => v.is_default);
+        if (!default_viewport) {
+            return;
+        }
+
+        // On récupère tous les pages widgets de la page du viewport par défaut
+        const default_positions: DashboardPageWidgetVO[] = page_widgets.filter((pw) => pw.dashboard_viewport_id == default_viewport.id);
+
+        // On récupère toutes les positions des pages widgets pour le viewport actuel
+        let positions: DashboardPageWidgetVO[] = page_widgets.filter((pw) => pw.dashboard_viewport_id == this.selected_viewport.id);
+        // Si on n'a pas de positions, on va les créer
+        if (!(positions?.length > 1)) {
+
+            positions = ObjectHandler.clone_vos(default_positions);
+            for (const i in positions) {
+                const pos = positions[i];
+                pos.dashboard_viewport_id = this.selected_viewport.id;
+                delete pos.id;
+            }
+
+        }
+
+        if (set_position_default) {
+            // Pour chaque page widget, on crée une position par défaut
+            for (const i in positions) {
+                const pos: DashboardPageWidgetVO = positions[i];
+
+                // On va mettre toutes les positions avec la même hauteur que le viewport par défaut mais on adapte la largeur
+                if (default_positions[i]) {
+                    pos.w = (default_positions[i].w > this.selected_viewport.nb_columns) ? this.selected_viewport.nb_columns : default_positions[i].w;
+                    pos.h = default_positions[i].h;
+                }
+
+                // Pour les positions x et y, on va mettre le 1er à 0 0 et les autres à la suite en dessous
+                if (i == '0') {
+                    pos.x = 0;
+                    pos.y = 0;
+                } else {
+                    pos.x = 0;
+                    // y = y du précédent + h du précédent
+                    pos.y = positions[parseInt(i) - 1].y + positions[parseInt(i) - 1].h;
+                }
+            }
+        }
+
+        await ModuleDAO.getInstance().insertOrUpdateVOs(positions);
+
+        action_viewport.active = !action_viewport.active;
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(action_viewport);
+
+        this.is_dbb_actived_on_viewport = action_viewport?.active;
+    }
+
     private async mounted() {
         const self = this;
         await navigator.permissions.query({ name: "clipboard-write" as any }).then((result) => {
@@ -1159,6 +1311,34 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         if (body) {
             body.classList.add("sidenav-toggled");
+        }
+
+        this.dashboards = await this.load_all_dashboards(
+            { refresh: true },
+        );
+        if ((this.dashboards?.length > 0) && !this.dashboard) {
+            this.dashboard = this.dashboards[0];
+        }
+
+        if (!this.viewports?.length) {
+            const base_window_width: number = window.innerWidth;
+
+            // On ne charge que les viewports qui sont plus petits ou égaux à la largeur de la fenêtre
+            this.viewports = await query(DashboardViewportVO.API_TYPE_ID)
+                .filter_by_num_inf_eq(field_names<DashboardViewportVO>().screen_min_width, base_window_width)
+                .set_sorts([
+                    new SortByVO(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().screen_min_width, false),
+                    new SortByVO(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().nb_columns, false),
+                ])
+                .select_vos();
+        }
+
+        if (!this.selected_viewport) {
+            this.selected_viewport = this.viewports.find((v) => v.is_default);
+
+            if (!this.selected_viewport) {
+                this.selected_viewport = this.viewports[0];
+            }
         }
     }
 

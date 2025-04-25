@@ -93,6 +93,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private do_not_use_page_widget_ids: number[] = null;
     private do_not_use_page_widgets: DashboardPageWidgetVO[] = [];
     private page_widget_options: DashboardPageWidgetVO[] = [];
+    private show_message_no_data: boolean = false;
+    private message_no_data: string = null;
 
     private tmp_default_export_option: DataFilterOption = null;
     private export_page_options: DataFilterOption[] = [
@@ -109,6 +111,22 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private use_kanban_column_weight_if_exists: boolean = true;
     private use_kanban_card_archive_if_exists: boolean = true;
     private tmp_legende_tableau: string = null;
+
+    private optionsEditeur = {
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],      // Boutons pour le gras, italique, souligné, barré
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                [{ 'size': ['small', false, 'large', 'huge'] }],
+                [{ 'color': [] }, { 'background': [] }],        // dropdown with defaults from theme
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],  // Boutons pour les listes
+                [{ 'script': 'sub' }, { 'script': 'super' }],   // indice et exposant
+                [{ 'indent': '-1' }, { 'indent': '+1' }],       // outdent/indent
+                [{ 'align': [] }],                              // Bouton pour l'alignement (gauche, centre, droite, justifié)
+                ['clean']                                       // Bouton pour effacer la mise en forme
+            ]
+        }
+    };
 
     get crud_api_type_id_select_options(): string[] {
         return this.get_dashboard_api_type_ids;
@@ -323,6 +341,13 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!!this.do_not_use_page_widgets) {
                 this.do_not_use_page_widgets = [];
             }
+            if (this.show_message_no_data) {
+                this.show_message_no_data = false;
+            }
+            if (this.message_no_data) {
+                this.message_no_data = null;
+            }
+
             this.limit = TableWidgetOptionsVO.DEFAULT_LIMIT.toString();
             this.limit_selectable = TableWidgetOptionsVO.DEFAULT_LIMIT_SELECTABLE;
             this.tmp_nbpages_pagination_list = TableWidgetOptionsVO.DEFAULT_NBPAGES_PAGINATION_LIST;
@@ -421,6 +446,12 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         if (this.do_not_use_page_widget_ids != this.widget_options.do_not_use_page_widget_ids) {
             this.do_not_use_page_widget_ids = this.widget_options.do_not_use_page_widget_ids;
         }
+        if (this.show_message_no_data != this.widget_options.show_message_no_data) {
+            this.show_message_no_data = this.widget_options.show_message_no_data;
+        }
+        if (this.message_no_data != this.widget_options.message_no_data) {
+            this.message_no_data = this.widget_options.message_no_data;
+        }
 
         this.page_widget_options = await query(DashboardPageWidgetVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, this.page_widget.page_id)
@@ -468,6 +499,15 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             this.next_update_options.show_bulk_select_all = this.show_bulk_select_all;
 
             await this.throttled_update_options();
+        }
+    }
+
+    @Watch('message_no_data')
+    private async onchange_message_no_data() {
+        if (this.widget_options.message_no_data != this.message_no_data) {
+            this.next_update_options.message_no_data = this.message_no_data;
+
+            this.throttled_update_options();
         }
     }
 
@@ -621,6 +661,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             this.next_update_options = cloneDeep(this.widget_options);
             this.next_update_options.limit_selectable = this.limit_selectable;
 
+            this.throttled_update_options();
+        }
+    }
+
+    private switch_show_message_no_data() {
+        this.show_message_no_data = !this.show_message_no_data;
+
+        this.next_update_options = cloneDeep(this.widget_options);
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.show_message_no_data != this.show_message_no_data) {
+            this.next_update_options.show_message_no_data = this.show_message_no_data;
             this.throttled_update_options();
         }
     }

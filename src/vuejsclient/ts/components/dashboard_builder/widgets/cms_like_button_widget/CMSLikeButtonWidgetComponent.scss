@@ -1,0 +1,43 @@
+@import "skin-variables.scss";
+
+.dashboard_builder_board_item .widget_component.cms_like_button_widget_component {
+    margin-bottom: 10px;
+    padding: 0;
+
+    .row {
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        gap: 10px;
+
+        button {
+            height: 45px;
+            width: 45px;
+            border-radius: 90px;
+            border: 1px solid $button_primary_active_bg_color;
+            color: $button_primary_active_bg_color;
+            background: none;
+
+            &.liked {
+                background-color: $button_primary_active_bg_color;
+                border: none;
+                color: white;
+            }
+
+            i {
+                font-weight: 300 !important;
+                font-size: 20px;
+
+                &:before {
+                    margin-right: 0;
+                }
+            }
+        }
+
+        .col-md-3 {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
+    }
+}

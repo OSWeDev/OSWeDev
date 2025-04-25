@@ -1,0 +1,96 @@
+.cms_link_button_widget_options_component
+    .cms_link_button_widget_options_component_wrapper
+
+        .widget_url_label
+            .widget_url_label {{ label('cms_link_button.widget_option.url') }}
+            .widget_url_wrapper
+
+                .widget_url_wrapper_toggle {{ label('cms_link_button.widget_option.is_url_field') }}
+                    toggle-button(
+                        @change="switch_is_url_field"
+                        :value="is_url_field" 
+                        :sync="true"
+                        :width="100"
+                        :labels="{checked: label('cms_link_button.widget_option.is_url_field.true'), unchecked: label('cms_link_button.widget_option.is_url_field.false')}"
+                    )
+                .widget_url_wrapper_input
+                    template(v-if="is_url_field")
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="url_field_ref"
+                            @remove_field_ref="remove_url_field_ref"
+                            @add_field_ref="add_url_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
+
+                    template(v-else)
+                        input(
+                            type="text"
+                            v-model="url"
+                            v-tooltip.top='label("cms_link_button.tooltip_url")'
+                        )
+        
+        .widget_title_label {{ label('cms_link_button.widget_option.titre') }}
+            .widget_title_wrapper
+                input(
+                    type="text"
+                    v-model="title"
+                )
+        
+        .widget_icone_label {{ label('cms_link_button.widget_option.icone') }}
+            .widget_icone_wrapper
+                input(
+                    type="text"
+                    v-model="icone"
+                    v-tooltip='label("cms_link_button.widget_option.icone.tooltip")'
+                )
+        
+        .widget_button_class_label {{ label('cms_link_button.widget_option.button_class') }}
+            .widget_button_class_wrapper
+                input(
+                    type="text"
+                    v-model="button_class"
+                )
+        
+        .about_blank_label {{ label('cms_link_button.widget_option.about_blank') }}
+        toggle-button(
+            @change="switch_about_blank"
+            :value="about_blank" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('cms_link_button.widget_option.about_blank.true'), unchecked: label('cms_link_button.widget_option.about_blank.false')}"
+        )
+
+        .widget_button_color {{ label("cms_link_button.widget_option.color") }}
+        color-picker(v-model="color" @change='throttled_update_options')
+
+        .text_color_label {{ label('cms_link_button.widget_option.text_color') }}
+        toggle-button(
+            @change="switch_text_color"
+            :value="is_text_color_white"
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('cms_link_button.widget_option.text_color.blanc'), unchecked: label('cms_link_button.widget_option.text_color.noir')}"
+        )
+
+        .radius_bloc 
+            .input_label {{ label('cms_image.widget_option.radius') }}
+            .input_wrapper
+                input(
+                    type="number"
+                    v-model="radius"
+                )
+
+        .role_access(v-tooltip="label('cms_crud_buttons.widget_option.role_access.tooltip')") {{ label('cms_crud_buttons.widget_option.role_access') }}
+            multiselect.mb-3(
+                v-model="selected_roles"
+                :multiple="true"
+                :options="list_roles"
+                :custom-label="multiselectRoleOptionLabel"
+                :select-label='label("multiselect.selectLabel")'
+                :select-group-label='label("multiselect.selectGroupLabel")'
+                :selected-label='label("multiselect.selectedLabel")'
+                :deselect-label='label("multiselect.deselectLabel")'
+                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                :placeholder='label("multiselect.roles.placeholder")'
+                track-by="id"
+            )

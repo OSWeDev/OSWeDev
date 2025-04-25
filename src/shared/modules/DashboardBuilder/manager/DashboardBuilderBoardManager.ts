@@ -66,7 +66,9 @@ export default class DashboardBuilderBoardManager {
             const vo_type = db_cells_source[i].vo_type;
             const db_cell_source = db_cells_source[i];
 
-            api_type_ids.push(vo_type);
+            if (!api_type_ids.includes(vo_type)) {
+                api_type_ids.push(vo_type);
+            }
 
             if (!db_cell_source.values_to_exclude) {
                 continue;

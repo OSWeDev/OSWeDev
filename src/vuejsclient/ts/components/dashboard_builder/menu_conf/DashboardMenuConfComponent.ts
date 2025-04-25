@@ -3,6 +3,7 @@ import { Prop, Vue, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import DashboardBuilderController from '../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
@@ -71,13 +72,21 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
 
         const res: MenuElementVO = new MenuElementVO();
 
-        res.access_policy_name = ModuleDashboardBuilder.POLICY_FO_ACCESS;
+        if (this.dashboard?.is_cms_compatible) {
+
+            res.access_policy_name = ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS;
+            res.target = DashboardBuilderController.ROUTE_NAME_CMS_VIEW;
+            res.name = 'cms__menu__' + app_name + '__' + this.dashboard.id;
+        } else {
+
+            res.access_policy_name = ModuleDashboardBuilder.POLICY_FO_ACCESS;
+            res.target = DashboardBuilderController.ROUTE_NAME_DASHBOARD_VIEW;
+            res.name = 'dashboard__menu__' + app_name + '__' + this.dashboard.id;
+        }
         res.app_name = app_name;
         res.fa_class = "fa-area-chart";
         res.hidden = true;
         res.menu_parent_id = null;
-        res.name = 'dashboard__menu__' + app_name + '__' + this.dashboard.id;
-        res.target = 'Dashboard View';
         res.target_is_routename = true;
         res.target_route_params = '{ "dashboard_id": ' + this.dashboard.id + ' }';
         res.weight = -1;

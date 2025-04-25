@@ -6,10 +6,10 @@ import WidgetOptionsVOManager from '../../../../../shared/modules/DashboardBuild
  */
 export default class DashboardBuilderWidgetsController extends WidgetOptionsVOManager {
 
+    protected static instance: WidgetOptionsVOManager;
+
     // istanbul ignore next: nothing to test
     public static getInstance(): WidgetOptionsVOManager {
         return WidgetOptionsVOManager.getInstance();
     }
-
-    protected static instance: WidgetOptionsVOManager;
 }

@@ -989,6 +989,7 @@ export default class ContextQueryServerController {
                             context_query.base_api_type_id,
                             vo_to_delete,
                             context_query.is_server);
+
                         if (!BooleanHandler.AND(preDeleteTrigger_res, true)) {
                             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'pre_delete_trigger_hook_rejection');
                             return;

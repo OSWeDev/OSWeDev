@@ -3,16 +3,23 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import ModuleDashboardBuilder from '../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
+import DashboardActiveonViewportVO from '../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
 import DashboardGraphVORefVO from '../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
+import DashboardPageVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardViewportVO from '../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
+import ListObjectLikesVO from '../../../shared/modules/DashboardBuilder/vos/ListObjectLikesVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
@@ -1363,6 +1370,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Insérer un bloc de texte'
         }, 'dashboards.widgets.icons_tooltips.BlocText.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Insérer une liste d\'objets'
+        }, 'dashboards.widgets.icons_tooltips.listobject.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Min/Max relatifs à l\'année actuelle'
         }, 'year_filter_widget_component.year_relative_mode.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -1829,6 +1839,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Dashboard Builder'
         }, 'menu.menuelements.admin.DashboardBuilderAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'CMS Builder'
+        }, 'menu.menuelements.admin.CMSBuilder.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'CMS Config'
+        }, 'menu.menuelements.admin.CMSConfig.___LABEL___'));
+
 
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -3779,8 +3796,44 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_options_component.do_not_use_page_widget_ids.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Sélectionner les filtres à ne pas utiliser" },
+            'list_object_widget_options_component.do_not_use_page_widget_ids.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Utiliser un filtre pour avoir des colonnes dynamiques dans le tableau" },
             'table_widget_options_component.has_column_dynamic.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher un message lorsqu'il n'y a pas de données" },
+            'table_widget_options_component.show_message_no_data.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'table_widget_options_component.show_message_no_data.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'table_widget_options_component.show_message_no_data.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Message à afficher" },
+            'table_widget_options_component.message_no_data.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher un message lorsqu'il n'y a pas de données" },
+            'listobject_widget.show_message_no_data.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'listobject_widget.show_message_no_data.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'listobject_widget.show_message_no_data.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Message à afficher" },
+            'listobject_widget.message_no_data.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Ajouter un nouvel indicateur" },
@@ -3835,12 +3888,658 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'supervision_type_widget_component.auto_refresh_seconds.___LABEL___'
         ));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Titre" },
+            'cms_bloc_text.widget_option.titre.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Sous-titre" },
+            'cms_bloc_text.widget_option.sous_titre.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Sur-titre" },
+            'cms_bloc_text.widget_option.sur_titre.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Contenu" },
+            'cms_bloc_text.widget_option.contenu.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Alignement du titre" },
+            'cms_bloc_text.widget_option.alignement_titre.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Alignement du sous-titre" },
+            'cms_bloc_text.widget_option.alignement_sous_titre.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Alignement du contenu" },
+            'cms_bloc_text.widget_option.alignement_contenu.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Gauche" },
+            'cms_bloc_text.alignement.gauche.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Centré" },
+            'cms_bloc_text.alignement.centre.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Droite" },
+            'cms_bloc_text.alignement.droite.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Justifié" },
+            'cms_bloc_text.alignement.justifie.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Justifié" },
+            'cms_bloc_text.alignement.justifie.___LABEL___'
+        ));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Options de la liste" },
+            'list_object_widget_options_component.separator.widget_options.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Titres" },
+            'list_object_widget_options_component.widget_title.title.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Titres (champ obligatoire)" },
+            'list_object_widget_options_component.widget_title.title_mandaroty.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Sous-titres" },
+            'list_object_widget_options_component.widget_subtitle.subtitle.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Sur-titre" },
+            'list_object_widget_options_component.widget_surtitre.surtitre.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Images" },
+            'list_object_widget_options_component.widget_image.image.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Nombres" },
+            'list_object_widget_options_component.widget_number.number.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Nombre d\'éléments" },
+            'list_object_widget_options_component.number_of_elements.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Tri d\'affichage" },
+            'list_object_widget_options_component.sort_dimension_by.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Orientation" },
+            'list_object_widget_options_component.display_orientation.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Card" },
+            'ListObjectWidgetOptionsVO.type_display_card.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Liste" },
+            'ListObjectWidgetOptionsVO.type_display_list.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Horizontal" },
+            'ListObjectWidgetOptionsVO.display_orientation_horizontal.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Vertical" },
+            'ListObjectWidgetOptionsVO.display_orientation_vertical.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Activer le bouton like" },
+            'list_object_widget_options_component.activate_like_button.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Type d'affichage" },
+            'list_object_widget_options_component.type_display.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Les éléments sont des boutons" },
+            'list_object_widget_options_component.button_for_elements.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "URL" },
+            'list_object_widget_options_component.url.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Utiliser blank" },
+            'list_object_widget_options_component.use_blank.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ pour trier" },
+            'list_object_widget_options_component.sort_field_ref.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher une seule carte (zoomée)" },
+            'list_object_widget_options_component.card_width.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter un texte après le surtitre" },
+            'list_object_widget_options_component.symbole_surtitre.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter un texte après le sous titre" },
+            'list_object_widget_options_component.symbole_sous_titre.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Le titre est une date ?" },
+            'cms_bloc_text.widget_option.titre_template_is_date.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Le sous-titre est une date ?" },
+            'cms_bloc_text.widget_option.sous_titre_template_is_date.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Le sur-titre est une date ?" },
+            'cms_bloc_text.widget_option.sur_titre_template_is_date.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Le contenu est une date ?" },
+            'cms_bloc_text.widget_option.contenu_template_is_date.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter un texte après le sous-titre" },
+            'cms_bloc_text.widget_option.sous_titre_symbole.___LABEL___'
+        ));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "URL" },
+            'cms_link_button.widget_option.url.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Texte du bouton" },
+            'cms_link_button.widget_option.titre.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Lien vers lequel le bouton doit renvoyer." },
+            'cms_link_button.tooltip_url.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ouvrir dans un autre onglet ?" },
+            'cms_link_button.widget_option.about_blank.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'cms_link_button.widget_option.about_blank.true.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'cms_link_button.widget_option.about_blank.false.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Couleur du bouton" },
+            'cms_link_button.widget_option.color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Blanc" },
+            'cms_link_button.widget_option.text_color.blanc.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Noir" },
+            'cms_link_button.widget_option.text_color.noir.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Couleur du texte du bouton" },
+            'cms_link_button.widget_option.text_color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Icône" },
+            'cms_link_button.widget_option.icone.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Code FontAwesome" },
+            'cms_link_button.widget_option.icone.tooltip.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'cms_link_button.widget_option.is_url_field.true.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'cms_link_button.widget_option.is_url_field.false.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "L'URL est un champs ?" },
+            'cms_link_button.widget_option.is_url_field.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Arrondir les angles (valeur en degrés)" },
+            'cms_image.widget_option.radius.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Bouton de redirection" },
+            'dashboards.widgets.icons_tooltips.cmslinkbutton.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Image simple" },
+            'dashboards.widgets.icons_tooltips.cmsimage.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Bloc de texte" },
+            'dashboards.widgets.icons_tooltips.cmsbloctext.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "CMS Builder" },
+            'cms_builder.title.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Sélectionner un Viewport..." },
+            'dashboard_builder.select_viewport.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': " colonnes" },
+            'dashboard_builder.viewport.columns.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ce viewport n'a pas été encore activé pour cette page. La disposition de vos widgets risque de ne pas être compatible avec ce nouveau viewport. Souhaitez-vous qu'un positionnement par défaut soit appliqué à vos widgets ?" },
+            'dashboard_builder.viewport_not_activated.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui, définir une disposition par défaut." },
+            'dashboard_builder.viewport_not_activated.yes.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non, garder l'ancienne disposition." },
+            'dashboard_builder.viewport_not_activated.no.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Couleur" },
+            'cms_like_button.widget_option.color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Arrondir les angles (valeur en degrés)" },
+            'cms_like_button.widget_option.radius.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Bouton \"J'aime\"" },
+            'dashboards.widgets.icons_tooltips.cmslikebutton.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ image à utiliser pour le template (dynamique)" },
+            'cms_image.widget_option.field_ref_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Fichier à uploader" },
+            'cms_image.widget_option.file_id.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Utiliser en mode template (dynamique)" },
+            'cms_image.widget_option.use_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Utiliser en mode template (dynamique)" },
+            'cms_bloc_text.widget_option.use_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Utiliser en mode template (dynamique)" },
+            'cms_visionneuse_pdf.widget_option.use_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ contenu à utiliser pour le template (dynamique)" },
+            'cms_visionneuse_pdf.widget_option.field_ref_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Fichier" },
+            'cms_visionneuse_pdf.widget_option.file_id.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ contenu à utiliser pour le template (dynamique)" },
+            'cms_image.widget_option.contenu_field_ref_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ sous-titre à utiliser pour le template (dynamique)" },
+            'cms_image.widget_option.sous_titre_field_ref_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ sur-titre à utiliser pour le template (dynamique)" },
+            'cms_image.widget_option.sur_titre_field_ref_for_template.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ titre à utiliser pour le template (dynamique)" },
+            'cms_image.widget_option.titre_field_ref_for_template.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Centré au centre" },
+            'cms_image.position.centre_centre.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Centré à gauche" },
+            'cms_image.position.centre_gauche.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Centré à droite" },
+            'cms_image.position.centre_droite.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Centré en haut" },
+            'cms_image.position.centre_haut.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Centré en base" },
+            'cms_image.position.centre_bas.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "En haut à gauche" },
+            'cms_image.position.haut_gauche.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "En haut à droite" },
+            'cms_image.position.haut_droite.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "En bas à gauche" },
+            'cms_image.position.bas_gauche.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "En bas à droite" },
+            'cms_image.position.bas_droite.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Par défaut" },
+            'cms_image.mise_en_page.defaut.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Couvrir" },
+            'cms_image.mise_en_page.couvrir.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Contenir" },
+            'cms_image.mise_en_page.contenir.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Position" },
+            'cms_image.widget_option.position.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Mise en page" },
+            'cms_image.widget_option.mise_en_page.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher le bouton d'ajout" },
+            'cms_crud_buttons.widget_option.show_add.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'cms_crud_buttons.widget_option.show_add.true.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'cms_crud_buttons.widget_option.show_add.false.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher le bouton de mise à jour" },
+            'cms_crud_buttons.widget_option.show_update.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'cms_crud_buttons.widget_option.show_update.true.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'cms_crud_buttons.widget_option.show_update.false.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher le bouton de suppression" },
+            'cms_crud_buttons.widget_option.show_delete.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'cms_crud_buttons.widget_option.show_delete.true.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'cms_crud_buttons.widget_option.show_delete.false.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Filtrage dynamique (pour les templates uniquement, filtre sur l'identifiant de l'objet de la page)" },
+            'listobject_widget.filter_on_cmv_vo.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'listobject_widget.filter_on_cmv_vo.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'listobject_widget.filter_on_cmv_vo.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Filtrage dynamique (pour les templates uniquement, filtre sur une foreign key de l'objet courant)" },
+            'listobject_widget.filter_on_distant_vo.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'listobject_widget.filter_on_distant_vo.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'listobject_widget.filter_on_distant_vo.hidden.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Choisir le type d'objet manuellement" },
+            'cms_crud_buttons.widget_option.show_manual_vo_type.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'cms_crud_buttons.widget_option.show_manual_vo_type.true.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'cms_crud_buttons.widget_option.show_manual_vo_type.false.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Type d'objet" },
+            'cms_crud_buttons.widget_option.vo_type.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher les boutons d'ajout et de modification" },
+            'cms_crud_buttons.widget_option.show_add_edit_fk.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'cms_crud_buttons.widget_option.show_add_edit_fk.true.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'cms_crud_buttons.widget_option.show_add_edit_fk.false.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Boutons de CRUD" },
+            'dashboards.widgets.icons_tooltips.crudbuttons.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher un paramètre" },
+            'dashboards.widgets.icons_tooltips.cmsprintparam.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Type de contenu" },
+            'cms_config.api_type_id.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Dashboard pour template" },
+            'cms_config.dbb_id.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Affectation d'un template pour un type de contenu" },
+            'cms_config.template_for_api_type_id.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "STRING" },
+            'cms_print_param.string.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "BOOLÉEN" },
+            'cms_print_param.boolean.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "ENTIER" },
+            'cms_print_param.int.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "DECIMAL" },
+            'cms_print_param.float.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "DATE" },
+            'cms_print_param.date.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "VRAI" },
+            'print_param.boolean.true.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "FAUX" },
+            'print_param.boolean.false.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Type de paramètre" },
+            'cms_print_param.widget_option.type_param.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Paramètre" },
+            'cms_print_param.widget_option.param.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Titre" },
+            'cms_print_param.widget_option.title.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Rôles" },
+            'multiselect.roles.placeholder.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Limiter l'accès au CRUD aux rôles suivants" },
+            'cms_crud_buttons.widget_option.role_access.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ne renseigner aucun rôle laisse l'accès à tout le monde." },
+            'cms_crud_buttons.widget_option.role_access.tooltip.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Bouton de booléen" },
+            'dashboards.widgets.icons_tooltips.cmsbooleanbutton.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ booléen" },
+            'cms_boolean_button.widget_option.vo_field_ref.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Titre pour valeur 'Vraie'" },
+            'cms_boolean_button.widget_option.titre_ok.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Titre pour valeur 'Faux'" },
+            'cms_boolean_button.widget_option.titre_nok.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Icône pour valeur 'Vraie'" },
+            'cms_boolean_button.widget_option.icone_ok.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Icône pour valeur 'Faux'" },
+            'cms_boolean_button.widget_option.icone_nok.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Couleur du bouton" },
+            'cms_boolean_button.widget_option.color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Couleur du texte" },
+            'cms_boolean_button.widget_option.text_color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Code FontAwesome" },
+            'cms_boolean_button.widget_option.icone.tooltip.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Champ User" },
+            'cms_boolean_button.widget_option.user_field_ref.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter une classe (CSS)" },
+            'cms_link_button.widget_option.button_class.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter une classe au titre (CSS)" },
+            'cms_bloc_text.widget_option.titre_class.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter une classe au sous-titre (CSS)" },
+            'cms_bloc_text.widget_option.sous_titre_class.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter une classe au sur-titre (CSS)" },
+            'cms_bloc_text.widget_option.sur_titre_class.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter une classe au contenu (CSS)" },
+            'cms_bloc_text.widget_option.contenu_class.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Zoomer la carte au click" },
+            'list_object_widget_options_component.zoom_on_click.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Texte de bas de carte" },
+            'list_object_widget_options_component.widget_card_footer_label.card_footer_label.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Disponible qu'en mode : Carte, horizontal, ne pas afficher une seule carte et les éléments ne sont pas des boutons" },
+            'list_object.widget_option.zoom_on_click.tooltip.___LABEL___'
+        ));
+
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
 
         const postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         postUTrigger.registerHandler(DashboardGraphVORefVO.API_TYPE_ID, this, this.onUDashboardGraphVORefVO);
+
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        postCreateTrigger.registerHandler(DashboardViewportVO.API_TYPE_ID, this, this.postCreateDashboardViewport);
+        postCreateTrigger.registerHandler(DashboardPageVO.API_TYPE_ID, this, this.postCreateDashboardPage);
+        postCreateTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.postCreateDashboard);
+        // postCreateTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.postCreateDashboardPageWidget);
+
+        const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        postUpdateTrigger.registerHandler(DashboardViewportVO.API_TYPE_ID, this, this.postUpdateDashboardViewport);
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -3849,6 +4548,62 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE,
             this.start_export_favorites_filters_datatable.bind(this)
         );
+
+        APIControllerWrapper.registerServerApiHandler(
+            ModuleDashboardBuilder.APINAME_LIST_OBJECT_WIDGET_TOGGLE_LIKE,
+            this.list_object_widget_toggle_like.bind(this)
+        );
+
+        APIControllerWrapper.registerServerApiHandler(
+            ModuleDashboardBuilder.APINAME_FETCH_LIKES_FOR_ITEMS,
+            this.fetch_likes_for_items.bind(this)
+        );
+    }
+
+    public async fetch_likes_for_items(api_type_id: string, vo_ids: number[]): Promise<ListObjectLikesVO[]> {
+        const res: ListObjectLikesVO[] = await query(ListObjectLikesVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<ListObjectLikesVO>().api_type_id, api_type_id)
+            .filter_by_num_has(field_names<ListObjectLikesVO>().vo_id, vo_ids)
+            .select_vos();
+
+        return res;
+    }
+
+    public async list_object_widget_toggle_like(given_list_object_likes: ListObjectLikesVO): Promise<ListObjectLikesVO> {
+        // On regarde si l'objet existe déjà
+        let exist_list_object_likes: ListObjectLikesVO =
+            await query(ListObjectLikesVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<ListObjectLikesVO>().api_type_id, given_list_object_likes.api_type_id)
+                .filter_by_num_eq(field_names<ListObjectLikesVO>().vo_id, given_list_object_likes.vo_id)
+                .select_vo();
+
+        if (!exist_list_object_likes) {
+            exist_list_object_likes = new ListObjectLikesVO();
+            exist_list_object_likes.api_type_id = given_list_object_likes.api_type_id;
+            exist_list_object_likes.vo_id = given_list_object_likes.vo_id;
+        }
+
+        // On regarde si l'utilisateur a déjà liké l'objet
+        const user_id: number = given_list_object_likes.list_user_likes[0];
+
+        // On vérifie si la liste des utilisateurs est vide
+        if (!exist_list_object_likes.list_user_likes) {
+            exist_list_object_likes.list_user_likes = [];
+        }
+
+        const index: number = exist_list_object_likes.list_user_likes.indexOf(user_id);
+        if (index === -1) {
+            // L'utilisateur n'a pas liké l'objet, on l'ajoute
+            exist_list_object_likes.list_user_likes.push(user_id);
+        } else {
+            // L'utilisateur a déjà liké l'objet, on le retire
+            exist_list_object_likes.list_user_likes.splice(index, 1);
+        }
+
+        // On sauvegarde l'objet
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(exist_list_object_likes);
+
+        return exist_list_object_likes;
     }
 
     /**
@@ -3893,6 +4648,45 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         front_access_dependency.src_pol_id = fo_access.id;
         front_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
         front_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_access_dependency);
+
+        let bo_CMS_VERSION_access: AccessPolicyVO = new AccessPolicyVO();
+        bo_CMS_VERSION_access.group_id = group.id;
+        bo_CMS_VERSION_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        bo_CMS_VERSION_access.translatable_name = ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS;
+        bo_CMS_VERSION_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_CMS_VERSION_access, DefaultTranslationVO.create_new({
+            'fr-fr': 'Administration des Dashboards type CMS'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let admin_CMS_VERSION_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        admin_CMS_VERSION_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        admin_CMS_VERSION_access_dependency.src_pol_id = bo_CMS_VERSION_access.id;
+        admin_CMS_VERSION_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_CMS_VERSION_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_CMS_VERSION_access_dependency);
+
+        let fo_CMS_VERSION_access: AccessPolicyVO = new AccessPolicyVO();
+        fo_CMS_VERSION_access.group_id = group.id;
+        fo_CMS_VERSION_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        fo_CMS_VERSION_access.translatable_name = ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS;
+        fo_CMS_VERSION_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_CMS_VERSION_access, DefaultTranslationVO.create_new({
+            'fr-fr': 'Consultation des Dashboards type CMS'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let front_CMS_VERSION_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        front_CMS_VERSION_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        front_CMS_VERSION_access_dependency.src_pol_id = fo_CMS_VERSION_access.id;
+        front_CMS_VERSION_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+        front_CMS_VERSION_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_CMS_VERSION_access_dependency);
+
+        let dbb_filters_visible_on_cms: AccessPolicyVO = new AccessPolicyVO();
+        dbb_filters_visible_on_cms.group_id = group.id;
+        dbb_filters_visible_on_cms.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        dbb_filters_visible_on_cms.translatable_name = ModuleDashboardBuilder.POLICY_DBB_FILTERS_VISIBLE_ON_CMS;
+        dbb_filters_visible_on_cms = await ModuleAccessPolicyServer.getInstance().registerPolicy(dbb_filters_visible_on_cms, DefaultTranslationVO.create_new({
+            'fr-fr': 'Filtres des DBB visibles sur le CMS Builder'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let dbb_filters_visible_on_cms_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        dbb_filters_visible_on_cms_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        dbb_filters_visible_on_cms_access_dependency.src_pol_id = dbb_filters_visible_on_cms.id;
+        dbb_filters_visible_on_cms_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+        dbb_filters_visible_on_cms_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dbb_filters_visible_on_cms_access_dependency);
     }
 
     private async onCDashboardVO(e: DashboardVO): Promise<boolean> {
@@ -3972,5 +4766,144 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         // }
 
         DashboardCycleChecker.detectCyclesForDashboards({ [wrapper.post_update_vo.dashboard_id]: true });
+    }
+
+    private async postCreateDashboardPage(page: DashboardPageVO) {
+        if (!page) {
+            return;
+        }
+
+        const viewports: DashboardViewportVO[] = await query(DashboardViewportVO.API_TYPE_ID).select_vos();
+        const liens_actifs: DashboardActiveonViewportVO[] = [];
+
+        for (const i in viewports) {
+            const viewport = viewports[i];
+
+            const lien_actif: DashboardActiveonViewportVO = new DashboardActiveonViewportVO();
+            lien_actif.active = viewport?.is_default;
+            lien_actif.dashboard_page_id = page.id;
+            lien_actif.dashboard_viewport_id = viewport.id;
+
+            liens_actifs.push(lien_actif);
+        }
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(liens_actifs);
+    }
+
+    private async postCreateDashboard(dbb: DashboardVO) {
+        if (!dbb) {
+            return;
+        }
+
+        if (!dbb.is_cms_compatible) {
+            return;
+        }
+
+        // On récupère le 1er dbb pour récupérer tous les graphs
+        const dbb_graphs_cms: DashboardGraphVORefVO[] = await query(DashboardGraphVORefVO.API_TYPE_ID)
+            .filter_by_num_in(
+                field_names<DashboardGraphVORefVO>().dashboard_id,
+                query(DashboardVO.API_TYPE_ID)
+                    .field(field_names<DashboardVO>().id)
+                    .filter_is_true(field_names<DashboardVO>().is_cms_compatible)
+                    .set_limit(1)
+            )
+            .select_vos();
+
+        if (!dbb_graphs_cms?.length) {
+            return;
+        }
+
+        for (const i in dbb_graphs_cms) {
+            delete dbb_graphs_cms[i].id;
+            dbb_graphs_cms[i].dashboard_id = dbb.id;
+        }
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(dbb_graphs_cms);
+    }
+
+    private async viewportBecomeDefault(viewport: DashboardViewportVO) {
+        const viewports: DashboardViewportVO[] = await query(DashboardViewportVO.API_TYPE_ID).select_vos();
+        for (const i in viewports) {
+            const vp = viewports[i];
+            if (vp.id != viewport.id) {
+                vp.is_default = false;
+            }
+        }
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(viewports);
+    }
+
+    private async postUpdateDashboardViewport(update: DAOUpdateVOHolder<DashboardViewportVO>) {
+        if (!update || !update.pre_update_vo || !update.post_update_vo) {
+            return;
+        }
+
+        // S'il devient le viewport par défaut, on désactive les autres
+        if (update.post_update_vo.is_default) {
+            this.viewportBecomeDefault(update.post_update_vo);
+        }
+    }
+
+    private async postCreateDashboardViewport(viewport: DashboardViewportVO) {
+        if (!viewport) {
+            return;
+        }
+
+        const default_viewport = viewport.is_default
+            ? viewport
+            : await query(DashboardViewportVO.API_TYPE_ID).filter_is_true(field_names<DashboardViewportVO>().is_default).select_vo();
+
+        // Si le nouveau devient le défaut, on désactive les autres
+        if (viewport.is_default) {
+            this.viewportBecomeDefault(viewport);
+        }
+
+        // Liaison des dashboards au viewport
+        const dbb_pages: DashboardPageVO[] = await query(DashboardPageVO.API_TYPE_ID).select_vos();
+        const liaisons_dbbs_viewports: DashboardActiveonViewportVO[] = [];
+
+        for (const i in dbb_pages) {
+            const dbb = dbb_pages[i];
+
+            const liaison: DashboardActiveonViewportVO = new DashboardActiveonViewportVO();
+            liaison.dashboard_page_id = dbb.id;
+            liaison.dashboard_viewport_id = viewport.id;
+
+            // À la création, on n'active le dashboard que sur le viewport par défaut
+            if (viewport.is_default) {
+                liaison.active = true;
+            } else {
+                liaison.active = false;
+            }
+
+            liaisons_dbbs_viewports.push(liaison);
+        }
+
+        // Liaison des widgets aux viewports
+        const default_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_viewport_id, default_viewport.id)
+            .select_vos();
+
+        const new_widgets_viewport: DashboardPageWidgetVO[] = [];
+        for (const i in default_widgets) {
+            const widget = default_widgets[i];
+
+            const widget_position: DashboardPageWidgetVO = new DashboardPageWidgetVO();
+            widget_position.x = widget?.x;
+            widget_position.y = widget?.y;
+            widget_position.w = widget?.w;
+            widget_position.h = widget?.h;
+            widget_position.i = widget?.i;
+            widget_position.static = widget?.static;
+            widget_position.show_widget_on_viewport = true;
+            widget_position.dashboard_viewport_id = viewport.id;
+            widget_position.widget_id = widget.widget_id;
+
+            new_widgets_viewport.push(widget_position);
+        }
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(liaisons_dbbs_viewports);
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(new_widgets_viewport);
     }
 }

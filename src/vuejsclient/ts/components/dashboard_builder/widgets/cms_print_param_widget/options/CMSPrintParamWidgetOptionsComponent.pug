@@ -1,0 +1,41 @@
+.cms_print_param_widget_options_component
+    .cms_print_param_widget_options_component_wrapper
+        .choose_type_param
+            .input_label {{ label('cms_print_param.widget_option.type_param') }}
+            .input_wrapper
+                multiselect.var_name_selector(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="type_param_selected"
+                    :options="type_param_options"
+                    :allow-empty="false",
+                    label="label",
+
+                    :searchable="true"
+                    :internal-search="true"
+
+                    name="type_param_selector"
+                    track-by="id"
+                )
+        .choose_param
+            .input_label {{ label('cms_print_param.widget_option.param') }}
+            .input_wrapper
+                multiselect.var_name_selector(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="param_selected"
+                    :options="param_options"
+                    :allow-empty="false",
+                    label="label",
+                    :custom-label="multiselectOptionLabel"
+
+                    :searchable="true"
+                    :internal-search="true"
+
+                    name="param_selector"
+                    track-by="id"
+                )
+        
+        .add_title 
+            .input_label {{ label('cms_print_param.widget_option.title') }} 
+            Vuequilleditor(v-model='titre', :options="optionsEditeur")

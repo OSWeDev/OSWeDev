@@ -29,6 +29,7 @@ import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update
 import './DashboardBuilderBoardComponent.scss';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
 import { field_names } from '../../../../../shared/tools/ObjectHandler';
+import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -46,6 +47,8 @@ import { field_names } from '../../../../../shared/tools/ObjectHandler';
     }
 })
 export default class DashboardBuilderBoardComponent extends VueComponentBase {
+
+    public static GridLayout_DEFAULT_NB_COLUMNS: number = 12;
 
     public static GridLayout_TOTAL_HEIGHT: number = 720;
     public static GridLayout_TOTAL_ROWS: number = 72;
@@ -109,6 +112,12 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     @Prop({ default: true })
     private editable: boolean;
 
+    @Prop()
+    private viewports: DashboardViewportVO[];
+
+    @Prop()
+    private selected_viewport: DashboardViewportVO;
+
     private elt_height: number = DashboardBuilderBoardComponent.GridLayout_ELT_HEIGHT;
     private col_num: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
     private max_rows: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_ROWS;
@@ -122,6 +131,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private is_filtres_deplie: boolean = false;
 
     private dragged = null;
+    private nb_columns: number = DashboardBuilderBoardComponent.GridLayout_DEFAULT_NB_COLUMNS;
 
     private throttled_rebuild_page_layout = ThrottleHelper.declare_throttle_without_args(
         'DashboardBuilderBoardComponent.throttled_rebuild_page_layout',
@@ -138,6 +148,48 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     get resizable(): boolean {
         return this.editable;
+    }
+
+    get style_gridlayout(): string {
+        let res: string = '';
+
+        if (this.editable && this.selected_viewport) {
+            // On récupère le viewport précédent pour avoir le min_width qu'on va mettre en max
+            let previous_viewport: DashboardViewportVO = null;
+
+            for (const i in this.viewports) {
+                const viewport: DashboardViewportVO = this.viewports[i];
+
+                if (viewport.id != this.selected_viewport.id) {
+                    continue;
+                }
+
+                if (i == '0') {
+                    break;
+                }
+
+                previous_viewport = this.viewports[(parseInt(i) - 1)];
+
+                break;
+            }
+
+            if (previous_viewport) {
+                res += 'max-width: ' + (previous_viewport.screen_min_width - 1) + 'px; border-left: 2px solid #ccc; border-right: 2px solid #ccc; border-radius: 8px; margin-left: auto; margin-right: auto;';
+            }
+        }
+
+        return res;
+    }
+
+    @Watch("selected_viewport", { immediate: true })
+    private async onchange_selected_viewport() {
+        if (!this.selected_viewport) {
+            return;
+        }
+
+        this.nb_columns = this.selected_viewport.nb_columns;
+
+        await this.throttled_rebuild_page_layout();
     }
 
     @Watch("dashboard", { immediate: true })
@@ -200,7 +252,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         }
     }
 
-    private mounted() {
+    private async mounted() {
         DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler = this.add_widget_to_page.bind(this);
         this.set_Checklistitemmodalcomponent(this.$refs['Checklistitemmodalcomponent'] as ChecklistItemModalComponent);
         this.set_Supervisionitemmodal(this.$refs['Supervisionitemmodal'] as SupervisionItemModalComponent);
@@ -208,6 +260,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         this.set_Crudupdatemodalcomponent(this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent);
         this.set_Crudcreatemodalcomponent(this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent);
         this.set_Dashboardcopywidgetcomponent(this.$refs['Dashboardcopywidgetcomponent'] as DashboardCopyWidgetComponent);
+
+        this.nb_columns = this.selected_viewport?.nb_columns ? this.selected_viewport.nb_columns : DashboardBuilderBoardComponent.GridLayout_DEFAULT_NB_COLUMNS;
     }
 
     private async rebuild_page_layout() {
@@ -220,18 +274,54 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
          * Si on a une sélection qui correpond au widget qu'on est en train de recharger, on modifie aussi le lien
          */
         if (this.selected_widget && this.selected_widget.id) {
-            const page_widget = this.widgets.find(
-                (w) => w.id == this.selected_widget.id
-            );
+
+            let page_widget: DashboardPageWidgetVO = null;
+            if (this.selected_widget?.dashboard_viewport_id == this.selected_viewport?.id) {
+
+                page_widget = this.widgets.find(
+                    (w) => w.id == this.selected_widget.id
+                );
+
+            } else {
+                // Si on est sur un autre viewport, on cherche le widget correspondant
+                page_widget = this.widgets.find(
+                    (w) => w.i == this.selected_widget.i && w.dashboard_viewport_id == this.selected_viewport.id
+                );
+
+                if (!page_widget) {
+                    // Si on ne trouve pas, on prend le premier widget du viewport
+                    page_widget = this.widgets.find(
+                        (w) => w.dashboard_viewport_id == this.selected_viewport.id
+                    );
+                }
+            }
 
             this.set_page_widget(page_widget);
             this.select_widget(page_widget);
+
+        }
+        // On récupère les positions pour le viewport selectionné pour les insérer dans le layout
+        const position_layout: DashboardPageWidgetVO[] = this.selected_viewport?.id
+            ? await query(DashboardPageWidgetVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, this.dashboard_page.id)
+                .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_viewport_id, this.selected_viewport.id)
+                .select_vos()
+            : [];
+
+
+        if (position_layout?.length) {
+            position_layout.sort((a, b) => {
+                const a_weight: number = parseFloat(a.y.toString() + "." + a.x.toString());
+                const b_weight: number = parseFloat(b.y.toString() + "." + b.x.toString());
+
+                return a_weight - b_weight;
+            });
         }
 
         this.is_filtres_deplie = this.dashboard_page?.collapse_filters;
 
         this.editable_dashboard_page = Object.assign({
-            layout: this.widgets
+            layout: position_layout
         }, this.dashboard_page);
     }
 
@@ -241,7 +331,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         );
 
         widgets = widgets ? widgets.filter((w) =>
-            !this.get_widgets_invisibility[w.id]
+            !this.get_widgets_invisibility[w.id] && (this.selected_viewport && (w.dashboard_viewport_id == this.selected_viewport.id))
         ) : null;
 
         if (widgets?.length) {
@@ -272,6 +362,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
                     page_widget.page_id = self.dashboard_page.id;
                     page_widget.widget_id = widget.id;
+                    page_widget.dashboard_viewport_id = self.selected_viewport.id;
 
                     let max_weight: number = 0;
                     self.widgets.forEach((w) => {
@@ -318,12 +409,15 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                     }
 
                     // On reload les widgets
-                    let widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, self.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
+                    const widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
+                        .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, self.dashboard_page.id)
+                        .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_viewport_id, self.selected_viewport.id)
+                        .select_vos<DashboardPageWidgetVO>();
 
                     if (widgets?.length) {
                         widgets.sort((a, b) => {
-                            let a_weight: number = parseFloat(a.y.toString() + "." + a.x.toString());
-                            let b_weight: number = parseFloat(b.y.toString() + "." + b.x.toString());
+                            const a_weight: number = parseFloat(a.y.toString() + "." + a.x.toString());
+                            const b_weight: number = parseFloat(b.y.toString() + "." + b.x.toString());
 
                             return a_weight - b_weight;
                         });

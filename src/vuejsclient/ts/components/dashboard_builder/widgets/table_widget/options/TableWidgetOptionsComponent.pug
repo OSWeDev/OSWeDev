@@ -366,6 +366,20 @@
                 :deselect-group-label='label("multiselect.deselectGroupLabel")'
             )
 
+    .show_message_no_data
+        .input_label {{ label('table_widget_options_component.show_message_no_data') }}
+        toggle-button(
+            @change="switch_show_message_no_data" 
+            :value="show_message_no_data" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.show_message_no_data.visible'), unchecked: label('table_widget_options_component.show_message_no_data.hidden')}")
+
+    template(v-if="show_message_no_data")
+        .message_no_data
+            .input_label {{ label('table_widget_options_component.message_no_data') }}
+            Vuequilleditor(v-model='message_no_data', :options="optionsEditeur")
+            
     .do_not_use_page_widget_ids
         .input_label {{ label('table_widget_options_component.do_not_use_page_widget_ids') }}
         multiselect(

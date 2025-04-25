@@ -6,6 +6,11 @@ import VueComponentBase from "../VueComponentBase";
 import './InlineTranslatableText.scss';
 import TranslatableTextController from "./TranslatableTextController";
 import { ModuleTranslatableTextAction, ModuleTranslatableTextGetter } from './TranslatableTextStore';
+import TranslationVO from "../../../../shared/modules/Translation/vos/TranslationVO";
+import { field_names, reflect } from "../../../../shared/tools/ObjectHandler";
+import { filter } from "../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
+import TranslatableTextVO from "../../../../shared/modules/Translation/vos/TranslatableTextVO";
+import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 
 // import { createDecorator } from 'vue-class-component';
 // import { applyMetadata } from 'vue-property-decorator/lib/helpers/metadata';
@@ -159,12 +164,33 @@ export default class InlineTranslatableText extends VueComponentBase {
     private textarea: boolean;
 
     private text: string = null;
+
     private parameterized_text: string = null;
     private semaphore: boolean = false;
 
     private thottled_check_existing_bdd_translation = ThrottleHelper.declare_throttle_without_args(
         'InlineTranslatableText.thottled_check_existing_bdd_translation',
         this.check_existing_bdd_translation.bind(this), 500);
+
+    get has_modif(): boolean {
+        return this.text != this.translation;
+    }
+
+    get code_lang(): string {
+        return LocaleManager.getDefaultLocale();
+    }
+
+    get translation(): string {
+        if ((!this.get_flat_locale_translations) || (!this.get_initialized) || (!this.code_text) || (!this.get_flat_locale_translations[this.code_text])) {
+            return null;
+        }
+
+        /**
+         * Appliquer les params
+         *  Version simple
+         */
+        return this.get_flat_locale_translations[this.code_text];
+    }
 
     @Watch("code_text", { immediate: true })
     @Watch("translation_params", { immediate: true })
@@ -184,6 +210,12 @@ export default class InlineTranslatableText extends VueComponentBase {
         await this.thottled_check_existing_bdd_translation();
     }
 
+    @Watch("translation", { immediate: true })
+    private onchange_translation() {
+
+        this.text = this.translation;
+        this.parameterized_text = this.get_parameterized_translation(this.text);
+    }
     private async check_existing_bdd_translation() {
 
         if (!this.code_text) {
@@ -240,6 +272,10 @@ export default class InlineTranslatableText extends VueComponentBase {
         }
     }
 
+    private async beforeDestroy() {
+        await this.unregister_all_vo_event_callbacks();
+    }
+
     private async mounted() {
 
         if ((!this.get_initialized) && (!this.get_initializing)) {
@@ -253,33 +289,6 @@ export default class InlineTranslatableText extends VueComponentBase {
         }
 
         this.semaphore = true;
-    }
-
-    @Watch("translation", { immediate: true })
-    private onchange_translation() {
-
-        this.text = this.translation;
-        this.parameterized_text = this.get_parameterized_translation(this.text);
-    }
-
-    get has_modif(): boolean {
-        return this.text != this.translation;
-    }
-
-    get code_lang(): string {
-        return LocaleManager.getDefaultLocale();
-    }
-
-    get translation(): string {
-        if ((!this.get_flat_locale_translations) || (!this.get_initialized) || (!this.code_text) || (!this.get_flat_locale_translations[this.code_text])) {
-            return null;
-        }
-
-        /**
-         * Appliquer les params
-         *  Version simple
-         */
-        return this.get_flat_locale_translations[this.code_text];
     }
 
     /**

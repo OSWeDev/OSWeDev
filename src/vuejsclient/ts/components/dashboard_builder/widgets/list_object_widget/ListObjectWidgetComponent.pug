@@ -1,0 +1,121 @@
+include ../../../../../views/mixins/loading.pug
+
+.widget
+    template(v-if="titles && (titles.length > 0)")
+        template(v-if='widget_options.show_message_no_data == true && nb_elements.length == 0')
+            .message_no_data.mt-3
+                .message_no_data(v-html="widget_options.message_no_data" class="ql-editor" style="word-wrap: break-word;")
+        
+        template(v-else)
+            .list_object_card_widget(:class="{'suppress_margin_list_object_widget': ((widget_options.is_card_display_single == true) && (widget_options.type_display == TYPE_DISPLAY_CARD))}")
+                template(v-if="widget_options && (nb_elements?.length > 0)")
+                    template(v-if="widget_options.type_display == TYPE_DISPLAY_LIST")
+                        .list_object_widget_component
+                            template(v-for="i in nb_elements")
+                                a.object(:href="urls[i]" :target="(widget_options.blank ? '_blank' : '')")
+                                    .first_row
+                                        .image 
+                                            template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
+                                                img(:src='image_paths[i]' alt="")
+                                        .title_and_sub
+                                            template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
+                                                .surtitre(v-html="surtitres[i]")
+                                            template(v-if="titles && (titles.length > 0) && titles[i]")
+                                                .title(v-html="titles[i]")
+                                            template(v-if="subtitles && (subtitles.length > 0) && subtitles[i]")
+                                                .subtitle(v-html="subtitles[i]")
+                                    .second_row
+                                        template(v-if="widget_options.activate_like_button")
+                                            .like_section
+                                                a.btn-like(@click="toggleLike(i)")
+                                                    i.fa.fa-heart
+                                                span.nb_likes {{ getLikeCount(i) }}
+
+                    template(v-else-if="widget_options.type_display == TYPE_DISPLAY_CARD")
+                        template(v-if="widget_options.is_card_display_single == true")
+                            .list_card_widget_component_singles(:class="{['display_orientation_' + widget_options.display_orientation]: true}" :style="getTransformStyle()")
+                                template(v-for="i in nb_elements")
+                                    a.card(:href="urls[i]" :target="(widget_options.blank ? '_blank' : '')")
+                                        template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
+                                            .image 
+                                                img(:src='image_paths[i]' alt="")
+                                        .card_content 
+                                            .header-bottom
+                                                template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
+                                                    .surtitre(v-html="surtitres[i]")
+                                                template(v-if="widget_options.activate_like_button")
+                                                    .like_section
+                                                        a.btn-like(@click="toggleLike(i)")
+                                                            i.fa.fa-heart
+                                                        span.nb_likes {{ getLikeCount(i) }}
+                                            template(v-if="titles && (titles.length > 0) && titles[i]")
+                                                .title(v-html="titles[i]")
+                                            template(v-if="subtitles && (subtitles.length > 0) && subtitles[i]")
+                                                .subtitle(v-html="subtitles[i]")
+                                            .card_footer
+                                                template(v-if="card_footer_labels && (card_footer_labels.length > 0) && card_footer_labels[i]")
+                                                    .card_footer_label(v-html="card_footer_labels[i]")
+                            .bottom_pagination
+                                .button_arrow.prev 
+                                    .input(@click="previous_card_single_display" type="button" :class="{navigation_disabled: current_element == 0}")
+                                        i.fa-solid.fa-chevron-left
+
+                                //- Indicateurs (3 ronds)
+                                .indicators
+                                    .circle(:class="{ filled: current_element === 0 }")
+                                    .circle(:class="{ filled: current_element !== 0 && current_element !== (nb_elements.length - 1) }")
+                                    .circle(:class="{ filled: current_element === (nb_elements.length - 1) }")
+
+                                .button_arrow.next
+                                    .input(@click="next_card_single_display" type="button" :class="{navigation_disabled: current_element == (nb_elements.length - 1)}")
+                                        i.fa-solid.fa-chevron-right
+
+                        template(v-else)
+                            template(v-if="(is_horizontal) && (!widget_options.button_elements)")
+                                .list_card_widget_component_zoom_on_click(:class="{['display_orientation_' + widget_options.display_orientation]: true, no_scroll: zoomedCardIndex !== null}")
+                                    template(v-for="i in nb_elements")
+                                        a.card(@click="toggle_zoom(i)" :class="{zoomed: zoomedCardIndex === i}")
+                                            .image 
+                                                template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
+                                                    img(:src='image_paths[i]' alt="")
+                                            .card_content 
+                                                .header-bottom
+                                                    template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
+                                                        .surtitre(v-html="surtitres[i]")
+                                                    template(v-if="widget_options.activate_like_button")
+                                                        .like_section
+                                                            a.btn-like(@click="toggleLike(i)")
+                                                                i.fa.fa-heart
+                                                            span.nb_likes {{ getLikeCount(i) }}
+                                                template(v-if="titles && (titles.length > 0) && titles[i]")
+                                                    .title(v-html="titles[i]")
+                                                template(v-if="subtitles && (subtitles.length > 0) && subtitles[i]")
+                                                    .subtitle(v-html="subtitles[i]")
+                                                .card_footer
+                                                    template(v-if="card_footer_labels && (card_footer_labels.length > 0) && card_footer_labels[i]")
+                                                        .card_footer_label(v-html="card_footer_labels[i]")
+                                                        
+
+                            template(v-else)
+                                .list_card_widget_component(:class="{['display_orientation_' + widget_options.display_orientation]: true}")
+                                    template(v-for="i in nb_elements")
+                                        a.card(:href="urls[i]" :target="(widget_options.blank ? '_blank' : '')")
+                                            .image 
+                                                template(v-if="image_paths && (image_paths.length > 0) && image_paths[i]")
+                                                    img(:src='image_paths[i]' alt="")
+                                            .card_content 
+                                                .header-bottom
+                                                    template(v-if="surtitres && (surtitres.length > 0) && surtitres[i]")
+                                                        .surtitre(v-html="surtitres[i]")
+                                                    template(v-if="widget_options.activate_like_button")
+                                                        .like_section
+                                                            a.btn-like(@click="toggleLike(i)")
+                                                                i.fa.fa-heart
+                                                            span.nb_likes {{ getLikeCount(i) }}
+                                                template(v-if="titles && (titles.length > 0) && titles[i]")
+                                                    .title(v-html="titles[i]")
+                                                template(v-if="subtitles && (subtitles.length > 0) && subtitles[i]")
+                                                    .subtitle(v-html="subtitles[i]")
+                                                .card_footer
+                                                    template(v-if="card_footer_labels && (card_footer_labels.length > 0) && card_footer_labels[i]")
+                                                        .card_footer_label(v-html="card_footer_labels[i]")    

@@ -32,6 +32,7 @@ import ModuleEventify from '../../shared/modules/Eventify/ModuleEventify';
 import ModuleEvolizAPI from '../../shared/modules/EvolizAPI/ModuleEvolizAPI';
 import ModuleExpressDBSessions from '../../shared/modules/ExpressDBSessions/ModuleExpressDBSessions';
 import ModuleFacturationProAPI from '../../shared/modules/FacturationProAPI/ModuleFacturationProAPI';
+import ModuleKelio from '../../shared/modules/Kelio/ModuleKelio';
 import ModuleFeedback from '../../shared/modules/Feedback/ModuleFeedback';
 import ModuleFile from '../../shared/modules/File/ModuleFile';
 import ModuleFork from '../../shared/modules/Fork/ModuleFork';
@@ -109,6 +110,7 @@ import ModuleEventifyServer from './Eventify/ModuleEventifyServer';
 import ModuleEvolizAPIServer from './EvolizAPI/ModuleEvolizAPIServer';
 import ModuleExpressDBSessionServer from './ExpressDBSessions/ModuleExpressDBSessionsServer';
 import ModuleFacturationProAPIServer from './FacturationProAPI/ModuleFacturationProAPIServer';
+import ModuleKelioServer from './Kelio/ModuleKelioServer';
 import ModuleFeedbackServer from './Feedback/ModuleFeedbackServer';
 import ModuleFileServer from './File/ModuleFileServer';
 import ModuleForkServer from './Fork/ModuleForkServer';
@@ -150,6 +152,8 @@ import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
+import ModulePWA from '../../shared/modules/PWA/ModulePWA';
+import ModulePWAServer from './PWA/ModulePWAServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -657,6 +661,7 @@ export default abstract class ModuleServiceBase {
             ModuleDAO.getInstance(),
             ModuleTranslation.getInstance(),
             ModuleAccessPolicy.getInstance(),
+            ModulePWA.getInstance(),
             ModuleAPI.getInstance(),
             ModuleAjaxCache.getInstance(),
             ModuleFile.getInstance(),
@@ -704,6 +709,7 @@ export default abstract class ModuleServiceBase {
             ModuleClockifyAPI.getInstance(),
             ModuleEvolizAPI.getInstance(),
             ModuleFacturationProAPI.getInstance(),
+            ModuleKelio.getInstance(),
             ModulePowershell.getInstance(),
             ModuleNFCConnect.getInstance(),
             ModuleDashboardBuilder.getInstance(),
@@ -729,6 +735,7 @@ export default abstract class ModuleServiceBase {
             ModuleDAOServer.getInstance(),
             ModuleTranslationServer.getInstance(),
             ModuleAccessPolicyServer.getInstance(),
+            ModulePWAServer.getInstance(),
             ModuleAPIServer.getInstance(),
             ModuleAjaxCacheServer.getInstance(),
             ModuleFileServer.getInstance(),
@@ -773,6 +780,7 @@ export default abstract class ModuleServiceBase {
             ModuleClockifyAPIServer.getInstance(),
             ModuleEvolizAPIServer.getInstance(),
             ModuleFacturationProAPIServer.getInstance(),
+            ModuleKelioServer.getInstance(),
             ModulePowershellServer.getInstance(),
             ModuleNFCConnectServer.getInstance(),
             ModuleDashboardBuilderServer.getInstance(),

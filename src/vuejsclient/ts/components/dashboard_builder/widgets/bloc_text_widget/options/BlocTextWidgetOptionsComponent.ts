@@ -1,24 +1,22 @@
-import Component from 'vue-class-component';
-import VueComponentBase from '../../../../VueComponentBase';
-import './BlocTextWidgetOptionsComponent.scss';
-import { Prop, Watch } from 'vue-property-decorator';
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import Component from 'vue-class-component';
+import { Prop, Watch } from 'vue-property-decorator';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import BlocTextWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/BlocTextWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
-import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import BlocTextWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/BlocTextWidgetOptionsVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
+import VueComponentBase from '../../../../VueComponentBase';
+import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import './BlocTextWidgetOptionsComponent.scss';
 
 @Component({
-    template: require('./BlocTextWidgetOptionsComponent.pug')
+    template: require('./BlocTextWidgetOptionsComponent.pug'),
 })
 export default class BlocTextWidgetOptionsComponent extends VueComponentBase {
 

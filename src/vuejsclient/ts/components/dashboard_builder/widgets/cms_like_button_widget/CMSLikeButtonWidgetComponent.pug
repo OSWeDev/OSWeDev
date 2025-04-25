@@ -1,0 +1,9 @@
+include ../../../../../views/mixins/loading.pug
+
+.cms_like_button_widget_component
+    .row
+        .btn_like
+            button(@click="switch_like" id="like_button", :class="{'liked': user_liked}")
+                i.fa-solid.fa-heart(id="like_icon")
+        .cpt_like
+            span {{ nb_likes }}

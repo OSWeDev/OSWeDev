@@ -181,7 +181,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        let field_label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type] ?
+        const field_label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type] ?
             ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type][this.field.field_name] : null;
         return this.t(this.table.label.code_text) +
             ' > ' +
@@ -215,7 +215,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        let field_label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type] ?
+        const field_label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type] ?
             ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type][this.field.field_name] : null;
         const res: string[] = [
             this.t(this.table.label.code_text),
@@ -233,6 +233,52 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         return res.join(' > ');
+    }
+
+    get translatable_name_code_text() {
+        if (!this.object_column) {
+            return null;
+        }
+
+        return this.object_column.get_translatable_name_code_text(this.page_widget.id);
+    }
+
+    get can_filter_by_table(): boolean {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return this.widget_options.can_filter_by;
+    }
+
+    get segmentation_type_options(): DataFilterOption[] {
+        const res: DataFilterOption[] = [];
+
+        for (const segmentation_type in TimeSegment.TYPE_NAMES_ENUM) {
+            const new_opt: DataFilterOption = new DataFilterOption(
+                DataFilterOption.STATE_SELECTABLE,
+                this.t(TimeSegment.TYPE_NAMES_ENUM[segmentation_type]),
+                parseInt(segmentation_type)
+            );
+
+            res.push(new_opt);
+        }
+
+        return res;
+    }
+
+    get column_dynamic_page_widget_is_type_date(): boolean {
+        if (!this.column_dynamic_page_widget) {
+            return false;
+        }
+
+        const options = JSON.parse(this.column_dynamic_page_widget.json_options);
+
+        if (!options?.vo_field_ref) {
+            return false;
+        }
+
+        return VOFieldRefVOHandler.is_type_date(options.vo_field_ref);
     }
 
     get vars_options(): string[] {
@@ -281,10 +327,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return false;
     }
 
-    get is_fkey(): boolean {
-        return this.field && (this.field.field_type == ModuleTableFieldVO.FIELD_TYPE_foreign_key);
-    }
-
     get object_column() {
         if (!this.column) {
             this.custom_filter_names = {};
@@ -294,22 +336,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.custom_filter_names = this.column.filter_custom_field_filters ? cloneDeep(this.column.filter_custom_field_filters) : {};
 
         return Object.assign(new TableColumnDescVO(), this.column);
-    }
-
-    get translatable_name_code_text() {
-        if (!this.object_column) {
-            return null;
-        }
-
-        return this.object_column.get_translatable_name_code_text(this.page_widget.id);
-    }
-
-    get can_filter_by_table(): boolean {
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return this.widget_options.can_filter_by;
     }
 
     get default_column_label(): string {
@@ -372,36 +398,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     get is_type_html(): boolean {
         return this.object_column.type == TableColumnDescVO.TYPE_vo_field_ref && this.field && (this.field.field_type == ModuleTableFieldVO.FIELD_TYPE_html);
-    }
-
-    get segmentation_type_options(): DataFilterOption[] {
-        let res: DataFilterOption[] = [];
-
-        for (let segmentation_type in TimeSegment.TYPE_NAMES_ENUM) {
-            let new_opt: DataFilterOption = new DataFilterOption(
-                DataFilterOption.STATE_SELECTABLE,
-                this.t(TimeSegment.TYPE_NAMES_ENUM[segmentation_type]),
-                parseInt(segmentation_type)
-            );
-
-            res.push(new_opt);
-        }
-
-        return res;
-    }
-
-    get column_dynamic_page_widget_is_type_date(): boolean {
-        if (!this.column_dynamic_page_widget) {
-            return false;
-        }
-
-        let options = JSON.parse(this.column_dynamic_page_widget.json_options);
-
-        if (!options?.vo_field_ref) {
-            return false;
-        }
-
-        return VOFieldRefVOHandler.is_type_date(options.vo_field_ref);
     }
 
     get component_options(): string[] {
@@ -485,62 +481,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return res;
     }
 
-    @Watch('column.filter_by_access')
-    @Watch('column.show_if_any_filter_active')
-    @Watch('column.do_not_user_filter_active_ids')
-    private async onchange_filter_by_access() {
-        if (!this.object_column) {
-            return;
-        }
-
-        this.$emit('update_column', this.object_column);
+    get is_fkey(): boolean {
+        return this.field && (this.field.field_type == ModuleTableFieldVO.FIELD_TYPE_foreign_key);
     }
-
-    @Watch('tmp_bg_color_header')
-    private async onchange_tmp_bg_color_header() {
-        if (!this.object_column) {
-            return;
-        }
-
-        if (this.object_column.bg_color_header == this.tmp_bg_color_header) {
-            return;
-        }
-
-        this.object_column.bg_color_header = this.tmp_bg_color_header;
-
-        this.$emit('update_column', this.object_column);
-    }
-
-    @Watch('tmp_custom_class_css')
-    private async onchange_tmp_custom_class_css() {
-        if (!this.object_column) {
-            return;
-        }
-
-        if (this.object_column.custom_class_css == this.tmp_custom_class_css) {
-            return;
-        }
-
-        this.object_column.custom_class_css = this.tmp_custom_class_css;
-
-        this.$emit('update_column', this.object_column);
-    }
-
-    @Watch('tmp_font_color_header')
-    private async onchange_tmp_font_color_header() {
-        if (!this.object_column) {
-            return;
-        }
-
-        if (this.object_column.font_color_header == this.tmp_font_color_header) {
-            return;
-        }
-
-        this.object_column.font_color_header = this.tmp_font_color_header;
-
-        this.$emit('update_column', this.object_column);
-    }
-
 
     @Watch('new_column_select_type_component')
     private async onchange_new_column_select_type_component() {
@@ -609,6 +552,62 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('add_column', new_column);
 
 
+    }
+
+    @Watch('column.filter_by_access')
+    @Watch('column.show_if_any_filter_active')
+    @Watch('column.do_not_user_filter_active_ids')
+    private async onchange_filter_by_access() {
+        if (!this.object_column) {
+            return;
+        }
+
+        this.$emit('update_column', this.object_column);
+    }
+
+    @Watch('tmp_bg_color_header')
+    private async onchange_tmp_bg_color_header() {
+        if (!this.object_column) {
+            return;
+        }
+
+        if (this.object_column.bg_color_header == this.tmp_bg_color_header) {
+            return;
+        }
+
+        this.object_column.bg_color_header = this.tmp_bg_color_header;
+
+        this.$emit('update_column', this.object_column);
+    }
+
+    @Watch('tmp_custom_class_css')
+    private async onchange_tmp_custom_class_css() {
+        if (!this.object_column) {
+            return;
+        }
+
+        if (this.object_column.custom_class_css == this.tmp_custom_class_css) {
+            return;
+        }
+
+        this.object_column.custom_class_css = this.tmp_custom_class_css;
+
+        this.$emit('update_column', this.object_column);
+    }
+
+    @Watch('tmp_font_color_header')
+    private async onchange_tmp_font_color_header() {
+        if (!this.object_column) {
+            return;
+        }
+
+        if (this.object_column.font_color_header == this.tmp_font_color_header) {
+            return;
+        }
+
+        this.object_column.font_color_header = this.tmp_font_color_header;
+
+        this.$emit('update_column', this.object_column);
     }
 
     @Watch('column', { immediate: true })
@@ -800,18 +799,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
     }
 
-    private hide_if_any_filter_active_label(page_widget_id: number): string {
-        const page_widget = this.page_widget_by_id[page_widget_id];
-        if (!page_widget) {
-            return "[" + page_widget_id + "] " + "???";
-        }
-        const options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
-        if (!options || !options.vo_field_ref || !options.vo_field_ref.api_type_id || !options.vo_field_ref.field_id) {
-            return "[" + page_widget.id + "] " + "???";
-        }
-        return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
-    }
-
     private do_not_user_filter_active_ids_label(page_widget_id: number): string {
         const page_widget = this.page_widget_by_id[page_widget_id];
         if (!page_widget) {
@@ -866,6 +853,18 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private unhide_options() {
         this.show_options = true;
+    }
+
+    private hide_if_any_filter_active_label(page_widget_id: number): string {
+        const page_widget = this.page_widget_by_id[page_widget_id];
+        if (!page_widget) {
+            return "[" + page_widget_id + "] " + "???";
+        }
+        const options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+        if (!options || !options.vo_field_ref || !options.vo_field_ref.api_type_id || !options.vo_field_ref.field_id) {
+            return "[" + page_widget.id + "] " + "???";
+        }
+        return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
     }
 
     private hide_options() {
@@ -1143,7 +1142,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     // creation de la column dynamic
     private add_dynamic_column(event) {
 
-        let new_column = new TableColumnDescVO();
+        const new_column = new TableColumnDescVO();
         new_column.type = TableColumnDescVO.TYPE_dynamic;
         new_column.id = this.get_new_column_id();
         new_column.readonly = true;
@@ -1320,5 +1319,4 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return false;
         }
     }
-
 }

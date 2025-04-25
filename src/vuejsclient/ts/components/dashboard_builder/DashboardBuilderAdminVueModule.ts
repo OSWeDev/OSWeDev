@@ -12,6 +12,27 @@ import DashboardBuilderVueModuleBase from './DashboardBuilderVueModuleBase';
 
 export default class DashboardBuilderAdminVueModule extends DashboardBuilderVueModuleBase {
 
+    protected static instance: DashboardBuilderAdminVueModule = null;
+
+    protected constructor() {
+
+        super();
+
+        if (!this.policies_needed) {
+            this.policies_needed = [
+                ModuleDashboardBuilder.POLICY_BO_ACCESS,
+                ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS
+            ];
+        } else {
+            if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_BO_ACCESS) < 0) {
+                this.policies_needed.push(ModuleDashboardBuilder.POLICY_BO_ACCESS);
+            }
+            if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS) < 0) {
+                this.policies_needed.push(ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS);
+            }
+        }
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): DashboardBuilderAdminVueModule {
         if (!DashboardBuilderAdminVueModule.instance) {
@@ -21,31 +42,17 @@ export default class DashboardBuilderAdminVueModule extends DashboardBuilderVueM
         return DashboardBuilderAdminVueModule.instance;
     }
 
-    protected static instance: DashboardBuilderAdminVueModule = null;
-
-    protected constructor() {
-
-        super();
-
-        if (!this.policies_needed) {
-            this.policies_needed = [
-                ModuleDashboardBuilder.POLICY_BO_ACCESS
-            ];
-        } else if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_BO_ACCESS) < 0) {
-            this.policies_needed.push(ModuleDashboardBuilder.POLICY_BO_ACCESS);
-        }
-    }
-
     public async initializeAsync() {
 
         await super.initializeAsync();
 
-        if (!this.policies_loaded[ModuleDashboardBuilder.POLICY_BO_ACCESS]) {
-            return;
-        }
+        let menuBranch: MenuElementVO = null;
 
-        const menuBranch: MenuElementVO =
-            await MenuController.getInstance().declare_menu_element(
+        if (this.policies_loaded[ModuleDashboardBuilder.POLICY_BO_ACCESS] ||
+            this.policies_loaded[ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS]
+        ) {
+
+            menuBranch = await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleDashboardBuilder.POLICY_BO_ACCESS,
                     VueAppController.getInstance().app_name,
@@ -55,6 +62,47 @@ export default class DashboardBuilderAdminVueModule extends DashboardBuilderVueM
                     null
                 )
             );
+        }
+
+        if (this.policies_loaded[ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS]) {
+
+            const main_route_name_cms: string = 'CMSBuilder';
+
+            const menuCMSPointer = MenuElementVO.create_new(
+                ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                main_route_name_cms,
+                "fa-area-chart",
+                10,
+                main_route_name_cms,
+                true,
+                menuBranch.id
+            );
+
+            //TODO FIXME ajouter les liens pour chaque checklist
+            await MenuController.getInstance().declare_menu_element(menuCMSPointer);
+
+
+            const main_route_name_cms_config: string = 'CMSConfig';
+
+            const menuCMSConfigPointer = MenuElementVO.create_new(
+                ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                main_route_name_cms_config,
+                "fa-gear",
+                10,
+                main_route_name_cms_config,
+                true,
+                menuBranch.id
+            );
+
+            //TODO FIXME ajouter les liens pour chaque checklist
+            await MenuController.getInstance().declare_menu_element(menuCMSConfigPointer);
+        }
+
+        if (!this.policies_loaded[ModuleDashboardBuilder.POLICY_BO_ACCESS]) {
+            return;
+        }
 
         let main_route_name: string = 'DashboardBuilder';
 

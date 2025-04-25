@@ -134,6 +134,7 @@ export default class ContextFilterServerController {
                 switch (field_type) {
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -270,6 +271,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -387,6 +389,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -690,6 +693,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -864,6 +868,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -1004,6 +1009,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -1155,6 +1161,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -1332,6 +1339,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -1458,6 +1466,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -1589,6 +1598,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
@@ -1729,6 +1739,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
@@ -3101,6 +3112,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_numrange:
                     case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -3253,6 +3265,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_numrange:
                     case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -3301,6 +3314,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_numrange:
                     case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:

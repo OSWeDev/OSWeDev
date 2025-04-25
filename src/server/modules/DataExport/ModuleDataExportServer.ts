@@ -14,23 +14,24 @@ import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrD
 import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
+import TableWidgetManager from '../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
 import VOFieldRefVOManager from '../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
 import IExportableSheet from '../../../shared/modules/DataExport/interfaces/IExportableSheet';
 import { XlsxCellFormatByFilterType } from '../../../shared/modules/DataExport/type/XlsxCellFormatByFilterType';
-import ExportContextQueryToXLSXQueryVO from '../../../shared/modules/DataExport/vos/ExportContextQueryToXLSXQueryVO';
 import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import ExportVarIndicatorVO from '../../../shared/modules/DataExport/vos/ExportVarIndicatorVO';
 import ExportVarcolumnConfVO from '../../../shared/modules/DataExport/vos/ExportVarcolumnConfVO';
 import ExportLogVO from '../../../shared/modules/DataExport/vos/apis/ExportLogVO';
+import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
+import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
@@ -46,8 +47,8 @@ import LocaleManager from '../../../shared/tools/LocaleManager';
 import ObjectHandler, { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import OrderedPromisePipeline from '../../../shared/tools/PromisePipeline/OrderedPromisePipeline';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import { IRequestStackContext } from '../../ServerExpressController';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -57,7 +58,9 @@ import ModuleTableFieldServerController from '../DAO/ModuleTableFieldServerContr
 import ModuleTableServerController from '../DAO/ModuleTableServerController';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleMailerServer from '../Mailer/ModuleMailerServer';
+import TemplateHandlerServer from '../Mailer/TemplateHandlerServer';
 import ModuleServerBase from '../ModuleServerBase';
+import ParamsServerController from '../Params/ParamsServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SendInBlueMailServerController from '../SendInBlue/SendInBlueMailServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
@@ -66,12 +69,6 @@ import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsContr
 import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
 import default_export_mail_html_template from './default_export_mail_html_template.html';
-import TableWidgetManager from '../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
-import TemplateHandlerServer from '../Mailer/TemplateHandlerServer';
-import ParamsServerController from '../Params/ParamsServerController';
-import { IRequestStackContext } from '../../ServerExpressController';
-import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
-import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 

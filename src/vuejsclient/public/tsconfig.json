@@ -1,0 +1,33 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "sourceMap": true,
+        "module": "esnext",
+        "importHelpers": true,
+        "allowJs": true,
+        "outDir": "../../dist/vuejsclient/",
+        "lib": [
+            "es6",
+            "es2020",
+            "dom"
+        ],
+        "moduleResolution": "node",
+        "types": [
+            "node"
+        ],
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true
+    },
+    "exclude": [
+        "../login",
+        "../admin",
+        "../server",
+        "../test",
+        "../generator",
+        "../client",
+        "../../node_modules/oswedev/dist/generator",
+        "../../node_modules/oswedev/dist/server",
+        "../../node_modules/oswedev/dist/test",
+    ]
+}

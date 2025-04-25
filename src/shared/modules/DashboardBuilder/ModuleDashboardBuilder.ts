@@ -5,6 +5,7 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
+import ModuleTableCompositeUniqueKeyController from '../DAO/ModuleTableCompositeUniqueKeyController';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
@@ -24,16 +25,21 @@ import VarDatatableFieldVO from '../DAO/vos/datatable/VarDatatableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import VarConfVO from '../Var/vos/VarConfVO';
+import FetchLikesParamParam, { FetchLikesParamParamStatic } from './params/FetchLikesParam';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
+import DashboardActiveonViewportVO from './vos/DashboardActiveonViewportVO';
 import DashboardGraphColorPaletteVO from './vos/DashboardGraphColorPaletteVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
 import DashboardPageVO from './vos/DashboardPageVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
 import DashboardVO from './vos/DashboardVO';
+import DashboardViewportVO from './vos/DashboardViewportVO';
 import DashboardWidgetVO from './vos/DashboardWidgetVO';
 import FavoritesFiltersExportFrequencyVO from './vos/FavoritesFiltersExportFrequencyVO';
 import FavoritesFiltersExportParamsVO from './vos/FavoritesFiltersExportParamsVO';
 import FavoritesFiltersVO from './vos/FavoritesFiltersVO';
+import LinkDashboardAndApiTypeIdVO from './vos/LinkDashboardAndApiTypeIdVO';
+import ListObjectLikesVO from './vos/ListObjectLikesVO';
 import SharedFiltersVO from './vos/SharedFiltersVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
 import VOFieldRefVO from './vos/VOFieldRefVO';
@@ -41,15 +47,25 @@ import VOFieldRefVO from './vos/VOFieldRefVO';
 export default class ModuleDashboardBuilder extends Module {
 
     public static MODULE_NAME: string = "DashboardBuilder";
+    public static CMS_VERSION: string = "CMSBuilder";
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".FO_ACCESS";
+    public static POLICY_CMS_VERSION_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.CMS_VERSION + ".BO_ACCESS";
+    public static POLICY_CMS_VERSION_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.CMS_VERSION + ".FO_ACCESS";
+
+    public static POLICY_DBB_FILTERS_VISIBLE_ON_CMS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.CMS_VERSION + ".DBB_FILTERS_VISIBLE_ON_CMS";
 
     public static APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE: string = "start_export_favorites_filters_datatable";
+    public static APINAME_LIST_OBJECT_WIDGET_TOGGLE_LIKE: string = "list_object_widget_toggle_like";
+    public static APINAME_FETCH_LIKES_FOR_ITEMS: string = "fetch_likes_for_items";
+    public static PARAM_NAME_SHOW_CMS_DASHBOARD_PAGES: string = "param_name_show_cms_dashboard_pages";
 
     private static instance: ModuleDashboardBuilder = null;
     public start_export_favorites_filters_datatable: () => Promise<void> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE);
+    public list_object_widget_toggle_like: (given_list_object_likes: ListObjectLikesVO) => Promise<ListObjectLikesVO> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_LIST_OBJECT_WIDGET_TOGGLE_LIKE);
+    public fetch_likes_for_items: (api_type_id: string, item_ids: number[]) => Promise<ListObjectLikesVO[]> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_FETCH_LIKES_FOR_ITEMS);
 
     private constructor() {
 
@@ -73,6 +89,17 @@ export default class ModuleDashboardBuilder extends Module {
             DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, FavoritesFiltersVO.API_TYPE_ID),
             ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE,
             [FavoritesFiltersVO.API_TYPE_ID]
+        ));
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ListObjectLikesVO, ListObjectLikesVO>(
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ListObjectLikesVO.API_TYPE_ID),
+            ModuleDashboardBuilder.APINAME_LIST_OBJECT_WIDGET_TOGGLE_LIKE,
+            [ListObjectLikesVO.API_TYPE_ID]
+        ));
+        APIControllerWrapper.registerApi(new PostAPIDefinition<FetchLikesParamParam, ListObjectLikesVO[]>(
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ListObjectLikesVO.API_TYPE_ID),
+            ModuleDashboardBuilder.APINAME_FETCH_LIKES_FOR_ITEMS,
+            [ListObjectLikesVO.API_TYPE_ID],
+            FetchLikesParamParamStatic
         ));
     }
 
@@ -106,6 +133,12 @@ export default class ModuleDashboardBuilder extends Module {
         this.initialize_SimpleDatatableFieldVO();
         this.initialize_VarDatatableFieldVO();
         this.initialize_DashboardGraphColorPaletteVO();
+
+        this.initialize_DashboardViewportVO();
+        this.initialize_DashboardActiveonViewportVO();
+        this.initialize_LinkDashboardAndApiTypeIdVO();
+
+        this.initialize_ListObjectLikesVO();
     }
 
     private init_DashboardVO(): ModuleTableVO {
@@ -115,6 +148,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().cycle_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champs de cycle', false);
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().cycle_links, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Liens de cycle', false);
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().has_cycle, ModuleTableFieldVO.FIELD_TYPE_boolean, 'A un cycle', true, true, false);
+        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().is_cms_compatible, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Est compatible avec le CMS Builder ?', false, true, false);
 
         const res = ModuleTableController.create_new(this.name, DashboardVO, null, "Dashboards");
         return res;
@@ -164,6 +198,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().default_background, ModuleTableFieldVO.FIELD_TYPE_string, 'default_background', true, true, '#f5f5f5');
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().is_filter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_filter', true, true, false);
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().is_validation_filters, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_validation_filters', true, true, false);
+        ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().is_cms_compatible, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Est compatible avec le CMS Builder ?', false, true, false);
 
         return ModuleTableController.create_new(this.name, DashboardWidgetVO, name, "Widgets de Dashboard");
     }
@@ -172,6 +207,7 @@ export default class ModuleDashboardBuilder extends Module {
 
         const widget_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Widget', true);
         const page_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
+        const dashboard_viewport_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().dashboard_viewport_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard Viewport", true, true, 1);
 
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().static, ModuleTableFieldVO.FIELD_TYPE_boolean, 'static', true, true, false);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().x, ModuleTableFieldVO.FIELD_TYPE_int, 'x', true, true, 0);
@@ -182,6 +218,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().json_options, ModuleTableFieldVO.FIELD_TYPE_string, 'json_options', false);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().background, ModuleTableFieldVO.FIELD_TYPE_string, 'background', true);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().show_widget_on_viewport, ModuleTableFieldVO.FIELD_TYPE_boolean, 'show_widget_on_viewport', true, true, true);
 
         ModuleTableController.create_new(
             this.name,
@@ -192,6 +229,7 @@ export default class ModuleDashboardBuilder extends Module {
 
         widget_id.set_many_to_one_target_moduletable_name(db_widget.vo_type);
         page_id.set_many_to_one_target_moduletable_name(db_page.vo_type);
+        dashboard_viewport_id.set_many_to_one_target_moduletable_name(DashboardViewportVO.API_TYPE_ID);
     }
 
     /**
@@ -657,4 +695,47 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableController.create_new(this.name, FavoritesFiltersExportParamsVO, null, "Paramètres d'export");
     }
 
+    private initialize_DashboardViewportVO() {
+        const field_name = ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom');
+        ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().screen_min_width, ModuleTableFieldVO.FIELD_TYPE_int, 'Largeur minimum de l\'écran');
+        ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().is_default, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Viewport par défaut ?');
+        ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().nb_columns, ModuleTableFieldVO.FIELD_TYPE_int, 'Nombre de colonnes');
+
+        ModuleTableController.create_new(this.name, DashboardViewportVO, field_name, "Viewport de Dashboard");
+    }
+
+    private initialize_ListObjectLikesVO() {
+        ModuleTableFieldController.create_new(ListObjectLikesVO.API_TYPE_ID, field_names<ListObjectLikesVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'api type id de l\'objet');
+        ModuleTableFieldController.create_new(ListObjectLikesVO.API_TYPE_ID, field_names<ListObjectLikesVO>().vo_id, ModuleTableFieldVO.FIELD_TYPE_int, 'ID de l\'objet');
+        ModuleTableFieldController.create_new(ListObjectLikesVO.API_TYPE_ID, field_names<ListObjectLikesVO>().list_user_likes, ModuleTableFieldVO.FIELD_TYPE_int_array, 'Liste des IDs des users');
+
+        ModuleTableController.create_new(this.name, ListObjectLikesVO, null, "Likes pour les listes d'objets");
+    }
+
+    private initialize_DashboardActiveonViewportVO() {
+        const dashboard_page_id = ModuleTableFieldController.create_new(DashboardActiveonViewportVO.API_TYPE_ID, field_names<DashboardActiveonViewportVO>().dashboard_page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard Page")
+            .set_many_to_one_target_moduletable_name(DashboardPageVO.API_TYPE_ID);
+        const dashboard_viewport_id = ModuleTableFieldController.create_new(DashboardActiveonViewportVO.API_TYPE_ID, field_names<DashboardActiveonViewportVO>().dashboard_viewport_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard Viewport")
+            .set_many_to_one_target_moduletable_name(DashboardViewportVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(DashboardActiveonViewportVO.API_TYPE_ID, field_names<DashboardActiveonViewportVO>().active, ModuleTableFieldVO.FIELD_TYPE_boolean, 'actif', true, true, false);
+
+        ModuleTableController.create_new(this.name, DashboardActiveonViewportVO, null, "Dashboard actif sur le viewport");
+
+        ModuleTableCompositeUniqueKeyController.add_composite_unique_key_to_vo_type(
+            DashboardActiveonViewportVO.API_TYPE_ID,
+            [
+                dashboard_viewport_id,
+                dashboard_page_id,
+            ]);
+    }
+
+    private initialize_LinkDashboardAndApiTypeIdVO() {
+        ModuleTableFieldController.create_new(LinkDashboardAndApiTypeIdVO.API_TYPE_ID, field_names<LinkDashboardAndApiTypeIdVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard", true)
+            .set_many_to_one_target_moduletable_name(DashboardPageVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(LinkDashboardAndApiTypeIdVO.API_TYPE_ID, field_names<LinkDashboardAndApiTypeIdVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Type de données', true).unique();
+
+        ModuleTableController.create_new(this.name, LinkDashboardAndApiTypeIdVO, null, "DBB Template pour un api type id");
+    }
 }

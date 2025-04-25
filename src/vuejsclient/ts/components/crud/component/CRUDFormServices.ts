@@ -7,6 +7,7 @@ import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTable
 import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
 import CRUDCNVOManyToManyRefVO from '../../../../../shared/modules/DAO/vos/CRUDCNVOManyToManyRefVO';
 import CRUDCNVOOneToManyRefVO from '../../../../../shared/modules/DAO/vos/CRUDCNVOOneToManyRefVO';
+import CRUDFieldRemoverConfVO from '../../../../../shared/modules/DAO/vos/CRUDFieldRemoverConfVO';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToManyReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO';
@@ -25,13 +26,12 @@ import ImageVO from '../../../../../shared/modules/Image/vos/ImageVO';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
-import CRUDFieldRemoverConfVO from '../../../../../shared/modules/DAO/vos/CRUDFieldRemoverConfVO';
-import { field_names } from '../../../../../shared/tools/ObjectHandler';
 
 export default class CRUDFormServices {
 
@@ -799,6 +799,10 @@ export default class CRUDFormServices {
         updateData: (a: IDistantVOBase) => void,
         component: VueComponentBase,
     ) {
+        if ((!fileVo) || (!fileVo.id)) {
+            return false;
+        }
+
         switch (api_type_id) {
             case FileVO.API_TYPE_ID:
             case ImageVO.API_TYPE_ID:
@@ -833,6 +837,11 @@ export default class CRUDFormServices {
                 }
 
                 if (fileVo) {
+                    updateData(fileVo);
+                } else if (vo) {
+                    vo[field.datatable_field_uid] = fileVo.path;
+
+                    updateData(vo);
                     updateData(fileVo);
                 }
 

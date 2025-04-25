@@ -1,0 +1,16 @@
+include ../../../../../views/mixins/loading.pug
+
+.cms_crud_buttons_widget_component
+
+    template(v-if='show_crud_buttons')
+        template(v-if='has_access_to_add && show_add')
+            button(@click="open_add_modal" id="add_button")
+                i.fa-solid.fa-light.fa-plus(id="add_icon")
+
+        template(v-if='has_access_to_update && show_update')
+            button(@click="open_update_modal" id="update_button")
+                i.fa-solid.fa-edit(id="update_icon")
+
+        template(v-if='has_access_to_delete && show_delete')
+            button(@click="open_delete_modal" id="delete_button")
+                i.fa-solid.fa-trash(id="delete_icon")
