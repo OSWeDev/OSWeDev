@@ -4522,14 +4522,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Disponible qu'en mode : Carte, horizontal, ne pas afficher une seule carte et les éléments ne sont pas des boutons" },
-            'list_object.widget_option.zoom_on_click.tooltip.___LABEL___'
+            'list_object.widget_option.zoom_on_click.tooltip.___LABEL___',
+        ));
+
         /**
          * Translations for OseliaRunGraphWidgetComponent
          */
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
-                { 'fr-fr': "Clear" },
-                'oselia_run_graph_widget_component.clear_button.___LABEL___'
-            ));
+            { 'fr-fr': "Clear" },
+            'oselia_run_graph_widget_component.clear_button.___LABEL___'
+        ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Autofit" },
             'oselia_run_graph_widget_component.autofit_button.___LABEL___'
