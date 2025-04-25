@@ -51,14 +51,6 @@ export default class VarDescComponent extends VueComponentBase {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_data_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
 
-    private var_data_updater() {
-        if (!this.var_param) {
-            this.var_data = null;
-            return;
-        }
-        this.var_data = VarsClientController.cached_var_datas[this.var_param.index];
-    }
-
     get var_data_has_valid_value(): boolean {
         if (!this.var_param) {
             return false;
@@ -114,6 +106,32 @@ export default class VarDescComponent extends VueComponentBase {
         return this.t(this.var_description_code);
     }
 
+    get var_data_last_update(): string {
+        if (!this.var_data_has_valid_value) {
+            return null;
+        }
+
+        const var_data = this.var_data;
+
+        return Dates.format(var_data.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
+    }
+
+    @Watch('var_param', { immediate: true })
+    private log_index() {
+        if (!this.var_param) {
+            return;
+        }
+        ConsoleHandler.log('Index du paramètre de var sélectionné : ' + this.var_param.index);
+    }
+
+    private var_data_updater() {
+        if (!this.var_param) {
+            this.var_data = null;
+            return;
+        }
+        this.var_data = VarsClientController.cached_var_datas[this.var_param.index];
+    }
+
     private async update_var_data() {
         if (this.var_param.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
             this.snotify.error(this.label('var.desc_mode.update_var_data.not_allowed_on_imports'));
@@ -161,24 +179,6 @@ export default class VarDescComponent extends VueComponentBase {
                     RangeHandler.getMinSurroundingRange(field_value);
             }
         }
-    }
-
-    get var_data_last_update(): string {
-        if (!this.var_data_has_valid_value) {
-            return null;
-        }
-
-        const var_data = this.var_data;
-
-        return Dates.format(var_data.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
-    }
-
-    @Watch('var_param', { immediate: true })
-    private log_index() {
-        if (!this.var_param) {
-            return;
-        }
-        ConsoleHandler.log('Index du paramètre de var sélectionné : ' + this.var_param.index);
     }
 
     private set_var_data_value(var_data_value) {
