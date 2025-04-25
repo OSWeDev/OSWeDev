@@ -445,10 +445,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     vo._type,
                     new DAOUpdateVOHolder(pre_update_vo, vo),
                     exec_as_server);
-<<<<<<< HEAD
-=======
 
->>>>>>> dev_far_cmsbuilder
                 if (!BooleanHandler.AND(res, true)) {
                     StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_update_trigger_hook_rejection');
                     return null;

@@ -13,10 +13,12 @@ import DashboardBuilderBoardManager from '../../../../shared/modules/DashboardBu
 import DashboardPageVOManager from '../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
 import DashboardPageWidgetVOManager from '../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
 import DashboardVOManager from '../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
+import DashboardActiveonViewportVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
 import DashboardGraphVORefVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardPageVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardViewportVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 import SharedFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
@@ -43,13 +45,10 @@ import { ModuleDroppableVoFieldsAction } from './droppable_vo_fields/DroppableVo
 import DashboardMenuConfComponent from './menu_conf/DashboardMenuConfComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from './page/DashboardPageStore';
 import DashboardSharedFiltersComponent from './shared_filters/DashboardSharedFiltersComponent';
-import TablesGraphComponent from './tables_graph/TablesGraphComponent';
 import MaxGraphMapper from './tables_graph/graph_mapper/MaxGraphMapper';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
-import DashboardViewportVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
-import DashboardActiveonViewportVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -57,9 +56,7 @@ import DashboardActiveonViewportVO from '../../../../shared/modules/DashboardBui
         Inlinetranslatabletext: InlineTranslatableText,
         Droppablevofieldscomponent: DroppableVoFieldsComponent,
         Dashboardbuilderwidgetscomponent: DashboardBuilderWidgetsComponent,
-        // Dashboardbuilderoseliachat: DashboardBuilderOseliaChatComponent,
         Dashboardbuilderboardcomponent: DashboardBuilderBoardComponent,
-        Tablesgraphcomponent: TablesGraphComponent,
         Dashboardmenuconfcomponent: DashboardMenuConfComponent,
         Dashboardsharedfilterscomponent: DashboardSharedFiltersComponent,
         Moduletablescomponent: ModuleTablesComponent,
@@ -1377,7 +1374,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         const update_res = await ModuleDAO.instance.insertOrUpdateVO(table_vo_ref);
         if (!update_res || !update_res.id) {
             ConsoleHandler.error('Impossible de mettre à jour le graphvoref');
-            this.$snotify.error(this.label('TablesGraphEditFormComponent.switch_edge_acceptance.error'));
+            this.$snotify.error(this.label('DashboardBuilderComponent.set_discarded_field.ko'));
             return;
         }
 

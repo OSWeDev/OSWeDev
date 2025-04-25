@@ -33,6 +33,8 @@ import Patch20240905AddOseliaAssistantThreadTitleWriter from './patchs/postmodul
 import Patch20240905InitAllThreadsOseliaToHavingContents from './patchs/postmodules/Patch20240905InitAllThreadsOseliaToHavingContents';
 import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
 import Patch20240912PreinitOseliaPrices from './patchs/postmodules/Patch20240912PreinitOseliaPrices';
+import Patch20240917ParamShowCmsPages from './patchs/postmodules/Patch20240917ParamShowCmsPages';
+import Patch20240923AddViewportDatas from './patchs/postmodules/Patch20240923AddViewportDatas';
 import Patch20240926AddOseliaFunction_TRELLO_trello_create_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_create_card';
 import Patch20240926AddOseliaFunction_TRELLO_trello_delete_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_delete_card';
 import Patch20240926AddOseliaFunction_TRELLO_trello_get_action from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_action';
@@ -67,6 +69,8 @@ import Patch20250224AddDefaultPalette from './patchs/postmodules/Patch20250224Ad
 import Patch20250303CheckDBsCycles from './patchs/postmodules/Patch20250303CheckDBsCycles';
 import Patch20250331RemoveValueTables from './patchs/postmodules/Patch20250331RemoveValueTables';
 import Patch20250331RenameFavoriteFilterOptions from './patchs/postmodules/Patch20250331RenameFavoriteFilterOptions';
+import Patch20250409AddRightsPWA from './patchs/postmodules/Patch20250409AddRightsPWA';
+import Patch20250425RenameTradsMenuCMS from './patchs/postmodules/Patch20250425RenameTradsMenuCMS';
 import Patch20122024TruncateLogsUpdated from './patchs/premodules/Patch20122024TruncateLogsUpdated';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
@@ -193,6 +197,8 @@ export default class GeneratorPatchsListHandler {
         Patch20240906DeleteOldAssistantObjDBLinks.getInstance(),
         Patch20241010CreateLogType.getInstance(),
         Patch20240912PreinitOseliaPrices.getInstance(),
+        Patch20240917ParamShowCmsPages.getInstance(),
+        Patch20240923AddViewportDatas.getInstance(),
         Patch20240926PreInitOseliaThreadRoles.getInstance(),
         Patch20240926AddOseliaFunction_TRELLO_trello_create_card.getInstance(),
         Patch20240926AddOseliaFunction_TRELLO_trello_get_card.getInstance(),
@@ -235,5 +241,9 @@ export default class GeneratorPatchsListHandler {
         Patch20250303CheckDBsCycles.getInstance(),
         Patch20250331RenameFavoriteFilterOptions.getInstance(),
         Patch20250331RemoveValueTables.getInstance(),
+
+        Patch20250409AddRightsPWA.getInstance(),
+
+        Patch20250425RenameTradsMenuCMS.getInstance(),
     ];
 }
