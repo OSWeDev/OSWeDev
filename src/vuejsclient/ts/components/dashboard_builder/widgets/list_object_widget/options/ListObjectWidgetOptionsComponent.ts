@@ -20,6 +20,8 @@ import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/Drop
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './ListObjectWidgetOptionsComponent.scss';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 
 @Component({
     template: require('./ListObjectWidgetOptionsComponent.pug'),
@@ -101,8 +103,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
     };
 
     private next_update_options: ListObjectWidgetOptionsVO = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
-    private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(this.reload_options.bind(this), 50, { leading: false, trailing: true });
     private widget_options: ListObjectWidgetOptionsVO = null;
 
     get title_field_ref(): VOFieldRefVO {
@@ -218,168 +218,11 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
     get DISPLAY_ORIENTATION_LABELS() {
         return ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_LABELS;
     }
-
-    @Watch('widget_options')
-    private async onchange_widget_options() {
-        await this.throttled_reload_options();
-    }
-
-    @Watch('page_widget', { immediate: true, deep: true })
-    private async onchange_page_widget() {
-
-        await this.throttled_reload_options();
-    }
-
-    @Watch('type_display')
-    @Watch('display_orientation')
-    @Watch('button_elements')
-    @Watch('is_card_display_single')
-    private async onchange_for_zoom_on_click() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if ((this.type_display == ListObjectWidgetOptionsVO.TYPE_DISPLAY_CARD) &&
-            (this.display_orientation == ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_HORIZONTAL) &&
-            (!this.button_elements) &&
-            (!this.is_card_display_single)) {
-
-            this.zoom_on_click = true;
-            this.widget_options.zoom_on_click = true;
-        } else {
-            this.zoom_on_click = false;
-            this.widget_options.zoom_on_click = false;
-        }
-
-        this.throttled_update_options();
-    }
-
-    @Watch('do_not_use_page_widgets')
-    private async onchange_do_not_use_page_widgets() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        if (this.do_not_use_page_widgets?.length != this.next_update_options.do_not_use_page_widget_ids?.length) {
-            this.next_update_options.do_not_use_page_widget_ids = this.do_not_use_page_widgets ? this.do_not_use_page_widgets.map((e) => e.id) : null;
-
-            await this.throttled_update_options();
-        }
-    }
-
-    @Watch('symbole_sous_titre')
-    private async onchange_symbole_sous_titre() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (this.widget_options.symbole_sous_titre != this.symbole_sous_titre) {
-            this.next_update_options = cloneDeep(this.widget_options);
-            this.next_update_options.symbole_sous_titre = this.symbole_sous_titre;
-
-            this.throttled_update_options();
-        }
-    }
-
-    @Watch('symbole_surtitre')
-    private async onchange_symbole_surtitre() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (this.widget_options.symbole_surtitre != this.symbole_surtitre) {
-            this.next_update_options = cloneDeep(this.widget_options);
-            this.next_update_options.symbole_surtitre = this.symbole_surtitre;
-
-            this.throttled_update_options();
-        }
-    }
-
-    @Watch('message_no_data')
-    private async onchange_message_no_data() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (this.widget_options.message_no_data != this.message_no_data) {
-            this.next_update_options = cloneDeep(this.widget_options);
-            this.next_update_options.message_no_data = this.message_no_data;
-
-            this.throttled_update_options();
-        }
-    }
-
-    @Watch('url')
-    private async onchange_url() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (this.widget_options.url != this.url) {
-            this.next_update_options = cloneDeep(this.widget_options);
-            this.next_update_options.url = this.url;
-
-            this.throttled_update_options();
-        }
-    }
-
-    @Watch('number_of_elements')
-    private async onchange_number_of_elements() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (this.widget_options.number_of_elements != this.number_of_elements) {
-            this.next_update_options = cloneDeep(this.widget_options);
-            this.next_update_options.number_of_elements = this.number_of_elements;
-
-            this.throttled_update_options();
-        }
-    }
-
-    private async mounted() {
-
-        if (!this.widget_options) {
-
-            this.next_update_options = this.get_default_options();
-        } else {
-
-            this.next_update_options = this.widget_options;
-        }
-
-
-        await this.throttled_update_options();
-    }
-
-    private get_default_options(): ListObjectWidgetOptionsVO {
-        return ListObjectWidgetOptionsVO.createNew(
-            ListObjectWidgetOptionsVO.TYPE_DISPLAY_CARD,
-            ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_HORIZONTAL,
-            10,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            false,
-            null,
-            false,
-            false,
-            false,
-            null,
-            false,
-            null,
-            false,
-            null,
-            false,
-            [],
-            false,
-        );
-    }
-
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
     private async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
@@ -397,8 +240,11 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         this.$emit('update_layout_widget', this.page_widget);
     }
 
-
-
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
     private async reload_options() {
         if (!this.page_widget) {
             this.widget_options = null;
@@ -605,6 +451,167 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
+    @Watch('widget_options')
+    private async onchange_widget_options() {
+        this.reload_options();
+    }
+
+    @Watch('page_widget', { immediate: true, deep: true })
+    private async onchange_page_widget() {
+
+        this.reload_options();
+    }
+
+    @Watch('type_display')
+    @Watch('display_orientation')
+    @Watch('button_elements')
+    @Watch('is_card_display_single')
+    private async onchange_for_zoom_on_click() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if ((this.type_display == ListObjectWidgetOptionsVO.TYPE_DISPLAY_CARD) &&
+            (this.display_orientation == ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_HORIZONTAL) &&
+            (!this.button_elements) &&
+            (!this.is_card_display_single)) {
+
+            this.zoom_on_click = true;
+            this.widget_options.zoom_on_click = true;
+        } else {
+            this.zoom_on_click = false;
+            this.widget_options.zoom_on_click = false;
+        }
+
+        this.update_options();
+    }
+
+    @Watch('do_not_use_page_widgets')
+    private async onchange_do_not_use_page_widgets() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.do_not_use_page_widgets?.length != this.next_update_options.do_not_use_page_widget_ids?.length) {
+            this.next_update_options.do_not_use_page_widget_ids = this.do_not_use_page_widgets ? this.do_not_use_page_widgets.map((e) => e.id) : null;
+
+            this.update_options();
+        }
+    }
+
+    @Watch('symbole_sous_titre')
+    private async onchange_symbole_sous_titre() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.symbole_sous_titre != this.symbole_sous_titre) {
+            this.next_update_options = cloneDeep(this.widget_options);
+            this.next_update_options.symbole_sous_titre = this.symbole_sous_titre;
+
+            this.update_options();
+        }
+    }
+
+    @Watch('symbole_surtitre')
+    private async onchange_symbole_surtitre() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.symbole_surtitre != this.symbole_surtitre) {
+            this.next_update_options = cloneDeep(this.widget_options);
+            this.next_update_options.symbole_surtitre = this.symbole_surtitre;
+
+            this.update_options();
+        }
+    }
+
+    @Watch('message_no_data')
+    private async onchange_message_no_data() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.message_no_data != this.message_no_data) {
+            this.next_update_options = cloneDeep(this.widget_options);
+            this.next_update_options.message_no_data = this.message_no_data;
+
+            this.update_options();
+        }
+    }
+
+    @Watch('url')
+    private async onchange_url() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.url != this.url) {
+            this.next_update_options = cloneDeep(this.widget_options);
+            this.next_update_options.url = this.url;
+
+            this.update_options();
+        }
+    }
+
+    @Watch('number_of_elements')
+    private async onchange_number_of_elements() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.number_of_elements != this.number_of_elements) {
+            this.next_update_options = cloneDeep(this.widget_options);
+            this.next_update_options.number_of_elements = this.number_of_elements;
+
+            this.update_options();
+        }
+    }
+
+    private async mounted() {
+
+        if (!this.widget_options) {
+
+            this.next_update_options = this.get_default_options();
+        } else {
+
+            this.next_update_options = this.widget_options;
+        }
+
+
+        this.update_options();
+    }
+
+    private get_default_options(): ListObjectWidgetOptionsVO {
+        return ListObjectWidgetOptionsVO.createNew(
+            ListObjectWidgetOptionsVO.TYPE_DISPLAY_CARD,
+            ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_HORIZONTAL,
+            10,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            false,
+            false,
+            false,
+            null,
+            false,
+            null,
+            false,
+            null,
+            false,
+            [],
+            false,
+        );
+    }
+
     private page_widget_label(p_widget: DashboardPageWidgetVO): string {
         return "Widget ID: " + p_widget.id.toString();
     }
@@ -621,7 +628,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.next_update_options.filter_on_distant_vo = false;
         }
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async switch_filter_on_distant_vo() {
@@ -636,7 +643,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.next_update_options.filter_on_cmv_vo = false;
         }
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async switch_show_message_no_data() {
@@ -648,7 +655,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.show_message_no_data = !this.next_update_options.show_message_no_data;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async switch_button_for_elements() {
@@ -660,7 +667,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.button_elements = !this.next_update_options.button_elements;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async switch_use_blank() {
@@ -672,7 +679,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.blank = !this.next_update_options.blank;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async switch_zoom_on_click() {
@@ -684,7 +691,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.zoom_on_click = !this.next_update_options.zoom_on_click;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async switch_activate_like_button() {
@@ -696,7 +703,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.activate_like_button = !this.next_update_options.activate_like_button;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async switch_is_card_display_single() {
@@ -708,7 +715,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.is_card_display_single = !this.next_update_options.is_card_display_single;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async change_sort_dimension(dimension: string) {
@@ -724,7 +731,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.next_update_options.sort_dimension_by = dimension;
         }
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async change_type_display(type_display: number) {
@@ -735,7 +742,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         this.next_update_options = this.widget_options;
         this.next_update_options.type_display = type_display;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async change_display_orientation(display_orientation: number) {
@@ -746,7 +753,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         this.next_update_options = this.widget_options;
         this.next_update_options.display_orientation = display_orientation;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async remove_title_field_ref() {
@@ -762,7 +769,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.title = null;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async remove_card_footer_label_field_ref() {
@@ -778,7 +785,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.card_footer_label = null;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async add_title_field_ref(api_type_id: string, field_id: string) {
@@ -795,7 +802,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.title = dimension_vo_field_ref;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async add_card_footer_label_field_ref(api_type_id: string, field_id: string) {
@@ -812,7 +819,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.card_footer_label = dimension_vo_field_ref;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async remove_field_filter_cmv_vo_field_ref() {
@@ -828,7 +835,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.field_filter_cmv_vo = null;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async add_field_filter_cmv_vo_field_ref(api_type_id: string, field_id: string) {
@@ -845,7 +852,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.field_filter_cmv_vo = dimension_vo_field_ref;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async remove_field_filter_distant_vo_field_ref() {
@@ -861,7 +868,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.field_filter_distant_vo = null;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async add_field_filter_distant_vo_field_ref(api_type_id: string, field_id: string) {
@@ -878,7 +885,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.field_filter_distant_vo = dimension_vo_field_ref;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async remove_subtitle_field_ref() {
@@ -894,7 +901,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.subtitle = null;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async add_subtitle_field_ref(api_type_id: string, field_id: string) {
@@ -911,7 +918,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.subtitle = dimension_vo_field_ref;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async remove_surtitre_field_ref() {
@@ -927,7 +934,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.surtitre = null;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async add_surtitre_field_ref(api_type_id: string, field_id: string) {
@@ -944,7 +951,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.surtitre = dimension_vo_field_ref;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async remove_image_field_ref() {
@@ -960,7 +967,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.image_id = null;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async add_image_field_ref(api_type_id: string, field_id: string) {
@@ -977,7 +984,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.image_id = dimension_vo_field_ref;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async remove_url_field_ref() {
@@ -993,7 +1000,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.url = null;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async add_url_field_ref(api_type_id: string, field_id: string) {
@@ -1010,7 +1017,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.url = dimension_vo_field_ref;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async remove_sort_field_ref() {
@@ -1026,7 +1033,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.sort_field_ref = null;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private async add_sort_field_ref(api_type_id: string, field_id: string) {
@@ -1043,6 +1050,6 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
 
         this.next_update_options.sort_field_ref = dimension_vo_field_ref;
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 }

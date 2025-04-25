@@ -104,6 +104,7 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     public initialize() {
+        this.initialize_DashboardViewportVO();
         const db_table = this.init_DashboardVO();
 
         const db_page = this.init_DashboardPageVO(db_table);
@@ -134,7 +135,6 @@ export default class ModuleDashboardBuilder extends Module {
         this.initialize_VarDatatableFieldVO();
         this.initialize_DashboardGraphColorPaletteVO();
 
-        this.initialize_DashboardViewportVO();
         this.initialize_DashboardActiveonViewportVO();
         this.initialize_LinkDashboardAndApiTypeIdVO();
 
@@ -207,7 +207,7 @@ export default class ModuleDashboardBuilder extends Module {
 
         const widget_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Widget', true);
         const page_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
-        const dashboard_viewport_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().dashboard_viewport_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard Viewport", true, true, 1);
+        const dashboard_viewport_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().dashboard_viewport_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard Viewport", false);
 
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().static, ModuleTableFieldVO.FIELD_TYPE_boolean, 'static', true, true, false);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().x, ModuleTableFieldVO.FIELD_TYPE_int, 'x', true, true, 0);

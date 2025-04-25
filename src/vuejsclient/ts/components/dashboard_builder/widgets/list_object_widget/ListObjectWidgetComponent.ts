@@ -1,9 +1,12 @@
-import { cloneDeep, debounce } from 'lodash';
+import { debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../shared/annotations/Throttle';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
@@ -11,12 +14,15 @@ import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleT
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import TableWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
+import ModuleDashboardBuilder from '../../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import ListObjectLikesVO from '../../../../../../shared/modules/DashboardBuilder/vos/ListObjectLikesVO';
 import ListObjectWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/ListObjectWidgetOptionsVO';
+import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
@@ -26,12 +32,6 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import './ListObjectWidgetComponent.scss';
-import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
-import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
-import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
-import ListObjectLikesVO from '../../../../../../shared/modules/DashboardBuilder/vos/ListObjectLikesVO';
-import ModuleDashboardBuilder from '../../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 
 @Component({
     template: require('./ListObjectWidgetComponent.pug'),
@@ -89,7 +89,6 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
 
     private zoomedCardIndex: number = null;
 
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
     private throttle_do_update_visible_options = debounce(this.do_update_visible_options.bind(this), 500);
 
     get widget_options(): ListObjectWidgetOptionsVO {
@@ -144,6 +143,11 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         this.throttle_do_update_visible_options();
     }
 
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
     private async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
@@ -628,13 +632,13 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         return this.get_values_formatted(urls, this.widget_options.url.field_id, this.widget_options.url.api_type_id);
     }
 
-    private get_values_formatted(vos: IDistantVOBase[], field_id: string, api_type_id: string) {
+    private async get_values_formatted(vos: IDistantVOBase[], field_id: string, api_type_id: string) {
         const res = [];
         const field: SimpleDatatableFieldVO<any, any> = SimpleDatatableFieldVO.createNew(field_id)
             .setModuleTable(ModuleTableController.module_tables_by_vo_type[api_type_id]);
 
         for (const vo of vos) {
-            res.push(field.dataToReadIHM(vo[field_id], vo));
+            res.push(await field.dataToReadIHM(vo[field_id], vo));
         }
 
         return res;

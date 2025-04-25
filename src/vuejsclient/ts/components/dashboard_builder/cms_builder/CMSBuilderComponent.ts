@@ -49,6 +49,8 @@ import TranslatableTextController from '../../InlineTranslatableText/Translatabl
 import { ModuleTranslatableTextAction } from '../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../VueComponentBase';
 import './CMSBuilderComponent.scss';
+import Throttle from '../../../../../shared/annotations/Throttle';
+import EventifyEventListenerConfVO from '../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 
 @Component({
     template: require('./CMSBuilderComponent.pug'),
@@ -93,9 +95,6 @@ export default class CMSBuilderComponent extends VueComponentBase {
 
     @ModuleDashboardPageAction
     private delete_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleTranslatableTextAction
-    private set_flat_locale_translations: (translations: { [code_text: string]: string }) => void;
 
     @ModuleDashboardPageAction
     private add_page_history: (page_history: DashboardPageVO) => void;
@@ -145,8 +144,6 @@ export default class CMSBuilderComponent extends VueComponentBase {
     private selected_viewport: DashboardViewportVO = null;
     private is_dbb_actived_on_viewport: boolean = false;
 
-    private throttle_on_dashboard_loaded = ThrottleHelper.declare_throttle_without_args(this.on_dashboard_loaded, 50);
-
     get has_navigation_history(): boolean {
         return this.get_page_history && (this.get_page_history.length > 0);
     }
@@ -192,6 +189,94 @@ export default class CMSBuilderComponent extends VueComponentBase {
         return res;
     }
 
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+    })
+    private async on_dashboard_loaded() {
+
+        if (!this.dashboard) {
+            await this.init_dashboard();
+            await this.init_api_type_ids_and_discarded_field_paths();
+            this.init_dashboard_tab();
+            return;
+        }
+
+        this.set_page_widgets_components_by_pwid({});
+        await all_promises([
+            this.init_api_type_ids_and_discarded_field_paths(),
+            (async () => {
+                this.pages = await this.load_dashboard_pages_by_dashboard_id(
+                    this.dashboard.id,
+                );
+            })(),
+        ]);
+        this.init_dashboard_tab();
+
+        if (!this.pages) {
+            await this.create_dashboard_page();
+        }
+
+        let page_widgets: DashboardPageWidgetVO[] = await this.load_page_widgets_by_page_ids(
+            this.pages.map((p) => p.id),
+        );
+
+        // On ne prend que les widgets du viewport actif
+        if (this.selected_viewport?.id && page_widgets?.length) {
+            page_widgets = page_widgets.filter((pw) => pw.dashboard_viewport_id == this.selected_viewport.id);
+        }
+
+        this.set_page_widgets(page_widgets);
+
+        const shared_filters: SharedFiltersVO[] = await DashboardVOManager.load_shared_filters_with_dashboard_id(
+            this.dashboard.id,
+        );
+
+        this.add_shared_filters_to_map(shared_filters);
+
+        if (page_widgets?.length > 0) {
+            const custom_filters: { [name: string]: boolean } = {};
+
+            for (const i in page_widgets) {
+                const page_widget = page_widgets[i];
+                if (page_widget.json_options) {
+                    const options = JSON.parse(page_widget.json_options);
+                    if (options && options['custom_filter_name']) {
+                        custom_filters[options['custom_filter_name']] = true;
+                    }
+                }
+            }
+
+            if (custom_filters && ObjectHandler.hasAtLeastOneAttribute(custom_filters)) {
+                this.set_custom_filters(Object.keys(custom_filters));
+            }
+        }
+
+        WeightHandler.getInstance().sortByWeight(this.pages);
+
+        this.page = this.pages[0];
+
+        if (this.page?.id && this.selected_viewport?.id) {
+            // Check de l'activation du viewport pour le dashboard (couple FKs unique => Patch20240925AddUnicityForFieldsCouple)
+            const action_viewport: DashboardActiveonViewportVO = await query(DashboardActiveonViewportVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_page_id, this.page.id)
+                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_viewport_id, this.selected_viewport.id)
+                .select_vo();
+
+            // NOK or NULL => on demande à l'utilisateur s'il veut générer un layout par défaut
+            if (!action_viewport || !action_viewport.active) {
+                this.is_dbb_actived_on_viewport = false;
+            }
+
+            if (action_viewport?.active == true) {
+                this.is_dbb_actived_on_viewport = true;
+            }
+        } else {
+            this.is_dbb_actived_on_viewport = false;
+        }
+
+    }
+
     @Watch('selected_viewport')
     private async onchange_selected_viewport() {
 
@@ -214,7 +299,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
             this.is_dbb_actived_on_viewport = true;
         }
 
-        this.throttle_on_dashboard_loaded();
+        this.on_dashboard_loaded();
     }
 
     @Watch('page')
@@ -246,7 +331,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
         this.dashboard = await DashboardVOManager.find_dashboard_by_id(
             parseInt(this.dashboard_id),
         );
-        this.throttle_on_dashboard_loaded();
+        this.on_dashboard_loaded();
     }
 
     @Watch('dashboard')
@@ -269,7 +354,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
             });
         }
 
-        this.throttle_on_dashboard_loaded();
+        this.on_dashboard_loaded();
     }
 
     private dashboard_label(dashboard: DashboardVO): string {
@@ -333,11 +418,10 @@ export default class CMSBuilderComponent extends VueComponentBase {
                         { refresh: true },
                     );
 
-                    self.throttle_on_dashboard_loaded();
+                    self.on_dashboard_loaded();
 
                     // On crée des trads, on les recharge
-                    await VueAppController.getInstance().initializeFlatLocales();
-                    self.set_flat_locale_translations(VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS);
+                    await LocaleManager.get_all_flat_locale_translations(true);
 
                     if ((!import_on_vo) && imported_datas && imported_datas.length) {
                         // on récupère le nouveau db
@@ -746,90 +830,6 @@ export default class CMSBuilderComponent extends VueComponentBase {
         return dashboard_pages;
     }
 
-    private async on_dashboard_loaded() {
-
-        if (!this.dashboard) {
-            await this.init_dashboard();
-            await this.init_api_type_ids_and_discarded_field_paths();
-            this.init_dashboard_tab();
-            return;
-        }
-
-        this.set_page_widgets_components_by_pwid({});
-        await all_promises([
-            this.init_api_type_ids_and_discarded_field_paths(),
-            (async () => {
-                this.pages = await this.load_dashboard_pages_by_dashboard_id(
-                    this.dashboard.id,
-                );
-            })(),
-        ]);
-        this.init_dashboard_tab();
-
-        if (!this.pages) {
-            await this.create_dashboard_page();
-        }
-
-        let page_widgets: DashboardPageWidgetVO[] = await this.load_page_widgets_by_page_ids(
-            this.pages.map((p) => p.id),
-        );
-
-        // On ne prend que les widgets du viewport actif
-        if (this.selected_viewport?.id && page_widgets?.length) {
-            page_widgets = page_widgets.filter((pw) => pw.dashboard_viewport_id == this.selected_viewport.id);
-        }
-
-        this.set_page_widgets(page_widgets);
-
-        const shared_filters: SharedFiltersVO[] = await DashboardVOManager.load_shared_filters_with_dashboard_id(
-            this.dashboard.id,
-        );
-
-        this.add_shared_filters_to_map(shared_filters);
-
-        if (page_widgets?.length > 0) {
-            const custom_filters: { [name: string]: boolean } = {};
-
-            for (const i in page_widgets) {
-                const page_widget = page_widgets[i];
-                if (page_widget.json_options) {
-                    const options = JSON.parse(page_widget.json_options);
-                    if (options && options['custom_filter_name']) {
-                        custom_filters[options['custom_filter_name']] = true;
-                    }
-                }
-            }
-
-            if (custom_filters && ObjectHandler.hasAtLeastOneAttribute(custom_filters)) {
-                this.set_custom_filters(Object.keys(custom_filters));
-            }
-        }
-
-        WeightHandler.getInstance().sortByWeight(this.pages);
-
-        this.page = this.pages[0];
-
-        if (this.page?.id && this.selected_viewport?.id) {
-            // Check de l'activation du viewport pour le dashboard (couple FKs unique => Patch20240925AddUnicityForFieldsCouple)
-            const action_viewport: DashboardActiveonViewportVO = await query(DashboardActiveonViewportVO.API_TYPE_ID)
-                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_page_id, this.page.id)
-                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_viewport_id, this.selected_viewport.id)
-                .select_vo();
-
-            // NOK or NULL => on demande à l'utilisateur s'il veut générer un layout par défaut
-            if (!action_viewport || !action_viewport.active) {
-                this.is_dbb_actived_on_viewport = false;
-            }
-
-            if (action_viewport?.active == true) {
-                this.is_dbb_actived_on_viewport = true;
-            }
-        } else {
-            this.is_dbb_actived_on_viewport = false;
-        }
-
-    }
-
     private removed_widget_from_page(page_widget: DashboardPageWidgetVO) {
         this.delete_page_widget(page_widget);
     }
@@ -979,7 +979,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
         }
 
         // On crée la trad
-        const code_lang = LocaleManager.getInstance().getDefaultLocale();
+        const code_lang = LocaleManager.getDefaultLocale();
         const code_text = this.dashboard.translatable_name_code_text;
         const translation = "Dashboard [" + this.dashboard.id + "]";
         await TranslatableTextController.getInstance().save_translation(code_lang, code_text, translation);
@@ -1248,7 +1248,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
             this.dashboard = this.dashboards[0];
         }
 
-        this.show_cms_dashboard_pages = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDashboardBuilder.PARAM_NAME_SHOW_CMS_DASHBOARD_PAGES);
+        this.show_cms_dashboard_pages = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDashboardBuilder.PARAM_NAME_SHOW_CMS_DASHBOARD_PAGES, null, null);
 
         if (!this.viewports?.length) {
             const base_window_width: number = window.innerWidth;

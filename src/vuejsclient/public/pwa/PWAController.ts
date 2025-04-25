@@ -43,7 +43,7 @@ export default class PWAController {
                 let push_subscription: PushSubscription = await registration.pushManager.getSubscription();
 
                 if (!push_subscription) {
-                    const publicKey: string = await ModuleParams.getInstance().getParamValueAsString(ModulePWA.PARAM_PWA_PUSH_PUBLIC_KEY);
+                    const publicKey: string = await ModuleParams.getInstance().getParamValueAsString(ModulePWA.PARAM_PWA_PUSH_PUBLIC_KEY, null, null);
                     const convertedKey = ConversionHandler.urlBase64ToUint8Array(publicKey);
 
                     push_subscription = await registration.pushManager.subscribe({

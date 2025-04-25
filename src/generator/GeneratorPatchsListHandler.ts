@@ -72,6 +72,7 @@ import Patch20250331RemoveValueTables from './patchs/postmodules/Patch20250331Re
 import Patch20250331RenameFavoriteFilterOptions from './patchs/postmodules/Patch20250331RenameFavoriteFilterOptions';
 import Patch20250409AddRightsPWA from './patchs/postmodules/Patch20250409AddRightsPWA';
 import Patch20250422SetGraphDetailed from './patchs/postmodules/Patch20250422SetGraphDetailed';
+import Patch20250425AddDefaultViewportToWidgets from './patchs/postmodules/Patch20250425AddDefaultViewportToWidgets';
 import Patch20250425RenameTradsMenuCMS from './patchs/postmodules/Patch20250425RenameTradsMenuCMS';
 import Patch20122024TruncateLogsUpdated from './patchs/premodules/Patch20122024TruncateLogsUpdated';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
@@ -250,5 +251,6 @@ export default class GeneratorPatchsListHandler {
         Patch20250409AddRightsPWA.getInstance(),
 
         Patch20250425RenameTradsMenuCMS.getInstance(),
+        Patch20250425AddDefaultViewportToWidgets.getInstance(),
     ];
 }

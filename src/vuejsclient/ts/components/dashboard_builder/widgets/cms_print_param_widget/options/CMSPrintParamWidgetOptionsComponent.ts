@@ -1,21 +1,21 @@
-import { isEqual } from 'lodash';
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import CMSPrintParamWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/CMSPrintParamWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
+import ParamVO from '../../../../../../../shared/modules/Params/vos/ParamVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import './CMSPrintParamWidgetOptionsComponent.scss';
-import ParamVO from '../../../../../../../shared/modules/Params/vos/ParamVO';
-import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 @Component({
     template: require('./CMSPrintParamWidgetOptionsComponent.pug'),
@@ -63,7 +63,6 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
     };
 
     private next_update_options: CMSPrintParamWidgetOptionsVO = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     get widget_options(): CMSPrintParamWidgetOptionsVO {
         if (!this.page_widget) {
@@ -81,6 +80,28 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
         }
 
         return options;
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
+    private async update_options() {
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
+
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.set_page_widget(this.page_widget);
+        this.$emit('update_layout_widget', this.page_widget);
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
@@ -123,7 +144,7 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
             this.next_update_options.param = this.param;
             this.next_update_options.titre = this.titre;
 
-            await this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -148,7 +169,7 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
         this.type_param_selected = this.type_param_options.find((type_param_option) => type_param_option.id == this.type_param);
         this.param_selected = this.param_options.find((param_option) => param_option == this.param);
 
-        await this.throttled_update_options();
+        this.update_options();
     }
 
     private get_default_options(): CMSPrintParamWidgetOptionsVO {
@@ -157,23 +178,6 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
             null,
             "",
         );
-    }
-
-    private async update_options() {
-        try {
-            this.page_widget.json_options = JSON.stringify(this.next_update_options);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
-
-        if (!this.widget_options) {
-            return;
-        }
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
     }
 
     private multiselectOptionLabel(filter_item: ParamVO): string {

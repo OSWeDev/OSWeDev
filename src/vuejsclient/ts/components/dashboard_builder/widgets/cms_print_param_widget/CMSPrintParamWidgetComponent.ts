@@ -86,20 +86,20 @@ export default class CMSPrintParamWidgetComponent extends VueComponentBase {
         switch (type_param) {
 
             case CMSPrintParamWidgetOptionsVO.TYPE_STRING:
-                return await ModuleParams.getInstance().getParamValueAsString(param.name);
+                return await ModuleParams.getInstance().getParamValueAsString(param.name, null, null);
 
             case CMSPrintParamWidgetOptionsVO.TYPE_BOOLEAN:
-                bool = await ModuleParams.getInstance().getParamValueAsBoolean(param.name);
+                bool = await ModuleParams.getInstance().getParamValueAsBoolean(param.name, null, null);
                 return bool ? this.label('print_param.boolean.true') : this.label('print_param.boolean.false');
 
             case CMSPrintParamWidgetOptionsVO.TYPE_INT:
-                return (await ModuleParams.getInstance().getParamValueAsInt(param.name)).toString();
+                return (await ModuleParams.getInstance().getParamValueAsInt(param.name, null, null)).toString();
 
             case CMSPrintParamWidgetOptionsVO.TYPE_FLOAT:
-                return (await ModuleParams.getInstance().getParamValueAsFloat(param.name)).toString();
+                return (await ModuleParams.getInstance().getParamValueAsFloat(param.name, null, null)).toString();
 
             case CMSPrintParamWidgetOptionsVO.TYPE_DATE:
-                date = await ModuleParams.getInstance().getParamValueAsInt(param.name);
+                date = await ModuleParams.getInstance().getParamValueAsInt(param.name, null, null);
                 return date ? Dates.format(date, "DD/MM/YYYY") : null;
 
             default:

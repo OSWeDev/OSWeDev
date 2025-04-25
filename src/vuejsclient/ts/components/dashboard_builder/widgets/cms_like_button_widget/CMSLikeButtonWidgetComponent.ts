@@ -11,6 +11,8 @@ import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import Throttle from '../../../../../../shared/annotations/Throttle';
+import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 
 @Component({
     template: require('./CMSLikeButtonWidgetComponent.pug'),
@@ -29,7 +31,6 @@ export default class CMSLikeButtonWidgetComponent extends VueComponentBase {
     private user_id: number = null;
 
     private next_update_options: CMSLikeButtonWidgetOptionsVO = new CMSLikeButtonWidgetOptionsVO();
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     get widget_options(): CMSLikeButtonWidgetOptionsVO {
         if (!this.page_widget) {
@@ -47,6 +48,27 @@ export default class CMSLikeButtonWidgetComponent extends VueComponentBase {
         }
 
         return options;
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
+    private async update_options() {
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
+
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.$emit('update_layout_widget', this.page_widget);
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
@@ -117,22 +139,6 @@ export default class CMSLikeButtonWidgetComponent extends VueComponentBase {
 
         this.next_update_options.user_list = this.user_list;
 
-        await this.throttled_update_options();
-    }
-
-    private async update_options() {
-        try {
-            this.page_widget.json_options = JSON.stringify(this.next_update_options);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
-
-        if (!this.widget_options) {
-            return;
-        }
-
-        this.$emit('update_layout_widget', this.page_widget);
+        this.update_options();
     }
 }

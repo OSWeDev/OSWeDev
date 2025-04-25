@@ -83,7 +83,7 @@ export default class CMSBooleanButtonWidgetComponent extends VueComponentBase {
             .select_one();
 
         try {
-            const res = this.get_value_formatted(vo_field, this.widget_options.vo_field_ref.field_id, this.widget_options.vo_field_ref.api_type_id);
+            const res = await this.get_value_formatted(vo_field, this.widget_options.vo_field_ref.field_id, this.widget_options.vo_field_ref.api_type_id);
             this.boolean_vo_value = JSON.parse(res);
         } catch (error) {
             ConsoleHandler.error(error);
@@ -103,7 +103,7 @@ export default class CMSBooleanButtonWidgetComponent extends VueComponentBase {
         this.onchange_widget_options();
     }
 
-    private get_value_formatted(vo: IDistantVOBase, field_id: string, api_type_id: string) {
+    private async get_value_formatted(vo: IDistantVOBase, field_id: string, api_type_id: string) {
         const res = [];
         const field: SimpleDatatableFieldVO<any, any> = SimpleDatatableFieldVO.createNew(field_id)
             .setModuleTable(ModuleTableController.module_tables_by_vo_type[api_type_id]);

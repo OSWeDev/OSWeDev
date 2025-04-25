@@ -1,5 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../shared/annotations/Throttle';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
@@ -21,6 +22,7 @@ import DashboardVO from '../../../../shared/modules/DashboardBuilder/vos/Dashboa
 import DashboardViewportVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 import SharedFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
+import EventifyEventListenerConfVO from '../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslationVO from '../../../../shared/modules/Translation/vos/DefaultTranslationVO';
@@ -32,7 +34,6 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ObjectHandler, { field_names } from '../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
-import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 import InlineTranslatableText from '../InlineTranslatableText/InlineTranslatableText';
 import TranslatableTextController from '../InlineTranslatableText/TranslatableTextController';
@@ -152,10 +153,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private selected_viewport: DashboardViewportVO = null;
     private is_dbb_actived_on_viewport: boolean = false;
 
-    private throttle_on_dashboard_loaded = ThrottleHelper.declare_throttle_without_args(
-        'DashboardBuilderComponent.throttle_on_dashboard_loaded',
-        this.on_dashboard_loaded, 50);
-
     get all_tables_by_table_name(): { [table_name: string]: ModuleTableVO } {
         return ModuleTableController.module_tables_by_vo_type;
     }
@@ -246,6 +243,94 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         return res;
     }
 
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+    })
+    private async on_dashboard_loaded() {
+
+        if (!this.dashboard) {
+            await this.init_dashboard();
+            await this.init_api_type_ids_and_discarded_field_paths();
+            this.init_dashboard_tab();
+            return;
+        }
+
+        this.set_page_widgets_components_by_pwid({});
+        await all_promises([
+            this.init_api_type_ids_and_discarded_field_paths(),
+            (async () => {
+                this.pages = await this.load_dashboard_pages_by_dashboard_id(
+                    this.dashboard.id,
+                );
+            })(),
+        ]);
+        this.init_dashboard_tab();
+
+        if (!this.pages) {
+            await this.create_dashboard_page();
+        }
+
+        let page_widgets: DashboardPageWidgetVO[] = await this.load_page_widgets_by_page_ids(
+            this.pages.map((p) => p.id),
+        );
+
+        // On ne prend que les widgets du viewport actif
+        if (this.selected_viewport?.id) {
+            page_widgets = page_widgets.filter((pw) => pw.dashboard_viewport_id == this.selected_viewport.id);
+        }
+
+        this.set_page_widgets(page_widgets);
+
+        const shared_filters: SharedFiltersVO[] = await DashboardVOManager.load_shared_filters_with_dashboard_id(
+            this.dashboard.id,
+        );
+
+        this.add_shared_filters_to_map(shared_filters);
+
+        if (page_widgets?.length > 0) {
+            const custom_filters: { [name: string]: boolean } = {};
+
+            for (const i in page_widgets) {
+                const page_widget = page_widgets[i];
+                if (page_widget.json_options) {
+                    const options = JSON.parse(page_widget.json_options);
+                    if (options && options['custom_filter_name']) {
+                        custom_filters[options['custom_filter_name']] = true;
+                    }
+                }
+            }
+
+            if (custom_filters && ObjectHandler.hasAtLeastOneAttribute(custom_filters)) {
+                this.set_custom_filters(Object.keys(custom_filters));
+            }
+        }
+
+        WeightHandler.getInstance().sortByWeight(this.pages);
+
+        this.page = this.pages[0];
+
+        if (this.page?.id && this.selected_viewport?.id) {
+            // Check de l'activation du viewport pour le dashboard (couple FKs unique => Patch20240925AddUnicityForFieldsCouple)
+            const action_viewport: DashboardActiveonViewportVO = await query(DashboardActiveonViewportVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_page_id, this.page.id)
+                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_viewport_id, this.selected_viewport.id)
+                .select_vo();
+
+            // NOK or NULL => on demande à l'utilisateur s'il veut générer un layout par défaut
+            if (!action_viewport || !action_viewport.active) {
+                this.is_dbb_actived_on_viewport = false;
+            }
+
+            if (action_viewport?.active == true) {
+                this.is_dbb_actived_on_viewport = true;
+            }
+        } else {
+            this.is_dbb_actived_on_viewport = false;
+        }
+
+    }
+
     @Watch('selected_viewport')
     private async onchange_selected_viewport() {
 
@@ -268,7 +353,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             this.is_dbb_actived_on_viewport = true;
         }
 
-        this.throttle_on_dashboard_loaded();
+        this.on_dashboard_loaded();
     }
 
     @Watch('page')
@@ -300,7 +385,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.dashboard = await DashboardVOManager.find_dashboard_by_id(
             parseInt(this.dashboard_id),
         );
-        this.throttle_on_dashboard_loaded();
+        this.on_dashboard_loaded();
     }
 
     @Watch('dashboard')
@@ -323,7 +408,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             });
         }
 
-        this.throttle_on_dashboard_loaded();
+        this.on_dashboard_loaded();
     }
 
     private dashboard_label(dashboard: DashboardVO): string {
@@ -387,7 +472,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                         { refresh: true },
                     );
 
-                    self.throttle_on_dashboard_loaded();
+                    self.on_dashboard_loaded();
 
                     // On crée des trads, on les recharge
                     await LocaleManager.get_all_flat_locale_translations(true);
@@ -796,90 +881,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         );
 
         return dashboard_pages;
-    }
-
-    private async on_dashboard_loaded() {
-
-        if (!this.dashboard) {
-            await this.init_dashboard();
-            await this.init_api_type_ids_and_discarded_field_paths();
-            this.init_dashboard_tab();
-            return;
-        }
-
-        this.set_page_widgets_components_by_pwid({});
-        await all_promises([
-            this.init_api_type_ids_and_discarded_field_paths(),
-            (async () => {
-                this.pages = await this.load_dashboard_pages_by_dashboard_id(
-                    this.dashboard.id,
-                );
-            })(),
-        ]);
-        this.init_dashboard_tab();
-
-        if (!this.pages) {
-            await this.create_dashboard_page();
-        }
-
-        let page_widgets: DashboardPageWidgetVO[] = await this.load_page_widgets_by_page_ids(
-            this.pages.map((p) => p.id),
-        );
-
-        // On ne prend que les widgets du viewport actif
-        if (this.selected_viewport?.id) {
-            page_widgets = page_widgets.filter((pw) => pw.dashboard_viewport_id == this.selected_viewport.id);
-        }
-
-        this.set_page_widgets(page_widgets);
-
-        const shared_filters: SharedFiltersVO[] = await DashboardVOManager.load_shared_filters_with_dashboard_id(
-            this.dashboard.id,
-        );
-
-        this.add_shared_filters_to_map(shared_filters);
-
-        if (page_widgets?.length > 0) {
-            const custom_filters: { [name: string]: boolean } = {};
-
-            for (const i in page_widgets) {
-                const page_widget = page_widgets[i];
-                if (page_widget.json_options) {
-                    const options = JSON.parse(page_widget.json_options);
-                    if (options && options['custom_filter_name']) {
-                        custom_filters[options['custom_filter_name']] = true;
-                    }
-                }
-            }
-
-            if (custom_filters && ObjectHandler.hasAtLeastOneAttribute(custom_filters)) {
-                this.set_custom_filters(Object.keys(custom_filters));
-            }
-        }
-
-        WeightHandler.getInstance().sortByWeight(this.pages);
-
-        this.page = this.pages[0];
-
-        if (this.page?.id && this.selected_viewport?.id) {
-            // Check de l'activation du viewport pour le dashboard (couple FKs unique => Patch20240925AddUnicityForFieldsCouple)
-            const action_viewport: DashboardActiveonViewportVO = await query(DashboardActiveonViewportVO.API_TYPE_ID)
-                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_page_id, this.page.id)
-                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_viewport_id, this.selected_viewport.id)
-                .select_vo();
-
-            // NOK or NULL => on demande à l'utilisateur s'il veut générer un layout par défaut
-            if (!action_viewport || !action_viewport.active) {
-                this.is_dbb_actived_on_viewport = false;
-            }
-
-            if (action_viewport?.active == true) {
-                this.is_dbb_actived_on_viewport = true;
-            }
-        } else {
-            this.is_dbb_actived_on_viewport = false;
-        }
-
     }
 
     private removed_widget_from_page(page_widget: DashboardPageWidgetVO) {

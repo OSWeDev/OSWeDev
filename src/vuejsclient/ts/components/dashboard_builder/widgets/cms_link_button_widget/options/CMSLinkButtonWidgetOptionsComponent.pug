@@ -61,7 +61,7 @@
         )
 
         .widget_button_color {{ label("cms_link_button.widget_option.color") }}
-        color-picker(v-model="color" @change='throttled_update_options')
+        color-picker(v-model="color" @change='update_options')
 
         .text_color_label {{ label('cms_link_button.widget_option.text_color') }}
         toggle-button(

@@ -15,6 +15,7 @@ import DashboardViewportVO from '../../../shared/modules/DashboardBuilder/vos/Da
 import ListObjectLikesVO from '../../../shared/modules/DashboardBuilder/vos/ListObjectLikesVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -22,6 +23,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -4632,6 +4634,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
 
+        const preUTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onpreUDashboardPageWidgetVO);
+
         const postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         postUTrigger.registerHandler(DashboardGraphVORefVO.API_TYPE_ID, this, this.onUDashboardGraphVORefVO);
 
@@ -4823,8 +4828,42 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return false;
         }
 
+        if (!e.dashboard_viewport_id) {
+            const default_vp = await query(DashboardViewportVO.API_TYPE_ID)
+                .filter_is_true(field_names<DashboardViewportVO>().is_default)
+                .exec_as_server()
+                .select_vo<DashboardViewportVO>();
+
+            if (default_vp) {
+                e.dashboard_viewport_id = default_vp.id;
+            } else {
+                ConsoleHandler.error('ModuleDashboardBuilderServer:onCDashboardPageWidgetVO:No default viewport found for DashboardPageWidgetVO');
+            }
+        }
+
         await ModuleDashboardBuilderServer.getInstance().check_DashboardPageWidgetVO_i(e);
         await ModuleDashboardBuilderServer.getInstance().check_DashboardPageWidgetVO_weight(e);
+
+        return true;
+    }
+
+    private async onpreUDashboardPageWidgetVO(wrapper: DAOUpdateVOHolder<DashboardPageWidgetVO>) {
+        if (!wrapper || !wrapper.pre_update_vo || !wrapper.post_update_vo) {
+            return false;
+        }
+
+        if (!wrapper.post_update_vo.dashboard_viewport_id) {
+            const default_vp = await query(DashboardViewportVO.API_TYPE_ID)
+                .filter_is_true(field_names<DashboardViewportVO>().is_default)
+                .exec_as_server()
+                .select_vo<DashboardViewportVO>();
+
+            if (default_vp) {
+                wrapper.post_update_vo.dashboard_viewport_id = default_vp.id;
+            } else {
+                ConsoleHandler.error('ModuleDashboardBuilderServer:onCDashboardPageWidgetVO:No default viewport found for DashboardPageWidgetVO');
+            }
+        }
 
         return true;
     }
