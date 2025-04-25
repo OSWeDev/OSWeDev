@@ -1,7 +1,7 @@
 .fileinput
     .row
         .col-sm-12        
-            vue-dropzone(v-if="!readonly" :ref="'filedropzone' + uid" :id="'filedropzone' + uid" :options="dropzoneOptions")
+            vue-dropzone(v-if="!disabled" :ref="'filedropzone' + uid" :id="'filedropzone' + uid" :options="dropzoneOptions")
                 .dz-message
                     i.fa-solid.fa-upload.fa-3x(aria-hidden="true")
             template(v-if="(!!imagevo) && imagevo[field.module_table_field_id]")

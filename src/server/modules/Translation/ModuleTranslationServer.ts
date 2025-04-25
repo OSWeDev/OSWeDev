@@ -244,6 +244,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             'fr-fr': 'Ajouter'
         }, 'crud.create.modal.add.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Valider et poursuivre'
+        }, 'crud.create.modal.add_continue.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Annuler'
         }, 'crud.create.modal.cancel.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -303,6 +306,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Enregistrer'
         }, 'crud.update.modal.save.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Valider et poursuivre'
+        }, 'crud.update.modal.save_continue.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mettre à jour'
         }, 'crud.update.modal.update.___LABEL___'));
@@ -661,6 +667,18 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Merci de recharger votre page suite à votre problème de connexion internet'
         }, 'observer_error_no_internet.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Voulez-vous annuler les modifications en cours ?'
+        }, 'cancel.update.confirmation.body.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Modifications en cours'
+        }, 'cancel.update.confirmation.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Voulez-vous annuler la création en cours ?'
+        }, 'cancel.create.confirmation.body.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Création en cours'
+        }, 'cancel.create.confirmation.title.___LABEL___'));
     }
 
     /**

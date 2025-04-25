@@ -1,8 +1,14 @@
 .supervised_item(:class="{embedded: embed}")
     template(v-if='!!supervised_item')
         .row
-            .supervised_item_header.mb-2.col-sm-12
-                Supervisiondashboarditemcomponent(:item='supervised_item' :noclick='true' :nameabove="embed")
+            .supervised_item_header.col-sm-12
+                Supervisiondashboarditemcomponent(
+                    :item='supervised_item'
+                    :noclick='true'
+                    :nameabove="embed"
+                    :split_char="split_char"
+                    :class="{'mb-1': embed, 'mb-2': !embed}"
+                )
 
         .row
             //- div(class="col-sm-12")
@@ -34,12 +40,13 @@
                     button.btn.btn-sm.m-1.btn-primary(@click="invalidate" v-tooltip='label("supervised_item_controls.desc_btn.invalidate")')
                         i.fa-duotone.fa-cogs
 
-                    template(v-if='is_paused')
-                        button.btn.btn-sm.m-1.btn-primary(@click="switch_paused" v-tooltip='label("supervised_item_controls.desc_btn.switch_paused_turn_off")')
-                            i.fa-duotone.fa-play
-                    template(v-else)
-                        button.btn.btn-sm.m-1.btn-primary(@click="switch_paused" v-tooltip='label("supervised_item_controls.desc_btn.switch_paused_turn_on")')
-                            i.fa-duotone.fa-pause
+                    template(v-if='has_access_pause')
+                        template(v-if='is_paused')
+                            button.btn.btn-sm.m-1.btn-primary(@click="switch_paused" v-tooltip='label("supervised_item_controls.desc_btn.switch_paused_turn_off")')
+                                i.fa-duotone.fa-play
+                        template(v-else)
+                            button.btn.btn-sm.m-1.btn-primary(@click="switch_paused" v-tooltip='label("supervised_item_controls.desc_btn.switch_paused_turn_on")')
+                                i.fa-duotone.fa-pause
 
                     template(v-if='!can_not_switch_read')
                         template(v-if='is_read')
@@ -71,9 +78,10 @@
 
         .row.mb-3
             .col-sm-12(v-if='supervised_item_controller')
-                template(v-for='supervised_item_url in supervised_item_urls')
-                    .supervised_item_url
-                        button.btn.btn-sm.btn-primary.m-1(@click="open_url(supervised_item_url.url)") {{ supervised_item_url.label }}
+                .supervised_item_urls
+                    template(v-for='supervised_item_url in supervised_item_urls')
+                        .supervised_item_url.pr-1
+                            button.btn.btn-sm.btn-primary.mr-1.mt-1.mb-1(@click="open_url(supervised_item_url.url)") {{ supervised_item_url.label }}
 
         .row
 
@@ -82,10 +90,18 @@
                 class='col-sm-12'
             )
                 .row
-                    template(v-if="supervised_item_description")
-                        .col-sm-12
+                    template(v-if="embed")
+                        template(v-if="supervised_item_description")
                             .col-sm-12.supervised_item_description.pt-3.pb-3 {{ supervised_item_description }}
 
-                    template(v-if="supervised_item_description_html")
-                        .col-sm-12
+                        template(v-if="supervised_item_description_html")
                             .col-sm-12.supervised_item_description.pt-3.pb-3(v-html="supervised_item_description_html")
+
+                    template(v-else)
+                        template(v-if="supervised_item_description")
+                            .col-sm-12
+                                .col-sm-12.supervised_item_description.pt-3.pb-3 {{ supervised_item_description }}
+
+                        template(v-if="supervised_item_description_html")
+                            .col-sm-12
+                                .col-sm-12.supervised_item_description.pt-3.pb-3(v-html="supervised_item_description_html")

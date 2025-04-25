@@ -3887,6 +3887,42 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Recharger toutes les (en secondes)" },
             'supervision_type_widget_component.auto_refresh_seconds.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher le détail de la sélection (sonde / état)" },
+            'supervision_type_widget_component.show_active_selection.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher les boutons de sélection d'état" },
+            'supervision_type_widget_component.show_state_btn.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Sélection active" },
+            'supervision_type_widget_component.title.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Tout désélectionner" },
+            'supervision_type_widget_component.unselect_all.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Etat : " },
+            'supervision_type_widget_component.selected_state.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Aucune sélection" },
+            'supervision_type_widget_component.selected_state_none.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Sonde : " },
+            'supervision_type_widget_component.selected_api_type_id.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Aucune sélection" },
+            'supervision_type_widget_component.selected_api_type_id_none.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "En cours de recalcul" },
+            'supervision_widget_component.tooltip.item.invalid.___LABEL___'
+        ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Titre" },

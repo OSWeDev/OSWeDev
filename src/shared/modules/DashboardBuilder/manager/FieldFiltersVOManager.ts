@@ -1,12 +1,13 @@
 import { cloneDeep } from "lodash";
-import LocaleManager from "../../../tools/LocaleManager";
 import ObjectHandler from "../../../tools/ObjectHandler";
 import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import ModuleTableController from "../../DAO/ModuleTableController";
+import ModuleTableFieldController from "../../DAO/ModuleTableFieldController";
 import ModuleTableFieldVO from "../../DAO/vos/ModuleTableFieldVO";
 import ModuleTableVO from "../../DAO/vos/ModuleTableVO";
+import ModuleTranslation from "../../Translation/ModuleTranslation";
 import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
 import IReadableFieldFilters from "../interfaces/IReadableFieldFilters";
 import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
@@ -17,7 +18,6 @@ import VOFieldRefVO from '../vos/VOFieldRefVO';
 import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 import VOFieldRefVOManager from "./VOFieldRefVOManager";
 import WidgetOptionsVOManager from "./WidgetOptionsVOManager";
-import ModuleTranslation from "../../Translation/ModuleTranslation";
 
 /**
  * FieldFiltersVOManager
@@ -620,11 +620,17 @@ export default class FieldFiltersVOManager {
 
                     // Check if the api_type_id (or vo_type) actually have the field_id to filter on
                     const base_table: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[api_type_id];
-                    const base_table_fields: ModuleTableFieldVO[] = base_table.get_fields();
+                    if (!base_table) {
+                        console.error('No base_table found for api_type_id: ', api_type_id);
+                    }
+                    const fields_by_field_name: { [field_name: string]: ModuleTableFieldVO } = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[api_type_id];
 
-                    const has_context_filter_field: boolean = base_table_fields.find((field: ModuleTableFieldVO) => {
-                        return field.field_id == context_filter.field_name;
-                    }) != null;
+                    // const base_table_fields: ModuleTableFieldVO[] = base_table.get_fields();
+                    // const has_context_filter_field: boolean = base_table_fields.find((field: ModuleTableFieldVO) => {
+                    //     return field.field_id == context_filter.field_name;
+                    // }) != null;
+
+                    const has_context_filter_field: boolean = !!fields_by_field_name && !!fields_by_field_name[context_filter.field_name];
 
                     if (!has_context_filter_field) {
                         continue;

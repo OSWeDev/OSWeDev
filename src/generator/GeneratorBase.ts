@@ -41,6 +41,7 @@ import ActivateDataRender from './inits/premodules/ActivateDataRender';
 import CheckBasicSchemas from './inits/premodules/CheckBasicSchemas';
 import CheckExtensions from './inits/premodules/CheckExtensions';
 import VersionUpdater from './version_updater/VersionUpdater';
+// import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
 

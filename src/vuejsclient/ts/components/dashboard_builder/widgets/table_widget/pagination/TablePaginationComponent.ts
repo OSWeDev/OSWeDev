@@ -187,7 +187,6 @@ export default class TablePaginationComponent extends VueComponentBase {
         }
 
         if (this.new_page != new_page_num) {
-            console.log('onchange_new_page_str>new_page=' + new_page_num);
             this.new_page = new_page_num;
         }
     }
@@ -200,7 +199,6 @@ export default class TablePaginationComponent extends VueComponentBase {
         }
 
         if (this.new_page_str != this.new_page.toString()) {
-            console.log('onchange_new_page>new_page_str=' + this.new_page);
             this.new_page_str = this.new_page.toString();
         }
     }

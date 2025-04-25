@@ -633,7 +633,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         }
 
         return this.moduleTableField.enum_image_values ? this.moduleTableField.enum_image_values[id] : null;
-    }
+    };
 
     public getValidationTextCodeBase(): string {
         return this.moduleTableField.getValidationTextCodeBase();

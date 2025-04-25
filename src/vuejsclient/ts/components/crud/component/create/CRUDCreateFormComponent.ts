@@ -29,6 +29,8 @@ import TranslationVO from '../../../../../../shared/modules/Translation/vos/Tran
 import LangVO from '../../../../../../shared/modules/Translation/vos/LangVO';
 import VueAppController from '../../../../../VueAppController';
 import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
+import { cloneDeep, isEqual } from 'lodash';
+import ModuleTableVO from '../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 
 @Component({
     template: require('./CRUDCreateFormComponent.pug'),
@@ -71,8 +73,12 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     @Prop({ default: false })
     private show_placeholder: boolean;
 
+    @Prop({ default: false })
+    private inline_form_in_crud: boolean;
+
     private editableVO: IDistantVOBase = null;
     private newVO: IDistantVOBase = null;
+    private newVO_initial: IDistantVOBase = null;
 
     private api_types_involved: string[] = [];
 
@@ -90,6 +96,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     private is_editing_title: boolean = false;
     private label_title: string = null;
     private translatable_text_title: TranslatableTextVO = null;
+    private snotify_cancel = null;
 
     get CRUDTitle(): string {
         if (!this.crud) {
@@ -97,9 +104,16 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         }
 
         return this.label('crud.read.title', {
-            datatable_title:
-                this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].label.code_text)
+            datatable_title: this.datatable_title
         });
+    }
+
+    get datatable_title(): string {
+        if (!this.crud) {
+            return null;
+        }
+
+        return this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID]?.label?.code_text);
     }
 
     get callback_route(): string {
@@ -121,6 +135,14 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
     get get_crud_title(): string {
         return this.t(this.label_title);
+    }
+
+    get input_label(): string {
+        if (this.inline_form_in_crud) {
+            return this.label('crud.create.modal.add_continue');
+        }
+
+        return this.label('crud.create.modal.add');
     }
 
     @Watch("api_type_id", { immediate: true })
@@ -191,7 +213,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
             const lang_user: LangVO = await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo();
             translation.lang_id = lang_user.id;
             translation.text_id = translatable_text_title_id.id;
-            translation.translated = this.t(default_trad);
+            translation.translated = this.t(default_trad) + (this.datatable_title ? ' ' + this.datatable_title : '');
             await ModuleDAO.getInstance().insertOrUpdateVO(translation);
         }
     }
@@ -220,6 +242,56 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
             this.crud_createDatatable_key = this.crud.createDatatable.key;
         }
+    }
+
+    public cancel() {
+        if (this.vo_is_equal_for_prevent()) {
+            this.$emit('cancel');
+            return;
+        }
+
+        if (this.snotify_cancel) {
+            return;
+        }
+
+        this.snotify_cancel = this.snotify.confirm(this.label('cancel.create.confirmation.body'), this.label('cancel.create.confirmation.title'), {
+            timeout: 0,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            titleMaxLength: 100,
+            buttons: [
+                {
+                    text: this.t('YES'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                        this.snotify_cancel = null;
+
+                        // On met le VO aux valeurs initiales
+                        this.newVO = cloneDeep(this.newVO_initial);
+
+                        this.$emit('cancel');
+                    },
+                },
+                {
+                    text: this.t('NO'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                        this.snotify_cancel = null;
+                    }
+                }
+            ]
+        });
+    }
+
+    public vo_is_equal_for_prevent(): boolean {
+        const moduletable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[this.api_type_id];
+
+        if (!moduletable?.prevent_close_modal) {
+            return true;
+        }
+
+        return isEqual(this.newVO, this.newVO_initial);
     }
 
     private async mounted() {
@@ -349,6 +421,8 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         this.newVO = await CRUDFormServices.getNewVO(
             this.crud, this.vo_init, this.onChangeVO
         );
+        this.newVO_initial = cloneDeep(this.newVO);
+        this.snotify_cancel = null;
     }
 
     private async createVO() {
@@ -424,6 +498,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                 }
 
                 if (self.close_on_submit) {
+                    this.newVO_initial = cloneDeep(this.newVO);
                     self.$emit('close');
                 } else {
                     self.crud.createDatatable.refresh();
@@ -491,10 +566,6 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
             this.crud.createDatatable.refresh();
             this.crud_createDatatable_key = this.crud.createDatatable.key;
         }
-    }
-
-    private async cancel() {
-        this.$emit('cancel');
     }
 
     private async create_vo_and_refs(vo: IDistantVOBase, reject_snotify) {

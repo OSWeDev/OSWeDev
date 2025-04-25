@@ -1,5 +1,5 @@
-import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import { EventInput, ViewApi } from '@fullcalendar/core';
+import ContextQueryVO, { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import Module from '../../../../shared/modules/Module';
 import ModulesManager from '../../../../shared/modules/ModulesManager';
@@ -10,11 +10,9 @@ import IPlanTask from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTa
 import IPlanTaskType from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 import VueAppBaseInstanceHolder from '../../../VueAppBaseInstanceHolder';
-import ContextQueryVO from '../../../../../dist/shared/modules/ContextFilter/vos/ContextQueryVO';
-import { field_names } from '../../../../shared/tools/ObjectHandler';
-import { EventInput, ViewApi } from '@fullcalendar/core';
 
 export default abstract class ProgramPlanControllerBase {
 

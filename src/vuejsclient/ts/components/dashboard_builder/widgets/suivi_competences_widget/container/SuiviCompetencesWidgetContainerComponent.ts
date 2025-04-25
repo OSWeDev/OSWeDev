@@ -217,7 +217,7 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
         await all_promises(promises);
 
         this.reload_indicateur_options_by_item_ids();
-        this.reload_all_rapport_item_by_ids();
+        await this.reload_all_rapport_item_by_ids();
         this.reload_indicateur_option_rapport_item_by_ids();
         this.reload_filtered_groupes();
     }
@@ -238,33 +238,48 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
         this.all_rapport_item_by_ids[item.id].id = res.id;
     }
 
-    private reload_all_rapport_item_by_ids() {
-        let res: { [item_id: number]: SuiviCompetencesItemRapportVO } = {};
+    private async reload_all_rapport_item_by_ids() {
+        const res: { [item_id: number]: SuiviCompetencesItemRapportVO } = {};
 
-        for (let i in this.rapport_item_by_ids) {
+        for (const i in this.rapport_item_by_ids) {
             res[this.rapport_item_by_ids[i].suivi_comp_item_id] = this.rapport_item_by_ids[i];
         }
 
-        for (let i in this.all_groupes) {
-            for (let j in this.all_groupes[i].sous_groupe) {
-                for (let k in this.all_groupes[i].sous_groupe[j].items) {
-                    let item: SuiviCompetencesItemVO = this.all_groupes[i].sous_groupe[j].items[k];
+        const promises = [];
+
+        for (const i in this.all_groupes) {
+            for (const j in this.all_groupes[i].sous_groupe) {
+                for (const k in this.all_groupes[i].sous_groupe[j].items) {
+                    const item: SuiviCompetencesItemVO = this.all_groupes[i].sous_groupe[j].items[k];
 
                     if (!res[item.id]) {
-                        res[item.id] = SuiviCompetencesItemRapportVO.createNew(
-                            null,
-                            null,
-                            null,
-                            item.id,
-                            this.selected_rapport.id,
-                            null,
-                            null,
-                            null,
-                        );
+                        promises.push((async () => {
+                            const item_rapport: SuiviCompetencesItemRapportVO = SuiviCompetencesItemRapportVO.createNew(
+                                null,
+                                null,
+                                null,
+                                item.id,
+                                this.selected_rapport.id,
+                                null,
+                                null,
+                                null,
+                            );
+
+                            const res_item: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(item_rapport);
+
+                            if (!res_item?.id) {
+                                throw new Error('Erreur lors de la sauvegarde');
+                            }
+
+                            item_rapport.id = res_item.id;
+                            res[item.id] = item_rapport;
+                        })());
                     }
                 }
             }
         }
+
+        await all_promises(promises);
 
         this.all_rapport_item_by_ids = res;
     }

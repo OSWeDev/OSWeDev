@@ -838,11 +838,6 @@ export default class CRUDFormServices {
 
                 if (fileVo) {
                     updateData(fileVo);
-                } else if (vo) {
-                    vo[field.datatable_field_uid] = fileVo.path;
-
-                    updateData(vo);
-                    updateData(fileVo);
                 }
 
                 return true;

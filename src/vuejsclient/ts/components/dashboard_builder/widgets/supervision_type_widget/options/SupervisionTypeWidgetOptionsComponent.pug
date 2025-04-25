@@ -37,6 +37,28 @@
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 )
 
+        .field_show_active_selection
+            .input_label {{ label('supervision_type_widget_component.show_active_selection') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_show_active_selection"
+                    :value="show_active_selection"
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
+
+        .field_show_state_btn
+            .input_label {{ label('supervision_type_widget_component.show_state_btn') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_show_state_btn"
+                    :value="show_state_btn"
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
+
         .field_show_counter
             .input_label {{ label('supervision_type_widget_component.show_counter') }}
             .input_wrapper
