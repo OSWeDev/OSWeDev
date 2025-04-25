@@ -1482,7 +1482,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                             this.get_discarded_field_paths
                         );
 
-                        const tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                        const tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.instance.select_filter_visible_options(
                             context_query_lvl2,
                             this.actual_query
                         );

@@ -65,10 +65,6 @@ import CRUDCreateFormController from '../create/CRUDCreateFormController';
 import CRUDFormServices from '../CRUDFormServices';
 import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
 import './CRUDComponentField.scss';
-import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
-import CRUDCreateFormComponent from '../create/CRUDCreateFormComponent';
-import CRUDCreateFormController from '../create/CRUDCreateFormController';
-import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
 const debounce = require('lodash/debounce');
 
 @Component({
@@ -415,28 +411,6 @@ export default class CRUDComponentField extends VueComponentBase
         return this.auto_validate_inline_input && !!this.auto_validate_start;
     }
 
-    get field_description(): string {
-        if (this.description) {
-            return this.description;
-        }
-
-        if (
-            !this.field?.module_table_field_id ||
-            !this.field?.vo_type_id ||
-            !ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.field.vo_type_id]
-        ) {
-            return null;
-        }
-
-        const vo_field: ModuleTableFieldVO = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.field.vo_type_id][this.field.module_table_field_id];
-
-        if (!vo_field) {
-            return null;
-        }
-
-        return vo_field.description;
-    }
-
     get async_load_options_field_value(): DataFilterOption[] {
         const res: DataFilterOption[] = [];
 
@@ -495,6 +469,28 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         return res;
+    }
+
+    get field_description(): string {
+        if (this.description) {
+            return this.description;
+        }
+
+        if (
+            !this.field?.module_table_field_id ||
+            !this.field?.vo_type_id ||
+            !ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.field.vo_type_id]
+        ) {
+            return null;
+        }
+
+        const vo_field: ModuleTableFieldVO = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.field.vo_type_id][this.field.module_table_field_id];
+
+        if (!vo_field) {
+            return null;
+        }
+
+        return vo_field.description;
     }
 
     set async_load_options_field_value(values: DataFilterOption | DataFilterOption[]) {

@@ -254,7 +254,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         this.stopLoading();
 
         this.has_access_pause = await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS);
-        this.split_char = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervision.PARAM_NAME_sup_item_name_split_char, null);
+        this.split_char = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervision.PARAM_NAME_sup_item_name_split_char, null, 0);
 
         if (this.widget_options && this.widget_options.auto_refresh) {
             await this.start_auto_refresh();

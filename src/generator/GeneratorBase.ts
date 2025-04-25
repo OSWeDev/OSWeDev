@@ -40,8 +40,8 @@ import ActivateDataImport from './inits/premodules/ActivateDataImport';
 import ActivateDataRender from './inits/premodules/ActivateDataRender';
 import CheckBasicSchemas from './inits/premodules/CheckBasicSchemas';
 import CheckExtensions from './inits/premodules/CheckExtensions';
+import CheckExtensionsV2 from './inits/premodules/CheckExtensionsV2';
 import VersionUpdater from './version_updater/VersionUpdater';
-// import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
 
@@ -72,6 +72,7 @@ export default abstract class GeneratorBase {
             CheckBasicSchemas.getInstance(),
             ActivateDataImport.getInstance(),
             ActivateDataRender.getInstance(),
+            CheckExtensionsV2.getInstance(),
         ];
 
         this.init_post_modules_workers = [

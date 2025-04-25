@@ -796,8 +796,8 @@ export default class CRUDFormServices {
         fileVo: FileVO | ImageVO,
         api_type_id: string,
         editableVO: IDistantVOBase,
-        updateData: (a: IDistantVOBase) => void,
-        component: VueComponentBase,
+        updateData: (vo_upd: IDistantVOBase) => void,
+        component: VueComponentBase
     ) {
         if ((!fileVo) || (!fileVo.id)) {
             return false;

@@ -114,6 +114,8 @@ import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patc
 import Patch20250106createTableSupProbe from './patchs/premodules/Patch20250106createTableSupProbe';
 import Patch20250228DeleteDuplicateGraphVO from './patchs/premodules/Patch20250228DeleteDuplicateGraphVO';
 import Patch20250304DropArchivesConfVO from './patchs/premodules/Patch20250304TruncateArchivesConfVO';
+import Patch20250214AddRightsSupervisedPAUSE from './patchs/postmodules/Patch20250214AddRightsSupervisedPAUSE';
+import Patch20250422SetGraphDetailed from './patchs/postmodules/Patch20250422SetGraphDetailed';
 
 export default class GeneratorPatchsListHandler {
 
@@ -236,12 +238,14 @@ export default class GeneratorPatchsListHandler {
 
         Patch20241216LowerDefaultDBLogTypeToWARN.getInstance(),
 
+        Patch20250214AddRightsSupervisedPAUSE.getInstance(),
         Patch20250115UpdateGraphsPalettes.getInstance(),
         Patch20250224AddDbbTrad.getInstance(),
         Patch20250224AddDefaultPalette.getInstance(),
 
         Patch20250303CheckDBsCycles.getInstance(),
         Patch20250331RenameFavoriteFilterOptions.getInstance(),
+        Patch20250422SetGraphDetailed.getInstance(),
         Patch20250331RemoveValueTables.getInstance(),
 
         Patch20250409AddRightsPWA.getInstance(),

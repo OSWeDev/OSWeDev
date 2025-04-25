@@ -119,7 +119,6 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
         return this.label('crud.update.modal.save');
     }
 
-
     @Watch("api_type_id", { immediate: true })
     private async onchange_api_type_id() {
         if ((!this.selected_vo) || (!this.selected_vo._type)) {

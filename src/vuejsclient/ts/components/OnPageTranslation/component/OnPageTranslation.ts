@@ -61,6 +61,17 @@ export default class OnPageTranslation extends VueComponentBase {
 
     private debounced_onChange_getPageTranslations = debounce(this.change_page_translations_wrapper.bind(this), 500);
 
+    get isActive(): boolean {
+        return ModuleTranslation.getInstance().actif && VueAppController.getInstance().has_access_to_onpage_translation;
+    }
+
+    @Watch('getPageTranslations', { deep: true, immediate: true })
+    private onChange_getPageTranslations() {
+
+        // On debounce pour un lancement uniquement toutes les 2 secondes, sinon on va tout écrouler...
+        this.debounced_onChange_getPageTranslations();
+    }
+
     public async mounted() {
         this.startLoading();
 
@@ -89,13 +100,6 @@ export default class OnPageTranslation extends VueComponentBase {
         this.stopLoading();
     }
 
-    @Watch('getPageTranslations', { deep: true, immediate: true })
-    private onChange_getPageTranslations() {
-
-        // On debounce pour un lancement uniquement toutes les 2 secondes, sinon on va tout écrouler...
-        this.debounced_onChange_getPageTranslations();
-    }
-
     private set_missingTranslationsNumber() {
         let res: number = 0;
 
@@ -107,13 +111,10 @@ export default class OnPageTranslation extends VueComponentBase {
 
         this.missingTranslationsNumber = res;
     }
-
-    get isActive(): boolean {
-        return ModuleTranslation.getInstance().actif && VueAppController.getInstance().has_access_to_onpage_translation;
-    }
-
     private openModule() {
         this.isOpened = true;
+
+        this.fire_modal_inert('.on_page_translation_module_wrapper');
     }
 
     private closeModule() {

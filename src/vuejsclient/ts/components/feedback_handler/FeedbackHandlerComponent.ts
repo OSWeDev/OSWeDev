@@ -20,7 +20,6 @@ import ScreenshotComponent from '../screenshot/ScreenshotComponent';
 import VueComponentBase from '../VueComponentBase';
 import './FeedbackHandlerComponent.scss';
 import { ModuleFeedbackAction, ModuleFeedbackGetter } from './store/FeedbackStore';
-const { parse, stringify } = require('flatted/cjs');
 
 @Component({
     template: require('./FeedbackHandlerComponent.pug'),
@@ -115,6 +114,10 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
     private switch_hidden() {
         this.set_hidden(!this.get_hidden);
+
+        if (!this.get_hidden) {
+            this.fire_modal_inert('.feedback_handler_modal');
+        }
     }
 
     private async send_feedback() {

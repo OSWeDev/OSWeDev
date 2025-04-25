@@ -56,6 +56,7 @@ import PerfReportController from '../../shared/modules/PerfReport/PerfReportCont
 import ModulePlayWright from '../../shared/modules/PlayWright/ModulePlayWright';
 import ModulePopup from '../../shared/modules/Popup/ModulePopup';
 import ModulePowershell from '../../shared/modules/Powershell/ModulePowershell';
+import ModuleSonicWallAPI from '../../shared/modules/SonicWallAPI/ModuleSonicWallAPI';
 import ModulePushData from '../../shared/modules/PushData/ModulePushData';
 import ModuleRequest from '../../shared/modules/Request/ModuleRequest';
 import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
@@ -135,6 +136,7 @@ import ModulePlayWrightServer from './PlayWright/ModulePlayWrightServer';
 import ModulePopupServer from './Popup/ModulePopupServer';
 import PostModulesInitHookHolder from './PostModulesInitHookHolder';
 import ModulePowershellServer from './Powershell/ModulePowershellServer';
+import ModuleSonicWallAPIServer from './SonicWallAPI/ModuleSonicWallAPIServer';
 import PreloadedModuleServerController from './PreloadedModuleServerController';
 import ModulePushDataServer from './PushData/ModulePushDataServer';
 import ModuleRequestServer from './Request/ModuleRequestServer';
@@ -711,6 +713,7 @@ export default abstract class ModuleServiceBase {
             ModuleFacturationProAPI.getInstance(),
             ModuleKelio.getInstance(),
             ModulePowershell.getInstance(),
+            ModuleSonicWallAPI.getInstance(),
             ModuleNFCConnect.getInstance(),
             ModuleDashboardBuilder.getInstance(),
             ModuleMenu.getInstance(),
@@ -782,6 +785,7 @@ export default abstract class ModuleServiceBase {
             ModuleFacturationProAPIServer.getInstance(),
             ModuleKelioServer.getInstance(),
             ModulePowershellServer.getInstance(),
+            ModuleSonicWallAPIServer.getInstance(),
             ModuleNFCConnectServer.getInstance(),
             ModuleDashboardBuilderServer.getInstance(),
             ModuleMenuServer.getInstance(),
