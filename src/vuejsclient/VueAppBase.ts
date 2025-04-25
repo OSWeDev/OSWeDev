@@ -19,7 +19,6 @@ import VTooltip from 'v-tooltip';
 import Vue from 'vue';
 import VueCookies from 'vue-cookies-ts';
 import VueDraggableResizable from 'vue-draggable-resizable';
-import VueI18n from 'vue-i18n';
 import VModal from 'vue-js-modal';
 import ToggleButton from 'vue-js-toggle-button';
 import Multiselect from 'vue-multiselect';
@@ -222,20 +221,8 @@ export default abstract class VueAppBase {
         Vue.use(ColorPicker);
 
         Vue.use(ClientTable);
-        Vue.use(VueI18n);
         Vue.use(VueCookies);
 
-        // LocaleManager.getInstance().i18n = new VueI18n({
-        //     locale: default_locale,
-        //     messages: this.appController.ALL_LOCALES,
-        //     fallbackLocale: this.appController.data_default_locale,
-        //     missing: (locale, key, vm) => {
-        //         VueAppController.getInstance().register_translation({
-        //             [key]: true,
-        //         });
-        //     },
-        //     silentTranslationWarn: true,
-        // });
         // TODO : il faudrait probablement forcer ce param côté client non ? LocaleManager.getInstance().i18n.nsSeparator = '¤';
         Vue.config['lang'] = default_locale;
 
