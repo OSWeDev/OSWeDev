@@ -139,6 +139,8 @@ export default class ModuleTableFieldController {
             case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_color_array:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+            case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_string_array:
@@ -247,7 +249,9 @@ export default class ModuleTableFieldController {
 
                 return ((e as string).length > 2) ? (e as string).substring(1, (e as string).length - 1).split(',') : e;
 
-            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj: {
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+            case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping: {
 
                 if (e == null) {
                     return null;
@@ -361,6 +365,8 @@ export default class ModuleTableFieldController {
                 return RangeHandler.translate_range_to_api(e);
 
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+            case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
 
                 if (e && e._type) {
 

@@ -1457,6 +1457,8 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
             if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_string) ||
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping) ||
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_textarea)) {
                 if (!vo[field.field_name]) {
                     continue;

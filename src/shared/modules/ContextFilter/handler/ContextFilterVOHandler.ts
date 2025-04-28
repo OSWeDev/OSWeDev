@@ -686,6 +686,8 @@ export default class ContextFilterVOHandler {
 
             case ModuleTableFieldVO.FIELD_TYPE_tstz:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+            case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
             case ModuleTableFieldVO.FIELD_TYPE_html_array:
                 throw new Error('Not Implemented');
 

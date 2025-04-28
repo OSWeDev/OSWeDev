@@ -54,6 +54,8 @@ export default class AssistantVoFieldDescription {
             case ModuleTableFieldVO.FIELD_TYPE_color:
                 return 'color';
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+            case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
                 return 'json';
 
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:

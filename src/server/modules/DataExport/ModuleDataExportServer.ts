@@ -1498,6 +1498,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 break;
 
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+            case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
                 delete dest_vo[dest_field_id];
                 break;
 

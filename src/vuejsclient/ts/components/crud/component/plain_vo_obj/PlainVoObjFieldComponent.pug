@@ -1,0 +1,38 @@
+.PlainVoObjFieldComponent
+
+    template(v-if='field_value && field_value_corresponding_vo')
+        template(v-if='plain_vo_obj_target_vo_type')
+            fieldset
+                legend
+                    span {{ label('crud.insert_or_update_target') }}
+
+                Crudupdateformcomponent(
+                    ref="Crudupdateformcomponent"
+                    close_on_submit=true
+                    :key="'__manage_edit__' + plain_vo_obj_target_vo_type + '_' + field.datatable_field_uid"
+        
+                    from_and_to_json=true
+
+                    :selected_vo="vo_of_field_value"
+                    :show_insert_or_update_target="show_insert_or_update_target"
+                    :show_placeholder="show_placeholder"
+                    @close='close_inline_form_in_crud'
+                    @cancel='close_inline_form_in_crud'
+                    @vo_update="update_inline_form_in_crud"
+                )
+    template(v-else)
+        Crudcreateformcomponent(
+            ref="Crudcreateformcomponent"
+            close_on_submit=true
+            :key="'__manage_create__' + plain_vo_obj_target_vo_type + '_' + field.datatable_field_uid"
+
+            from_and_to_json=true
+
+            :show_insert_or_update_target="show_insert_or_update_target"
+            :api_type_id="field.targetModuleTable.vo_type"
+            :vo_init="vo_of_field_value"
+            :show_placeholder="show_placeholder"
+            @close='close_inline_form_in_crud'
+            @cancel='close_inline_form_in_crud'
+            @vo_create="create_inline_form_in_crud"
+        )

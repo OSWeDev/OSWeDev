@@ -1,5 +1,6 @@
+import UIDGenerator from '../../../server/UIDGenerator';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import { field_names } from '../../tools/ObjectHandler';
+import { field_names, reflect } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import UserVO from '../AccessPolicy/vos/UserVO';
@@ -24,6 +25,7 @@ import SimpleDatatableFieldVO from '../DAO/vos/datatable/SimpleDatatableFieldVO'
 import VarDatatableFieldVO from '../DAO/vos/datatable/VarDatatableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
+import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import VarConfVO from '../Var/vos/VarConfVO';
 import FetchLikesParamParam, { FetchLikesParamParamStatic } from './params/FetchLikesParam';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
@@ -81,6 +83,16 @@ export default class ModuleDashboardBuilder extends Module {
         }
 
         return ModuleDashboardBuilder.instance;
+    }
+
+    public dashboard_title_function(vo: DashboardVO): string {
+
+        // Si il est déjà défini on le change pas.
+        if (vo.title) {
+            return vo.title;
+        }
+
+        return UIDGenerator.get_new_uid() + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public registerApis() {
@@ -149,6 +161,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().cycle_links, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Liens de cycle', false);
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().has_cycle, ModuleTableFieldVO.FIELD_TYPE_boolean, 'A un cycle', true, true, false);
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().is_cms_compatible, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Est compatible avec le CMS Builder ?', false, true, false);
+        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().title, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Titre', false).define_as_custom_computed(this.name, reflect<this>().dashboard_title_function);
 
         const res = ModuleTableController.create_new(this.name, DashboardVO, null, "Dashboards");
         return res;
@@ -279,7 +292,6 @@ export default class ModuleDashboardBuilder extends Module {
 
         ModuleTableFieldController.create_new(VOFieldRefVO.API_TYPE_ID, field_names<VOFieldRefVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'VO Type', true);
         ModuleTableFieldController.create_new(VOFieldRefVO.API_TYPE_ID, field_names<VOFieldRefVO>().field_id, ModuleTableFieldVO.FIELD_TYPE_string, 'ID Champs', true);
-        ModuleTableFieldController.create_new(VOFieldRefVO.API_TYPE_ID, field_names<VOFieldRefVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
 
         ModuleTableController.create_new(this.name, VOFieldRefVO, null, "Référence de champs");
     }

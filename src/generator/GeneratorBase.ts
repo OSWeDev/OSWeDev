@@ -42,6 +42,14 @@ import CheckBasicSchemas from './inits/premodules/CheckBasicSchemas';
 import CheckExtensions from './inits/premodules/CheckExtensions';
 import CheckExtensionsV2 from './inits/premodules/CheckExtensionsV2';
 import VersionUpdater from './version_updater/VersionUpdater';
+import ModuleTableController from '../shared/modules/DAO/ModuleTableController';
+import ModuleTableVO from '../shared/modules/DAO/vos/ModuleTableVO';
+import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { field_names } from '../shared/tools/ObjectHandler';
+import ModuleDAOServer from '../server/modules/DAO/ModuleDAOServer';
+import ModuleTableFieldController from '../shared/modules/DAO/ModuleTableFieldController';
+import VOsTypesManager from '../shared/modules/VO/manager/VOsTypesManager';
+import ModuleTableFieldVO from '../shared/modules/DAO/vos/ModuleTableFieldVO';
 
 export default abstract class GeneratorBase {
 
@@ -209,6 +217,14 @@ export default abstract class GeneratorBase {
         console.log("Clean varconf non initialisés DONE");
 
         /**
+         * On pousse les ModuleTableVO et ModuleTableFieldVO en base
+         */
+        await this.push_module_tables_in_db();
+        await this.push_module_table_fields_in_db();
+
+        console.log("Clean varconf non initialisés DONE");
+
+        /**
          * On décale les trads après les post modules workers sinon les trads sont pas générées sur créa d'une lang en post worker => cas de la créa de nouveau projet
          */
         console.log("saveDefaultTranslations...");
@@ -270,6 +286,84 @@ export default abstract class GeneratorBase {
         }
 
         return true;
+    }
+
+    private async push_module_tables_in_db() {
+        const code_module_tables = ModuleTableController.module_tables_by_vo_type;
+
+        const updated_module_tables_by_vo_id: { [id: number]: ModuleTableVO } = {};
+        const updated_module_tables_by_vo_type: { [vo_type: string]: ModuleTableVO } = {};
+
+        for (const i in code_module_tables) {
+            const code_module_table = code_module_tables[i];
+
+            // On tente de récupérer l'existant
+            const db_module_table = await query(ModuleTableVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<ModuleTableVO>().table_name, code_module_table.table_name)
+                .filter_by_text_eq(field_names<ModuleTableVO>().module_name, code_module_table.module_name)
+                .exec_as_server()
+                .select_vo<ModuleTableVO>();
+
+            if (db_module_table) {
+                // On met à jour les champs
+                Object.assign(db_module_table, code_module_table);
+            }
+
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(db_module_table);
+
+            updated_module_tables_by_vo_id[db_module_table.id] = db_module_table;
+            updated_module_tables_by_vo_type[db_module_table.vo_type] = db_module_table;
+        }
+
+        ModuleTableController.module_tables_by_vo_id = updated_module_tables_by_vo_id;
+        ModuleTableController.module_tables_by_vo_type = updated_module_tables_by_vo_type;
+    }
+
+    private async push_module_table_fields_in_db() {
+        const code_module_table_fields_by_type = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name;
+
+        const updated_module_table_fields_by_vo_type_and_field_name: { [vo_type: string]: { [field_name: string]: ModuleTableFieldVO } } = {};
+        const updated_module_table_fields_by_vo_id_and_field_id: { [table_id: number]: { [field_id: number]: ModuleTableFieldVO } } = {};
+
+        for (const vo_type in code_module_table_fields_by_type) {
+            const code_module_table_fields: { [field_name: string]: ModuleTableFieldVO } = code_module_table_fields_by_type[vo_type];
+
+            if (!ModuleTableController.module_tables_by_vo_type[vo_type]) {
+                ConsoleHandler.error(`ModuleTableController.module_tables_by_vo_type[${vo_type}] not found`);
+                continue;
+            }
+
+            for (const field_name in code_module_table_fields) {
+                const code_module_table_field = code_module_table_fields[field_name];
+
+                // On tente de récupérer l'existant
+                const db_module_table_field = await query(ModuleTableFieldVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<ModuleTableFieldVO>().module_table_vo_type, vo_type)
+                    .filter_by_text_eq(field_names<ModuleTableFieldVO>().field_name, field_name)
+                    .exec_as_server()
+                    .select_vo<ModuleTableFieldVO>();
+
+                if (db_module_table_field) {
+                    // On met à jour les champs
+                    Object.assign(db_module_table_field, code_module_table_field);
+                }
+
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(db_module_table_field);
+
+                if (!updated_module_table_fields_by_vo_type_and_field_name[vo_type]) {
+                    updated_module_table_fields_by_vo_type_and_field_name[vo_type] = {};
+                }
+                updated_module_table_fields_by_vo_type_and_field_name[vo_type][field_name] = db_module_table_field;
+
+                if (!updated_module_table_fields_by_vo_id_and_field_id[db_module_table_field.module_table_id]) {
+                    updated_module_table_fields_by_vo_id_and_field_id[db_module_table_field.module_table_id] = {};
+                }
+                updated_module_table_fields_by_vo_id_and_field_id[db_module_table_field.module_table_id][db_module_table_field.id] = db_module_table_field;
+            }
+        }
+
+        ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name = updated_module_table_fields_by_vo_type_and_field_name;
+        ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id = updated_module_table_fields_by_vo_id_and_field_id;
     }
 
     public abstract getVersion();

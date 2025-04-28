@@ -115,6 +115,8 @@ export default class ModuleTableServerController {
                     break;
 
                 case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+                case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
                     if (e[field.field_name] && e[field.field_name]._type) {
                         const trans_ = e[field.field_name] ? ModuleTableServerController.translate_vos_to_db(e[field.field_name], true) : null;
                         res[field.field_name] = trans_ ? JSON.stringify(trans_) : null;

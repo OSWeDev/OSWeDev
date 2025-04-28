@@ -1728,6 +1728,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 case ModuleTableFieldVO.FIELD_TYPE_html_array:
                 case ModuleTableFieldVO.FIELD_TYPE_boolean:
                 case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+                case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
                 case ModuleTableFieldVO.FIELD_TYPE_geopoint:
                 case ModuleTableFieldVO.FIELD_TYPE_numrange:
                 case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
@@ -1858,6 +1860,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 case ModuleTableFieldVO.FIELD_TYPE_html_array:
                 case ModuleTableFieldVO.FIELD_TYPE_boolean:
                 case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+                case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
                 case ModuleTableFieldVO.FIELD_TYPE_geopoint:
                 case ModuleTableFieldVO.FIELD_TYPE_numrange:
                 case ModuleTableFieldVO.FIELD_TYPE_numrange_array:

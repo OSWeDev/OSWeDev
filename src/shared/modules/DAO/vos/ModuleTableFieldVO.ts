@@ -33,6 +33,8 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     public static FIELD_TYPE_color: string = 'color';
     public static FIELD_TYPE_color_array: string = 'color[]';
     public static FIELD_TYPE_plain_vo_obj: string = 'plain_vo_obj';
+    public static FIELD_TYPE_plain_vo_obj_array: string = 'plain_vo_obj_array';
+    public static FIELD_TYPE_simple_string_mapping: string = 'simple_string_mapping';
     public static FIELD_TYPE_textarea: string = 'textarea';
     public static FIELD_TYPE_enum: string = 'enum';
     public static FIELD_TYPE_int: string = 'number';
@@ -162,6 +164,11 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
 
     public is_unique: boolean; // false by default
 
+    public simple_string_mapping_keys_list_module_name: string;
+    public simple_string_mapping_keys_list_function_name: string;
+    public simple_string_mapping_values_list_module_name: string;
+    public simple_string_mapping_values_list_function_name: string;
+
     /**
      * Ajout pour expliquer le type de données, son usage, ... que ce soit pour les devs, les utilisateurs finaux, ou encore les assistants
      */
@@ -199,7 +206,9 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_html_array) ||
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text) ||
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_string_array) ||
-            (this.field_type == ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj)
+            (this.field_type == ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj) ||
+            (this.field_type == ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array) ||
+            (this.field_type == ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping)
         );
     }
 
@@ -589,6 +598,8 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             case ModuleTableFieldVO.FIELD_TYPE_string:
             case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+            case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_password:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -694,6 +705,8 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             case ModuleTableFieldVO.FIELD_TYPE_string:
             case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+            case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_password:

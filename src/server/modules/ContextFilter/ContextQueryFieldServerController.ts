@@ -108,6 +108,8 @@ export default class ContextQueryFieldServerController {
             case ModuleTableFieldVO.FIELD_TYPE_float_array:
             case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+            case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
                 throw new Error('Not Implemented');
 
             case ModuleTableFieldVO.FIELD_TYPE_date:

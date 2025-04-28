@@ -64,6 +64,7 @@ import CRUDCreateFormComponent from '../create/CRUDCreateFormComponent';
 import CRUDCreateFormController from '../create/CRUDCreateFormController';
 import CRUDFormServices from '../CRUDFormServices';
 import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
+import PlainVoObjFieldComponent from '../plain_vo_obj/PlainVoObjFieldComponent';
 import './CRUDComponentField.scss';
 const debounce = require('lodash/debounce');
 
@@ -82,6 +83,7 @@ const debounce = require('lodash/debounce');
         Numrangeinputcomponent: NumRangeInputComponent,
         Crudupdateformcomponent: CRUDUpdateFormComponent,
         Crudcreateformcomponent: CRUDCreateFormComponent,
+        Plainvoobjfieldcomponent: PlainVoObjFieldComponent,
     }
 })
 export default class CRUDComponentField extends VueComponentBase

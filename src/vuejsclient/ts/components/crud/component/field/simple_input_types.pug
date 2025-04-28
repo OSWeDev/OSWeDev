@@ -280,6 +280,45 @@
         )
     template(v-else-if="field_type == 'point'")
         // FIXME TODO ASAP
+    template(v-else-if="field_type == 'plain_vo_obj'")
+        // Si c'est un VO qu'on cible, on se fait une inception de CRUD, en insérant directement le CRUD du VO ciblé
+        template(v-if='plain_vo_obj_target_vo_type')
+            fieldset
+                legend
+                    span {{ label('crud.insert_or_update_target') }}
+
+                template(v-if="show_inline_form_in_crud_is_create")
+                    Crudcreateformcomponent(
+                        ref="Crudcreateformcomponent"
+                        :close_on_submit="true"
+                        :show_insert_or_update_target="show_insert_or_update_target"
+                        :api_type_id="field.targetModuleTable.vo_type"
+                        :vo_init="vo_of_field_value"
+                        :show_placeholder="show_placeholder"
+                        @close='close_inline_form_in_crud'
+                        @cancel='close_inline_form_in_crud'
+                        @vo_create="create_inline_form_in_crud"
+                    )
+
+                template(v-else)
+                    Crudupdateformcomponent(
+                        ref="Crudupdateformcomponent"
+                        :close_on_submit="true"
+                        :selected_vo="vo_of_field_value"
+                        :show_insert_or_update_target="show_insert_or_update_target"
+                        :show_placeholder="show_placeholder"
+                        @close='close_inline_form_in_crud'
+                        @cancel='close_inline_form_in_crud'
+                        @vo_update="update_inline_form_in_crud"
+                    )
+            Crudcomponent(
+                :crud='plain_vo_obj_target_crud'
+                :key="__manage__' + plain_vo_obj_target_vo_type + '_' + field.datatable_field_uid"
+                :embed='true'
+                is_plain_vo_obj=true
+                :plain_vo_obj_json="field_value"
+                @
+            )
 
     template(v-if='inverse_label')
         include ./CRUDComponentFieldLabel

@@ -170,6 +170,8 @@ export default class ModuleTableFieldServerController {
                 break;
 
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+            case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
 
                 let trans_ = ObjectHandler.try_get_json(field_value);
 

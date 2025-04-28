@@ -3330,7 +3330,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return true;
             }
 
-            const module = ModulesManager.getModuleByNameAndRole(field.custom_computed_module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
+            const module = ModulesManager.getModuleByNameAndRole(field.custom_computed_module_name, Module.SharedModuleRoleName);
 
             if (!module) {
                 throw new Error("Impossible de trouver le module " + field.custom_computed_module_name + " pour le champ " + field.field_name);
@@ -3355,7 +3355,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return true;
             }
 
-            const module = ModulesManager.getModuleByNameAndRole(field.custom_computed_module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
+            const module = ModulesManager.getModuleByNameAndRole(field.custom_computed_module_name, Module.SharedModuleRoleName);
 
             if (!module) {
                 throw new Error("Impossible de trouver le module " + field.custom_computed_module_name + " pour le champ " + field.field_name);

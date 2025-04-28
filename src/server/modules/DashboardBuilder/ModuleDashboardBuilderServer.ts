@@ -5098,6 +5098,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             }
         }
 
+        // TODO fixme replace IExportableWidgetOptions par des champs translatable + computed sur les optionsvo + sur le dashboard ... pour les différents titres.
         const page_widgets_options: { [page_widget_id: number]: IExportableWidgetOptions } = {};
         for (const i in page_widgets) {
             const page_widget = page_widgets[i];

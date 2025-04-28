@@ -81,6 +81,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         try {
             switch (this.field_type) {
                 case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+                case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
                     return field_value;
 
                 case ModuleTableFieldVO.FIELD_TYPE_prct:
@@ -377,6 +379,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
             switch (this.field_type) {
 
                 case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+                case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
                     return field_value;
 
                 case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
@@ -432,6 +436,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return false;
 
                 case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+                case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
                     return value;
 
                 case ModuleTableFieldVO.FIELD_TYPE_prct:
@@ -597,6 +603,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
             switch (this.field_type) {
 
                 case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+                case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
                     return value;
 
                 case ModuleTableFieldVO.FIELD_TYPE_enum:

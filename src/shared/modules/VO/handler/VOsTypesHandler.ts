@@ -107,6 +107,8 @@ export default class VOsTypesHandler {
             case ModuleTableFieldVO.FIELD_TYPE_timewithouttimezone:
             case ModuleTableFieldVO.FIELD_TYPE_month:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+            case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
             default:
                 return false;
         }

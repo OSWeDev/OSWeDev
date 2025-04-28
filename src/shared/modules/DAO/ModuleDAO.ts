@@ -482,6 +482,11 @@ export default class ModuleDAO extends Module {
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().default_translation, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Traduction par défaut', false);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().is_unique, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Unique', true, true, false);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
+
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().simple_string_mapping_keys_list_module_name, ModuleTableFieldVO.FIELD_TYPE_string, 'SSM - Clés - Module', false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().simple_string_mapping_keys_list_function_name, ModuleTableFieldVO.FIELD_TYPE_string, 'SSM - Clés - Fonction', false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().simple_string_mapping_values_list_module_name, ModuleTableFieldVO.FIELD_TYPE_string, 'SSM - Valeurs - Module', false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().simple_string_mapping_values_list_function_name, ModuleTableFieldVO.FIELD_TYPE_string, 'SSM - Valeurs - Fonction', false);
     }
 
     private init_ModuleTableVO() {

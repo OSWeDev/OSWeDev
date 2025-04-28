@@ -138,6 +138,8 @@ export default class ContextFilterVOManager {
                 break;
 
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj_array:
+            case ModuleTableFieldVO.FIELD_TYPE_simple_string_mapping:
             default:
                 throw new Error('Not Implemented');
         }
