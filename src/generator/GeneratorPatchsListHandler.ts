@@ -116,6 +116,7 @@ import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patc
 import Patch20250106createTableSupProbe from './patchs/premodules/Patch20250106createTableSupProbe';
 import Patch20250228DeleteDuplicateGraphVO from './patchs/premodules/Patch20250228DeleteDuplicateGraphVO';
 import Patch20250304DropArchivesConfVO from './patchs/premodules/Patch20250304TruncateArchivesConfVO';
+import Patch20250428PrepareRemovalTemplateNAmeOseliaRun from './patchs/premodules/Patch20250428PrepareRemovalTemplateNAmeOseliaRun';
 
 export default class GeneratorPatchsListHandler {
 
@@ -164,6 +165,7 @@ export default class GeneratorPatchsListHandler {
         Patch20250106createTableSupProbe.getInstance(),
         Patch20250228DeleteDuplicateGraphVO.getInstance(),
         Patch20250304DropArchivesConfVO.getInstance(),
+        Patch20250428PrepareRemovalTemplateNAmeOseliaRun.getInstance(),
     ];
 
     public static post_modules_workers: IGeneratorWorker[] = [
