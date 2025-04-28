@@ -104,6 +104,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     private has_dimension: boolean = true;
     private detailed: boolean = true;
     private tooltip_by_index: boolean = false;
+    private tooltip_debug: boolean = false;
     private sort_dimension_by_asc: boolean = false;
     private hide_filter: boolean = false;
     private dimension_is_vo_field_ref: boolean = false;
@@ -544,6 +545,13 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         await this.throttled_update_options();
     }
 
+    private async switch_tooltip_debug() {
+        this.prepareNextOptions();
+        this.tooltip_debug = !this.tooltip_debug;
+        this.next_update_options.tooltip_debug = this.tooltip_debug;
+        await this.throttled_update_options();
+    }
+
     private async switch_detailed() {
         this.prepareNextOptions();
         this.detailed = !this.detailed;
@@ -804,6 +812,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             this.title_display = false;
             this.detailed = true;
             this.tooltip_by_index = false;
+            this.tooltip_debug = false;
             this.title_font_color = '#666';
             this.title_font_size = '16';
             this.title_padding = '10';
@@ -866,6 +875,9 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         }
         if (this.tooltip_by_index !== this.widget_options.tooltip_by_index) {
             this.tooltip_by_index = this.widget_options.tooltip_by_index;
+        }
+        if (this.tooltip_debug !== this.widget_options.tooltip_debug) {
+            this.tooltip_debug = this.widget_options.tooltip_debug;
         }
         if (
             ((!this.widget_options.title_font_size) && this.title_font_size) ||

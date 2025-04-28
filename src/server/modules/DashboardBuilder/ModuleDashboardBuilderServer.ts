@@ -290,6 +290,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_mixed_charts_widget_options_component.switch_tooltip_by_index.nearest.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Tooltip de debug'
+        }, 'var_mixed_charts_widget_options_component.switch_tooltip_debug.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Tooltip de debug'
+        }, 'var_mixed_charts_widget_options_component.switch_tooltip_debug.tooltip.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du filtre'
         }, 'var_mixed_charts_widget_options_component.section.filter.___LABEL___'));
 

@@ -92,7 +92,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
     private current_mixed_charts_options: any = null;
 
     private chartKey: number = 0;
-
+    private null_param_dimension: { [chart_id: string]: string[] } = {};
     private throttled_update_chart_js = ThrottleHelper.declare_throttle_without_args(
         'VarMixedChartComponent.throttled_update_chart_js',
         this.update_chart_js, 500, false);
@@ -428,11 +428,11 @@ export default class VarMixedChartComponent extends VueComponentBase {
      */
     private get_charts_datasets(): { [chart_id: string]: IChartDataset } {
         const datasets: { [chart_id: string]: IChartDataset } = {};
-
+        this.null_param_dimension = {};
         for (const chart_id in this.charts_var_params) {
 
             const data: IChartDataset = this.get_chart_dataset_by_chart_id(chart_id);
-            if (data != null && data.data.length > 0) {
+            if (data != null  && data.data.length > 0) {
                 datasets[chart_id] = data;
             }
         }
@@ -467,6 +467,12 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
         for (const var_key in chart_var_params) {
             const var_param: VarDataBaseVO = chart_var_params[var_key];
+            if (chart_var_datas[var_param.id].value == null) {
+                if (this.null_param_dimension[chart_id] == null) {
+                    this.null_param_dimension[chart_id] = [];
+                }
+                this.null_param_dimension[chart_id].push(var_param.index);
+            }
             data.push(chart_var_datas[var_param.id].value);
             if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.backgroundColor[var_key]) {
                 backgroundColor.push(chart_var_dataset_descriptor.backgroundColor[var_key]);
@@ -534,6 +540,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
                     }
                 }
             };
+            this.$emit('update:null_param_dimension', this.null_param_dimension);
             if (yAxisID != null) {
                 return Object.assign({}, obj, { yAxisID: yAxisID });
             } else {

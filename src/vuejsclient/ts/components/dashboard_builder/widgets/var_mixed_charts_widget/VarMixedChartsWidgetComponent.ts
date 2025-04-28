@@ -126,6 +126,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
     private chart_result_nb: { [chart_id: string]: number } = null;
     private chart_result_txt: string = null;
+    private null_param_dimension: { [chart_id: string]: string[] } = null;
 
     // --------------------------------------------------------------------------
     //  Getters
@@ -444,10 +445,6 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         const res: { [chart_id: string]: VarDataBaseVO[] } = {};
         for (const chart_id in this.charts_var_params_by_dimension) {
             const chart_var_params = this.charts_var_params_by_dimension[chart_id];
-            if (!this.chart_result_nb) {
-                this.chart_result_nb = {};
-            }
-            this.chart_result_nb[(this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code) ? this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code : this.charts_var_dataset_descriptor[chart_id]?.var_name] = 0;
 
             for (const i in this.ordered_dimension) {
                 const dimensionVal = this.ordered_dimension[i];
@@ -459,7 +456,6 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 }
 
                 res[chart_id].push(chart_var_params[dimensionVal]);
-                this.chart_result_nb[(this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code) ? this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code : this.charts_var_dataset_descriptor[chart_id]?.var_name]++;
             }
         }
         return res;
@@ -751,6 +747,40 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
     //  Watchers
     // --------------------------------------------------------------------------
 
+    @Watch('null_param_dimension', { deep: true })
+    private async onchange_null_param_dimension() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.null_param_dimension) {
+            return;
+        }
+
+        const temp_result_nb = {};
+        for (const chart_id in this.charts_var_params_by_dimension) {
+            const chart_var_params = this.charts_var_params_by_dimension[chart_id];
+            temp_result_nb[(this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code) ? this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code : this.charts_var_dataset_descriptor[chart_id]?.var_name] = 0;
+
+            for (const i in this.ordered_dimension) {
+                const dimensionVal = this.ordered_dimension[i];
+                if (this.null_param_dimension && this.null_param_dimension[chart_id]) {
+                    this.null_param_dimension[chart_id].forEach((null_param_index) => {
+                        if (chart_var_params[dimensionVal] && chart_var_params[dimensionVal].index == null_param_index) {
+                            temp_result_nb[(this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code) ? this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code : this.charts_var_dataset_descriptor[chart_id]?.var_name]++;
+                        }
+                    });
+                }
+                if (!chart_var_params[dimensionVal]) {
+                    temp_result_nb[(this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code) ? this.charts_var_dataset_descriptor[chart_id]?.label_translatable_code : this.charts_var_dataset_descriptor[chart_id]?.var_name]++;
+                }
+            }
+        }
+        if (this.chart_result_nb != temp_result_nb) {
+            this.chart_result_nb = temp_result_nb;
+        }
+    }
+
     /**
      * Watch sur le titre de l'axe X traduit => update des options
      */
@@ -766,8 +796,8 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         let chart_result_txt = '';
         for (const i in this.chart_result_nb) {
 
-            if (this.chart_result_nb[i] != this.ordered_dimension.length) {
-                chart_result_txt += '- ' + i + ' : ' + this.chart_result_nb[i] + ' / ' + this.ordered_dimension.length + ' données trouvées \n';
+            if (this.chart_result_nb[i] > 0) {
+                chart_result_txt += '- ' + i + ' : ' + String(this.ordered_dimension.length - this.chart_result_nb[i]) + ' / ' + this.ordered_dimension.length + ' données trouvées \n';
             }
         }
 
@@ -891,7 +921,8 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
     private async do_update_visible_options(): Promise<void> {
         const launch_cpt: number = (this.last_calculation_cpt + 1);
         this.last_calculation_cpt = launch_cpt;
-
+        this.current_charts_var_params = null;
+        this.current_charts_var_dataset_descriptor = null;
         if (!this.widget_options) {
             this.charts_var_params_by_dimension = null;
             this.ordered_dimension = null;
@@ -976,6 +1007,10 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         }
 
         this.charts_var_params_by_dimension = charts_var_params_by_dimension;
+    }
+
+    private async update_null_param_dimension(null_param_dimension:{ [chart_id: string]: string[] }) {
+        this.null_param_dimension = null_param_dimension;
     }
 
     /**

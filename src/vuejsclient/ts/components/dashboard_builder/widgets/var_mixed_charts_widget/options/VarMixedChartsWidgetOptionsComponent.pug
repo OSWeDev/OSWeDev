@@ -115,6 +115,19 @@
                             v-tooltip="label('var_mixed_charts_widget_options_component.switch_tooltip_by_index.tooltip')"
                         )
                     .input_label {{ label('var_mixed_charts_widget_options_component.switch_tooltip_by_index') }}
+            
+            .tooltip_debug 
+                .container
+                    .input_wrapper
+                        toggle-button(
+                            @change="switch_tooltip_debug" 
+                            :value="tooltip_debug" 
+                            :sync="false"
+                            :width="120"
+                            :labels="{ checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false') }"
+                            v-tooltip="label('var_mixed_charts_widget_options_component.switch_tooltip_debug.tooltip')"
+                        )
+                    .input_label {{ label('var_mixed_charts_widget_options_component.switch_tooltip_debug') }}
 
     //-======================================================================
     //-=============  SECTION CHART LEGEND OPTIONS  ========================
