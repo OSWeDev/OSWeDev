@@ -11,4 +11,9 @@ export default interface ICustomCRReadComponent {
      * PROP
      */
     cr: IPlanRDVCR;
+
+    /**
+     * PROP
+     */
+    set_cr_html_content: (html: string) => void;
 }

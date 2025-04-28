@@ -211,6 +211,12 @@
                                     button.fa-solid.fa-bug(v-on:click='switch_show_hidden_messages')
                                 template(v-else)
                                     button.fa-solid.fa-bug-slash(v-on:click='switch_show_hidden_messages')
+                            Oseliarealtimebutton(
+                                    :has_access_to_thread='has_access_to_thread'
+                                    :gpt_thread_id='null'
+                                )
+                            
+                                
                                 
                         .thread_message_input_send
                             template(v-if='get_too_many_assistants')
@@ -299,28 +305,10 @@
                                             .image_upload_menu_item(v-on:click='open_link_image')
                                                 i.fa-duotone.fa-images
                                                 | {{ label('oselia_thread_widget_component.image_upload_menu_item.link') }}
-                                .thread_message_input_realtime
-                                    button.btn.btn-primary(
-                                        @mousedown="startVAD",
-                                        @mouseup="stop_realtime",
-                                        @touchstart.prevent="startVAD",
-                                        @touchend.prevent="stop_realtime"
-                                        v-tooltip='label("oselia_thread_widget_component.thread_message_input_voice.tooltip")'
-                                    )
-                                        template(v-if='realtime_is_recording')
-                                            .icon 
-                                                i.fa-solid.fa-microphone.fa-beat.text-danger
-                                            .text {{ label('oselia_thread_widget_component.thread_message_input_voice.listening') }}
-
-                                        template(v-else-if='realtime_is_sending')
-                                            .icon 
-                                                i.fa-duotone.fa-spinner-third.fa-spin
-                                            .text {{ label('oselia_thread_widget_component.thread_message_input_voice.transcribing') }}
-
-                                        template(v-else)
-                                            .icon 
-                                                i.fa-duotone.fa-solid.fa-microphone
-                                            .text {{ label('oselia_thread_widget_component.thread_message_input_voice.talk') }}
+                                Oseliarealtimebutton(
+                                    :has_access_to_thread='has_access_to_thread'
+                                    :gpt_thread_id='thread ? (thread.gpt_thread_id ? thread.gpt_thread_id : null) : null'
+                                )
                                 
 
 

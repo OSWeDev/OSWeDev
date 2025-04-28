@@ -40,12 +40,14 @@ import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
+import ModuleProgramPlanServerBase from '../ProgramPlan/ModuleProgramPlanServerBase';
 export default class GPTAssistantAPIServerController {
 
     public static promise_pipeline_by_function: { [function_id: number]: PromisePipeline } = {};
 
     public static PERF_MODULE_NAME: string = 'gpt_assistant_api';
     private static wss: any | null = null;
+    private static openaiSocket: any | null = null;
 
     /**
      * Cette méthode a pour but de wrapper l'appel aux APIs OpenAI
@@ -1109,19 +1111,22 @@ export default class GPTAssistantAPIServerController {
             if (!this.wss) {
                 const WebSocket = require('ws');
                 const PORT = parseInt(ConfigurationService.node_configuration.port) + 10;
-
+                let cr_html_content = null;
                 // On crée le serveur WebSocket qu'une seule fois
                 this.wss = new WebSocket.Server({ port: PORT });
-
                 this.wss.on('connection', (clientSocket) => {
-                    const openaiSocket = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01', {
-                        headers: {
-                            Authorization: `Bearer ${ConfigurationService.node_configuration.open_api_api_key}`,
-                            'OpenAI-Beta': 'realtime=v1',
-                        },
-                    });
+                    if (this.openaiSocket && this.openaiSocket.readyState === WebSocket.OPEN) {
+                        ConsoleHandler.log('WebSocket Server already created, not creating a new one.');
+                    }else{
+                        this.openaiSocket = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01', {
+                            headers: {
+                                Authorization: `Bearer ${ConfigurationService.node_configuration.open_api_api_key}`,
+                                'OpenAI-Beta': 'realtime=v1',
+                            },
+                        });
+                    }
 
-                    openaiSocket.on('open', () => {
+                    this.openaiSocket.on('open', () => {
                         const sessionUpdate = {
                             "type": "session.update",
                             "session": {
@@ -1136,10 +1141,10 @@ export default class GPTAssistantAPIServerController {
                                 "instructions": "Tu es un assistant vocal réactif et agréable, réponds rapidement en français."
                             }
                         };
-                        openaiSocket.send(JSON.stringify(sessionUpdate));
+                        this.openaiSocket.send(JSON.stringify(sessionUpdate));
                     });
 
-                    openaiSocket.on('message', (data: Buffer) => {
+                    this.openaiSocket.on('message', async (data: Buffer) => {
                         try {
                             // On tente de parser en JSON
                             const strData = data.toString('utf8');
@@ -1154,6 +1159,79 @@ export default class GPTAssistantAPIServerController {
                                 // ou on peut renvoyer l'objet re-stringifié :
                                 if(parsedMsg?.type === 'session.updated') {
                                     // Préviens le client que tout est prêt
+                                    clientSocket.send(JSON.stringify(parsedMsg));
+                                    clientSocket.send(JSON.stringify({ type: 'ready' }));
+                                } else if (parsedMsg?.type === 'response.done') {
+                                    if (parsedMsg.response.output.arguments.name && parsedMsg.response.output.arguments.name=='edit_cr_word') {
+                                        await ModuleProgramPlanServerBase.edit_cr_word(parsedMsg.response.output.arguments.term_to_modify, parsedMsg.response.output.arguments.new_term,cr_html_content);
+                                    }
+                                } else {
+                                    clientSocket.send(strData);
+                                }
+                            }
+                        } catch (err) {
+                            // Si ce n'est pas du JSON, on l'envoie tel quel en binaire
+                            clientSocket.send(data, { binary: true });
+                        }
+                    });
+                    clientSocket.on('message', (data) => {
+                        try {
+                            // On tente de parser en JSON
+                            const strData = data.toString('utf8');
+                            const parsedMsg = JSON.parse(strData);
+                            ConsoleHandler.log('WebSocket Server sending message: ', parsedMsg);
+                            if (parsedMsg.cr_html_content) {
+                                cr_html_content = parsedMsg.cr_html_content;
+                            }
+                            // Si c'est un message audio => on décode base64 et on l'envoie en binaire
+                            this.openaiSocket.send(JSON.stringify(parsedMsg));
+                        } catch (err) {
+                            // Si ce n'est pas du JSON, on l'envoie tel quel en binaire
+                            this.openaiSocket.send(data, { binary: true });
+                        }
+                    });
+
+                    const closeSockets = () => {
+                        if (this.openaiSocket.readyState === WebSocket.OPEN) this.openaiSocket.close();
+                        if (clientSocket.readyState === WebSocket.OPEN) clientSocket.close();
+                    };
+
+                    clientSocket.on('close', closeSockets);
+                    this.openaiSocket.on('close', closeSockets);
+                });
+
+                ConsoleHandler.log(`WebSocket Server en écoute sur ws://localhost:${PORT}`);
+            } else {
+                const WebSocket = require('ws');
+                const PORT = parseInt(ConfigurationService.node_configuration.port) + 10;
+                ConsoleHandler.log('WebSocket Server already created, not creating a new one.');
+                this.wss.on('connection', (clientSocket) => {
+                    if (this.openaiSocket && this.openaiSocket.readyState === WebSocket.OPEN) {
+                        ConsoleHandler.log('WebSocket Server already created, not creating a new one.');
+                    }else{
+                        this.openaiSocket = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01', {
+                            headers: {
+                                Authorization: `Bearer ${ConfigurationService.node_configuration.open_api_api_key}`,
+                                'OpenAI-Beta': 'realtime=v1',
+                            },
+                        });
+                    }
+                    this.openaiSocket.on('message', (data: Buffer) => {
+                        try {
+                            // On tente de parser en JSON
+                            const strData = data.toString('utf8');
+                            const parsedMsg = JSON.parse(strData);
+                            ConsoleHandler.log('WebSocket Server received message: ', parsedMsg);
+                            // Si c'est un message audio => on décode base64 et on l'envoie en binaire
+                            if (parsedMsg?.type === 'output_audio_buffer' && parsedMsg?.audio) {
+                                const rawBinary = Buffer.from(parsedMsg.audio, 'base64');
+                                clientSocket.send(rawBinary, { binary: true });
+                            } else {
+                                // Sinon, on renvoie simplement la chaîne JSON telle quelle
+                                // ou on peut renvoyer l'objet re-stringifié :
+                                if(parsedMsg?.type === 'session.updated') {
+                                    // Préviens le client que tout est prêt
+                                    clientSocket.send(JSON.stringify(parsedMsg));
                                     clientSocket.send(JSON.stringify({ type: 'ready' }));
                                 } else {
                                     clientSocket.send(strData);
@@ -1171,20 +1249,20 @@ export default class GPTAssistantAPIServerController {
                             const parsedMsg = JSON.parse(strData);
                             ConsoleHandler.log('WebSocket Server sending message: ', parsedMsg);
                             // Si c'est un message audio => on décode base64 et on l'envoie en binaire
-                            openaiSocket.send(JSON.stringify(parsedMsg));
+                            this.openaiSocket.send(JSON.stringify(parsedMsg));
                         } catch (err) {
                             // Si ce n'est pas du JSON, on l'envoie tel quel en binaire
-                            openaiSocket.send(data, { binary: true });
+                            this.openaiSocket.send(data, { binary: true });
                         }
                     });
 
                     const closeSockets = () => {
-                        if (openaiSocket.readyState === WebSocket.OPEN) openaiSocket.close();
+                        if (this.openaiSocket.readyState === WebSocket.OPEN) this.openaiSocket.close();
                         if (clientSocket.readyState === WebSocket.OPEN) clientSocket.close();
                     };
 
                     clientSocket.on('close', closeSockets);
-                    openaiSocket.on('close', closeSockets);
+                    this.openaiSocket.on('close', closeSockets);
                 });
 
                 ConsoleHandler.log(`WebSocket Server en écoute sur ws://localhost:${PORT}`);

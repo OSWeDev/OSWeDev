@@ -47,6 +47,21 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return this.shared_module as ModuleProgramPlanBase;
     }
 
+    public static async edit_cr_word(term_to_modify: string, new_value: string, html_content): Promise<void> {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html_content, 'text/html');
+
+        const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null);
+        let node;
+        while ((node = walker.nextNode())) {
+            if (node.nodeValue && node.nodeValue.includes(term_to_modify)) {
+                node.nodeValue = node.nodeValue.replace(term_to_modify, new_value);
+            }
+        }
+
+        html_content = doc.body.innerHTML;
+    }
+
     // istanbul ignore next: cannot test configure
     public async configure() {
 
@@ -1002,4 +1017,5 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         return true;
     }
+
 }

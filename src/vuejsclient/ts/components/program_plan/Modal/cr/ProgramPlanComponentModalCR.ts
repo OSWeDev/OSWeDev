@@ -22,13 +22,15 @@ import ProgramPlanTools from '../../ProgramPlanTools';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import ProgramPlanComponentModalTargetInfos from '../target_infos/ProgramPlanComponentModalTargetInfos';
 import "./ProgramPlanComponentModalCR.scss";
+import OseliaRealtimeButton from '../../../dashboard_builder/widgets/oselia_thread_widget/OseliaRealtimeButton/OseliaRealtimeButton';
 const debounce = require('lodash/debounce');
 
 @Component({
     template: require('./ProgramPlanComponentModalCR.pug'),
     components: {
         field: VueFieldComponent,
-        Programplancomponentmodaltargetinfos: ProgramPlanComponentModalTargetInfos
+        Programplancomponentmodaltargetinfos: ProgramPlanComponentModalTargetInfos,
+        Oseliarealtimebutton: OseliaRealtimeButton
     }
 })
 export default class ProgramPlanComponentModalCR extends VueComponentBase {
@@ -96,8 +98,10 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
     // Modal
     private newcr_seemore: boolean = false;
+    private cr_html_content: string = null;
 
     private edited_cr: IPlanRDVCR = null;
+    private debounced_update_cr_action = debounce(this.update_cr_action, 1000);
 
     get custom_cr_create_component() {
         return this.program_plan_controller.customCRCreateComponent;
@@ -111,7 +115,6 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
         return this.program_plan_controller.customCRUpdateComponent;
     }
 
-    private debounced_update_cr_action = debounce(this.update_cr_action, 1000);
 
     get target(): IPlanTarget {
         if ((!this.selected_rdv) || (!this.selected_rdv.target_id)) {
@@ -297,14 +300,14 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
      * Called when creating a new CR. Confirmation, and if confirmed, creation.
      * @param cr
      */
-    private async create_cr(cr: IPlanRDVCR) {
+    private async create_cr(cr: IPlanRDVCR, no_confirmation?: boolean) {
         if ((!this.selected_rdv) || (!cr)) {
             return;
         }
 
         const self = this;
 
-        if (!this.program_plan_controller.show_confirmation_create_cr) {
+        if (!this.program_plan_controller.show_confirmation_create_cr || no_confirmation) {
             await this.create_cr_action(cr);
             return;
         }
@@ -544,5 +547,9 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                 }
             ]
         });
+    }
+
+    private async set_cr_html_content(html_content) {
+        this.cr_html_content = html_content;
     }
 }
