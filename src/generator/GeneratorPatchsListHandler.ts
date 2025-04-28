@@ -231,7 +231,6 @@ export default class GeneratorPatchsListHandler {
         Patch20241030SuiviCompetencesGroupeShortName.getInstance(),
         Patch20241224SupervisionFillProbe.getInstance(),
         Patch20250102AddRightsSupervisedProbe.getInstance(),
-        Patch20250214AddRightsSupervisedPAUSE.getInstance(),
         // Patch20240409AddOseliaPromptForFeedback.getInstance(),
 
         Patch20241023AddOseliaFunction_azure_get_last_unread_email.getInstance(),
