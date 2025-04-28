@@ -34,6 +34,7 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
     private color: string = null;
     private text_color: string = null;
     private about_blank: boolean = null;
+    private mode_bandeau: boolean = null;
     private radius: number = null;
     private start_update: boolean = false;
 
@@ -62,6 +63,14 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
         return 'background-color: ' + this.color + '; color: ' + this.text_color + ';' + (this.radius ? 'border-radius: ' + this.radius + 'px;' : '');
     }
 
+    get style_bandeau(): string {
+        return 'background-color: ' + this.color + '; color: ' + this.text_color + ';';
+    }
+
+    get style_chevron(): string {
+        return 'color: ' + this.text_color + ';';
+    }
+
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.widget_options) {
@@ -73,6 +82,7 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
             this.color = '#003c7d';
             this.text_color = '#ffffff';
             this.about_blank = false;
+            this.mode_bandeau = false;
             this.radius = null;
 
             return;
@@ -87,6 +97,7 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
         this.color = this.widget_options.color;
         this.text_color = this.widget_options.text_color;
         this.about_blank = this.widget_options.about_blank;
+        this.mode_bandeau = this.widget_options.mode_bandeau;
         this.radius = this.widget_options.radius;
 
         if (!this.widget_options.role_access || this.widget_options.role_access.length == 0) {

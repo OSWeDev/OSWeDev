@@ -35,6 +35,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
     private url: string = null;
     private url_field_ref: VOFieldRefVO = null;
     private is_url_field: boolean = false;
+    private mode_bandeau: boolean = false;
 
     private title: string = null;
     private color: string = null;
@@ -83,6 +84,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             this.icone = "";
             this.button_class = "";
             this.selected_roles = [];
+            this.mode_bandeau = false;
 
             return;
         }
@@ -99,6 +101,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         this.icone = this.widget_options.icone;
         this.button_class = this.widget_options.button_class;
         this.selected_roles = this.widget_options.role_access;
+        this.mode_bandeau = this.widget_options.mode_bandeau;
     }
 
     @Watch('url')
@@ -112,6 +115,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
     @Watch('icone')
     @Watch('button_class')
     @Watch('selected_roles')
+    @Watch('mode_bandeau')
     private async onchange_bloc_text() {
         if (!this.widget_options) {
             return;
@@ -127,12 +131,14 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             this.widget_options.button_class != this.button_class ||
             this.widget_options.is_url_field != this.is_url_field ||
             this.widget_options.color != this.color ||
-            this.widget_options.role_access != this.selected_roles
+            this.widget_options.role_access != this.selected_roles ||
+            this.widget_options.mode_bandeau != this.mode_bandeau
         ) {
 
             this.next_update_options.url = this.url;
             this.next_update_options.url_field_ref = this.url_field_ref;
             this.next_update_options.is_url_field = this.is_url_field;
+            this.next_update_options.mode_bandeau = this.mode_bandeau;
 
             this.next_update_options.title = this.title;
             this.next_update_options.color = this.color;
@@ -179,6 +185,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             false,
             [],
             "",
+            false,
         );
     }
 
@@ -215,6 +222,18 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         }
 
         this.next_update_options.about_blank = !this.next_update_options.about_blank;
+
+        this.throttled_update_options();
+    }
+
+    private async switch_mode_bandeau() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.mode_bandeau = !this.next_update_options.mode_bandeau;
 
         this.throttled_update_options();
     }

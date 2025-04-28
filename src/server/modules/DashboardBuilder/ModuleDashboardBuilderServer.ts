@@ -4279,6 +4279,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Disponible qu'en mode : Carte, horizontal, ne pas afficher une seule carte et les éléments ne sont pas des boutons" },
             'list_object.widget_option.zoom_on_click.tooltip.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Passer le bouton en mode bandeau" },
+            'cms_link_button.widget_option.mode_bandeau.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'cms_link_button.widget_option.mode_bandeau.true.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'cms_link_button.widget_option.mode_bandeau.false.___LABEL___'
+        ));
 
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);

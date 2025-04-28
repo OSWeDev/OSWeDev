@@ -59,6 +59,15 @@
             :width="100"
             :labels="{checked: label('cms_link_button.widget_option.about_blank.true'), unchecked: label('cms_link_button.widget_option.about_blank.false')}"
         )
+        
+        .mode_bandeau_label {{ label('cms_link_button.widget_option.mode_bandeau') }}
+        toggle-button(
+            @change="switch_mode_bandeau"
+            :value="mode_bandeau" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('cms_link_button.widget_option.mode_bandeau.true'), unchecked: label('cms_link_button.widget_option.mode_bandeau.false')}"
+        )
 
         .widget_button_color {{ label("cms_link_button.widget_option.color") }}
         color-picker(v-model="color" @change='throttled_update_options')
