@@ -21,6 +21,24 @@ import YearFilterWidgetManager from "./YearFilterWidgetManager";
  */
 export default class WidgetOptionsVOManager {
 
+    protected static instance: WidgetOptionsVOManager;
+
+    public add_widget_to_page_handler: (widget: DashboardWidgetVO) => Promise<DashboardPageWidgetVO> = null;
+    public widgets_options_constructor_by_widget_id: { [widget_id: number]: () => any } = {};
+    public widgets_options_constructor: { [name: string]: () => any } = {};
+    public widgets_get_selected_fields: { [name: string]: (page_widget: DashboardPageWidgetVO) => { [api_type_id: string]: { [field_id: string]: boolean } } } = {};
+    public initialized: boolean = false;
+    public sorted_widgets_types: DashboardWidgetVO[] = []; // sorted_widgets_types
+    public checked_access: { [access_type: string]: boolean } = {};
+
+    /**
+     * @deprecated use sorted_widgets_types instead
+     */
+    public sorted_widgets: DashboardWidgetVO[] = []; // sorted_widgets_types
+
+    protected constructor() {
+    }
+
     /**
      * check_dashboard_widget_access
      * - Check if user has access to dashboard_widget vo
@@ -122,8 +140,6 @@ export default class WidgetOptionsVOManager {
      * register_widget_type
      * - This method is responsible for registering the given widget type
      *
-     * @deprecated TODO: Shall be in the DashboardWidgetVOManager
-     *
      * @param {DashboardWidgetVO} widget_type
      * @param {Function} options_constructor
      * @param {Function} get_selected_fields
@@ -224,23 +240,6 @@ export default class WidgetOptionsVOManager {
         return WidgetOptionsVOManager.instance;
     }
 
-    protected static instance: WidgetOptionsVOManager;
-
-    public add_widget_to_page_handler: (widget: DashboardWidgetVO) => Promise<DashboardPageWidgetVO> = null;
-    public widgets_options_constructor_by_widget_id: { [widget_id: number]: () => any } = {};
-    public widgets_options_constructor: { [name: string]: () => any } = {};
-    public widgets_get_selected_fields: { [name: string]: (page_widget: DashboardPageWidgetVO) => { [api_type_id: string]: { [field_id: string]: boolean } } } = {};
-    public initialized: boolean = false;
-    public sorted_widgets_types: DashboardWidgetVO[] = []; // sorted_widgets_types
-    public checked_access: { [access_type: string]: boolean } = {};
-
-    /**
-     * @deprecated use sorted_widgets_types instead
-     */
-    public sorted_widgets: DashboardWidgetVO[] = []; // sorted_widgets_types
-
-    protected constructor() {
-    }
 
     public async initialize() {
 
@@ -258,18 +257,5 @@ export default class WidgetOptionsVOManager {
         await WidgetOptionsVOManager.find_all_sorted_widgets_types({ check_access: false });
 
         this.initialized = true;
-    }
-
-    /**
-     * @deprecated use register_widget_type instead
-     */
-    public async registerWidget(
-        widget_type: DashboardWidgetVO,
-        options_constructor: () => any,
-        get_selected_fields: (page_widget: DashboardPageWidgetVO) => {
-            [api_type_id: string]: { [field_id: string]: boolean }
-        }
-    ) {
-        return WidgetOptionsVOManager.register_widget_type(widget_type, options_constructor, get_selected_fields);
     }
 }

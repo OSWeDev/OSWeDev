@@ -32,7 +32,6 @@ import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
@@ -40,6 +39,7 @@ import FieldValueFilterWidgetController from '../FieldValueFilterWidgetControlle
 import AdvancedRefFieldFilter from './AdvancedRefFieldFilter';
 import './FieldValueFilterRefFieldWidgetComponent.scss';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 @Component({
     template: require('./FieldValueFilterRefFieldWidgetComponent.pug'),
@@ -1948,6 +1948,6 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
     }
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+        return VOsTypesManager.vosArray_to_vosByIds(WidgetOptionsVOManager.getInstance().sorted_widgets);
     }
 }

@@ -65,7 +65,6 @@ import DatatableRowController from '../../../../datatable/component/DatatableRow
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
 import SortableListComponent from '../../../../sortable/SortableListComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../var_widget/VarWidgetComponent';
@@ -75,6 +74,7 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import './TableWidgetKanbanComponent.scss';
 import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -607,7 +607,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+        return VOsTypesManager.vosArray_to_vosByIds(WidgetOptionsVOManager.getInstance().sorted_widgets);
     }
 
     get kanban_columns_drag_options() {

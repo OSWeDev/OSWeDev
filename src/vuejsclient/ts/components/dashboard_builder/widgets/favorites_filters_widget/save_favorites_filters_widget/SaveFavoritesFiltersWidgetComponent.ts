@@ -13,7 +13,6 @@ import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsT
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import MonthFilterWidgetOptions from '../../month_filter_widget/options/MonthFilterWidgetOptions';
 import ReloadFiltersWidgetController from '../../reload_filters_widget/RealoadFiltersWidgetController';
@@ -26,6 +25,7 @@ import FieldFiltersVOManager from '../../../../../../../shared/modules/Dashboard
 import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import './SaveFavoritesFiltersWidgetComponent.scss';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 @Component({
     template: require('./SaveFavoritesFiltersWidgetComponent.pug'),
@@ -246,7 +246,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      * @return { [id: number]: DashboardWidgetVO }
      */
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+        return VOsTypesManager.vosArray_to_vosByIds(WidgetOptionsVOManager.getInstance().sorted_widgets);
     }
 
     /**

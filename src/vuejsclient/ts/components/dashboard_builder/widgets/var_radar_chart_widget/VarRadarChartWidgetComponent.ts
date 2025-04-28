@@ -26,13 +26,13 @@ import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import Filters from '../../../../../../shared/tools/Filters';
 import './VarRadarChartWidgetComponent.scss';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import WidgetOptionsVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 @Component({
     template: require('./VarRadarChartWidgetComponent.pug')
@@ -337,7 +337,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
     }
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+        return VOsTypesManager.vosArray_to_vosByIds(WidgetOptionsVOManager.getInstance().sorted_widgets);
     }
 
     @Watch('widget_options', { immediate: true })

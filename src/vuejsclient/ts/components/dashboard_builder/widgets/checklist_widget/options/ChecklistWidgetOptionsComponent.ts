@@ -12,9 +12,9 @@ import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTra
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import ChecklistWidgetOptions from './ChecklistWidgetOptions';
 import './ChecklistWidgetOptionsComponent.scss';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 @Component({
     template: require('./ChecklistWidgetOptionsComponent.pug'),
@@ -54,8 +54,36 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
         return this.checklists;
     }
 
-    private checklist_select_label(checklist: CheckListVO): string {
-        return checklist.name;
+    get title_name_code_text(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    get default_title_translation(): string {
+        return 'Checklist#' + this.page_widget.id;
+    }
+
+    get widget_options(): ChecklistWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: ChecklistWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as ChecklistWidgetOptions;
+                options = options ? new ChecklistWidgetOptions(
+                    options.limit, options.checklist_id,
+                    options.delete_all_button, options.create_button, options.refresh_button, options.export_button) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
     }
 
     @Watch('page_widget', { immediate: true })
@@ -117,59 +145,6 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
-    private get_default_options(): ChecklistWidgetOptions {
-        return new ChecklistWidgetOptions(10, null, false, true, true, true);
-    }
-
-    private async update_options() {
-
-        try {
-            this.page_widget.json_options = JSON.stringify(this.next_update_options);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
-
-        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
-        this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
-    }
-
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get default_title_translation(): string {
-        return 'Checklist#' + this.page_widget.id;
-    }
-
-    get widget_options(): ChecklistWidgetOptions {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: ChecklistWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as ChecklistWidgetOptions;
-                options = options ? new ChecklistWidgetOptions(
-                    options.limit, options.checklist_id,
-                    options.delete_all_button, options.create_button, options.refresh_button, options.export_button) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
-    }
-
     private async switch_delete_all_button() {
         this.delete_all_button = !this.delete_all_button;
 
@@ -229,4 +204,30 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
             await this.throttled_update_options();
         }
     }
+
+    private get_default_options(): ChecklistWidgetOptions {
+        return new ChecklistWidgetOptions(10, null, false, true, true, true);
+    }
+
+    private async update_options() {
+
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
+
+        this.set_page_widget(this.page_widget);
+        this.$emit('update_layout_widget', this.page_widget);
+
+        const name = VOsTypesManager.vosArray_to_vosByIds(WidgetOptionsVOManager.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        const get_selected_fields = WidgetOptionsVOManager.getInstance().widgets_get_selected_fields[name];
+        this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
+    }
+
+    private checklist_select_label(checklist: CheckListVO): string {
+        return checklist.name;
+    }
+
 }

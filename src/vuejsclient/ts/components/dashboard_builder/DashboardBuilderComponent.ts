@@ -48,8 +48,8 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from './page/Das
 import DashboardSharedFiltersComponent from './shared_filters/DashboardSharedFiltersComponent';
 import MaxGraphMapper from './tables_graph/graph_mapper/MaxGraphMapper';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
-import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
+import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -660,9 +660,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         for (const i in page_widgets) {
             const page_widget = page_widgets[i];
 
-            if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id]) {
+            if (WidgetOptionsVOManager.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id]) {
                 const options = Object.assign(
-                    DashboardBuilderWidgetsController.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id](),
+                    WidgetOptionsVOManager.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id](),
                     ObjectHandler.try_get_json(page_widget.json_options),
                 );
                 if (options) {
@@ -821,8 +821,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             return;
         }
 
-        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.selected_widget.widget_id].name;
-        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = VOsTypesManager.vosArray_to_vosByIds(WidgetOptionsVOManager.getInstance().sorted_widgets)[this.selected_widget.widget_id].name;
+        const get_selected_fields = WidgetOptionsVOManager.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(page_widget) : {});
     }
 

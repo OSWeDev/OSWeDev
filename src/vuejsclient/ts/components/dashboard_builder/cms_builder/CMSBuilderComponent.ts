@@ -1,5 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../shared/annotations/Throttle';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
@@ -10,6 +11,7 @@ import DashboardBuilderBoardManager from '../../../../../shared/modules/Dashboar
 import DashboardPageVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
 import DashboardPageWidgetVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
 import DashboardVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
+import WidgetOptionsVOManager from '../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardActiveonViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
 import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
@@ -19,6 +21,7 @@ import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import ModuleDataImport from '../../../../../shared/modules/DataImport/ModuleDataImport';
+import EventifyEventListenerConfVO from '../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import ModuleTranslation from '../../../../../shared/modules/Translation/ModuleTranslation';
@@ -31,9 +34,7 @@ import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import ObjectHandler, { field_names } from '../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
-import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
-import VueAppController from '../../../../VueAppController';
 import DashboardBuilderBoardComponent from '../../dashboard_builder/board/DashboardBuilderBoardComponent';
 import DroppableVoFieldsComponent from '../../dashboard_builder/droppable_vo_fields/DroppableVoFieldsComponent';
 import { ModuleDroppableVoFieldsAction } from '../../dashboard_builder/droppable_vo_fields/DroppableVoFieldsStore';
@@ -42,15 +43,11 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../dash
 import DashboardSharedFiltersComponent from '../../dashboard_builder/shared_filters/DashboardSharedFiltersComponent';
 import TablesGraphComponent from '../../dashboard_builder/tables_graph/TablesGraphComponent';
 import DashboardBuilderWidgetsComponent from '../../dashboard_builder/widgets/DashboardBuilderWidgetsComponent';
-import DashboardBuilderWidgetsController from '../../dashboard_builder/widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from '../../dashboard_builder/widgets/IExportableWidgetOptions';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import TranslatableTextController from '../../InlineTranslatableText/TranslatableTextController';
-import { ModuleTranslatableTextAction } from '../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../VueComponentBase';
 import './CMSBuilderComponent.scss';
-import Throttle from '../../../../../shared/annotations/Throttle';
-import EventifyEventListenerConfVO from '../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 
 @Component({
     template: require('./CMSBuilderComponent.pug'),
@@ -606,9 +603,9 @@ export default class CMSBuilderComponent extends VueComponentBase {
         for (const i in page_widgets) {
             const page_widget = page_widgets[i];
 
-            if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id]) {
+            if (WidgetOptionsVOManager.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id]) {
                 const options = Object.assign(
-                    DashboardBuilderWidgetsController.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id](),
+                    WidgetOptionsVOManager.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id](),
                     ObjectHandler.try_get_json(page_widget.json_options),
                 );
                 if (options) {
@@ -767,8 +764,8 @@ export default class CMSBuilderComponent extends VueComponentBase {
             return;
         }
 
-        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.selected_widget.widget_id].name;
-        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = VOsTypesManager.vosArray_to_vosByIds(WidgetOptionsVOManager.getInstance().sorted_widgets)[this.selected_widget.widget_id].name;
+        const get_selected_fields = WidgetOptionsVOManager.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(page_widget) : {});
     }
 

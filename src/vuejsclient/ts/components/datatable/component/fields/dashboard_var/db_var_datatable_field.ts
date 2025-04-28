@@ -24,10 +24,10 @@ import ThreadHandler from '../../../../../../../shared/tools/ThreadHandler';
 import VarDataRefComponent from '../../../../Var/components/dataref/VarDataRefComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../../../dashboard_builder/page/DashboardPageStore';
-import DashboardBuilderWidgetsController from '../../../../dashboard_builder/widgets/DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../../../../dashboard_builder/widgets/validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
 import './db_var_datatable_field.scss';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 @Component({
     template: require('./db_var_datatable_field.pug'),
@@ -99,7 +99,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     }
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+        return VOsTypesManager.vosArray_to_vosByIds(WidgetOptionsVOManager.getInstance().sorted_widgets);
     }
 
     get var_filter(): string {

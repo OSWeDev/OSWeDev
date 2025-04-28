@@ -20,7 +20,6 @@ import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslata
 import VueComponentBase from '../../VueComponentBase';
 import DashboardCopyWidgetComponent from '../copy_widget/DashboardCopyWidgetComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
-import DashboardBuilderWidgetsController from '../widgets/DashboardBuilderWidgetsController';
 import ChecklistItemModalComponent from '../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent';
 import FavoritesFiltersModalComponent from '../widgets/favorites_filters_widget/modal/FavoritesFiltersModalComponent';
 import SupervisionItemModalComponent from '../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent';
@@ -30,6 +29,7 @@ import './DashboardBuilderBoardComponent.scss';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
 import { field_names } from '../../../../../shared/tools/ObjectHandler';
 import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
+import WidgetOptionsVOManager from '../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -138,7 +138,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         this.rebuild_page_layout.bind(this), 200);
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        const sorted_widgets = DashboardBuilderWidgetsController.getInstance().sorted_widgets;
+        const sorted_widgets = WidgetOptionsVOManager.getInstance().sorted_widgets;
         return VOsTypesManager.vosArray_to_vosByIds(sorted_widgets);
     }
 
@@ -253,7 +253,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     }
 
     private async mounted() {
-        DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler = this.add_widget_to_page.bind(this);
+        WidgetOptionsVOManager.getInstance().add_widget_to_page_handler = this.add_widget_to_page.bind(this);
         this.set_Checklistitemmodalcomponent(this.$refs['Checklistitemmodalcomponent'] as ChecklistItemModalComponent);
         this.set_Supervisionitemmodal(this.$refs['Supervisionitemmodal'] as SupervisionItemModalComponent);
         this.set_Favoritesfiltersmodalcomponent(this.$refs['Favoritesfiltersmodalcomponent'] as FavoritesFiltersModalComponent);
@@ -385,8 +385,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                     page_widget.background = widget.default_background;
 
                     try {
-                        if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget?.name]) {
-                            const options = DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget?.name]();
+                        if (WidgetOptionsVOManager.getInstance().widgets_options_constructor[widget?.name]) {
+                            const options = WidgetOptionsVOManager.getInstance().widgets_options_constructor[widget?.name]();
                             page_widget.json_options = JSON.stringify(options);
                         }
                     } catch (error) {

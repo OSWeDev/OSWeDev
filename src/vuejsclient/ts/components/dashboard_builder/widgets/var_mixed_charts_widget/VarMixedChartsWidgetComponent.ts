@@ -40,11 +40,11 @@ import { IChartOptions } from '../../../Var/components/mixed-chart/VarMixedChart
 import VueComponentBase from '../../../VueComponentBase';
 
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 
 import './VarMixedChartsWidgetComponent.scss';
+import WidgetOptionsVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 
 @Component({
@@ -497,7 +497,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
      * widgets_by_id : map (widget_id => widget)
      */
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+        return VOsTypesManager.vosArray_to_vosByIds(WidgetOptionsVOManager.getInstance().sorted_widgets);
     }
 
     /**
@@ -1507,7 +1507,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             } else {
                 // On pioche dans la palette
                 const index_for_color: number = parseInt(key) + parseInt(j);
-                let color = var_chart_options.color_palette.colors?var_chart_options.color_palette.colors[index_for_color] : null;
+                let color = var_chart_options.color_palette.colors ? var_chart_options.color_palette.colors[index_for_color] : null;
                 let border_color = var_chart_options.color_palette.border_colors ? var_chart_options.color_palette.border_colors[index_for_color] : null;
                 if (!border_color) {
                     border_color = this.getDefaultColor();

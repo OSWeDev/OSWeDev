@@ -30,8 +30,8 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import './ListObjectWidgetComponent.scss';
+import WidgetOptionsVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 @Component({
     template: require('./ListObjectWidgetComponent.pug'),
@@ -130,7 +130,7 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
     }
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+        return VOsTypesManager.vosArray_to_vosByIds(WidgetOptionsVOManager.getInstance().sorted_widgets);
     }
 
     get is_horizontal(): boolean {

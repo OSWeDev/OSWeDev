@@ -27,12 +27,12 @@ import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import './VarPieChartWidgetComponent.scss';
 import VarPieChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
 import Filters from '../../../../../../shared/tools/Filters';
+import WidgetOptionsVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 @Component({
     template: require('./VarPieChartWidgetComponent.pug')
@@ -85,7 +85,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+        return VOsTypesManager.vosArray_to_vosByIds(WidgetOptionsVOManager.getInstance().sorted_widgets);
     }
 
     get var_filter(): (...params) => string {

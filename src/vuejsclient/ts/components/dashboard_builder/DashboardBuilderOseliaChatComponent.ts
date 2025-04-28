@@ -1,4 +1,3 @@
-import { query } from "express";
 import { Prop, Watch } from "vue-property-decorator";
 import Vue from "vue/types/umd";
 import ModuleDAO from "../../../../shared/modules/DAO/ModuleDAO";
@@ -22,7 +21,6 @@ import VueComponentBase from "../VueComponentBase";
 import DashboardBuilderBoardItemComponent from "./board/item/DashboardBuilderBoardItemComponent";
 import DashboardCopyWidgetComponent from "./copy_widget/DashboardCopyWidgetComponent";
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from "./page/DashboardPageStore";
-import DashboardBuilderWidgetsController from "./widgets/DashboardBuilderWidgetsController";
 import ChecklistItemModalComponent from "./widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent";
 import FavoritesFiltersModalComponent from "./widgets/favorites_filters_widget/modal/FavoritesFiltersModalComponent";
 import SupervisionItemModalComponent from "./widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent";
@@ -30,6 +28,8 @@ import CRUDCreateModalComponent from "./widgets/table_widget/crud_modals/create/
 import CRUDUpdateModalComponent from "./widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent";
 import Component from 'vue-class-component';
 import { GridItem, GridLayout } from "vue-grid-layout";
+import WidgetOptionsVOManager from "../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager";
+import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 
 @Component({
     template: require('./DashboardBuilderOseliaChatComponent.pug'),
@@ -126,7 +126,7 @@ export default class DashboardBuilderOseliaChatComponent extends VueComponentBas
         this.rebuild_page_layout.bind(this), 200);
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        const sorted_widgets = DashboardBuilderWidgetsController.getInstance().sorted_widgets;
+        const sorted_widgets = WidgetOptionsVOManager.getInstance().sorted_widgets;
         return VOsTypesManager.vosArray_to_vosByIds(sorted_widgets);
     }
 
@@ -136,6 +136,36 @@ export default class DashboardBuilderOseliaChatComponent extends VueComponentBas
 
     get resizable(): boolean {
         return this.editable;
+    }
+
+    @Watch("dashboard", { immediate: true })
+    private async onchange_dashboard() {
+        // We should load the shared_filters with the current dashboard
+        await DashboardVOManager.load_shared_filters_with_dashboard(
+            this.dashboard,
+            this.get_dashboard_navigation_history,
+            this.get_active_field_filters,
+            this.set_active_field_filters
+        );
+    }
+
+    @Watch("dashboard_page", { immediate: true })
+    private async onchange_dbdashboard() {
+        if (!this.dashboard_page) {
+            this.editable_dashboard_page = null;
+            return;
+        }
+
+        if ((!this.editable_dashboard_page) || (this.editable_dashboard_page.id != this.dashboard_page.id)) {
+
+            await this.throttled_rebuild_page_layout();
+        }
+    }
+
+    @Watch('get_widgets_invisibility', { deep: true })
+    private async onchange_get_widgets_invisibility() {
+
+        this.throttled_rebuild_page_layout();
     }
 
     public async update_layout_widget(widget: DashboardPageWidgetVO) {
@@ -168,44 +198,14 @@ export default class DashboardBuilderOseliaChatComponent extends VueComponentBas
         }
     }
 
-    @Watch("dashboard", { immediate: true })
-    private async onchange_dashboard() {
-        // We should load the shared_filters with the current dashboard
-        await DashboardVOManager.load_shared_filters_with_dashboard(
-            this.dashboard,
-            this.get_dashboard_navigation_history,
-            this.get_active_field_filters,
-            this.set_active_field_filters
-        );
-    }
-
-    @Watch("dashboard_page", { immediate: true })
-    private async onchange_dbdashboard() {
-        if (!this.dashboard_page) {
-            this.editable_dashboard_page = null;
-            return;
-        }
-
-        if ((!this.editable_dashboard_page) || (this.editable_dashboard_page.id != this.dashboard_page.id)) {
-
-            await this.throttled_rebuild_page_layout();
-        }
-    }
-
     private mounted() {
-        DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler = this.add_widget_to_page.bind(this);
+        WidgetOptionsVOManager.getInstance().add_widget_to_page_handler = this.add_widget_to_page.bind(this);
         this.set_Checklistitemmodalcomponent(this.$refs['Checklistitemmodalcomponent'] as ChecklistItemModalComponent);
         this.set_Supervisionitemmodal(this.$refs['Supervisionitemmodal'] as SupervisionItemModalComponent);
         this.set_Favoritesfiltersmodalcomponent(this.$refs['Favoritesfiltersmodalcomponent'] as FavoritesFiltersModalComponent);
         this.set_Crudupdatemodalcomponent(this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent);
         this.set_Crudcreatemodalcomponent(this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent);
         this.set_Dashboardcopywidgetcomponent(this.$refs['Dashboardcopywidgetcomponent'] as DashboardCopyWidgetComponent);
-    }
-
-    @Watch('get_widgets_invisibility', { deep: true })
-    private async onchange_get_widgets_invisibility() {
-
-        this.throttled_rebuild_page_layout();
     }
 
     private async rebuild_page_layout() {
@@ -282,8 +282,8 @@ export default class DashboardBuilderOseliaChatComponent extends VueComponentBas
                     page_widget.background = widget.default_background;
 
                     try {
-                        if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget?.name]) {
-                            const options = DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget?.name]();
+                        if (WidgetOptionsVOManager.getInstance().widgets_options_constructor[widget?.name]) {
+                            const options = WidgetOptionsVOManager.getInstance().widgets_options_constructor[widget?.name]();
                             page_widget.json_options = JSON.stringify(options);
                         }
                     } catch (error) {
@@ -474,7 +474,9 @@ export default class DashboardBuilderOseliaChatComponent extends VueComponentBas
             if (json_options && json_options.hide_filter) {
                 return true;
             }
-        } catch { }
+        } catch {
+            //
+        }
 
         return false;
     }

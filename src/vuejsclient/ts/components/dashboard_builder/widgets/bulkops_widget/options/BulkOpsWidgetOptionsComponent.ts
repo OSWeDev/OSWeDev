@@ -11,10 +11,10 @@ import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTra
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import BulkOpsWidgetOptions from './BulkOpsWidgetOptions';
 import './BulkOpsWidgetOptionsComponent.scss';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 @Component({
     template: require('./BulkOpsWidgetOptionsComponent.pug'),
@@ -52,8 +52,34 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
         return this.get_dashboard_api_type_ids;
     }
 
-    private api_type_id_select_label(api_type_id: string): string {
-        return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
+    get title_name_code_text(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    get default_title_translation(): string {
+        return 'BulkOps#' + this.page_widget.id;
+    }
+
+    get widget_options(): BulkOpsWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: BulkOpsWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as BulkOpsWidgetOptions;
+                options = options ? new BulkOpsWidgetOptions(options.api_type_id, options.limit) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
     }
 
     @Watch('page_widget', { immediate: true })
@@ -99,38 +125,12 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = VOsTypesManager.vosArray_to_vosByIds(WidgetOptionsVOManager.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        const get_selected_fields = WidgetOptionsVOManager.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get default_title_translation(): string {
-        return 'BulkOps#' + this.page_widget.id;
-    }
-
-    get widget_options(): BulkOpsWidgetOptions {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: BulkOpsWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as BulkOpsWidgetOptions;
-                options = options ? new BulkOpsWidgetOptions(options.api_type_id, options.limit) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
+    private api_type_id_select_label(api_type_id: string): string {
+        return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
     }
 }

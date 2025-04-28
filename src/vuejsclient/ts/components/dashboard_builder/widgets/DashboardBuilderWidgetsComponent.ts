@@ -14,7 +14,7 @@ import { field_names } from '../../../../../shared/tools/ObjectHandler';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import VueComponentBase from '../../VueComponentBase';
 import './DashboardBuilderWidgetsComponent.scss';
-import DashboardBuilderWidgetsController from './DashboardBuilderWidgetsController';
+import WidgetOptionsVOManager from '../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),
@@ -82,7 +82,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
 
     private async mounted() {
 
-        await DashboardBuilderWidgetsController.getInstance().initialize();
+        await WidgetOptionsVOManager.getInstance().initialize();
         if (this.dashboard?.is_cms_compatible) {
 
             let sorted_widgets: DashboardWidgetVO[] = null;
@@ -112,7 +112,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
 
         } else {
 
-            this.widgets = DashboardBuilderWidgetsController.getInstance().sorted_widgets;
+            this.widgets = WidgetOptionsVOManager.getInstance().sorted_widgets;
         }
 
         await this.onchange_selected_widget();
@@ -126,11 +126,11 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
 
     private async add_widget_to_page(widget: DashboardWidgetVO) {
 
-        if (!DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler) {
+        if (!WidgetOptionsVOManager.getInstance().add_widget_to_page_handler) {
             ConsoleHandler.error("!add_widget_to_page_handler");
             return;
         }
-        const page_widget = await DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler(widget);
+        const page_widget = await WidgetOptionsVOManager.getInstance().add_widget_to_page_handler(widget);
         this.$emit('added_widget_to_page', page_widget);
     }
 

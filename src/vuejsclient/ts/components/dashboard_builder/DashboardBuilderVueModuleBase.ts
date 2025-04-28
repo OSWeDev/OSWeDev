@@ -14,7 +14,6 @@ import VarPieChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuil
 import VarRadarChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
 import BulkOpsWidgetOptions from './widgets/bulkops_widget/options/BulkOpsWidgetOptions';
 import ChecklistWidgetOptions from './widgets/checklist_widget/options/ChecklistWidgetOptions';
@@ -28,6 +27,7 @@ import SupervisionWidgetOptions from './widgets/supervision_widget/options/Super
 import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 import OseliaRunGraphWidgetComponent from './widgets/oselia_run_graph_widget/OseliaRunGraphWidgetComponent';
+import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
     protected static instance: DashboardBuilderVueModuleBase = null;
@@ -204,7 +204,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         PerfReportGraph.default_background = '#f5f5f5';
         PerfReportGraph.icon_component = 'Perfreportgraphwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(PerfReportGraph, null, null);
+        await WidgetOptionsVOManager.register_widget_type(PerfReportGraph, null, null);
 
         Vue.component('Perfreportgraphwidgetcomponent', () => import('./widgets/perf_report_graph_widget/PerfReportGraphWidgetComponent'));
         Vue.component('Perfreportgraphwidgetoptionscomponent', () => import('./widgets/perf_report_graph_widget/options/PerfReportGraphWidgetOptionsComponent'));
@@ -224,7 +224,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         BulkOps.default_background = '#f5f5f5';
         BulkOps.icon_component = 'Bulkopswidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(BulkOps, () => new BulkOpsWidgetOptions(null, 10), BulkOpsWidgetOptions.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(BulkOps, () => new BulkOpsWidgetOptions(null, 10), BulkOpsWidgetOptions.get_selected_fields);
 
         Vue.component('Bulkopswidgetcomponent', () => import('./widgets/bulkops_widget/BulkOpsWidgetComponent'));
         Vue.component('Bulkopswidgetoptionscomponent', () => import('./widgets/bulkops_widget/options/BulkOpsWidgetOptionsComponent'));
@@ -243,7 +243,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Checklist.default_background = '#f5f5f5';
         Checklist.icon_component = 'Checklistwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Checklist, () => new ChecklistWidgetOptions(10, null, false, true, true, true), ChecklistWidgetOptions.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(Checklist, () => new ChecklistWidgetOptions(10, null, false, true, true, true), ChecklistWidgetOptions.get_selected_fields);
 
         Vue.component('Checklistwidgetcomponent', () => import('./widgets/checklist_widget/ChecklistWidgetComponent'));
         Vue.component('Checklistwidgetoptionscomponent', () => import('./widgets/checklist_widget/options/ChecklistWidgetOptionsComponent'));
@@ -262,7 +262,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         supervision.default_background = '#f5f5f5';
         supervision.icon_component = 'Supervisionwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(supervision, () => new SupervisionWidgetOptions(100, [], true, true, 30, true), SupervisionWidgetOptions.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(supervision, () => new SupervisionWidgetOptions(100, [], true, true, 30, true), SupervisionWidgetOptions.get_selected_fields);
 
         Vue.component('Supervisionwidgetcomponent', () => import('./widgets/supervision_widget/SupervisionWidgetComponent'));
         Vue.component('Supervisionwidgetoptionscomponent', () => import('./widgets/supervision_widget/options/SupervisionWidgetOptionsComponent'));
@@ -281,7 +281,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         supervision_type.default_background = '#f5f5f5';
         supervision_type.icon_component = 'Supervisiontypewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(supervision_type, () => new SupervisionTypeWidgetOptions([]), SupervisionTypeWidgetOptions.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(supervision_type, () => new SupervisionTypeWidgetOptions([]), SupervisionTypeWidgetOptions.get_selected_fields);
 
         Vue.component('Supervisiontypewidgetcomponent', () => import('./widgets/supervision_type_widget/SupervisionTypeWidgetComponent'));
         Vue.component('Supervisiontypewidgetoptionscomponent', () => import('./widgets/supervision_type_widget/options/SupervisionTypeWidgetOptionsComponent'));
@@ -300,7 +300,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptionsVO(
+        await WidgetOptionsVOManager.register_widget_type(Table, () => new TableWidgetOptionsVO(
             null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false,
             false, null, false, true, true, true, false, false, false, false, false, false, [], false, false, [], null
         ), TableWidgetOptionsVO.get_selected_fields);
@@ -322,7 +322,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         widget.default_background = '#f5f5f5';
         widget.icon_component = 'Oseliathreadwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(widget, () => new OseliaThreadWidgetOptions(), OseliaThreadWidgetOptions.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(widget, () => new OseliaThreadWidgetOptions(), OseliaThreadWidgetOptions.get_selected_fields);
 
         Vue.component('Oseliathreadwidgetcomponent', () => import('./widgets/oselia_thread_widget/OseliaThreadWidgetComponent'));
         Vue.component('Oseliathreadwidgetoptionscomponent', () => import('./widgets/oselia_thread_widget/options/OseliaThreadWidgetOptionsComponent'));
@@ -343,7 +343,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         fieldValueFilter.icon_component = 'Fieldvaluefilterwidgeticoncomponent';
         fieldValueFilter.is_filter = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptionsVO(
+        await WidgetOptionsVOManager.register_widget_type(fieldValueFilter, () => new FieldValueFilterWidgetOptionsVO(
             null, null, null, true, false, FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_1, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, null, false, false, false, null, null, null, null, false, null, false, false, false, null, null, false, false, false, null, null, null
         ), FieldValueFilterWidgetOptionsVO.get_selected_fields);
 
@@ -364,7 +364,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         DOWFilter.default_background = '#f5f5f5';
         DOWFilter.icon_component = 'Dowfilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(DOWFilter, () => new DOWFilterWidgetOptions(true, null, null), DOWFilterWidgetOptions.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(DOWFilter, () => new DOWFilterWidgetOptions(true, null, null), DOWFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Dowfilterwidgetcomponent', () => import('./widgets/dow_filter_widget/DOWFilterWidgetComponent'));
         Vue.component('Dowfilterwidgetoptionscomponent', () => import('./widgets/dow_filter_widget/options/DOWFilterWidgetOptionsComponent'));
@@ -383,7 +383,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         MonthFilter.default_background = '#f5f5f5';
         MonthFilter.icon_component = 'Monthfilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(MonthFilter, () => new MonthFilterWidgetOptions(true, null, null, false, 1, 12, false, false, null, null, false, null, false), MonthFilterWidgetOptions.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(MonthFilter, () => new MonthFilterWidgetOptions(true, null, null, false, 1, 12, false, false, null, null, false, null, false), MonthFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Monthfilterwidgetcomponent', () => import('./widgets/month_filter_widget/MonthFilterWidgetComponent'));
         Vue.component('Monthfilterwidgetoptionscomponent', () => import('./widgets/month_filter_widget/options/MonthFilterWidgetOptionsComponent'));
@@ -403,7 +403,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         AdvancedDateFilter.default_background = '#f5f5f5';
         AdvancedDateFilter.icon_component = 'Advanceddatefilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+        await WidgetOptionsVOManager.register_widget_type(
             AdvancedDateFilter,
             () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null, false, false, false, false, null, false, false, null, null),
             AdvancedDateFilterWidgetOptions.get_selected_fields
@@ -427,7 +427,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CurrentUserFilter.icon_component = 'Currentuserfilterwidgeticoncomponent';
         CurrentUserFilter.is_filter = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+        await WidgetOptionsVOManager.register_widget_type(
             CurrentUserFilter,
             () => new CurrentUserFilterWidgetOptionsVO(),
             null
@@ -450,7 +450,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarPieChart.default_background = '#f5f5f5';
         VarPieChart.icon_component = 'Varpiechartwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarPieChart, () => VarPieChartWidgetOptionsVO.createDefault(), VarPieChartWidgetOptionsVO.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(VarPieChart, () => VarPieChartWidgetOptionsVO.createDefault(), VarPieChartWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Varpiechartwidgetcomponent', () => import('./widgets/var_pie_chart_widget/VarPieChartWidgetComponent'));
         Vue.component('Varpiechartwidgetoptionscomponent', () => import('./widgets/var_pie_chart_widget/options/VarPieChartWidgetOptionsComponent'));
@@ -469,7 +469,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarChoroplethChart.default_background = '#f5f5f5';
         VarChoroplethChart.icon_component = 'Varchoroplethchartwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarChoroplethChart, () => VarChoroplethChartWidgetOptions.createDefault(), VarChoroplethChartWidgetOptions.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(VarChoroplethChart, () => VarChoroplethChartWidgetOptions.createDefault(), VarChoroplethChartWidgetOptions.get_selected_fields);
 
         Vue.component('Varchoroplethchartwidgetcomponent', () => import('./widgets/var_choropleth_chart_widget/VarChoroplethChartWidgetComponent'));
         Vue.component('Varchoroplethchartwidgetoptionscomponent', () => import('./widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptionsComponent'));
@@ -488,7 +488,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarRadarChart.default_background = '#f5f5f5';
         VarRadarChart.icon_component = 'Varradarchartwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarRadarChart, () => VarRadarChartWidgetOptionsVO.createDefault(), VarRadarChartWidgetOptionsVO.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(VarRadarChart, () => VarRadarChartWidgetOptionsVO.createDefault(), VarRadarChartWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Varradarchartwidgetcomponent', () => import('./widgets/var_radar_chart_widget/VarRadarChartWidgetComponent'));
         Vue.component('Varradarchartwidgetoptionscomponent', () => import('./widgets/var_radar_chart_widget/options/VarRadarChartWidgetOptionsComponent'));
@@ -507,7 +507,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarMixedChart.default_background = '#f5f5f5';
         VarMixedChart.icon_component = 'Varmixedchartswidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarMixedChart, () => VarMixedChartWidgetOptionsVO.createDefault(), VarMixedChartWidgetOptionsVO.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(VarMixedChart, () => VarMixedChartWidgetOptionsVO.createDefault(), VarMixedChartWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Varmixedchartswidgetcomponent', () => import('./widgets/var_mixed_charts_widget/VarMixedChartsWidgetComponent'));
         Vue.component('Varmixedchartswidgetoptionscomponent', () => import('./widgets/var_mixed_charts_widget/options/VarMixedChartsWidgetOptionsComponent'));
@@ -526,7 +526,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         YearFilter.default_background = '#f5f5f5';
         YearFilter.icon_component = 'Yearfilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(YearFilter, () => new YearFilterWidgetOptionsVO(true, null, null, true, -2, 2, true, true, 0, 0, false, null, false), YearFilterWidgetOptionsVO.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(YearFilter, () => new YearFilterWidgetOptionsVO(true, null, null, true, -2, 2, true, true, 0, 0, false, null, false), YearFilterWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Yearfilterwidgetcomponent', () => import('./widgets/year_filter_widget/YearFilterWidgetComponent'));
         Vue.component('Yearfilterwidgetoptionscomponent', () => import('./widgets/year_filter_widget/options/YearFilterWidgetOptionsComponent'));
@@ -547,7 +547,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ValidationFilters.is_validation_filters = true;
         ValidationFilters.is_filter = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(ValidationFilters, null, null);
+        await WidgetOptionsVOManager.register_widget_type(ValidationFilters, null, null);
 
         Vue.component('Validationfilterswidgetcomponent', () => import('./widgets/validation_filters_widget/ValidationFiltersWidgetComponent'));
         Vue.component('Validationfilterswidgetoptionscomponent', () => import('./widgets/validation_filters_widget/options/ValidationFiltersWidgetOptionsComponent'));
@@ -566,7 +566,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         SaveFavoritesFilters.default_background = '#f5f5f5';
         SaveFavoritesFilters.icon_component = 'Savefavoritesfilterswidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+        await WidgetOptionsVOManager.register_widget_type(
             SaveFavoritesFilters,
             () => new FavoritesFiltersWidgetOptionsVO(
                 new VOFieldRefVO().from({
@@ -594,7 +594,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ShowFavoritesFilters.default_background = '#f5f5f5';
         ShowFavoritesFilters.icon_component = 'Showfavoritesfilterswidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+        await WidgetOptionsVOManager.register_widget_type(
             ShowFavoritesFilters,
             () => new FavoritesFiltersWidgetOptionsVO(
                 new VOFieldRefVO().from({
@@ -623,7 +623,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ResetFilters.icon_component = 'Resetfilterswidgeticoncomponent';
         ResetFilters.is_filter = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(ResetFilters, null, null);
+        await WidgetOptionsVOManager.register_widget_type(ResetFilters, null, null);
 
         Vue.component('Resetfilterswidgetcomponent', () => import('./widgets/reset_filters_widget/ResetFiltersWidgetComponent'));
         Vue.component('Resetfilterswidgetoptionscomponent', () => import('./widgets/reset_filters_widget/options/ResetFiltersWidgetOptionsComponent'));
@@ -643,7 +643,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         BlocText.icon_component = 'BlocTextwidgeticoncomponent';
         BlocText.is_filter = false;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(BlocText, null, null);
+        await WidgetOptionsVOManager.register_widget_type(BlocText, null, null);
 
         Vue.component('BlocTextwidgetcomponent', () => import('./widgets/bloc_text_widget/BlocTextWidgetComponent'));
         Vue.component('BlocTextwidgetoptionscomponent', () => import('./widgets/bloc_text_widget/options/BlocTextWidgetOptionsComponent'));
@@ -664,7 +664,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CrudButtons.is_filter = false;
         CrudButtons.is_cms_compatible = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(CrudButtons, null, null);
+        await WidgetOptionsVOManager.register_widget_type(CrudButtons, null, null);
 
         Vue.component('Cmscrudbuttonswidgetcomponent', () => import('./widgets/cms_crud_buttons_widget/CMSCrudButtonsWidgetComponent'));
         Vue.component('Cmscrudbuttonswidgetoptionscomponent', () => import('./widgets/cms_crud_buttons_widget/options/CMSCrudButtonsWidgetOptionsComponent'));
@@ -685,7 +685,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ListObject.is_filter = false;
         ListObject.is_cms_compatible = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(ListObject, null, null);
+        await WidgetOptionsVOManager.register_widget_type(ListObject, null, null);
 
         Vue.component('ListObjectwidgetcomponent', () => import('./widgets/list_object_widget/ListObjectWidgetComponent'));
         Vue.component('ListObjectwidgetoptionscomponent', () => import('./widgets/list_object_widget/options/ListObjectWidgetOptionsComponent'));
@@ -705,7 +705,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         SuiviCompetences.icon_component = 'SuiviCompetenceswidgeticoncomponent';
         SuiviCompetences.is_filter = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+        await WidgetOptionsVOManager.register_widget_type(
             SuiviCompetences,
             () => new SuiviCompetencesWidgetOptionsVO(null, null, null),
             null
@@ -728,7 +728,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         var_widget.default_background = '#f5f5f5';
         var_widget.icon_component = 'Varwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(var_widget, () => new VarWidgetOptions(null, null, null, null, null, null, null), VarWidgetOptions.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(var_widget, () => new VarWidgetOptions(null, null, null, null, null, null, null), VarWidgetOptions.get_selected_fields);
 
         Vue.component('Varwidgetcomponent', () => import('./widgets/var_widget/VarWidgetComponent'));
         Vue.component('Varwidgetoptionscomponent', () => import('./widgets/var_widget/options/VarWidgetOptionsComponent'));
@@ -747,7 +747,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         pageswitch_widget.default_background = '#f5f5f5';
         pageswitch_widget.icon_component = 'Pageswitchwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(pageswitch_widget, () => new PageSwitchWidgetOptions(null), () => null);
+        await WidgetOptionsVOManager.register_widget_type(pageswitch_widget, () => new PageSwitchWidgetOptions(null), () => null);
 
         Vue.component('Pageswitchwidgetcomponent', () => import('./widgets/page_switch_widget/PageSwitchWidgetComponent'));
         Vue.component('Pageswitchwidgetoptionscomponent', () => import('./widgets/page_switch_widget/options/PageSwitchWidgetOptionsComponent'));
@@ -768,7 +768,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSBlocText.is_filter = false;
         CMSBlocText.is_cms_compatible = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSBlocText, null, null);
+        await WidgetOptionsVOManager.register_widget_type(CMSBlocText, null, null);
 
         Vue.component('CMSBlocTextwidgetcomponent', () => import('./widgets/cms_bloc_text_widget/CMSBlocTextWidgetComponent'));
         Vue.component('CMSBlocTextwidgetoptionscomponent', () => import('./widgets/cms_bloc_text_widget/options/CMSBlocTextWidgetOptionsComponent'));
@@ -789,7 +789,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSImage.is_filter = false;
         CMSImage.is_cms_compatible = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSImage, null, null);
+        await WidgetOptionsVOManager.register_widget_type(CMSImage, null, null);
 
         Vue.component('CMSImagewidgetcomponent', () => import('./widgets/cms_image_widget/CMSImageWidgetComponent'));
         Vue.component('CMSImagewidgetoptionscomponent', () => import('./widgets/cms_image_widget/options/CMSImageWidgetOptionsComponent'));
@@ -810,7 +810,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSLinkButton.is_filter = false;
         CMSLinkButton.is_cms_compatible = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSLinkButton, null, null);
+        await WidgetOptionsVOManager.register_widget_type(CMSLinkButton, null, null);
 
         Vue.component('CMSLinkButtonwidgetcomponent', () => import('./widgets/cms_link_button_widget/CMSLinkButtonWidgetComponent'));
         Vue.component('CMSLinkButtonwidgetoptionscomponent', () => import('./widgets/cms_link_button_widget/options/CMSLinkButtonWidgetOptionsComponent'));
@@ -831,7 +831,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSBooleanButton.is_filter = false;
         CMSBooleanButton.is_cms_compatible = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSBooleanButton, null, null);
+        await WidgetOptionsVOManager.register_widget_type(CMSBooleanButton, null, null);
 
         Vue.component('CMSBooleanButtonwidgetcomponent', () => import('./widgets/cms_boolean_button_widget/CMSBooleanButtonWidgetComponent'));
         Vue.component('CMSBooleanButtonwidgetoptionscomponent', () => import('./widgets/cms_boolean_button_widget/options/CMSBooleanButtonWidgetOptionsComponent'));
@@ -852,7 +852,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSLikeButton.is_filter = false;
         CMSLikeButton.is_cms_compatible = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSLikeButton, null, null);
+        await WidgetOptionsVOManager.register_widget_type(CMSLikeButton, null, null);
 
         Vue.component('CMSLikeButtonwidgetcomponent', () => import('./widgets/cms_like_button_widget/CMSLikeButtonWidgetComponent'));
         Vue.component('CMSLikeButtonwidgetoptionscomponent', () => import('./widgets/cms_like_button_widget/options/CMSLikeButtonWidgetOptionsComponent'));
@@ -873,7 +873,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSPrintParam.is_filter = false;
         CMSPrintParam.is_cms_compatible = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSPrintParam, null, null);
+        await WidgetOptionsVOManager.register_widget_type(CMSPrintParam, null, null);
 
         Vue.component('CMSPrintParamwidgetcomponent', () => import('./widgets/cms_print_param_widget/CMSPrintParamWidgetComponent'));
         Vue.component('CMSPrintParamwidgetoptionscomponent', () => import('./widgets/cms_print_param_widget/options/CMSPrintParamWidgetOptionsComponent'));
@@ -894,7 +894,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSVisionneusePdf.is_filter = false;
         CMSVisionneusePdf.is_cms_compatible = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSVisionneusePdf, null, null);
+        await WidgetOptionsVOManager.register_widget_type(CMSVisionneusePdf, null, null);
 
         Vue.component('CMSVisionneusePdfwidgetcomponent', () => import('./widgets/cms_visionneuse_pdf/CMSVisionneusePdfWidgetComponent'));
         Vue.component('CMSVisionneusePdfwidgetoptionscomponent', () => import('./widgets/cms_visionneuse_pdf/options/CMSVisionneusePdfWidgetOptionsComponent'));
@@ -913,7 +913,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         OseliaRunGraphWidget.default_background = '#f5f5f5';
         OseliaRunGraphWidget.icon_component = 'Oseliarungraphwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(OseliaRunGraphWidget, () => new OseliaRunGraphWidgetComponent(), () => null);
+        await WidgetOptionsVOManager.register_widget_type(OseliaRunGraphWidget, () => new OseliaRunGraphWidgetComponent(), () => null);
 
         Vue.component('Oseliarungraphwidgetcomponent', () => import('./widgets/oselia_run_graph_widget/OseliaRunGraphWidgetComponent'));
         Vue.component('Oseliarungraphwidgetoptionscomponent', () => import('./widgets/oselia_run_graph_widget/options/OseliaRunGraphWidgetOptionsComponent'));

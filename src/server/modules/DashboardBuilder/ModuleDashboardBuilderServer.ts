@@ -5,7 +5,9 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import DashboardBuilderController from '../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import ModuleDashboardBuilder from '../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
+import WidgetOptionsVOManager from '../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import DashboardActiveonViewportVO from '../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
 import DashboardGraphVORefVO from '../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardPageVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -13,10 +15,16 @@ import DashboardPageWidgetVO from '../../../shared/modules/DashboardBuilder/vos/
 import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardViewportVO from '../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 import ListObjectLikesVO from '../../../shared/modules/DashboardBuilder/vos/ListObjectLikesVO';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import LangVO from '../../../shared/modules/Translation/vos/LangVO';
+import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
+import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -5047,5 +5055,203 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
         await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(liaisons_dbbs_viewports);
         await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(new_widgets_viewport);
+    }
+
+    private async do_copy_dashboard() {
+
+        if (!this.dashboard) {
+            return null;
+        }
+
+        /**
+         * On exporte le DB, les pages, les widgets, DashboardGraphVORefVO et les trads associées (dont TableWidgetOptionsComponent et VOFieldRefVO)
+         *  attention sur les trads on colle des codes de remplacement pour les ids qui auront été insérés après import
+         */
+        let export_vos: IDistantVOBase[] = [];
+        const db = this.dashboard;
+        export_vos.push(ModuleTableController.translate_vos_to_api(db));
+
+        const pages = await this.load_dashboard_pages_by_dashboard_id(
+            this.dashboard.id,
+            { refresh: true },
+        );
+
+        if (pages && pages.length) {
+            export_vos = export_vos.concat(pages.map((p) => ModuleTableController.translate_vos_to_api(p)));
+        }
+
+        const graphvorefs = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardGraphVORefVO>().dashboard_id, this.dashboard.id).select_vos<DashboardGraphVORefVO>();
+        if (graphvorefs && graphvorefs.length) {
+            export_vos = export_vos.concat(graphvorefs.map((p) => ModuleTableController.translate_vos_to_api(p)));
+        }
+
+        let page_widgets: DashboardPageWidgetVO[] = null;
+        for (const i in pages) {
+            const page = pages[i];
+
+            const this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, page.id)
+                .select_vos<DashboardPageWidgetVO>();
+            if (this_page_widgets && this_page_widgets.length) {
+                export_vos = export_vos.concat(this_page_widgets.map((p) => ModuleTableController.translate_vos_to_api(p)));
+                page_widgets = page_widgets ? page_widgets.concat(this_page_widgets) : this_page_widgets;
+            }
+        }
+
+        const page_widgets_options: { [page_widget_id: number]: IExportableWidgetOptions } = {};
+        for (const i in page_widgets) {
+            const page_widget = page_widgets[i];
+
+            if (WidgetOptionsVOManager.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id]) {
+                const options = Object.assign(
+                    WidgetOptionsVOManager.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id](),
+                    ObjectHandler.try_get_json(page_widget.json_options),
+                );
+                if (options) {
+                    page_widgets_options[page_widget.id] = options as IExportableWidgetOptions;
+                }
+            }
+        }
+
+        const translation_codes: TranslatableTextVO[] = [];
+        const translations: TranslationVO[] = [];
+        await this.get_exportable_translations(
+            translation_codes,
+            translations,
+            db,
+            pages,
+            page_widgets,
+            page_widgets_options,
+        );
+        if (translation_codes && translation_codes.length) {
+            export_vos = export_vos.concat(translation_codes.map((p) => ModuleTableController.translate_vos_to_api(p)));
+        }
+        if (translations && translations.length) {
+            export_vos = export_vos.concat(translations.map((p) => ModuleTableController.translate_vos_to_api(p)));
+        }
+
+        const text: string = JSON.stringify(export_vos);
+        await navigator.clipboard.writeText(text);
+    }
+
+    private async get_exportable_translations(
+        translation_codes: TranslatableTextVO[],
+        translations: TranslationVO[],
+        db: DashboardVO,
+        pages: DashboardPageVO[],
+        page_widgets: DashboardPageWidgetVO[],
+        page_widgets_options: { [page_widget_id: number]: IExportableWidgetOptions },
+    ) {
+        const langs: LangVO[] = await ModuleTranslation.getInstance().getLangs();
+
+        const promises = [];
+
+        // trad du db
+        if (db && db.translatable_name_code_text) {
+            promises.push(this.get_exportable_translation(
+                langs,
+                translation_codes,
+                translations,
+                db.translatable_name_code_text, DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + '{{IMPORT:' + db._type + ':' + db.id + '}}' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION),
+            );
+        }
+
+        // trads des pages
+        for (const i in pages) {
+            const page = pages[i];
+
+            if (page && page.translatable_name_code_text) {
+                promises.push(this.get_exportable_translation(
+                    langs,
+                    translation_codes,
+                    translations,
+                    page.translatable_name_code_text,
+                    DashboardBuilderController.PAGE_NAME_CODE_PREFIX + '{{IMPORT:' + page._type + ':' + page.id + '}}' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+            }
+        }
+
+        // widgets
+        for (const i in page_widgets) {
+            const page_widget = page_widgets[i];
+
+            if (page_widget && page_widget.translatable_name_code_text) {
+                promises.push(this.get_exportable_translation(
+                    langs,
+                    translation_codes,
+                    translations,
+                    page_widget.translatable_name_code_text,
+                    DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}'));
+            }
+
+            if (page_widgets_options && page_widgets_options[page_widget.id]) {
+                const exportable_translations = await page_widgets_options[page_widget.id].get_all_exportable_name_code_and_translation(page_widget.page_id, page_widget.id);
+                for (const current_code_text in exportable_translations) {
+                    const exportable_code_text = exportable_translations[current_code_text];
+                    promises.push(this.get_exportable_translation(
+                        langs,
+                        translation_codes,
+                        translations,
+                        current_code_text,
+                        exportable_code_text));
+                }
+            }
+
+            /**
+             * TableColumnDescVO, VOFieldRefVO
+             */
+            const page_widget_trads: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_starting_with('code_text', [
+                DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id + '.',
+                DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id + '.',
+            ]).select_vos<TranslatableTextVO>();
+
+            for (const j in page_widget_trads) {
+                const page_widget_trad = page_widget_trads[j];
+
+                let code = page_widget_trad.code_text;
+                if (code.indexOf(DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id) == 0) {
+                    code =
+                        DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX +
+                        '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}' +
+                        code.substring((DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id).length, code.length);
+                } else if (code.indexOf(DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id) == 0) {
+                    code =
+                        DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX +
+                        '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}' +
+                        code.substring((DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id).length, code.length);
+                }
+
+                promises.push(this.get_exportable_translation(
+                    langs,
+                    translation_codes,
+                    translations,
+                    page_widget_trad.code_text,
+                    code));
+            }
+        }
+
+        await all_promises(promises);
+    }
+
+    private async get_exportable_translation(
+        langs: LangVO[],
+        translation_codes: TranslatableTextVO[],
+        translations: TranslationVO[],
+        initial_code: string,
+        exportable_code: string,
+    ) {
+        const translatable_db = await ModuleTranslation.getInstance().getTranslatableText(initial_code);
+        if (translatable_db) {
+            translatable_db.code_text = exportable_code;
+            translation_codes.push(translatable_db);
+
+            for (const i in langs) {
+                const lang = langs[i];
+
+                const translation_db = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_db.id);
+                if (translation_db) {
+                    translations.push(translation_db);
+                }
+            }
+        }
     }
 }
