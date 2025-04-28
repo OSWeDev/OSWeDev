@@ -26,7 +26,8 @@
             :minimum-view="'year'" 
             :maximum-view="'year'" 
             :class="form_control?'form-control tsrange_end_input':'tsrange_end_input'" 
-            :disabled-dates="disabled_dates_end" 
+            :disabled-dates="disabled_dates_end"
+            :open-date="open_date_end"
             @input="emitInput"
         )
     template(v-if='is_segmentation_mois')
@@ -57,6 +58,7 @@
             :maximum-view="'month'" 
             :class="form_control?'form-control tsrange_end_input':'tsrange_end_input'" 
             :disabled-dates="disabled_dates_end"
+            :open-date="open_date_end"
             @input="emitInput"
             )
     template(v-if='is_segmentation_day || is_segmentation_week')
@@ -83,6 +85,7 @@
             :format="format_datepicker_day" 
             :class="form_control?'form-control tsrange_end_input':'tsrange_end_input'"
             :disabled-dates="disabled_dates_end"
+            :open-date="open_date_end"
             @input="emitInput"
         )
     template(v-if='is_segmentation_minute')
@@ -138,6 +141,7 @@
                         :class="form_control?'form-control max-width disabled hide':'max-width disabled hide'" 
                         input-class="disabled"
                         :disabled-dates="disabled_dates_end"
+                        :open-date="open_date_end"
                         @input="emitInput"
                     )
                 template(v-else)
@@ -152,6 +156,7 @@
                         :format="format_datepicker_day" 
                         :class="form_control?'form-control max-width':'max-width'"
                         :disabled-dates="disabled_dates_end"
+                        :open-date="open_date_end"
                         @input="emitInput"
                     )
             .col-sm-6

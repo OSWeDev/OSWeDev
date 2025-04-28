@@ -366,6 +366,19 @@ export default class TSRangeInputComponent extends VueComponentBase {
         };
     }
 
+    get open_date_end(): Date {
+        // Si on a déjà une date de fin, on ouvre sur celle-ci
+        if (this.tsrange_end && !isNaN(this.tsrange_end.getTime())) {
+            return this.tsrange_end;
+        }
+        // Sinon, si on a déjà une date de début, on ouvre sur la même période
+        if (this.tsrange_start && !isNaN(this.tsrange_start.getTime())) {
+            return this.tsrange_start;
+        }
+        // Par défaut (si aucune date n’est saisie), on ouvre sur la date du jour
+        return new Date();
+    }
+
     @Watch('vo', { immediate: true })
     private onchange_vo() {
         if (!this.vo) {
