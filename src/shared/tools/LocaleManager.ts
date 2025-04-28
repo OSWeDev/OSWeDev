@@ -37,7 +37,8 @@ export default class LocaleManager {
 
         LocaleManager.vue_instance_ref.$store.dispatch("TranslatableTextStore/set_flat_locale_translation", {
             code_text: code_text,
-            value: value
+            value: value,
+            synced: true
         });
     }
 
