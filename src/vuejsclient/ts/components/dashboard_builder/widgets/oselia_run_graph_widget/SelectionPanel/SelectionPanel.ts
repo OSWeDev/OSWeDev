@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import VueJsonPretty from 'vue-json-pretty';
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import { ItemInterface } from '../interface';
 import './SelectionPanel.scss';
 import OseliaRunTemplateVO from '../../../../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
 import OseliaRunVO from '../../../../../../../shared/modules/Oselia/vos/OseliaRunVO';

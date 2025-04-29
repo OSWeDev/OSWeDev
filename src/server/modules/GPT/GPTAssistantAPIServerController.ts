@@ -1112,6 +1112,7 @@ export default class GPTAssistantAPIServerController {
                 const WebSocket = require('ws');
                 const PORT = parseInt(ConfigurationService.node_configuration.port) + 10;
                 let cr_html_content = null;
+                let cr_vo = null;
                 // On crée le serveur WebSocket qu'une seule fois
                 this.wss = new WebSocket.Server({ port: PORT });
                 this.wss.on('connection', (clientSocket) => {
@@ -1161,9 +1162,14 @@ export default class GPTAssistantAPIServerController {
                                     // Préviens le client que tout est prêt
                                     clientSocket.send(JSON.stringify(parsedMsg));
                                     clientSocket.send(JSON.stringify({ type: 'ready' }));
-                                } else if (parsedMsg?.type === 'response.done') {
-                                    if (parsedMsg.response.output.arguments.name && parsedMsg.response.output.arguments.name=='edit_cr_word') {
-                                        await ModuleProgramPlanServerBase.edit_cr_word(parsedMsg.response.output.arguments.term_to_modify, parsedMsg.response.output.arguments.new_term,cr_html_content);
+                                } else if (parsedMsg?.type === 'response.output_item.done') {
+                                    if (parsedMsg.item && parsedMsg.item.name == 'edit_cr_word') {
+                                        if(!parsedMsg.item.arguments) {
+                                            ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: edit_cr_word: no arguments');
+                                            return;
+                                        }
+                                        const func_arcs = JSON.parse(parsedMsg.item.arguments);
+                                        await ModuleProgramPlanServerBase.edit_cr_word(func_arcs.term_to_modify, func_arcs.new_term, cr_html_content, cr_vo);
                                     }
                                 } else {
                                     clientSocket.send(strData);
@@ -1180,11 +1186,13 @@ export default class GPTAssistantAPIServerController {
                             const strData = data.toString('utf8');
                             const parsedMsg = JSON.parse(strData);
                             ConsoleHandler.log('WebSocket Server sending message: ', parsedMsg);
-                            if (parsedMsg.cr_html_content) {
+                            if (parsedMsg.type === 'cr_data') {
                                 cr_html_content = parsedMsg.cr_html_content;
+                                cr_vo = parsedMsg.cr_vo;
+                            } else {
+                                // Si c'est un message audio => on décode base64 et on l'envoie en binaire
+                                this.openaiSocket.send(JSON.stringify(parsedMsg));
                             }
-                            // Si c'est un message audio => on décode base64 et on l'envoie en binaire
-                            this.openaiSocket.send(JSON.stringify(parsedMsg));
                         } catch (err) {
                             // Si ce n'est pas du JSON, on l'envoie tel quel en binaire
                             this.openaiSocket.send(data, { binary: true });

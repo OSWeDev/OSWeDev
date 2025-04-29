@@ -9,6 +9,7 @@ import ModuleGPT from "../../../../../../../shared/modules/GPT/ModuleGPT";
 import ConsoleHandler from "../../../../../../../shared/tools/ConsoleHandler";
 import VueAppController from "../../../../../../VueAppController";
 import { cr } from "@fullcalendar/core/internal-common";
+import IPlanRDVCR from "../../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR";
 
 @Component({
     template: require('./OseliaRealtimeButton.pug'),
@@ -40,6 +41,9 @@ export default class OseliaRealtimeButton extends VueComponentBase {
     @Prop({ default: null })
     private cr_html_content: string | null;
 
+    @Prop({ default: null })
+    private cr_vo: IPlanRDVCR | null;
+
     private socket: WebSocket | null = null;
     private audioContext: AudioContext | null = null;
 
@@ -70,6 +74,7 @@ export default class OseliaRealtimeButton extends VueComponentBase {
         if (this.connection_ready) {
             if (this.is_in_cr) {
                 this.send_function_to_realtime();
+                this.send_cr_to_realtime();
             }
             this.send_audio();
 
@@ -223,7 +228,6 @@ export default class OseliaRealtimeButton extends VueComponentBase {
 
     private async send_context_to_realtime() {
         if (this.socket?.readyState === WebSocket.OPEN) {
-            this.socket.send(JSON.stringify({cr_html_content: this.cr_html_content}));
 
             this.socket.send(JSON.stringify({
                 type: "conversation.item.create",
@@ -269,6 +273,16 @@ export default class OseliaRealtimeButton extends VueComponentBase {
                     ],
                     "tool_choice": "auto",
                 }
+            }));
+        }
+    }
+
+    private async send_cr_to_realtime(){
+        if (this.socket?.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify({
+                type: "cr_data",
+                cr_html_content: this.cr_html_content,
+                cr_vo: this.cr_vo,
             }));
         }
     }

@@ -23,6 +23,7 @@ import IPlanRDVPrep from '../../../shared/modules/ProgramPlan/interfaces/IPlanRD
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
@@ -47,19 +48,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return this.shared_module as ModuleProgramPlanBase;
     }
 
-    public static async edit_cr_word(term_to_modify: string, new_value: string, html_content): Promise<void> {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html_content, 'text/html');
-
-        const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null);
-        let node;
-        while ((node = walker.nextNode())) {
-            if (node.nodeValue && node.nodeValue.includes(term_to_modify)) {
-                node.nodeValue = node.nodeValue.replace(term_to_modify, new_value);
-            }
+    public static async edit_cr_word(term_to_modify: string, new_value: string, html_content, cr_vo): Promise<void> {
+        const escapedOldTerm = term_to_modify.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // échappe les caractères spéciaux
+        const regex = new RegExp(escapedOldTerm, 'gi');
+        for(const _html_content in cr_vo.html_contents) {
+            cr_vo.html_contents[_html_content] = cr_vo.html_contents[_html_content].replace(regex, new_value); // échappe les caractères spéciaux
         }
-
-        html_content = doc.body.innerHTML;
+        await ModuleDAO.getInstance().insertOrUpdateVO(cr_vo);
     }
 
     // istanbul ignore next: cannot test configure
