@@ -18,6 +18,14 @@ export default class MenuComponent extends VueComponentBase {
     @Prop({ default: true })
     private show_title: boolean;
 
+    @Prop({ default: false })
+    private only_one_menu_opened: boolean;
+
+    /**
+     * Dictionnaire de l'état d'ouverture des menus, par ID
+     */
+    private open_elements: { [id: number]: boolean } = {};
+
     private menuElements: MenuElementVO[] = null;
     private childrenElementsById: { [parent_id: number]: MenuElementVO[] } = {};
 
@@ -51,9 +59,11 @@ export default class MenuComponent extends VueComponentBase {
         }
         this.menuElements = result;
 
-
         this.childrenElementsById = MenuController.getInstance().menus_by_parent_id;
         this.access_by_name = MenuController.getInstance().access_by_name;
+
+        // On réinitialise l'état d'ouverture (tout fermé)
+        this.open_elements = {};
     }
 
     private get_name_menus(menuElement: MenuElementVO) {
@@ -80,5 +90,34 @@ export default class MenuComponent extends VueComponentBase {
         }
 
         return res;
+    }
+
+    /**
+     * Ouvre/ferme un menu. Ferme les frères si only_one_menu_opened = true
+     */
+    private toggleMenuElement(menuElem: MenuElementVO) {
+
+        const wasOpen = !!this.open_elements[menuElem.id];
+
+        // Si déjà ouvert, on le ferme
+        if (wasOpen) {
+            this.$set(this.open_elements, menuElem.id, false);
+            return;
+        }
+
+        // Sinon on veut l'ouvrir
+        // 1) Fermer les frères si only_one_menu_opened
+        if (this.only_one_menu_opened) {
+            const parent_id = menuElem.parent_id || 0;
+            const siblings = this.childrenElementsById[parent_id];
+            if (siblings && siblings.length > 0) {
+                for (const sib of siblings) {
+                    this.$set(this.open_elements, sib.id, false);
+                }
+            }
+        }
+
+        // 2) Ouvrir le menu cliqué
+        this.$set(this.open_elements, menuElem.id, true);
     }
 }
