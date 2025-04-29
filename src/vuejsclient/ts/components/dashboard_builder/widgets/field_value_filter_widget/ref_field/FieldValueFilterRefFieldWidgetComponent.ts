@@ -36,7 +36,7 @@ import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFilter
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
-import AdvancedRefFieldFilter from './AdvancedRefFieldFilter';
+import AdvancedRefFieldFilter from '../../../../../../../shared/modules/DashboardBuilder/vos/widgets_options/advanced_filters/AdvancedRefFieldFilter';
 import './FieldValueFilterRefFieldWidgetComponent.scss';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';

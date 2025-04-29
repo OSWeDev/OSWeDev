@@ -1,11 +1,11 @@
 import Vue from 'vue';
 import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
+import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import FavoritesFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
 import FavoritesFiltersWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
-import FieldValueFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import SuiviCompetencesWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/SuiviCompetencesWidgetOptionsVO';
 import TableWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
@@ -13,21 +13,20 @@ import VarMixedChartWidgetOptionsVO from '../../../../shared/modules/DashboardBu
 import VarPieChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
 import VarRadarChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
+import FieldValueFilterPageWidgetOptionVO from '../../../../shared/modules/DashboardBuilder/vos/widgets_options/FieldValueFilterPageWidgetOptionVO';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
 import BulkOpsWidgetOptions from './widgets/bulkops_widget/options/BulkOpsWidgetOptions';
 import ChecklistWidgetOptions from './widgets/checklist_widget/options/ChecklistWidgetOptions';
 import DOWFilterWidgetOptions from './widgets/dow_filter_widget/options/DOWFilterWidgetOptions';
-import AdvancedStringFilter from './widgets/field_value_filter_widget/string/AdvancedStringFilter';
 import MonthFilterWidgetOptions from './widgets/month_filter_widget/options/MonthFilterWidgetOptions';
+import OseliaRunGraphWidgetComponent from './widgets/oselia_run_graph_widget/OseliaRunGraphWidgetComponent';
 import OseliaThreadWidgetOptions from './widgets/oselia_thread_widget/options/OseliaThreadWidgetOptions';
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptions';
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
 import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
-import OseliaRunGraphWidgetComponent from './widgets/oselia_run_graph_widget/OseliaRunGraphWidgetComponent';
-import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
     protected static instance: DashboardBuilderVueModuleBase = null;
@@ -317,12 +316,13 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         widget.default_width = 6;
         widget.name = DashboardWidgetVO.WIDGET_NAME_oseliathread;
         widget.widget_component = 'Oseliathreadwidgetcomponent';
-        widget.options_component = 'Oseliathreadwidgetoptionscomponent';
+        widget.options_component = null;
         widget.weight = 99;
         widget.default_background = '#f5f5f5';
         widget.icon_component = 'Oseliathreadwidgeticoncomponent';
 
-        await WidgetOptionsVOManager.register_widget_type(widget, () => new OseliaThreadWidgetOptions(), OseliaThreadWidgetOptions.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(widget); // Pas d'options pour le moment
+        // () => new OseliaThreadWidgetOptions(), OseliaThreadWidgetOptions.get_selected_fields);
 
         Vue.component('Oseliathreadwidgetcomponent', () => import('./widgets/oselia_thread_widget/OseliaThreadWidgetComponent'));
         Vue.component('Oseliathreadwidgetoptionscomponent', () => import('./widgets/oselia_thread_widget/options/OseliaThreadWidgetOptionsComponent'));
@@ -343,9 +343,12 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         fieldValueFilter.icon_component = 'Fieldvaluefilterwidgeticoncomponent';
         fieldValueFilter.is_filter = true;
 
-        await WidgetOptionsVOManager.register_widget_type(fieldValueFilter, () => new FieldValueFilterWidgetOptionsVO(
-            null, null, null, true, false, FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_1, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, null, false, false, false, null, null, null, null, false, null, false, false, false, null, null, false, false, false, null, null, null
-        ), FieldValueFilterWidgetOptionsVO.get_selected_fields);
+        await WidgetOptionsVOManager.register_widget_type(fieldValueFilter,
+            FieldValueFilterPageWidgetOptionVO.API_TYPE_ID,
+            // () => new FieldValueFilterWidgetOptionsVO(
+            // null, null, null, true, false, FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_1, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, null, false, false, false, null, null, null, null, false, null, false, false, false, null, null, false, false, false, null, null, null
+            // ), FieldValueFilterWidgetOptionsVO.get_selected_fields
+        );
 
         Vue.component('Fieldvaluefilterwidgetcomponent', () => import('./widgets/field_value_filter_widget/FieldValueFilterWidgetComponent'));
         Vue.component('Fieldvaluefilterwidgetoptionscomponent', () => import('./widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptionsComponent'));

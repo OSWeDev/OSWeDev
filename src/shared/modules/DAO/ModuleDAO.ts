@@ -1,6 +1,8 @@
+import UIDGenerator from '../../../server/UIDGenerator';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import INamedVO from '../../interfaces/INamedVO';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import ConsoleHandler from '../../tools/ConsoleHandler';
 import { field_names, reflect } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
@@ -14,6 +16,7 @@ import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import IMatroid from '../Matroid/interfaces/IMatroid';
 import Module from '../Module';
+import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import ModuleTableController from './ModuleTableController';
 import APIDAOApiTypeAndMatroidsParamsVO, { APIDAOApiTypeAndMatroidsParamsVOStatic } from './vos/APIDAOApiTypeAndMatroidsParamsVO';
 import APIDAONamedParamVO, { APIDAONamedParamVOStatic } from './vos/APIDAONamedParamVO';
@@ -390,6 +393,20 @@ export default class ModuleDAO extends Module {
         await this.late_configuration(false);
     }
 
+    public default_translation_code_text_definition_function(vo: IDistantVOBase, field: ModuleTableFieldVO): string {
+
+        if ((!vo) || (!field)) {
+            ConsoleHandler.error("ModuleDAO.default_translation_code_text_definition_function : vo or field is null");
+            return null;
+        }
+
+        // Si il est déjà défini on le change pas.
+        if (vo[field.field_name] != null) {
+            return vo[field.field_name];
+        }
+
+        return UIDGenerator.get_new_uid() + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+    }
 
     public getAccessPolicyName(access_type: string, vo_type: string): string {
         if ((!access_type) || (!vo_type)) {

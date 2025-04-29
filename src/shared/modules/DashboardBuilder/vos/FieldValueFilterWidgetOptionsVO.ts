@@ -8,6 +8,7 @@ import ObjectHandler from "../../../tools/ObjectHandler";
 /**
  * @class FieldValueFilterWidgetOptionsVO
  *  - options for field value filter widget
+ * @deprecated on doit utiliser un vrai VO pour les options de widget
  */
 export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
 
@@ -105,8 +106,14 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
         public hide_advanced_string_filter_type?: boolean,
         public vo_field_ref_multiple?: VOFieldRefVO[],
         public default_showed_filter_opt_values?: DataFilterOption[], // Default filter options to show (supervision case by example)
+        /**
+         * @deprecated repace by default_number_values
+         */
         public default_filter_opt_values?: DataFilterOption[],
         public default_ts_range_values?: TSRange,
+        /**
+         * @deprecated repace by default_number_values
+         */
         public default_boolean_values?: number[],
         public hide_filter?: boolean,
         public no_inter_filter?: boolean, // Do not use the active_field_filter

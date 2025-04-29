@@ -19,20 +19,20 @@ export default class VOFieldRefVO extends AbstractVO implements IDistantVOBase {
 
     public field_id: string;
 
-    public get_translatable_name_code_text(page_widget_id: number): string {
+    // public get_translatable_name_code_text(page_widget_id: number): string {
 
-        if (!page_widget_id) {
-            return null;
-        }
+    //     if (!page_widget_id) {
+    //         return null;
+    //     }
 
-        if (!this.api_type_id) {
-            return null;
-        }
+    //     if (!this.api_type_id) {
+    //         return null;
+    //     }
 
-        if (!this.field_id) {
-            return null;
-        }
+    //     if (!this.field_id) {
+    //         return null;
+    //     }
 
-        return DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget_id + '.' + this.api_type_id + '.' + this.field_id;
-    }
+    //     return DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget_id + '.' + this.api_type_id + '.' + this.field_id;
+    // }
 }

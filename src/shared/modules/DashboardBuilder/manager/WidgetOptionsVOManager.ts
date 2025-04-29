@@ -24,9 +24,11 @@ export default class WidgetOptionsVOManager {
     protected static instance: WidgetOptionsVOManager;
 
     public add_widget_to_page_handler: (widget: DashboardWidgetVO) => Promise<DashboardPageWidgetVO> = null;
-    public widgets_options_constructor_by_widget_id: { [widget_id: number]: () => any } = {};
-    public widgets_options_constructor: { [name: string]: () => any } = {};
-    public widgets_get_selected_fields: { [name: string]: (page_widget: DashboardPageWidgetVO) => { [api_type_id: string]: { [field_id: string]: boolean } } } = {};
+    // public widgets_options_constructor_by_widget_id: { [widget_id: number]: () => any } = {};
+    // public widgets_options_constructor: { [name: string]: () => any } = {};
+    // public widgets_get_selected_fields: { [name: string]: (page_widget: DashboardPageWidgetVO) => { [api_type_id: string]: { [field_id: string]: boolean } } } = {};
+
+    public page_widget_option_api_type_id_by_widget_name: { [widget_name: string]: string } = {};
     public initialized: boolean = false;
     public sorted_widgets_types: DashboardWidgetVO[] = []; // sorted_widgets_types
     public checked_access: { [access_type: string]: boolean } = {};
@@ -141,14 +143,15 @@ export default class WidgetOptionsVOManager {
      * - This method is responsible for registering the given widget type
      *
      * @param {DashboardWidgetVO} widget_type
-     * @param {Function} options_constructor
-     * @param {Function} get_selected_fields
+     * @param {Function} options_constructor Déprécié, utiliser les paramsVOs plutôt
+     * @param {Function} get_selected_fields Déprécié, plus utilisé
      * @returns {Promise<void>}
      */
     public static async register_widget_type(
         widget_type: DashboardWidgetVO,
-        options_constructor: () => any,
-        get_selected_fields: (page_widget: DashboardPageWidgetVO) => {
+        page_widget_option_api_type_id: string = null,
+        options_constructor?: () => any,
+        get_selected_fields?: (page_widget: DashboardPageWidgetVO) => {
             [api_type_id: string]: { [field_id: string]: boolean }
         }
     ): Promise<void> {
@@ -159,14 +162,18 @@ export default class WidgetOptionsVOManager {
             await self.initialize();
         }
 
-        if (options_constructor) {
-            self.widgets_options_constructor[widget_type.name] = options_constructor;
-            self.widgets_options_constructor_by_widget_id[widget_type.id] = options_constructor;
+        if (page_widget_option_api_type_id) {
+            self.page_widget_option_api_type_id_by_widget_name[widget_type.name] = page_widget_option_api_type_id;
         }
 
-        if (get_selected_fields) {
-            self.widgets_get_selected_fields[widget_type.name] = get_selected_fields;
-        }
+        // if (options_constructor) {
+        //     self.widgets_options_constructor[widget_type.name] = options_constructor;
+        //     self.widgets_options_constructor_by_widget_id[widget_type.id] = options_constructor;
+        // }
+
+        // if (get_selected_fields) {
+        //     self.widgets_get_selected_fields[widget_type.name] = get_selected_fields;
+        // }
 
         if (self.sorted_widgets_types.find((w) => w.name == widget_type.name)) {
             return;

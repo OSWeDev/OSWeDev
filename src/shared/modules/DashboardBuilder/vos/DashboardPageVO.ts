@@ -1,7 +1,5 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
-import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
-import DashboardBuilderController from "../DashboardBuilderController";
 import IDashboardPageVO from "../interfaces/IDashboardPageVO";
 
 export default class DashboardPageVO implements IDashboardPageVO, IDistantVOBase, IWeightedItem {
@@ -20,21 +18,7 @@ export default class DashboardPageVO implements IDashboardPageVO, IDistantVOBase
     public group_filters: boolean;
     public collapse_filters: boolean;
 
-    get translatable_group_filters_code_text(): string {
-
-        if (!this.id) {
-            return null;
-        }
-
-        return DashboardBuilderController.PAGE_NAME_CODE_PREFIX + this.id + ".group_filters" + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-    }
-
-    get translatable_name_code_text(): string {
-
-        if (!this.id) {
-            return null;
-        }
-
-        return DashboardBuilderController.PAGE_NAME_CODE_PREFIX + this.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-    }
+    public group_filters_title: string;
+    public title: string;
+    public description: string;
 }

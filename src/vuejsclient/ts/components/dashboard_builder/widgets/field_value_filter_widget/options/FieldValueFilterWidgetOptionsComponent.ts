@@ -33,8 +33,8 @@ import MultipleVoFieldRefHolderComponent from '../../../options_tools/multiple_v
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import BooleanFilter from '../boolean/BooleanFilter';
-import AdvancedRefFieldFilter from '../ref_field/AdvancedRefFieldFilter';
-import AdvancedStringFilter from '../string/AdvancedStringFilter';
+import AdvancedStringFilter from '../../../../../../../shared/modules/DashboardBuilder/vos/widgets_options/advanced_filters/AdvancedStringFilter';
+import AdvancedRefFieldFilter from '../../../../../../../shared/modules/DashboardBuilder/vos/widgets_options/advanced_filters/AdvancedRefFieldFilter';
 import './FieldValueFilterWidgetOptionsComponent.scss';
 
 @Component({

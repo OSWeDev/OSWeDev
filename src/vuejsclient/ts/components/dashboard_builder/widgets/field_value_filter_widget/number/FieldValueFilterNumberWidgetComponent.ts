@@ -31,7 +31,7 @@ import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFilter
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
-import AdvancedNumberFilter from './AdvancedNumberFilter';
+import AdvancedNumberFilter from '../../../../../../../shared/modules/DashboardBuilder/vos/widgets_options/advanced_filters/AdvancedNumberFilter';
 import './FieldValueFilterNumberWidgetComponent.scss';
 
 @Component({

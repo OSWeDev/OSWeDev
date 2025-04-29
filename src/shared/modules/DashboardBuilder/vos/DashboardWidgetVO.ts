@@ -1,8 +1,6 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import INamedVO from "../../../interfaces/INamedVO";
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
-import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
-import DashboardBuilderController from "../DashboardBuilderController";
 
 
 /**
@@ -21,7 +19,6 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public static WIDGET_NAME_supervision_type: string = 'supervision_type';
     public static WIDGET_NAME_datatable: string = 'datatable';
     public static WIDGET_NAME_oseliathread: string = 'oseliathread';
-    public static WIDGET_NAME_oseliacreator: string = 'oseliacreator';
     public static WIDGET_NAME_fieldvaluefilter: string = 'fieldvaluefilter';
     public static WIDGET_NAME_dowfilter: string = 'dowfilter';
     public static WIDGET_NAME_monthfilter: string = 'monthfilter';
@@ -72,11 +69,5 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public is_validation_filters: boolean;
     public is_cms_compatible: boolean;
 
-    get translatable_name_code_text(): string {
-
-        if (!this.id) {
-            return null;
-        }
-        return DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + this.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-    }
+    public title: string;
 }

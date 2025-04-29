@@ -39,6 +39,9 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
 
     public weight: number;
 
+    /**
+     * @deprecated sera supprimé rapidement au profit des vos de params des widgets
+     */
     public json_options: string;
 
     public background: string;
@@ -46,14 +49,7 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
     public show_widget_on_viewport: boolean;
     public dashboard_viewport_id: number;
 
-    get translatable_name_code_text(): string {
-
-        if (!this.widget_id) {
-            return null;
-        }
-
-        return DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + this.widget_id;
-    }
+    public title: string;
 
     /**
      * Create a new instance from a widget_options object

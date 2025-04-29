@@ -39,7 +39,7 @@ import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFilter
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
-import AdvancedStringFilter from './AdvancedStringFilter';
+import AdvancedStringFilter from '../../../../../../../shared/modules/DashboardBuilder/vos/widgets_options/advanced_filters/AdvancedStringFilter';
 import './FieldValueFilterStringWidgetComponent.scss';
 import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 

@@ -1,8 +1,10 @@
 import ConsoleHandler from "../../../tools/ConsoleHandler";
+import { reflect } from "../../../tools/ObjectHandler";
 import TypesHandler from "../../../tools/TypesHandler";
 import IDistantVOBase from "../../IDistantVOBase";
 import TableFieldTypesManager from "../../TableFieldTypes/TableFieldTypesManager";
 import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
+import ModuleDAO from "../ModuleDAO";
 import ModuleTableController from "../ModuleTableController";
 import ModuleTableFieldController from "../ModuleTableFieldController";
 import ModuleTableVO from "./ModuleTableVO";
@@ -729,6 +731,14 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
         this.is_custom_computed = true;
         this.custom_computed_function_name = function_name;
         this.custom_computed_module_name = module_name;
+
+        return this;
+    }
+
+    public auto_set_translatable_code_text(): ModuleTableFieldVO {
+        this.is_custom_computed = true;
+        this.custom_computed_function_name = reflect<ModuleDAO>().default_translation_code_text_definition_function;
+        this.custom_computed_module_name = ModuleDAO.getInstance().name;
 
         return this;
     }

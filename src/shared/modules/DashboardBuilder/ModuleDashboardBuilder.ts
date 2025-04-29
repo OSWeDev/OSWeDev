@@ -1,4 +1,3 @@
-import UIDGenerator from '../../../server/UIDGenerator';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names, reflect } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
@@ -25,7 +24,6 @@ import SimpleDatatableFieldVO from '../DAO/vos/datatable/SimpleDatatableFieldVO'
 import VarDatatableFieldVO from '../DAO/vos/datatable/VarDatatableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import VarConfVO from '../Var/vos/VarConfVO';
 import FetchLikesParamParam, { FetchLikesParamParamStatic } from './params/FetchLikesParam';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
@@ -45,6 +43,8 @@ import ListObjectLikesVO from './vos/ListObjectLikesVO';
 import SharedFiltersVO from './vos/SharedFiltersVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
 import VOFieldRefVO from './vos/VOFieldRefVO';
+import FieldValueFilterPageWidgetOptionVO from './vos/widgets_options/FieldValueFilterWidgetOptionsVO';
+import AdvancedStringFilter from './vos/widgets_options/advanced_filters/AdvancedStringFilter';
 
 export default class ModuleDashboardBuilder extends Module {
 
@@ -83,16 +83,6 @@ export default class ModuleDashboardBuilder extends Module {
         }
 
         return ModuleDashboardBuilder.instance;
-    }
-
-    public dashboard_title_function(vo: DashboardVO): string {
-
-        // Si il est déjà défini on le change pas.
-        if (vo.title) {
-            return vo.title;
-        }
-
-        return UIDGenerator.get_new_uid() + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public registerApis() {
@@ -151,6 +141,8 @@ export default class ModuleDashboardBuilder extends Module {
         this.initialize_LinkDashboardAndApiTypeIdVO();
 
         this.initialize_ListObjectLikesVO();
+
+        this.init_FieldValueFilterPageWidgetOptionVO();
     }
 
     private init_DashboardVO(): ModuleTableVO {
@@ -161,9 +153,10 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().cycle_links, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Liens de cycle', false);
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().has_cycle, ModuleTableFieldVO.FIELD_TYPE_boolean, 'A un cycle', true, true, false);
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().is_cms_compatible, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Est compatible avec le CMS Builder ?', false, true, false);
-        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().title, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Titre', false).define_as_custom_computed(this.name, reflect<this>().dashboard_title_function);
+        const label = ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().title, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Titre', false).auto_set_translatable_code_text();
+        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().description, ModuleTableFieldVO.FIELD_TYPE_textarea, 'Description', false);
 
-        const res = ModuleTableController.create_new(this.name, DashboardVO, null, "Dashboards");
+        const res = ModuleTableController.create_new(this.name, DashboardVO, label, "Dashboards");
         return res;
     }
 
@@ -193,18 +186,22 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().group_filters, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Grouper les filtres', false, true, false);
         ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().collapse_filters, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Voir les filtres par défaut', false, true, false);
 
-        const res = ModuleTableController.create_new(this.name, DashboardPageVO, null, "Pages de Dashboard");
+        ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().group_filters_title, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Titre du groupe de filtres', false).auto_set_translatable_code_text();
+        const label = ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().title, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Titre', false).auto_set_translatable_code_text();
+        ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().description, ModuleTableFieldVO.FIELD_TYPE_textarea, 'Description', false);
+
+        const res = ModuleTableController.create_new(this.name, DashboardPageVO, label, "Pages de Dashboard");
 
         return res;
     }
 
     private init_DashboardWidgetVO(): ModuleTableVO {
 
-        const name = ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
+        ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
 
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().widget_component, ModuleTableFieldVO.FIELD_TYPE_string, 'Composant - Widget', true);
-        ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().options_component, ModuleTableFieldVO.FIELD_TYPE_string, 'Composant - Options', true);
+        ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().options_component, ModuleTableFieldVO.FIELD_TYPE_string, 'Composant - Options', false);
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().icon_component, ModuleTableFieldVO.FIELD_TYPE_string, 'Composant - Icône', true);
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().default_width, ModuleTableFieldVO.FIELD_TYPE_int, 'Largeur par défaut', true, true, 106);
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().default_height, ModuleTableFieldVO.FIELD_TYPE_int, 'Hauteur par défaut', true, true, 30);
@@ -212,8 +209,9 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().is_filter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_filter', true, true, false);
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().is_validation_filters, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_validation_filters', true, true, false);
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().is_cms_compatible, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Est compatible avec le CMS Builder ?', false, true, false);
+        const label = ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().title, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Titre', false).auto_set_translatable_code_text();
 
-        return ModuleTableController.create_new(this.name, DashboardWidgetVO, name, "Widgets de Dashboard");
+        return ModuleTableController.create_new(this.name, DashboardWidgetVO, label, "Widgets de Dashboard");
     }
 
     private init_DashboardPageWidgetVO(db_page: ModuleTableVO, db_widget: ModuleTableVO) {
@@ -232,12 +230,13 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().json_options, ModuleTableFieldVO.FIELD_TYPE_string, 'json_options', false);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().background, ModuleTableFieldVO.FIELD_TYPE_string, 'background', true);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().show_widget_on_viewport, ModuleTableFieldVO.FIELD_TYPE_boolean, 'show_widget_on_viewport', true, true, true);
+        const label = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().title, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Titre', false).auto_set_translatable_code_text();
 
         ModuleTableController.create_new(
             this.name,
             DashboardPageWidgetVO,
-            null,
-            "Pages de Dashboard"
+            label,
+            "Widgets du dashboard"
         );
 
         widget_id.set_many_to_one_target_moduletable_name(db_widget.vo_type);
@@ -749,5 +748,71 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(LinkDashboardAndApiTypeIdVO.API_TYPE_ID, field_names<LinkDashboardAndApiTypeIdVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Type de données', true).unique();
 
         ModuleTableController.create_new(this.name, LinkDashboardAndApiTypeIdVO, null, "DBB Template pour un api type id");
+    }
+
+
+
+    private init_FieldValueFilterPageWidgetOptionVO() {
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().page_widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Widget de page", true)
+            .set_many_to_one_target_moduletable_name(DashboardPageWidgetVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().vo_field_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Champ de référence", false)
+            .set_many_to_one_target_moduletable_name(ModuleTableFieldVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().vo_field_ref_lvl2_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Champ de référence niveau 2", false)
+            .set_many_to_one_target_moduletable_name(ModuleTableFieldVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().vo_field_sort_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Champ de tri", false)
+            .set_many_to_one_target_moduletable_name(ModuleTableFieldVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().vo_field_sort_lvl2_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Champ de tri niveau 2", false)
+            .set_many_to_one_target_moduletable_name(ModuleTableFieldVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().can_select_multiple, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Sélection multiple', true, true, true);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().is_checkbox, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Case à cocher', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().checkbox_columns, ModuleTableFieldVO.FIELD_TYPE_enum, 'Nombre de colonnes', true, true, FieldValueFilterPageWidgetOptionVO.CHECKBOX_COLUMNS_1).setEnumValues(FieldValueFilterPageWidgetOptionVO.CHECKBOX_COLUMNS_LABELS);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().max_visible_options, ModuleTableFieldVO.FIELD_TYPE_int, 'Nombre d\'options visibles', true, true, 50);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().show_search_field, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher le champ de recherche dans l\'affichage CheckBoxes', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().hide_lvl2_if_lvl1_not_selected, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Masquer le niveau 2 si le niveau 1 n\'est pas sélectionné', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().segmentation_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de segmentation temps', false).setEnumValues(TimeSegment.TYPE_NAMES_ENUM);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().advanced_mode, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Mode avancé', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().default_advanced_string_filter_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de filtre avancé par défaut', true, true, AdvancedStringFilter.FILTER_TYPE_CONTIENT).setEnumValues(AdvancedStringFilter.FILTER_TYPE_LABELS);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().hide_btn_switch_advanced, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Masquer le bouton de changement de mode avancé', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().hide_advanced_string_filter_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Masquer le type de filtre avancé', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().vo_field_ref_multiple_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Champ de référence multiple', false)
+            .set_many_to_one_target_moduletable_name(ModuleTableFieldVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().default_showed_filter_opt_values, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().default_filter_opt_values, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().exclude_filter_opt_values, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().default_boolean_values, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().default_ts_range_values, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().exclude_ts_range_values, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().hide_filter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Masquer le filtre', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().no_inter_filter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Pas d\'inter filtre', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().has_other_ref_api_type_id, ModuleTableFieldVO.FIELD_TYPE_boolean, 'A un autre type de données', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().other_ref_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Autre type de données', false);
+        TODO Patch auto init ce VO dont en particulier placeholder_advanced_mode depuis trad existante
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().placeholder_advanced_mode, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Placeholder pour le mode avancé', false).auto_set_translatable_code_text();
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().separation_active_filter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Séparateur filtre actif', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().autovalidate_advanced_filter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Auto-valider le filtre avancé', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().add_is_null_selectable, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Ajouter le filtre "est nul"', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().is_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Bouton', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().enum_bg_colors, type de champs spécifique ? ou mapping de couleur);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().enum_fg_colors,, type de champs spécifique ? ou mapping de couleur);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().show_count_value, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher le nombre de valeurs', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().active_field_on_autovalidate_advanced_filter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Focus du champ si auto-validation du filtre avancé', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().force_filter_by_all_api_type_ids, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Forcer le filtre par tous les types de données (Supervision)', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().bg_color, ModuleTableFieldVO.FIELD_TYPE_color, 'Couleur de fond', false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().fg_color_value, ModuleTableFieldVO.FIELD_TYPE_color, 'Couleur d\'avant plan', false); // ???
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().fg_color_text, ModuleTableFieldVO.FIELD_TYPE_color, 'Couleur de texte', false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().can_select_all, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Bouton "Sélectionner tout"', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().can_select_none, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Bouton "Sélectionner aucun"', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().default_advanced_ref_field_filter_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'default_advanced_ref_field_filter_type', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().hide_advanced_ref_field_filter_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hide_advanced_ref_field_filter_type', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().date_relative_mode, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Mode de date relative', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().auto_select_date, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Auto-sélection de la date', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().auto_select_date_relative_mode, ModuleTableFieldVO.FIELD_TYPE_enum, 'Auto-sélection du mode de date relative', true, true, false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().relative_to_other_filter_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Filtre relatif à', false)
+            .set_many_to_one_target_moduletable_name(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().auto_select_date_min, ModuleTableFieldVO.FIELD_TYPE_int, 'Auto-sélection - date min', false);
+        ModuleTableFieldController.create_new(FieldValueFilterPageWidgetOptionVO.API_TYPE_ID, field_names<FieldValueFilterPageWidgetOptionVO>().auto_select_date_max, ModuleTableFieldVO.FIELD_TYPE_int, 'Auto-sélection - date max', false);
+
+        ModuleTableController.create_new(this.name, FieldValueFilterPageWidgetOptionVO, null, "Options des widgets de filtre de valeur de champ");
     }
 }
