@@ -35,6 +35,8 @@ export default class DataImportBGThread implements IBGThread {
     public MAX_timeout: number = 60000;
     public MIN_timeout: number = 100;
 
+    public exec_in_dedicated_thread: boolean = true;
+
     private waiting_for_empty_vars_vos_cud: boolean = false;
     private waiting_for_empty_cache_vars_waiting_for_compute: boolean = false;
 

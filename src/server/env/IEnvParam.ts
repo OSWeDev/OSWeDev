@@ -67,6 +67,8 @@ export default interface IEnvParam {
     debug_io_rooms?: boolean;
     debug_vo_events?: boolean;
 
+    threshold_too_many_imports_waiting?: number;
+
     debug_var_insert_with_copy?: boolean;
 
     debug_slow_event_listeners?: boolean;

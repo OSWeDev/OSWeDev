@@ -157,6 +157,8 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_db_query_add_activated_many_to_many, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug DB query add activated many to many', true);
         // DEBUG_convert_varparamfields_to_vardatas ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_convert_varparamfields_to_vardatas, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug convert varparamfields to vardatas', true);
+
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().threshold_too_many_imports_waiting, ModuleTableFieldVO.FIELD_TYPE_int, 'Seuil pour alerte : trop d\'imports en attente', false);
         // DEBUG_FORKS ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_forks, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug forks', true);
         // DEBUG_VARS ?: boolean;

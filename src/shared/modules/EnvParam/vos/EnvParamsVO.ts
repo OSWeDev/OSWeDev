@@ -116,6 +116,8 @@ export default class EnvParamsVO implements IDistantVOBase {
     // DEBUG_convert_varparamfields_to_vardatas?: boolean;
     public debug_convert_varparamfields_to_vardatas: boolean;
 
+    public threshold_too_many_imports_waiting: number;
+
     // DEBUG_FORKS?: boolean;
     public debug_forks: boolean;
 
