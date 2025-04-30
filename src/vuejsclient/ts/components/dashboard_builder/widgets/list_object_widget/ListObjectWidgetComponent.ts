@@ -138,6 +138,25 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         return this.widget_options.display_orientation == ListObjectWidgetOptionsVO.DISPLAY_ORIENTATION_HORIZONTAL;
     }
 
+    @Watch('zoomedCardIndex')
+    private onZoomedCardIndexChanged(newVal: number): void {
+
+        // On lit l’option dans le JSON des widgets
+        const lock = this.widget_options?.lock_page_on_zoom;
+
+        if (!lock) {
+            // Option désactivée : on s’assure de nettoyer au cas où
+            document.body.classList.remove('zoom-lock');
+            return;
+        }
+
+        if (newVal !== null) {
+            document.body.classList.add('zoom-lock');
+        } else {
+            document.body.classList.remove('zoom-lock');
+        }
+    }
+
     @Watch('widget_options')
     @Watch('get_active_field_filters', { immediate: true, deep: true })
     private onchange_widget_options() {
@@ -290,6 +309,12 @@ export default class ListObjectWidgetComponent extends VueComponentBase {
         this.user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId();
 
         this.get_titles();
+    }
+
+    private beforeDestroy(): void {
+        // Sécurité : on retire toujours la classe quand
+        // le composant est détruit (navigation, reload, etc.)
+        document.body.classList.remove('zoom-lock');
     }
 
     private async get_card_footer_labels() {

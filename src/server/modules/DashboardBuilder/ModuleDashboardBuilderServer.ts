@@ -4276,6 +4276,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'list_object_widget_options_component.widget_card_footer_label.card_footer_label.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Bloquer le reste de la page au zoom" },
+            'list_object_widget_options_component.lock_page_on_zoom.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Disponible qu'en mode : Carte, horizontal, ne pas afficher une seule carte et les éléments ne sont pas des boutons" },
             'list_object.widget_option.zoom_on_click.tooltip.___LABEL___'
         ));

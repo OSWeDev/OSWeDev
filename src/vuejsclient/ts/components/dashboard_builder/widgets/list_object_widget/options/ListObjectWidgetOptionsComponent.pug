@@ -172,6 +172,17 @@
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     :disabled="!((type_display==TYPE_DISPLAY_CARD) && (display_orientation==DISPLAY_ORIENTATION_HORIZONTAL) && (!button_elements) && (!is_card_display_single))"
                 )
+        
+        .lock_page_on_zoom
+            .input_label {{ label('list_object_widget_options_component.lock_page_on_zoom') }}
+                toggle-button(
+                    @change="switch_lock_page_on_zoom" 
+                    :value="lock_page_on_zoom" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    :disabled="!((type_display==TYPE_DISPLAY_CARD) && (display_orientation==DISPLAY_ORIENTATION_HORIZONTAL) && (!button_elements) && (!is_card_display_single))"
+                )
 
         .show_message_no_data
             .input_label {{ label('listobject_widget.show_message_no_data') }}

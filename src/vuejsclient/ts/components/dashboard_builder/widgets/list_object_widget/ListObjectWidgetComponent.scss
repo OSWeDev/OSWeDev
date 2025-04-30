@@ -4,6 +4,32 @@
     overflow-x: hidden !important;
 }
 
+.zoom_overlay {
+    position: fixed;
+    inset: 0;                 /* couvre tout l’écran */
+    background: rgba(0,0,0,.15);  /* 👉 passe à rgba(0,0,0,.15) si tu veux un fond assombri */
+    z-index: 998;             /* juste sous .card.zoomed (999) */
+    pointer-events: all;      /* bloque les clics derrière */
+}
+
+/* 1️⃣  Tout est bloqué quand la classe est présente sur <body> */
+body.zoom-lock * {
+    pointer-events: none !important;
+    user-select: none;
+}
+
+/* 2️⃣  …sauf la carte zoomée */
+body.zoom-lock .card.zoomed,
+body.zoom-lock .card.zoomed * {
+    pointer-events: auto !important;
+    user-select: auto;
+}
+
+/* (éventuellement) on garde aussi le scroll‐lock déjà proposé */
+body.zoom-lock {
+    overflow: hidden;
+}
+
 .list_object_card_widget {
     overflow-x: scroll;
 

@@ -7,6 +7,8 @@ include ../../../../../views/mixins/loading.pug
                 .message_no_data(v-html="widget_options.message_no_data" class="ql-editor" style="word-wrap: break-word;")
         
         template(v-else)
+            template(v-if="widget_options?.lock_page_on_zoom && zoomedCardIndex !== null")
+                .zoom_overlay(@click="toggle_zoom(zoomedCardIndex)")  <!-- un clic dézoome -->
             .list_object_card_widget(:class="{'suppress_margin_list_object_widget': ((widget_options.is_card_display_single == true) && (widget_options.type_display == TYPE_DISPLAY_CARD))}")
                 template(v-if="widget_options && (nb_elements?.length > 0)")
                     template(v-if="widget_options.type_display == TYPE_DISPLAY_LIST")

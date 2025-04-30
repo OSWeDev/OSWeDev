@@ -82,6 +82,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
     private symbole_surtitre: string = null;
     private symbole_sous_titre: string = null;
     private zoom_on_click: boolean;
+    private lock_page_on_zoom: boolean;
     private activate_like_button: boolean;
 
     private optionsEditeur = {
@@ -254,6 +255,20 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         this.throttled_update_options();
     }
 
+    @Watch('lock_page_on_zoom')
+    private async onchange_lock_page_on_zoom() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.lock_page_on_zoom != this.lock_page_on_zoom) {
+            this.next_update_options = cloneDeep(this.widget_options);
+            this.next_update_options.lock_page_on_zoom = this.lock_page_on_zoom;
+
+            this.throttled_update_options();
+        }
+    }
+
     @Watch('do_not_use_page_widgets')
     private async onchange_do_not_use_page_widgets() {
         this.next_update_options = this.widget_options;
@@ -375,6 +390,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             false,
             null,
             false,
+            false,
             [],
             false,
         );
@@ -411,6 +427,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                     if (this.widget_options &&
                         (this.widget_options.blank == options.blank) &&
                         (this.widget_options.zoom_on_click == options.zoom_on_click) &&
+                        (this.widget_options.lock_page_on_zoom == options.lock_page_on_zoom) &&
                         (this.widget_options.activate_like_button == options.activate_like_button) &&
                         (this.widget_options.button_elements == options.button_elements) &&
                         (this.widget_options.display_orientation == options.display_orientation) &&
@@ -458,6 +475,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
                         options.zoom_on_click,
                         options.card_footer_label,
                         options.activate_like_button,
+                        options.lock_page_on_zoom,
                         options.do_not_use_page_widget_ids,
                         options.show_message_no_data,
                         options.message_no_data,
@@ -507,6 +525,7 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
             this.filter_on_distant_vo = default_options.filter_on_distant_vo;
             this.field_filter_distant_vo = default_options.field_filter_distant_vo;
             this.activate_like_button = default_options.activate_like_button;
+            this.lock_page_on_zoom = default_options.lock_page_on_zoom;
 
             this.widget_options = default_options;
             return;
@@ -586,6 +605,9 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.activate_like_button != this.widget_options.activate_like_button) {
             this.activate_like_button = this.widget_options.activate_like_button;
+        }
+        if (this.lock_page_on_zoom != this.widget_options.lock_page_on_zoom) {
+            this.lock_page_on_zoom = this.widget_options.lock_page_on_zoom;
         }
 
         if (this.next_update_options != this.widget_options) {
@@ -683,6 +705,18 @@ export default class ListObjectWidgetOptionsComponent extends VueComponentBase {
         }
 
         this.next_update_options.zoom_on_click = !this.next_update_options.zoom_on_click;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_lock_page_on_zoom() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.lock_page_on_zoom = !this.next_update_options.lock_page_on_zoom;
 
         await this.throttled_update_options();
     }
