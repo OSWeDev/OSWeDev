@@ -1,6 +1,14 @@
 .oselia_chat_handler(v-if="isActive")
     .openclose_oselia_chat_handler_module_wrapper
-        .oselia_chat_btn_closed(@click='openClick()')
-        
+        .oselia_chat_btn_recording.little(v-if="isActiveOselia && !realtimeFirst" @click='setRealtimeFirst()' :style='realtimeFirst ? "" : "width: 50%; height: 40px; float: right; bottom:40px;"')
+            span.wave(style="animation-delay: 0.0s;")
+            span.wave(style="animation-delay: 0.2s;")
+            span.wave(style="animation-delay: 0.4s;")
+        .oselia_chat_btn_closed(v-if="!isActiveOselia" @click='openClick()')
+        .oselia_chat_btn_closed.little(v-if="isActiveOselia" @click='openClickInRecording()' :style='realtimeFirst ? "width: 50%; height: 40px; float: right;" : ""')
+        .oselia_chat_btn_recording(v-if="isActiveOselia && realtimeFirst" @click='stopRecording()')
+            span.wave(style="animation-delay: 0.0s;")
+            span.wave(style="animation-delay: 0.2s;")
+            span.wave(style="animation-delay: 0.4s;")
         template(v-if="oselia_url && is_open")
             iframe(:src="oselia_url" id="OseliaContainer")

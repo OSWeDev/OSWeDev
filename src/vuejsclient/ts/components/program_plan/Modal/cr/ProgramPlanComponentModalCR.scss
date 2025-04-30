@@ -9,9 +9,15 @@
     .crsandnew {
         margin-top: 10px;
 
-        .thread_message_input_realtime {
-            margin-right: 1em;
+        .oselia_chat_btn_closed {
+            width: 75px;
+            height: 37px;
+            cursor: pointer;
+            background: url(/public/vuejsclient/img/logo_oselia_icon.png) no-repeat center center;
+            background-color: rgba(255, 255, 255, 0);
+            background-size: cover;
             float: right;
+            margin-right: 10px;
         }
 
         label input {

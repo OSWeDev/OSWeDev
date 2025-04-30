@@ -5,6 +5,7 @@
         @touchstart.prevent="startVAD",
         @touchend.prevent="stop_realtime"
         v-tooltip='label("oselia_thread_widget_component.thread_message_input_voice.tooltip")'
+        :style="realtime_is_recording ? 'background-color: #d9534f !important; color: #fff;' : ''"
     )
         template(v-if='realtime_is_recording')
             .icon 

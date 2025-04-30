@@ -60,6 +60,7 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import ExternalAPIServerController from '../API/ExternalAPIServerController';
+import ServerAPIController from '../API/ServerAPIController';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import PasswordInitialisation from '../AccessPolicy/PasswordInitialisation/PasswordInitialisation';
@@ -92,7 +93,7 @@ import OseliaServerController from './OseliaServerController';
 import OseliaOldRunsResyncBGThread from './bgthreads/OseliaOldRunsResyncBGThread';
 import OseliaRunBGThread from './bgthreads/OseliaRunBGThread';
 import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuilderBGThread';
-import ServerAPIController from '../API/ServerAPIController';
+import GPTAssistantAPIAssistantFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantFunctionVO';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -902,6 +903,54 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         return JSON.stringify(assistant);
     }
 
+    /**
+     * Fonction qui liste tous les assistants disponibles ainsi que leurs fonctions spécifiques.
+     */
+    public async get_all_assistants_and_functions(): Promise<string> {
+        const res= {};
+
+        const assistants = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+            .select_vos<GPTAssistantAPIAssistantVO>();
+
+        for (const assistant of assistants) {
+            res[assistant.nom] = { description: assistant.description, functions: [] };
+
+            // On récupère les fonctions de l'assistant
+            const assistant_functions_ids = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+                .filter_by_id(assistant.id, GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                .select_vos<GPTAssistantAPIAssistantFunctionVO>();
+
+            for (const assistant_function_id of assistant_functions_ids) {
+                const assistant_function : GPTAssistantAPIFunctionVO = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                    .filter_by_id(assistant_function_id.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                    .select_vo<GPTAssistantAPIFunctionVO>();
+
+                const function_name = assistant_function.gpt_function_name;
+
+                const assistant_parameters: GPTAssistantAPIFunctionParamVO[] = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<GPTAssistantAPIFunctionParamVO>().function_id, assistant_function.id, GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+                    .select_vos<GPTAssistantAPIFunctionParamVO>();
+                const function_description = assistant_function.gpt_function_description;
+                if (!res[assistant.nom].functions[function_name]) {
+                    const parameters = {};
+                    for (const assistant_parameter of assistant_parameters) {
+                        parameters[assistant_parameter.gpt_funcparam_name] = {
+                            description: assistant_parameter.gpt_funcparam_description,
+                            type: assistant_parameter.type,
+                            required: assistant_parameter.required,
+                        };
+                    }
+                    res[assistant.nom].functions[function_name] = {
+                        description: function_description,
+                        parameters: parameters
+                    };
+                }
+            }
+        }
+
+        return JSON.stringify(res);
+    }
+
 
     /**
      * La méthode qui devient une fonction pour l'assistant et qui permet de définir les tâches à venir
@@ -1373,7 +1422,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         openai_thread_id: string,
         openai_assistant_id: string,
         req: Request,
-        res: Response
+        call_id:number,
     ): Promise<void> {
 
         /**
@@ -1386,7 +1435,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         if (!user_referrer_ott) {
             ConsoleHandler.error('OTT not found:' + referrer_user_ott);
-            res.redirect('/f/oselia_referrer_not_found');
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia_referrer_not_found');
             return;
         }
 
@@ -1396,7 +1445,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             .select_vo<OseliaUserReferrerVO>();
         if (!user_referrer) {
             ConsoleHandler.error('Referrer not found:user_referrer_id:' + user_referrer_ott.user_referrer_id);
-            res.redirect('/f/oselia_referrer_not_found');
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia_referrer_not_found');
             return;
         }
 
@@ -1411,7 +1460,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         if (!referrer) {
             ConsoleHandler.error('Referrer not found:referrer_id:' + user_referrer.referrer_id);
-            res.redirect('/f/oselia_referrer_not_found');
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia_referrer_not_found');
             return;
         }
 
@@ -1429,8 +1478,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 ['User not valid (archived, blocked or invalidated):' + user_referrer.referrer_user_uid],
                 referrer.triggers_hook_external_api_authentication_id
             );
-
-            res.redirect(referrer.failed_open_oselia_db_target_url);
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, referrer.failed_open_oselia_db_target_url);
             return;
         }
 
@@ -1444,7 +1492,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 await ModuleAccessPolicyServer.getInstance().login(user.id);
             }
 
-            res.redirect('/f/oselia_referrer_activation/' + referrer_user_ott + '/' + openai_thread_id + '/' + openai_assistant_id); //TODO FIXME créer la page dédiée
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia_referrer_activation/' + referrer_user_ott + '/' + openai_thread_id + '/' + openai_assistant_id); //TODO FIXME créer la page dédiée
             return;
         }
 
@@ -1497,7 +1545,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     referrer.triggers_hook_external_api_authentication_id
                 );
 
-                res.redirect(referrer.failed_open_oselia_db_target_url);
+                await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, referrer.failed_open_oselia_db_target_url);
                 return;
             }
 
@@ -1521,9 +1569,9 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             /**
              * Enfin, on redirige vers la page de discussion avec le paramètre qui va bien pour init le thread
              */
-            res.redirect('/f/oselia/' + thread.thread_vo.id);
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia/' + thread.thread_vo.id);
         } else {
-            res.redirect('/f/oselia/' + '_' + '/');
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia/' + '_' + '/');
         }
     }
 

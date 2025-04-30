@@ -22,7 +22,11 @@ import ProgramPlanTools from '../../ProgramPlanTools';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import ProgramPlanComponentModalTargetInfos from '../target_infos/ProgramPlanComponentModalTargetInfos';
 import "./ProgramPlanComponentModalCR.scss";
-import OseliaRealtimeButton from '../../../dashboard_builder/widgets/oselia_thread_widget/OseliaRealtimeButton/OseliaRealtimeButton';
+import EventsController from '../../../../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventConfVO';
+import ModuleOselia from '../../../../../../shared/modules/Oselia/ModuleOselia';
+import EventifyEventListenerInstanceVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
 const debounce = require('lodash/debounce');
 
 @Component({
@@ -30,7 +34,6 @@ const debounce = require('lodash/debounce');
     components: {
         field: VueFieldComponent,
         Programplancomponentmodaltargetinfos: ProgramPlanComponentModalTargetInfos,
-        Oseliarealtimebutton: OseliaRealtimeButton
     }
 })
 export default class ProgramPlanComponentModalCR extends VueComponentBase {
@@ -101,6 +104,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
     private cr_html_content: string = null;
 
     private edited_cr: IPlanRDVCR = null;
+    private oselia_opened: boolean = false;
     private debounced_update_cr_action = debounce(this.update_cr_action, 1000);
 
     get custom_cr_create_component() {
@@ -294,6 +298,23 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
     private cancelEditCR() {
         this.edited_cr = null;
+    }
+
+    private async mounted() {
+        const get_oselia_realtime_close = EventifyEventListenerInstanceVO.new_listener(
+            ModuleOselia.EVENT_OSELIA_CLOSE_REALTIME,
+            (event: EventifyEventInstanceVO) => {
+                this.oselia_opened = event.param as boolean;
+            }
+        );
+        EventsController.register_event_listener(get_oselia_realtime_close);
+    }
+
+    private async switchOpenOselia() {
+        this.oselia_opened = !this.oselia_opened;
+        const event_conf = new EventifyEventConfVO();
+        event_conf.name = ModuleOselia.EVENT_OSELIA_LAUNCH_REALTIME;
+        await EventsController.emit_event(EventifyEventInstanceVO.instantiate(event_conf, { launch: this.oselia_opened, cr_vo: this.selected_rdv_cr}));
     }
 
     /**

@@ -8,12 +8,7 @@
                         .col-sm-12
                             i.fa-solid.fa-trash(aria-hidden="true", @click="delete_cr(selected_rdv_cr)" v-if='can_edit')
                             i.fa-solid.fa-pencil(aria-hidden="true", @click="editCR(selected_rdv_cr)" v-if='can_edit')
-                            Oseliarealtimebutton(
-                                :has_access_to_thread='false'
-                                :gpt_thread_id='null'
-                                :cr_html_content='cr_html_content'
-                                :cr_vo='selected_rdv_cr'
-                            )
+                            .oselia_chat_btn_closed(@click='switchOpenOselia()')
                     .row
                         .col-sm-12
                             .custom_cr_read_component(:is="custom_cr_read_component" :rdv='selected_rdv' :cr='selected_rdv_cr' :set_cr_html_content="set_cr_html_content")

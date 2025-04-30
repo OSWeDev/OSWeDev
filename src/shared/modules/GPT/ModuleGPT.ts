@@ -51,6 +51,7 @@ export default class ModuleGPT extends Module {
     public static MODULE_NAME: string = 'GPT';
 
     public static PARAM_NAME_MODEL_ID: string = 'PARAM_NAME_MODEL_ID';
+    public static ASSISTANT_REALTIME_NAME: string = 'assistant_realtime_name';
 
     /**
      * @deprecated use Assistants instead => cheaper / faster / better control. Will be removed soon
