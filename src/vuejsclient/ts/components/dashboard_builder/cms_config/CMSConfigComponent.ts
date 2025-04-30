@@ -25,7 +25,6 @@ import { cloneDeep } from 'lodash';
     template: require('./CMSConfigComponent.pug'),
     components: {
         Inlinetranslatabletext: InlineTranslatableText,
-        Droppablevofieldscomponent: DroppableVoFieldsComponent,
         Dashboardbuilderwidgetscomponent: DashboardBuilderWidgetsComponent,
         Dashboardbuilderboardcomponent: DashboardBuilderBoardComponent,
         Tablesgraphcomponent: TablesGraphComponent,

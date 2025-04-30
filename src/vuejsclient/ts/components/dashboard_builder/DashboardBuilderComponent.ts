@@ -55,7 +55,6 @@ import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/
     template: require('./DashboardBuilderComponent.pug'),
     components: {
         Inlinetranslatabletext: InlineTranslatableText,
-        Droppablevofieldscomponent: DroppableVoFieldsComponent,
         Dashboardbuilderwidgetscomponent: DashboardBuilderWidgetsComponent,
         Dashboardbuilderboardcomponent: DashboardBuilderBoardComponent,
         Dashboardmenuconfcomponent: DashboardMenuConfComponent,

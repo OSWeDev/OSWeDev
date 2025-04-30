@@ -53,10 +53,8 @@ import './CMSBuilderComponent.scss';
     template: require('./CMSBuilderComponent.pug'),
     components: {
         Inlinetranslatabletext: InlineTranslatableText,
-        Droppablevofieldscomponent: DroppableVoFieldsComponent,
         Dashboardbuilderwidgetscomponent: DashboardBuilderWidgetsComponent,
         Dashboardbuilderboardcomponent: DashboardBuilderBoardComponent,
-        Tablesgraphcomponent: TablesGraphComponent,
         Dashboardmenuconfcomponent: DashboardMenuConfComponent,
         Dashboardsharedfilterscomponent: DashboardSharedFiltersComponent,
     },
