@@ -951,6 +951,127 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         return JSON.stringify(res);
     }
 
+    /**
+     * Fonction qui permet d'appeler une fonction de l'assistant
+     * @param thread_id le thread qui gère la discussion avec l'assistant
+     * @param assistant_function_name le nom de la fonction à appeler
+     * @param assistant_function_parameters les paramètres de la fonction à appeler
+     * @return le résultat de l'appel de la fonction
+    **/
+    public async call_assistant_function(
+        thread_id: number,
+        assistant_function_name: string,
+        assistant_function_parameters: { [key: string]: any },
+    ): Promise<string> {
+        if (!thread_id) {
+            ConsoleHandler.error('call_assistant_function:Impossible de trouver le thread:' + thread_id);
+            return 'ERREUR TECHNIQUE: Impossible de trouver le thread. Il peut être pertinent de retenter un appel à la fonction';
+        }
+
+        if (!assistant_function_name) {
+            ConsoleHandler.error('call_assistant_function:Impossible de trouver le nom de la fonction:' + assistant_function_name);
+            return 'ERREUR: Impossible de trouver le nom de la fonction. Corriger et relancer la fonction';
+        }
+
+        if (!assistant_function_parameters) {
+            ConsoleHandler.error('call_assistant_function:Impossible de trouver les paramètres de la fonction:' + assistant_function_parameters);
+            return 'ERREUR: Impossible de trouver les paramètres de la fonction. Corriger et relancer la fonction';
+        }
+
+        const thread_vo = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(thread_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!thread_vo) {
+            ConsoleHandler.error('call_assistant_function:Impossible de trouver le thread:' + thread_id);
+            return 'ERREUR: Impossible de trouver le thread. Corriger et relancer la fonction';
+        }
+
+        const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+            .filter_by_id(thread_vo.current_oselia_assistant_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIAssistantVO>();
+
+        if (!assistant) {
+            ConsoleHandler.error('call_assistant_function:Impossible de trouver l\'assistant:' + thread_vo.current_oselia_assistant_id);
+            return 'ERREUR: Impossible de trouver l\'assistant. Corriger et relancer la fonction';
+        }
+
+        const assistant_function = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().gpt_function_name, assistant_function_name, GPTAssistantAPIAssistantVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIAssistantFunctionVO>();
+
+        if (!assistant_function) {
+            ConsoleHandler.error('call_assistant_function:Impossible de trouver la fonction de l\'assistant:' + assistant_function_name);
+            return 'ERREUR: Impossible de trouver la fonction de l\'assistant. Corriger et relancer la fonction';
+        }
+
+        if (assistant_function.length > 1) {
+            ConsoleHandler.error('call_assistant_function:Plusieurs fonctions trouvées pour l\'assistant:' + assistant_function_name);
+            return 'ERREUR: Plusieurs fonctions trouvées pour l\'assistant. Corriger et relancer la fonction';
+        }
+        const assistant_function_id = assistant_function[0].id;
+        const assistant_function_parameters_vo: GPTAssistantAPIFunctionParamVO[] = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_id(assistant_function_id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .select_vos<GPTAssistantAPIFunctionParamVO>();
+
+        const assistant_function_parameters_values = {};
+
+        for (const assistant_function_parameter of assistant_function_parameters_vo) {
+            const parameter_name = assistant_function_parameter.gpt_funcparam_name;
+            if (assistant_function_parameters[parameter_name]) {
+                assistant_function_parameters_values[parameter_name] = assistant_function_parameters[parameter_name];
+            } else {
+                ConsoleHandler.error('call_assistant_function:Impossible de trouver le paramètre de la fonction:' + parameter_name);
+                return 'ERREUR: Impossible de trouver le paramètre de la fonction. Corriger et relancer la fonction';
+            }
+        }
+        const run_vo = new GPTAssistantAPIRunVO();
+        run_vo.assistant_id = assistant.id;
+        run_vo.thread_id = thread_vo.id;
+        run_vo.gpt_assistant_id = assistant.gpt_assistant_id;
+        run_vo.gpt_thread_id = thread_vo.gpt_thread_id;
+
+        const referrers = await query(OseliaReferrerVO.API_TYPE_ID)
+            .filter_by_id(thread_vo.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<OseliaReferrerVO>();
+
+        if (!referrers) {
+            ConsoleHandler.error('call_assistant_function:Impossible de trouver le referrer:' + thread_vo.id);
+            return 'ERREUR: Impossible de trouver le referrer. Corriger et relancer la fonction';
+        }
+
+        const { availableFunctions, availableFunctionsParameters }: {
+            availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO },
+            availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] }
+        } = await GPTAssistantAPIServerController.get_availableFunctions_and_availableFunctionsParameters(assistant, thread_vo.user_id, thread_vo.gpt_thread_id);
+
+        const availableFunctionsParametersByParamName: { [function_id: number]: { [param_name: string]: GPTAssistantAPIFunctionParamVO } } = {};
+        for (const i in availableFunctionsParameters) {
+            const function_id = parseInt(i);
+            availableFunctionsParametersByParamName[function_id] = {};
+            for (const j in availableFunctionsParameters[i]) {
+                const param = availableFunctionsParameters[i][j];
+                availableFunctionsParametersByParamName[function_id][param.gpt_funcparam_name] = param;
+            }
+        }
+
+        // GPTAssistantAPIServerController.do_function_call(
+        //     run_vo,
+        //     thread_vo,
+        //     referrers,
+        //     assistant_function,
+        //     new OseliaRunFunctionCallVO(),
+        //     assistant_function_name,
+        //     assistant_function_parameters_values,
+        // );
+
+    }
+
+
 
     /**
      * La méthode qui devient une fonction pour l'assistant et qui permet de définir les tâches à venir

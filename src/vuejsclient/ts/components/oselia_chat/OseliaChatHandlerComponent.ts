@@ -32,7 +32,6 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
     private isActiveOselia: boolean = false;
     private current_cr_vo: IPlanRDVCR = null;
     private new_thread_id: string = null;
-    private realtimeFirst: boolean = false;
 
     get oselia_url(): string {
 
@@ -66,7 +65,6 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
 
                 await ModuleDAO.getInstance().insertOrUpdateVO(new_thread);
                 this.new_thread_id = new_thread.gpt_thread_id;
-                this.realtimeFirst = true;
             }
         }
     }
@@ -91,14 +89,6 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
         this.ott = await ModuleOselia.getInstance().get_token_oselia(document.location.href);
     }
 
-    private async openClickInRecording() {
-        this.realtimeFirst = !this.realtimeFirst;
-        this.is_open = !this.is_open;
-        if (this.ott) {
-            this.ott = null;
-        }
-        this.ott = await ModuleOselia.getInstance().get_token_oselia(document.location.href);
-    }
 
     private async stopRecording() {
         this.isActiveOselia = false;
@@ -106,11 +96,6 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
         const event_conf = new EventifyEventConfVO();
         event_conf.name = ModuleOselia.EVENT_OSELIA_CLOSE_REALTIME;
         await EventsController.emit_event(EventifyEventInstanceVO.instantiate(event_conf, false));
-    }
-
-    private async setRealtimeFirst() {
-        this.realtimeFirst = !this.realtimeFirst;
-        this.is_open = !this.is_open;
     }
 
 }

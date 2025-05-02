@@ -44,6 +44,7 @@
     .oselia_chat_btn_closed,
     .oselia_chat_btn_opening,
     .oselia_chat_btn_recording .oselia_chat_btn_opened {
+        position: relative;
         width: 80px;
         height: 80px;
         border: none;
@@ -51,7 +52,7 @@
         background-color: white;
         border-radius: 50px;
         z-index: 9999;
-        box-shadow: 10px 5px 11px #939393;
+        margin-right: 15px;
     }
 
     .oselia_chat_btn_closed,
@@ -68,23 +69,25 @@
     }
 
     .oselia_chat_btn_recording {
-        position: relative;
+        position: absolute;
         background-color: #002454;
         border: none;
         color: white;
         padding: 12px 20px;
-        cursor: pointer;
         overflow: hidden;
-        display: flex;
-        align-items: center;
+        align-items: end;
         justify-content: center;
-        gap: 8px;
         font-weight: 600;
-        width: 80px;
+        width: 100px;
         height: 80px;
         border-radius: 50%;
-
-
+        top: 50%;
+        transform: translateY(-50%);
+        gap: 4px;
+        flex-direction: column;
+        display: flex;
+        right: 0px;
+    
         .wave {
             width: 6px;
             height: 6px;
@@ -93,6 +96,7 @@
             opacity: 0;
             transform: scale(1);
             animation: wave 1.2s infinite ease-in-out;
+            position: relative;
         }
 
     }

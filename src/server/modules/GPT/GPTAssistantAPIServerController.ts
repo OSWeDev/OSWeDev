@@ -82,6 +82,43 @@ export default class GPTAssistantAPIServerController {
         throw new Error(`Failed after ${maxRetries} attempts`);
     }
 
+    public static async get_availableFunctions_and_availableFunctionsParameters(
+        assistant_vo: GPTAssistantAPIAssistantVO,
+        user_id: number,
+        gpt_thread_id: string
+    ): Promise<{ availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO }, availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] } }> {
+
+        const availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO } = {};
+        const availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] } = {};
+        const functions: GPTAssistantAPIFunctionVO[] = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .filter_by_id(assistant_vo.id, GPTAssistantAPIAssistantVO.API_TYPE_ID).using(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIFunctionVO>();
+        const functions_params: GPTAssistantAPIFunctionParamVO[] = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_id(assistant_vo.id, GPTAssistantAPIAssistantVO.API_TYPE_ID).using(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID).using(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .set_sort(new SortByVO(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().weight, true))
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIFunctionParamVO>();
+
+        for (const i in functions_params) {
+            const function_param = functions_params[i];
+
+            if (!availableFunctionsParameters[function_param.function_id]) {
+                availableFunctionsParameters[function_param.function_id] = [];
+            }
+
+            availableFunctionsParameters[function_param.function_id].push(function_param);
+        }
+
+        for (const i in functions) {
+            const functionVO = functions[i];
+
+            availableFunctions[functionVO.gpt_function_name] = functionVO;
+        }
+
+        return { availableFunctions, availableFunctionsParameters };
+    }
+
     // public static async get_file(file_id: string): Promise<{ file_gpt: FileObject, assistant_file_vo: GPTAssistantAPIFileVO }> {
 
     //     try {
@@ -1096,7 +1133,7 @@ export default class GPTAssistantAPIServerController {
         user_id: number): Promise<void> {
         try {
             if(!session_id) {
-                this.create_realtime_session();
+                await this.create_realtime_session();
             }
         } catch(error) {
             ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: ' + error);
@@ -1696,42 +1733,6 @@ export default class GPTAssistantAPIServerController {
         return res;
     }
 
-    private static async get_availableFunctions_and_availableFunctionsParameters(
-        assistant_vo: GPTAssistantAPIAssistantVO,
-        user_id: number,
-        gpt_thread_id: string
-    ): Promise<{ availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO }, availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] } }> {
-
-        const availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO } = {};
-        const availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] } = {};
-        const functions: GPTAssistantAPIFunctionVO[] = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
-            .filter_by_id(assistant_vo.id, GPTAssistantAPIAssistantVO.API_TYPE_ID).using(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
-            .exec_as_server()
-            .select_vos<GPTAssistantAPIFunctionVO>();
-        const functions_params: GPTAssistantAPIFunctionParamVO[] = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
-            .filter_by_id(assistant_vo.id, GPTAssistantAPIAssistantVO.API_TYPE_ID).using(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID).using(GPTAssistantAPIFunctionVO.API_TYPE_ID)
-            .set_sort(new SortByVO(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().weight, true))
-            .exec_as_server()
-            .select_vos<GPTAssistantAPIFunctionParamVO>();
-
-        for (const i in functions_params) {
-            const function_param = functions_params[i];
-
-            if (!availableFunctionsParameters[function_param.function_id]) {
-                availableFunctionsParameters[function_param.function_id] = [];
-            }
-
-            availableFunctionsParameters[function_param.function_id].push(function_param);
-        }
-
-        for (const i in functions) {
-            const functionVO = functions[i];
-
-            availableFunctions[functionVO.gpt_function_name] = functionVO;
-        }
-
-        return { availableFunctions, availableFunctionsParameters };
-    }
 
     private static async call_function_and_perf_report(
         oselia_function: GPTAssistantAPIFunctionVO,
