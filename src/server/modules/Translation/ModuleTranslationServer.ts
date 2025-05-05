@@ -5,6 +5,7 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
@@ -32,6 +33,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import TranslationCronWorkersHandler from './TranslationCronWorkersHandler';
 import TranslationsServerController from './TranslationsServerController';
+import AssistantTraductionCronWorker from './workers/AssistantTraduction/AssistantTraductionCronWorker';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
@@ -770,6 +772,14 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         return query(TranslationVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<TranslationVO>().lang_id, num)
             .select_vos<TranslationVO>();
+    }
+
+    public async get_translation_samples(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
+        return await AssistantTraductionCronWorker.getInstance().get_translation_samples(thread_vo, pattern);
+    }
+
+    public async set_translation(thread_vo: GPTAssistantAPIThreadVO, traduction: string, degre_certitude: number, explication: string): Promise<string> {
+        return await AssistantTraductionCronWorker.getInstance().set_translation(thread_vo, traduction, degre_certitude, explication);
     }
 
     public async getTranslation(lang_id: number, text_id: number): Promise<TranslationVO> {

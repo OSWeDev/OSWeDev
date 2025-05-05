@@ -125,6 +125,8 @@ export default interface IEnvParam {
 
     debug_reruns_of_oselia?: boolean;
 
+    debug_assistant_traduction?: boolean;
+
     start_maintenance_acceptation_code: string;
     auto_end_maintenance_on_start: boolean;
     code_google_analytics: string;

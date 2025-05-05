@@ -59,6 +59,9 @@ export default class FavoritesFiltersVOService {
             case FavoritesFiltersExportFrequencyVO.GRANULARITY_MONTH:
                 time_segment = TimeSegment.TYPE_MONTH;
                 break;
+            case FavoritesFiltersExportFrequencyVO.GRANULARITY_WEEK:
+                time_segment = TimeSegment.TYPE_WEEK;
+                break;
             case FavoritesFiltersExportFrequencyVO.GRANULARITY_YEAR:
                 time_segment = TimeSegment.TYPE_YEAR;
                 break;
@@ -69,7 +72,10 @@ export default class FavoritesFiltersVOService {
 
         let export_after: number = Dates.add(last_export.min, export_frequency.every, time_segment);
         if (export_frequency.granularity === FavoritesFiltersExportFrequencyVO.GRANULARITY_MONTH) {
-            export_after = Dates.add(export_after, export_frequency.day_in_month, TimeSegment.TYPE_DAY); // ajouter le jour de day_in_month
+            export_after = Dates.add(export_after, export_frequency.day_in_month - 1, TimeSegment.TYPE_DAY); // ajouter le jour de day_in_month
+        }
+        if (export_frequency.granularity === FavoritesFiltersExportFrequencyVO.GRANULARITY_WEEK) {
+            export_after = Dates.add(export_after, export_frequency.day_in_week - 1, TimeSegment.TYPE_DAY); // ajouter le jour de day_in_week
         }
         export_after = Dates.add(export_after, export_frequency.prefered_time, TimeSegment.TYPE_HOUR); // ajouter l'heure de prefered time
 

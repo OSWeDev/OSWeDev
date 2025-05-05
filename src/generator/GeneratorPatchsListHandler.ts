@@ -67,6 +67,8 @@ import Patch20250224AddDefaultPalette from './patchs/postmodules/Patch20250224Ad
 import Patch20250303CheckDBsCycles from './patchs/postmodules/Patch20250303CheckDBsCycles';
 import Patch20250331RemoveValueTables from './patchs/postmodules/Patch20250331RemoveValueTables';
 import Patch20250331RenameFavoriteFilterOptions from './patchs/postmodules/Patch20250331RenameFavoriteFilterOptions';
+import Patch20250505AddOseliaAssistantTraduction from './patchs/postmodules/Patch20250505AddOseliaAssistantTraduction';
+import Patch20250505AddOseliaRunTemplate_AssistantTraduction from './patchs/postmodules/Patch20250505AddOseliaRunTemplate_AssistantTraduction';
 import Patch20122024TruncateLogsUpdated from './patchs/premodules/Patch20122024TruncateLogsUpdated';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
@@ -235,5 +237,8 @@ export default class GeneratorPatchsListHandler {
         Patch20250303CheckDBsCycles.getInstance(),
         Patch20250331RenameFavoriteFilterOptions.getInstance(),
         Patch20250331RemoveValueTables.getInstance(),
+
+        Patch20250505AddOseliaAssistantTraduction.getInstance(),
+        Patch20250505AddOseliaRunTemplate_AssistantTraduction.getInstance(),
     ];
 }

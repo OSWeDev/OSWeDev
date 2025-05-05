@@ -640,6 +640,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().every, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb de segment', true, true, 1);
         ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().granularity, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de segment', true, true, FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY).setEnumValues(FavoritesFiltersExportFrequencyVO.GRANULARITY_LABELS);
         ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().day_in_month, ModuleTableFieldVO.FIELD_TYPE_int, 'Jour du mois', true, true, 1);
+        ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().day_in_week, ModuleTableFieldVO.FIELD_TYPE_int, 'Jour de la semaine', true, true, 1);
         ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().prefered_time, ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite, 'Heure de l\'export', true, true, 3).set_format_localized_time(true);
 
         ModuleTableController.create_new(this.name, FavoritesFiltersExportFrequencyVO, null, "Fréquence d'export");

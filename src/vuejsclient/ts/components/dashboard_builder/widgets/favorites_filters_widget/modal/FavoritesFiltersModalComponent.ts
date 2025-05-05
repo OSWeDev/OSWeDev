@@ -398,6 +398,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         this.export_frequency.every = (this.export_frequency?.every != null) ? this.export_frequency.every : 1;
         this.export_frequency.granularity = (this.export_frequency?.granularity != null) ? this.export_frequency.granularity : FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY;
         this.export_frequency.day_in_month = (this.export_frequency?.day_in_month != null) ? this.export_frequency.day_in_month : 1;
+        this.export_frequency.day_in_week = (this.export_frequency?.day_in_week != null) ? this.export_frequency.day_in_week : 1;
         this.export_frequency.prefered_time = (this.export_frequency?.prefered_time != null) ? this.export_frequency.prefered_time : 3;
 
         const export_frequency_granularity = this.export_frequency?.granularity ?? FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY;
@@ -633,6 +634,10 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
                 this.form_errors.push(this.label('dashboard_viewer.favorites_filters.export_frequency_day_in_month_required'));
             }
 
+            if ((this.export_frequency.granularity === FavoritesFiltersExportFrequencyVO.GRANULARITY_WEEK) && !(this.export_frequency.day_in_week > 0)) {
+                this.form_errors.push(this.label('dashboard_viewer.favorites_filters.export_frequency_day_in_week_required'));
+            }
+
             if (!(Object.keys(this.selected_exportable_data).length > 0)) {
                 this.form_errors.push(this.label('dashboard_viewer.favorites_filters.selected_exportable_data_required'));
             }
@@ -707,6 +712,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         }
 
         this.export_frequency.day_in_month = 1;
+        this.export_frequency.day_in_week = 1;
         this.export_frequency.granularity = FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY;
         this.export_frequency.every = 1;
         this.export_frequency.prefered_time = 3;
@@ -794,6 +800,15 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
      */
     private can_add_export_frequency_day_in_month(): boolean {
         return this.selected_export_frequency_granularity?.value == FavoritesFiltersExportFrequencyVO.GRANULARITY_MONTH;
+    }
+
+    /**
+     * Can Add Export Frequency Day In Week
+     *
+     * @return {boolean}
+     */
+    private can_add_export_frequency_day_in_week(): boolean {
+        return this.selected_export_frequency_granularity?.value == FavoritesFiltersExportFrequencyVO.GRANULARITY_WEEK;
     }
 
     /**
