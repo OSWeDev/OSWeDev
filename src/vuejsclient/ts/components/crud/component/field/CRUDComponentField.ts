@@ -1003,7 +1003,7 @@ export default class CRUDComponentField extends VueComponentBase
                 this.isLoadingOptions = true;
             }
 
-            this.update_visible_options.bind(this)();
+            await this.update_visible_options.bind(this)();
         }
 
 
