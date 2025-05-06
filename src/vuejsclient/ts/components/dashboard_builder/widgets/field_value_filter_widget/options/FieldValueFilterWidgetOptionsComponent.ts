@@ -152,6 +152,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private filter_visible_options: DataFilterOption[] = [];
     private actual_query: string = null;
 
+    private widget_class: string = null;
+
     private next_update_options: FieldValueFilterWidgetOptionsVO = null;
 
     // Perform the action of update colors
@@ -224,6 +226,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             this.relative_to_other_filter_id,
             this.auto_select_date_min,
             this.auto_select_date_max,
+            this.widget_class,
         );
     }
 
@@ -600,6 +603,20 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id);
     }
 
+    @Watch('widget_class')
+    private async onchange_widget_class() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.widget_class != this.widget_class) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.widget_class = this.widget_class;
+
+            await this.throttled_update_options();
+        }
+    }
+
     @Watch('relative_to_other_filter_id')
     private async onchange_relative_to_other_filter_id() {
         if (!this.widget_options) {
@@ -664,6 +681,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             this.fg_color_text = null;
             this.fg_color_value = null;
             this.bg_color = null;
+            this.widget_class = null;
 
             this.date_relative_mode = true;
             this.auto_select_date = true;
@@ -693,6 +711,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.fg_color_text = this.widget_options.fg_color_text;
         this.fg_color_value = this.widget_options.fg_color_value;
         this.bg_color = this.widget_options.bg_color;
+        this.widget_class = this.widget_options.widget_class;
 
         this.date_relative_mode = this.widget_options.date_relative_mode;
         this.auto_select_date = this.widget_options.auto_select_date;

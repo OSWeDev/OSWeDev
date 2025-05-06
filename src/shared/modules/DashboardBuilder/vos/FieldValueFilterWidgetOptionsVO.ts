@@ -138,6 +138,7 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
         public relative_to_other_filter_id?: number,
         public auto_select_date_min?: number,
         public auto_select_date_max?: number,
+        public widget_class?: string,
     ) {
         super();
     }

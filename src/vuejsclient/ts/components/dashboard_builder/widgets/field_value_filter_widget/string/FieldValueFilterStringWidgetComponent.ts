@@ -203,6 +203,14 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)];
     }
 
+    get widget_class(): string {
+        if ((!this.widget_options) || (!this.widget_options.widget_class)) {
+            return null;
+        }
+
+        return this.widget_options.widget_class;
+    }
+
     get advanced_mode_placeholder(): string {
         if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_advanced_mode_placeholder_code_text(this.page_widget.id)])) {
             return null;

@@ -34,6 +34,12 @@
                     :page_widget_id='page_widget ? page_widget.id : null'
                 )
 
+        template(v-if="is_type_string")
+            .widget_class
+                .input_label {{ label('field_value_filter_widget_component.widget_class') }}
+                .input_wrapper
+                    input.form-control(type='text' v-model='widget_class')
+
         .field_hide_filter
             .input_label {{ label('field_value_filter_widget_component.hide_filter') }}
             .input_wrapper
