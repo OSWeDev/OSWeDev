@@ -30,6 +30,7 @@ import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import PerfReportServerController from '../PerfReport/PerfReportServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import TranslationCronWorkersHandler from './TranslationCronWorkersHandler';
 import TranslationsServerController from './TranslationsServerController';
@@ -69,6 +70,8 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        PerfReportServerController.register_perf_module(AssistantTraductionCronWorker.PERF_MODULE_NAME);
 
         const langs = await query(LangVO.API_TYPE_ID)
             .exec_as_server()

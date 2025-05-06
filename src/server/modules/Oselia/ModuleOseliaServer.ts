@@ -60,6 +60,7 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import ExternalAPIServerController from '../API/ExternalAPIServerController';
+import ServerAPIController from '../API/ServerAPIController';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import PasswordInitialisation from '../AccessPolicy/PasswordInitialisation/PasswordInitialisation';
@@ -86,13 +87,15 @@ import SocketWrapper from '../PushData/vos/SocketWrapper';
 import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
+import OseliaAgentMemServerController from './OseliaAgentMemServerController';
+import OseliaAppMemServerController from './OseliaAppMemServerController';
 import OseliaRunServerController from './OseliaRunServerController';
 import OseliaRunTemplateServerController from './OseliaRunTemplateServerController';
 import OseliaServerController from './OseliaServerController';
+import OseliaUserMemServerController from './OseliaUserMemServerController';
 import OseliaOldRunsResyncBGThread from './bgthreads/OseliaOldRunsResyncBGThread';
 import OseliaRunBGThread from './bgthreads/OseliaRunBGThread';
 import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuilderBGThread';
-import ServerAPIController from '../API/ServerAPIController';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -130,6 +133,42 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_replay_function_call, this.replay_function_call.bind(this));
 
         APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleOselia>().instantiate_oselia_run_from_event, this.instantiate_oselia_run_from_event.bind(this));
+    }
+
+    public async app_mem_get_keys(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
+        return OseliaAppMemServerController.get_keys(thread_vo, pattern);
+    }
+
+    public async app_mem_get_entries(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
+        return OseliaAppMemServerController.get_entries(thread_vo, pattern);
+    }
+
+    public async app_mem_set_mem(thread_vo: GPTAssistantAPIThreadVO, key: string, value: string): Promise<string> {
+        return OseliaAppMemServerController.set_mem(thread_vo, key, value);
+    }
+
+    public async agent_mem_get_keys(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
+        return OseliaAgentMemServerController.get_keys(thread_vo, pattern);
+    }
+
+    public async agent_mem_get_entries(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
+        return OseliaAgentMemServerController.get_entries(thread_vo, pattern);
+    }
+
+    public async agent_mem_set_mem(thread_vo: GPTAssistantAPIThreadVO, key: string, value: string): Promise<string> {
+        return OseliaAgentMemServerController.set_mem(thread_vo, key, value);
+    }
+
+    public async user_mem_get_keys(thread_vo: GPTAssistantAPIThreadVO, pattern: string, user_id: number, asked_by: string): Promise<string> {
+        return OseliaUserMemServerController.get_keys(thread_vo, pattern, user_id, asked_by);
+    }
+
+    public async user_mem_get_entries(thread_vo: GPTAssistantAPIThreadVO, pattern: string, user_id: number, asked_by: string): Promise<string> {
+        return OseliaUserMemServerController.get_entries(thread_vo, pattern, user_id, asked_by);
+    }
+
+    public async user_mem_set_mem(thread_vo: GPTAssistantAPIThreadVO, key: string, value: string, user_id: number, asked_by: string): Promise<string> {
+        return OseliaUserMemServerController.set_mem(thread_vo, key, value, user_id, asked_by);
     }
 
     // istanbul ignore next: cannot test configure

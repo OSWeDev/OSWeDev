@@ -69,6 +69,15 @@ import Patch20250331RemoveValueTables from './patchs/postmodules/Patch20250331Re
 import Patch20250331RenameFavoriteFilterOptions from './patchs/postmodules/Patch20250331RenameFavoriteFilterOptions';
 import Patch20250505AddOseliaAssistantTraduction from './patchs/postmodules/Patch20250505AddOseliaAssistantTraduction';
 import Patch20250505AddOseliaRunTemplate_AssistantTraduction from './patchs/postmodules/Patch20250505AddOseliaRunTemplate_AssistantTraduction';
+import Patch20250506AddOseliaFunction_OSELIA_agent_mem_get_entries from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_agent_mem_get_entries';
+import Patch20250506AddOseliaFunction_OSELIA_agent_mem_get_keys from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_agent_mem_get_keys';
+import Patch20250506AddOseliaFunction_OSELIA_agent_mem_set_mem from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_agent_mem_set_mem';
+import Patch20250506AddOseliaFunction_OSELIA_app_mem_get_entries from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_app_mem_get_entries';
+import Patch20250506AddOseliaFunction_OSELIA_app_mem_get_keys from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_app_mem_get_keys';
+import Patch20250506AddOseliaFunction_OSELIA_app_mem_set_mem from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_app_mem_set_mem';
+import Patch20250506AddOseliaFunction_OSELIA_user_mem_get_entries from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_user_mem_get_entries';
+import Patch20250506AddOseliaFunction_OSELIA_user_mem_get_keys from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_user_mem_get_keys';
+import Patch20250506AddOseliaFunction_OSELIA_user_mem_set_mem from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_user_mem_set_mem';
 import Patch20122024TruncateLogsUpdated from './patchs/premodules/Patch20122024TruncateLogsUpdated';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
@@ -240,5 +249,18 @@ export default class GeneratorPatchsListHandler {
 
         Patch20250505AddOseliaAssistantTraduction.getInstance(),
         Patch20250505AddOseliaRunTemplate_AssistantTraduction.getInstance(),
+
+
+        Patch20250506AddOseliaFunction_OSELIA_agent_mem_set_mem.getInstance(),
+        Patch20250506AddOseliaFunction_OSELIA_app_mem_set_mem.getInstance(),
+        Patch20250506AddOseliaFunction_OSELIA_user_mem_set_mem.getInstance(),
+
+        Patch20250506AddOseliaFunction_OSELIA_agent_mem_get_entries.getInstance(),
+        Patch20250506AddOseliaFunction_OSELIA_app_mem_get_entries.getInstance(),
+        Patch20250506AddOseliaFunction_OSELIA_user_mem_get_entries.getInstance(),
+
+        Patch20250506AddOseliaFunction_OSELIA_agent_mem_get_keys.getInstance(),
+        Patch20250506AddOseliaFunction_OSELIA_app_mem_get_keys.getInstance(),
+        Patch20250506AddOseliaFunction_OSELIA_user_mem_get_keys.getInstance(),
     ];
 }

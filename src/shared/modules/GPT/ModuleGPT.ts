@@ -115,7 +115,7 @@ export default class ModuleGPT extends Module {
     //     conversation_id: string,
     //     user_id: number,
 
-    // ) => Promise<GPTRealtimeAPIConversationItemVO[]> = APIControllerWrapper.sah<APIRealtimeVoiceConnectParam, GPTRealtimeAPIConversationItemVO[]>(ModuleGPT.APINAME_connect_to_realtime_voice); 
+    // ) => Promise<GPTRealtimeAPIConversationItemVO[]> = APIControllerWrapper.sah<APIRealtimeVoiceConnectParam, GPTRealtimeAPIConversationItemVO[]>(ModuleGPT.APINAME_connect_to_realtime_voice);
 
     /**
      * Re-run un run d'un assistant suite à un nouveau message par exemple ou pour essayer d'avoir une réponse plus pertinente
@@ -377,6 +377,10 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().top_p, ModuleTableFieldVO.FIELD_TYPE_float, 'Top %', true, true, 1);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().response_format, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Format de réponse', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
+
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().app_mem_access, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Accès mémoire - Globale Application', true, true, false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().user_mem_access, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Accès mémoire - Utilisateur', true, true, false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().agent_mem_access, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Accès mémoire - Agent', true, true, false);
 
         const table = ModuleTableController.create_new(this.name, GPTAssistantAPIAssistantVO, label, 'GPT Assistant API - Assistant');
         VersionedVOController.getInstance().registerModuleTable(table);

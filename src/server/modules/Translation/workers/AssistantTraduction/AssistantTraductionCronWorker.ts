@@ -46,7 +46,6 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
 
     public static MIN_CONFIDENT_LEVEL_PARAM_NAME: string = 'AssistantTraductionCronWorker.MIN_CONFIDENT_LEVEL';
 
-    public static WEBHOOK_TEAMS_PARAM_NAME: string = 'AssistantTraductionCronWorker.WEBHOOK_TEAMS';
     public static ENABLED_PARAM_NAME: string = 'AssistantTraductionCronWorker.ENABLED';
     public static AUTO_DISABLE_PARAM_NAME: string = 'AssistantTraductionCronWorker.AUTO_DISABLE';
     public static NB_PER_RUN_PARAM_NAME: string = 'AssistantTraductionCronWorker.NB_PER_RUN';
@@ -78,7 +77,7 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
 
             if (!AssistantTraductionCronWorker.oselia_run_template) {
                 AssistantTraductionCronWorker.oselia_run_template = await query(OseliaRunTemplateVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<OseliaRunTemplateVO>().template_name, AssistantTraductionCronWorker.OSELIA_RUN_TEMPLATE_NAME)
+                    .filter_by_text_eq(field_names<OseliaRunTemplateVO>().name, AssistantTraductionCronWorker.OSELIA_RUN_TEMPLATE_NAME)
                     .exec_as_server()
                     .select_vo<OseliaRunTemplateVO>();
             }

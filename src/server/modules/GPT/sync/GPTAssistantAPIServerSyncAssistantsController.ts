@@ -10,20 +10,21 @@ import GPTAssistantAPIAssistantVO from '../../../../shared/modules/GPT/vos/GPTAs
 import GPTAssistantAPIFunctionParamVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
 import GPTAssistantAPIFunctionVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
 import GPTAssistantAPIToolResourcesVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIToolResourcesVO';
+import ModuleOselia from '../../../../shared/modules/Oselia/ModuleOselia';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
+import ModuleOseliaServer from '../../Oselia/ModuleOseliaServer';
 import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 import ModuleGPTServer from '../ModuleGPTServer';
 import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
 import GPTAssistantAPIServerSyncFilesController from './GPTAssistantAPIServerSyncFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './GPTAssistantAPIServerSyncVectorStoresController';
-import { AssistantResponseFormatOption } from 'openai/resources/beta/threads/threads';
 
 export default class GPTAssistantAPIServerSyncAssistantsController {
 
@@ -792,12 +793,54 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
             /**
              * On charge toutes les fonctions, dans l'ordre et on en tire la def de chacune
              */
-            const functions = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            const functions = [];
+            const declared_functions = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
                 .filter_by_id(assistant.id, GPTAssistantAPIAssistantVO.API_TYPE_ID)
                 .using(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
                 .set_sort(new SortByVO(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantFunctionVO>().weight, true))
                 .exec_as_server()
                 .select_vos<GPTAssistantAPIFunctionVO>();
+
+            if (declared_functions && declared_functions.length) {
+                functions.push(...declared_functions);
+            }
+
+            // On ajoute les fonctions liées aux mémoires - si pas déjà chargées
+            if (assistant.agent_mem_access && !this.has_agent_mem_functions(functions)) {
+                const agent_mem_functions = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleOselia.getInstance().name)
+                    .filter_by_text_has(field_names<GPTAssistantAPIFunctionVO>().module_function, [reflect<ModuleOseliaServer>().agent_mem_get_keys, reflect<ModuleOseliaServer>().agent_mem_get_entries, reflect<ModuleOseliaServer>().agent_mem_set_mem])
+                    .exec_as_server()
+                    .select_vos<GPTAssistantAPIFunctionVO>();
+
+                if (agent_mem_functions && agent_mem_functions.length) {
+                    functions.push(...agent_mem_functions);
+                }
+            }
+
+            if (assistant.app_mem_access && !this.has_app_mem_functions(functions)) {
+                const app_mem_functions = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleOselia.getInstance().name)
+                    .filter_by_text_has(field_names<GPTAssistantAPIFunctionVO>().module_function, [reflect<ModuleOseliaServer>().app_mem_get_keys, reflect<ModuleOseliaServer>().app_mem_get_entries, reflect<ModuleOseliaServer>().app_mem_set_mem])
+                    .exec_as_server()
+                    .select_vos<GPTAssistantAPIFunctionVO>();
+
+                if (app_mem_functions && app_mem_functions.length) {
+                    functions.push(...app_mem_functions);
+                }
+            }
+
+            if (assistant.user_mem_access && !this.has_user_mem_functions(functions)) {
+                const user_mem_functions = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleOselia.getInstance().name)
+                    .filter_by_text_has(field_names<GPTAssistantAPIFunctionVO>().module_function, [reflect<ModuleOseliaServer>().user_mem_get_keys, reflect<ModuleOseliaServer>().user_mem_get_entries, reflect<ModuleOseliaServer>().user_mem_set_mem])
+                    .exec_as_server()
+                    .select_vos<GPTAssistantAPIFunctionVO>();
+
+                if (user_mem_functions && user_mem_functions.length) {
+                    functions.push(...user_mem_functions);
+                }
+            }
 
             const get_tools_definition_from_functions = await GPTAssistantAPIServerSyncAssistantsController.get_tools_definition_from_functions(functions);
 
@@ -854,5 +897,47 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
         vo.tools_functions = !!gpt_obj.tools?.length;
         vo.top_p = gpt_obj.top_p;
         vo.archived = false;
+    }
+
+    private static has_agent_mem_functions(functions: GPTAssistantAPIFunctionVO[]): boolean {
+        if (!functions || !functions.length) {
+            return false;
+        }
+
+        for (const i in functions) {
+            const func = functions[i];
+            if (func.module_name == ModuleOselia.getInstance().name && func.module_function == reflect<ModuleOseliaServer>().agent_mem_get_entries) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static has_app_mem_functions(functions: GPTAssistantAPIFunctionVO[]): boolean {
+        if (!functions || !functions.length) {
+            return false;
+        }
+
+        for (const i in functions) {
+            const func = functions[i];
+            if (func.module_name == ModuleOselia.getInstance().name && func.module_function == reflect<ModuleOseliaServer>().app_mem_get_entries) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static has_user_mem_functions(functions: GPTAssistantAPIFunctionVO[]): boolean {
+        if (!functions || !functions.length) {
+            return false;
+        }
+
+        for (const i in functions) {
+            const func = functions[i];
+            if (func.module_name == ModuleOselia.getInstance().name && func.module_function == reflect<ModuleOseliaServer>().user_mem_get_entries) {
+                return true;
+            }
+        }
+        return false;
     }
 }

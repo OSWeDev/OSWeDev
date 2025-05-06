@@ -29,7 +29,7 @@ export default class Patch20250505AddOseliaRunTemplate_AssistantTraduction imple
     public async work(db: IDatabase<unknown>) {
 
         let oselia_run_template = await query(OseliaRunTemplateVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<OseliaRunTemplateVO>().template_name, AssistantTraductionCronWorker.OSELIA_RUN_TEMPLATE_NAME)
+            .filter_by_text_eq(field_names<OseliaRunTemplateVO>().name, AssistantTraductionCronWorker.OSELIA_RUN_TEMPLATE_NAME)
             .exec_as_server()
             .select_vo<OseliaRunTemplateVO>();
 
@@ -48,8 +48,7 @@ export default class Patch20250505AddOseliaRunTemplate_AssistantTraduction imple
         }
 
         oselia_run_template = new OseliaRunTemplateVO();
-        oselia_run_template.template_name = AssistantTraductionCronWorker.OSELIA_RUN_TEMPLATE_NAME;
-        oselia_run_template.name = "Récolte d'informations pour l'assistant traduction";
+        oselia_run_template.name = AssistantTraductionCronWorker.OSELIA_RUN_TEMPLATE_NAME;
         oselia_run_template.initial_prompt_id = prompt.id;
         oselia_run_template.assistant_id = prompt.default_assistant_id;
         oselia_run_template.childrens_are_multithreaded = false;

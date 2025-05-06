@@ -134,6 +134,11 @@ export default class OseliaRunTemplateServerController {
             oselia_run.referrer_id = referrer.id;
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run);
 
+            if (!thread_vo.last_oselia_run_id) {
+                thread_vo.last_oselia_run_id = oselia_run.id;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
+            }
+
             /**
              * On doit créer les sous tâches aussi
              */
