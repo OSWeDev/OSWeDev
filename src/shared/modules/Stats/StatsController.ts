@@ -56,9 +56,9 @@ export default class StatsController {
     public static stacked_registered_stats_by_group_name: { [group_name: string]: StatClientWrapperVO[] } = {};
     public static new_stats_handler: (new_stats: StatClientWrapperVO[]) => Promise<boolean> = null;
 
-    public static throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
-        'StatsController.throttled_unstack_stats',
-        StatsController.unstack_stats.bind(StatsController.getInstance()), 5000, false); // defaults to 1 minute
+    // public static throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
+    //     'StatsController.throttled_unstack_stats',
+    //     StatsController.unstack_stats.bind(StatsController.getInstance()), 5000, false); // defaults to 1 minute
 
     private static instance: StatsController = null;
 
@@ -75,9 +75,9 @@ export default class StatsController {
 
     set UNSTACK_THROTTLE(throttle: number) {
         this.UNSTACK_THROTTLE_ = throttle;
-        StatsController.throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
-            'StatsController.throttled_unstack_stats',
-            StatsController.unstack_stats.bind(StatsController.getInstance()), this.UNSTACK_THROTTLE_, false);
+        // StatsController.throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
+        //     'StatsController.throttled_unstack_stats',
+        //     StatsController.unstack_stats.bind(StatsController.getInstance()), this.UNSTACK_THROTTLE_, false);
     }
 
     public static get_aggregator_extension(aggregator: number): string {
@@ -243,7 +243,7 @@ export default class StatsController {
             StatsController.stacked_registered_stats_by_group_name[stats_name] = [];
         }
         StatsController.stacked_registered_stats_by_group_name[stats_name].push(stat);
-        StatsController.throttled_unstack_stats();
+        // StatsController.throttled_unstack_stats();
     }
 
     private static async unstack_stats() {
@@ -423,7 +423,7 @@ export default class StatsController {
                     }
                     StatsController.stacked_registered_stats_by_group_name[group_name] = StatsController.stacked_registered_stats_by_group_name[group_name].concat(to_restack[group_name]);
                 }
-                StatsController.throttled_unstack_stats();
+                // StatsController.throttled_unstack_stats();
             }
             return;
 

@@ -1,0 +1,84 @@
+// SelectionPanel.pug
+.selection-panel
+    template(v-if="!hasSelectedCall")
+        template(v-if="!hasSelectedFunction")
+            template(v-if="hasSelectedRun")
+                h3  {{ currentItem ? currentItem.name : label('oselia_run_graph_widget_component.selection_panel.no_item') }}
+                .scrollable-content
+                    .assistant_instructions(v-if="runTypeIsAssistant")
+                        .scrollable-content
+                            .json-editor
+                                .label.json-editor__label {{label('oselia_run_graph_widget_component.selection_panel.assistant_instructions')}}
+                                pre.text_input
+                                    code(contenteditable @input="onInstructionsChange" v-html="assistantInstructionsHtml")
+                        .buttons(v-if="saveInstructions")
+                            .save_button
+                                button.btn.btn-success(@click="onSaveInstructions") {{ label('oselia_run_graph_widget_component.selection_panel.save_button') }}
+                    .oselia_prompt
+                        .scrollable-content
+                            .json-editor
+                                .label.json-editor__label {{ label('oselia_run_graph_widget_component.selection_panel.prompt_param') }}
+                                pre.text_input
+                                    code(contenteditable @input="onPromptParamChange" v-html="runPromptParamHtml")
+                        .buttons(v-if="savePromptParam")
+                            .save_button
+                                button.btn.btn-success(@click="onSavePromptParam") {{ label('oselia_run_graph_widget_component.selection_panel.save_button') }}
+                        .scrollable-content
+                            .json-editor
+                                .label.json-editor__label {{ label('oselia_run_graph_widget_component.selection_panel.prompt') }}
+                                pre.text_input
+                                    code(contenteditable @input="onPromptChange" v-html="runPromptHtml")
+                        .buttons(v-if="savePrompt")
+                            .save_button
+                                button.btn.btn-success(@click="onSavePrompt") {{ label('oselia_run_graph_widget_component.selection_panel.save_button') }}
+                hr
+                .buttons
+                    .edit_button
+                        button.btn.btn-primary(@click="onEditSelectItem") {{ label('oselia_run_graph_widget_component.selection_panel.edit_button') }}
+                    .remove_button
+                        button.btn.btn-danger(@click="onRemoveSelectedItem") {{ label('oselia_run_graph_widget_component.selection_panel.remove_button') }}
+                hr
+            template(v-else)
+                h3  {{ currentItem ? currentItem.name : label('oselia_run_graph_widget_component.selection_panel.no_item') }}
+                hr
+                .buttons
+                    .edit_button
+                        button.btn.btn-primary(@click="onEditSelectItem") {{ label('oselia_run_graph_widget_component.selection_panel.edit_button') }} 
+                    .remove_button
+                        button.btn.btn-danger(@click="onRemoveSelectedItem") {{ label('oselia_run_graph_widget_component.selection_panel.remove_button') }}
+                hr
+        template(v-else)
+            h3 {{ currentItem.gpt_function_name }}
+            hr
+            .buttons
+                .edit_button
+                    button.btn.btn-primary(@click="onEditSelectItem") {{ label('oselia_run_graph_widget_component.selection_panel.edit_button') }}
+                .remove_button
+                    button.btn.btn-danger(@click="onRemoveSelectedItem") {{ label('oselia_run_graph_widget_component.selection_panel.remove_button') }}
+            hr
+    template(v-else)
+        .function_call_name
+            h3 {{ 'Rejouer :' }}
+            i(@click='replay_from_id(currentItem.id)').fa-duotone.fa-play-circle
+
+        .scrollable-content
+            .json-editor
+                .label.json-editor__label {{ label('oselia_run_graph_widget_component.selection_panel.function_call') }}
+                pre.text_input
+                    code(v-html="highlightedJson" contenteditable @input="onParamsChange")
+            .buttons(v-if="saveParameters")
+                .save_button
+                    button.btn.btn-success(@click="onSaveParams") {{ label('oselia_run_graph_widget_component.selection_panel.save_button') }}
+        
+            .label {{ label('oselia_run_graph_widget_component.selection_panel.function_call_result') }}
+            vue-json-pretty.function_call_result(
+                :data='try_parse_json(currentItem.result)', 
+                :deep='1'
+            )
+
+        .buttons
+            .edit_button
+                button.btn.btn-primary(@click="onEditSelectItem") {{ label('oselia_run_graph_widget_component.selection_panel.edit_button') }} 
+            .remove_button
+                button.btn.btn-danger(@click="onRemoveSelectedItem") {{ label('oselia_run_graph_widget_component.selection_panel.remove_button') }}
+        hr
