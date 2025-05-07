@@ -28,6 +28,7 @@ import EventifyEventListenerInstanceVO from '../../../shared/modules/Eventify/vo
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import GPTAssistantAPIAssistantFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantFunctionVO';
 import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
 import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
@@ -56,6 +57,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -173,6 +175,26 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'TODO' },
+            'OseliaRunFunctionCallVO.STATE_TODO'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'En cours...' },
+            'OseliaRunFunctionCallVO.STATE_RUNNING'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Terminé' },
+            'OseliaRunFunctionCallVO.STATE_DONE'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Erreur' },
+            'OseliaRunFunctionCallVO.STATE_ERROR'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Auto-commit de la saisie audio' },
+            'auto_commit_auto_input.auto.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Relecture de la saisie audio' },
+            'auto_commit_auto_input.manual.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Connexion à Osélia' },
@@ -357,6 +379,9 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         postCreateTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
         postUpdateTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
         postDeleteTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
+
+        preUpdateTrigger.registerHandler(GPTAssistantAPIAssistantVO.API_TYPE_ID, this, this.pre_u_assistant_update_mem_functions);
+        postCreateTrigger.registerHandler(GPTAssistantAPIAssistantVO.API_TYPE_ID, this, this.post_c_assistant_update_mem_functions);
 
         postCreateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.reset_has_no_run_ready_to_handle_on_thread);
         postUpdateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.reset_has_no_run_ready_to_handle_on_thread_on_u);
@@ -2958,5 +2983,123 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         if (has_modif && param['_type'] && param['id'] && ModuleTableController.module_tables_by_vo_type[param['_type']]) {
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(param as IDistantVOBase);
         }
+    }
+
+    private async pre_u_assistant_update_mem_functions(vo_wrapper: DAOUpdateVOHolder<GPTAssistantAPIAssistantVO>, exec_as_server?: boolean) {
+
+        if (vo_wrapper.post_update_vo.agent_mem_access && !vo_wrapper.pre_update_vo.agent_mem_access) {
+            await all_promises([
+                this.add_function_to_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().agent_mem_get_entries),
+                this.add_function_to_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().agent_mem_get_keys),
+                this.add_function_to_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().agent_mem_set_mem),
+            ]);
+        }
+        if (!vo_wrapper.post_update_vo.agent_mem_access && vo_wrapper.pre_update_vo.agent_mem_access) {
+            await all_promises([
+                this.rmv_function_from_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().agent_mem_get_entries),
+                this.rmv_function_from_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().agent_mem_get_keys),
+                this.rmv_function_from_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().agent_mem_set_mem),
+            ]);
+        }
+
+        if (vo_wrapper.post_update_vo.app_mem_access && !vo_wrapper.pre_update_vo.app_mem_access) {
+            await all_promises([
+                this.add_function_to_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().app_mem_get_entries),
+                this.add_function_to_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().app_mem_get_keys),
+                this.add_function_to_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().app_mem_set_mem),
+            ]);
+        }
+        if (!vo_wrapper.post_update_vo.app_mem_access && vo_wrapper.pre_update_vo.app_mem_access) {
+            await all_promises([
+                this.rmv_function_from_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().app_mem_get_entries),
+                this.rmv_function_from_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().app_mem_get_keys),
+                this.rmv_function_from_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().app_mem_set_mem),
+            ]);
+        }
+
+        if (vo_wrapper.post_update_vo.user_mem_access && !vo_wrapper.pre_update_vo.user_mem_access) {
+            await all_promises([
+                this.add_function_to_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().user_mem_get_entries),
+                this.add_function_to_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().user_mem_get_keys),
+                this.add_function_to_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().user_mem_set_mem),
+            ]);
+        }
+        if (!vo_wrapper.post_update_vo.user_mem_access && vo_wrapper.pre_update_vo.user_mem_access) {
+            await all_promises([
+                this.rmv_function_from_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().user_mem_get_entries),
+                this.rmv_function_from_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().user_mem_get_keys),
+                this.rmv_function_from_assistant(vo_wrapper.post_update_vo, this.name, reflect<this>().user_mem_set_mem),
+            ]);
+        }
+
+        return true;
+    }
+
+    private async post_c_assistant_update_mem_functions(assistant: GPTAssistantAPIAssistantVO) {
+
+        if (assistant.agent_mem_access) {
+            await all_promises([
+                this.add_function_to_assistant(assistant, this.name, reflect<this>().agent_mem_get_entries),
+                this.add_function_to_assistant(assistant, this.name, reflect<this>().agent_mem_get_keys),
+                this.add_function_to_assistant(assistant, this.name, reflect<this>().agent_mem_set_mem),
+            ]);
+        }
+
+        if (assistant.user_mem_access) {
+            await all_promises([
+                this.add_function_to_assistant(assistant, this.name, reflect<this>().user_mem_get_entries),
+                this.add_function_to_assistant(assistant, this.name, reflect<this>().user_mem_get_keys),
+                this.add_function_to_assistant(assistant, this.name, reflect<this>().user_mem_set_mem),
+            ]);
+        }
+
+        if (assistant.app_mem_access) {
+            await all_promises([
+                this.add_function_to_assistant(assistant, this.name, reflect<this>().app_mem_get_entries),
+                this.add_function_to_assistant(assistant, this.name, reflect<this>().app_mem_get_keys),
+                this.add_function_to_assistant(assistant, this.name, reflect<this>().app_mem_set_mem),
+            ]);
+        }
+    }
+
+    private async add_function_to_assistant(assistant: GPTAssistantAPIAssistantVO, module_name: string, function_name: string) {
+
+        const current_link = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+            .filter_by_id(assistant.id, GPTAssistantAPIAssistantVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, module_name, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().gpt_function_name, function_name, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIAssistantFunctionVO>();
+
+        if (current_link) {
+            return;
+        }
+
+        const function_vo = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, module_name)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().gpt_function_name, function_name)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionVO>();
+
+        if (!function_vo) {
+            ConsoleHandler.error('add_function_to_assistant:No function_vo found for module_name:' + module_name + ' function_name:' + function_name);
+            return;
+        }
+
+        const assistant_function_link = new GPTAssistantAPIAssistantFunctionVO();
+        assistant_function_link.assistant_id = assistant.id;
+        assistant_function_link.function_id = function_vo.id;
+
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(assistant_function_link);
+    }
+
+    private async rmv_function_from_assistant(assistant: GPTAssistantAPIAssistantVO, module_name: string, function_name: string) {
+
+        await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+            .filter_by_id(assistant.id, GPTAssistantAPIAssistantVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, module_name, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().gpt_function_name, function_name, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .delete_vos();
     }
 }

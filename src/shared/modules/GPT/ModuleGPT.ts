@@ -99,7 +99,7 @@ export default class ModuleGPT extends Module {
     ) => Promise<GPTAssistantAPIThreadMessageVO[]> = APIControllerWrapper.sah<APIGPTAskAssistantParam, GPTAssistantAPIThreadMessageVO[]>(ModuleGPT.APINAME_ask_assistant);
 
     public get_tts_file: (message_content_id: number) => Promise<FileVO> = APIControllerWrapper.sah_optimizer<NumberParamVO, FileVO>(this.name, reflect<this>().get_tts_file);
-    public transcribe_file: (file_vo_id: number) => Promise<string> = APIControllerWrapper.sah_optimizer<NumberParamVO, string>(this.name, reflect<this>().transcribe_file);
+    public transcribe_file: (file_vo_id: number, auto_commit_auto_input: boolean, gpt_assistant_id: string, gpt_thread_id: string, user_id: number) => Promise<string> = APIControllerWrapper.sah_optimizer<NumberParamVO, string>(this.name, reflect<this>().transcribe_file);
 
     public summerize: (thread_id: number) => Promise<FileVO> = APIControllerWrapper.sah_optimizer<NumberParamVO, FileVO>(this.name, reflect<this>().summerize);
 
@@ -154,12 +154,11 @@ export default class ModuleGPT extends Module {
             APIGPTGenerateResponseParamStatic
         ));
 
-        APIControllerWrapper.registerApi(PostAPIDefinition.new<NumberParamVO, string>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<any, string>(
             ModuleGPT.POLICY_ask_assistant,
             this.name,
             reflect<this>().transcribe_file,
-            null,
-            NumberParamVOStatic,
+            [GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, GPTAssistantAPIThreadMessageContentTextVO.API_TYPE_ID, ActionURLVO.API_TYPE_ID, MailVO.API_TYPE_ID],
         ));
 
         APIControllerWrapper.registerApi(PostAPIDefinition.new<NumberParamVO, FileVO>(
@@ -378,9 +377,9 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().response_format, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Format de réponse', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
 
-        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().app_mem_access, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Accès mémoire - Globale Application', true, true, false);
-        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().user_mem_access, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Accès mémoire - Utilisateur', true, true, false);
-        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().agent_mem_access, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Accès mémoire - Agent', true, true, false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().app_mem_access, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès mémoire - Globale Application', true, true, false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().user_mem_access, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès mémoire - Utilisateur', true, true, false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().agent_mem_access, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès mémoire - Agent', true, true, false);
 
         const table = ModuleTableController.create_new(this.name, GPTAssistantAPIAssistantVO, label, 'GPT Assistant API - Assistant');
         VersionedVOController.getInstance().registerModuleTable(table);

@@ -600,7 +600,7 @@ export default class GPTAssistantAPIServerController {
                     (async () => {
                         // On stocke l'info qu'on a lancé un appel de fonction externe
                         oselia_run_function_call_vo.creation_date = Dates.now();
-                        oselia_run_function_call_vo.oselia_run_id = oselia_run ? oselia_run.id : null;
+                        oselia_run_function_call_vo.oselia_run_id = oselia_run ? oselia_run.id : thread_vo.last_oselia_run_id; // Si on a pas d'osélia run id, on associe au denier du thread dans le doute
                         oselia_run_function_call_vo.external_api_id = referrer_external_api.id;
                         oselia_run_function_call_vo.function_call_parameters_initial = JSON.parse(tool_call_function_args);
                         oselia_run_function_call_vo.function_call_parameters_transcripted = function_args;
@@ -727,7 +727,7 @@ export default class GPTAssistantAPIServerController {
         const ordered_args: any[] = function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread_vo, function_args, availableFunctionsParameters[function_vo.id]);
 
         oselia_run_function_call_vo.creation_date = Dates.now();
-        oselia_run_function_call_vo.oselia_run_id = oselia_run ? oselia_run.id : null;
+        oselia_run_function_call_vo.oselia_run_id = oselia_run ? oselia_run.id : thread_vo.last_oselia_run_id; // Si on a pas d'osélia run id, on associe au denier du thread dans le doute
         oselia_run_function_call_vo.function_call_parameters_initial = JSON.parse(tool_call_function_args);
         oselia_run_function_call_vo.function_call_parameters_transcripted = function_args;
         oselia_run_function_call_vo.gpt_function_id = function_vo.id;
@@ -1536,12 +1536,9 @@ export default class GPTAssistantAPIServerController {
 
         const availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO } = {};
         const availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] } = {};
-        const functions: GPTAssistantAPIFunctionVO[] = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
-            .filter_by_id(assistant_vo.id, GPTAssistantAPIAssistantVO.API_TYPE_ID).using(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
-            .exec_as_server()
-            .select_vos<GPTAssistantAPIFunctionVO>();
+        const functions: GPTAssistantAPIFunctionVO[] = await GPTAssistantAPIServerSyncAssistantsController.get_assistant_functions(assistant_vo);
         const functions_params: GPTAssistantAPIFunctionParamVO[] = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
-            .filter_by_id(assistant_vo.id, GPTAssistantAPIAssistantVO.API_TYPE_ID).using(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID).using(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .filter_by_ids(functions.map((f) => f.id), GPTAssistantAPIFunctionVO.API_TYPE_ID)
             .set_sort(new SortByVO(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().weight, true))
             .exec_as_server()
             .select_vos<GPTAssistantAPIFunctionParamVO>();

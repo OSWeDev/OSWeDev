@@ -78,6 +78,7 @@ import Patch20250506AddOseliaFunction_OSELIA_app_mem_set_mem from './patchs/post
 import Patch20250506AddOseliaFunction_OSELIA_user_mem_get_entries from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_user_mem_get_entries';
 import Patch20250506AddOseliaFunction_OSELIA_user_mem_get_keys from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_user_mem_get_keys';
 import Patch20250506AddOseliaFunction_OSELIA_user_mem_set_mem from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_user_mem_set_mem';
+import Patch20250507DebugFavoritFiltersLimits from './patchs/postmodules/Patch20250507DebugFavoritFiltersLimits';
 import Patch20122024TruncateLogsUpdated from './patchs/premodules/Patch20122024TruncateLogsUpdated';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
@@ -120,6 +121,8 @@ import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patc
 import Patch20250106createTableSupProbe from './patchs/premodules/Patch20250106createTableSupProbe';
 import Patch20250228DeleteDuplicateGraphVO from './patchs/premodules/Patch20250228DeleteDuplicateGraphVO';
 import Patch20250304DropArchivesConfVO from './patchs/premodules/Patch20250304TruncateArchivesConfVO';
+import Patch20250507InitLastOseliaRunID from './patchs/premodules/Patch20250507InitLastOseliaRunID';
+import Patch20250507OseliaRunTemplateNames from './patchs/premodules/Patch20250507OseliaRunTemplateNames';
 
 export default class GeneratorPatchsListHandler {
 
@@ -168,6 +171,8 @@ export default class GeneratorPatchsListHandler {
         Patch20250106createTableSupProbe.getInstance(),
         Patch20250228DeleteDuplicateGraphVO.getInstance(),
         Patch20250304DropArchivesConfVO.getInstance(),
+        Patch20250507OseliaRunTemplateNames.getInstance(),
+        Patch20250507InitLastOseliaRunID.getInstance(),
     ];
 
     public static post_modules_workers: IGeneratorWorker[] = [
@@ -262,5 +267,7 @@ export default class GeneratorPatchsListHandler {
         Patch20250506AddOseliaFunction_OSELIA_agent_mem_get_keys.getInstance(),
         Patch20250506AddOseliaFunction_OSELIA_app_mem_get_keys.getInstance(),
         Patch20250506AddOseliaFunction_OSELIA_user_mem_get_keys.getInstance(),
+
+        Patch20250507DebugFavoritFiltersLimits.getInstance(),
     ];
 }

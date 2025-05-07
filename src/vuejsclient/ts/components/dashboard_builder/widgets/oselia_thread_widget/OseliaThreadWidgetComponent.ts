@@ -1,3 +1,4 @@
+import Cookies from "js-cookie";
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import VueJsonPretty from 'vue-json-pretty';
@@ -155,6 +156,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private audio_chunks: Blob[] = [];
 
     private functions_by_id: { [id: number]: GPTAssistantAPIFunctionVO } = {};
+    private auto_commit_auto_input: boolean = (Cookies.get("auto_commit_auto_input") === "true");
 
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(
         'OseliaThreadWidgetComponent.throttle_load_thread',
@@ -170,6 +172,11 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     get file_system_url() {
         const { protocol, hostname, port } = window.location;
         return `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard/view/`;
+    }
+
+    @Watch('auto_commit_auto_input')
+    private on_auto_commit_auto_input() {
+        Cookies.set("auto_commit_auto_input", String(this.auto_commit_auto_input), { expires: 365 });
     }
 
     @Watch('get_too_many_assistants')
@@ -509,8 +516,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         const files = await query(FileVO.API_TYPE_ID)
             .set_limit(10)
             .select_vos<FileVO>().then((files_) => {
-            return files_;
-        });
+                return files_;
+            });
         return [];
     }
 
@@ -947,7 +954,14 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                         return;
                     }
 
-                    const transcription = await ModuleGPT.getInstance().transcribe_file(file_vo.id);
+                    const auto_commit_auto_input = this.auto_commit_auto_input;
+
+                    const transcription = await ModuleGPT.getInstance().transcribe_file(file_vo.id, auto_commit_auto_input, this.assistant.gpt_assistant_id, this.thread.gpt_thread_id, VueAppController.getInstance().data_user.id);
+
+                    if (auto_commit_auto_input) {
+                        this.input_voice_is_transcribing = false;
+                        return;
+                    }
 
                     if (!transcription) {
                         this.input_voice_is_transcribing = false;

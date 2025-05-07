@@ -50,9 +50,9 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
     public static AUTO_DISABLE_PARAM_NAME: string = 'AssistantTraductionCronWorker.AUTO_DISABLE';
     public static NB_PER_RUN_PARAM_NAME: string = 'AssistantTraductionCronWorker.NB_PER_RUN';
 
-    public static OSELIA_assistant_traduction_ASSISTANT_NAME: string = 'AssistantTraductionCronWorker.oselia_assistant_traduction_assistant_name';
+    public static OSELIA_assistant_traduction_ASSISTANT_NAME: string = 'Assistant Traduction';
 
-    public static OSELIA_assistant_traduction_PROMPT_NAME: string = 'AssistantTraductionCronWorker.oselia_assistant_traduction_prompt_name';
+    public static OSELIA_assistant_traduction_PROMPT_NAME: string = 'Prompt Assistant Traduction';
 
     private static instance: AssistantTraductionCronWorker = null;
     private static oselia_run_template: OseliaRunTemplateVO = null;
@@ -251,9 +251,9 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
                 ConsoleHandler.log('AssistantTraductionCronWorker:set_translation:Mise à jour de l\'élément de traduction pour le thread: ' + thread_vo.id + ': la traduction proposée est "' + traduction + '" avec un degré de certitude de: ' + degre_certitude);
             }
 
-            if (!traduction) {
-                ConsoleHandler.error('AssistantTraductionCronWorker:set_translation:Aucun id cible n\'a été fourni');
-                return 'Erreur : Aucun id cible n\'a été fourni. Il est obligatoire de fournir ce paramètre.';
+            if (traduction == null) {
+                ConsoleHandler.error('AssistantTraductionCronWorker:set_translation:Aucune traduction n\'a été fournie');
+                return 'Erreur : Aucune traduction n\'a été fournie. Il est obligatoire de fournir ce paramètre.';
             }
 
             // On récupère les infos directement des metadatas du thread

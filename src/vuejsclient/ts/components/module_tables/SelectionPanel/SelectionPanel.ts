@@ -1,8 +1,8 @@
+import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
-import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import './SelectionPanel.scss';
 
 @Component({

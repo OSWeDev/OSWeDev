@@ -623,7 +623,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         return true;
     }
 
-    private async transcribe_file(filevo_id: number): Promise<string> {
+    private async transcribe_file(filevo_id: number, auto_commit_auto_input: boolean, gpt_assistant_id: string, gpt_thread_id: string, user_id: number): Promise<string> {
         const filevo: FileVO = await query(FileVO.API_TYPE_ID)
             .filter_by_id(filevo_id)
             .exec_as_server()
@@ -671,6 +671,19 @@ export default class ModuleGPTServer extends ModuleServerBase {
                 ConsoleHandler.error('transcribe_file:No transcription found');
                 return null;
             }
+
+            if (auto_commit_auto_input) {
+                await ModuleGPT.getInstance().ask_assistant(
+                    gpt_assistant_id,
+                    gpt_thread_id,
+                    null,
+                    transcription.text,
+                    null,
+                    user_id,
+                    false
+                );
+            }
+
         } catch (error) {
             ConsoleHandler.error('transcribe_file:ERROR:' + error);
         }

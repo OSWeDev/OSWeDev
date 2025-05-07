@@ -66,6 +66,14 @@
                                             .thread_message_body_text
                                                 i.fa-duotone.fa-spinner-third.fa-spin
 
+                    .oselia_runs(v-if='get_show_hidden_messages')
+                        toggle-button(
+                            @change="auto_commit_auto_input = !auto_commit_auto_input" 
+                            :value="auto_commit_auto_input" 
+                            :sync="true"
+                            :width="200"
+                            :labels="{checked: label('auto_commit_auto_input.auto'), unchecked: label('auto_commit_auto_input.manual')}")
+                            
                     .oselia_runs(v-if='get_show_hidden_messages && oselia_runs && oselia_runs.length')
                         .oselia_runs_wrapper(:class="{'expand':expand_oselia_runs}")
                             .oselia_runs_header(@click='expand_oselia_runs = !expand_oselia_runs') {{ label('oselia_thread_widget_component.oselia_runs_header') }}

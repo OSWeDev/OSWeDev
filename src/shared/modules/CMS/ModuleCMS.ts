@@ -32,14 +32,6 @@ export default class ModuleCMS extends Module {
     // public static APINAME_registerTemplateComponent: string = "registerTemplateComponent";
     public static APINAME_getPageComponents: string = "getPageComponents";
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleCMS {
-        if (!ModuleCMS.instance) {
-            ModuleCMS.instance = new ModuleCMS();
-        }
-        return ModuleCMS.instance;
-    }
-
     private static instance: ModuleCMS = null;
 
     /**
@@ -56,6 +48,15 @@ export default class ModuleCMS extends Module {
 
         super("cms", ModuleCMS.MODULE_NAME);
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleCMS {
+        if (!ModuleCMS.instance) {
+            ModuleCMS.instance = new ModuleCMS();
+        }
+        return ModuleCMS.instance;
+    }
+
 
     public registerApis() {
         APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
