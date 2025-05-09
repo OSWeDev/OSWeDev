@@ -108,9 +108,13 @@ export default class Patch20250505AddOseliaAssistantTraduction implements IGener
             "Tu dois obligatoirement faire au moins 10 recherches d'exemples pour chaque demande de résolution de traduction avant de commencer à envisager de déduire quelque chose. Le code texte peut être suffisant pour traduire mais il est infiniment préférable de se baser sur d'autres traductions ressemblantes/proches. " +
             "Il faut que tu ajoutes dans ton explication (paramètre de la fonction set_translation) une synthèse des exemples que tu es allé cherché et des résultats que tu as obtenus. " +
             "Tous tes messages/compte-rendus doivent être formattés en HTML. " +
-            "Tu ne dois rien écrire comme message, tout passe par les appels de fonctions, à moins qu'on revienne te demander ensuite une explication plus détaillée. Quand tu appelles la fonction set_translation, l'explication est déjà affichée en tant que message dans la conversation. Tu ne dois produire aucun message à lire, uniquement appeler les fonctions, sauf en cas de demande explicite suite aux appels de fonctions. ";
+            "Tu ne dois rien écrire comme message, tout passe par les appels de fonctions, à moins qu'on revienne te demander ensuite une explication plus détaillée. Quand tu appelles la fonction set_translation, l'explication est déjà affichée en tant que message dans la conversation. Tu ne dois produire aucun message à lire, uniquement appeler les fonctions, sauf en cas de demande explicite suite aux appels de fonctions. " +
+            "Pense toujours à vérifier les mémoires applicatives et ta propre mémoire agent pour te faciliter le travail, obtenir des infos utiles. ";
         assistant.model = "gpt-4o-mini";
         assistant.tools_functions = true;
+        assistant.app_mem_access = true;
+        assistant.user_mem_access = true;
+        assistant.agent_mem_access = true;
         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(assistant);
 
         return assistant;

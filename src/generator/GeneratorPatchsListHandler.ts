@@ -79,6 +79,10 @@ import Patch20250506AddOseliaFunction_OSELIA_user_mem_get_entries from './patchs
 import Patch20250506AddOseliaFunction_OSELIA_user_mem_get_keys from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_user_mem_get_keys';
 import Patch20250506AddOseliaFunction_OSELIA_user_mem_set_mem from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_user_mem_set_mem';
 import Patch20250507DebugFavoritFiltersLimits from './patchs/postmodules/Patch20250507DebugFavoritFiltersLimits';
+import Patch20250509AddOselia_Superviseur_AssistantTraduction from './patchs/postmodules/Patch20250509AddOselia_Superviseur_AssistantTraduction';
+import Patch20250509AddOseliaFunction_OSELIA_get_codes_that_need_translation from './patchs/postmodules/Patch20250509AddOseliaFunction_OSELIA_get_codes_that_need_translation';
+import Patch20250509AddOseliaFunction_OSELIA_instantiate_assistant_traduction from './patchs/postmodules/Patch20250509AddOseliaFunction_OSELIA_instantiate_assistant_traduction';
+import Patch20250509AddOseliaFunction_OSELIA_push_message_to_supervised_thread_id from './patchs/postmodules/Patch20250509AddOseliaFunction_OSELIA_push_message_to_supervised_thread_id';
 import Patch20122024TruncateLogsUpdated from './patchs/premodules/Patch20122024TruncateLogsUpdated';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
@@ -269,5 +273,11 @@ export default class GeneratorPatchsListHandler {
         Patch20250506AddOseliaFunction_OSELIA_user_mem_get_keys.getInstance(),
 
         Patch20250507DebugFavoritFiltersLimits.getInstance(),
+
+        Patch20250509AddOseliaFunction_OSELIA_get_codes_that_need_translation.getInstance(),
+        Patch20250509AddOseliaFunction_OSELIA_instantiate_assistant_traduction.getInstance(),
+        Patch20250509AddOseliaFunction_OSELIA_push_message_to_supervised_thread_id.getInstance(),
+
+        Patch20250509AddOselia_Superviseur_AssistantTraduction.getInstance(),
     ];
 }

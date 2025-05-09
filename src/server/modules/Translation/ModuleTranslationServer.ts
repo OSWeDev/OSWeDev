@@ -32,6 +32,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PerfReportServerController from '../PerfReport/PerfReportServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import SuperviseurAssistantTraductionServerController from './SuperviseurAssistantTraductionServerController';
 import TranslationCronWorkersHandler from './TranslationCronWorkersHandler';
 import TranslationsServerController from './TranslationsServerController';
 import AssistantTraductionCronWorker from './workers/AssistantTraduction/AssistantTraductionCronWorker';
@@ -72,6 +73,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     public async configure() {
 
         PerfReportServerController.register_perf_module(AssistantTraductionCronWorker.PERF_MODULE_NAME);
+        PerfReportServerController.register_perf_module(SuperviseurAssistantTraductionServerController.PERF_MODULE_NAME);
 
         const langs = await query(LangVO.API_TYPE_ID)
             .exec_as_server()

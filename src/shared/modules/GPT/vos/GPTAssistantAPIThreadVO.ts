@@ -97,5 +97,10 @@ export default class GPTAssistantAPIThreadVO implements IDistantVOBase {
      */
     public last_oselia_run_id: number;
 
+    /**
+     * Pour dupliquer les messages dans un autre thread - utile pour les superviseurs
+     */
+    public pipe_outputs_to_thread_id: number;
+
     public oswedev_created_at: number;
 }

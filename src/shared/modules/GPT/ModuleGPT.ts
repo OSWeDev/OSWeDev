@@ -15,6 +15,7 @@ import FileVO from '../File/vos/FileVO';
 import MailVO from '../Mailer/vos/MailVO';
 import Module from '../Module';
 import OseliaPromptVO from '../Oselia/vos/OseliaPromptVO';
+import OseliaRunVO from '../Oselia/vos/OseliaRunVO';
 import OseliaThreadFeedbackVO from '../Oselia/vos/OseliaThreadFeedbackVO';
 import OseliaThreadMessageFeedbackVO from '../Oselia/vos/OseliaThreadMessageFeedbackVO';
 import OseliaUserPromptVO from '../Oselia/vos/OseliaUserPromptVO';
@@ -565,6 +566,8 @@ export default class ModuleGPT extends Module {
 
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().last_gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dernier run GPT', false)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().pipe_outputs_to_thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dupliquer les réponses dans le thread', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIThreadVO, label, 'GPT Assistant API - Thread');
 
@@ -683,6 +686,12 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().metadata, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Métadonnées', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().is_ready, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Prêt à être envoyé', true, true, true);
+
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().piped_from_thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Piped from - Thread', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().piped_from_thread_message_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Piped from - Message', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadMessageVO.API_TYPE_ID);
+
         ModuleTableController.create_new(this.name, GPTAssistantAPIThreadMessageVO, label, 'GPT Assistant API - Thread Message');
     }
 
@@ -721,6 +730,11 @@ export default class ModuleGPT extends Module {
 
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().tts_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fichier TTS', false)
             .set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().piped_from_thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Piped from - Thread', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().piped_from_thread_message_content_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Piped from - Message Content', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIThreadMessageContentVO, null, 'GPT Assistant API - Thread Message Content');
     }

@@ -226,6 +226,7 @@ export default class EnvParamsVO implements IDistantVOBase {
     public debug_reruns_of_oselia: boolean;
 
     public debug_assistant_traduction: boolean;
+    public debug_superviseur_assistant_traduction: boolean;
 
     // DEBUG_CONTEXT_QUERY_build_select_query_not_count?: boolean;
     public debug_context_query_build_select_query_not_count: boolean;

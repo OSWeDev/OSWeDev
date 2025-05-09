@@ -38,12 +38,6 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
 
     public static OSELIA_RUN_TEMPLATE_NAME: string = 'Assistant Traduction';
 
-    public static PARAM_NAME_GROUPID_TEAMS_ACTION_REQUISE: string = 'AssistantTraductionCronWorker.PARAM_NAME_GROUPID_TEAMS_ACTION_REQUISE';
-    public static PARAM_NAME_CHANNELID_TEAMS_ACTION_REQUISE: string = 'AssistantTraductionCronWorker.PARAM_NAME_CHANNELID_TEAMS_ACTION_REQUISE';
-
-    public static PARAM_NAME_GROUPID_TEAMS_INFO: string = 'AssistantTraductionCronWorker.PARAM_NAME_GROUPID_TEAMS_INFO';
-    public static PARAM_NAME_CHANNELID_TEAMS_INFO: string = 'AssistantTraductionCronWorker.PARAM_NAME_CHANNELID_TEAMS_INFO';
-
     public static MIN_CONFIDENT_LEVEL_PARAM_NAME: string = 'AssistantTraductionCronWorker.MIN_CONFIDENT_LEVEL';
 
     public static ENABLED_PARAM_NAME: string = 'AssistantTraductionCronWorker.ENABLED';
@@ -349,7 +343,7 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
         }
     }
 
-    private async push_message_to_oselia(thread_vo: GPTAssistantAPIThreadVO, msg: string) {
+    public async push_message_to_oselia(thread_vo: GPTAssistantAPIThreadVO, msg: string) {
         const new_thread_message = new GPTAssistantAPIThreadMessageVO();
         new_thread_message.thread_id = thread_vo.id;
         new_thread_message.date = Dates.now();

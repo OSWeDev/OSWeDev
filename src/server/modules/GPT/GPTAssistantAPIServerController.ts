@@ -1537,9 +1537,17 @@ export default class GPTAssistantAPIServerController {
         const availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO } = {};
         const availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] } = {};
         const functions: GPTAssistantAPIFunctionVO[] = await GPTAssistantAPIServerSyncAssistantsController.get_assistant_functions(assistant_vo);
+
+        if (!functions || !functions.length) {
+            return { availableFunctions, availableFunctionsParameters };
+        }
+
         const functions_params: GPTAssistantAPIFunctionParamVO[] = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
             .filter_by_ids(functions.map((f) => f.id), GPTAssistantAPIFunctionVO.API_TYPE_ID)
-            .set_sort(new SortByVO(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().weight, true))
+            .set_sorts([
+                new SortByVO(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().weight, true),
+                new SortByVO(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().id, true) // dans le doute en cas d'erreur sur les poids
+            ])
             .exec_as_server()
             .select_vos<GPTAssistantAPIFunctionParamVO>();
 

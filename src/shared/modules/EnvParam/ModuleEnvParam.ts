@@ -144,6 +144,7 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_reruns_of_oselia, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug reruns of Oselia', true, true, false);
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_assistant_traduction, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug assistant traduction', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_superviseur_assistant_traduction, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug superviseur assistant traduction', true, true, false);
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_playwright_controller, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug Playwright controller', true, true, false);
 

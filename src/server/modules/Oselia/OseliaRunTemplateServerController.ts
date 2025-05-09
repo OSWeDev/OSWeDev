@@ -23,6 +23,8 @@ export default class OseliaRunTemplateServerController {
         thread_vo: GPTAssistantAPIThreadVO = null,
         user: UserVO = null,
         parent_run_id: number = null,
+        pipe_outputs_to_thread_id: number = null,
+        initial_content_text: string = null,
     ): Promise<OseliaRunVO> {
 
         try {
@@ -40,6 +42,14 @@ export default class OseliaRunTemplateServerController {
                 thread_vo = thread.thread_vo;
             }
             await OseliaServerController.link_thread_to_referrer(thread_vo, referrer);
+
+            // On configure le pipe des messages pour les pousser aussi dans le thread actuel
+            // TODO : à voir dans quelle mesure c'est la bonne solution pour donner l'aperçu du thread enfant dans le parent.
+            //      peut-etre qu'il faut faire des résumés en chemin et pas tout pipe... à voir
+            if (thread_vo.id !== pipe_outputs_to_thread_id) {
+                thread_vo.pipe_outputs_to_thread_id = pipe_outputs_to_thread_id;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
+            }
 
             if (initial_cache_values) {
                 for (const key in initial_cache_values) {
@@ -70,7 +80,10 @@ export default class OseliaRunTemplateServerController {
             oselia_run.childrens_are_multithreaded = template.childrens_are_multithreaded;
             oselia_run.hide_outputs = template.hide_outputs;
             oselia_run.hide_prompt = template.hide_prompt;
-            oselia_run.initial_content_text = template.initial_content_text;
+
+            // Si on fournit un initial_content_text, on l'append au initial_content_text du template, pour apporter un complément d'info spécifique à ce run
+            oselia_run.initial_content_text = template.initial_content_text ? template.initial_content_text + '\n' + initial_content_text : initial_content_text;
+
             oselia_run.initial_prompt_id = template.initial_prompt_id;
             oselia_run.initial_prompt_parameters = initial_prompt_parameters;
             oselia_run.name = template.name;

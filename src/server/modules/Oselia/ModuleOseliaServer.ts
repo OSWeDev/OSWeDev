@@ -87,6 +87,7 @@ import ParamsServerController from '../Params/ParamsServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SocketWrapper from '../PushData/vos/SocketWrapper';
 import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
+import SuperviseurAssistantTraductionServerController from '../Translation/SuperviseurAssistantTraductionServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import OseliaAgentMemServerController from './OseliaAgentMemServerController';
@@ -135,6 +136,18 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_replay_function_call, this.replay_function_call.bind(this));
 
         APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleOselia>().instantiate_oselia_run_from_event, this.instantiate_oselia_run_from_event.bind(this));
+    }
+
+    public async get_codes_that_need_translation(thread_vo: GPTAssistantAPIThreadVO, pattern: string, code_lang: string): Promise<string> {
+        return await SuperviseurAssistantTraductionServerController.get_codes_that_need_translation(thread_vo, pattern, code_lang);
+    }
+
+    public async instantiate_assistant_traduction(thread_vo: GPTAssistantAPIThreadVO, code_text_a_traduire: string, code_lang: string, commentaire: string): Promise<string> {
+        return await SuperviseurAssistantTraductionServerController.instantiate_assistant_traduction(thread_vo, code_text_a_traduire, code_lang, commentaire);
+    }
+
+    public async push_message_to_supervised_thread_id(thread_vo: GPTAssistantAPIThreadVO, thread_id: number, message: string): Promise<string> {
+        return await SuperviseurAssistantTraductionServerController.push_message_to_supervised_thread_id(thread_vo, thread_id, message);
     }
 
     public async app_mem_get_keys(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
@@ -722,6 +735,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 .filter_by_id(thread_vo_id, GPTAssistantAPIThreadVO.API_TYPE_ID)
                 .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().created_at, false))
                 .exec_as_server()
+                .set_discarded_field_path(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().piped_from_thread_message_id)
                 .select_vos<GPTAssistantAPIThreadMessageVO>();
 
             for (const message of thread_messages) {
@@ -1224,6 +1238,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             .filter_by_id(thread_id, GPTAssistantAPIThreadVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<OseliaThreadCacheVO>().key, key)
             .exec_as_server()
+            .set_discarded_field_path(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().piped_from_thread_message_id)
             .select_vo<OseliaThreadCacheVO>();
 
         if (!cache) {
@@ -1854,6 +1869,11 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 .exec_as_server()
                 .select_vo<GPTAssistantAPIThreadVO>();
 
+            if (target_thread.user_id == asking_user_id) {
+                ConsoleHandler.log('ModuleOseliaServer:send_join_request:Asking user is the owner of the thread');
+                return;
+            }
+
             const asking_user = await query(UserVO.API_TYPE_ID)
                 .filter_by_id(asking_user_id)
                 .exec_as_server()
@@ -2347,8 +2367,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     private async set_has_content_on_thread_and_update_thread_title(thread_message_content: GPTAssistantAPIThreadMessageContentVO) {
         const thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
             .filter_by_id(thread_message_content.thread_message_id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-            .using(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-            .using(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .set_discarded_field_path(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().piped_from_thread_message_id)
             .exec_as_server().select_vo<GPTAssistantAPIThreadVO>();
 
         let needs_update = false;
