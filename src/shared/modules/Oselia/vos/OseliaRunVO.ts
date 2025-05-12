@@ -284,6 +284,16 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
      */
     public listener_id: number;
 
+    /**
+     * Ajout d'un système de résumé vocal pour les interactions vocales simplifiées
+     */
+    public generate_voice_summary: boolean;
+
+    /**
+     * Le lien vers le résumé vocal qui a été généré pour ce run (si il y en a un)
+     */
+    public voice_summary_id: number;
+
     public error_msg: string;
 
     public rerun_reason: string;

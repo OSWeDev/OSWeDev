@@ -10,6 +10,16 @@ import GPTAssistantAPIErrorVO from './GPTAssistantAPIErrorVO';
  */
 export default class GPTAssistantAPIRunVO implements IDistantVOBase {
 
+    /**
+     * Event name template for run status updates. Nécessite runvo_id et status
+     */
+    public static STATUS_UPDATE_EVENT_NAME_TEMPLATE: string = "gpt_assistant_run.status_changed.{rungpt_id}";
+
+    /**
+     * Event name template for new messages from piped thread
+     */
+    public static NEW_PIPED_MESSAGE_EVENT_NAME_TEMPLATE: string = "gpt_assistant_run.new_piped_message.{gpt_thread_id}";
+
     public static API_TYPE_ID: string = "gpt_assistant_run";
 
     // queued, in_progress, requires_action, cancelling, cancelled, failed, completed, incomplete, or expired

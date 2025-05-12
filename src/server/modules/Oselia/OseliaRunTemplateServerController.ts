@@ -25,6 +25,7 @@ export default class OseliaRunTemplateServerController {
         parent_run_id: number = null,
         pipe_outputs_to_thread_id: number = null,
         initial_content_text: string = null,
+        generate_voice_summary: boolean = false,
     ): Promise<OseliaRunVO> {
 
         try {
@@ -92,6 +93,7 @@ export default class OseliaRunTemplateServerController {
             oselia_run.parent_run_id = parent_run_id;
             oselia_run.template_id = template.id;
             oselia_run.template_name = template.name;
+            oselia_run.generate_voice_summary = generate_voice_summary;
 
             /**
              * Si le state de départ est pas TODO, on doit figer les dates de début et de fin des taches déjà réalisées
@@ -143,7 +145,18 @@ export default class OseliaRunTemplateServerController {
             oselia_run.use_splitter = template.use_splitter;
             oselia_run.use_validator = template.use_validator;
             oselia_run.user_id = user.id;
-            oselia_run.weight = template.weight;
+
+            // Le point doit être soit celui du template si on est sur un sous-thread, soit le nb de run sans parents + 1
+            if (!oselia_run.parent_run_id) {
+                const weight = (await query(OseliaRunVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<OseliaRunVO>().thread_id, thread_vo.id)
+                    .filter_is_null_or_empty(field_names<OseliaRunVO>().parent_run_id)
+                    .exec_as_server()
+                    .select_count()) + 1;
+                oselia_run.weight = weight;
+            } else {
+                oselia_run.weight = template.weight;
+            }
             oselia_run.referrer_id = referrer.id;
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run);
 

@@ -97,7 +97,8 @@ export default class ModuleGPT extends Module {
         content: string,
         files: FileVO[],
         user_id: number,
-        hide_content: boolean
+        hide_content: boolean,
+        generate_voice_summary: boolean,
     ) => Promise<GPTAssistantAPIThreadMessageVO[]> = APIControllerWrapper.sah<APIGPTAskAssistantParam, GPTAssistantAPIThreadMessageVO[]>(ModuleGPT.APINAME_ask_assistant);
 
     public get_tts_file: (message_content_id: number) => Promise<FileVO> = APIControllerWrapper.sah_optimizer<NumberParamVO, FileVO>(this.name, reflect<this>().get_tts_file);

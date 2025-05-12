@@ -12,9 +12,12 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
+import EventsController from '../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -34,7 +37,13 @@ import GPTAssistantAPIVectorStoreVO from '../../../shared/modules/GPT/vos/GPTAss
 import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import OseliaAgentMemVO from '../../../shared/modules/Oselia/vos/OseliaAgentMemVO';
+import OseliaAppMemVO from '../../../shared/modules/Oselia/vos/OseliaAppMemVO';
+import OseliaRunTemplateVO from '../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
+import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
 import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
+import OseliaUserMemVO from '../../../shared/modules/Oselia/vos/OseliaUserMemVO';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -50,10 +59,12 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import { originalCreateReadStream } from '../File/ArchiveServerController';
 import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import OseliaRunTemplateServerController from '../Oselia/OseliaRunTemplateServerController';
 import ParamsServerController from '../Params/ParamsServerController';
 import PerfReportServerController from '../PerfReport/PerfReportServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
@@ -76,6 +87,11 @@ export default class ModuleGPTServer extends ModuleServerBase {
     public static MESSAGE_CONTENT_TTS_FILE_PATH: string = './sfiles/message_content_tts/';
     public static MESSAGE_CONTENT_TTS_FILE_PREFIX: string = 'message_content_tts_';
     public static MESSAGE_CONTENT_TTS_FILE_SUFFIX: string = '.mp3';
+
+    public static MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_PATH: string = './sfiles/oselia_run_summary_tts/';
+    public static MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_PREFIX: string = 'oselia_run_summary_tts_';
+    public static MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_SUFFIX: string = '.mp3';
+
     public static openai: OpenAI = null;
 
 
@@ -174,8 +190,22 @@ export default class ModuleGPTServer extends ModuleServerBase {
         files: FileVO[],
         user_id: number,
         hide_content: boolean,
+        generate_voice_summary: boolean,
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
-        return GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, thread_title, content, files, user_id, hide_content);
+        return GPTAssistantAPIServerController.ask_assistant(
+            assistant_id,
+            thread_id,
+            thread_title,
+            content,
+            files,
+            user_id,
+            hide_content,
+            null,
+            null,
+            null,
+            null,
+            generate_voice_summary,
+        );
     }
 
     // /**
@@ -215,6 +245,10 @@ export default class ModuleGPTServer extends ModuleServerBase {
         const postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
 
         preCreateTrigger.registerHandler(GPTCompletionAPIConversationVO.API_TYPE_ID, this, this.handleTriggerPreCreateGPTCompletionAPIConversationVO);
+
+        // En amont, si on configure des mémoires sur un assitsant, on doit vérifier la présence d'une phrase dédiée à l'usage de cette mémoire, si une phrase est paramétrée en base
+        preCreateTrigger.registerHandler(GPTAssistantAPIAssistantVO.API_TYPE_ID, this, this.pre_create_trigger_handler_for_AssistantVO_check_memory_appended_texts);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIAssistantVO.API_TYPE_ID, this, this.pre_update_trigger_handler_for_AssistantVO_check_memory_appended_texts);
 
         /**
          * On défini les triggers des synchros avec OpenAI
@@ -285,6 +319,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
         preUpdateTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunsController, GPTAssistantAPIServerSyncRunsController.pre_update_trigger_handler_for_RunVO);
         preDeleteTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunsController, GPTAssistantAPIServerSyncRunsController.pre_delete_trigger_handler_for_RunVO);
 
+        postUpdateTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, this, this.on_post_update_run_emit_event);
+
         /**
          * GPTAssistantAPIThreadMessageContentVO
          * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
@@ -305,8 +341,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
         /**
          * On configure le pipe des messages pour les pousser aussi dans le thread cible si on a un thread cible
          */
-        postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerController, this.postcreate_ThreadMessageVO_handle_pipe);
-        postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, GPTAssistantAPIServerController, this.postcreate_ThreadMessageContentVO_handle_pipe);
+        postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, this, this.postcreate_ThreadMessageVO_handle_pipe);
+        postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, this, this.postcreate_ThreadMessageContentVO_handle_pipe);
 
         if (!ConfigurationService.node_configuration.open_api_api_key) {
             ConsoleHandler.warn('OPEN_API_API_KEY is not set in configuration');
@@ -643,7 +679,14 @@ export default class ModuleGPTServer extends ModuleServerBase {
         return true;
     }
 
-    private async transcribe_file(filevo_id: number, auto_commit_auto_input: boolean, gpt_assistant_id: string, gpt_thread_id: string, user_id: number): Promise<string> {
+    private async transcribe_file(
+        filevo_id: number,
+        auto_commit_auto_input: boolean,
+        gpt_assistant_id: string,
+        gpt_thread_id: string,
+        user_id: number,
+    ): Promise<string> {
+
         const filevo: FileVO = await query(FileVO.API_TYPE_ID)
             .filter_by_id(filevo_id)
             .exec_as_server()
@@ -700,7 +743,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
                     transcription.text,
                     null,
                     user_id,
-                    false
+                    false,
+                    true,
                 );
             }
 
@@ -801,6 +845,69 @@ export default class ModuleGPTServer extends ModuleServerBase {
         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_message_copy);
     }
 
+    private push_new_oselia_run_on_supervisor_thread(thread_id: number) {
+        return async () => {
+            let nb_todo_runs: number = 0;
+            let last_run: OseliaRunVO = null;
+            let run_template = null;
+            let thread_vo: GPTAssistantAPIThreadVO = null;
+            await all_promises([
+                (async () => {
+                    // si il n'y a pas de oselia_run actuellement en attente de run, alors on en pousse un, de type nouvelles_infos_pour_superviseur
+                    nb_todo_runs = await query(OseliaRunVO.API_TYPE_ID)
+                        .filter_by_num_eq(field_names<OseliaRunVO>().thread_id, thread_id)
+                        .filter_by_num_eq(field_names<OseliaRunVO>().state, OseliaRunVO.STATE_TODO)
+                        .exec_as_server()
+                        .set_limit(1)
+                        .select_count();
+                })(),
+                (async () => {
+                    // On récupère le dernier run aussi pour savoir si il est en generate_voice_summary
+                    last_run = await query(OseliaRunVO.API_TYPE_ID)
+                        .set_sort(new SortByVO(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().weight, true))
+                        .exec_as_server()
+                        .set_limit(1)
+                        .select_vo<OseliaRunVO>();
+                })(),
+                (async () => {
+                    run_template = await query(OseliaRunTemplateVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<OseliaRunTemplateVO>().name, OseliaRunTemplateVO.NEW_DATA_FOR_SUPERVISOR_OSELIA_RUN_TEMPLATE)
+                        .exec_as_server()
+                        .select_vo<OseliaRunTemplateVO>();
+                })(),
+                (async () => {
+                    thread_vo = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                        .filter_by_id(thread_id)
+                        .exec_as_server()
+                        .select_vo<GPTAssistantAPIThreadVO>();
+                })(),
+            ]);
+
+            if (nb_todo_runs > 0) {
+                ConsoleHandler.log('push_new_oselia_run_on_supervisor_thread: already a run in todo state on thread:' + thread_id);
+                return;
+            }
+
+            if (!run_template) {
+                ConsoleHandler.error('push_new_oselia_run_on_supervisor_thread: run_template not found:' + OseliaRunTemplateVO.NEW_DATA_FOR_SUPERVISOR_OSELIA_RUN_TEMPLATE);
+                return;
+            }
+
+            await OseliaRunTemplateServerController.create_run_from_template(
+                run_template,
+                {},
+                {},
+                null,
+                thread_vo,
+                null,
+                null,
+                null,
+                null,
+                !!last_run?.generate_voice_summary,
+            );
+        };
+    }
+
     private async postcreate_ThreadMessageContentVO_handle_pipe(msg_content: GPTAssistantAPIThreadMessageContentVO) {
         // 1 : On vérifie si on a un thread cible
         // 2 : On push le message content dans le thread cible => en retrouvant la copie du message qui a du être faite déjà du coup aussi. On fait le lien vers ce message content pour indiqué que c'est une copie issue d'un pipe
@@ -831,24 +938,172 @@ export default class ModuleGPTServer extends ModuleServerBase {
             return;
         }
 
-        const thread_message_content_copy = Object.assign(new GPTAssistantAPIThreadMessageContentVO(), msg_content);
-        thread_message_content_copy.id = null;
-        thread_message_content_copy.thread_message_id = piped_message.id;
-        thread_message_content_copy.piped_from_thread_message_content_id = msg_content.id;
-        thread_message_content_copy.piped_from_thread_id = thread.id;
-        thread_message_content_copy.gpt_thread_message_id = piped_message.gpt_id;
+        const piped_thread: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(thread.pipe_outputs_to_thread_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadVO>();
 
-        let content_type_text: string = msg_content.content_type_text?.value;
-        if (!content_type_text) {
-            content_type_text = "<Message issu/pipe/dupliqué du thread [" + thread.id + "]>";
-        } else {
-            content_type_text = "<Message issu/pipe/dupliqué du thread [" + thread.id + "]> : " + content_type_text;
+        if (!piped_thread) {
+            ConsoleHandler.error('postcreate_ThreadMessageContentVO_handle_pipe: piped_thread not found');
+            return;
         }
-        thread_message_content_copy.content_type_text.value = content_type_text;
-        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_message_content_copy);
 
-        // Et comme on a fait la copie de contenu, on peut planifier le .is_ready = true sur le message
-        // (on le fait pas directement des fois qu'il y ai plusieurs contenus dans ce message)
-        ModuleGPTServer.getInstance().set_message_is_ready({ [piped_message.id]: true });
+        this.wait_for_runs_to_finish_on_thread(piped_thread).then(async () => {
+
+            const thread_message_content_copy = Object.assign(new GPTAssistantAPIThreadMessageContentVO(), msg_content);
+            thread_message_content_copy.id = null;
+            thread_message_content_copy.thread_message_id = piped_message.id;
+            thread_message_content_copy.piped_from_thread_message_content_id = msg_content.id;
+            thread_message_content_copy.piped_from_thread_id = thread.id;
+            thread_message_content_copy.gpt_thread_message_id = piped_message.gpt_id;
+            thread_message_content_copy.hidden = true; // On le cache pour pas qu'il soit visible dans la discussion
+
+            let content_type_text: string = msg_content.content_type_text?.value;
+            if (!content_type_text) {
+                content_type_text = "<Message issu/pipe/dupliqué du thread [" + thread.id + "]>";
+            } else {
+                content_type_text = "<Message issu/pipe/dupliqué du thread [" + thread.id + "]> : " + content_type_text;
+            }
+            thread_message_content_copy.content_type_text.value = content_type_text;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_message_content_copy);
+
+            // Et comme on a fait la copie de contenu, on peut planifier le .is_ready = true sur le message
+            // (on le fait pas directement des fois qu'il y ai plusieurs contenus dans ce message)
+            ModuleGPTServer.getInstance().set_message_is_ready({ [piped_message.id]: true });
+
+
+            // On crée un listener si pas encore existant pour rajouter un OseliaRunVO dans le thread cible, pour initier une nouvelle réflexion avec les nouveaux éléments reçus
+            // On doit fairte un sémaphore pour s'assurer qu'on crée un seul oselia_run quelque soit le nombre de messages qui s'ajoutent à la discussion
+            const event_name = GPTAssistantAPIRunVO.NEW_PIPED_MESSAGE_EVENT_NAME_TEMPLATE
+                .replace('{gpt_thread_id}', piped_thread.gpt_thread_id.toString());
+
+            // Si on a pas encore créé de listener pour cet event, on le fait
+            if (!EventsController.registered_listeners[event_name]) {
+                EventsController.on_every_event_throttle_cb(
+                    event_name,
+                    this.push_new_oselia_run_on_supervisor_thread(piped_thread.id).bind(this),
+                    3000,
+                    true,
+                    EventifyEventListenerConfVO.PARAM_TYPE_NONE
+                );
+            }
+
+            EventsController.emit_event(EventifyEventInstanceVO.new_event(event_name));
+        });
+    }
+
+    private async pre_create_trigger_handler_for_AssistantVO_check_memory_appended_texts(assistant: GPTAssistantAPIAssistantVO): Promise<boolean> {
+        return this.check_memory_appended_texts(assistant);
+    }
+    private async pre_update_trigger_handler_for_AssistantVO_check_memory_appended_texts(assistant_wrapper: DAOUpdateVOHolder<GPTAssistantAPIAssistantVO>): Promise<boolean> {
+        return this.check_memory_appended_texts(assistant_wrapper.post_update_vo);
+    }
+
+    private async check_memory_appended_texts(assistant: GPTAssistantAPIAssistantVO): Promise<boolean> {
+
+        // Est-ce qu'on doit ajouter ou supprimer le marqueur ?
+        const appended_texts: string[] = [];
+
+        await all_promises([
+            (async () => {
+                if (assistant.app_mem_access) {
+                    const app_mem_access_prepended_text: string = await ModuleParams.instance.getParamValueAsString(
+                        OseliaAppMemVO.ASSISTANT_INSTRUCTIONS_APPENDED_TEXT_PARAM_NAME,
+                        'Penses à consulter la mémoire de l\'application - app_mem - pour comprendre le contexte de la conversation, les subtilités de cette solution, le langage métier, ...',
+                        120000,
+                    );
+                    if (app_mem_access_prepended_text && app_mem_access_prepended_text.length) {
+                        appended_texts.push(app_mem_access_prepended_text);
+                    }
+                }
+            })(),
+            (async () => {
+                if (assistant.agent_mem_access) {
+                    const agent_mem_access_prepended_text: string = await ModuleParams.instance.getParamValueAsString(
+                        OseliaAgentMemVO.ASSISTANT_INSTRUCTIONS_APPENDED_TEXT_PARAM_NAME,
+                        'Penses à consulter ta mémoire d\'assistant - agent_mem - avant le traitement pour prendre en compte les retours pertinents et les compléments d\'informations qui ont pu y être stockés dans des discussions précédentes.',
+                        120000,
+                    );
+                    if (agent_mem_access_prepended_text && agent_mem_access_prepended_text.length) {
+                        appended_texts.push(agent_mem_access_prepended_text);
+                    }
+                }
+            })(),
+            (async () => {
+                if (assistant.user_mem_access) {
+                    const user_mem_access_prepended_text: string = await ModuleParams.instance.getParamValueAsString(
+                        OseliaUserMemVO.ASSISTANT_INSTRUCTIONS_APPENDED_TEXT_PARAM_NAME,
+                        'AVANT de répondre à l\'utilisateur si tu as un user_id identifié auquel répondre, tu DOIS vérifier la mémoire de cet utilisateur - user_mem - pour savoir comment formatter ta réponse, comment t\'adresser à ton interlocuteur.',
+                        120000,
+                    );
+                    if (user_mem_access_prepended_text && user_mem_access_prepended_text.length) {
+                        appended_texts.push(user_mem_access_prepended_text);
+                    }
+                }
+            })(),
+        ]);
+
+        // On se met un marqueur pour savoir si on a déjà fait le traitement
+        const appended_text: string =
+            (appended_texts && appended_texts.length) ?
+                ('<!-- GPTAssistantAPIMemoryVO:appended_texts START -->\n' +
+                    appended_texts.join('\n') +
+                    '<!-- GPTAssistantAPIMemoryVO:appended_texts END -->\n')
+                :
+                '';
+
+        if (appended_text && appended_text.length) {
+            // On ajoute en fin d'instructions, ou on remplace si il y avait déjà, le segment en fin d'instruction
+            assistant.instructions = assistant.instructions.replace(/<!-- GPTAssistantAPIMemoryVO:appended_texts START -->[\s\S]*?<!-- GPTAssistantAPIMemoryVO:appended_texts END -->/g, appended_text);
+            if (assistant.instructions.indexOf('<!-- GPTAssistantAPIMemoryVO:appended_texts START -->') === -1) {
+                assistant.instructions += appended_text;
+            }
+        } else {
+            // On supprime le segment si il existe actuellement dans les instructions de l'assistant
+            assistant.instructions = assistant.instructions.replace(/<!-- GPTAssistantAPIMemoryVO:appended_texts START -->[\s\S]*?<!-- GPTAssistantAPIMemoryVO:appended_texts END -->/g, '');
+        }
+
+        return true;
+    }
+
+    private async on_post_update_run_emit_event(run_wrapper: DAOUpdateVOHolder<GPTAssistantAPIRunVO>): Promise<void> {
+        // Si l'état change, on veut emit un event sur le nouvel état du thread
+        if (run_wrapper.pre_update_vo.status != run_wrapper.post_update_vo.status) {
+            const event_name = GPTAssistantAPIRunVO.STATUS_UPDATE_EVENT_NAME_TEMPLATE
+                .replace('{rungpt_id}', run_wrapper.post_update_vo.gpt_run_id.toString());
+            EventsController.emit_event(EventifyEventInstanceVO.new_event(event_name, run_wrapper.post_update_vo));
+        }
+    }
+
+    private async wait_for_runs_to_finish_on_thread(thread: GPTAssistantAPIThreadVO): Promise<void> {
+        /**
+         * On doit vérifier que le run GPT est pas en cours, et sinon, on attend la fin du run précédent pour push les nouveaux messages
+         */
+        const runs = await GPTAssistantAPIServerController.wrap_api_call(
+            ModuleGPTServer.openai.beta.threads.runs.list,
+            ModuleGPTServer.openai.beta.threads.runs,
+            thread.gpt_thread_id,
+        );
+        const activeRun = runs.data.find(run => ['queued', 'in_progress', 'requires_action', 'cancelling'].includes(run.status));
+        if (activeRun) {
+            // On doit passer par une attente de libération du thread
+            const event_name = GPTAssistantAPIRunVO.STATUS_UPDATE_EVENT_NAME_TEMPLATE
+                .replace('{rungpt_id}', activeRun.id.toString());
+
+            let current_state: number = GPTAssistantAPIRunVO.FROM_OPENAI_STATUS_MAP[activeRun.status];
+            const working_states: number[] = [
+                GPTAssistantAPIRunVO.STATUS_QUEUED,
+                GPTAssistantAPIRunVO.STATUS_IN_PROGRESS,
+                GPTAssistantAPIRunVO.STATUS_REQUIRES_ACTION,
+                GPTAssistantAPIRunVO.STATUS_CANCELLING,
+            ];
+
+            while (working_states.indexOf(current_state) >= 0) {
+                const updated_run: GPTAssistantAPIRunVO = await EventsController.await_next_event(event_name) as GPTAssistantAPIRunVO;
+
+                current_state = updated_run.status;
+                ConsoleHandler.log('postcreate_ThreadMessageVO_handle_pipe: waiting for run to finish:' + updated_run.id + ':' + updated_run.status);
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import VueJsonPretty from 'vue-json-pretty';
 import { Prop, Watch } from 'vue-property-decorator';
+import Throttle from "../../../../../../shared/annotations/Throttle";
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -15,6 +16,7 @@ import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBui
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
+import EventifyEventListenerConfVO from "../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO";
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../../../../shared/modules/GPT/ModuleGPT';
@@ -162,6 +164,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private media_recorder: MediaRecorder = null;
     private audio_chunks: Blob[] = [];
 
+    private waiting_for_new_run_summary: number = null;
+    private is_waiting_for_new_run_summary: boolean = false;
+
     private functions_by_id: { [id: number]: GPTAssistantAPIFunctionVO } = {};
 
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(
@@ -186,6 +191,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
+        if (this.assistant?.id != this.currently_selected_assistant.id) {
+            this.assistant = this.currently_selected_assistant;
+        }
+
         if (!this.thread) {
             return;
         }
@@ -197,7 +206,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.thread.current_default_assistant_id = this.currently_selected_assistant.id;
         this.thread.current_oselia_assistant_id = this.currently_selected_assistant.id;
         await ModuleDAO.getInstance().insertOrUpdateVO(this.thread);
-        this.assistant = this.currently_selected_assistant;
     }
 
     @Watch(reflect<OseliaThreadWidgetComponent>().auto_commit_auto_input)
@@ -253,6 +261,47 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         for (const file of files) {
             this.thread_files.push({ ['.' + file.path.split('.').pop()]: file });
         }
+    }
+
+    @Watch('oselia_runs')
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 100,
+    })
+    private async on_update_oselia_runs() {
+        // On check qu'il y a pas un message vocal qui nous est destiné
+        if (!this.is_waiting_for_new_run_summary) {
+            return;
+        }
+
+        if (this.oselia_runs?.length > 0) {
+            for (const run of this.oselia_runs) {
+                if (this.waiting_for_new_run_summary && (run.id <= this.waiting_for_new_run_summary)) {
+                    continue;
+                }
+
+                if (!run.voice_summary_id) {
+                    continue;
+                }
+
+                const voice_summary = await query(FileVO.API_TYPE_ID)
+                    .filter_by_id(run.voice_summary_id)
+                    .select_vo<FileVO>();
+                if (!voice_summary) {
+                    continue;
+                }
+
+                const audio = new Audio(voice_summary.path);
+                audio.play().then(() => {
+                    //
+                }).catch((error) => {
+                    ConsoleHandler.error(error);
+                });
+            }
+        }
+
+        this.waiting_for_new_run_summary = null;
+        this.is_waiting_for_new_run_summary = false;
     }
 
     private select_thread_id(thread_id: number) {
@@ -638,7 +687,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.$nextTick(() => {
             this.scroll_to_bottom();
         });
-
     }
 
     private try_parse_json(json: string): any {
@@ -747,12 +795,18 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
-        if (!nb_assistants) {
-            return;
-        }
+        if ((!nb_assistants) || (nb_assistants > 1)) {
 
-        if (nb_assistants > 1) {
-            this.try_set_too_many_assistants(true);
+            // On tente de passer par celui qui est sélectionné
+            if (this.currently_selected_assistant) {
+                this.assistant = this.currently_selected_assistant;
+                this.try_set_too_many_assistants(false);
+                return;
+            }
+
+            if (nb_assistants > 1) {
+                this.try_set_too_many_assistants(true);
+            }
             return;
         }
 
@@ -802,14 +856,21 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             const message = self.new_message_text;
             self.new_message_text = null;
             this.thread_files = []; // empty the thread files
-            const responses = await ModuleGPT.getInstance().ask_assistant(
-                self.assistant.gpt_assistant_id,
+            const gpt_assistant_id = this.assistant?.gpt_assistant_id ? this.assistant.gpt_assistant_id : this.currently_selected_assistant?.gpt_assistant_id;
+            if (!gpt_assistant_id) {
+                ConsoleHandler.error('No assistant selected');
+                return;
+            }
+
+            await ModuleGPT.getInstance().ask_assistant(
+                gpt_assistant_id,
                 self.thread.gpt_thread_id,
                 null,
                 message,
                 files,
                 VueAppController.getInstance().data_user.id,
-                false
+                false,
+                false,
             );
 
 
@@ -996,7 +1057,58 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
                     const auto_commit_auto_input = this.auto_commit_auto_input;
 
-                    const transcription = await ModuleGPT.getInstance().transcribe_file(file_vo.id, auto_commit_auto_input, this.assistant.gpt_assistant_id, this.thread.gpt_thread_id, VueAppController.getInstance().data_user.id);
+                    if (auto_commit_auto_input) {
+                        // On stocke le dernier run connu avant la demande pour identifier rapidement le nouveau run dont on veut entendre le résumé
+                        this.waiting_for_new_run_summary = this.oselia_runs?.length > 0 ? this.oselia_runs[this.oselia_runs.length - 1].id : null;
+                        this.is_waiting_for_new_run_summary = true;
+                    }
+
+                    const gpt_assistant_id = this.assistant?.gpt_assistant_id ? this.assistant.gpt_assistant_id : this.currently_selected_assistant?.gpt_assistant_id;
+                    const assistant_id = this.assistant?.id ? this.assistant.id : this.currently_selected_assistant?.id;
+                    if (!gpt_assistant_id) {
+                        ConsoleHandler.error('No assistant selected');
+                        return;
+                    }
+
+                    let thread = this.thread;
+
+                    if (!thread) {
+                        const new_thread: number = await ModuleOselia.getInstance().create_thread();
+
+                        if (new_thread) {
+                            this.set_active_field_filter({
+                                field_id: field_names<GPTAssistantAPIThreadVO>().id,
+                                vo_type: GPTAssistantAPIThreadVO.API_TYPE_ID,
+                                active_field_filter: filter(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().id).by_id(new_thread)
+                            });
+                        } else {
+                            ConsoleHandler.error('Error creating thread');
+                            return;
+                        }
+
+                        const new_thread_vo: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                            .filter_by_id(new_thread)
+                            .select_vo<GPTAssistantAPIThreadVO>();
+                        new_thread_vo.current_oselia_assistant_id = assistant_id;
+                        new_thread_vo.current_default_assistant_id = assistant_id;
+                        new_thread_vo.user_id = VueAppController.getInstance().data_user.id;
+                        await ModuleDAO.getInstance().insertOrUpdateVO(new_thread_vo);
+
+                        if (!new_thread_vo) {
+                            ConsoleHandler.error('Error creating thread');
+                            return;
+                        }
+
+                        thread = new_thread_vo;
+                    }
+
+                    const transcription = await ModuleGPT.getInstance().transcribe_file(
+                        file_vo.id,
+                        auto_commit_auto_input,
+                        gpt_assistant_id,
+                        thread.gpt_thread_id,
+                        VueAppController.getInstance().data_user.id,
+                    );
 
                     if (auto_commit_auto_input) {
                         this.input_voice_is_transcribing = false;

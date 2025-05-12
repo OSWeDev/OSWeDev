@@ -318,6 +318,10 @@ export default class ModuleOselia extends Module {
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().listener_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Listener source du run', false)
             .set_many_to_one_target_moduletable_name(EventifyEventListenerInstanceVO.API_TYPE_ID);
 
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().generate_voice_summary, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Générer un résumé vocal', true, true, false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().voice_summary_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Résumé vocal', false)
+            .set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+
         ModuleTableController.create_new(this.name, OseliaRunVO, label, 'Oselia - Run');
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[OseliaRunVO.API_TYPE_ID]);
 

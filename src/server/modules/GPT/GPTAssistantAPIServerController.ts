@@ -4,7 +4,6 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import GPTAssistantAPIAssistantFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantFunctionVO';
 import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
 import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
@@ -21,6 +20,7 @@ import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
 import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
 import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
 import OseliaRunFunctionCallVO from '../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
+import OseliaRunTemplateVO from '../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
 import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 import OseliaThreadRoleVO from '../../../shared/modules/Oselia/vos/OseliaThreadRoleVO';
@@ -822,6 +822,7 @@ export default class GPTAssistantAPIServerController {
         oselia_run_purpose_state: number = null, // On utilise les states d'Osélia run pour identifier le but de ce run en particulier dans le run Osélia
         additional_run_tools: GPTAssistantAPIFunctionVO[] = null,
         referrer_id: number = null,
+        generate_voice_summary: boolean = false,
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
         // Objectif : Lancer le Run le plus vite possible, pour ne pas perdre de temps
@@ -945,27 +946,20 @@ export default class GPTAssistantAPIServerController {
             thread_vo.last_gpt_run_id = run_vo.id;
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
 
-            // Si on a un oselia_run, on le lie
-            if (oselia_run) {
-
-                switch (oselia_run_purpose_state) {
-                    case OseliaRunVO.STATE_SPLITTING:
-                        oselia_run.split_gpt_run_id = run_vo.id;
-                        break;
-                    case OseliaRunVO.STATE_RUNNING:
-                        oselia_run.run_gpt_run_id = run_vo.id;
-                        break;
-                    case OseliaRunVO.STATE_VALIDATING:
-                        oselia_run.validation_gpt_run_id = run_vo.id;
-                        break;
-                    default:
-                        throw new Error('ask_assistant:oselia_run_purpose_state:Not implemented');
-                }
-                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run);
-            }
+            // On gère la liaison à l'OséliaRun, on le crée au besoin
+            oselia_run = await GPTAssistantAPIServerController.link_oselia_run_to_thread(
+                content_text,
+                thread_vo,
+                run_vo,
+                oselia_run,
+                oselia_run_purpose_state,
+                assistant_vo.id,
+                user_id,
+                referrer_id,
+                generate_voice_summary,
+            );
 
             // à cette étape, le RUN est lancé côté OpenAI, on peut faire les chargements potentiellement nécessaires pour les fonctions
-
 
             // On récupère aussi les informations liées au referrer si il y en a un, de manière à préparer l'exécution des fonctions du referre si on en a
             // TODO FIXME : on ne prend en compte que le dernier referrer pour le moment
@@ -1651,5 +1645,80 @@ export default class GPTAssistantAPIServerController {
         ]);
 
         return function_response;
+    }
+
+    private static async link_oselia_run_to_thread(
+        prompt: string,
+        thread_vo: GPTAssistantAPIThreadVO,
+        run_vo,
+        oselia_run: OseliaRunVO,
+        oselia_run_purpose_state: number,
+        assistant_id: number,
+        user_id: number,
+        referrer_id: number,
+        generate_voice_summary: boolean,
+    ): Promise<OseliaRunVO> {
+
+        if (!oselia_run) {
+
+            const ask_assistant_run_template: OseliaRunTemplateVO = await query(OseliaRunTemplateVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<OseliaRunTemplateVO>().name, OseliaRunTemplateVO.ASK_ASSISTANT_OSELIA_RUN_TEMPLATE)
+                .exec_as_server()
+                .set_max_age_ms(120000)
+                .select_vo<OseliaRunTemplateVO>();
+
+            if (!ask_assistant_run_template) {
+                ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: oselia_run_template not found');
+                throw new Error('GPTAssistantAPIServerController.ask_assistant: oselia_run_template not found');
+            }
+
+            const weight = (await query(OseliaRunVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<OseliaRunVO>().thread_id, thread_vo.id)
+                .filter_is_null_or_empty(field_names<OseliaRunVO>().parent_run_id)
+                .exec_as_server()
+                .select_count()) + 1;
+
+            oselia_run = new OseliaRunVO();
+            oselia_run.thread_id = thread_vo.id;
+            oselia_run.template_id = ask_assistant_run_template.id;
+            oselia_run.template_name = ask_assistant_run_template.name;
+            oselia_run.assistant_id = assistant_id;
+            oselia_run.user_id = user_id;
+            oselia_run.childrens_are_multithreaded = ask_assistant_run_template.childrens_are_multithreaded;
+            oselia_run.file_id_ranges = ask_assistant_run_template.file_id_ranges;
+            oselia_run.hide_outputs = ask_assistant_run_template.hide_outputs;
+            oselia_run.hide_prompt = ask_assistant_run_template.hide_outputs;
+            oselia_run.initial_content_text = prompt;
+            oselia_run.name = ask_assistant_run_template.name;
+            oselia_run.start_date = Dates.now();
+            oselia_run.run_start_date = Dates.now();
+            oselia_run.run_type = OseliaRunVO.RUN_TYPE_ASSISTANT;
+            oselia_run.state = OseliaRunVO.STATE_RUNNING;
+            ask_assistant_run_template.thread_title = thread_vo.thread_title;
+            oselia_run.use_splitter = ask_assistant_run_template.use_splitter;
+            oselia_run.use_validator = ask_assistant_run_template.use_validator;
+            oselia_run.weight = weight;
+            oselia_run.referrer_id = referrer_id;
+
+            oselia_run_purpose_state = OseliaRunVO.STATE_RUNNING;
+        }
+
+        oselia_run.generate_voice_summary = generate_voice_summary;
+        switch (oselia_run_purpose_state) {
+            case OseliaRunVO.STATE_SPLITTING:
+                oselia_run.split_gpt_run_id = run_vo.id;
+                break;
+            case OseliaRunVO.STATE_RUNNING:
+                oselia_run.run_gpt_run_id = run_vo.id;
+                break;
+            case OseliaRunVO.STATE_VALIDATING:
+                oselia_run.validation_gpt_run_id = run_vo.id;
+                break;
+            default:
+                throw new Error('ask_assistant:oselia_run_purpose_state:Not implemented');
+        }
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run);
+
+        return oselia_run;
     }
 }
