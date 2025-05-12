@@ -48,7 +48,8 @@ import OseliaRunArboComponent from './OseliaRunArbo/OseliaRunArboComponent';
 import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
 import './OseliaThreadWidgetComponent.scss';
-import OseliaRealtimeButton from './OseliaRealtimeButton/OseliaRealtimeButton';
+import GPTRealtimeAPISessionVO from "../../../../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO";
+import OseliaRealtimeButton from "./OseliaRealtimeButton/OseliaRealtimeButton";
 
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
@@ -62,7 +63,6 @@ import OseliaRealtimeButton from './OseliaRealtimeButton/OseliaRealtimeButton';
         VueJsonPretty,
         Oseliarunarbocomponent: OseliaRunArboComponent,
         Oseliarungraphwidgetcomponent: OseliaRunGraphWidgetComponent,
-        Oseliarealtimebutton: OseliaRealtimeButton
     }
 })
 export default class OseliaThreadWidgetComponent extends VueComponentBase {
@@ -132,6 +132,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     public thread_messages: GPTAssistantAPIThreadMessageVO[] = [];
     public thread: GPTAssistantAPIThreadVO = null;
     public oselia_runs: OseliaRunVO[] = [];
+    public realtime_session: GPTRealtimeAPISessionVO = null;
     private has_access_to_thread: boolean = false;
     private is_loading_thread: boolean = true;
     private assistant_is_busy: boolean = false;
@@ -149,6 +150,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private wait_for_data: boolean = false;
     private dashboard_export_id: number = null;
     private is_creating_thread: boolean = false;
+    private realtime_on: boolean = false;
     private send_message_create: boolean = false;
     // private is_recording_voice: boolean = false;
     // private voice_record: MediaRecorder = null;
@@ -258,6 +260,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
     }
 
+
     private select_thread_id(thread_id: number) {
         this.set_active_field_filter({
             vo_type: GPTAssistantAPIThreadVO.API_TYPE_ID,
@@ -267,6 +270,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async beforeDestroy() {
+        if(this.realtime_on) {
+            this.realtime_on = false;
+            await OseliaRealtimeButton.stop_realtime();
+        }
         await this.unregister_all_vo_event_callbacks();
     }
 
@@ -332,6 +339,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             this.sub_threads = [];
             this.function_calls = [];
             this.oselia_runs = [];
+            this.realtime_session = null;
             this.assistant = null;
             this.currently_selected_assistant = this.assistant;
             this.is_loading_thread = false;
@@ -498,6 +506,14 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
+        // Une fois que tout est chargé, on lance la connexion au websocket si on a realtime de lancé
+        if (this.thread.realtime_activated) {
+            this.realtime_on = true;
+            await OseliaRealtimeButton.startVAD(this.thread);
+        } else if(this.realtime_on) {
+            this.realtime_on = false;
+            await OseliaRealtimeButton.stop_realtime();
+        }
         if (this.current_thread_id == this.thread.id) {
             return;
         }

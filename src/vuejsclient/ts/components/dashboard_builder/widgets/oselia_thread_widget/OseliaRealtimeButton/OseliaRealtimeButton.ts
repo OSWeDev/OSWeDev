@@ -10,12 +10,48 @@ import ConsoleHandler from "../../../../../../../shared/tools/ConsoleHandler";
 import VueAppController from "../../../../../../VueAppController";
 import { cr } from "@fullcalendar/core/internal-common";
 import IPlanRDVCR from "../../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR";
+import GPTAssistantAPIThreadVO from "../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO";
+import ModuleDAO from "../../../../../../../shared/modules/DAO/ModuleDAO";
 
-@Component({
-    template: require('./OseliaRealtimeButton.pug'),
-})
 export default class OseliaRealtimeButton extends VueComponentBase {
 
+    public static socket: WebSocket | null = null;
+    public static audioContext: AudioContext | null = null;
+
+    // VAD via la lib voice-activity-detection
+    public static vadController: any = null;
+
+    public static mediaStream: MediaStream | null = null;
+    public static scriptProcessor: ScriptProcessorNode  | null = null;
+
+    public static isSpeech: boolean = false;
+    public static audioChunks: Int16Array[] = [];
+    public static audioChunkInterval: ReturnType<typeof setInterval> | null = null;
+
+    public static is_connected_to_realtime: boolean = false;
+    public static realtime_is_sending: boolean = false;
+    public static realtime_is_recording: boolean = false;
+    public static connection_ready: boolean = false;
+
+    public static input_voice_is_recording = false;
+    public static input_voice_is_transcribing = false;
+    public static media_recorder: MediaRecorder = null;
+    public static audio_chunks: Blob[] = [];
+    public static incomingAudioChunks: Uint8Array[] = [];
+    public static call_thread: GPTAssistantAPIThreadVO = null;
+    public static is_in_cr: boolean = false;
+
+    @Prop({ default: null })
+    public static has_access_to_thread: boolean;
+
+    @Prop({ default: null })
+    public static gpt_thread_id: string | null;
+
+    @Prop({ default: null })
+    public static cr_html_content: string | null;
+
+    @Prop({ default: null })
+    public static cr_vo: IPlanRDVCR | null;
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
@@ -32,72 +68,13 @@ export default class OseliaRealtimeButton extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
 
-    @Prop({ default: null })
-    private has_access_to_thread: boolean;
-
-    @Prop({ default: null })
-    private gpt_thread_id: string | null;
-
-    @Prop({ default: null })
-    private cr_html_content: string | null;
-
-    @Prop({ default: null })
-    private cr_vo: IPlanRDVCR | null;
-
-    private socket: WebSocket | null = null;
-    private audioContext: AudioContext | null = null;
-
-    // VAD via la lib voice-activity-detection
-    private vadController: any = null;
-
-    private mediaStream: MediaStream | null = null;
-    private scriptProcessor: ScriptProcessorNode  | null = null;
-
-    private isSpeech: boolean = false;
-    private audioChunks: Int16Array[] = [];
-    private audioChunkInterval: ReturnType<typeof setInterval> | null = null;
-
-    private is_connected_to_realtime: boolean = false;
-    private realtime_is_sending: boolean = false;
-    private realtime_is_recording: boolean = false;
-    private connection_ready: boolean = false;
-
-    private input_voice_is_recording = false;
-    private input_voice_is_transcribing = false;
-    private media_recorder: MediaRecorder = null;
-    private audio_chunks: Blob[] = [];
-    private incomingAudioChunks: Uint8Array[] = [];
-
-    private is_in_cr: boolean = false;
-    @Watch('connection_ready')
-    private on_connection_ready_to_realtime_change() {
-        if (this.connection_ready) {
-            if (this.is_in_cr) {
-                this.send_function_to_realtime();
-                this.send_cr_to_realtime();
-            }
-            this.send_audio();
-
-        } else {
-            this.stop_realtime();
-        }
-    }
-
-    @Watch('cr_html_content')
-    private on_cr_html_content_change() {
-        if (this.cr_html_content) {
-            this.is_in_cr = true;
-        } else {
-            this.is_in_cr = false;
-        }
-    }
-
     /**
    * Initialise l'accès micro.
    */
-    private async startVAD() {
+    public static async startVAD(call_thread?:GPTAssistantAPIThreadVO) {
         try {
             console.log("Starting VAD...");
+            this.call_thread = call_thread;
             if(!this.is_connected_to_realtime){
                 await this.start_realtime(); // Assure que la connexion WebSocket est établie avant tout
             }
@@ -129,7 +106,7 @@ export default class OseliaRealtimeButton extends VueComponentBase {
         }
     }
 
-    private async start_realtime() {
+    public static async start_realtime() {
         if (!this.is_connected_to_realtime) {
 
             await ModuleGPT.getInstance().connect_to_realtime_voice(null, this.gpt_thread_id, VueAppController.getInstance().data_user.id);
@@ -184,7 +161,7 @@ export default class OseliaRealtimeButton extends VueComponentBase {
         }
     }
 
-    private async stop_realtime() {
+    public static async stop_realtime() {
         if (!this.realtime_is_recording) return;
 
         this.realtime_is_recording = false;
@@ -211,10 +188,12 @@ export default class OseliaRealtimeButton extends VueComponentBase {
         }
 
         this.realtime_is_sending = false;
+        await this.close_realtime();
     }
 
 
-    private close_realtime() {
+    public static close_realtime() {
+        console.log("Closing VAD...");
         if (this.socket) {
             this.socket.close();
             this.socket = null;
@@ -226,7 +205,7 @@ export default class OseliaRealtimeButton extends VueComponentBase {
         }
     }
 
-    private async send_context_to_realtime() {
+    public static async send_context_to_realtime() {
         if (this.socket?.readyState === WebSocket.OPEN) {
 
             this.socket.send(JSON.stringify({
@@ -245,7 +224,7 @@ export default class OseliaRealtimeButton extends VueComponentBase {
         }
     }
 
-    private async send_function_to_realtime() {
+    public static async send_function_to_realtime() {
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify({
                 "type": "session.update",
@@ -277,7 +256,7 @@ export default class OseliaRealtimeButton extends VueComponentBase {
         }
     }
 
-    private async send_cr_to_realtime(){
+    public static async send_cr_to_realtime(){
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify({
                 type: "cr_data",
@@ -287,7 +266,7 @@ export default class OseliaRealtimeButton extends VueComponentBase {
         }
     }
 
-    private async send_audio() {
+    public static async send_audio() {
         // Préparation finale de l'audio
         const fullAudio = this.concatInt16Arrays(this.audioChunks);
         this.audioChunks = [];
@@ -308,7 +287,7 @@ export default class OseliaRealtimeButton extends VueComponentBase {
     /**
    * Joue un buffer PCM16 (échantillonnage 24000 Hz) reçu du serveur.
    */
-    private playAudio(pcmData: Uint8Array) {
+    public static playAudio(pcmData: Uint8Array) {
         const audioContext = new AudioContext({ sampleRate: 24000 });
         const numSamples = pcmData.length / 2; // 2 bytes par échantillon PCM16
         const audioBuffer = audioContext.createBuffer(1, numSamples, 24000);
@@ -330,7 +309,7 @@ export default class OseliaRealtimeButton extends VueComponentBase {
     /**
    * Convertit un tableau Float32Array en Int16Array
    */
-    private floatTo16BitPCM(input: Float32Array): Int16Array {
+    public static floatTo16BitPCM(input: Float32Array): Int16Array {
         const output = new Int16Array(input.length);
         for (let i = 0; i < input.length; i++) {
             const s = Math.max(-1, Math.min(1, input[i]));
@@ -342,7 +321,7 @@ export default class OseliaRealtimeButton extends VueComponentBase {
     /**
    * Concatène plusieurs Int16Array en un seul
    */
-    private concatInt16Arrays(chunks: Int16Array[]): Int16Array {
+    public static concatInt16Arrays(chunks: Int16Array[]): Int16Array {
         const totalLength = chunks.reduce((sum, arr) => sum + arr.length, 0);
         const result = new Int16Array(totalLength);
 
@@ -357,7 +336,7 @@ export default class OseliaRealtimeButton extends VueComponentBase {
     /**
    * Encode un ArrayBuffer en base64
    */
-    private base64ArrayBuffer(arrayBuffer: ArrayBuffer): string {
+    public static base64ArrayBuffer(arrayBuffer: ArrayBuffer): string {
         let binary = '';
         const bytes = new Uint8Array(arrayBuffer);
         for (let i = 0; i < bytes.byteLength; i++) {
@@ -366,7 +345,7 @@ export default class OseliaRealtimeButton extends VueComponentBase {
         return btoa(binary);
     }
 
-    private concatUint8Arrays(chunks: Uint8Array[]): Uint8Array {
+    public static concatUint8Arrays(chunks: Uint8Array[]): Uint8Array {
         const totalLength = chunks.reduce((sum, arr) => sum + arr.length, 0);
         const result = new Uint8Array(totalLength);
 
@@ -376,5 +355,36 @@ export default class OseliaRealtimeButton extends VueComponentBase {
             offset += arr.length;
         }
         return result;
+    }
+
+    @Watch('connection_ready')
+    public static on_connection_ready_to_realtime_change() {
+        if (this.connection_ready) {
+            if (this.is_in_cr) {
+                this.send_function_to_realtime();
+                this.send_cr_to_realtime();
+            }
+            this.send_audio();
+
+        } else {
+            this.stop_realtime();
+        }
+    }
+
+    @Watch('cr_html_content')
+    public static on_cr_html_content_change() {
+        if (this.cr_html_content) {
+            this.is_in_cr = true;
+        } else {
+            this.is_in_cr = false;
+        }
+    }
+
+    @Watch('is_connected_to_realtime')
+    public static async on_is_connected_to_realtime_change() {
+        if (!this.is_connected_to_realtime && this.call_thread) {
+            this.call_thread.realtime_activated = false;
+            await ModuleDAO.getInstance().insertOrUpdateVO(this.call_thread);
+        }
     }
 }

@@ -1132,9 +1132,14 @@ export default class GPTAssistantAPIServerController {
         conversation_id: string,
         user_id: number): Promise<void> {
         try {
-            if(!session_id) {
-                await this.create_realtime_session();
-            }
+            // Dans tout les cas on créer une websocket avec une nouvelle session
+            // On ne peut pas rejoindre une session existante, il faut en créer une nouvelle à chaque fois
+            await this.create_realtime_session();
+            // if(!session_id) {
+            //     await this.create_realtime_session();
+            // } else {
+            //     await this.join_realtime_session(session_id, conversation_id, user_id);
+            // }
         } catch(error) {
             ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: ' + error);
         }
@@ -1322,6 +1327,17 @@ export default class GPTAssistantAPIServerController {
             return;
         }
     }
+
+    // private static async join_realtime_session( session_id: string,
+    //     conversation_id: string,
+    //     user_id: number): Promise<void> {
+    //     try {
+
+    //     } catch (error) {
+    //         ConsoleHandler.error('join_realtime_session: ' + error);
+    //         return;
+    //     }
+    // }
 
     private static async resync_thread_messages(thread_vo: GPTAssistantAPIThreadVO) {
         try {

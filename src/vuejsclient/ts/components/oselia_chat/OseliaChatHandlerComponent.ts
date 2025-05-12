@@ -14,7 +14,7 @@ import EventifyEventConfVO from '../../../../shared/modules/Eventify/vos/Eventif
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import GPTAssistantAPIThreadVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import GPTAssistantAPIAssistantVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
-import { field_names } from '../../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../../shared/tools/ObjectHandler';
 import ModuleGPT from '../../../../shared/modules/GPT/ModuleGPT';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 @Component({
@@ -25,6 +25,7 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
     @ModuleDAOGetter
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
+    public currentThreadVO: GPTAssistantAPIThreadVO = null;
     private isActive: boolean = false;
     private is_open: boolean = false;
     private widget: OseliaThreadWidgetComponent = null;
@@ -48,23 +49,56 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
         this.isActive = (await OseliaController.get_referrer_id(document.location.href)) != null;
     }
 
+    @Watch('currentThreadVO', { deep: true })
+    public async onCurrentThreadVOChange() {
+        if (this.currentThreadVO) {
+            if (this.currentThreadVO.realtime_activated) {
+                this.new_thread_id = this.currentThreadVO.gpt_thread_id;
+                this.isActiveOselia = this.currentThreadVO.realtime_activated;
+                this.is_open = true;
+                if (!this.ott) {
+                    this.ott = await ModuleOselia.getInstance().get_token_oselia(document.location.href);
+                }
+            }
+        } else {
+            this.is_open = false;
+        }
+    }
+
     @Watch('isActiveOselia')
     private async onIsActiveOseliaChange() {
         if (this.isActiveOselia) {
             // On est sur du realtime, on créer le thread
-            const new_thread_id: number = await ModuleOselia.getInstance().create_thread();
-            if (new_thread_id) {
-                const new_thread : GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
-                    .filter_by_id(new_thread_id)
-                    .select_vo();
-                const realtime_assistant_id = (await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<GPTAssistantAPIAssistantVO>().nom, ModuleGPT.ASSISTANT_REALTIME_NAME)
-                    .select_vo()).id;
-                new_thread.current_oselia_assistant_id = realtime_assistant_id;
-                new_thread.current_default_assistant_id = realtime_assistant_id;
+            if (!this.new_thread_id) {
+                // On ne doit pas créer de thread si on est sur un rendez-vous déjà existant
+                const new_thread_id: number = await ModuleOselia.getInstance().create_thread();
+                if (new_thread_id) {
+                    const new_thread: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                        .filter_by_id(new_thread_id)
+                        .select_vo();
+                    const realtime_assistant_id = (await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<GPTAssistantAPIAssistantVO>().nom, ModuleGPT.ASSISTANT_REALTIME_NAME)
+                        .select_vo()).id;
+                    new_thread.current_oselia_assistant_id = realtime_assistant_id;
+                    new_thread.current_default_assistant_id = realtime_assistant_id;
+                    this.new_thread_id = new_thread.gpt_thread_id;
 
-                await ModuleDAO.getInstance().insertOrUpdateVO(new_thread);
-                this.new_thread_id = new_thread.gpt_thread_id;
+                    this.register_single_vo_updates(GPTAssistantAPIThreadVO.API_TYPE_ID, new_thread.id, reflect<this>().currentThreadVO);
+                    new_thread.realtime_activated = true;
+
+                    await ModuleDAO.getInstance().insertOrUpdateVO(new_thread);
+                }
+            } else {
+                if (this.currentThreadVO) {
+                    this.currentThreadVO.realtime_activated = true;
+                    await ModuleDAO.getInstance().insertOrUpdateVO(this.currentThreadVO);
+                }
+            }
+        } else {
+            // On est sur du non realtime, on doit arrêter le thread
+            if (this.currentThreadVO) {
+                this.currentThreadVO.realtime_activated = false;
+                await ModuleDAO.getInstance().insertOrUpdateVO(this.currentThreadVO);
             }
         }
     }
@@ -80,6 +114,11 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
         );
         EventsController.register_event_listener(get_oselia_realtime_activation);
     }
+
+    private async beforeDestroy() {
+        await this.unregister_all_vo_event_callbacks();
+    }
+
 
     private async openClick() {
         this.is_open = !this.is_open;
