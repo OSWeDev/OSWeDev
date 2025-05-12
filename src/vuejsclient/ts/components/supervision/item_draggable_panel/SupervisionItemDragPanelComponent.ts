@@ -38,7 +38,7 @@ export default class SupervisionItemDragPanelComponent extends VueComponentBase 
         const route: Route = Object.assign({}, this.$router.currentRoute);
         this.set_sup_item_id(route);
         this.has_access_pause = await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS);
-        this.split_char = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervision.PARAM_NAME_sup_item_name_split_char, null);
+        this.split_char = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervision.PARAM_NAME_sup_item_name_split_char, null, 10000);
     }
 
     private set_sup_item_id(route: Route) {
