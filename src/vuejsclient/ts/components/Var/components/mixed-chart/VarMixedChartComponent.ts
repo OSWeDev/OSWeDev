@@ -1,25 +1,23 @@
-import { clamp, debounce, isEqual } from 'lodash';
-import { Chart as VueChart } from 'vue-chartjs';
+import { _adapters, CategoryScale, LinearScale, LogarithmicScale, RadialLinearScale, TimeScale } from 'chart.js';
 import Chart from "chart.js/auto";
 import * as helpers from "chart.js/helpers";
-import { _adapters, CategoryScale, LinearScale, LogarithmicScale, RadialLinearScale, TimeScale } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { debounce, isEqual } from 'lodash';
+import { Chart as VueChart } from 'vue-chartjs';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import VarChartScalesOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
 import DatesChartJsAdapters from '../../../../../../shared/modules/FormatDatesNombres/Dates/DatesChartJsAdapters';
 import VarMixedChartDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarMixedChartDataSetDescriptor';
-import VarsController from '../../../../../../shared/modules/Var/VarsController';
-import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
-import VarChartScalesOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
-import VarChartOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
-import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 
 export interface IChartOptions {
     responsive?: boolean;
@@ -192,7 +190,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
                     }
                     self.$modal.show(
                         VarDatasRefsParamSelectComponent,
-                        { var_params:  all_chart_params },
+                        { var_params: all_chart_params },
                         {
                             width: 465,
                             height: 'auto',
@@ -257,7 +255,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
         if (!this.charts_data || !this.charts_options) {
             return;
         }
-        if(this.current_mixed_charts_options) {
+        if (this.current_mixed_charts_options) {
             if (this.current_mixed_charts_options.detailed != this.charts_options.detailed) {
                 this.chartKey++;
             }

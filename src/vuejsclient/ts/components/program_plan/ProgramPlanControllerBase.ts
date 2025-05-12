@@ -13,7 +13,7 @@ import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/Module
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../../shared/tools/ObjectHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
-import VueAppBase from '../../../VueAppBase';
+import VueAppBaseInstanceHolder from '../../../VueAppBaseInstanceHolder';
 
 export default abstract class ProgramPlanControllerBase {
 
@@ -111,7 +111,7 @@ export default abstract class ProgramPlanControllerBase {
         element,
         view: ViewApi) {
 
-        const getRdvsByIds: { [id: number]: IPlanRDV } = VueAppBase.instance_.vueInstance.$store.getters['ProgramPlanStore/getRdvsByIds'];
+        const getRdvsByIds: { [id: number]: IPlanRDV } = VueAppBaseInstanceHolder.instance.vueInstance.$store.getters['ProgramPlanStore/getRdvsByIds'];
 
         // Définir l'état et donc l'icone
         let icon = null;
@@ -182,8 +182,8 @@ export default abstract class ProgramPlanControllerBase {
                     }
 
                     if (all_rdv.start_time > rdv.start_time) {
-                        VueAppBase.instance_.vueInstance.snotify.error(
-                            VueAppBase.instance_.vueInstance.label('programplan.fc.create.has_more_recent_task__denied')
+                        VueAppBaseInstanceHolder.instance.vueInstance.snotify.error(
+                            VueAppBaseInstanceHolder.instance.vueInstance.label('programplan.fc.create.has_more_recent_task__denied')
                         );
 
                         return true;
@@ -210,8 +210,8 @@ export default abstract class ProgramPlanControllerBase {
                 WeightHandler.getInstance().sortByWeight(task_type_tasks);
 
                 if ((!task_type_tasks) || (!task_type_tasks.length)) {
-                    VueAppBase.instance_.vueInstance.snotify.error(
-                        VueAppBase.instance_.vueInstance.label('programplan.fc.create.error')
+                    VueAppBaseInstanceHolder.instance.vueInstance.snotify.error(
+                        VueAppBaseInstanceHolder.instance.vueInstance.label('programplan.fc.create.error')
                     );
 
                     ConsoleHandler.error("!task_type_tasks.length");
@@ -230,8 +230,8 @@ export default abstract class ProgramPlanControllerBase {
                 }
 
                 if (!new_task) {
-                    VueAppBase.instance_.vueInstance.snotify.error(
-                        VueAppBase.instance_.vueInstance.label('programplan.fc.create.no_task_left')
+                    VueAppBaseInstanceHolder.instance.vueInstance.snotify.error(
+                        VueAppBaseInstanceHolder.instance.vueInstance.label('programplan.fc.create.no_task_left')
                     );
 
                     ConsoleHandler.error("!task");
@@ -240,8 +240,8 @@ export default abstract class ProgramPlanControllerBase {
                 }
 
                 if (new_task.id != rdv.task_id) {
-                    VueAppBase.instance_.vueInstance.snotify.error(
-                        VueAppBase.instance_.vueInstance.label('programplan.fc.create.error')
+                    VueAppBaseInstanceHolder.instance.vueInstance.snotify.error(
+                        VueAppBaseInstanceHolder.instance.vueInstance.label('programplan.fc.create.error')
                     );
 
                     ConsoleHandler.error("task.id != rdv.task_id");

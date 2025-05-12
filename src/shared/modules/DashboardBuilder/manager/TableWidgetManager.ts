@@ -73,11 +73,11 @@ export default class TableWidgetManager {
         let export_name: string = 'Export-';
 
         if (dashboard?.translatable_name_code_text) {
-            export_name += 'Dashboard-' + LocaleManager.getInstance().t(dashboard.translatable_name_code_text) + '-';
+            export_name += 'Dashboard-' + LocaleManager.t(dashboard.translatable_name_code_text) + '-';
         }
 
         if (dashboard_page?.translatable_name_code_text) {
-            export_name += 'Page-' + LocaleManager.getInstance().t(dashboard_page.translatable_name_code_text) + '-';
+            export_name += 'Page-' + LocaleManager.t(dashboard_page.translatable_name_code_text) + '-';
         }
 
         export_name = slug(export_name, { lower: false }) + "{#Date}.xlsx";
@@ -221,8 +221,8 @@ export default class TableWidgetManager {
             all_page_widgets_by_id
         );
 
-        const limit = (widget_options?.limit == null) ? TableWidgetOptionsVO.DEFAULT_LIMIT : widget_options.limit;
-        const pagination_offset = 0;
+        // const limit = (widget_options?.limit == null) ? TableWidgetOptionsVO.DEFAULT_LIMIT : widget_options.limit;
+        // const pagination_offset = 0;
 
         let crud_api_type_id = widget_options.crud_api_type_id ? widget_options.crud_api_type_id : null;
         if (!crud_api_type_id) {
@@ -248,7 +248,7 @@ export default class TableWidgetManager {
         );
 
         const context_query: ContextQueryVO = query(crud_api_type_id)
-            .set_limit(limit, pagination_offset)
+            .set_limit(0, 0) // On exporte toujours tous les résultats en filtres favoris
             .using(api_type_ids)
             .add_filters(context_filter);
 
@@ -578,12 +578,12 @@ export default class TableWidgetManager {
                 for (const key in column.children) {
                     const child = column.children[key];
 
-                    label_by_field_uid[child.datatable_field_uid] = child.custom_label ?? LocaleManager.getInstance().t(
+                    label_by_field_uid[child.datatable_field_uid] = child.custom_label ?? LocaleManager.t(
                         child.get_translatable_name_code_text(page_widget_id)
                     );
                 }
             } else {
-                label_by_field_uid[column.datatable_field_uid] = column.custom_label ?? LocaleManager.getInstance().t(
+                label_by_field_uid[column.datatable_field_uid] = column.custom_label ?? LocaleManager.t(
                     column.get_translatable_name_code_text(page_widget_id)
                 );
             }

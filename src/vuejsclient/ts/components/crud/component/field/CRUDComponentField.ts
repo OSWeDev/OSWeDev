@@ -438,6 +438,24 @@ export default class CRUDComponentField extends VueComponentBase
         for (const i in this.field_value) {
             const id = this.field_value[i];
 
+            if (id && id.min && id.max) {
+                // On est sur un range, pas un id
+                const range = id as NumRange;
+                RangeHandler.foreach_sync(range, (e: number) => {
+                    if ((!this.field_value_labels_by_id) || (!this.field_value_labels_by_id[e])) {
+                        return;
+                    }
+
+                    res.push(new DataFilterOption(
+                        DataFilterOption.STATE_SELECTED,
+                        this.field_value_labels_by_id[e],
+                        e,
+                    ));
+                });
+
+                continue;
+            }
+
             // Si on a pas chargé les labels des field_value actuels, on peut pas les afficher
             if ((!this.field_value_labels_by_id) || (!this.field_value_labels_by_id[id])) {
                 continue;
@@ -501,6 +519,17 @@ export default class CRUDComponentField extends VueComponentBase
 
             for (const i in value) {
                 field_value.push(value[i].id);
+            }
+
+            if (!ObjectHandler.are_equal(field_value, this.field_value)) {
+                this.field_value = field_value;
+            }
+        } else if (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE) {
+
+            const field_value = [];
+
+            for (const i in value) {
+                field_value.push(RangeHandler.create_single_elt_NumRange(value[i].id, NumSegment.TYPE_INT));
             }
 
             if (!ObjectHandler.are_equal(field_value, this.field_value)) {
@@ -766,7 +795,7 @@ export default class CRUDComponentField extends VueComponentBase
             }
 
 
-            // Sur un refranges, on a aucun field à garder sur les sources et dest
+            // Sur un refranges, on a aucun field à garder sur target
             if (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE) {
                 context_query.set_discarded_field_path(field.module_table_vo_type, field.field_name);
                 if (query_currently_selected_vos) {
@@ -1007,28 +1036,29 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
 
-        if (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE) {
-            this.field_value_refranges_selected_ids = [];
+        // TODO FIMXE: pourquoi on fait pas ça pour le manytomany, ou le onetomany ? on devrait fairte pour tous je pense en centralisé : Si on a plus d'option dans le range que dans les options du champ, on filtre par les options du champs
+        // if (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE) {
+        //     this.field_value_refranges_selected_ids = [];
 
-            if ((!this.select_options) || (RangeHandler.getCardinalFromArray(this.field_value) > this.select_options.length)) {
-                // Si on a plus d'option dans le range que dans les options du champ, on filtre par les options du champs
-                for (const i in this.select_options) {
-                    const id = parseInt(this.select_options[i].toString());
-                    if (RangeHandler.elt_intersects_any_range(id, this.field_value)) {
-                        this.field_value_refranges_selected_ids.push(id);
-                    }
-                }
-            } else {
+        //     if ((!this.select_options) || (RangeHandler.getCardinalFromArray(this.field_value) > this.select_options.length)) {
+        //         // Si on a plus d'option dans le range que dans les options du champ, on filtre par les options du champs
+        //         for (const i in this.select_options) {
+        //             const id = parseInt(this.select_options[i].toString());
+        //             if (RangeHandler.elt_intersects_any_range(id, this.field_value)) {
+        //                 this.field_value_refranges_selected_ids.push(id);
+        //             }
+        //         }
+        //     } else {
 
-                const options_by_id: { [id: number]: boolean } = ObjectHandler.mapFromIdsArray(this.select_options ? this.select_options.map((option) => option.id) : []);
-                // sinon on commence par le range
-                RangeHandler.foreach_ranges_sync(this.field_value, (id: number) => {
-                    if (options_by_id[id]) {
-                        this.field_value_refranges_selected_ids.push(id);
-                    }
-                });
-            }
-        }
+        //         const options_by_id: { [id: number]: boolean } = ObjectHandler.mapFromIdsArray(this.select_options ? this.select_options.map((option) => option.id) : []);
+        //         // sinon on commence par le range
+        //         RangeHandler.foreach_ranges_sync(this.field_value, (id: number) => {
+        //             if (options_by_id[id]) {
+        //                 this.field_value_refranges_selected_ids.push(id);
+        //             }
+        //         });
+        //     }
+        // }
 
         if (!this.field.can_use_async_load_options) {
             if (this.isLoadingOptions) {
@@ -1695,16 +1725,16 @@ export default class CRUDComponentField extends VueComponentBase
 
     private async onChangeField() {
 
-        if (this.field_type == DatatableField.REF_RANGES_FIELD_TYPE) {
-            let ranges: NumRange[] = [];
-            for (const i in this.field_value_refranges_selected_ids) {
-                const id = parseInt(this.field_value_refranges_selected_ids[i].toString());
+        // if (this.field_type == DatatableField.REF_RANGES_FIELD_TYPE) {
+        //     let ranges: NumRange[] = [];
+        //     for (const i in this.field_value_refranges_selected_ids) {
+        //         const id = parseInt(this.field_value_refranges_selected_ids[i].toString());
 
-                ranges.push(RangeHandler.create_single_elt_NumRange(id, NumSegment.TYPE_INT));
-            }
-            ranges = RangeHandler.getRangesUnion(ranges);
-            this.field_value = ranges;
-        }
+        //         ranges.push(RangeHandler.create_single_elt_NumRange(id, NumSegment.TYPE_INT));
+        //     }
+        //     ranges = RangeHandler.getRangesUnion(ranges);
+        //     this.field_value = ranges;
+        // }
 
         if (this.inline_input_mode) {
             await this.prepare_auto_validate();
@@ -1979,7 +2009,7 @@ export default class CRUDComponentField extends VueComponentBase
     private async select_all() {
         switch (this.field.type) {
             case DatatableField.REF_RANGES_FIELD_TYPE:
-                this.field_value_refranges_selected_ids = this.select_options ? this.select_options.map((elem) => elem.id) : [];
+                this.field_value = this.select_options ? this.select_options.map((elem) => RangeHandler.create_single_elt_NumRange(elem.id, NumSegment.TYPE_INT)) : [];
                 break;
             case DatatableField.MANY_TO_MANY_FIELD_TYPE:
             case DatatableField.ONE_TO_MANY_FIELD_TYPE:
@@ -1995,8 +2025,8 @@ export default class CRUDComponentField extends VueComponentBase
     private async select_none() {
         switch (this.field.type) {
             case DatatableField.REF_RANGES_FIELD_TYPE:
-                this.field_value_refranges_selected_ids = [];
-                break;
+            // this.field_value_refranges_selected_ids = [];
+            // break;
             case DatatableField.MANY_TO_MANY_FIELD_TYPE:
             case DatatableField.ONE_TO_MANY_FIELD_TYPE:
                 this.field_value = [];

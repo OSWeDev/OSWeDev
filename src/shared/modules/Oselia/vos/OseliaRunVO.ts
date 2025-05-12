@@ -8,9 +8,11 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
     public static RUN_TYPE_LABELS: string[] = [
         "OseliaRunVO.RUN_TYPE_ASSISTANT",
         "OseliaRunVO.RUN_TYPE_FOREACH_IN_SEPARATED_THREADS",
+        "OseliaRUNVO.RUN_TYPE_AGENT"
     ];
     public static RUN_TYPE_ASSISTANT: number = 0;
     public static RUN_TYPE_FOREACH_IN_SEPARATED_THREADS: number = 1;
+    public static RUN_TYPE_AGENT: number = 2;
 
     public static STATE_LABELS: string[] = [
         "OseliaRunVO.STATE_TODO",

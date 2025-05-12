@@ -17,6 +17,7 @@
             padding: 0;
             list-style-type: none;
         }
+
         .error {
             list-style: none;
         }
@@ -27,6 +28,7 @@
             display: inline;
             margin-right: 10px;
         }
+
         .input_label {
             display: inline;
             position: relative;
@@ -44,6 +46,7 @@
                     cursor: not-allowed;
                 }
             }
+
             .input_label {
                 display: inline;
                 position: relative;
@@ -63,6 +66,7 @@
                 display: inline;
                 margin-right: 10px;
             }
+
             .input_label {
                 display: inline;
                 position: relative;
@@ -77,6 +81,7 @@
                 display: inline;
                 margin-right: 10px;
             }
+
             .input_label {
                 display: inline;
                 position: relative;
@@ -148,10 +153,27 @@
         }
     }
 
+    .export_frequency_day_in_week {
+        .input_wrapper {
+            input {
+                width: 100%;
+                min-height: 40px;
+                display: block;
+                padding: 0px 40px 0 8px;
+                border-radius: 5px;
+                border: 1px solid #e8e8e8;
+                background: #fff;
+                font-size: 14px;
+                padding-left: 10px;
+                margin-bottom: 8px;
+            }
+        }
+    }
+
     .nav-pills {
         margin-bottom: 16px;
 
-        > li > a {
+        >li>a {
             width: 100%;
             background: #f5f5f5;
             margin-bottom: 2px;
@@ -161,15 +183,15 @@
             cursor: pointer;
         }
 
-        > li.active > a,
-        > li.active > a:focus,
-        > li.active > a:hover {
+        >li.active>a,
+        >li.active>a:focus,
+        >li.active>a:hover {
             color: #fff;
             background-color: $button_primary_bg_color;
             border-top-color: $button_primary_bg_color;
         }
 
-        li + li {
+        li+li {
             margin-left: 0;
         }
     }

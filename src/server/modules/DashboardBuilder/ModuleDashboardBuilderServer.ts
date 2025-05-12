@@ -2735,6 +2735,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Jour de la semaine : 1 pour lundi, 7 pour dimanche" },
+            'dashboard_viewer.favorites_filters.export_frequency_day_in_week_tooltip.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Afficher le champ de recherche" },
             'field_value_filter_widget_component.show_search_field.___LABEL___'
         ));
@@ -3232,6 +3236,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Jour du mois pour l'export de données requis" },
             'dashboard_viewer.favorites_filters.export_frequency_day_in_month_required.___LABEL___'
         ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Jour de la semaine requis pour l'export de données" },
+            'dashboard_viewer.favorites_filters.export_frequency_day_in_week_required.___LABEL___'
+        ));
+
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Données à exporté requis" },
             'dashboard_viewer.favorites_filters.selected_exportable_data_required.___LABEL___'
@@ -3267,6 +3277,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Jour dans le mois *:" },
             'dashboard_viewer.favorites_filters.export_frequency_day_in_month.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Jour dans la semaine *:" },
+            'dashboard_viewer.favorites_filters.export_frequency_day_in_week.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Sélectionnez les tableaux de valeurs à exporter *:" },
@@ -3877,6 +3891,73 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "En cours de recalcul" },
             'supervision_widget_component.tooltip.item.invalid.___LABEL___'
+        ));
+
+        /**
+         * Translations for OseliaRunGraphWidgetComponent
+         */
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Clear" },
+            'oselia_run_graph_widget_component.clear_button.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Autofit" },
+            'oselia_run_graph_widget_component.autofit_button.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Vous devez ajouter un agent pour pouvoir utiliser ce widget" },
+            'oselia_run_graph_widget_component.no_agent.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Vous n'avez pas d'agent" },
+            'oselia_run_graph_widget_component.no_agent_description.___LABEL___'
+        ));
+
+        // SelectionPanel
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Aucun" },
+            'oselia_run_graph_widget_component.selection_panel.no_item.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Instructions" },
+            'oselia_run_graph_widget_component.selection_panel.assistant_instructions.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Sauvegarder" },
+            'oselia_run_graph_widget_component.selection_panel.save_button.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Modifier" },
+            'oselia_run_graph_widget_component.selection_panel.edit_button.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Retirer" },
+            'oselia_run_graph_widget_component.selection_panel.remove_button.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Prompt - Params" },
+            'oselia_run_graph_widget_component.selection_panel.prompt_param.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Prompt" },
+            'oselia_run_graph_widget_component.selection_panel.prompt.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Paramètres" },
+            'oselia_run_graph_widget_component.selection_panel.function_call.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Résultat" },
+            'oselia_run_graph_widget_component.selection_panel.function_call_result.___LABEL___'
+        ));
+        // AddPanel
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter un agent" },
+            'oselia_run_graph_widget_component.add_panel.title.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Rechercher..." },
+            'oselia_run_graph_widget_component.add_panel.search_placeholder.___LABEL___'
         ));
 
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

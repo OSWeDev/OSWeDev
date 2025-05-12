@@ -2,7 +2,6 @@ import { Component, Prop, Watch } from "vue-property-decorator";
 import ModuleTranslation from "../../../../shared/modules/Translation/ModuleTranslation";
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ThrottleHelper from "../../../../shared/tools/ThrottleHelper";
-import VueAppController from '../../../VueAppController';
 import VueComponentBase from "../VueComponentBase";
 import './InlineTranslatableText.scss';
 import TranslatableTextController from "./TranslatableTextController";
@@ -131,12 +130,6 @@ export default class InlineTranslatableText extends VueComponentBase {
     @ModuleTranslatableTextGetter
     public get_flat_locale_translations: { [code_text: string]: string };
 
-    @ModuleTranslatableTextAction
-    public set_flat_locale_translation: (translation: { code_text: string, value: string }) => void;
-
-    @ModuleTranslatableTextAction
-    public set_flat_locale_translations: (translations: { [code_text: string]: string }) => void;
-
     @ModuleTranslatableTextGetter
     public get_initialized: boolean;
 
@@ -230,7 +223,7 @@ export default class InlineTranslatableText extends VueComponentBase {
 
                 const translation = await ModuleTranslation.getInstance().getTranslation(lang.id, text.id);
                 if (translation) {
-                    this.set_flat_locale_translation({ code_text: code_text, value: known_translation });
+                    LocaleManager.set_translation(code_text, known_translation);
                     return;
                 }
 
@@ -252,7 +245,6 @@ export default class InlineTranslatableText extends VueComponentBase {
         if ((!this.get_initialized) && (!this.get_initializing)) {
             this.set_initializing(true);
 
-            this.set_flat_locale_translations(VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS);
             this.text = this.translation;
             await this.thottled_check_existing_bdd_translation();
 
@@ -275,7 +267,7 @@ export default class InlineTranslatableText extends VueComponentBase {
     }
 
     get code_lang(): string {
-        return LocaleManager.getInstance().getDefaultLocale();
+        return LocaleManager.getDefaultLocale();
     }
 
     get translation(): string {
@@ -359,7 +351,7 @@ export default class InlineTranslatableText extends VueComponentBase {
                         return;
                     }
 
-                    this.set_flat_locale_translation({ code_text: code_text, value: translation });
+                    LocaleManager.set_translation(code_text, translation);
                     resolve({
                         body: self.label('on_page_translation.save_translation.ok'),
                         config: {

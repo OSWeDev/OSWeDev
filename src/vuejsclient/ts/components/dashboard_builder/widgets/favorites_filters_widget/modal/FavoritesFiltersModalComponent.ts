@@ -25,6 +25,7 @@ import YearFilterWidgetOptionsVO from '../../../../../../../shared/modules/Dashb
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import LocaleManager from '../../../../../../../shared/tools/LocaleManager';
 import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
@@ -397,6 +398,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         this.export_frequency.every = (this.export_frequency?.every != null) ? this.export_frequency.every : 1;
         this.export_frequency.granularity = (this.export_frequency?.granularity != null) ? this.export_frequency.granularity : FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY;
         this.export_frequency.day_in_month = (this.export_frequency?.day_in_month != null) ? this.export_frequency.day_in_month : 1;
+        this.export_frequency.day_in_week = (this.export_frequency?.day_in_week != null) ? this.export_frequency.day_in_week : 1;
         this.export_frequency.prefered_time = (this.export_frequency?.prefered_time != null) ? this.export_frequency.prefered_time : 3;
 
         const export_frequency_granularity = this.export_frequency?.granularity ?? FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY;
@@ -632,6 +634,10 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
                 this.form_errors.push(this.label('dashboard_viewer.favorites_filters.export_frequency_day_in_month_required'));
             }
 
+            if ((this.export_frequency.granularity === FavoritesFiltersExportFrequencyVO.GRANULARITY_WEEK) && !(this.export_frequency.day_in_week > 0)) {
+                this.form_errors.push(this.label('dashboard_viewer.favorites_filters.export_frequency_day_in_week_required'));
+            }
+
             if (!(Object.keys(this.selected_exportable_data).length > 0)) {
                 this.form_errors.push(this.label('dashboard_viewer.favorites_filters.selected_exportable_data_required'));
             }
@@ -706,6 +712,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         }
 
         this.export_frequency.day_in_month = 1;
+        this.export_frequency.day_in_week = 1;
         this.export_frequency.granularity = FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY;
         this.export_frequency.every = 1;
         this.export_frequency.prefered_time = 3;
@@ -796,6 +803,15 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
     }
 
     /**
+     * Can Add Export Frequency Day In Week
+     *
+     * @return {boolean}
+     */
+    private can_add_export_frequency_day_in_week(): boolean {
+        return this.selected_export_frequency_granularity?.value == FavoritesFiltersExportFrequencyVO.GRANULARITY_WEEK;
+    }
+
+    /**
      * Handle Toggle Select Exportable Data
      *  - Select or unselect from Exportable Data the given props
      *
@@ -867,7 +883,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
      * @returns {string}
      */
     private get_translation_by_vo_field_ref_name_code_text(name_code_text: string): string {
-        let translation: string = VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
+        let translation: string = LocaleManager.ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
 
         if (!translation) {
             translation = name_code_text;
@@ -890,6 +906,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         // Get the available readable field filters from the active field filters
         const available_readable_field_filters = await FieldFiltersVOManager.create_readable_filters_text_from_field_filters(
             active_field_filters,
+            VueAppController.getInstance().data_user_lang.code_lang,
             this.dashboard_page?.id,
         );
 

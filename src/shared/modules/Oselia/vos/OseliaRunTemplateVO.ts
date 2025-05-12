@@ -11,12 +11,18 @@ export default class OseliaRunTemplateVO implements IDistantVOBase, IVersionedVO
     /**
      * Nom du template - pour affichage dans l'interface
      */
-    public template_name: string;
+    public name: string;
 
     /**
-     * Nom de l'étape - pour affichage dans l'interface
+     * Les runs enfants de ce run, dans le cas ou ce run est de type Agent
      */
-    public name: string;
+    public children: NumRange[];
+
+
+    /**
+     * Point d'entrée de l'agent
+     */
+    public entry_point_id: number;
 
     /**
      * L'assistant qui devra prendre en charge ce run

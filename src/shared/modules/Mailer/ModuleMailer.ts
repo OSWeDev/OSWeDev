@@ -2,12 +2,14 @@ import { SendMailOptions } from 'nodemailer';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
+import MailCategoryUserVO from './vos/MailCategoryUserVO';
 import MailCategoryVO from './vos/MailCategoryVO';
 import MailEventVO from './vos/MailEventVO';
 import MailVO from './vos/MailVO';
@@ -59,6 +61,7 @@ export default class ModuleMailer extends Module {
 
     public initialize() {
         this.initializeMailCategoryVO();
+        this.initialize_MailCategoryUserVO();
         this.initializeMailVO();
         this.initializeMailEventVO();
     }
@@ -90,8 +93,15 @@ export default class ModuleMailer extends Module {
         sent_to_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
     }
 
+    private initialize_MailCategoryUserVO() {
+        ModuleTableFieldController.create_new(MailCategoryUserVO.API_TYPE_ID, field_names<MailCategoryUserVO>().mail_category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie', true).set_many_to_one_target_moduletable_name(MailCategoryVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(MailCategoryUserVO.API_TYPE_ID, field_names<MailCategoryUserVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true).set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        ModuleTableController.create_new(this.name, MailCategoryUserVO, null, "Optin/Optout des utilisateurs");
+    }
     private initializeMailCategoryVO() {
         const label = ModuleTableFieldController.create_new(MailCategoryVO.API_TYPE_ID, field_names<MailCategoryVO>().name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true).unique();
+        ModuleTableFieldController.create_new(MailCategoryVO.API_TYPE_ID, field_names<MailCategoryVO>().type_optin, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type d\'optin', true, true, MailCategoryVO.TYPE_OPTIN_OPTOUT).setEnumValues(MailCategoryVO.TYPE_OPTIN_LABELS).index(); // Par défaut on met de l'optout pour le moment pour ne pas changer le comportement actuel
+        ModuleTableFieldController.create_new(MailCategoryVO.API_TYPE_ID, field_names<MailCategoryVO>().user_role_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Rôles utilisateurs', false).set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
         ModuleTableController.create_new(this.name, MailCategoryVO, label, "Catégories de mail");
     }
 

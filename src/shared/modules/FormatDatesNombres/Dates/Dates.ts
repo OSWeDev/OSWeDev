@@ -213,28 +213,28 @@ export default class Dates {
     public static format_segment(date: number, segment_type: number, localized: boolean = true): string {
         switch (segment_type) {
             case TimeSegment.TYPE_HOUR:
-                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_HOUR), LocaleManager.getInstance().t('Y-MM-DD HH:--'), localized);
+                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_HOUR), LocaleManager.t('Y-MM-DD HH:--'), localized);
             case TimeSegment.TYPE_MINUTE:
-                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_MINUTE), LocaleManager.getInstance().t('Y-MM-DD HH:mm'), localized);
+                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_MINUTE), LocaleManager.t('Y-MM-DD HH:mm'), localized);
             case TimeSegment.TYPE_SECOND:
-                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_SECOND), LocaleManager.getInstance().t('Y-MM-DD HH:mm:ss'), localized);
+                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_SECOND), LocaleManager.t('Y-MM-DD HH:mm:ss'), localized);
             case TimeSegment.TYPE_MONTH:
-                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_MONTH), LocaleManager.getInstance().t('Y-MM'), localized);
+                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_MONTH), LocaleManager.t('Y-MM'), localized);
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_DAY), LocaleManager.getInstance().t('Y-MM-DD'), localized);
+                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_DAY), LocaleManager.t('Y-MM-DD'), localized);
             case TimeSegment.TYPE_WEEK:
-                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_WEEK), LocaleManager.getInstance().t('Y-MM-DD'), localized);
+                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_WEEK), LocaleManager.t('Y-MM-DD'), localized);
             case TimeSegment.TYPE_YEAR:
                 return Dates.year(date).toString();
             case TimeSegment.TYPE_QUARTER:
-                return LocaleManager.getInstance().label('time_segment.quarter') + Dates.quarter(date).toString();
+                return LocaleManager.label('time_segment.quarter') + Dates.quarter(date).toString();
             case TimeSegment.TYPE_MS:
                 const seconds = Math.floor(date / 1000);
                 date = date % 1000;
                 return Dates.format(seconds, 'YYYY-MM-DD HH:mm:ss.' + String(date).padStart(3, '0'), localized);
             case TimeSegment.TYPE_DAY:
             default:
-                return Dates.format(date, LocaleManager.getInstance().t('Y-MM-DD'), localized);
+                return Dates.format(date, LocaleManager.t('Y-MM-DD'), localized);
         }
     }
 

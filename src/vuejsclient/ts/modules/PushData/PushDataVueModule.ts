@@ -22,7 +22,7 @@ import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import ThreadHandler from "../../../../shared/tools/ThreadHandler";
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
-import VueAppBase from '../../../VueAppBase';
+import VueAppBaseInstanceHolder from "../../../VueAppBaseInstanceHolder";
 import VueAppController from "../../../VueAppController";
 import VarsClientController from '../../components/Var/VarsClientController';
 import ClientAPIController from "../API/ClientAPIController";
@@ -287,8 +287,8 @@ export default class PushDataVueModule extends VueModuleBase {
 
                 // On affiche un message d'erreur à l'internaute pour lui dire de recharger sa page
                 if (!this.snotify_observer_error_no_internet) {
-                    this.snotify_observer_error_no_internet = VueAppBase.instance_.vueInstance.snotify.warning(
-                        VueAppBase.instance_.vueInstance.label("observer_error_no_internet"),
+                    this.snotify_observer_error_no_internet = VueAppBaseInstanceHolder.instance.vueInstance.snotify.warning(
+                        VueAppBaseInstanceHolder.instance.vueInstance.label("observer_error_no_internet"),
                         { timeout: 0 },
                     );
                 }
@@ -319,9 +319,9 @@ export default class PushDataVueModule extends VueModuleBase {
                 return;
             }
 
-            if (VueAppBase.instance_.vueInstance && VueAppBase.instance_.vueInstance.snotify) {
-                VueAppBase.instance_.vueInstance.snotify.warning(
-                    VueAppBase.instance_.vueInstance.label("app_version_changed"),
+            if (VueAppBaseInstanceHolder.instance.vueInstance && VueAppBaseInstanceHolder.instance.vueInstance.snotify) {
+                VueAppBaseInstanceHolder.instance.vueInstance.snotify.warning(
+                    VueAppBaseInstanceHolder.instance.vueInstance.label("app_version_changed"),
                     { timeout: 3000 },
                 );
             }
@@ -362,7 +362,7 @@ export default class PushDataVueModule extends VueModuleBase {
         ConsoleHandler.error('Connexion internet rétablie');
 
         if (this.snotify_connect_disconnect) {
-            VueAppBase.instance_.vueInstance.snotify.remove(this.snotify_connect_disconnect.id);
+            VueAppBaseInstanceHolder.instance.vueInstance.snotify.remove(this.snotify_connect_disconnect.id);
             this.snotify_connect_disconnect = null;
         }
 
@@ -375,16 +375,16 @@ export default class PushDataVueModule extends VueModuleBase {
     private handleOffline() {
         ConsoleHandler.error('Perte de la connexion internet');
 
-        this.snotify_connect_disconnect = VueAppBase.instance_.vueInstance.snotify.warning(
-            VueAppBase.instance_.vueInstance.label("no_internet"),
+        this.snotify_connect_disconnect = VueAppBaseInstanceHolder.instance.vueInstance.snotify.warning(
+            VueAppBaseInstanceHolder.instance.vueInstance.label("no_internet"),
             { timeout: 0 },
         );
     }
 
     private async notifications_handler(notifications: NotificationVO[]) {
 
-        if (!VueAppBase.instance_) {
-            ConsoleHandler.error("notifications_handler:!VueAppBase.instance_: Might loose some notifications:" + JSON.stringify(notifications));
+        if (!VueAppBaseInstanceHolder.instance) {
+            ConsoleHandler.error("notifications_handler:!VueAppBaseInstanceHolder.instance: Might loose some notifications:" + JSON.stringify(notifications));
             return;
         }
         // notifications = APIControllerWrapper.try_translate_vos_from_api(notifications);
@@ -410,8 +410,8 @@ export default class PushDataVueModule extends VueModuleBase {
 
             switch (notification.notification_type) {
                 case NotificationVO.TYPE_NOTIF_SIMPLE:
-                    if (!LocaleManager.getInstance().i18n) {
-                        ConsoleHandler.warn("notifications_handler:LocaleManager.getInstance().i18n not ready, skipping notification:" + notification);
+                    if (!LocaleManager.i18n) {
+                        ConsoleHandler.warn("notifications_handler:LocaleManager.i18n not ready, skipping notification:" + notification);
                         break;
                     }
 
@@ -430,8 +430,8 @@ export default class PushDataVueModule extends VueModuleBase {
                     TYPE_NOTIF_TECH.push(notification);
                     break;
                 case NotificationVO.TYPE_NOTIF_PROMPT:
-                    if (!LocaleManager.getInstance().i18n) {
-                        ConsoleHandler.warn("notifications_handler:LocaleManager.getInstance().i18n not ready, skipping notification:" + notification);
+                    if (!LocaleManager.i18n) {
+                        ConsoleHandler.warn("notifications_handler:LocaleManager.i18n not ready, skipping notification:" + notification);
                         break;
                     }
 
@@ -584,21 +584,21 @@ export default class PushDataVueModule extends VueModuleBase {
             const notification = notifications[i];
 
             const content = notification.simple_notif_json_params ?
-                LocaleManager.getInstance().i18n.t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) :
-                LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
-            VueAppBase.instance_.vueInstance.snotify.prompt(content, {
+                LocaleManager.i18n.t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) :
+                LocaleManager.i18n.t(notification.simple_notif_label);
+            VueAppBaseInstanceHolder.instance.vueInstance.snotify.prompt(content, {
                 timeout: 60000,
                 buttons: [
                     {
-                        text: LocaleManager.getInstance().i18n.t('snotify.prompt.submit.___LABEL___'), action: async (toast: SnotifyToast) => {
-                            VueAppBase.instance_.vueInstance.snotify.remove(toast.id);
+                        text: LocaleManager.i18n.t('snotify.prompt.submit.___LABEL___'), action: async (toast: SnotifyToast) => {
+                            VueAppBaseInstanceHolder.instance.vueInstance.snotify.remove(toast.id);
                             notification.prompt_result = toast.value;
                             await ModulePushData.getInstance().set_prompt_result(notification);
                         }, bold: true,
                     },
                     {
-                        text: LocaleManager.getInstance().i18n.t('snotify.prompt.cancel.___LABEL___'), action: async (toast: SnotifyToast) => {
-                            VueAppBase.instance_.vueInstance.snotify.remove(toast.id);
+                        text: LocaleManager.i18n.t('snotify.prompt.cancel.___LABEL___'), action: async (toast: SnotifyToast) => {
+                            VueAppBaseInstanceHolder.instance.vueInstance.snotify.remove(toast.id);
                             await ModulePushData.getInstance().set_prompt_result(notification);
                         },
                     },
@@ -609,7 +609,7 @@ export default class PushDataVueModule extends VueModuleBase {
                 unreads.push(notification);
             }
         }
-        await VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
+        await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
     }
 
 
@@ -620,28 +620,28 @@ export default class PushDataVueModule extends VueModuleBase {
             const notification = notifications[i];
 
             const content = notification.simple_notif_json_params ?
-                LocaleManager.getInstance().i18n.t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) :
-                LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
+                LocaleManager.i18n.t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) :
+                LocaleManager.i18n.t(notification.simple_notif_label);
             switch (notification.simple_notif_type) {
                 case NotificationVO.SIMPLE_SUCCESS:
-                    VueAppBase.instance_.vueInstance.snotify.success(content);
+                    VueAppBaseInstanceHolder.instance.vueInstance.snotify.success(content);
                     break;
                 case NotificationVO.SIMPLE_WARN:
-                    VueAppBase.instance_.vueInstance.snotify.warning(content);
+                    VueAppBaseInstanceHolder.instance.vueInstance.snotify.warning(content);
                     break;
                 case NotificationVO.SIMPLE_ERROR:
-                    VueAppBase.instance_.vueInstance.snotify.error(content);
+                    VueAppBaseInstanceHolder.instance.vueInstance.snotify.error(content);
                     break;
                 case NotificationVO.SIMPLE_INFO:
                 default:
-                    VueAppBase.instance_.vueInstance.snotify.info(content);
+                    VueAppBaseInstanceHolder.instance.vueInstance.snotify.info(content);
             }
 
             if (!notification.read) {
                 unreads.push(notification);
             }
         }
-        await VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
+        await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
     }
 
     private async notifications_handler_TYPE_NOTIF_DOWNLOAD_FILE(notifications: NotificationVO[]) {
@@ -665,28 +665,28 @@ export default class PushDataVueModule extends VueModuleBase {
             const notification = notifications[i];
 
             const content = notification.simple_notif_json_params ?
-                LocaleManager.getInstance().i18n.t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) :
-                LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
+                LocaleManager.i18n.t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) :
+                LocaleManager.i18n.t(notification.simple_notif_label);
             switch (notification.simple_notif_type) {
                 case NotificationVO.SIMPLE_SUCCESS:
-                    VueAppBase.instance_.vueInstance.snotify.success(content);
+                    VueAppBaseInstanceHolder.instance.vueInstance.snotify.success(content);
                     break;
                 case NotificationVO.SIMPLE_WARN:
-                    VueAppBase.instance_.vueInstance.snotify.warning(content);
+                    VueAppBaseInstanceHolder.instance.vueInstance.snotify.warning(content);
                     break;
                 case NotificationVO.SIMPLE_ERROR:
-                    VueAppBase.instance_.vueInstance.snotify.error(content);
+                    VueAppBaseInstanceHolder.instance.vueInstance.snotify.error(content);
                     break;
                 case NotificationVO.SIMPLE_INFO:
                 default:
-                    VueAppBase.instance_.vueInstance.snotify.info(content);
+                    VueAppBaseInstanceHolder.instance.vueInstance.snotify.info(content);
             }
 
             if (!notification.read) {
                 unreads.push(notification);
             }
         }
-        await VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
+        await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
     }
 
     /**
@@ -700,18 +700,18 @@ export default class PushDataVueModule extends VueModuleBase {
                 case NotificationVO.DAO_GET_VO_BY_ID:
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
                     const vo: IDistantVOBase = await query(notification.api_type_id).filter_by_id(notification.dao_notif_vo_id).select_vo();
-                    await VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeData', vo);
+                    await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('DAOStore/storeData', vo);
                     console.debug("NotificationVO.DAO_GET_VO_BY_ID:" + notification.api_type_id + ":" + notification.dao_notif_vo_id);
                     break;
                 case NotificationVO.DAO_GET_VOS:
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
                     const vos: IDistantVOBase[] = await query(notification.api_type_id).select_vos();
-                    await VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeDatas', { API_TYPE_ID: notification.api_type_id, vos: vos });
+                    await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('DAOStore/storeDatas', { API_TYPE_ID: notification.api_type_id, vos: vos });
                     console.debug("NotificationVO.DAO_GET_VOS:" + notification.api_type_id);
                     break;
                 case NotificationVO.DAO_REMOVE_ID:
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
-                    await VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/removeData', {
+                    await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('DAOStore/removeData', {
                         API_TYPE_ID: notification.api_type_id,
                         id: notification.dao_notif_vo_id,
                     });
@@ -740,7 +740,7 @@ export default class PushDataVueModule extends VueModuleBase {
                         this.var_debug_notif_id++;
 
                         // On log les notifications sur l'index sélectionné en description actuellement
-                        const selectedVarParam: VarDataBaseVO = VueAppBase.instance_.vueInstance.$store.getters['VarStore/getDescSelectedVarParam'];
+                        const selectedVarParam: VarDataBaseVO = VueAppBaseInstanceHolder.instance.vueInstance.$store.getters['VarStore/getDescSelectedVarParam'];
                         if (selectedVarParam && selectedVarParam.index && (selectedVarParam.index == e.index)) {
                             ConsoleHandler.log('Notification pour var sélectionnée :' +
                                 'id:' + e.id + ':' +
@@ -884,7 +884,7 @@ export default class PushDataVueModule extends VueModuleBase {
                 AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved(vo_types);
             }
 
-            // VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
+            // VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
             await VarsClientController.getInstance().notifyCallbacks(vos);
         }
     }
@@ -905,8 +905,8 @@ export default class PushDataVueModule extends VueModuleBase {
 
                                 const PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL, null, 10000);
 
-                                // let content = LocaleManager.getInstance().i18n.t('PushDataServerController.session_invalidated.___LABEL___');
-                                // VueAppBase.instance_.vueInstance.snotify.warning(content, {
+                                // let content = LocaleManager.i18n.t('PushDataServerController.session_invalidated.___LABEL___');
+                                // VueAppBaseInstanceHolder.instance.vueInstance.snotify.warning(content, {
                                 //     timeout: 3000
                                 // });
 
@@ -918,8 +918,8 @@ export default class PushDataVueModule extends VueModuleBase {
                             case NotificationVO.TECH_LOGGED_AND_REDIRECT:
 
                                 // On teste de supprimer les délais pour éviter les appels à des méthodes qui ne sont plus accessibles typiquement lors d'un impersonate...
-                                // let content_user_logged = LocaleManager.getInstance().i18n.t('PushDataServerController.user_logged.___LABEL___');
-                                // VueAppBase.instance_.vueInstance.snotify.success(content_user_logged, {
+                                // let content_user_logged = LocaleManager.i18n.t('PushDataServerController.user_logged.___LABEL___');
+                                // VueAppBaseInstanceHolder.instance.vueInstance.snotify.success(content_user_logged, {
                                 //     timeout: 3000
                                 // });
                                 // setTimeout(() => {
@@ -929,8 +929,8 @@ export default class PushDataVueModule extends VueModuleBase {
                                 break;
 
                             case NotificationVO.TECH_RELOAD:
-                                const content_reload = LocaleManager.getInstance().i18n.t('PushDataServerController.reload.___LABEL___');
-                                VueAppBase.instance_.vueInstance.snotify.warning(content_reload, {
+                                const content_reload = LocaleManager.i18n.t('PushDataServerController.reload.___LABEL___');
+                                VueAppBaseInstanceHolder.instance.vueInstance.snotify.warning(content_reload, {
                                     timeout: 3000,
                                 });
                                 setTimeout(() => {
@@ -946,8 +946,8 @@ export default class PushDataVueModule extends VueModuleBase {
                                     ConsoleHandler.error('No gpt_thread_id');
                                     return;
                                 }
-                                const screenshot_content = LocaleManager.getInstance().i18n.t("oselia.screenshot.notify.___LABEL___");
-                                VueAppBase.instance_.vueInstance.snotify.info(screenshot_content, {
+                                const screenshot_content = LocaleManager.i18n.t("oselia.screenshot.notify.___LABEL___");
+                                VueAppBaseInstanceHolder.instance.vueInstance.snotify.info(screenshot_content, {
                                     timeout: 3000,
                                 });
                                 setTimeout(async () => {

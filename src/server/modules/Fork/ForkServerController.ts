@@ -18,7 +18,7 @@ import ICronWorker from '../Cron/interfaces/ICronWorker';
 import ForkMessageController from './ForkMessageController';
 import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
-import IForkProcess from './interfaces/IForkProcess';
+import type { IForkProcess } from './interfaces/IForkProcess';
 import PingForkMessage from './messages/PingForkMessage';
 
 export default class ForkServerController {

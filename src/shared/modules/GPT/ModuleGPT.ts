@@ -15,12 +15,14 @@ import FileVO from '../File/vos/FileVO';
 import MailVO from '../Mailer/vos/MailVO';
 import Module from '../Module';
 import OseliaPromptVO from '../Oselia/vos/OseliaPromptVO';
+import OseliaRunVO from '../Oselia/vos/OseliaRunVO';
 import OseliaThreadFeedbackVO from '../Oselia/vos/OseliaThreadFeedbackVO';
 import OseliaThreadMessageFeedbackVO from '../Oselia/vos/OseliaThreadMessageFeedbackVO';
 import OseliaUserPromptVO from '../Oselia/vos/OseliaUserPromptVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import APIGPTAskAssistantParam, { APIGPTAskAssistantParamStatic } from './api/APIGPTAskAssistantParam';
 import APIGPTGenerateResponseParam, { APIGPTGenerateResponseParamStatic } from './api/APIGPTGenerateResponseParam';
+import APIGPTTranscribeParam, { APIGPTTranscribeParamStatic } from './api/APIGPTTranscribeParam';
 import GPTAssistantAPIAssistantFunctionVO from './vos/GPTAssistantAPIAssistantFunctionVO';
 import GPTAssistantAPIAssistantVO from './vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIErrorVO from './vos/GPTAssistantAPIErrorVO';
@@ -99,7 +101,7 @@ export default class ModuleGPT extends Module {
     ) => Promise<GPTAssistantAPIThreadMessageVO[]> = APIControllerWrapper.sah<APIGPTAskAssistantParam, GPTAssistantAPIThreadMessageVO[]>(ModuleGPT.APINAME_ask_assistant);
 
     public get_tts_file: (message_content_id: number) => Promise<FileVO> = APIControllerWrapper.sah_optimizer<NumberParamVO, FileVO>(this.name, reflect<this>().get_tts_file);
-    public transcribe_file: (file_vo_id: number) => Promise<string> = APIControllerWrapper.sah_optimizer<NumberParamVO, string>(this.name, reflect<this>().transcribe_file);
+    public transcribe_file: (file_vo_id: number, auto_commit_auto_input: boolean, gpt_assistant_id: string, gpt_thread_id: string, user_id: number) => Promise<string> = APIControllerWrapper.sah_optimizer<APIGPTTranscribeParam, string>(this.name, reflect<this>().transcribe_file);
 
     public summerize: (thread_id: number) => Promise<FileVO> = APIControllerWrapper.sah_optimizer<NumberParamVO, FileVO>(this.name, reflect<this>().summerize);
 
@@ -115,7 +117,7 @@ export default class ModuleGPT extends Module {
     //     conversation_id: string,
     //     user_id: number,
 
-    // ) => Promise<GPTRealtimeAPIConversationItemVO[]> = APIControllerWrapper.sah<APIRealtimeVoiceConnectParam, GPTRealtimeAPIConversationItemVO[]>(ModuleGPT.APINAME_connect_to_realtime_voice); 
+    // ) => Promise<GPTRealtimeAPIConversationItemVO[]> = APIControllerWrapper.sah<APIRealtimeVoiceConnectParam, GPTRealtimeAPIConversationItemVO[]>(ModuleGPT.APINAME_connect_to_realtime_voice);
 
     /**
      * Re-run un run d'un assistant suite à un nouveau message par exemple ou pour essayer d'avoir une réponse plus pertinente
@@ -154,12 +156,12 @@ export default class ModuleGPT extends Module {
             APIGPTGenerateResponseParamStatic
         ));
 
-        APIControllerWrapper.registerApi(PostAPIDefinition.new<NumberParamVO, string>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<APIGPTTranscribeParam, string>(
             ModuleGPT.POLICY_ask_assistant,
             this.name,
             reflect<this>().transcribe_file,
-            null,
-            NumberParamVOStatic,
+            [GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, GPTAssistantAPIThreadMessageContentTextVO.API_TYPE_ID, ActionURLVO.API_TYPE_ID, MailVO.API_TYPE_ID],
+            APIGPTTranscribeParamStatic
         ));
 
         APIControllerWrapper.registerApi(PostAPIDefinition.new<NumberParamVO, FileVO>(
@@ -378,6 +380,10 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().response_format, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Format de réponse', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
 
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().app_mem_access, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès mémoire - Globale Application', true, true, false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().user_mem_access, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès mémoire - Utilisateur', true, true, false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().agent_mem_access, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès mémoire - Agent', true, true, false);
+
         const table = ModuleTableController.create_new(this.name, GPTAssistantAPIAssistantVO, label, 'GPT Assistant API - Assistant');
         VersionedVOController.getInstance().registerModuleTable(table);
     }
@@ -560,6 +566,8 @@ export default class ModuleGPT extends Module {
 
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().last_gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dernier run GPT', false)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().pipe_outputs_to_thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dupliquer les réponses dans le thread', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIThreadVO, label, 'GPT Assistant API - Thread');
 
@@ -678,6 +686,12 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().metadata, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Métadonnées', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().is_ready, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Prêt à être envoyé', true, true, true);
+
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().piped_from_thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Piped from - Thread', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().piped_from_thread_message_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Piped from - Message', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadMessageVO.API_TYPE_ID);
+
         ModuleTableController.create_new(this.name, GPTAssistantAPIThreadMessageVO, label, 'GPT Assistant API - Thread Message');
     }
 
@@ -716,6 +730,11 @@ export default class ModuleGPT extends Module {
 
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().tts_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fichier TTS', false)
             .set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().piped_from_thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Piped from - Thread', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().piped_from_thread_message_content_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Piped from - Message Content', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIThreadMessageContentVO, null, 'GPT Assistant API - Thread Message Content');
     }

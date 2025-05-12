@@ -61,6 +61,13 @@ export default class GPTAssistantAPIAssistantVO implements IDistantVOBase, IVers
 
     public archived: boolean;
 
+    /**
+     * Donner facilement l'accès aux mémoires APP/User/Agent
+     */
+    public app_mem_access: boolean;
+    public user_mem_access: boolean;
+    public agent_mem_access: boolean;
+
     // IVersionedVO
     public parent_id: number;
     public trashed: boolean;

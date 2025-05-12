@@ -21,7 +21,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
 
         return (!!field_label) &&
             (field_label.field_type != ModuleTableFieldVO.FIELD_TYPE_translatable_text) &&
-            (!this.isVisibleUpdateOrCreate) &&
+            // (!this.isVisibleUpdateOrCreate) && // Je vois pas pourquoi on peut pas faire un chargement dynamique de la liste si on a une fonction qui décide de l'affichage ou non de la liste dans son ensemble en fonction du contexte et non pas des éléments chargés !
             // !this.sort && TODO FIXME faut le gérer du coup probablement dans la requête de mettre le comportement par défaut de tri si ça a du sens et de permettre un tri via sortbyvo
             (!this.sortEnum) &&
             (!this.sieve) &&

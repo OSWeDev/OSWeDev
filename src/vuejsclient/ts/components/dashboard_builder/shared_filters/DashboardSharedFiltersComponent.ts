@@ -1,20 +1,21 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import DashboardPageFieldFiltersVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageFieldFiltersVOManager';
-import SharedFiltersVOManager from '../../../../../shared/modules/DashboardBuilder/manager/SharedFiltersVOManager';
 import DashboardPageVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
-import { ModuleTranslatableTextAction, ModuleTranslatableTextGetter } from '../../InlineTranslatableText/TranslatableTextStore';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
+import SharedFiltersVOManager from '../../../../../shared/modules/DashboardBuilder/manager/SharedFiltersVOManager';
 import DashboardPageFieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageFieldFiltersVO';
-import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import ISelectionnableFieldFilters from './interface/ISelectionnableFieldFilters';
-import SharedFiltersModalComponent from './modal/SharedFiltersModalComponent';
+import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
+import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../VueAppController';
+import { ModuleTranslatableTextGetter } from '../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../VueComponentBase';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import './DashboardSharedFiltersComponent.scss';
+import ISelectionnableFieldFilters from './interface/ISelectionnableFieldFilters';
+import SharedFiltersModalComponent from './modal/SharedFiltersModalComponent';
 
 @Component({
     template: require('./DashboardSharedFiltersComponent.pug'),
@@ -29,9 +30,6 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
 
     @Prop()
     private dashboard: DashboardVO;
-
-    @ModuleTranslatableTextAction
-    private set_flat_locale_translation: (translation: { code_text: string, value: string }) => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -145,6 +143,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
 
         const dashboard_pages_field_filters_map = await DashboardPageFieldFiltersVOManager.find_dashboard_pages_field_filters_by_dashboard_id(
             this.dashboard.id,
+            VueAppController.getInstance().data_user_lang.code_lang,
         );
 
         this.dashboard_pages_field_filters_map = dashboard_pages_field_filters_map;
@@ -249,7 +248,8 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
         self.snotify.async(self.label('dashboard_builder.shared_filters.save_start'), () =>
             new Promise(async (resolve, reject) => {
                 const success = await SharedFiltersVOManager.save_shared_filters(
-                    shared_filters
+                    shared_filters,
+                    VueAppController.getInstance().data_user_lang.code_lang,
                 );
 
                 if (success) {
@@ -361,7 +361,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
      * @returns {string}
      */
     private get_translation_by_vo_field_ref_name_code_text(name_code_text: string): string {
-        let translation: string = VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
+        let translation: string = LocaleManager.ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
 
         if (!translation) {
             translation = this.get_flat_locale_translations[name_code_text];

@@ -322,6 +322,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
         active_field_filters: FieldFiltersVO = null,
+        active_field_filters_column_labels: { [field_name: string]: string } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
@@ -368,6 +369,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     fields,
                     varcolumn_conf,
                     active_field_filters,
+                    active_field_filters_column_labels,
                     custom_filters,
                     active_api_type_ids,
                     discarded_field_paths,
@@ -391,6 +393,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     fields,
                     varcolumn_conf,
                     active_field_filters,
+                    active_field_filters_column_labels,
                     custom_filters,
                     active_api_type_ids,
                     discarded_field_paths,
@@ -418,6 +421,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null, // TODO FIXME : Quand est-ce qu'on applique le format ???
         active_field_filters: FieldFiltersVO = null,
+        active_field_filters_column_labels: { [field_name: string]: string } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
@@ -577,7 +581,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         // Sheet for active field filters
         if (export_active_field_filters) {
-            const active_filters_sheet = await this.create_active_filters_xlsx_sheet(active_field_filters);
+            const active_filters_sheet = await this.create_active_filters_xlsx_sheet(active_field_filters, active_field_filters_column_labels);
 
             if (!!active_filters_sheet) {
                 sheets.push(active_filters_sheet);
@@ -944,6 +948,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      */
     private async create_active_filters_xlsx_sheet(
         active_field_filters: FieldFiltersVO = null,
+        active_field_filters_column_labels: { [field_name: string]: string } = null,
     ): Promise<IExportableSheet> {
 
         if ((!active_field_filters)) {
@@ -972,8 +977,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     // TODO: get page id from to get the right translation
                 );
 
+                if (active_field_filters_column_labels && !active_field_filters_column_labels[vo_field_ref_label]) {
+                    ConsoleHandler.warn('create_active_filters_xlsx_sheet:Unknown field label:' + vo_field_ref_label + ':api_type_id:' + api_type_id + ':field_id:' + context_filter.field_name + ': Pour exporter ce filtre actif, il faut nommer le widget et qu\'il ne soit pas masqué');
+                    continue;
+                }
+
                 const data: { [column_list_key: string]: { value: string | number, format?: string } } = {
-                    filter_name: { value: vo_field_ref_label },
+                    filter_name: { value: ((active_field_filters_column_labels && active_field_filters_column_labels[vo_field_ref_label]) ? active_field_filters_column_labels[vo_field_ref_label] : vo_field_ref_label) },
                     value: { value: ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter) }
                 };
 
@@ -1070,7 +1080,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 if (!var_param) {
                     ConsoleHandler.log('create_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 1.5:!var_param :' + var_name + ':' + debug_uid);
                     sheet.datas.push({
-                        name: { value: LocaleManager.getInstance().t(var_name) },
+                        name: { value: LocaleManager.t(var_name) },
                         value: null
                     });
                     return;
@@ -1098,7 +1108,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     }
 
                     const data: { [column_list_key: string]: { value: string | number, format?: string } } = {
-                        name: { value: LocaleManager.getInstance().t(var_name) },
+                        name: { value: LocaleManager.t(var_name) },
                         value: { value, format }
                     };
 

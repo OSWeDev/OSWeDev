@@ -140,6 +140,13 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
+            // Si le champs est un champs calculé, on ne l'ajoute pas aux formulaires de modification
+            // Conscient qu'il y a un crud pour le read, mais a priori on ne l'utilise pas, on n'utilise que l'update et create non ?
+            // et en plus pas toujours avec la méthode getDefaultCRUDDatatable...
+            if (field.is_custom_computed) {
+                continue;
+            }
+
             const dt_field: DatatableField<any, any> = this.get_dt_field(field);
 
             if ((!!dt_field) && field.hidden_print) {

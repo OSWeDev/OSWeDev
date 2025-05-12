@@ -1,0 +1,126 @@
+.selection-panel {
+    position: absolute;
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: auto;
+    top: 1%;
+    right: 1%;
+    display: flex;
+    flex-direction: column;
+    max-height: 85%; // adapte la hauteur max si nécessaire
+    z-index: 10;
+    width: 70%;
+
+    h3 {
+        text-align: center;
+        color: #333;
+        font-weight: bold;
+    }
+
+    hr {
+        margin: 12px 0;
+        border: none;
+        height: 1px;
+        background-color: #ccc;
+    }
+
+    .buttons {
+        display: flex;
+        justify-content: space-between; // Espace les boutons
+        align-items: center;
+        gap: 10px; // Espacement entre les boutons
+
+
+    }
+
+    .scrollable-content {
+        flex-grow: 1;
+        overflow-y: auto; // Barre verticale de défilement
+        padding-right: 8px;
+
+        .json-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            font-family: monospace;
+
+            &__label {
+                font-weight: bold;
+            }
+
+            .text_input {
+                min-height: 150px;
+                padding: 0.5rem;
+                border: 1px solid #444;
+                border-radius: 4px;
+                background: #1e1e1e;
+                color: #d4d4d4;
+                outline: none;
+                /* pour enlever le focus bleu */
+                white-space: pre-wrap;
+                /* autorise le retour à la ligne */
+                overflow-wrap: break-word;
+                max-height: 200px;
+                overflow: auto;
+
+                // Couleurs pour le JSON highlight
+                .string {
+                    color: #ce9178;
+                }
+
+                .number {
+                    color: #b5cea8;
+                }
+
+                .boolean {
+                    color: #569cd6;
+                }
+
+                .null {
+                    color: #569cd6;
+                }
+
+                .key {
+                    color: #9cdcfe;
+                }
+            }
+        }
+
+        .label {
+            font-weight: bold;
+            margin-top: 12px;
+            margin-bottom: 4px;
+            color: #555;
+        }
+
+        .function_call_function_call_parameters_initial,
+        .function_call_result {
+            width: 100%;
+            max-height: 200px;
+            overflow: auto;
+            background: black;
+            color: white;
+            padding: 1em;
+            margin-bottom: 12px;
+        }
+    }
+
+    .function_call_name {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+
+        h3 {
+            margin: 0;
+        }
+
+        i {
+            cursor: pointer;
+        }
+    }
+}

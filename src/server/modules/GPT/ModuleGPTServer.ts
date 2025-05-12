@@ -1,7 +1,8 @@
-import { createReadStream } from 'fs';
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources';
+import { FileLike } from 'openai/uploads';
 import { isMainThread } from 'worker_threads';
+import Throttle from '../../../shared/annotations/Throttle';
 import APIControllerWrapper from "../../../shared/modules/API/APIControllerWrapper";
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -14,6 +15,7 @@ import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
+import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
@@ -48,6 +50,7 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import { originalCreateReadStream } from '../File/ArchiveServerController';
 import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -67,10 +70,6 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
-import FileHandler from '../../../shared/tools/FileHandler';
-import path from 'path';
-import { FileLike } from 'openai/uploads';
-import { originalCreateReadStream } from '../File/ArchiveServerController';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -93,6 +92,21 @@ export default class ModuleGPTServer extends ModuleServerBase {
             ModuleGPTServer.instance = new ModuleGPTServer();
         }
         return ModuleGPTServer.instance;
+    }
+
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_MAP,
+        throttle_ms: 1000,
+        leading: false,
+    })
+    private async set_message_is_ready(message_ids: { [id: number]: boolean }) {
+        await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+            .filter_by_ids(Object.keys(message_ids).map((id) => parseInt(id)))
+            .exec_as_server()
+            .update_vos({
+                is_ready: true,
+            } as GPTAssistantAPIThreadMessageVO);
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -287,6 +301,12 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
         // Juste pour init la date
         preCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, this, this.pre_create_trigger_handler_for_ThreadMessageVO);
+
+        /**
+         * On configure le pipe des messages pour les pousser aussi dans le thread cible si on a un thread cible
+         */
+        postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerController, this.postcreate_ThreadMessageVO_handle_pipe);
+        postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, GPTAssistantAPIServerController, this.postcreate_ThreadMessageContentVO_handle_pipe);
 
         if (!ConfigurationService.node_configuration.open_api_api_key) {
             ConsoleHandler.warn('OPEN_API_API_KEY is not set in configuration');
@@ -623,7 +643,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         return true;
     }
 
-    private async transcribe_file(filevo_id: number): Promise<string> {
+    private async transcribe_file(filevo_id: number, auto_commit_auto_input: boolean, gpt_assistant_id: string, gpt_thread_id: string, user_id: number): Promise<string> {
         const filevo: FileVO = await query(FileVO.API_TYPE_ID)
             .filter_by_id(filevo_id)
             .exec_as_server()
@@ -671,6 +691,19 @@ export default class ModuleGPTServer extends ModuleServerBase {
                 ConsoleHandler.error('transcribe_file:No transcription found');
                 return null;
             }
+
+            if (auto_commit_auto_input) {
+                await ModuleGPT.getInstance().ask_assistant(
+                    gpt_assistant_id,
+                    gpt_thread_id,
+                    null,
+                    transcription.text,
+                    null,
+                    user_id,
+                    false
+                );
+            }
+
         } catch (error) {
             ConsoleHandler.error('transcribe_file:ERROR:' + error);
         }
@@ -728,5 +761,94 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     private async summerize(thread_vo: number): Promise<FileVO> {
         throw new Error('Not implemented');
+    }
+
+    private async postcreate_ThreadMessageVO_handle_pipe(msg: GPTAssistantAPIThreadMessageVO) {
+        // 1 : On vérifie si on a un thread cible
+        // 2 : On push le message dans le thread cible, on fait le lien vers ce message pour indiqué que c'est une copie issue d'un pipe
+        const thread: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(msg.thread_id)
+            .exec_as_server()
+            .set_max_age_ms(60000) // Le param de pipe devrait pas changer toutes les secondes... voir pas du tout en fait
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!thread) {
+            return;
+        }
+
+        if (!thread.pipe_outputs_to_thread_id) {
+            return;
+        }
+
+        const piped_thread: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(thread.pipe_outputs_to_thread_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!piped_thread) {
+            ConsoleHandler.error('postcreate_ThreadMessageVO_handle_pipe: piped_thread not found');
+            return;
+        }
+
+        const thread_message_copy = Object.assign(new GPTAssistantAPIThreadMessageVO(), msg);
+        thread_message_copy.id = null;
+        thread_message_copy.gpt_id = null;
+        thread_message_copy.gpt_thread_id = piped_thread.gpt_thread_id;
+        thread_message_copy.gpt_run_id = null;
+        thread_message_copy.thread_id = thread.pipe_outputs_to_thread_id;
+        thread_message_copy.piped_from_thread_message_id = msg.id;
+        thread_message_copy.piped_from_thread_id = thread.id;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_message_copy);
+    }
+
+    private async postcreate_ThreadMessageContentVO_handle_pipe(msg_content: GPTAssistantAPIThreadMessageContentVO) {
+        // 1 : On vérifie si on a un thread cible
+        // 2 : On push le message content dans le thread cible => en retrouvant la copie du message qui a du être faite déjà du coup aussi. On fait le lien vers ce message content pour indiqué que c'est une copie issue d'un pipe
+        const thread: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(msg_content.thread_message_id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+            .exec_as_server()
+            .set_max_age_ms(60000) // Le param de pipe devrait pas changer toutes les secondes... voir pas du tout en fait
+            .set_discarded_field_path(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().piped_from_thread_message_id)
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!thread) {
+            return;
+        }
+
+        if (!thread.pipe_outputs_to_thread_id) {
+            return;
+        }
+
+        // On doit retrouver le message lié
+        const piped_message: GPTAssistantAPIThreadMessageVO = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().piped_from_thread_message_id, msg_content.thread_message_id)
+            .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().piped_from_thread_id, thread.id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadMessageVO>();
+
+        if (!piped_message) {
+            ConsoleHandler.error('postcreate_ThreadMessageContentVO_handle_pipe: piped_message not found');
+            return;
+        }
+
+        const thread_message_content_copy = Object.assign(new GPTAssistantAPIThreadMessageContentVO(), msg_content);
+        thread_message_content_copy.id = null;
+        thread_message_content_copy.thread_message_id = piped_message.id;
+        thread_message_content_copy.piped_from_thread_message_content_id = msg_content.id;
+        thread_message_content_copy.piped_from_thread_id = thread.id;
+        thread_message_content_copy.gpt_thread_message_id = piped_message.gpt_id;
+
+        let content_type_text: string = msg_content.content_type_text?.value;
+        if (!content_type_text) {
+            content_type_text = "<Message issu/pipe/dupliqué du thread [" + thread.id + "]>";
+        } else {
+            content_type_text = "<Message issu/pipe/dupliqué du thread [" + thread.id + "]> : " + content_type_text;
+        }
+        thread_message_content_copy.content_type_text.value = content_type_text;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_message_content_copy);
+
+        // Et comme on a fait la copie de contenu, on peut planifier le .is_ready = true sur le message
+        // (on le fait pas directement des fois qu'il y ai plusieurs contenus dans ce message)
+        ModuleGPTServer.getInstance().set_message_is_ready({ [piped_message.id]: true });
     }
 }

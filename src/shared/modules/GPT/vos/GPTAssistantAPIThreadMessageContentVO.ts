@@ -66,4 +66,16 @@ export default class GPTAssistantAPIThreadMessageContentVO implements IDistantVO
 
     public weight: number;
     public type: number;
+
+    /**
+     * Lien vers le thread duquel on a pipe/dupliqué le message content
+     * @see GPTAssistantAPIThreadVO.pipe_outputs_to_thread_id
+     */
+    public piped_from_thread_id: number;
+
+    /**
+     * Lien vers le thread message content qu'on a pipe/dupliqué ici
+     * @see GPTAssistantAPIThreadVO.pipe_outputs_to_thread_id
+     */
+    public piped_from_thread_message_content_id: number;
 }

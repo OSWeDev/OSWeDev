@@ -1,5 +1,4 @@
 import INamedVO from '../../../interfaces/INamedVO';
-import ObjectHandler from '../../../tools/ObjectHandler';
 import ModuleTableController from '../../DAO/ModuleTableController';
 import ModuleTableFieldController from '../../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
@@ -143,6 +142,10 @@ export default class VOsTypesManager {
 
         if ((!VOsTypesManager.manyToManyModuleTables) || (!VOsTypesManager.init_date_is_passed)) {
 
+            if (!VOsTypesManager.init_date) {
+                VOsTypesManager.init_date = Dates.now();
+            }
+
             if (VOsTypesManager.init_date >= Dates.now() - 60) {
                 const res: ModuleTableVO[] = [];
 
@@ -280,7 +283,7 @@ export default class VOsTypesManager {
      * on voudrait utiliser BGThreadServerController.server_ready mais on peut pas import ça bloc
      *  donc on passe par un pis-aller pour le moment avec juste un délai de 1 minute après le boot du serveur pour accepter de cacher les résultas du get_manyToManyModuleTables
      */
-    private static init_date: number = Dates.now();
+    private static init_date: number = null;
     private static init_date_is_passed: boolean = false; // Juste pour limiter les appel systématique à Dates.now() pour vérifier si on a passé le délai de 1 minute
 
     /**

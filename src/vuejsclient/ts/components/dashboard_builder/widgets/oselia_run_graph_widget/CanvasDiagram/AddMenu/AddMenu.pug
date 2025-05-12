@@ -1,0 +1,6 @@
+// AddMenu.pug
+.add-menu(:style="menuStyle")
+  .add-menu-option(v-for="option in options" :key="option" @click="onOptionClick(option)")
+    | {{ option }}
+
+  button.add-menu-close(@click="onClose") X

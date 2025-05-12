@@ -2,6 +2,7 @@ import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import MailCategoryUserVO from '../../../shared/modules/Mailer/vos/MailCategoryUserVO';
 import MailCategoryVO from '../../../shared/modules/Mailer/vos/MailCategoryVO';
 import MailEventVO from '../../../shared/modules/Mailer/vos/MailEventVO';
 import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
@@ -68,6 +69,11 @@ export default class SendInBlueMailServerController {
 
             if (!to || !to.email || !to.email.trim().length) {
                 ConsoleHandler.error('SendInBlueMailServerController.send:Failed:to vide ou sans email:' + JSON.stringify(to) + ':' + subject + ':' + textContent + ':' + htmlContent + ':' + tags + ':' + templateId + ':' + bcc + ':' + cc + ':' + attachments + ':' + sender + ':' + reply_to);
+                return false;
+            }
+
+            if (!await this.check_optin(to.email, mail_category)) {
+                ConsoleHandler.warn('SendInBlueMailServerController.send:Failed:Utilisateur non optin:' + to.email + ':' + subject + ':' + textContent + ':' + htmlContent + ':' + tags + ':' + templateId + ':' + bcc + ':' + cc + ':' + attachments + ':' + sender + ':' + reply_to);
                 return false;
             }
 
@@ -166,6 +172,11 @@ export default class SendInBlueMailServerController {
                 return null;
             }
 
+            if (!await this.check_optin(to.email, mail_category)) {
+                ConsoleHandler.warn('SendInBlueMailServerController.send:Failed:Utilisateur non optin:' + to.email + ':' + templateId + ':' + tags + ':' + params + ':' + bcc + ':' + cc + ':' + attachments + ':' + sender + ':' + reply_to);
+                return null;
+            }
+
             const postParams: any = {
                 sender: sender ? sender : await SendInBlueServerController.getInstance().getSender(),
                 to: [to],
@@ -245,6 +256,48 @@ export default class SendInBlueMailServerController {
         }
 
         return null;
+    }
+
+    private async check_optin(email: string, mail_category: string): Promise<boolean> {
+
+        if ((!mail_category) || (!email)) {
+            ConsoleHandler.error('SendInBlueMailServerController.check_optin:Failed:paramètres invalides:' + mail_category + ':' + email + ':');
+            return false;
+        }
+
+        let category = await ModuleDAO.instance.getNamedVoByName<MailCategoryVO>(MailCategoryVO.API_TYPE_ID, mail_category);
+
+        if (!category) {
+            category = new MailCategoryVO();
+            category.name = mail_category;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(category);
+            if (!category.id) {
+                ConsoleHandler.error('SendInBlueMailServerController.check_optin:Failed:Impossible de créer la nouvelle catégorie de mail:' + mail_category + ':');
+                return false;
+            }
+
+            return category.type_optin == MailCategoryVO.TYPE_OPTIN_OPTOUT; // Si par défaut on crée la catégorie en optout, on peut pas avoir optout à ce stade
+        }
+
+        // On cheche le user correspondant à l'email (sinon on ne peut pas savoir s'il est optin ou optout)
+        const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq(field_names<UserVO>().email, email).exec_as_server().select_vo<UserVO>();
+        if (!user) {
+            // Par défaut on est en optout donc si on trouve pas l'utilisateur, il va recevoir le mail et ne peut se désinscrire
+            return true;
+        }
+
+        // on cherche l'optin/out potentiel en base
+        const optin_optout: MailCategoryUserVO = await query(MailCategoryUserVO.API_TYPE_ID)
+            .filter_by_id(user.id, UserVO.API_TYPE_ID)
+            .filter_by_id(category.id, MailCategoryVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<MailCategoryUserVO>();
+
+        if (optin_optout) {
+            return (category.type_optin == MailCategoryVO.TYPE_OPTIN_OPTIN);
+        }
+
+        return (category.type_optin == MailCategoryVO.TYPE_OPTIN_OPTOUT);
     }
 
     private async insert_new_mail(to_mail: string, message_id: string, mail_category: string): Promise<MailVO> {

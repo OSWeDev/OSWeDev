@@ -1,4 +1,5 @@
 import { cloneDeep } from "lodash";
+import LocaleManager from "../../../tools/LocaleManager";
 import ObjectHandler from "../../../tools/ObjectHandler";
 import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
@@ -6,7 +7,6 @@ import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import ModuleTableController from "../../DAO/ModuleTableController";
 import ModuleTableFieldVO from "../../DAO/vos/ModuleTableFieldVO";
 import ModuleTableVO from "../../DAO/vos/ModuleTableVO";
-import TranslationManager from "../../Translation/manager/TranslationManager";
 import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
 import IReadableFieldFilters from "../interfaces/IReadableFieldFilters";
 import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
@@ -18,6 +18,7 @@ import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 import VOFieldRefVOManager from "./VOFieldRefVOManager";
 import WidgetOptionsVOManager from "./WidgetOptionsVOManager";
 import ModuleTableFieldController from "../../DAO/ModuleTableFieldController";
+import ModuleTranslation from "../../Translation/ModuleTranslation";
 
 /**
  * FieldFiltersVOManager
@@ -107,7 +108,7 @@ export default class FieldFiltersVOManager {
                         json_options
                     );
                 } catch (e) {
-
+                    //
                 }
 
                 // We must have widget_options to keep proceed
@@ -153,12 +154,13 @@ export default class FieldFiltersVOManager {
      */
     public static async create_readable_filters_text_from_field_filters(
         field_filters: FieldFiltersVO,
-        page_id?: number // Case when we need to be specific to a page (TODO: should always be specific)
+        code_lang: string,
+        page_id?: number, // Case when we need to be specific to a page (TODO: should always be specific)
     ): Promise<{ [translatable_label_code: string]: IReadableFieldFilters }> {
 
         field_filters = cloneDeep(field_filters);
 
-        const translations = await TranslationManager.get_all_flat_locale_translations();
+        const translations = await ModuleTranslation.getInstance().getALL_FLAT_LOCALE_TRANSLATIONS(code_lang);
 
         // Get all required filters props from widgets_options
         let field_filters_porps: Array<{ is_filter_hidden: boolean, vo_field_ref: VOFieldRefVO }> = [];
@@ -555,7 +557,7 @@ export default class FieldFiltersVOManager {
         active_field_filters: FieldFiltersVO,
         required_api_type_ids: string[],
         all_possible_api_type_ids: string[],
-        options?: {},
+        options?: any,
     ): { [api_type_id: string]: FieldFiltersVO } {
 
         active_field_filters = cloneDeep(active_field_filters);

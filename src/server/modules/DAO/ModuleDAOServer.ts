@@ -65,6 +65,7 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import ServerAnonymizationReloadConfMessage from '../Anonymization/vos/ServerAnonymizationReloadConfMessage';
+import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ForkMessageController from '../Fork/ForkMessageController';
 import IDatabaseHolder from '../IDatabaseHolder';
 import ModuleServerBase from '../ModuleServerBase';
@@ -80,6 +81,7 @@ import LogDBPerfServerController from './LogDBPerfServerController';
 import ModuleTableServerController from './ModuleTableServerController';
 import ThrottledQueryServerController from './ThrottledQueryServerController';
 import ThrottledRefuseServerController from './ThrottledRefuseServerController';
+import CustomComputedFieldBGThread from './bgthreads/CustomComputedFieldBGThread';
 import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from './triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from './triggers/DAOPostUpdateTriggerHook';
@@ -384,6 +386,23 @@ export default class ModuleDAOServer extends ModuleServerBase {
             })());
         }
 
+        // On déclare les triggers preu et prec pour les custom_computed fields
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+
+        for (const vo_type in ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name) {
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type];
+
+            for (const field_id in fields) {
+                const field: ModuleTableFieldVO = fields[field_id];
+
+                if (field.is_custom_computed) {
+                    preCreateTrigger.registerHandler(vo_type, this, this.handle_custom_computed_field_c(field));
+                    preUpdateTrigger.registerHandler(vo_type, this, this.handle_custom_computed_field_u(field));
+                }
+            }
+        }
+
         if (promises && promises.length) {
             await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
         }
@@ -618,6 +637,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
     // istanbul ignore next: cannot test configure
     public async configure() {
 
+        ModuleBGThreadServer.getInstance().registerBGThread(CustomComputedFieldBGThread.getInstance());
+
         PerfReportServerController.register_perf_module(ThrottledQueryServerController.PERF_MODULE_NAME);
 
         ForkMessageController.register_message_handler(ServerAnonymizationReloadConfMessage.FORK_MESSAGE_TYPE, ServerAnonymizationController.reload_conf);
@@ -736,6 +757,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Masquer le champs {field_id}"
         }, 'crud_create_form_body.add_removed_crud_field_id.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Outil d'aide à la sélection. Une nouvelle fenêtre va s'ouvrir pour vous aider à choisir un élément."
+        }, 'crud.field.open_external_selector.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification en cours..."
@@ -3288,5 +3313,54 @@ export default class ModuleDAOServer extends ModuleServerBase {
         await all_promises(promises);
 
         return res;
+    }
+
+    private handle_custom_computed_field_u<T extends IDistantVOBase>(field: ModuleTableFieldVO): (vo_update: DAOUpdateVOHolder<T>) => Promise<boolean> {
+        return async (vo_update: DAOUpdateVOHolder<T>): Promise<boolean> => {
+            if (!field) {
+                ConsoleHandler.error('ModuleDAOServer.handle_custom_computed_field: field is null');
+                return true;
+            }
+
+            if (!field.is_custom_computed) {
+                ConsoleHandler.error('ModuleDAOServer.handle_custom_computed_field: field is not custom computed');
+                return true;
+            }
+
+            const module = ModulesManager.getModuleByNameAndRole(field.custom_computed_module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
+
+            if (!module) {
+                throw new Error("Impossible de trouver le module " + field.custom_computed_module_name + " pour le champ " + field.field_name);
+            }
+
+            vo_update.post_update_vo[field.field_name] = await (module[field.custom_computed_function_name].bind(module))(vo_update.post_update_vo, field);
+
+            return true;
+        };
+    }
+
+    private handle_custom_computed_field_c<T extends IDistantVOBase>(field: ModuleTableFieldVO): (vo: T) => Promise<boolean> {
+
+        return async (vo: T): Promise<boolean> => {
+            if (!field) {
+                ConsoleHandler.error('ModuleDAOServer.handle_custom_computed_field: field is null');
+                return true;
+            }
+
+            if (!field.is_custom_computed) {
+                ConsoleHandler.error('ModuleDAOServer.handle_custom_computed_field: field is not custom computed');
+                return true;
+            }
+
+            const module = ModulesManager.getModuleByNameAndRole(field.custom_computed_module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
+
+            if (!module) {
+                throw new Error("Impossible de trouver le module " + field.custom_computed_module_name + " pour le champ " + field.field_name);
+            }
+
+            vo[field.field_name] = await (module[field.custom_computed_function_name].bind(module))(vo, field);
+
+            return true;
+        };
     }
 }

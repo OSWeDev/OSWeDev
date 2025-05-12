@@ -1,11 +1,10 @@
+import Throttle from "../../../shared/annotations/Throttle";
 import DAOCacheParamVO from "../../../shared/modules/DAO/vos/DAOCacheParamVO";
+import EventifyEventListenerConfVO from "../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import { StatThisMapKeys } from "../../../shared/modules/Stats/annotations/StatThisMapKeys";
-import ThreadHandler from "../../../shared/tools/ThreadHandler";
 
 export default class DAOCacheHandler {
-
-    private static instance: DAOCacheHandler = null;
 
     /**
      * Cache local - au thread - des DAO throttled queries
@@ -18,21 +17,6 @@ export default class DAOCacheHandler {
      * --------------------------------
      */
 
-    private cleaning_semaphore: boolean = false;
-
-    private constructor() {
-        ThreadHandler.set_interval(
-            'DAOCacheHandler.clean_cache',
-            async () => {
-                if (!this.cleaning_semaphore) {
-                    this.clean_cache();
-                }
-            },
-            10000,
-            'DAOCacheHandler.clean_cache',
-            true);
-    }
-
     /**
      * A appeler avant de faire un get_cache
      * @param parameterized_full_query
@@ -40,6 +24,9 @@ export default class DAOCacheHandler {
      * @returns
      */
     public static has_cache(parameterized_full_query: string, max_age_ms: number): boolean {
+
+        // On lance le clean du cache à chaque fois qu'on check un cache - ya un throttle sur le clean ça limite les appels réels
+        DAOCacheHandler.clean_cache();
 
         if (!DAOCacheHandler.dao_cache_params[parameterized_full_query]) {
             return false;
@@ -76,21 +63,16 @@ export default class DAOCacheHandler {
         DAOCacheHandler.dao_cache_params[parameterized_full_query] = new DAOCacheParamVO(Dates.now_ms(), max_age);
     }
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!DAOCacheHandler.instance) {
-            DAOCacheHandler.instance = new DAOCacheHandler();
-        }
-        return DAOCacheHandler.instance;
-    }
-
-
     /**
-     * Système de nettoyage du cache qui checke les timeouts
+     * Système de nettoyage du cache qui checke les timeouts - toutes les minutes
      */
-    private clean_cache() {
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 60000,
+        leading: false,
+    })
+    private static clean_cache() {
 
-        this.cleaning_semaphore = true;
         for (const i in DAOCacheHandler.dao_cache_params) {
             const param: DAOCacheParamVO = DAOCacheHandler.dao_cache_params[i];
 
@@ -99,6 +81,5 @@ export default class DAOCacheHandler {
                 delete DAOCacheHandler.dao_cache[i];
             }
         }
-        this.cleaning_semaphore = false;
     }
 }

@@ -140,6 +140,18 @@ export default class GPTAssistantAPIThreadMessageVO implements IDistantVOBase {
      */
     public metadata: unknown;
 
+    /**
+     * Lien vers le thread duquel on a pipe/dupliqué le message
+     * @see GPTAssistantAPIThreadVO.pipe_outputs_to_thread_id
+     */
+    public piped_from_thread_id: number;
+
+    /**
+     * Lien vers le thread message qu'on a pipe/dupliqué ici
+     * @see GPTAssistantAPIThreadVO.pipe_outputs_to_thread_id
+     */
+    public piped_from_thread_message_id: number;
+
     public weight: number;
 
     public is_ready: boolean;

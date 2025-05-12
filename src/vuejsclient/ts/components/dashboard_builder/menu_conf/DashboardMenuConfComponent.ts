@@ -10,8 +10,8 @@ import ModuleTranslation from '../../../../../shared/modules/Translation/ModuleT
 import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import { field_names } from '../../../../../shared/tools/ObjectHandler';
-import { ModuleTranslatableTextAction } from '../../InlineTranslatableText/TranslatableTextStore';
 import MenuController from '../../menu/MenuController';
 import MenuOrganizerComponent from '../../menu/organizer/MenuOrganizerComponent';
 import VueComponentBase from '../../VueComponentBase';
@@ -27,9 +27,6 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
 
     @Prop()
     private dashboard: DashboardVO;
-
-    @ModuleTranslatableTextAction
-    private set_flat_locale_translation: (translation: { code_text: string, value: string }) => void;
 
     private menu_app: { [app_name: string]: number } = {};
     private app_names: string[] = [];
@@ -148,10 +145,7 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
                             menu_translation.translated = translation.translated;
                             const resi = await ModuleDAO.instance.insertOrUpdateVO(menu_translation);
                             if (resi && resi.id) {
-                                this.set_flat_locale_translation({
-                                    code_text: translatable_text_menu.code_text,
-                                    value: translation.translated
-                                });
+                                LocaleManager.set_translation(translatable_text_menu.code_text, translation.translated);
                             }
                         }
                     }

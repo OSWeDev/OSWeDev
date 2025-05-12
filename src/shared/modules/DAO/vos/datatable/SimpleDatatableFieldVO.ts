@@ -97,9 +97,9 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         } catch (error) {
                             ConsoleHandler.error(error);
                         }
-                        return LocaleManager.getInstance().label(field_value, params);
+                        return LocaleManager.label(field_value, params);
                     } else {
-                        return LocaleManager.getInstance().label(field_value);
+                        return LocaleManager.label(field_value);
                     }
 
                 case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
@@ -112,14 +112,14 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         try {
                             const int_value = parseInt(field_value);
                             if (!isNaN(int_value)) {
-                                return LocaleManager.getInstance().t(this.enum_values[int_value]);
+                                return LocaleManager.t(this.enum_values[int_value]);
                             }
                         } catch (error) {
                             //
                         }
                         return field_value;
                     }
-                    return LocaleManager.getInstance().t(this.enum_values[field_value]);
+                    return LocaleManager.t(this.enum_values[field_value]);
 
                 case ModuleTableFieldVO.FIELD_TYPE_date:
                 case ModuleTableFieldVO.FIELD_TYPE_day:
@@ -454,7 +454,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                 case ModuleTableFieldVO.FIELD_TYPE_enum:
                     for (const i in this.enum_values) {
-                        if (LocaleManager.getInstance().i18n.t(this.enum_values[i]) == value) {
+                        if (LocaleManager.i18n.t(this.enum_values[i]) == value) {
                             return i;
                         }
                     }
@@ -624,7 +624,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
             return null;
         }
 
-        return LocaleManager.getInstance().i18n.t(this.enum_values[id]);
+        return LocaleManager.i18n.t(this.enum_values[id]);
     };
 
     public enumIdToHumanReadableImage: (id: number) => string = (id: number) => {
