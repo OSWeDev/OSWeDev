@@ -2,7 +2,6 @@ import ActionURLVO from '../../../shared/modules/ActionURL/vos/ActionURLVO';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO';
 import TeamsWebhookContentAdaptiveCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAdaptiveCardVO';
@@ -121,8 +120,8 @@ export default class TeamsAPIServerController {
                     true
                 );
                 ConsoleHandler.log('TeamsAPIServerController.send_to_teams_webhook:RETRY:Message envoyé');
-            } catch (error) {
-                ConsoleHandler.error('TeamsAPIServerController.send_to_teams_webhook:RETRY:Impossible de réenvoyer le message Teams:' + group_id + ':' + channel_id + ':' + JSON.stringify(message) + ':' + error);
+            } catch (error2) {
+                ConsoleHandler.error('TeamsAPIServerController.send_to_teams_webhook:RETRY:Impossible de réenvoyer le message Teams:' + group_id + ':' + channel_id + ':' + JSON.stringify(message) + ':' + error2);
                 return null;
             }
         }
@@ -133,10 +132,10 @@ export default class TeamsAPIServerController {
                 return null;
             }
 
-            const message = webhook_response.toString('utf-8');
-            console.log(message);
+            const message2 = webhook_response.toString('utf-8');
+            console.log(message2);
 
-            const message_id: string = message.split(': ')[1].trim();
+            const message_id: string = message2.split(': ')[1].trim();
             ConsoleHandler.log('TeamsAPIServerController.send_to_teams_webhook:Réponse de Teams:message_id:' + message_id);
 
             for (const action_url of action_urls) {

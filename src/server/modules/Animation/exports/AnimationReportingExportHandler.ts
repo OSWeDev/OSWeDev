@@ -28,18 +28,34 @@ import ExportAnimationReportingLine from './ExportAnimationReportingLine';
 
 export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
+    private static instance: AnimationReportingExportHandler = null;
+
+    protected constructor() {
+        super();
+    }
+
+    get ordered_column_list(): string[] {
+        return [
+            'theme',
+            'module',
+            'roles',
+            'utilisateur',
+            'debut',
+            'fin',
+            'temps_passe',
+            'feedback',
+            'commentaire',
+            'support',
+            'prct_reussite',
+        ];
+    }
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!AnimationReportingExportHandler.instance) {
             AnimationReportingExportHandler.instance = new AnimationReportingExportHandler();
         }
         return AnimationReportingExportHandler.instance;
-    }
-
-    private static instance: AnimationReportingExportHandler = null;
-
-    protected constructor() {
-        super();
     }
 
     public async prepare_datas(exhi: ExportHistoricVO): Promise<IExportableDatas> {
@@ -341,21 +357,5 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             support: await ModuleTranslation.getInstance().label('animation.reporting.support', user.lang_id),
             prct_reussite: await ModuleTranslation.getInstance().label('animation.reporting.prct_reussite', user.lang_id),
         };
-    }
-
-    get ordered_column_list(): string[] {
-        return [
-            'theme',
-            'module',
-            'roles',
-            'utilisateur',
-            'debut',
-            'fin',
-            'temps_passe',
-            'feedback',
-            'commentaire',
-            'support',
-            'prct_reussite',
-        ];
     }
 }
