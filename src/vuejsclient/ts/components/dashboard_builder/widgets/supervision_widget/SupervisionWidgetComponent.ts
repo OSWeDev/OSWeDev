@@ -39,6 +39,7 @@ import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/Mo
 import ModuleSupervision from '../../../../../../shared/modules/Supervision/ModuleSupervision';
 import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
 import SupervisionCustomColumnVO from '../../../../../../shared/modules/DashboardBuilder/vos/SupervisionCustomColumnVO';
+import { Route } from 'vue-router';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -72,6 +73,9 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
+
+    @ModuleDashboardPageAction
+    private set_active_api_type_ids: (active_api_type_ids: string[]) => void;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -229,8 +233,26 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         this.throttled_update_visible_options();
     }
 
+    @Watch('$route', { immediate: true, deep: false })
+    private async onRouteChanged(newRoute: Route, oldRoute: Route) {
+
+        const route: Route = Object.assign({}, this.$router.currentRoute);
+        const supItemId = route.query.sup_item_id;
+        const type = route.query.type;
+
+        if (!!supItemId && !!type) {
+            this.set_active_api_type_ids([type]);
+
+            const item: ISupervisedItem = await query(type).filter_by_id(parseInt(supItemId)).select_vo();
+            if (!!item) {
+                this.openModal(item);
+            }
+        }
+    }
+
     private async mounted() {
         this.stopLoading();
+
         this.has_access_pause = await ModuleAccessPolicy.getInstance().testAccess(ModuleSupervision.POLICY_ACTION_PAUSE_ACCESS);
         this.split_char = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervision.PARAM_NAME_sup_item_name_split_char, null, 0);
 
@@ -278,7 +300,6 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
         return this.update_visible_options();
     }
-
     /**
      * Update visible options
      * - Get the supervision items
@@ -395,6 +416,10 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     }
 
     private openModal(item: ISupervisedItem) {
+        if (!this.get_Supervisionitemmodal) {
+            console.warn('SupervisionItemModalComponent not found');
+            return;
+        }
         this.get_Supervisionitemmodal.openmodal(item, this.has_access_pause, this.split_char);
     }
 

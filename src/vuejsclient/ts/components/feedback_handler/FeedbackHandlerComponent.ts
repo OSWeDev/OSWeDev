@@ -36,7 +36,10 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     public set_hidden: (hidden: boolean) => void;
 
     @Prop({ default: false })
-    private show_wish_be_called;
+    private show_wish_be_called: boolean;
+
+    @Prop({ default: 'VueMain' })
+    private dom_id_to_capture: string;
 
     private tmp_user: string = null;
     private tmp_email: string = null;

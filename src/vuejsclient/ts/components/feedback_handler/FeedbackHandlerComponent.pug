@@ -112,13 +112,13 @@
                             i.fa-solid.fa-asterisk.mandatory
                 .row
                     .col-sm-4
-                        Screenshotcomponent(id='tmp_capture_1_vo' :filevo="tmp_capture_1_vo" @uploaded="uploadedCapture1(...arguments)" ref='ScreenshotComponent1')
+                        Screenshotcomponent(id='tmp_capture_1_vo' :filevo="tmp_capture_1_vo" @uploaded="uploadedCapture1(...arguments)" ref='ScreenshotComponent1' :dom_id_to_capture="dom_id_to_capture")
                     .col-sm-4
                         template(v-if='!!tmp_capture_1_vo')
-                            Screenshotcomponent(id='tmp_capture_2_vo' :filevo="tmp_capture_2_vo" @uploaded="uploadedCapture2(...arguments)")
+                            Screenshotcomponent(id='tmp_capture_2_vo' :filevo="tmp_capture_2_vo" @uploaded="uploadedCapture2(...arguments)" :dom_id_to_capture="dom_id_to_capture")
                     .col-sm-4
                         template(v-if='!!tmp_capture_2_vo')
-                            Screenshotcomponent(id='tmp_capture_3_vo' :filevo="tmp_capture_3_vo" @uploaded="uploadedCapture3(...arguments)")
+                            Screenshotcomponent(id='tmp_capture_3_vo' :filevo="tmp_capture_3_vo" @uploaded="uploadedCapture3(...arguments)" :dom_id_to_capture="dom_id_to_capture")
 
                 .spacer
 

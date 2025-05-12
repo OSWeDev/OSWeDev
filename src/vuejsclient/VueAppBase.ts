@@ -150,7 +150,7 @@ export default abstract class VueAppBase {
             /**
              * FIXME : peut-etre séparer les policies_tocheck et des policies_totest pour identifier les policies qui manqueraient de façon anormale
              */
-            if (module_?.policies_needed?.length > 0) {
+            if (module_?.actif && (module_?.policies_needed?.length > 0)) {
                 promises.push((async () => {
 
                     const local_promises = [];
