@@ -785,7 +785,7 @@ export default class AccessPolicyServerController {
         role.id = insertOrDeleteQueryResult.id;
         AccessPolicyServerController.registered_roles[role.translatable_name.toLowerCase()] = role;
         AccessPolicyServerController.registered_roles_by_ids[role.id] = role;
-        ConsoleHandler.error('Ajout du role OK:' + role.translatable_name + ':');
+        ConsoleHandler.log('Ajout du role OK:' + role.translatable_name + ':');
         return role;
     }
 
@@ -840,7 +840,7 @@ export default class AccessPolicyServerController {
 
         group.id = insertOrDeleteQueryResult.id;
         AccessPolicyServerController.registered_policy_groups[translatable_name.toLowerCase()] = group;
-        ConsoleHandler.error('Ajout du groupe OK :' + group.translatable_name + ':');
+        ConsoleHandler.log('Ajout du groupe OK :' + group.translatable_name + ':');
         return group;
     }
 
@@ -907,7 +907,7 @@ export default class AccessPolicyServerController {
                     ConsoleHandler.error('Modification de droit échoué :' + policyFromBDD.translatable_name + ':');
                     return null;
                 }
-                ConsoleHandler.error('Modification du droit :' + policyFromBDD.translatable_name + ': OK');
+                ConsoleHandler.log('Modification du droit :' + policyFromBDD.translatable_name + ': OK');
             }
 
             AccessPolicyServerController.registered_policies[translatable_name.toLowerCase()] = policyFromBDD;
@@ -924,7 +924,7 @@ export default class AccessPolicyServerController {
         policy.id = insertOrDeleteQueryResult.id;
         AccessPolicyServerController.registered_policies[translatable_name.toLowerCase()] = policy;
         AccessPolicyServerController.registered_policies_by_ids[policy.id] = policy;
-        ConsoleHandler.error('Ajout du droit OK :' + policy.translatable_name + ':');
+        ConsoleHandler.log('Ajout du droit OK :' + policy.translatable_name + ':');
         return policy;
     }
 
@@ -978,7 +978,7 @@ export default class AccessPolicyServerController {
 
         dependency.id = insertOrDeleteQueryResult.id;
         AccessPolicyServerController.registered_dependencies[dependency.src_pol_id].push(dependency);
-        ConsoleHandler.error('Ajout de dépendance OK :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
+        ConsoleHandler.log('Ajout de dépendance OK :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
         return dependency;
     }
 
