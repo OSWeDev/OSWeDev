@@ -1459,6 +1459,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         let is_rbga = true;
         let base_color: string = '';
         const colors: string[] = [];
+        const border_colors: string[] = [];
 
         // Cas : has_gradient + type != 'line' => on essaye de faire un dégradé
         if (var_chart_options.has_gradient && var_chart_options.type != 'line') {
@@ -1506,20 +1507,30 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             } else {
                 // On pioche dans la palette
                 const index_for_color: number = parseInt(key) + parseInt(j);
-                let color = var_chart_options.color_palette.colors[index_for_color];
+                let color = var_chart_options.color_palette.colors?var_chart_options.color_palette.colors[index_for_color] : null;
+                let border_color = var_chart_options.color_palette.border_colors ? var_chart_options.color_palette.border_colors[index_for_color] : null;
+                if (!border_color) {
+                    border_color = this.getDefaultColor();
+                }
                 if (!color) {
                     color = this.getDefaultColor();
+                }
+                if (border_color.startsWith('#')) {
+                    border_color = this.hexToRgbA(border_color, true); // opaque
                 }
                 if (color.startsWith('#')) {
                     color = this.hexToRgbA(color, true); // opaque
                 }
                 colors.push(color);
+                border_colors.push(border_color);
             }
         }
 
         // Border color = ...
-        const borderColor = ['rgba(0, 0, 0, 0)'];
-        return { colorArray: colors, borderColorArray: borderColor };
+        if (border_colors.length == 0) {
+            border_colors.push('rgba(0, 0, 0, 0)');
+        }
+        return { colorArray: colors, borderColorArray: border_colors };
     }
 
     /**

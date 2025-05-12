@@ -32,10 +32,8 @@ import ObjectHandler, { field_names } from '../../../../shared/tools/ObjectHandl
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
-import VueAppController from '../../../VueAppController';
 import InlineTranslatableText from '../InlineTranslatableText/InlineTranslatableText';
 import TranslatableTextController from '../InlineTranslatableText/TranslatableTextController';
-import { ModuleTranslatableTextAction } from '../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../VueComponentBase';
 import ModuleTablesComponent from '../module_tables/ModuleTablesComponent';
 import './DashboardBuilderComponent.scss';
@@ -105,9 +103,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     @ModuleDashboardPageAction
     private delete_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleTranslatableTextAction
-    private set_flat_locale_translations: (translations: { [code_text: string]: string }) => void;
 
     @ModuleDashboardPageAction
     private add_page_history: (page_history: DashboardPageVO) => void;
@@ -350,8 +345,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                     self.throttle_on_dashboard_loaded();
 
                     // On crée des trads, on les recharge
-                    await VueAppController.getInstance().initializeFlatLocales();
-                    self.set_flat_locale_translations(VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS);
+                    await LocaleManager.get_all_flat_locale_translations(true);
 
                     if ((!import_on_vo) && imported_datas && imported_datas.length) {
                         // on récupère le nouveau db
@@ -966,7 +960,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         // On crée la trad
-        const code_lang = LocaleManager.getInstance().getDefaultLocale();
+        const code_lang = LocaleManager.getDefaultLocale();
         const code_text = this.dashboard.translatable_name_code_text;
         const translation = "Dashboard [" + this.dashboard.id + "]";
         await TranslatableTextController.getInstance().save_translation(code_lang, code_text, translation);

@@ -259,6 +259,7 @@ export default class DashboardPageWidgetVOManager {
         // Create widget_options vo
         const page_widget_options = WidgetOptionsVOManager.create_widget_options_vo_by_name(
             widget_type?.name,
+            widget_type?.is_filter,
             page_widget.json_options
         );
 

@@ -6,6 +6,7 @@ import ModuleTableFieldController from '../../../../../shared/modules/DAO/Module
 import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import './CanvasDiagram.scss';
+import VueComponentBase from '../../VueComponentBase';
 
 interface LinkDrawInfo {
     table: string;
@@ -19,7 +20,7 @@ interface LinkDrawInfo {
 @Component({
     template: require('./CanvasDiagram.pug'),
 })
-export default class CanvasDiagram extends Vue {
+export default class CanvasDiagram extends VueComponentBase {
 
     @Prop({ default: () => ({}) })
     readonly fields_by_table_name_and_field_name!: { [table_name: string]: { [field_name: string]: ModuleTableFieldVO } };
@@ -261,7 +262,7 @@ export default class CanvasDiagram extends Vue {
     }
 
     private get_link_label(table_name: string, field_name: string): string {
-        return this.$t(
+        return this.t(
             ModuleTableFieldController
                 .module_table_fields_by_vo_type_and_field_name[table_name][field_name]
                 .field_label
@@ -522,7 +523,7 @@ export default class CanvasDiagram extends Vue {
 
         ctx.fillStyle = '#000';
         ctx.font = 'bold 14px sans-serif';
-        ctx.fillText(this.$t(table.label.code_text) as string, p.x + 10, p.y + 20);
+        ctx.fillText(this.t(table.label.code_text) as string, p.x + 10, p.y + 20);
 
         if (!p.folded) {
             ctx.font = '12px sans-serif';

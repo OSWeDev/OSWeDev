@@ -62,6 +62,30 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'StatVO.AGGREGATOR_MAX'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Heure'
+        }, 'export_frequency_prefered_time.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Envoyer aux utilisateurs suivants'
+        }, 'dashboard_viewer.favorites_filters.export_to_users.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Heure préférée'
+        }, 'dashboard_viewer.favorites_filters.export_frequency_prefered_time.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Jour'
+        }, 'favorites_filters_export_frequency.GRANULARITY_DAY'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Mois'
+        }, 'favorites_filters_export_frequency.GRANULARITY_MONTH'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Année'
+        }, 'favorites_filters_export_frequency.GRANULARITY_YEAR'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Ouvrir le dashboard'
         }, 'DashboardCycleChecker.open_dashboard.___LABEL___'));
 
@@ -1727,9 +1751,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Table de données. Permet de lister, modifier et supprimer des données de l\'application.'
         }, 'dashboards.widgets.icons_tooltips.datatable.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Table de valeurs. Pour aggréger les données (et variables) suivant les filtres sélectionnés et les colonnes affichées.'
-        }, 'dashboards.widgets.icons_tooltips.valuetable.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Filtre sur la valeur d\'un champs. Sélectionner un champs et les paramètres de filtrage. Le filtre est appliqué à toutes les pages du Tableau de bord.'
         }, 'dashboards.widgets.icons_tooltips.fieldvaluefilter.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -2706,6 +2727,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Jour de la semaine : 1 pour lundi, 7 pour dimanche" },
+            'dashboard_viewer.favorites_filters.export_frequency_day_in_week_tooltip.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Afficher le champ de recherche" },
             'field_value_filter_widget_component.show_search_field.___LABEL___'
         ));
@@ -3203,6 +3228,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Jour du mois pour l'export de données requis" },
             'dashboard_viewer.favorites_filters.export_frequency_day_in_month_required.___LABEL___'
         ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Jour de la semaine requis pour l'export de données" },
+            'dashboard_viewer.favorites_filters.export_frequency_day_in_week_required.___LABEL___'
+        ));
+
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Données à exporté requis" },
             'dashboard_viewer.favorites_filters.selected_exportable_data_required.___LABEL___'
@@ -3238,6 +3269,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Jour dans le mois *:" },
             'dashboard_viewer.favorites_filters.export_frequency_day_in_month.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Jour dans la semaine *:" },
+            'dashboard_viewer.favorites_filters.export_frequency_day_in_week.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Sélectionnez les tableaux de valeurs à exporter *:" },

@@ -30,6 +30,8 @@ import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
+import CRUDFieldRemoverConfVO from '../../../../../shared/modules/DAO/vos/CRUDFieldRemoverConfVO';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
 
 export default class CRUDFormServices {
 
@@ -54,6 +56,7 @@ export default class CRUDFormServices {
 
     public static async load_datas(
         crud: CRUD<any>,
+        is_update: boolean,
         storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
         api_types_involved_to_invalidate: string[] = [],
         hook_init_post_reload: () => Promise<void> = null,
@@ -76,10 +79,26 @@ export default class CRUDFormServices {
 
         const res: string[] = [];
 
+        const crud_field_rmvs: CRUDFieldRemoverConfVO[] = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
+            .filter_boolean_value(field_names<CRUDFieldRemoverConfVO>().is_update, is_update)
+            .filter_by_text_eq(field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, crud.readDatatable.API_TYPE_ID)
+            .select_vos<CRUDFieldRemoverConfVO>();
+        const hidden_fields: { [datatable_field_uid: string]: boolean } = {};
+
+        for (const i in crud_field_rmvs) { // On devrait avoir qu'un api_type_id
+            const crud_field_rmvs_i = crud_field_rmvs[i];
+
+            for (const j in crud_field_rmvs_i.module_table_field_ids) {
+                const remv_field = crud_field_rmvs_i.module_table_field_ids[j];
+
+                hidden_fields[remv_field] = true;
+            }
+        }
+
         /**
          * On ne veut pas charger par défaut (sauf ref reflective dans un champ de l'objet) tous les vos du type du vo modifié
          */
-        await all_promises(CRUDFormServices.loadDatasFromDatatable(crud.updateDatatable, res, storeDatas, true));
+        await all_promises(CRUDFormServices.loadDatasFromDatatable(crud.updateDatatable, res, storeDatas, hidden_fields, true));
 
         if (hook_init_post_reload) {
             await hook_init_post_reload();
@@ -92,6 +111,7 @@ export default class CRUDFormServices {
         datatable: Datatable<IDistantVOBase>,
         api_types_involved: string[],
         storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
+        hidden_fields: { [datatable_field_uid: string]: boolean },
         only_fields: boolean = false,
     ): Array<Promise<any>> {
         let res: Array<Promise<any>> = [];
@@ -116,6 +136,10 @@ export default class CRUDFormServices {
                 const field = datatable.fields[i];
 
                 if (field.can_use_async_load_options) {
+                    continue;
+                }
+
+                if (hidden_fields[field.datatable_field_uid]) {
                     continue;
                 }
 

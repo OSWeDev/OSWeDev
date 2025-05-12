@@ -143,6 +143,9 @@ export default class ModuleEnvParam extends Module {
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_reruns_of_oselia, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug reruns of Oselia', true, true, false);
 
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_assistant_traduction, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug assistant traduction', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_superviseur_assistant_traduction, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug superviseur assistant traduction', true, true, false);
+
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_playwright_controller, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug Playwright controller', true, true, false);
 
         // DEBUG_SLOW_QUERIES_MS_LIMIT ?: number;
@@ -157,6 +160,8 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_db_query_add_activated_many_to_many, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug DB query add activated many to many', true);
         // DEBUG_convert_varparamfields_to_vardatas ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_convert_varparamfields_to_vardatas, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug convert varparamfields to vardatas', true);
+
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().threshold_too_many_imports_waiting, ModuleTableFieldVO.FIELD_TYPE_int, 'Seuil pour alerte : trop d\'imports en attente', false);
         // DEBUG_FORKS ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_forks, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug forks', true);
         // DEBUG_VARS ?: boolean;

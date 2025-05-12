@@ -4,8 +4,6 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
-import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import FavoritesFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FavoritesFiltersVOManager';
 import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
@@ -108,18 +106,66 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         false
     );
 
+
+
     /**
-     * On mounted
-     *  - Happen on component mount
+     * Get widget_options
      *
-     * @returns {void}
+     * @return {FavoritesFiltersWidgetOptionsVO}
      */
-    private mounted(): void {
-        ReloadFiltersWidgetController.getInstance().register_reloader(
-            this.dashboard_page,
-            this.page_widget,
-            this.reload_visible_options.bind(this),
-        );
+    get widget_options(): FavoritesFiltersWidgetOptionsVO {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: FavoritesFiltersWidgetOptionsVO = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as FavoritesFiltersWidgetOptionsVO;
+                options = options ? new FavoritesFiltersWidgetOptionsVO().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    /**
+     * Get can_select_multiple
+     *
+     * @return {boolean}
+     */
+    get can_select_multiple(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        // return !!this.widget_options.can_select_multiple;
+        return false;
+    }
+
+    /**
+     * Get vo_field_ref_label
+     *
+     * @return {string}
+     */
+    get vo_field_ref_label(): string {
+
+        return this.get_flat_locale_translations[new VOFieldRefVO().from({
+            api_type_id: FavoritesFiltersVO.API_TYPE_ID,
+            field_id: field_names<FavoritesFiltersVO>().name,
+            _type: VOFieldRefVO.API_TYPE_ID
+        }).get_translatable_name_code_text(this.page_widget.id)];
+    }
+
+    /**
+     * Get All Page Widget By Id
+     * @return {{ [id: number]: DashboardPageWidgetVO }}
+     */
+    get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
     }
 
     /**
@@ -154,6 +200,22 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         this.throttled_update_visible_options();
     }
 
+    /**
+     * On mounted
+     *  - Happen on component mount
+     *
+     * @returns {void}
+     */
+    private mounted(): void {
+        ReloadFiltersWidgetController.getInstance().register_reloader(
+            this.dashboard_page,
+            this.page_widget,
+            this.reload_visible_options.bind(this),
+        );
+    }
+
+
+
     // /**
     //  * onchange_tmp_active_filter_options
     //  * tmp_active_favorites_filters_option is the visible active filters of the widget
@@ -173,10 +235,13 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             return;
         }
 
-        const field_filters = this.tmp_active_favorites_filters_option?.field_filters;
+        // Chargement initial
+        if (!this.old_tmp_active_favorites_filters_option) {
+            this.old_tmp_active_favorites_filters_option = cloneDeep(this.tmp_active_favorites_filters_option);
+        }
 
         if (
-            isEmpty(field_filters) ||
+            isEmpty(this.tmp_active_favorites_filters_option?.field_filters) ||
             !isEqual(this.tmp_active_favorites_filters_option, this.old_tmp_active_favorites_filters_option)
         ) {
             this.old_active_field_filters = cloneDeep(this.get_active_field_filters);
@@ -203,11 +268,6 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
         this.last_calculation_cpt = launch_cpt;
 
-        if ((!this.vo_field_ref)) {
-            this.favorites_filters_visible_options = [];
-            return;
-        }
-
         // Init context filter of the current filter
         let whole_active_field_filters: FieldFiltersVO = null;
 
@@ -225,17 +285,13 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             this.warn_existing_external_filters = !this.try_apply_actual_active_favorites_filters(whole_active_field_filters);
         }
 
-        const field_sort: VOFieldRefVO = this.vo_field_ref;
-
         let tmp: FavoritesFiltersVO[] = [];
 
-        const query_api_type_id: string = this.vo_field_ref.api_type_id;
-
-        tmp = await query(query_api_type_id) // ???????? FIXME TODO TESTER pourquoi c'est pas simplement FavoritesFiltersVO.API_TYPE_ID ?????
+        tmp = await query(FavoritesFiltersVO.API_TYPE_ID) // ???????? FIXME TODO TESTER pourquoi c'est pas simplement FavoritesFiltersVO.API_TYPE_ID ?????
             .filter_by_text_eq(field_names<FavoritesFiltersVO>().page_id, this.dashboard_page.id.toString())
             .filter_by_text_eq(field_names<FavoritesFiltersVO>().owner_id, this.data_user.id.toString())
             .set_limit(this.widget_options?.max_visible_options)
-            .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
+            .set_sort(new SortByVO(FavoritesFiltersVO.API_TYPE_ID, field_names<FavoritesFiltersVO>().name, true))
             .select_vos<FavoritesFiltersVO>();
 
         // We must keep and apply the last request response
@@ -479,7 +535,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     private async get_exportable_xlsx_params(limit_to_page: boolean = true): Promise<{ [title_name_code: string]: ExportContextQueryToXLSXParamVO }> {
 
-        const exportable_xlsx_params = await TableWidgetManager.create_exportable_valuetables_xlsx_params(
+        const exportable_xlsx_params = await TableWidgetManager.create_exportable_datatables_xlsx_params(
             this.dashboard,
             this.dashboard_page,
             this.get_active_field_filters,
@@ -587,104 +643,5 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
                 }
             })
         );
-    }
-
-    /**
-     * Get widget_options
-     *
-     * @return {FavoritesFiltersWidgetOptionsVO}
-     */
-    get widget_options(): FavoritesFiltersWidgetOptionsVO {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: FavoritesFiltersWidgetOptionsVO = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as FavoritesFiltersWidgetOptionsVO;
-                options = options ? new FavoritesFiltersWidgetOptionsVO().from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
-    }
-
-    /**
-     * Get can_select_multiple
-     *
-     * @return {boolean}
-     */
-    get can_select_multiple(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        // return !!this.widget_options.can_select_multiple;
-        return false;
-    }
-
-    /**
-     * Get is_translatable_type
-     *
-     * @return {boolean}
-     */
-    get is_translatable_type(): boolean {
-
-        if (!this.vo_field_ref) {
-            return false;
-        }
-
-        const moduletable = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id];
-        if (!moduletable) {
-            return false;
-        }
-
-        const field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
-        if (!field) {
-            return false;
-        }
-
-        return field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text;
-    }
-
-    /**
-     * Get vo_field_ref
-     *
-     * @return {VOFieldRefVO}
-     */
-    get vo_field_ref(): VOFieldRefVO {
-        const vo = new FavoritesFiltersVO();
-
-        return new VOFieldRefVO().from({
-            api_type_id: vo._type,
-            field_id: "name",
-            _type: VOFieldRefVO.API_TYPE_ID
-        });
-    }
-
-    /**
-     * Get vo_field_ref_label
-     *
-     * @return {string}
-     */
-    get vo_field_ref_label(): string {
-
-        if ((!this.vo_field_ref)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
-    }
-
-    /**
-     * Get All Page Widget By Id
-     * @return {{ [id: number]: DashboardPageWidgetVO }}
-     */
-    get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
     }
 }

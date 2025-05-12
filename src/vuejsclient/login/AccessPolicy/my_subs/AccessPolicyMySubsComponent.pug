@@ -1,0 +1,8 @@
+div
+    .AccessPolicyMySubsComponent(v-if='mail_categories && mail_categories.length > 0')
+        h3 {{ label('AccessPolicyMySubsComponent.header') }}
+        template(v-for='mail_category in mail_categories')
+            Accesspolicymysubcomponent(
+                :key='mail_category.id'
+                :mail_category='mail_category'
+            )

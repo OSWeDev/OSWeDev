@@ -3,6 +3,7 @@ import ParameterizedQueryWrapperField from "../../../shared/modules/ContextFilte
 import EventsController from "../../../shared/modules/Eventify/EventsController";
 import EventifyEventInstanceVO from "../../../shared/modules/Eventify/vos/EventifyEventInstanceVO";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
+import ModuleParams from "../../../shared/modules/Params/ModuleParams";
 import PerfReportController from "../../../shared/modules/PerfReport/PerfReportController";
 import { StatThisMapKeys } from "../../../shared/modules/Stats/annotations/StatThisMapKeys";
 import StatsController from "../../../shared/modules/Stats/StatsController";
@@ -21,6 +22,20 @@ import ThrottledSelectQueryParam from "./vos/ThrottledSelectQueryParam";
 export default class ThrottledQueryServerController {
 
     public static PERF_MODULE_NAME: string = "throttle_queries";
+
+    // Si on dépasse ce seuil, on va commencer à temporiser les queries pour décharger la bdd - en ms
+    public static LATENCY_THRESHOLD_PARAM_NAME: string = "ThrottledQueryServerController.throttle_queries_latency_threshold";
+    public static LATENCY_THRESHOLD_PARAM_DEFAULT_VALUE: number = 2000;
+
+    public static CURRENT_LATENCY: number = 0;
+
+    // Si on a dépassé le seuil, on augmente la latence des requetes de ce pallier à chaque fois - en ms
+    public static LATENCY_STEP_PARAM_NAME: string = "ThrottledQueryServerController.throttle_queries_latency_step";
+    public static LATENCY_STEP_PARAM_DEFAULT_VALUE: number = 250;
+
+    // Lantence max entre 2 queries - en ms
+    public static LATENCY_MAX_PARAM_NAME: string = "ThrottledQueryServerController.throttle_queries_latency_max";
+    public static LATENCY_MAX_PARAM_DEFAULT_VALUE: number = 2500;
 
     /**
      * L'évènement indiquant qu'il y a des éléments dans throttled_select_query_params_by_fields_labels
@@ -68,6 +83,51 @@ export default class ThrottledQueryServerController {
     private static current_select_query_promises: { [parameterized_full_query: string]: Promise<any> } = {};
     @StatThisMapKeys('ThrottledQueryServerController')
     private static current_promise_resolvers: { [query_index: number]: (value: unknown) => void } = {};
+
+    public static async check_select_1_latency(select_1_latency: number) {
+
+        try {
+
+            let threshold = ThrottledQueryServerController.LATENCY_THRESHOLD_PARAM_DEFAULT_VALUE;
+            let step = ThrottledQueryServerController.LATENCY_STEP_PARAM_DEFAULT_VALUE;
+            let max = ThrottledQueryServerController.LATENCY_MAX_PARAM_DEFAULT_VALUE;
+
+            await all_promises([
+                (async () => {
+                    threshold = await ModuleParams.getInstance().getParamValueAsInt(ThrottledQueryServerController.LATENCY_THRESHOLD_PARAM_NAME, ThrottledQueryServerController.LATENCY_THRESHOLD_PARAM_DEFAULT_VALUE, 500000);
+                })(),
+                (async () => {
+                    step = await ModuleParams.getInstance().getParamValueAsInt(ThrottledQueryServerController.LATENCY_STEP_PARAM_NAME, ThrottledQueryServerController.LATENCY_STEP_PARAM_DEFAULT_VALUE, 500000);
+                })(),
+                (async () => {
+                    max = await ModuleParams.getInstance().getParamValueAsInt(ThrottledQueryServerController.LATENCY_MAX_PARAM_NAME, ThrottledQueryServerController.LATENCY_MAX_PARAM_DEFAULT_VALUE, 500000);
+                })(),
+            ]);
+
+            if (select_1_latency > threshold) {
+
+                if (ThrottledQueryServerController.CURRENT_LATENCY < max) {
+                    ThrottledQueryServerController.CURRENT_LATENCY = Math.min(ThrottledQueryServerController.CURRENT_LATENCY + step, max);
+
+                    StatsController.register_stat_COMPTEUR('ThrottledQueryServerController', 'CURRENT_LATENCY', 'step_up');
+                    StatsController.register_stat_DUREE('ThrottledQueryServerController', 'CURRENT_LATENCY', 'step_up', ThrottledQueryServerController.CURRENT_LATENCY);
+                }
+            } else {
+
+                if (ThrottledQueryServerController.CURRENT_LATENCY > 0) {
+                    ThrottledQueryServerController.CURRENT_LATENCY = Math.max(0, ThrottledQueryServerController.CURRENT_LATENCY - step);
+
+                    StatsController.register_stat_COMPTEUR('ThrottledQueryServerController', 'CURRENT_LATENCY', 'step_down');
+                    StatsController.register_stat_DUREE('ThrottledQueryServerController', 'CURRENT_LATENCY', 'step_down', ThrottledQueryServerController.CURRENT_LATENCY);
+                }
+            }
+        } catch (error) {
+            ConsoleHandler.error('check_latency:' + error);
+            StatsController.register_stat_COMPTEUR('ThrottledQueryServerController', 'CURRENT_LATENCY', 'error');
+            ThrottledQueryServerController.CURRENT_LATENCY = ThrottledQueryServerController.LATENCY_MAX_PARAM_DEFAULT_VALUE;
+            StatsController.register_stat_DUREE('ThrottledQueryServerController', 'CURRENT_LATENCY', 'error', ThrottledQueryServerController.CURRENT_LATENCY);
+        }
+    }
 
     /**
      * ATTENTION : le résultat de cette méthode peut être immutable ! donc toujours prévoir une copie de la data si elle a vocation à être modifiée par la suite
@@ -491,6 +551,14 @@ export default class ThrottledQueryServerController {
         StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'do_select_query', 'IN');
 
         try {
+
+            // On rajoute la mise en place de la latence dans le système de requêtes pour décharger la base en cas de surcharge
+            if (ThrottledQueryServerController.CURRENT_LATENCY > 0) {
+                StatsController.register_stat_COMPTEUR('ThrottledQueryServerController', 'CURRENT_LATENCY', 'sleep');
+                StatsController.register_stat_DUREE('ThrottledQueryServerController', 'CURRENT_LATENCY', 'sleep', ThrottledQueryServerController.CURRENT_LATENCY);
+                await ThreadHandler.sleep(ThrottledQueryServerController.CURRENT_LATENCY, 'ThrottledQueryServerController.do_select_query.CURRENT_LATENCY');
+            }
+
             const uid = LogDBPerfServerController.log_db_query_perf_start('do_select_query', request);
             results = await IDatabaseHolder.db.query(request, values);
             LogDBPerfServerController.log_db_query_perf_end(uid, 'do_select_query', request);

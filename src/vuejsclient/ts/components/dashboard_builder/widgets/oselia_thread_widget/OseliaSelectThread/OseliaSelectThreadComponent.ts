@@ -2,7 +2,6 @@ import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVO, { filter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
 import GPTAssistantAPIThreadVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import ModuleOselia from '../../../../../../../shared/modules/Oselia/ModuleOselia';
 import ModuleParams from '../../../../../../../shared/modules/Params/ModuleParams';
@@ -10,6 +9,7 @@ import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
+import TableWidgetExternalSelectorController from '../../table_widget/external_selector/TableWidgetExternalSelectorController';
 import OseliaLastThreadsComponent from '../OseliaLastThreads/OseliaLastThreadsComponent';
 import { ModuleOseliaAction } from '../OseliaStore';
 import './OseliaSelectThreadComponent.scss';
@@ -29,7 +29,6 @@ export default class OseliaSelectThreadComponent extends VueComponentBase {
     private set_left_panel_open: (left_panel_open: boolean) => void;
 
     private dashboard_threads_id: number = null;
-    private wait_for_data: boolean = false;
     private data_received: any = null;
     private has_access: boolean = false;
     private throttle_test_access = ThrottleHelper.declare_throttle_without_args(
@@ -41,11 +40,11 @@ export default class OseliaSelectThreadComponent extends VueComponentBase {
         const files = [];
         if (this.data_received.length > 0) {
             for (let row of this.data_received) {
-                if (row['gpt_assistant_thread___id']) {
+                if (row['__crud_actions']) {
                     this.set_active_field_filter({
                         field_id: field_names<GPTAssistantAPIThreadVO>().id,
                         vo_type: GPTAssistantAPIThreadVO.API_TYPE_ID,
-                        active_field_filter: filter(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().id).by_id(row['gpt_assistant_thread___id'])
+                        active_field_filter: filter(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().id).by_id(row['__crud_actions'])
                     });
                     this.set_left_panel_open(false);
                 }
@@ -53,39 +52,23 @@ export default class OseliaSelectThreadComponent extends VueComponentBase {
         }
     }
 
-    get file_system_url() {
-        const { protocol, hostname, port } = window.location;
-        return `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard/view/`;
-    }
-
     private async get_access() {
         this.has_access = await ModuleAccessPolicy.getInstance().testAccess(ModuleOselia.POLICY_SELECT_THREAD_ACCESS);
     }
 
-    private mounted() {
+    private async mounted() {
         this.throttle_test_access();
-        window.addEventListener("message", (event: MessageEvent) => {
-            const source = event.source as Window;
-            if ((source.location.href !== this.file_system_url + this.dashboard_threads_id)) {
-                return;
-            } else {
-                if (this.wait_for_data) {
-                    this.data_received = event.data;
-                }
-            }
-        });
-    }
-    private async listen_for_message(page_id: number, num_range: NumRange) {
-        (window as any).instructions = { 'Export': num_range };
 
-        const export_window = window.open(this.file_system_url + page_id);
-        this.wait_for_data = true;
+        this.dashboard_threads_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_THREAD_DASHBOARD_ID_PARAM_NAME, null, 10000);
+
+        if (!!this.dashboard_threads_id) {
+            TableWidgetExternalSelectorController.init_external_selector(this, this.dashboard_threads_id, (data: any) => {
+                this.data_received = data;
+            });
+        }
     }
 
     private async open_thread_select() {
-        this.dashboard_threads_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_THREAD_DASHBOARD_ID_PARAM_NAME, null, 10000);
-        const num_range: NumRange = NumRange.createNew(0, 1, true, true, 0);
-        await this.listen_for_message(this.dashboard_threads_id, num_range);
+        await TableWidgetExternalSelectorController.open_external_selector(this);
     }
-
 }

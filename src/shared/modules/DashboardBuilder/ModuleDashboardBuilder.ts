@@ -2,6 +2,7 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import UserVO from '../AccessPolicy/vos/UserVO';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import ModuleTableController from '../DAO/ModuleTableController';
@@ -30,6 +31,8 @@ import DashboardPageVO from './vos/DashboardPageVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
 import DashboardVO from './vos/DashboardVO';
 import DashboardWidgetVO from './vos/DashboardWidgetVO';
+import FavoritesFiltersExportFrequencyVO from './vos/FavoritesFiltersExportFrequencyVO';
+import FavoritesFiltersExportParamsVO from './vos/FavoritesFiltersExportParamsVO';
 import FavoritesFiltersVO from './vos/FavoritesFiltersVO';
 import SharedFiltersVO from './vos/SharedFiltersVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
@@ -79,6 +82,8 @@ export default class ModuleDashboardBuilder extends Module {
         const db_page = this.init_DashboardPageVO(db_table);
         this.init_shared_filters_vo();
 
+        this.initialize_FavoritesFiltersExportFrequencyVO();
+        this.initialize_FavoritesFiltersExportParamVO();
         this.init_FavoritesFiltersVO(db_page);
 
         this.init_DashboardGraphVORefVO(db_table);
@@ -627,7 +632,30 @@ export default class ModuleDashboardBuilder extends Module {
     private initialize_DashboardGraphColorPaletteVO() {
         ModuleTableFieldController.create_new(DashboardGraphColorPaletteVO.API_TYPE_ID, field_names<DashboardGraphColorPaletteVO>().colors, ModuleTableFieldVO.FIELD_TYPE_color_array, 'colors', true, false, false);
         ModuleTableFieldController.create_new(DashboardGraphColorPaletteVO.API_TYPE_ID, field_names<DashboardGraphColorPaletteVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'name', true, false, false);
-
+        ModuleTableFieldController.create_new(DashboardGraphColorPaletteVO.API_TYPE_ID, field_names<DashboardGraphColorPaletteVO>().border_colors, ModuleTableFieldVO.FIELD_TYPE_color_array, 'border_colors', false, false, false);
         ModuleTableController.create_new(this.name, DashboardGraphColorPaletteVO, null, "Palettes de couleurs");
     }
+
+    private initialize_FavoritesFiltersExportFrequencyVO() {
+        ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().every, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb de segment', true, true, 1);
+        ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().granularity, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de segment', true, true, FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY).setEnumValues(FavoritesFiltersExportFrequencyVO.GRANULARITY_LABELS);
+        ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().day_in_month, ModuleTableFieldVO.FIELD_TYPE_int, 'Jour du mois', true, true, 1);
+        ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().day_in_week, ModuleTableFieldVO.FIELD_TYPE_int, 'Jour de la semaine', true, true, 1);
+        ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().prefered_time, ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite, 'Heure de l\'export', true, true, 3).set_format_localized_time(true);
+
+        ModuleTableController.create_new(this.name, FavoritesFiltersExportFrequencyVO, null, "Fréquence d'export");
+    }
+
+    private initialize_FavoritesFiltersExportParamVO() {
+        ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().export_frequency, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Fréquence d\'export', true, true, null);
+        ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().exportable_data, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Données exportables', true, true, null);
+        ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().is_export_planned, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Export planifié', true, true, false);
+        ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().last_export_at_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernier export', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().export_to_user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Utilisateurs ciblés', true)
+            .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().field_filters_column_translatable_titles, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Titres des filtres', false);
+
+        ModuleTableController.create_new(this.name, FavoritesFiltersExportParamsVO, null, "Paramètres d'export");
+    }
+
 }

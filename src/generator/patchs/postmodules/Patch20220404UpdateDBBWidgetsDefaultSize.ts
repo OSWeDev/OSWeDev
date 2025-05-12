@@ -50,13 +50,13 @@ export default class Patch20220404UpdateDBBWidgetsDefaultSize implements IGenera
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(DataTable);
         }
 
-        const ValueTable = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_text_eq(field_names<DashboardWidgetVO>().name, 'valuetable').select_vo<DashboardWidgetVO>();
-        if (ValueTable) {
-            ValueTable.default_height = 35;
-            ValueTable.default_width = 12;
-            ValueTable.name = 'valuetable';
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(ValueTable);
-        }
+        // const ValueTable = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_text_eq(field_names<DashboardWidgetVO>().name, 'valuetable').select_vo<DashboardWidgetVO>();
+        // if (ValueTable) {
+        //     ValueTable.default_height = 35;
+        //     ValueTable.default_width = 12;
+        //     ValueTable.name = 'valuetable';
+        //     await ModuleDAOServer.instance.insertOrUpdateVO_as_server(ValueTable);
+        // }
 
         const fieldValueFilter = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_text_eq(field_names<DashboardWidgetVO>().name, 'fieldvaluefilter').select_vo<DashboardWidgetVO>();
         if (fieldValueFilter) {

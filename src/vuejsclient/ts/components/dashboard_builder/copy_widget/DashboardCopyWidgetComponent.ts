@@ -9,9 +9,9 @@ import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilde
 import ModuleTranslation from '../../../../../shared/modules/Translation/ModuleTranslation';
 import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
+import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import { field_names } from '../../../../../shared/tools/ObjectHandler';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
-import { ModuleTranslatableTextAction } from '../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../VueComponentBase';
 import MenuOrganizerComponent from '../../menu/organizer/MenuOrganizerComponent';
 import './DashboardCopyWidgetComponent.scss';
@@ -24,9 +24,6 @@ import './DashboardCopyWidgetComponent.scss';
     }
 })
 export default class DashboardCopyWidgetComponent extends VueComponentBase {
-
-    @ModuleTranslatableTextAction
-    private set_flat_locale_translation: (translation: { code_text: string, value: string }) => void;
 
     private copy_to_page: DashboardPageVO = null; //Page vers laquel on souhaite copier/déplacer
     private page_widget: DashboardPageWidgetVO = null;
@@ -149,10 +146,7 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
                 menu_translation.translated = translations[0].translated;
                 const resi = await ModuleDAO.instance.insertOrUpdateVO(menu_translation);
                 if (resi && resi.id) {
-                    this.set_flat_locale_translation({
-                        code_text: page_widget_trad.code_text,
-                        value: translations[0].translated
-                    });
+                    LocaleManager.set_translation(page_widget_trad.code_text, translations[0].translated);
                 }
             }
 

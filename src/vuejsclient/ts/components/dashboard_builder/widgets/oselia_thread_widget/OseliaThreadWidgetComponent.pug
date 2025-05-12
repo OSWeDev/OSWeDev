@@ -66,6 +66,36 @@
                                             .thread_message_body_text
                                                 i.fa-duotone.fa-spinner-third.fa-spin
 
+                    .oselia_select_current_thread_assistant(v-if='get_show_hidden_messages')
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="false"
+                            :close-on-select="true"
+                            v-model="currently_selected_assistant"
+                            :options="selectable_assistants"
+                            label="nom"
+                            autocomplete="off"
+
+                            :searchable="true"
+                            :internal-search="false"
+
+                            track-by="id"
+
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                        )
+
+                    .oselia_switch_auto_commit_auto_input(v-if='get_show_hidden_messages')
+                        toggle-button(
+                            @change="auto_commit_auto_input = !auto_commit_auto_input" 
+                            :value="auto_commit_auto_input" 
+                            :sync="true"
+                            :width="200"
+                            :labels="{checked: label('auto_commit_auto_input.auto'), unchecked: label('auto_commit_auto_input.manual')}")
+                            
                     .oselia_runs(v-if='get_show_hidden_messages && oselia_runs && oselia_runs.length')
                         .oselia_runs_wrapper(:class="{'expand':expand_oselia_runs}")
                             .oselia_runs_header(@click='expand_oselia_runs = !expand_oselia_runs') {{ label('oselia_thread_widget_component.oselia_runs_header') }}
@@ -239,6 +269,38 @@
                         i.fa-duotone.fa-spinner-third.fa-spin
                 template(v-else)
                     .thread_container(ref='thread_container' :class="is_dragging ? 'blur' : '' ")  
+                        
+                        .oselia_select_current_thread_assistant(v-if='get_show_hidden_messages')
+                            multiselect(
+                                :preselect-first="false"
+                                :multiple="false"
+                                :close-on-select="true"
+                                v-model="currently_selected_assistant"
+                                :options="selectable_assistants"
+                                label="nom"
+                                autocomplete="off"
+
+                                :searchable="true"
+                                :internal-search="false"
+
+                                track-by="id"
+
+                                :select-label='label("multiselect.selectLabel")'
+                                :select-group-label='label("multiselect.selectGroupLabel")'
+                                :selected-label='label("multiselect.selectedLabel")'
+                                :deselect-label='label("multiselect.deselectLabel")'
+                                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                            )
+
+                        .oselia_switch_auto_commit_auto_input(v-if='get_show_hidden_messages')
+                            toggle-button(
+                                @change="auto_commit_auto_input = !auto_commit_auto_input" 
+                                :value="auto_commit_auto_input" 
+                                :sync="true"
+                                :width="200"
+                                :labels="{checked: label('auto_commit_auto_input.auto'), unchecked: label('auto_commit_auto_input.manual')}")
+
+
                         .thread_message_input
                             template(v-if="thread_files.length > 0")
                                 .thread_files
@@ -260,6 +322,7 @@
                                                     template(v-else-if="key == '.mp3'")
                                                         audio(preload="auto", autobuffer, controls)
                                                             source(:src="'/' + value.path")
+
                             .thread_message_input_textarea
                                 textarea(v-model='new_message_text' rows="1" @keydown="handle_new_message_text_keydown" ref='new_message_textarea_ref')
                             .thread_message_input_buttons
@@ -314,6 +377,13 @@
 
                                 .thread_message_expand
                                     button.fa-solid.fa-up-right-and-down-left-from-center(v-on:click='expand_window')
+
+                                .thread_message_input_button.thread_message_debug(v-if="has_access_to_debug")
+                                    template(v-if="!get_show_hidden_messages")
+                                        button.fa-solid.fa-bug(v-on:click='switch_show_hidden_messages')
+                                    template(v-else)
+                                        button.fa-solid.fa-bug-slash(v-on:click='switch_show_hidden_messages')
+
                                     
                             .thread_message_input_send
                                 button.btn.btn-primary(v-on:click='send_create_thread_message()' :disabled='assistant_is_busy || !new_message_text')

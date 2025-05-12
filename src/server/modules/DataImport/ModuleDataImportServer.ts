@@ -29,8 +29,9 @@ import DefaultTranslationVO from '../../../shared/modules/Translation/vos/Defaul
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import FileHandler from '../../../shared/tools/FileHandler';
-import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import StackContext from '../../StackContext';
+import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
@@ -440,6 +441,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId, this.getDataImportColumnsFromFormatId.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_reimportdih, this.reimportdih.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_importJSON, this.importJSON.bind(this));
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<this>().alert_too_many_imports_waiting, this.alert_too_many_imports_waiting.bind(this));
     }
 
     public async importJSON(import_json: string, import_on_vo: IDistantVOBase): Promise<IDistantVOBase[]> {
@@ -969,6 +971,32 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         }
 
         return true;
+    }
+
+
+    public async alert_too_many_imports_waiting(): Promise<string> {
+        if (!ConfigurationService.node_configuration.threshold_too_many_imports_waiting) {
+            return "0";
+        }
+
+        try {
+
+            const nb_imports_max = ConfigurationService.node_configuration.threshold_too_many_imports_waiting;
+            const imports_en_attente: number = await query(DataImportHistoricVO.API_TYPE_ID)
+                .filter_by_num_eq('state', ModuleDataImport.IMPORTATION_STATE_UPLOADED)
+                .exec_as_server()
+                .select_count();
+            if (imports_en_attente > nb_imports_max) {
+                ConsoleHandler.error("Trop d'importations en attente, " + imports_en_attente + " > " + nb_imports_max + ", un redémarrage du serveur est peut-être nécessaire");
+                return "1";
+            }
+
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return "1";
+        }
+
+        return "0";
     }
 
     public async posttreatDatas_classic(importHistoric: DataImportHistoricVO, format: DataImportFormatVO, fasttrack_datas: IImportedData[] = null): Promise<boolean> {

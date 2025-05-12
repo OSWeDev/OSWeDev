@@ -67,6 +67,8 @@ export default interface IEnvParam {
     debug_io_rooms?: boolean;
     debug_vo_events?: boolean;
 
+    threshold_too_many_imports_waiting?: number;
+
     debug_var_insert_with_copy?: boolean;
 
     debug_slow_event_listeners?: boolean;
@@ -122,6 +124,9 @@ export default interface IEnvParam {
     debug_export_context_query_to_xlsx_xlsx_datas?: boolean;
 
     debug_reruns_of_oselia?: boolean;
+
+    debug_assistant_traduction?: boolean;
+    debug_superviseur_assistant_traduction?: boolean;
 
     start_maintenance_acceptation_code: string;
     auto_end_maintenance_on_start: boolean;

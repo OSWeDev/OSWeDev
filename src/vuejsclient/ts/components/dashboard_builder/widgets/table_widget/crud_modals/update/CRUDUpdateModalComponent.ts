@@ -48,6 +48,7 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
         if (crud && crud.callback_handle_modal_show_hide) {
             await CRUDFormServices.load_datas(
                 crud,
+                true,
                 storeDatas,
             );
             await crud.callback_handle_modal_show_hide(vo, 'update');

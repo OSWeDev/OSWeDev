@@ -4,6 +4,7 @@ import 'jquery-contextmenu/dist/jquery.contextMenu.min.css';
 import { cloneDeep, debounce, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
@@ -36,9 +37,10 @@ import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuil
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
-import ModuleDataExport from '../../../../../../../shared/modules/DataExport/ModuleDataExport';
+import ExportContextQueryToXLSXQueryVO from '../../../../../../../shared/modules/DataExport/vos/ExportContextQueryToXLSXQueryVO';
 import ExportVarcolumnConfVO from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConfVO';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
@@ -48,6 +50,7 @@ import ModuleVocus from '../../../../../../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { field_names, reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
+import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import SemaphoreHandler from '../../../../../../../shared/tools/SemaphoreHandler';
 import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
 import IWeightedItem from '../../../../../../../shared/tools/interfaces/IWeightedItem';
@@ -57,6 +60,7 @@ import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTra
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import CRUDComponentManager from '../../../../crud/CRUDComponentManager';
+import { ModuleDAOAction } from '../../../../dao/store/DaoStore';
 import DatatableRowController from '../../../../datatable/component/DatatableRowController';
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
 import SortableListComponent from '../../../../sortable/SortableListComponent';
@@ -71,8 +75,6 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import './TableWidgetKanbanComponent.scss';
 import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
-import { ModuleDAOAction } from '../../../../dao/store/DaoStore';
-import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -2773,7 +2775,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 return;
             }
 
-            await ModuleDataExport.getInstance().exportContextQueryToXLSX(
+            const query_param_vo: ExportContextQueryToXLSXQueryVO = ExportContextQueryToXLSXQueryVO.create_new(
                 param.filename,
                 param.context_query,
                 param.ordered_column_list,
@@ -2788,13 +2790,33 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 param.discarded_field_paths,
                 param.is_secured,
                 param.file_access_policy_name,
-                VueAppBase.getInstance().appController.data_user ? VueAppBase.getInstance().appController.data_user.id : null,
+                VueAppBase.getInstance().appController.data_user ? [RangeHandler.create_single_elt_NumRange(VueAppBase.getInstance().appController.data_user.id, NumSegment.TYPE_INT)] : null,
                 param.do_not_use_filter_by_datatable_field_uid,
-                null,
-                null,
-                null,
-                null,
             );
+            await ModuleDAO.getInstance().insertOrUpdateVO(query_param_vo);
+
+            // await ModuleDataExport.getInstance().exportContextQueryToXLSX(
+            //     param.filename,
+            //     param.context_query,
+            //     param.ordered_column_list,
+            //     param.column_labels,
+            //     param.exportable_datatable_custom_field_columns,
+            //     param.columns,
+            //     param.fields,
+            //     param.varcolumn_conf,
+            //     param.active_field_filters,
+            //     param.custom_filters,
+            //     param.active_api_type_ids,
+            //     param.discarded_field_paths,
+            //     param.is_secured,
+            //     param.file_access_policy_name,
+            //     VueAppBase.getInstance().appController.data_user ? VueAppBase.getInstance().appController.data_user.id : null,
+            //     param.do_not_use_filter_by_datatable_field_uid,
+            //     null,
+            //     null,
+            //     null,
+            //     null,
+            // );
         }
     }
 

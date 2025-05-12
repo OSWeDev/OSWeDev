@@ -101,6 +101,13 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     public force_index: boolean; // false by default
     public is_readonly: boolean; // false by default
 
+    /**
+     * Gestion des computed, dans une version cache en base, et calcul centralisé
+     */
+    public is_custom_computed: boolean; // false by default
+    public custom_computed_function_name: string; // null by default
+    public custom_computed_module_name: string; // null by default
+
     public format_localized_time: boolean; // false by default
 
     /**
@@ -703,5 +710,13 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
                     }
                 }
         }
+    }
+
+    public define_as_custom_computed(module_name: string, function_name: string): ModuleTableFieldVO {
+        this.is_custom_computed = true;
+        this.custom_computed_function_name = function_name;
+        this.custom_computed_module_name = module_name;
+
+        return this;
     }
 }

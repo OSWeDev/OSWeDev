@@ -178,7 +178,7 @@ export default class ContextFilterVOHandler {
                 });
 
                 return months_selection
-                    .map((month_label) => LocaleManager.getInstance().label(month_label))
+                    .map((month_label) => LocaleManager.label(month_label))
                     .join(', ');
 
             case ContextFilterVO.TYPE_DATE_YEAR:

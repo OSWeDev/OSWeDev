@@ -499,6 +499,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
         this.api_types_involved = await CRUDFormServices.load_datas(
             this.crud,
+            true,
             this.storeDatas,
             this.api_types_involved,
             null,

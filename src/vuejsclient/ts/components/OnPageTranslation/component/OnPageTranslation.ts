@@ -80,7 +80,7 @@ export default class OnPageTranslation extends VueComponentBase {
         for (const i in this.getStoredDatas[LangVO.API_TYPE_ID]) {
             const lang: LangVO = this.getStoredDatas[LangVO.API_TYPE_ID][i] as LangVO;
 
-            if (lang.code_lang == LocaleManager.getInstance().getDefaultLocale()) {
+            if (lang.code_lang == LocaleManager.getDefaultLocale()) {
                 this.lang_id = lang.id;
                 break;
             }

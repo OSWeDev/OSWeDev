@@ -385,6 +385,12 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
     private async api_request_handler<T, U>(api: APIDefinition<T, U>, req: Request, res: Response): Promise<void> {
 
+        if (!req?.session) {
+            ConsoleHandler.error('API called without session:' + req.url);
+            res.end();
+            return;
+        }
+
         const notif_result_uid: number = req.session.uid;
         const notif_result_tab_id: string = req.headers.client_tab_id as string;
         const api_call_id = ++ModuleAPIServer.API_CALL_ID;

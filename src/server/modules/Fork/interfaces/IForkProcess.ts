@@ -1,4 +1,4 @@
-export default interface IForkProcess {
+export interface IForkProcess {
     name: string;
     type: string;
 }

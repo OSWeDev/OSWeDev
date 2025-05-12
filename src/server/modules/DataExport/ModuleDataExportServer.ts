@@ -70,6 +70,8 @@ import TableWidgetManager from '../../../shared/modules/DashboardBuilder/manager
 import TemplateHandlerServer from '../Mailer/TemplateHandlerServer';
 import ParamsServerController from '../Params/ParamsServerController';
 import { IRequestStackContext } from '../../ServerExpressController';
+import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
+import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -154,7 +156,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     public registerServerApiHandlers() {
 
 
-        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO, this.prepare_exportContextQueryToXLSX.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO, this.prepare_exportContextQueryToXLSX.bind(this));
 
         APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, this.exportDataToXLSX.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile, this.exportDataToXLSXFile.bind(this));
@@ -236,74 +238,74 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         return file;
     }
 
-    /**
-     * Export des résultats d'un context_query en XLSX, et on envoie une notif avec le lien vers le fichier
-     *  on indique au démarrage qu'on enverra une notif avec le lien à la fin de l'export
-     */
-    public async prepare_exportContextQueryToXLSX(
-        filename: string,
-        context_query: ContextQueryVO,
-        ordered_column_list: string[],
-        column_labels: { [field_name: string]: string },
-        exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
+    // /**
+    //  * Export des résultats d'un context_query en XLSX, et on envoie une notif avec le lien vers le fichier
+    //  *  on indique au démarrage qu'on enverra une notif avec le lien à la fin de l'export
+    //  */
+    // public async prepare_exportContextQueryToXLSX(
+    //     filename: string,
+    //     context_query: ContextQueryVO,
+    //     ordered_column_list: string[],
+    //     column_labels: { [field_name: string]: string },
+    //     exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
 
-        columns: TableColumnDescVO[],
-        fields: { [datatable_field_uid: string]: DatatableField<any, any> },
-        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
-        active_field_filters: FieldFiltersVO = null,
-        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
-        active_api_type_ids: string[] = null,
-        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
+    //     columns: TableColumnDescVO[],
+    //     fields: { [datatable_field_uid: string]: DatatableField<any, any> },
+    //     varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
+    //     active_field_filters: FieldFiltersVO = null,
+    //     custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
+    //     active_api_type_ids: string[] = null,
+    //     discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
 
-        is_secured: boolean = false,
-        file_access_policy_name: string = null,
+    //     is_secured: boolean = false,
+    //     file_access_policy_name: string = null,
 
-        target_user_id: number = null,
+    //     target_user_id: number = null,
 
-        do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
+    //     do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
 
-        export_active_field_filters?: boolean,
-        export_vars_indicator?: boolean,
-        send_email_with_export_notification?: boolean,
+    //     export_active_field_filters?: boolean,
+    //     export_vars_indicator?: boolean,
+    //     send_email_with_export_notification?: boolean,
 
-        // vars_indicator?: ExportVarIndicatorVO[],
-        vars_indicator?: ExportVarIndicatorVO,
+    //     // vars_indicator?: ExportVarIndicatorVO[],
+    //     vars_indicator?: ExportVarIndicatorVO,
 
-    ): Promise<string> {
+    // ): Promise<string> {
 
-        target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
+    //     target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
 
-        if (target_user_id) {
-            await PushDataServerController.notifySimpleINFO(target_user_id, null, 'exportContextQueryToXLSX.starting.___LABEL___', true);
-        }
+    //     if (target_user_id) {
+    //         await PushDataServerController.notifySimpleINFO(target_user_id, null, 'exportContextQueryToXLSX.starting.___LABEL___', true);
+    //     }
 
-        const export_query = ExportContextQueryToXLSXQueryVO.create_new(
-            filename,
-            context_query,
-            ordered_column_list,
-            column_labels,
-            exportable_datatable_custom_field_columns,
-            columns,
-            fields,
-            varcolumn_conf,
-            active_field_filters,
-            custom_filters,
-            active_api_type_ids,
-            discarded_field_paths,
-            is_secured,
-            file_access_policy_name,
-            target_user_id,
-            do_not_use_filter_by_datatable_field_uid,
-            export_active_field_filters,
-            export_vars_indicator,
-            send_email_with_export_notification,
-            vars_indicator,
-        );
+    //     const export_query = ExportContextQueryToXLSXQueryVO.create_new(
+    //         filename,
+    //         context_query,
+    //         ordered_column_list,
+    //         column_labels,
+    //         exportable_datatable_custom_field_columns,
+    //         columns,
+    //         fields,
+    //         varcolumn_conf,
+    //         active_field_filters,
+    //         custom_filters,
+    //         active_api_type_ids,
+    //         discarded_field_paths,
+    //         is_secured,
+    //         file_access_policy_name,
+    //         target_user_id,
+    //         do_not_use_filter_by_datatable_field_uid,
+    //         export_active_field_filters,
+    //         export_vars_indicator,
+    //         send_email_with_export_notification,
+    //         vars_indicator,
+    //     );
 
-        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(export_query);
+    //     await ModuleDAOServer.instance.insertOrUpdateVO_as_server(export_query);
 
-        return null;
-    }
+    //     return null;
+    // }
 
     /**
      * Export des résultats d'un context_query en XLSX, et on envoie une notif avec le lien vers le fichier
@@ -320,6 +322,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
         active_field_filters: FieldFiltersVO = null,
+        active_field_filters_column_labels: { [field_name: string]: string } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
@@ -327,7 +330,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         is_secured: boolean = false,
         file_access_policy_name: string = null,
 
-        target_user_id: number = null,
+        target_user_id_ranges: NumRange[] = null,
 
         do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
 
@@ -339,66 +342,72 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // vars_indicator?: ExportVarIndicatorVO[],
     ): Promise<void> {
 
-        target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
-
-        if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE) && (target_user_id != StackContext.get('UID'))) {
-
-            await StackContext.runPromise(
-                {
-                    IS_CLIENT: true,
-                    UID: target_user_id,
-                    CLIENT_TAB_ID: null,
-                    REFERER: null,
-                    SESSION_ID: null,
-                    SID: null,
-                },
-                this.do_exportContextQueryToXLSX_contextuid,
-                this,
-                filename,
-                context_query,
-                ordered_column_list,
-                column_labels,
-                exportable_datatable_custom_field_columns,
-                columns,
-                fields,
-                varcolumn_conf,
-                active_field_filters,
-                custom_filters,
-                active_api_type_ids,
-                discarded_field_paths,
-                is_secured,
-                file_access_policy_name,
-                target_user_id,
-                do_not_use_filter_by_datatable_field_uid,
-                export_active_field_filters,
-                export_vars_indicator,
-                send_email_with_export_notification,
-                vars_indicator,
-            );
-        } else {
-            await this.do_exportContextQueryToXLSX_contextuid(
-                filename,
-                context_query,
-                ordered_column_list,
-                column_labels,
-                exportable_datatable_custom_field_columns,
-                columns,
-                fields,
-                varcolumn_conf,
-                active_field_filters,
-                custom_filters,
-                active_api_type_ids,
-                discarded_field_paths,
-                is_secured,
-                file_access_policy_name,
-                target_user_id,
-                do_not_use_filter_by_datatable_field_uid,
-                export_active_field_filters,
-                export_vars_indicator,
-                send_email_with_export_notification,
-                vars_indicator,
-            );
+        if (!target_user_id_ranges || !target_user_id_ranges.length) {
+            target_user_id_ranges = [RangeHandler.create_single_elt_NumRange(StackContext.get('UID'), NumSegment.TYPE_INT)];
         }
+
+        await RangeHandler.foreach_ranges(target_user_id_ranges, async (target_user_id: number) => {
+            if (!StackContext.get(reflect<IRequestStackContext>().CONTEXT_INCOMPATIBLE) && (target_user_id != StackContext.get('UID'))) {
+
+                await StackContext.runPromise(
+                    {
+                        IS_CLIENT: true,
+                        UID: target_user_id,
+                        CLIENT_TAB_ID: null,
+                        REFERER: null,
+                        SESSION_ID: null,
+                        SID: null,
+                    },
+                    this.do_exportContextQueryToXLSX_contextuid,
+                    this,
+                    filename,
+                    context_query,
+                    ordered_column_list,
+                    column_labels,
+                    exportable_datatable_custom_field_columns,
+                    columns,
+                    fields,
+                    varcolumn_conf,
+                    active_field_filters,
+                    active_field_filters_column_labels,
+                    custom_filters,
+                    active_api_type_ids,
+                    discarded_field_paths,
+                    is_secured,
+                    file_access_policy_name,
+                    target_user_id,
+                    do_not_use_filter_by_datatable_field_uid,
+                    export_active_field_filters,
+                    export_vars_indicator,
+                    send_email_with_export_notification,
+                    vars_indicator,
+                );
+            } else {
+                await this.do_exportContextQueryToXLSX_contextuid(
+                    filename,
+                    context_query,
+                    ordered_column_list,
+                    column_labels,
+                    exportable_datatable_custom_field_columns,
+                    columns,
+                    fields,
+                    varcolumn_conf,
+                    active_field_filters,
+                    active_field_filters_column_labels,
+                    custom_filters,
+                    active_api_type_ids,
+                    discarded_field_paths,
+                    is_secured,
+                    file_access_policy_name,
+                    target_user_id,
+                    do_not_use_filter_by_datatable_field_uid,
+                    export_active_field_filters,
+                    export_vars_indicator,
+                    send_email_with_export_notification,
+                    vars_indicator,
+                );
+            }
+        });
     }
 
     public async do_exportContextQueryToXLSX_contextuid(
@@ -412,6 +421,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null, // TODO FIXME : Quand est-ce qu'on applique le format ???
         active_field_filters: FieldFiltersVO = null,
+        active_field_filters_column_labels: { [field_name: string]: string } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
@@ -571,8 +581,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         // Sheet for active field filters
         if (export_active_field_filters) {
-            const active_filters_sheet = await this.create_active_filters_xlsx_sheet(active_field_filters);
-            sheets.push(active_filters_sheet);
+            const active_filters_sheet = await this.create_active_filters_xlsx_sheet(active_field_filters, active_field_filters_column_labels);
+
+            if (!!active_filters_sheet) {
+                sheets.push(active_filters_sheet);
+            }
         }
 
         // Sheet for Vars Indicator
@@ -587,7 +600,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     discarded_field_paths,
                 );
 
-                sheets.push(vars_indicator_sheet);
+                if (!!vars_indicator_sheet) {
+
+                    sheets.push(vars_indicator_sheet);
+                }
 
             } catch (error) {
                 ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
@@ -932,6 +948,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      */
     private async create_active_filters_xlsx_sheet(
         active_field_filters: FieldFiltersVO = null,
+        active_field_filters_column_labels: { [field_name: string]: string } = null,
     ): Promise<IExportableSheet> {
 
         if ((!active_field_filters)) {
@@ -960,8 +977,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     // TODO: get page id from to get the right translation
                 );
 
+                if (active_field_filters_column_labels && !active_field_filters_column_labels[vo_field_ref_label]) {
+                    ConsoleHandler.warn('create_active_filters_xlsx_sheet:Unknown field label:' + vo_field_ref_label + ':api_type_id:' + api_type_id + ':field_id:' + context_filter.field_name + ': Pour exporter ce filtre actif, il faut nommer le widget et qu\'il ne soit pas masqué');
+                    continue;
+                }
+
                 const data: { [column_list_key: string]: { value: string | number, format?: string } } = {
-                    filter_name: { value: vo_field_ref_label },
+                    filter_name: { value: ((active_field_filters_column_labels && active_field_filters_column_labels[vo_field_ref_label]) ? active_field_filters_column_labels[vo_field_ref_label] : vo_field_ref_label) },
                     value: { value: ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter) }
                 };
 
@@ -1058,7 +1080,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 if (!var_param) {
                     ConsoleHandler.log('create_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 1.5:!var_param :' + var_name + ':' + debug_uid);
                     sheet.datas.push({
-                        name: { value: LocaleManager.getInstance().t(var_name) },
+                        name: { value: LocaleManager.t(var_name) },
                         value: null
                     });
                     return;
@@ -1086,7 +1108,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     }
 
                     const data: { [column_list_key: string]: { value: string | number, format?: string } } = {
-                        name: { value: LocaleManager.getInstance().t(var_name) },
+                        name: { value: LocaleManager.t(var_name) },
                         value: { value, format }
                     };
 
@@ -1207,6 +1229,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // For each sheet that we want to export
         for (const sheeti in sheets) {
             const sheet = sheets[sheeti];
+
+            if (!sheet) {
+                continue;
+            }
 
             const ws_formats: { [cell: string]: string } = {};
             const ws_data = [];

@@ -12,6 +12,9 @@ import OseliaRunTemplateVO from '../../../../../../../../shared/modules/Oselia/v
 import OseliaRunVO from '../../../../../../../../shared/modules/Oselia/vos/OseliaRunVO';
 import OseliaRunFunctionCallVO from '../../../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 import { fontWeight } from 'html2canvas/dist/types/css/property-descriptors/font-weight';
+import Throttle from '../../../../../../../../shared/annotations/Throttle';
+import EventifyEventListenerConfVO from '../../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
+import { query } from '../../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 @Component({
     template: require('./DiagramBlock.pug')
@@ -19,38 +22,34 @@ import { fontWeight } from 'html2canvas/dist/types/css/property-descriptors/font
 export default class DiagramBlock extends Vue {
 
     @Prop({ required: true })
-        item!: OseliaRunVO | OseliaRunTemplateVO | GPTAssistantAPIFunctionVO | OseliaRunFunctionCallVO;
+    item!: OseliaRunVO | OseliaRunTemplateVO | GPTAssistantAPIFunctionVO | OseliaRunFunctionCallVO;
 
     @Prop({ required: true })
-        blockPos!: { x: number; y: number; w: number; h: number };
+    blockPos!: { x: number; y: number; w: number; h: number };
 
     @Prop({ default: false })
-        isSelected!: boolean;
+    isSelected!: boolean;
 
     @Prop({ default: false })
-        isRunVo!: boolean;
+    private isRunVo!: boolean;
 
     @Prop({ default: false })
-        ghost!: boolean;
-
-    @Prop({ default: null })
-        functionsInfos!: {
-        gptFunction: GPTAssistantAPIFunctionVO;
-        runFunction: OseliaRunFunctionCallVO[];
-    };
+    private ghost!: boolean;
 
     // Le parent nous donne une fonction pour récupérer l'icône/état
     @Prop({ required: true })
-        getStateIcon!: (state: number) => StateIconInfo;
+    private getStateIcon!: (state: number, item_type: string) => StateIconInfo;
+
+    private gpt_function_name: string = null;
 
     get displayText(): { time: string, function: string } {
-        if (!this.item){
+        if (!this.item) {
             return { time: '', function: '' };
         }
         // Même logique qu'avant
         if ((this.item as any)._type === OseliaRunVO.API_TYPE_ID) {
             const run = this.item as OseliaRunVO;
-            return { time:'', function:run.name || 'Run' };
+            return { time: '', function: run.name || 'Run' };
         }
         if ((this.item as any)._type === GPTAssistantAPIFunctionVO.API_TYPE_ID) {
             const func = this.item as GPTAssistantAPIFunctionVO;
@@ -60,13 +59,13 @@ export default class DiagramBlock extends Vue {
         if ((this.item as any)._type === OseliaRunFunctionCallVO.API_TYPE_ID) {
             const func = this.item as OseliaRunFunctionCallVO;
             let toAdd = '';
-            if (this.functionsInfos && this.functionsInfos.gptFunction != undefined) {
-                toAdd  = this.functionsInfos.gptFunction.gpt_function_name;
+            if (this.gpt_function_name) {
+                toAdd = this.gpt_function_name;
             }
-            return { time: this.formatUnixTimestamp(func.end_date), function: toAdd  || 'Function Call' };
+            return { time: this.formatUnixTimestamp(func.end_date), function: toAdd || 'Function Call' };
         }
         const tpl = this.item as OseliaRunTemplateVO;
-        if(tpl.name.startsWith('add_')) {
+        if (tpl.name.startsWith('add_')) {
             return { time: '', function: '+' };
         }
         return { time: '', function: tpl.name || '+' };
@@ -86,7 +85,7 @@ export default class DiagramBlock extends Vue {
                 };
             }
             const st = (this.item as any).state;
-            return this.getStateIcon(st);
+            return this.getStateIcon(st, this.item._type);
         } else {
             return {
                 icon: '',
@@ -109,10 +108,34 @@ export default class DiagramBlock extends Vue {
             opacity: this.ghost ? 0.8 : 1,
             userSelect: 'none',
             pointerEvents: this.ghost ? 'none' : 'auto',
-            fontWeight: this.item?._type==GPTAssistantAPIFunctionVO.API_TYPE_ID ? 'bold' : 'normal',
+            fontWeight: this.item?._type == GPTAssistantAPIFunctionVO.API_TYPE_ID ? 'bold' : 'normal',
             'z-index': 25,
             'box-shadow': this.iconInfo.color ? `0 0 8px ${this.iconInfo.color}` : ''
         };
+    }
+
+    @Watch('item', { immediate: true })
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 100,
+    })
+    private async onItemChange() {
+        switch (this.item._type) {
+            case OseliaRunVO.API_TYPE_ID:
+            case OseliaRunTemplateVO.API_TYPE_ID:
+                this.gpt_function_name = null;
+                break;
+            case GPTAssistantAPIFunctionVO.API_TYPE_ID:
+                this.gpt_function_name = (this.item as GPTAssistantAPIFunctionVO).gpt_function_name;
+                break;
+            case OseliaRunFunctionCallVO.API_TYPE_ID:
+                const func = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                    .filter_by_id((this.item as OseliaRunFunctionCallVO).gpt_function_id)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIFunctionVO>();
+                this.gpt_function_name = func?.gpt_function_name;
+                break;
+        }
     }
 
     private mounted() {
@@ -120,7 +143,7 @@ export default class DiagramBlock extends Vue {
     }
 
     private resolveBorderColor(): string {
-        if(this.isSelected) {
+        if (this.isSelected) {
             return '3px solid blue';
         } else {
             return `2px solid ${this.iconInfo.color || '#4A90E2'}`;
@@ -149,7 +172,7 @@ export default class DiagramBlock extends Vue {
         }
         if ((this.item as any)._type === OseliaRunFunctionCallVO.API_TYPE_ID) {
             const func = this.item as OseliaRunFunctionCallVO;
-            return this.getStateIcon(func.state).color || '#f2dfda';
+            return this.getStateIcon(func.state, this.item._type).color || '#f2dfda';
         }
 
         if (String(this.item.id).startsWith('add_') || (this.item as any).run_type === 9999) {

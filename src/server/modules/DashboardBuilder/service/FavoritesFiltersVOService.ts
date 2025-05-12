@@ -1,14 +1,18 @@
 import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import IExportParamsProps from "../../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps";
 import FieldFiltersVOManager from "../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager";
 import VOFieldRefVOManager from "../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager";
 import WidgetOptionsVOManager from "../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager";
+import FavoritesFiltersExportFrequencyVO from "../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersExportFrequencyVO";
+import FavoritesFiltersExportParamsVO from "../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersExportParamsVO";
 import FavoritesFiltersVO from "../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO";
 import FieldFiltersVO from "../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO";
 import ExportContextQueryToXLSXParamVO from "../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO";
+import ExportContextQueryToXLSXQueryVO from "../../../../shared/modules/DataExport/vos/ExportContextQueryToXLSXQueryVO";
+import TimeSegment from "../../../../shared/modules/DataRender/vos/TimeSegment";
+import TSRange from "../../../../shared/modules/DataRender/vos/TSRange";
 import Dates from "../../../../shared/modules/FormatDatesNombres/Dates/Dates";
+import RangeHandler from "../../../../shared/tools/RangeHandler";
 import ModuleDAOServer from "../../DAO/ModuleDAOServer";
-import ModuleDataExportServer from "../../DataExport/ModuleDataExportServer";
 
 /**
  * FavoritesFiltersVOService
@@ -30,13 +34,8 @@ export default class FavoritesFiltersVOService {
      * @returns {boolean}
      */
     public static can_export_favorites_filters(favorites_filters: FavoritesFiltersVO): boolean {
-        // Can I export ?
-        let can_export = false;
+        const export_params: FavoritesFiltersExportParamsVO = favorites_filters.export_params ?? null;
 
-        const export_params: IExportParamsProps = favorites_filters.export_params ?? null;
-
-        // There is no need to process export if there is no export_planned
-        // is_export_planned, export_frequency and exportable_data must be sets
         if (
             !export_params?.is_export_planned ||
             !export_params?.export_frequency ||
@@ -47,52 +46,42 @@ export default class FavoritesFiltersVOService {
 
         const export_frequency = export_params.export_frequency;
 
-        // Can export the first time here
+        // Permier export
         if (!export_params.last_export_at_ts) {
             return true;
         }
 
-        // Define if the data have to be exported
-        const last_export_at_ts: number = export_params.last_export_at_ts;
-        const now_ts = new Date().getTime();
-
-        const day_in_month = export_frequency.day_in_month ? parseInt(export_frequency.day_in_month.toString()) : null; // day in the month e.g. every 3 months at day 15
-        const offset = parseInt(export_frequency.every?.toString()); // 1, 3, e.g. every 1 day, every 3 months
-        const granularity = export_frequency.granularity; // 'day' | 'month' | 'year'
-
-        // Get date offset (by using "every", "granularity" and "day_in_month")
-        const last_export_at_date = new Date(last_export_at_ts);
-        let offset_day_ts = null; // (timestamp)
-        switch (granularity) {
-            case 'day':
-                offset_day_ts = last_export_at_date.setDate(last_export_at_date.getDate() + offset);
-
+        let time_segment = 0;
+        switch (export_frequency.granularity) {
+            case FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY:
+                time_segment = TimeSegment.TYPE_DAY;
                 break;
-            case 'month':
-                if (!day_in_month) {
-                    throw new Error(`Day in month must be given !`);
-                }
-
-                offset_day_ts = last_export_at_date.setMonth(last_export_at_date.getMonth() + offset);
-                offset_day_ts = new Date(offset_day_ts).setDate(day_in_month);
+            case FavoritesFiltersExportFrequencyVO.GRANULARITY_MONTH:
+                time_segment = TimeSegment.TYPE_MONTH;
                 break;
-            case 'year':
-                offset_day_ts = last_export_at_date.setFullYear(last_export_at_date.getFullYear() + offset);
-
+            case FavoritesFiltersExportFrequencyVO.GRANULARITY_WEEK:
+                time_segment = TimeSegment.TYPE_WEEK;
                 break;
-            default: throw new Error(`Invalid granularity given! :${granularity}`);
+            case FavoritesFiltersExportFrequencyVO.GRANULARITY_YEAR:
+                time_segment = TimeSegment.TYPE_YEAR;
+                break;
+            default: throw new Error(`Invalid granularity given! :${export_frequency.granularity}`);
         }
 
-        // To export, the actual_days_diff shall be greater or equal of "0"
-        // That mean the actual "now" day has been outdated
-        const one_day_ts = (24 * 60 * 60 * 1000); // hours * minutes * seconds * milliseconds (timestamp)
-        const actual_days_diff = Math.round((now_ts - offset_day_ts) / one_day_ts);
+        const last_export: TSRange = RangeHandler.create_single_elt_TSRange(export_params.last_export_at_ts, time_segment);
 
-        if (actual_days_diff >= 0) {
-            can_export = true;
+        let export_after: number = Dates.add(last_export.min, export_frequency.every, time_segment);
+        if (export_frequency.granularity === FavoritesFiltersExportFrequencyVO.GRANULARITY_MONTH) {
+            export_after = Dates.add(export_after, export_frequency.day_in_month - 1, TimeSegment.TYPE_DAY); // ajouter le jour de day_in_month
         }
+        if (export_frequency.granularity === FavoritesFiltersExportFrequencyVO.GRANULARITY_WEEK) {
+            export_after = Dates.add(export_after, export_frequency.day_in_week - 1, TimeSegment.TYPE_DAY); // ajouter le jour de day_in_week
+        }
+        export_after = Dates.add(export_after, export_frequency.prefered_time, TimeSegment.TYPE_HOUR); // ajouter l'heure de prefered time
 
-        return can_export;
+        const offset = new Date().getTimezoneOffset() / 60;
+        const now = Dates.now() - (offset * 60 * 60);
+        return now >= export_after;
     }
 
     /**
@@ -240,7 +229,7 @@ export default class FavoritesFiltersVOService {
      * @param favorites_filters
      */
     public async export_favorites_filters_datatable(favorites_filters: FavoritesFiltersVO): Promise<void> {
-        const export_params: IExportParamsProps = favorites_filters.export_params;
+        const export_params: FavoritesFiltersExportParamsVO = favorites_filters.export_params;
         const exportable_data = export_params.exportable_data;
 
         // Actual context field_filters to be used for the export
@@ -263,7 +252,7 @@ export default class FavoritesFiltersVOService {
                 filename = filename.replace(date_rgx, Dates.now().toString());
             }
 
-            await ModuleDataExportServer.getInstance().prepare_exportContextQueryToXLSX(
+            const export_contextquery_to_xlsx: ExportContextQueryToXLSXQueryVO = ExportContextQueryToXLSXQueryVO.create_new(
                 filename,
                 xlsx_data.context_query,
                 xlsx_data.ordered_column_list,
@@ -278,17 +267,18 @@ export default class FavoritesFiltersVOService {
                 xlsx_data.discarded_field_paths,
                 xlsx_data.is_secured,
                 xlsx_data.file_access_policy_name,
-                xlsx_data.target_user_id,
+                favorites_filters.export_params.export_to_user_id_ranges,
                 xlsx_data.do_not_use_filter_by_datatable_field_uid,
                 xlsx_data.export_active_field_filters,
+                favorites_filters.export_params.field_filters_column_translatable_titles,
                 xlsx_data.export_vars_indicator,
-                xlsx_data.send_email_with_export_notification,
-                xlsx_data.vars_indicator,
+                xlsx_data.send_email_with_export_notification
             );
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(export_contextquery_to_xlsx);
         }
 
         // Set up last_export_at_ts timestamp
-        export_params.last_export_at_ts = new Date().getTime();
+        export_params.last_export_at_ts = Dates.now();
 
         // update this favorites_filters
         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(favorites_filters);

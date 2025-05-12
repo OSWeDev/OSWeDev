@@ -18,6 +18,7 @@ export default class DashboardPageFieldFiltersVOManager {
      */
     public static async find_dashboard_pages_field_filters_by_dashboard_ids(
         dashboard_ids: number[],
+        code_lang: string,
     ): Promise<DashboardPageFieldFiltersVO[]> {
         const dashboard_pages_field_filters_map: DashboardPageFieldFiltersVO[] = [];
 
@@ -26,6 +27,7 @@ export default class DashboardPageFieldFiltersVOManager {
 
             const dashboard_pages_field_filters = await DashboardPageFieldFiltersVOManager.find_dashboard_pages_field_filters_by_dashboard_id(
                 dashboard_id,
+                code_lang,
             );
 
             dashboard_pages_field_filters_map.push(
@@ -46,6 +48,7 @@ export default class DashboardPageFieldFiltersVOManager {
      */
     public static async find_dashboard_pages_field_filters_by_dashboard_id(
         dashboard_id: number,
+        code_lang: string,
     ): Promise<DashboardPageFieldFiltersVO[]> {
 
         const dashboard_pages = await DashboardPageVOManager.find_dashboard_pages_by_dashboard_id(
@@ -68,6 +71,7 @@ export default class DashboardPageFieldFiltersVOManager {
             // Create readable field_filters of dashboard_page
             const readable_field_filters = await FieldFiltersVOManager.create_readable_filters_text_from_field_filters(
                 default_page_field_filters,
+                code_lang,
                 dashboard_page.id,
             );
 

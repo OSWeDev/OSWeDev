@@ -95,6 +95,12 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
 
     public select_options_enabled: number[] = null;
 
+    /**
+     * Méthode qui permet de définir en dynamique les params d'url pour l'ouverture du selecteur avec des filtres pré-remplis
+     * TODO FIXME : A terme, on devrait modifier le système de choix des éléments visibles pour passer en contextQueryFilters et en déduire ces paramètres
+     */
+    public external_selector_params_builder: (vo: IDistantVOBase) => string = null;
+
     public validate: (data: any) => string;
     /**
      * @returns true si seul le field du champ est modifié, false si d'autres champs sont modifiés => forcera un reload global du vo
@@ -313,6 +319,14 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
 
         return this;
     }
+
+    public set_external_selector_params_builder(external_selector_params_builder: (vo: IDistantVOBase) => string): DatatableField<T, U> {
+
+        this.external_selector_params_builder = external_selector_params_builder;
+
+        return this;
+    }
+
 
     /**
      * applique tri et filtrage aux options

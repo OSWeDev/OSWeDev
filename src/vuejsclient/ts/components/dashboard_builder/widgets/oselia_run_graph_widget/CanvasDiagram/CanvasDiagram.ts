@@ -63,22 +63,22 @@ export default class CanvasDiagram extends VueComponentBase {
     // PROPS
     // --------------------------------------------------------------------------
     @Prop({ required: true })
-        items!: { [id: string]: OseliaRunTemplateVO | OseliaRunVO | GPTAssistantAPIFunctionVO | OseliaRunFunctionCallVO };
+    private items!: { [id: string]: OseliaRunTemplateVO | OseliaRunVO | GPTAssistantAPIFunctionVO | OseliaRunFunctionCallVO };
 
     @Prop({ required: true })
-        isRunVo!: boolean;
+    private isRunVo!: boolean;
 
     @Prop({ default: null })
-        selectedItem!: string | null;
+    private selectedItem!: string | null;
 
     @Prop({ default: null })
-        updatedItem!: OseliaRunTemplateVO | null;
+    private updatedItem!: OseliaRunTemplateVO | null;
 
     @Prop({ default: false })
-        reDraw!: boolean;
+    private reDraw!: boolean;
 
     @Prop({ default: false })
-        executeAutofit!: boolean;
+    private executeAutofit!: boolean;
 
     // --------------------------------------------------------------------------
     // STORE GETTERS / ACTIONS
@@ -135,12 +135,6 @@ export default class CanvasDiagram extends VueComponentBase {
 
     // Adjacency & runFunctions info
     private adjacency: { [id: string]: string[] } = {};
-    private functionsInfos: {
-        [id: string]: {
-            gptFunction: GPTAssistantAPIFunctionVO;
-            runFunction: OseliaRunFunctionCallVO[];
-        }
-    } = {};
 
     // THROTTLE
     private throttle_reRender = ThrottleHelper.declare_throttle_with_stackable_args(
@@ -260,14 +254,15 @@ export default class CanvasDiagram extends VueComponentBase {
         if (!item) return '';
 
         // Cas GPT function => state = runFunction.state
-        if (item._type === GPTAssistantAPIFunctionVO.API_TYPE_ID) {
-            return '';
-        } else {
-            if (item._type === OseliaRunTemplateVO.API_TYPE_ID) {
+        switch (item._type) {
+            case GPTAssistantAPIFunctionVO.API_TYPE_ID:
+            case OseliaRunTemplateVO.API_TYPE_ID:
                 return '';
-            }
-            const st = (item as any).state;
-            return this.getStateIcon(st).info || 'Inconnu';
+            case OseliaRunFunctionCallVO.API_TYPE_ID:
+            case OseliaRunVO.API_TYPE_ID:
+            default:
+                const st = (item as any).state;
+                return this.getStateIcon(st, item._type).info || 'Inconnu';
         }
     }
 
@@ -293,7 +288,6 @@ export default class CanvasDiagram extends VueComponentBase {
         // On est dans le cas d'un clear
         if (!this.items) {
             this.adjacency = {};
-            this.functionsInfos = {};
             this.hoveredItemId = null;
         }
         // On force un simple re-render
@@ -311,40 +305,62 @@ export default class CanvasDiagram extends VueComponentBase {
     // --------------------------------------------------------------------------
     // TRADUCTION ETAT
     // --------------------------------------------------------------------------
-    public getStateIcon(state: number): StateIconInfo {
-        switch (state) {
-            case OseliaRunVO.STATE_TODO:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🕗', color: '#B0BEC5' };
-            case OseliaRunVO.STATE_SPLITTING:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔀', color: '#64B5F6' };
-            case OseliaRunVO.STATE_SPLIT_ENDED:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '✅', color: '#42A5F5' };
-            case OseliaRunVO.STATE_WAITING_SPLITS_END:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '⌛', color: '#4FC3F7' };
-            case OseliaRunVO.STATE_WAIT_SPLITS_END_ENDED:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔚', color: '#29B6F6' };
-            case OseliaRunVO.STATE_RUNNING:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🏃', color: '#81C784' };
-            case OseliaRunVO.STATE_RUN_ENDED:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🏁', color: '#66BB6A' };
-            case OseliaRunVO.STATE_VALIDATING:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔎', color: '#FFD54F' };
-            case OseliaRunVO.STATE_VALIDATION_ENDED:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔏', color: '#FFCA28' };
-            case OseliaRunVO.STATE_DONE:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '✔️', color: '#4CAF50' };
-            case OseliaRunVO.STATE_ERROR:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '❌', color: '#E57373' };
-            case OseliaRunVO.STATE_CANCELLED:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🚫', color: '#9E9E9E' };
-            case OseliaRunVO.STATE_EXPIRED:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '⏰', color: '#FF8A65' };
-            case OseliaRunVO.STATE_NEEDS_RERUN:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '↩️', color: '#BA68C8' };
-            case OseliaRunVO.STATE_RERUN_ASKED:
-                return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔄', color: '#AB47BC' };
+    public getStateIcon(state: number, item_type: string): StateIconInfo {
+        switch (item_type) {
+            case OseliaRunFunctionCallVO.API_TYPE_ID:
+                switch (state) {
+                    case OseliaRunFunctionCallVO.STATE_TODO:
+                        return { info: this.t(OseliaRunFunctionCallVO.STATE_LABELS[state]), icon: '🕗', color: '#B0BEC5' };
+                    case OseliaRunFunctionCallVO.STATE_RUNNING:
+                        return { info: this.t(OseliaRunFunctionCallVO.STATE_LABELS[state]), icon: '🏃', color: '#81C784' };
+                    case OseliaRunFunctionCallVO.STATE_DONE:
+                        return { info: this.t(OseliaRunFunctionCallVO.STATE_LABELS[state]), icon: '✔️', color: '#4CAF50' };
+                    case OseliaRunFunctionCallVO.STATE_ERROR:
+                        return { info: this.t(OseliaRunFunctionCallVO.STATE_LABELS[state]), icon: '❌', color: '#E57373' };
+                    default:
+                        return { info: this.t(OseliaRunFunctionCallVO.STATE_LABELS[state]), icon: '❔' };
+                }
+
+            case OseliaRunVO.API_TYPE_ID:
+                switch (state) {
+                    case OseliaRunVO.STATE_TODO:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🕗', color: '#B0BEC5' };
+                    case OseliaRunVO.STATE_SPLITTING:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔀', color: '#64B5F6' };
+                    case OseliaRunVO.STATE_SPLIT_ENDED:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '✅', color: '#42A5F5' };
+                    case OseliaRunVO.STATE_WAITING_SPLITS_END:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '⌛', color: '#4FC3F7' };
+                    case OseliaRunVO.STATE_WAIT_SPLITS_END_ENDED:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔚', color: '#29B6F6' };
+                    case OseliaRunVO.STATE_RUNNING:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🏃', color: '#81C784' };
+                    case OseliaRunVO.STATE_RUN_ENDED:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🏁', color: '#66BB6A' };
+                    case OseliaRunVO.STATE_VALIDATING:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔎', color: '#FFD54F' };
+                    case OseliaRunVO.STATE_VALIDATION_ENDED:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔏', color: '#FFCA28' };
+                    case OseliaRunVO.STATE_DONE:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '✔️', color: '#4CAF50' };
+                    case OseliaRunVO.STATE_ERROR:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '❌', color: '#E57373' };
+                    case OseliaRunVO.STATE_CANCELLED:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🚫', color: '#9E9E9E' };
+                    case OseliaRunVO.STATE_EXPIRED:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '⏰', color: '#FF8A65' };
+                    case OseliaRunVO.STATE_NEEDS_RERUN:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '↩️', color: '#BA68C8' };
+                    case OseliaRunVO.STATE_RERUN_ASKED:
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔄', color: '#AB47BC' };
+                    default:
+                        return { info: 'Inconnu', icon: '❔' };
+                }
+
+            case GPTAssistantAPIFunctionVO.API_TYPE_ID:
+            case OseliaRunTemplateVO.API_TYPE_ID:
             default:
-                return { info: 'Inconnu', icon: '❔' };
+                return { info: null, icon: null, color: null };
         }
     }
 
@@ -384,7 +400,6 @@ export default class CanvasDiagram extends VueComponentBase {
         if (this.isRunVo) {
             const res = await DiagramDataService.prepareRunData(this.items as any);
             this.adjacency = res.adjacency;
-            this.functionsInfos = res.functionsInfos;
             // MàJ items si ajout de GPT manquants
             for (const k of Object.keys(res.items)) {
                 this.$set(this.items, k, res.items[k]);
@@ -392,7 +407,6 @@ export default class CanvasDiagram extends VueComponentBase {
         } else {
             const res = await DiagramDataService.prepareTemplateData(this.items as any);
             this.adjacency = res.adjacency;
-            // Pas de functionsInfos ici
             for (const k of Object.keys(res.items)) {
                 this.$set(this.items, k, res.items[k]);
             }
@@ -485,8 +499,12 @@ export default class CanvasDiagram extends VueComponentBase {
         }
 
         // Sélection
-        const runFunc = this.functionsInfos[clickedBlock]?.runFunction || null;
-        this.$emit('select_item', clickedBlock, runFunc);
+        const selected_item = this.items[clickedBlock];
+        if (selected_item._type == OseliaRunFunctionCallVO.API_TYPE_ID) {
+            this.$emit('select_item', clickedBlock, this.items[clickedBlock]);
+        } else {
+            this.$emit('select_item', clickedBlock);
+        }
 
         // Possibilité de drag reorder en template
         this.mouseDownX = diagPos.x;
@@ -680,13 +698,6 @@ export default class CanvasDiagram extends VueComponentBase {
         this.menuBlock.agentId = null;
         this.menuBlock.hoveredIndex = -1;
         this.throttle_reRender();
-    }
-
-    private getFunctionsInfos(itemId: string) {
-        if (!this.items[itemId]) return null;
-        if (this.items[itemId]._type == OseliaRunFunctionCallVO.API_TYPE_ID) {
-            return this.functionsInfos[(this.items[itemId] as OseliaRunFunctionCallVO).oselia_run_id] || null;
-        }
     }
 
     // --------------------------------------------------------------------------

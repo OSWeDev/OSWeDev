@@ -1,17 +1,9 @@
 import { query } from "../../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import NumRange from "../../../../../../../../shared/modules/DataRender/vos/NumRange";
 import GPTAssistantAPIFunctionVO from "../../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO";
 import OseliaRunFunctionCallVO from "../../../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO";
 import OseliaRunTemplateVO from "../../../../../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO";
 import OseliaRunVO from "../../../../../../../../shared/modules/Oselia/vos/OseliaRunVO";
 import { field_names } from "../../../../../../../../shared/tools/ObjectHandler";
-
-export interface FunctionsInfo {
-    [id: string]: {
-        gptFunction: GPTAssistantAPIFunctionVO;
-        runFunction: OseliaRunFunctionCallVO[];
-    };
-}
 
 export interface DiagramDataResult {
     /**
@@ -19,12 +11,6 @@ export interface DiagramDataResult {
      * la valeur est la liste des items enfants (ou liés).
      */
     adjacency: { [id: string]: string[] };
-
-    /**
-     * Informations pour les fonctions GPT.
-     * (Vide si isRunVo = false, ou si pas de GPT.)
-     */
-    functionsInfos: FunctionsInfo;
 
     /**
      * Items potentiellement modifiés (par ex. ajout de faux "+").
@@ -119,12 +105,8 @@ export default class DiagramDataService {
             await expandAgent(agId);
         }
 
-        // On n’a pas de functionsInfos pour un template
-        const functionsInfos: FunctionsInfo = {};
-
         return {
             adjacency,
-            functionsInfos,
             items: currentItems
         };
     }
@@ -140,19 +122,17 @@ export default class DiagramDataService {
         currentItems: { [id: string]: OseliaRunVO | GPTAssistantAPIFunctionVO | OseliaRunFunctionCallVO }
     ): Promise<DiagramDataResult> {
 
-        // 1) Initialiser adjacency + functionsInfos
+        // 1) Initialiser adjacency
         const adjacency: { [id: string]: string[] } = {};
         for (const id of Object.keys(currentItems)) {
             adjacency[id] = [];
         }
-        const functionsInfos: FunctionsInfo = {};
-
         // 2) Trouver tous les runs
         const runIds = Object.keys(currentItems).filter(id => {
             return currentItems[id]._type === OseliaRunVO.API_TYPE_ID;
         });
         if (!runIds.length) {
-            return { adjacency, functionsInfos, items: currentItems };
+            return { adjacency, items: currentItems };
         }
 
         // 3) Récupérer tous les appels de fonction (runFunctionCall) liés aux runs trouvés
@@ -211,16 +191,6 @@ export default class DiagramDataService {
                 if (!gfVO) {
                     continue; // GPT function ID inexistant
                 }
-
-                // Alimente la "has many" runFunction
-                const callsForThisFunction = runCalls.filter(c => c.gpt_function_id === fid);
-
-                // MàJ du functionsInfos
-                // => stocke la liste complète des runFunctionCall
-                functionsInfos[rid] = {
-                    gptFunction: gfVO,
-                    runFunction: callsForThisFunction
-                };
             }
 
             // 5) Ajouter chaque call dans le graphe
@@ -243,7 +213,6 @@ export default class DiagramDataService {
         // On renvoie le résultat
         return {
             adjacency,
-            functionsInfos,
             items: currentItems
         };
     }

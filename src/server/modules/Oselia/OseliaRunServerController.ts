@@ -329,9 +329,7 @@ export default class OseliaRunServerController {
                     throw new Error('get_initialised_prompt:No content_text or prompt_id provided');
                 }
 
-                if (run.initial_content_text) {
-                    run.initialised_run_prompt = run.initial_content_text;
-                } else {
+                if (run.initial_prompt_id) {
 
                     const oselia_prompt = await query(OseliaPromptVO.API_TYPE_ID)
                         .filter_by_id(run.initial_prompt_id)
@@ -356,6 +354,12 @@ export default class OseliaRunServerController {
 
                     run.initialised_run_prompt = prompt_string;
                 }
+
+                // Si on a initial_content_text + prompt_id, on append le initial_content_text qui sert alors de commentaire complémentaire au prompt par défaut
+                if (run.initial_content_text) {
+                    run.initialised_run_prompt = run.initialised_run_prompt ? run.initialised_run_prompt + '\n' + run.initial_content_text : run.initial_content_text;
+                }
+
 
                 // Une fois qu'on a initialisé le prompt du run, on peut init les prompts potentiels du split et de la validation
                 const prompt_prefix_split = await ParamsServerController.getParamValueAsString(OseliaRunServerController.PARAM_NAME_SPLITTER_PROMPT_PREFIX);

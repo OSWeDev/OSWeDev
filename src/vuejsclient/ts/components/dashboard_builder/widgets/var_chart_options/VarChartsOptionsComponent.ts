@@ -153,6 +153,12 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         }));
     }
 
+    private async mounted() {
+        if (this.color_palettes_options.length === 0) {
+            this.color_palettes_options = await this.get_color_palettes_options();
+        }
+    }
+
     private async get_color_palettes_options(): Promise<Array<{ id: number; label: string; palette: DashboardGraphColorPaletteVO }>> {
         const res: Array<{ id: number; label: string; palette: DashboardGraphColorPaletteVO }> = [];
         this.color_palettes = [];

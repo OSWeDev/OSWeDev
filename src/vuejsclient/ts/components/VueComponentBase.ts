@@ -5,6 +5,7 @@ import { Vue } from "vue-property-decorator";
 import ContextFilterVO, { filter } from "../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import SortByVO from "../../../shared/modules/ContextFilter/vos/SortByVO";
+import ModuleTableController from "../../../shared/modules/DAO/ModuleTableController";
 import ModuleTableFieldVO from "../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 import ModuleDataExport from "../../../shared/modules/DataExport/ModuleDataExport";
 import ExportDataToXLSXParamVO from "../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO";
@@ -16,6 +17,7 @@ import Module from "../../../shared/modules/Module";
 import ModulesManager from "../../../shared/modules/ModulesManager";
 import DefaultTranslationVO from "../../../shared/modules/Translation/vos/DefaultTranslationVO";
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedCeilFilter, toFixedFilter, toFixedFloorFilter, truncateFilter, tstzFilter } from '../../../shared/tools/Filters';
@@ -28,11 +30,6 @@ import VOEventRegistrationKey from "../modules/PushData/VOEventRegistrationKey";
 import VOEventRegistrationsHandler from "../modules/PushData/VOEventRegistrationsHandler";
 import AppVuexStoreManager from "../store/AppVuexStoreManager";
 import IDeclareVueComponent from "./IDeclareVueComponent";
-import { Snotify, SnotifyType } from "vue-snotify";
-import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
-import ModuleTableController from "../../../shared/modules/DAO/ModuleTableController";
-import VueAppBase from "../../VueAppBase";
-import APIControllerWrapper from "../../../shared/modules/API/APIControllerWrapper";
 
 // MONTHS MIXIN
 const months = [
@@ -359,14 +356,14 @@ export default class VueComponentBase extends Vue
             return txt;
         }
 
+        // return txt;
         if (VueAppController.getInstance().has_access_to_onpage_translation) {
-            VueAppController.getInstance().throttled_register_translation({
-                translation_code: txt,
-                missing: false,
+            VueAppController.getInstance().register_translation({
+                [txt]: false,
             });
         }
 
-        return LocaleManager.getInstance().t(txt, params);
+        return LocaleManager.t(txt, params);
     }
 
     public label(txt, params = {}): string {

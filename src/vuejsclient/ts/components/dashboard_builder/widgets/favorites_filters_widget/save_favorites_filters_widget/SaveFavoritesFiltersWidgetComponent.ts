@@ -175,7 +175,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     private async get_exportable_xlsx_params(limit_to_page: boolean = true): Promise<{ [title_name_code: string]: ExportContextQueryToXLSXParamVO }> {
 
-        const exportable_xlsx_params = await TableWidgetManager.create_exportable_valuetables_xlsx_params(
+        const exportable_xlsx_params = await TableWidgetManager.create_exportable_datatables_xlsx_params(
             this.dashboard,
             this.dashboard_page,
             this.get_active_field_filters,

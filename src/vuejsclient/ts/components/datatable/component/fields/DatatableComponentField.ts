@@ -13,9 +13,11 @@ import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/v
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IRange from '../../../../../../shared/modules/DataRender/interfaces/IRange';
+import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
+import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConditionHandler, { ConditionStatement } from '../../../../../../shared/tools/ConditionHandler';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
@@ -23,11 +25,10 @@ import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import TypesHandler from '../../../../../../shared/tools/TypesHandler';
 import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
-import VueComponentBase, { FiltersHandler } from '../../../VueComponentBase';
+import VueComponentBase from '../../../VueComponentBase';
 import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
 import './DatatableComponentField.scss';
 import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
-import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
@@ -511,5 +512,9 @@ export default class DatatableComponentField extends VueComponentBase {
 
     private refresh() {
         this.$emit('refresh');
+    }
+
+    private on_register_param_for_column(param: VarDataBaseVO) {
+        this.$emit('register_param_for_column', this.column.id, param);
     }
 }

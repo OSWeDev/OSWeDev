@@ -34,5 +34,5 @@ export default abstract class VueModuleBase implements IVueModule {
 
     public registerApis() { }
     public initialize(): void { }
-    public async initializeAsync(): Promise<void> { }
+    public async initializeAsync(vue_app_base): Promise<void> { }
 }

@@ -116,6 +116,8 @@ export default class EnvParamsVO implements IDistantVOBase {
     // DEBUG_convert_varparamfields_to_vardatas?: boolean;
     public debug_convert_varparamfields_to_vardatas: boolean;
 
+    public threshold_too_many_imports_waiting: number;
+
     // DEBUG_FORKS?: boolean;
     public debug_forks: boolean;
 
@@ -222,6 +224,9 @@ export default class EnvParamsVO implements IDistantVOBase {
     public load_balancing_debug_log: boolean;
 
     public debug_reruns_of_oselia: boolean;
+
+    public debug_assistant_traduction: boolean;
+    public debug_superviseur_assistant_traduction: boolean;
 
     // DEBUG_CONTEXT_QUERY_build_select_query_not_count?: boolean;
     public debug_context_query_build_select_query_not_count: boolean;

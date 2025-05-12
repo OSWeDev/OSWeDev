@@ -5,6 +5,7 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
@@ -29,9 +30,12 @@ import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import PerfReportServerController from '../PerfReport/PerfReportServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import SuperviseurAssistantTraductionServerController from './SuperviseurAssistantTraductionServerController';
 import TranslationCronWorkersHandler from './TranslationCronWorkersHandler';
 import TranslationsServerController from './TranslationsServerController';
+import AssistantTraductionCronWorker from './workers/AssistantTraduction/AssistantTraductionCronWorker';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
@@ -67,6 +71,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        PerfReportServerController.register_perf_module(AssistantTraductionCronWorker.PERF_MODULE_NAME);
+        PerfReportServerController.register_perf_module(SuperviseurAssistantTraductionServerController.PERF_MODULE_NAME);
 
         const langs = await query(LangVO.API_TYPE_ID)
             .exec_as_server()
@@ -216,6 +223,12 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Tout sélectionner'
         }, 'crud.actions.select_all.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Tout désélectionner'
+        }, 'crud.actions.unselect_all.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Valider la sélection'
+        }, 'crud.actions.validate_selection.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Exporter'
         }, 'crud.actions.export_to.___LABEL___'));
@@ -764,6 +777,14 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         return query(TranslationVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<TranslationVO>().lang_id, num)
             .select_vos<TranslationVO>();
+    }
+
+    public async get_translation_samples(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
+        return await AssistantTraductionCronWorker.getInstance().get_translation_samples(thread_vo, pattern);
+    }
+
+    public async set_translation(thread_vo: GPTAssistantAPIThreadVO, traduction: string, degre_certitude: number, explication: string): Promise<string> {
+        return await AssistantTraductionCronWorker.getInstance().set_translation(thread_vo, traduction, degre_certitude, explication);
     }
 
     public async getTranslation(lang_id: number, text_id: number): Promise<TranslationVO> {

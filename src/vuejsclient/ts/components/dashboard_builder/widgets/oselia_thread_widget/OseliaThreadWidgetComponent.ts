@@ -1,3 +1,4 @@
+import Cookies from "js-cookie";
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import VueJsonPretty from 'vue-json-pretty';
@@ -6,6 +7,7 @@ import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/Mo
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -29,6 +31,7 @@ import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
+import { all_promises } from "../../../../../../shared/tools/PromiseTools";
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../../VueAppController';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
@@ -38,13 +41,13 @@ import VueComponentBase from '../../../VueComponentBase';
 import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
 import MailIDEventsComponent from '../../../mail_id_events/MailIDEventsComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import OseliaRunGraphWidgetComponent from '../oselia_run_graph_widget/OseliaRunGraphWidgetComponent';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import OseliaLeftPanelComponent from './OseliaLeftPanel/OseliaLeftPanelComponent';
 import OseliaRunArboComponent from './OseliaRunArbo/OseliaRunArboComponent';
 import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
 import './OseliaThreadWidgetComponent.scss';
-import OseliaRunGraphWidgetComponent from '../oselia_run_graph_widget/OseliaRunGraphWidgetComponent';
 import OseliaRealtimeButton from './OseliaRealtimeButton/OseliaRealtimeButton';
 
 @Component({
@@ -65,47 +68,47 @@ import OseliaRealtimeButton from './OseliaRealtimeButton/OseliaRealtimeButton';
 export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     @ModuleOseliaGetter
-    private get_show_hidden_messages: boolean;
+    public get_too_many_assistants: boolean;
+    @ModuleOseliaGetter
+    public get_can_run_assistant: boolean;
+    @ModuleOseliaGetter
+    public get_oselia_first_loading_done: boolean;
+
+    @ModuleOseliaGetter
+    public get_show_hidden_messages: boolean;
     @ModuleOseliaAction
-    private set_show_hidden_messages: (show_hidden_messages: boolean) => void;
+    public set_show_hidden_messages: (show_hidden_messages: boolean) => void;
 
     @ModuleOseliaAction
-    private set_left_panel_open: (left_panel_open: boolean) => void;
+    public set_left_panel_open: (left_panel_open: boolean) => void;
     @ModuleOseliaGetter
-    private get_left_panel_open: boolean;
+    public get_left_panel_open: boolean;
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
+    public get_active_field_filters: FieldFiltersVO;
     @ModuleDashboardPageAction
-    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
+    public set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
 
     @ModuleTranslatableTextGetter
-    private get_flat_locale_translations: { [code_text: string]: string };
+    public get_flat_locale_translations: { [code_text: string]: string };
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: null })
-    private dashboard: DashboardVO;
+    public dashboard: DashboardVO;
 
     @Prop({ default: null })
-    private dashboard_page: DashboardPageVO;
+    public dashboard_page: DashboardPageVO;
 
     @Prop({ default: null })
-    private all_page_widget: DashboardPageWidgetVO[];
+    public all_page_widget: DashboardPageWidgetVO[];
 
     @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+    public get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
-
-    @ModuleOseliaGetter
-    private get_too_many_assistants: boolean;
-    @ModuleOseliaGetter
-    private get_can_run_assistant: boolean;
-    @ModuleOseliaGetter
-    private get_oselia_first_loading_done: boolean;
+    public get_dashboard_api_type_ids: string[];
 
     @ModuleOseliaAction
     private set_too_many_assistants: (too_many_assistants: boolean) => void;
@@ -114,20 +117,26 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     @ModuleOseliaAction
     private set_oselia_first_loading_done: (oselia_first_loading_done: boolean) => void;
 
+    public currently_selected_assistant: GPTAssistantAPIAssistantVO = null;
+    public selectable_assistants: GPTAssistantAPIAssistantVO[] = [];
+
+    public auto_commit_auto_input: boolean = (Cookies.get("auto_commit_auto_input") === "true");
+
     public thread_cached_datas: OseliaThreadCacheVO[] = [];
     public sub_threads: GPTAssistantAPIThreadVO[] = [];
     public function_calls: OseliaRunFunctionCallVO[] = [];
 
+    public data_received: any = null;
+    public selected_file_system: FileVO[] = [];
+
     public thread_messages: GPTAssistantAPIThreadMessageVO[] = [];
     public thread: GPTAssistantAPIThreadVO = null;
     public oselia_runs: OseliaRunVO[] = [];
-
     private has_access_to_thread: boolean = false;
     private is_loading_thread: boolean = true;
     private assistant_is_busy: boolean = false;
     private current_thread_id: number = null;
     private assistant: GPTAssistantAPIAssistantVO = null;
-    private selected_file_system: FileVO[] = [];
     private new_message_text: string = null;
     private is_dragging: boolean = false;
     private thread_files: { [key: string]: FileVO }[] = [];
@@ -138,7 +147,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private is_expanded: boolean = false;
     private frame: HTMLElement = null;
     private wait_for_data: boolean = false;
-    private data_received: any = null;
     private dashboard_export_id: number = null;
     private is_creating_thread: boolean = false;
     private send_message_create: boolean = false;
@@ -175,22 +183,47 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         return `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard/view/`;
     }
 
-    @Watch('get_too_many_assistants')
-    @Watch('get_can_run_assistant')
+    @Watch(reflect<OseliaThreadWidgetComponent>().currently_selected_assistant)
+    private async on_change_currently_selected_assistant() {
+        if (!this.currently_selected_assistant) {
+            return;
+        }
+
+        if (!this.thread) {
+            return;
+        }
+
+        if (this.currently_selected_assistant.id == this.thread.current_default_assistant_id) {
+            return;
+        }
+
+        this.thread.current_default_assistant_id = this.currently_selected_assistant.id;
+        this.thread.current_oselia_assistant_id = this.currently_selected_assistant.id;
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.thread);
+        this.assistant = this.currently_selected_assistant;
+    }
+
+    @Watch(reflect<OseliaThreadWidgetComponent>().auto_commit_auto_input)
+    private on_auto_commit_auto_input() {
+        Cookies.set("auto_commit_auto_input", String(this.auto_commit_auto_input), { expires: 365 });
+    }
+
+    @Watch(reflect<OseliaThreadWidgetComponent>().get_too_many_assistants)
+    @Watch(reflect<OseliaThreadWidgetComponent>().get_can_run_assistant)
     private init_oselia_first_loading_done() {
         if ((!this.get_oselia_first_loading_done) && (!this.get_too_many_assistants) && this.get_can_run_assistant) {
             this.set_oselia_first_loading_done(true);
         }
     }
 
-    @Watch('get_active_field_filters', { immediate: true, deep: true })
-    @Watch('get_discarded_field_paths', { deep: true })
-    @Watch('page_widget')
+    @Watch(reflect<OseliaThreadWidgetComponent>().get_active_field_filters, { immediate: true, deep: true })
+    @Watch(reflect<OseliaThreadWidgetComponent>().get_discarded_field_paths, { deep: true })
+    @Watch(reflect<OseliaThreadWidgetComponent>().page_widget)
     private async on_change_filters_or_page_widget() {
         this.throttle_load_thread();
     }
 
-    @Watch('selected_file_system')
+    @Watch(reflect<OseliaThreadWidgetComponent>().selected_file_system)
     private async on_selected_file_system_change() {
         if (!this.selected_file_system) {
             return;
@@ -199,12 +232,12 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.enable_file_system_menu = false;
     }
 
-    @Watch('thread', { immediate: true })
+    @Watch(reflect<OseliaThreadWidgetComponent>().thread, { immediate: true })
     private async onchange_thread() {
         this.throttle_register_thread();
     }
 
-    @Watch('data_received')
+    @Watch(reflect<OseliaThreadWidgetComponent>().data_received)
     private async onchange_data_received() {
         const files = [];
         if (this.data_received.length > 0) {
@@ -246,16 +279,27 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async mounted() {
-        this.use_realtime_voice = await ModuleParams.getInstance().getParamValueAsBoolean(OseliaController.PARAM_NAME_UNBLOCK_REALTIME_API, false, 120000);
+
+        await all_promises([
+            (async () => {
+                this.selectable_assistants = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                    .select_vos<GPTAssistantAPIAssistantVO>();
+            })(),
+            (async () => {
+                this.use_realtime_voice = await ModuleParams.getInstance().getParamValueAsBoolean(OseliaController.PARAM_NAME_UNBLOCK_REALTIME_API, false, 120000);
+            })(),
+            (async () => {
+                this.has_access_to_debug = await ModuleAccessPolicy.getInstance().testAccess(ModuleOselia.POLICY_BO_ACCESS);
+            })(),
+            (async () => {
+                if (this.has_access_to_debug) {
+                    const functions = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID).select_vos<GPTAssistantAPIFunctionVO>();
+                    this.functions_by_id = VOsTypesManager.vosArray_to_vosByIds(functions);
+                }
+            })(),
+        ]);
 
         this.frame = parent.document.getElementById('OseliaContainer');
-
-        this.has_access_to_debug = await ModuleAccessPolicy.getInstance().testAccess(ModuleOselia.POLICY_BO_ACCESS);
-
-        if (this.has_access_to_debug) {
-            const functions = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID).select_vos<GPTAssistantAPIFunctionVO>();
-            this.functions_by_id = VOsTypesManager.vosArray_to_vosByIds(functions);
-        }
 
         window.addEventListener('paste', e => {
             if (e.clipboardData.files.length > 0) {
@@ -289,6 +333,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             this.function_calls = [];
             this.oselia_runs = [];
             this.assistant = null;
+            this.currently_selected_assistant = this.assistant;
             this.is_loading_thread = false;
             this.has_access_to_thread = false;
             this.thread = null;
@@ -629,6 +674,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             }
 
             this.assistant = default_assistant;
+            this.currently_selected_assistant = this.assistant;
             this.try_set_too_many_assistants(false);
             return;
         }
@@ -649,6 +695,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
         this.assistant = assistant;
+        this.currently_selected_assistant = this.assistant;
     }
 
     private async scroll_to_bottom() {
@@ -878,7 +925,14 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                         return;
                     }
 
-                    const transcription = await ModuleGPT.getInstance().transcribe_file(file_vo.id);
+                    const auto_commit_auto_input = this.auto_commit_auto_input;
+
+                    const transcription = await ModuleGPT.getInstance().transcribe_file(file_vo.id, auto_commit_auto_input, this.assistant.gpt_assistant_id, this.thread.gpt_thread_id, VueAppController.getInstance().data_user.id);
+
+                    if (auto_commit_auto_input) {
+                        this.input_voice_is_transcribing = false;
+                        return;
+                    }
 
                     if (!transcription) {
                         this.input_voice_is_transcribing = false;

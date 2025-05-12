@@ -1,15 +1,26 @@
+import { cloneDeep, isEqual } from 'lodash';
+import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
+import 'quill/dist/quill.core.css'; // Compliqué à lazy load
+import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
 import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import { Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import LocaleManager from '../../../../../../../shared/tools/LocaleManager';
+import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
@@ -19,17 +30,6 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import './TableWidgetOptionsComponent.scss';
 import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
-import { cloneDeep, isEqual } from 'lodash';
-import VueAppController from '../../../../../../VueAppController';
-import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
-import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
-import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
-import 'quill/dist/quill.core.css'; // Compliqué à lazy load
-import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
-import VarsController from '../../../../../../../shared/modules/Var/VarsController';
-import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
 
 @Component({
     template: require('./TableWidgetOptionsComponent.pug'),
@@ -901,7 +901,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private read_label(label: string): string {
-        const translation = VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS;
+        const translation = LocaleManager.ALL_FLAT_LOCALE_TRANSLATIONS;
         const text = translation[label + '.___LABEL___'];
 
         return text;

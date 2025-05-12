@@ -216,12 +216,12 @@ export default class SharedFiltersVOManager {
      * @param {SharedFiltersVO} shared_filters
      * @returns {Promise<boolean>}
      */
-    public static async save_shared_filters(shared_filters: SharedFiltersVO): Promise<boolean> {
+    public static async save_shared_filters(shared_filters: SharedFiltersVO, code_lang: string): Promise<boolean> {
 
         /**
          * On filtre tous les false ici, par ce qu'on veut avoir la conf la plus légère possible
          */
-        shared_filters = await SharedFiltersVOManager.filter_false_shared_filters(shared_filters);
+        shared_filters = await SharedFiltersVOManager.filter_false_shared_filters(shared_filters, code_lang);
 
         const res = await ModuleDAO.instance.insertOrUpdateVO(
             shared_filters
@@ -259,10 +259,14 @@ export default class SharedFiltersVOManager {
 
     private static instance: SharedFiltersVOManager = null;
 
-    private static async filter_false_shared_filters(shared_filters: SharedFiltersVO): Promise<SharedFiltersVO> {
+    private static async filter_false_shared_filters(
+        shared_filters: SharedFiltersVO,
+        code_lang: string,
+    ): Promise<SharedFiltersVO> {
 
         const dashboard_pages_field_filters_map = await DashboardPageFieldFiltersVOManager.find_dashboard_pages_field_filters_by_dashboard_ids(
-            RangeHandler.get_array_from_ranges(shared_filters.shared_from_dashboard_ids)
+            RangeHandler.get_array_from_ranges(shared_filters.shared_from_dashboard_ids),
+            code_lang,
         );
 
         const selectionnable_field_filters = DashboardPageFieldFiltersVOManager.get_INTERSECTION_all_dashboard_pages_field_filters(//merge_all_dashboard_pages_field_filters(

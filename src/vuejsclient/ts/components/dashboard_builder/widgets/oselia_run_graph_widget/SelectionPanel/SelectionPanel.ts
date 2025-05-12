@@ -1,17 +1,17 @@
-import Vue from 'vue';
 import VueJsonPretty from 'vue-json-pretty';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import './SelectionPanel.scss';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import GPTAssistantAPIAssistantVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIFunctionVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
+import ModuleOselia from '../../../../../../../shared/modules/Oselia/ModuleOselia';
+import OseliaPromptVO from '../../../../../../../shared/modules/Oselia/vos/OseliaPromptVO';
+import OseliaRunFunctionCallVO from '../../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 import OseliaRunTemplateVO from '../../../../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
 import OseliaRunVO from '../../../../../../../shared/modules/Oselia/vos/OseliaRunVO';
-import GPTAssistantAPIFunctionVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
-import OseliaRunFunctionCallVO from '../../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
-import ModuleOselia from '../../../../../../../shared/modules/Oselia/ModuleOselia';
-import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import GPTAssistantAPIAssistantVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import OseliaPromptVO from '../../../../../../../shared/modules/Oselia/vos/OseliaPromptVO';
 import VueComponentBase from '../../../../VueComponentBase';
+import './SelectionPanel.scss';
 
 @Component({
     template: require('./SelectionPanel.pug'),
@@ -61,9 +61,9 @@ export default class SelectionPanel extends VueComponentBase {
     private runPromptHtml: string = '';
     private runPromptParamHtml: string = '';
     private newAssistantInstructionsHtml: string = '';
-    private newParams:string = '';
-    private newRunPromptParamHtml:string = '';
-    private newRunPromptHtml:string = '';
+    private newParams: string = '';
+    private newRunPromptParamHtml: string = '';
+    private newRunPromptHtml: string = '';
 
     get currentItem(): OseliaRunTemplateVO | OseliaRunVO | OseliaRunFunctionCallVO | null {
         if (!this.selectedItem) {
@@ -119,7 +119,7 @@ export default class SelectionPanel extends VueComponentBase {
         if (this.hasSelectedRun && this.currentItem && this.currentItem._type === OseliaRunVO.API_TYPE_ID) {
             // On lance la requête asynchrone
             this.runTypeIsAssistant = (this.currentItem as OseliaRunVO).run_type == OseliaRunVO.RUN_TYPE_ASSISTANT;
-            if(this.runTypeIsAssistant) {
+            if (this.runTypeIsAssistant) {
                 await this.loadInstructionsFromAssistant();
             }
             await this.loadPromptsFromRun();
@@ -344,7 +344,7 @@ export default class SelectionPanel extends VueComponentBase {
     }
 
     private onSaveParams() {
-        if(this.currentItem && this.currentItem._type === OseliaRunFunctionCallVO.API_TYPE_ID) {
+        if (this.currentItem && this.currentItem._type === OseliaRunFunctionCallVO.API_TYPE_ID) {
             const run = this.currentItem as OseliaRunFunctionCallVO;
             run.function_call_parameters_initial = this.try_parse_json(this.newParams);
             ModuleDAO.getInstance().insertOrUpdateVO(run).then(() => {
