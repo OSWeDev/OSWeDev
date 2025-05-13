@@ -1,390 +1,231 @@
-import Component from "vue-class-component";
-import FieldFiltersVO from "../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO";
-import { ModuleTranslatableTextGetter } from "../../../../InlineTranslatableText/TranslatableTextStore";
-import VueComponentBase from "../../../../VueComponentBase";
-import { ModuleDashboardPageGetter } from "../../../page/DashboardPageStore";
-import { ModuleOseliaGetter } from "../OseliaStore";
-import { Prop, Watch } from "vue-property-decorator";
-import ModuleGPT from "../../../../../../../shared/modules/GPT/ModuleGPT";
-import ConsoleHandler from "../../../../../../../shared/tools/ConsoleHandler";
-import VueAppController from "../../../../../../VueAppController";
-import { cr } from "@fullcalendar/core/internal-common";
-import IPlanRDVCR from "../../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR";
-import GPTAssistantAPIThreadVO from "../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO";
-import ModuleDAO from "../../../../../../../shared/modules/DAO/ModuleDAO";
+/*
+ * Service statique de voix temps‑réel (plus de composant Vue).
+ * Aucune UI → pas besoin d’être référencé dans un template.
+ */
 
-export default class OseliaRealtimeButton extends VueComponentBase {
+import ModuleGPT from '../../../../../../../shared/modules/GPT/ModuleGPT';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import VueAppController from '../../../../../../VueAppController';
+import IPlanRDVCR from '../../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
+import GPTAssistantAPIThreadVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import EventsController from '../../../../../../../shared/modules/Eventify/EventsController';
+import EventifyEventConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventConfVO';
+import EventifyEventInstanceVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import ModuleOselia from '../../../../../../../shared/modules/Oselia/ModuleOselia';
 
-    public static socket: WebSocket | null = null;
-    public static audioContext: AudioContext | null = null;
+export default class OseliaRealtimeButton {
+    /* ------------------------------------------------------------------
+     *                  ÉTAT   (partagé dans l’onglet)                    */
+    private static connecting = false;
 
-    // VAD via la lib voice-activity-detection
-    public static vadController: any = null;
+    private static socket: WebSocket | null = null;
+    private static audioContext: AudioContext | null = null;
+    private static mediaStream: MediaStream | null = null;
+    private static scriptProcessor: ScriptProcessorNode | null = null;
 
-    public static mediaStream: MediaStream | null = null;
-    public static scriptProcessor: ScriptProcessorNode  | null = null;
+    private static is_connected_to_realtime = false;
+    private static connection_ready = false;
+    private static realtime_is_recording = false;
 
-    public static isSpeech: boolean = false;
-    public static audioChunks: Int16Array[] = [];
-    public static audioChunkInterval: ReturnType<typeof setInterval> | null = null;
+    private static audioChunks: Int16Array[] = [];
+    private static incomingAudioChunks: Uint8Array[] = [];
 
-    public static is_connected_to_realtime: boolean = false;
-    public static realtime_is_sending: boolean = false;
-    public static realtime_is_recording: boolean = false;
-    public static connection_ready: boolean = false;
+    private static call_thread: GPTAssistantAPIThreadVO | null = null;
+    private static cr_html_content: string | null = null;
+    private static cr_vo: IPlanRDVCR | null = null;
 
-    public static input_voice_is_recording = false;
-    public static input_voice_is_transcribing = false;
-    public static media_recorder: MediaRecorder = null;
-    public static audio_chunks: Blob[] = [];
-    public static incomingAudioChunks: Uint8Array[] = [];
-    public static call_thread: GPTAssistantAPIThreadVO = null;
-    public static is_in_cr: boolean = false;
+    /* ------------------------------------------------------------------
+     *                    API PUBLIQUE                                     */
 
-    @Prop({ default: null })
-    public static has_access_to_thread: boolean;
+    public static async startVAD(call_thread?: GPTAssistantAPIThreadVO) {
+        if (this.realtime_is_recording) return; // déjà en cours
+        this.call_thread = call_thread ?? null;
 
-    @Prop({ default: null })
-    public static gpt_thread_id: string | null;
-
-    @Prop({ default: null })
-    public static cr_html_content: string | null;
-
-    @Prop({ default: null })
-    public static cr_vo: IPlanRDVCR | null;
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-
-    @ModuleOseliaGetter
-    private get_show_hidden_messages: boolean;
-
-    @ModuleTranslatableTextGetter
-    private get_flat_locale_translations: { [code_text: string]: string };
-
-    @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
-
-    /**
-   * Initialise l'accès micro.
-   */
-    public static async startVAD(call_thread?:GPTAssistantAPIThreadVO) {
-        try {
-            console.log("Starting VAD...");
-            this.call_thread = call_thread;
-            if(!this.is_connected_to_realtime){
-                await this.start_realtime(); // Assure que la connexion WebSocket est établie avant tout
-            }
-            if (this.has_access_to_thread) {
-                await this.send_context_to_realtime();
-            }
-            this.realtime_is_recording = true;
-            this.audioChunks = [];
-
-            this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            this.audioContext = new AudioContext({ sampleRate: 24000 });
-
-            const sourceNode = this.audioContext.createMediaStreamSource(this.mediaStream);
-
-            this.scriptProcessor = this.audioContext.createScriptProcessor(4096, 1, 1);
-
-            this.scriptProcessor.onaudioprocess = (event: AudioProcessingEvent) => {
-                const audioBuffer = event.inputBuffer.getChannelData(0);
-                const pcmData = this.floatTo16BitPCM(audioBuffer);
-                this.audioChunks.push(pcmData);
-            };
-
-            sourceNode.connect(this.scriptProcessor);
-            this.scriptProcessor.connect(this.audioContext.destination);
-
-        } catch (err) {
-            ConsoleHandler.log("Erreur accès micro : " + err);
-            this.realtime_is_recording = false;
+        if (!this.is_connected_to_realtime) {
+            await this.start_realtime(call_thread?.gpt_thread_id);
         }
+        await this.initRecorder();
     }
 
-    public static async start_realtime() {
-        if (!this.is_connected_to_realtime) {
+    public static async stop_realtime() {
+        await this.stopRecorder();
+        await this.close_realtime();
+    }
 
-            await ModuleGPT.getInstance().connect_to_realtime_voice(null, this.gpt_thread_id, VueAppController.getInstance().data_user.id);
+    /* ------------------------------------------------------------------
+     *                    INITIALISATION WS                                */
 
-            const { port } = window.location;
-            // Suppose qu'on ouvre un WS sur localhost:<port + 10>
-            this.socket = new WebSocket(`ws://localhost:${parseInt(port) + 10}`);
+    private static async start_realtime(gpt_thread_id: string | null) {
+        if (this.is_connected_to_realtime || this.connecting) return;
+        this.connecting = true;
+        try {
+            await ModuleGPT.getInstance().connect_to_realtime_voice(
+                null,
+                gpt_thread_id,
+                VueAppController.getInstance().data_user.id
+            );
+
+            const { protocol, hostname, port } = window.location;
+            const basePort = port ? Number(port) : protocol === 'https:' ? 443 : 80;
+            const targetPort = basePort + 10;
+            const wsProtocol = protocol === 'https:' ? 'wss' : 'ws';
+
+            this.socket = new WebSocket(`${wsProtocol}://${hostname}:${targetPort}`);
             this.socket.binaryType = 'arraybuffer';
 
             this.socket.onopen = () => {
                 ConsoleHandler.log('WS Opened');
+                this.connecting = false;
+                this.socket!.send(JSON.stringify({ conversation_id: gpt_thread_id }));
             };
-
-            this.socket.onmessage = (event) => {
-                if (typeof event.data === 'string') {
-                    const msg = JSON.parse(event.data);
-
-                    if (msg.type === 'ready') {
-                        this.connection_ready = true;
-                    }
-                    else if (msg.type === 'response.audio.delta') {
-                        if (msg.delta) {
-                            const binaryString = atob(msg.delta);
-                            const audioData = new Uint8Array(binaryString.length);
-                            for (let i = 0; i < binaryString.length; i++) {
-                                audioData[i] = binaryString.charCodeAt(i);
-                            }
-                            // Stockage du chunk audio
-                            this.incomingAudioChunks.push(audioData);
-                        }
-                    }
-                    else if (msg.type === 'response.audio.done') {
-                        // Audio complet reçu : concaténation et lecture
-                        const fullAudio = this.concatUint8Arrays(this.incomingAudioChunks);
-                        this.playAudio(fullAudio);
-
-                        // Réinitialise pour la prochaine réponse
-                        this.incomingAudioChunks = [];
-                    }
-                } else {
-                    // Cas improbable : sécurité supplémentaire
-                    this.playAudio(new Uint8Array(event.data));
-                }
+            this.socket.onmessage = this.handleSocketMessage.bind(this);
+            this.socket.onclose = () => {
+                this.connecting=false;
+                this.close_realtime.bind(this);
             };
-
-            this.socket.onclose = () => this.close_realtime();
-            this.socket.onerror = () => this.close_realtime();
+            this.socket.onerror = () => {
+                this.connecting=false;
+                this.close_realtime.bind(this);
+            };
 
             this.is_connected_to_realtime = true;
-        } else {
-            this.close_realtime();
+        } catch (err) {
+            ConsoleHandler.error('Erreur connexion websocket: ' + err);
+            this.connecting = false;
+            this.close_realtime.bind(this);
         }
     }
 
-    public static async stop_realtime() {
-        if (!this.realtime_is_recording) return;
+    private static async close_realtime() {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) this.socket.close();
+        this.socket = null;
+        this.is_connected_to_realtime = false;
+        this.connection_ready = false;
 
+        if (this.call_thread && this.call_thread.realtime_activated) {
+            this.call_thread.realtime_activated = false;
+            await ModuleDAO.getInstance().insertOrUpdateVO(this.call_thread);
+        }
+        await this.emitReady(false);
+    }
+
+    /* ------------------------------------------------------------------
+     *                    TRAITEMENT MESSAGES WS                           */
+
+    private static async handleSocketMessage(event: MessageEvent) {
+        if (typeof event.data === 'string') {
+            const msg = JSON.parse(event.data);
+            switch (msg.type) {
+                case 'ready':
+                    this.connection_ready = true;
+                    await this.emitReady(true);
+                    break;
+                case 'response.audio.delta':
+                    if (msg.delta) this.incomingAudioChunks.push(this.base64ToUint8(msg.delta));
+                    break;
+                case 'response.audio.done':
+                    this.playAudio(this.concatUint8Arrays(this.incomingAudioChunks));
+                    this.incomingAudioChunks = [];
+                    break;
+                case 'session.updated':
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            this.playAudio(new Uint8Array(event.data));
+        }
+    }
+
+    /* ------------------------------------------------------------------
+     *                       MICRO & AUDIO                                 */
+
+    private static async initRecorder() {
+        try {
+            this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.audioContext = new AudioContext({ sampleRate: 24000 });
+            const source = this.audioContext.createMediaStreamSource(this.mediaStream);
+            this.scriptProcessor = this.audioContext.createScriptProcessor(4096, 1, 1);
+
+            this.scriptProcessor.onaudioprocess = (ev: AudioProcessingEvent) => {
+                const pcm = this.floatTo16BitPCM(ev.inputBuffer.getChannelData(0));
+                this.audioChunks.push(pcm);
+            };
+            source.connect(this.scriptProcessor);
+            this.scriptProcessor.connect(this.audioContext.destination);
+
+            this.realtime_is_recording = true;
+        } catch (err) {
+            ConsoleHandler.error('Erreur accès micro: ' + err);
+            await this.close_realtime();
+        }
+    }
+
+    private static async stopRecorder() {
         this.realtime_is_recording = false;
-        this.realtime_is_sending = true;
-
-        // Arrêt et nettoyage
         if (this.scriptProcessor) {
             this.scriptProcessor.disconnect();
             this.scriptProcessor = null;
         }
-
         if (this.audioContext) {
-            this.audioContext.close();
+            await this.audioContext.close();
             this.audioContext = null;
         }
-
         if (this.mediaStream) {
-            this.mediaStream.getTracks().forEach(track => track.stop());
+            this.mediaStream.getTracks().forEach((t) => t.stop());
             this.mediaStream = null;
         }
-
-        if(this.connection_ready) {
-            await this.send_audio();
-        }
-
-        this.realtime_is_sending = false;
-        await this.close_realtime();
     }
 
+    /* ------------------------------------------------------------------
+     *                       UTILITAIRE AUDIO                              */
 
-    public static close_realtime() {
-        console.log("Closing VAD...");
-        if (this.socket) {
-            this.socket.close();
-            this.socket = null;
-        }
-        this.is_connected_to_realtime = false;
-        this.realtime_is_recording = false;
-        if(this.media_recorder) {
-            this.media_recorder.stop();
-        }
-    }
-
-    public static async send_context_to_realtime() {
-        if (this.socket?.readyState === WebSocket.OPEN) {
-
-            this.socket.send(JSON.stringify({
-                type: "conversation.item.create",
-                item: {
-                    type: "message",
-                    role: "user",
-                    content: [
-                        {
-                            type: "input_text",
-                            text: "Pour ton information, voici le contexte de la conversation : " + "Conversation entre un utilisateur et un assistant virtuel. " // TODO
-                        },
-                    ]
-                },
-            }));
-        }
-    }
-
-    public static async send_function_to_realtime() {
-        if (this.socket?.readyState === WebSocket.OPEN) {
-            this.socket.send(JSON.stringify({
-                "type": "session.update",
-                "session": {
-                    "tools": [
-                        {
-                            "type": "function",
-                            "name": "edit_cr_word",
-                            "description": "Fonction permettant de modifier les occurences d'un terme dans le compte rendu que nous avons commencé à rédiger.",
-                            "parameters": {
-                                "type": "object",
-                                "properties": {
-                                    "term_to_modify": {
-                                        "type": "string",
-                                        "description": "Le terme que l'on veut modifier.",
-                                    },
-                                    "new_term": {
-                                        "type": "string",
-                                        "description": "Le nouveau terme.",
-                                    },
-                                },
-                                "required": ["term_to_modify, new_term"],
-                            }
-                        }
-                    ],
-                    "tool_choice": "auto",
-                }
-            }));
-        }
-    }
-
-    public static async send_cr_to_realtime(){
-        if (this.socket?.readyState === WebSocket.OPEN) {
-            this.socket.send(JSON.stringify({
-                type: "cr_data",
-                cr_html_content: this.cr_html_content,
-                cr_vo: this.cr_vo,
-            }));
-        }
-    }
-
-    public static async send_audio() {
-        // Préparation finale de l'audio
-        const fullAudio = this.concatInt16Arrays(this.audioChunks);
-        this.audioChunks = [];
-
-        const base64Audio = this.base64ArrayBuffer(fullAudio.buffer as ArrayBuffer);
-
-        if (this.socket?.readyState === WebSocket.OPEN) {
-            this.socket.send(JSON.stringify({
-                type: 'input_audio_buffer.append',
-                audio: base64Audio
-            }));
-
-            this.socket.send(JSON.stringify({ type: 'input_audio_buffer.commit' }));
-            this.socket.send(JSON.stringify({ type: 'response.create' }));
-        }
-    }
-
-    /**
-   * Joue un buffer PCM16 (échantillonnage 24000 Hz) reçu du serveur.
-   */
-    public static playAudio(pcmData: Uint8Array) {
-        const audioContext = new AudioContext({ sampleRate: 24000 });
-        const numSamples = pcmData.length / 2; // 2 bytes par échantillon PCM16
-        const audioBuffer = audioContext.createBuffer(1, numSamples, 24000);
-        const channelData = audioBuffer.getChannelData(0);
-        const dataView = new DataView(pcmData.buffer);
-        for (let i = 0; i < numSamples; i++) {
-            channelData[i] = dataView.getInt16(i * 2, true) / 32768; // PCM16 vers Float32 (-1 à +1)
-        }
-        const source = audioContext.createBufferSource();
-        source.buffer = audioBuffer;
-        source.connect(audioContext.destination);
-        source.start();
-    }
-
-    //#endregion
-
-    //#region Utils
-
-    /**
-   * Convertit un tableau Float32Array en Int16Array
-   */
-    public static floatTo16BitPCM(input: Float32Array): Int16Array {
-        const output = new Int16Array(input.length);
+    private static floatTo16BitPCM(input: Float32Array): Int16Array {
+        const out = new Int16Array(input.length);
         for (let i = 0; i < input.length; i++) {
             const s = Math.max(-1, Math.min(1, input[i]));
-            output[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            out[i] = Math.round(s < 0 ? s * 0x8000 : s * 0x7fff);
         }
-        return output;
+        return out;
     }
 
-    /**
-   * Concatène plusieurs Int16Array en un seul
-   */
-    public static concatInt16Arrays(chunks: Int16Array[]): Int16Array {
-        const totalLength = chunks.reduce((sum, arr) => sum + arr.length, 0);
-        const result = new Int16Array(totalLength);
-
-        let offset = 0;
-        for (const arr of chunks) {
-            result.set(arr, offset);
-            offset += arr.length;
+    private static concatUint8Arrays(chunks: Uint8Array[]): Uint8Array {
+        const total = chunks.reduce((s, a) => s + a.length, 0);
+        const res = new Uint8Array(total);
+        let off = 0;
+        for (const c of chunks) {
+            res.set(c, off);
+            off += c.length;
         }
-        return result;
+        return res;
     }
 
-    /**
-   * Encode un ArrayBuffer en base64
-   */
-    public static base64ArrayBuffer(arrayBuffer: ArrayBuffer): string {
-        let binary = '';
-        const bytes = new Uint8Array(arrayBuffer);
-        for (let i = 0; i < bytes.byteLength; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        return btoa(binary);
+    private static base64ToUint8(b64: string): Uint8Array {
+        const bin = atob(b64);
+        const len = bin.length;
+        const out = new Uint8Array(len);
+        for (let i = 0; i < len; i++) out[i] = bin.charCodeAt(i);
+        return out;
     }
 
-    public static concatUint8Arrays(chunks: Uint8Array[]): Uint8Array {
-        const totalLength = chunks.reduce((sum, arr) => sum + arr.length, 0);
-        const result = new Uint8Array(totalLength);
-
-        let offset = 0;
-        for (const arr of chunks) {
-            result.set(arr, offset);
-            offset += arr.length;
-        }
-        return result;
+    private static playAudio(pcmData: Uint8Array) {
+        const ctx = new AudioContext({ sampleRate: 24000 });
+        const samples = pcmData.length / 2;
+        const buf = ctx.createBuffer(1, samples, 24000);
+        const chan = buf.getChannelData(0);
+        const dv = new DataView(pcmData.buffer);
+        for (let i = 0; i < samples; i++) chan[i] = dv.getInt16(i * 2, true) / 32768;
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.connect(ctx.destination);
+        src.start();
+        src.onended = () => ctx.close();
     }
 
-    @Watch('connection_ready')
-    public static on_connection_ready_to_realtime_change() {
-        if (this.connection_ready) {
-            if (this.is_in_cr) {
-                this.send_function_to_realtime();
-                this.send_cr_to_realtime();
-            }
-            this.send_audio();
-
-        } else {
-            this.stop_realtime();
-        }
-    }
-
-    @Watch('cr_html_content')
-    public static on_cr_html_content_change() {
-        if (this.cr_html_content) {
-            this.is_in_cr = true;
-        } else {
-            this.is_in_cr = false;
-        }
-    }
-
-    @Watch('is_connected_to_realtime')
-    public static async on_is_connected_to_realtime_change() {
-        if (!this.is_connected_to_realtime && this.call_thread) {
-            this.call_thread.realtime_activated = false;
-            await ModuleDAO.getInstance().insertOrUpdateVO(this.call_thread);
-        }
+    private static async emitReady(state: boolean) {
+        const evt = new EventifyEventConfVO();
+        evt.name = ModuleOselia.EVENT_OSELIA_REALTIME_READY;
+        await EventsController.emit_event(EventifyEventInstanceVO.instantiate(evt, state));
     }
 }

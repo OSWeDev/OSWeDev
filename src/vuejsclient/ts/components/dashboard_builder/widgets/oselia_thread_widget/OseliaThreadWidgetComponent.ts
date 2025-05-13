@@ -49,7 +49,7 @@ import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
 import './OseliaThreadWidgetComponent.scss';
 import GPTRealtimeAPISessionVO from "../../../../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO";
-import OseliaRealtimeButton from "./OseliaRealtimeButton/OseliaRealtimeButton";
+import OseliaRealtimeButton from "./OseliaRealtimeButton/OseliaRealtimeButton"; // ← service statique
 
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
@@ -270,7 +270,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async beforeDestroy() {
-        if(this.realtime_on) {
+        if (this.realtime_on) {
             this.realtime_on = false;
             await OseliaRealtimeButton.stop_realtime();
         }
@@ -508,14 +508,13 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
         // Une fois que tout est chargé, on lance la connexion au websocket si on a realtime de lancé
         if (this.thread.realtime_activated) {
+            console.log("realtime_activated", this.thread.realtime_activated);
             this.realtime_on = true;
             await OseliaRealtimeButton.startVAD(this.thread);
-        } else if(this.realtime_on) {
+        } else {
+            console.log("realtime_activated", this.thread.realtime_activated);
             this.realtime_on = false;
             await OseliaRealtimeButton.stop_realtime();
-        }
-        if (this.current_thread_id == this.thread.id) {
-            return;
         }
 
         // TODO FIXME : de JNE à MLE : à revoir, on peut pas mettre des trucs comme ça en dur et on a le droit d'avoir plusieurs rôles ...

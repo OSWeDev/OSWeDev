@@ -94,6 +94,7 @@ export default class ModuleOselia extends Module {
 
     public static EVENT_OSELIA_LAUNCH_REALTIME: string = 'oselia__launch_realtime';
     public static EVENT_OSELIA_CLOSE_REALTIME: string = 'oselia__close_realtime';
+    public static EVENT_OSELIA_REALTIME_READY: string = 'oselia__realtime_ready';
 
     // public static APINAME_get_thread_text_content: string = "get_thread_text_content";
 
