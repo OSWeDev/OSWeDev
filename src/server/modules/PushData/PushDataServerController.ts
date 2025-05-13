@@ -5,6 +5,7 @@ import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import PerfReportController from '../../../shared/modules/PerfReport/PerfReportController';
 import APINotifTypeResultVO from '../../../shared/modules/PushData/vos/APINotifTypeResultVO';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
@@ -25,6 +26,8 @@ import ForkedTasksController from '../Fork/ForkedTasksController';
 import SocketWrapper from './vos/SocketWrapper';
 
 export default class PushDataServerController {
+
+    public static PERF_MODULE_NAME: string = 'push_data_server_controller';
 
     public static NOTIF_INTERVAL_MS: number = 1000;
 
@@ -80,7 +83,7 @@ export default class PushDataServerController {
                     params[stackable_arg.socket_id] = stackable_arg.vos;
                     return;
                 }
-                params[stackable_arg.socket_id] = params[stackable_arg.socket_id].concat(stackable_arg.vos);
+                params[stackable_arg.socket_id].push(...stackable_arg.vos);
             });
 
             const promises = [];
@@ -1243,6 +1246,16 @@ export default class PushDataServerController {
                     if (!socketWrapper) {
                         continue;
                     }
+
+                    PerfReportController.add_event(
+                        PushDataServerController.PERF_MODULE_NAME,
+                        'notify',
+                        'notify',
+                        null,
+                        Dates.now_ms(),
+                        'notification_type:' + notification_type + ':user_id:' + notification.user_id + ':client_tab_id:' + notification.client_tab_id + ':notification:' + JSON.stringify(notification),
+                    );
+
                     socketWrapper.socket.emit(notification_type, notification);
                 }
             }

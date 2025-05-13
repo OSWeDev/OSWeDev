@@ -146,6 +146,9 @@ export default class EnvParam implements IEnvParam {
     public activate_module_perf_worker_messages?: boolean = false;
     public activate_module_perf_bgthread_ping_latency?: boolean = false;
     public activate_module_perf_bgthread_load_balancing?: boolean = false;
+    public activate_module_perf_vars_datas_proxy?: boolean = false;
+    public activate_module_perf_vars_tabs_subs_controller?: boolean = false;
+    public activate_module_perf_push_data_server_controller?: boolean = false;
 
     // Lenteurs sur ExpressJS - lenteurs sur la partie réflexion (calculs, requetes, ...) et sur la partie envoie de la réponse
     /**

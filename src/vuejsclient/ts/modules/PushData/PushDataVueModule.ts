@@ -1,10 +1,12 @@
 import { io } from "socket.io-client";
 import { SnotifyToast } from 'vue-snotify';
+import Throttle, { PostThrottleParam, PreThrottleParam } from "../../../../shared/annotations/Throttle";
 import ModuleAccessPolicy from "../../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import TimeSegment from "../../../../shared/modules/DataRender/vos/TimeSegment";
 import ModuleEnvParam from "../../../../shared/modules/EnvParam/ModuleEnvParam";
 import EnvParamsVO from "../../../../shared/modules/EnvParam/vos/EnvParamsVO";
+import EventifyEventListenerConfVO from "../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO";
 import FileVO from "../../../../shared/modules/File/vos/FileVO";
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from "../../../../shared/modules/GPT/ModuleGPT";
@@ -21,7 +23,6 @@ import EnvHandler from '../../../../shared/tools/EnvHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import ThreadHandler from "../../../../shared/tools/ThreadHandler";
-import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import VueAppBaseInstanceHolder from "../../../VueAppBaseInstanceHolder";
 import VueAppController from "../../../VueAppController";
 import VarsClientController from '../../components/Var/VarsClientController';
@@ -33,10 +34,6 @@ import VOEventRegistrationsHandler from "./VOEventRegistrationsHandler";
 export default class PushDataVueModule extends VueModuleBase {
 
     private static instance: PushDataVueModule = null;
-
-    public throttled_notifications_handler = ThrottleHelper.declare_throttle_with_stackable_args(
-        'PushDataVueModule.throttled_notifications_handler',
-        this.notifications_handler.bind(this), 100);
 
     public env_params: EnvParamsVO = null;
     public var_debug_notif_id: number = 0;
@@ -95,6 +92,130 @@ export default class PushDataVueModule extends VueModuleBase {
                 }
             }
             await ModulePushData.getInstance().join_io_room(room_fields);
+        }
+    }
+
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_STACK,
+        throttle_ms: 100,
+    })
+    private async notifications_handler(@PreThrottleParam pre_notifications: NotificationVO[], @PostThrottleParam notifications: NotificationVO[] = null) {
+
+        if (!VueAppBaseInstanceHolder.instance) {
+            ConsoleHandler.error("notifications_handler:!VueAppBaseInstanceHolder.instance: Might loose some notifications:" + JSON.stringify(notifications));
+            return;
+        }
+        // notifications = APIControllerWrapper.try_translate_vos_from_api(notifications);
+        notifications = ObjectHandler.reapply_prototypes(notifications);
+
+        /**
+         * On regroupe par type pour gérer en bloc ensuite
+         */
+        const TYPE_NOTIF_SIMPLE: NotificationVO[] = [];
+        const TYPE_NOTIF_DAO: NotificationVO[] = [];
+        const TYPE_NOTIF_VARDATA: NotificationVO[] = [];
+        const TYPE_NOTIF_TECH: NotificationVO[] = [];
+        const TYPE_NOTIF_PROMPT: NotificationVO[] = [];
+        const TYPE_NOTIF_REDIRECT: NotificationVO[] = [];
+        const TYPE_NOTIF_APIRESULT: NotificationVO[] = [];
+        const TYPE_NOTIF_DOWNLOAD_FILE: NotificationVO[] = [];
+        const TYPE_NOTIF_VO_CREATED: NotificationVO[] = [];
+        const TYPE_NOTIF_VO_UPDATED: NotificationVO[] = [];
+        const TYPE_NOTIF_VO_DELETED: NotificationVO[] = [];
+
+        for (const i in notifications) {
+            const notification = notifications[i];
+
+            switch (notification.notification_type) {
+                case NotificationVO.TYPE_NOTIF_SIMPLE:
+                    if (!LocaleManager.i18n) {
+                        ConsoleHandler.warn("notifications_handler:LocaleManager.i18n not ready, skipping notification:" + notification);
+                        break;
+                    }
+
+                    TYPE_NOTIF_SIMPLE.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_DAO:
+                    TYPE_NOTIF_DAO.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_VARDATA:
+                    TYPE_NOTIF_VARDATA.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_APIRESULT:
+                    TYPE_NOTIF_APIRESULT.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_TECH:
+                    TYPE_NOTIF_TECH.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_PROMPT:
+                    if (!LocaleManager.i18n) {
+                        ConsoleHandler.warn("notifications_handler:LocaleManager.i18n not ready, skipping notification:" + notification);
+                        break;
+                    }
+
+                    TYPE_NOTIF_PROMPT.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_REDIRECT:
+                    TYPE_NOTIF_REDIRECT.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE:
+                    TYPE_NOTIF_DOWNLOAD_FILE.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_VO_CREATED:
+                    TYPE_NOTIF_VO_CREATED.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_VO_UPDATED:
+                    TYPE_NOTIF_VO_UPDATED.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_VO_DELETED:
+                    TYPE_NOTIF_VO_DELETED.push(notification);
+                    break;
+            }
+        }
+
+        if (TYPE_NOTIF_SIMPLE && TYPE_NOTIF_SIMPLE.length) {
+            await this.notifications_handler_TYPE_NOTIF_SIMPLE(TYPE_NOTIF_SIMPLE);
+        }
+
+        if (TYPE_NOTIF_DAO && TYPE_NOTIF_DAO.length) {
+            await this.notifications_handler_TYPE_NOTIF_DAO(TYPE_NOTIF_DAO);
+        }
+
+        if (TYPE_NOTIF_VARDATA && TYPE_NOTIF_VARDATA.length) {
+            await this.notifications_handler_TYPE_NOTIF_VARDATA(TYPE_NOTIF_VARDATA);
+        }
+
+        if (TYPE_NOTIF_TECH && TYPE_NOTIF_TECH.length) {
+            await this.notifications_handler_TYPE_NOTIF_TECH(TYPE_NOTIF_TECH);
+        }
+
+        if (TYPE_NOTIF_PROMPT && TYPE_NOTIF_PROMPT.length) {
+            await this.notifications_handler_TYPE_NOTIF_PROMPT(TYPE_NOTIF_PROMPT);
+        }
+
+        if (TYPE_NOTIF_REDIRECT && TYPE_NOTIF_REDIRECT.length) {
+            await this.notifications_handler_TYPE_NOTIF_REDIRECT(TYPE_NOTIF_REDIRECT);
+        }
+
+        if (TYPE_NOTIF_DOWNLOAD_FILE && TYPE_NOTIF_DOWNLOAD_FILE.length) {
+            await this.notifications_handler_TYPE_NOTIF_DOWNLOAD_FILE(TYPE_NOTIF_DOWNLOAD_FILE);
+        }
+
+        if (TYPE_NOTIF_APIRESULT && TYPE_NOTIF_APIRESULT.length) {
+            await this.notifications_handler_TYPE_NOTIF_APIRESULT(TYPE_NOTIF_APIRESULT);
+        }
+
+        if (TYPE_NOTIF_VO_CREATED && TYPE_NOTIF_VO_CREATED.length) {
+            await this.notifications_handler_TYPE_NOTIF_VO_CREATED(TYPE_NOTIF_VO_CREATED);
+        }
+
+        if (TYPE_NOTIF_VO_UPDATED && TYPE_NOTIF_VO_UPDATED.length) {
+            await this.notifications_handler_TYPE_NOTIF_VO_UPDATED(TYPE_NOTIF_VO_UPDATED);
+        }
+
+        if (TYPE_NOTIF_VO_DELETED && TYPE_NOTIF_VO_DELETED.length) {
+            await this.notifications_handler_TYPE_NOTIF_VO_DELETED(TYPE_NOTIF_VO_DELETED);
         }
     }
 
@@ -221,47 +342,47 @@ export default class PushDataVueModule extends VueModuleBase {
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_SIMPLE], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
+            self.notifications_handler([notification]);
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_DAO], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
+            self.notifications_handler([notification]);
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VARDATA], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
+            self.notifications_handler([notification]);
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_APIRESULT], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
+            self.notifications_handler([notification]);
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_TECH], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
+            self.notifications_handler([notification]);
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_PROMPT], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
+            self.notifications_handler([notification]);
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_REDIRECT], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
+            self.notifications_handler([notification]);
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
+            self.notifications_handler([notification]);
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VO_CREATED], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
+            self.notifications_handler([notification]);
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VO_DELETED], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
+            self.notifications_handler([notification]);
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VO_UPDATED], async function (notification: NotificationVO) {
-            self.throttled_notifications_handler([notification]);
+            self.notifications_handler([notification]);
         });
 
         // TODO: Handle other notif types
@@ -379,125 +500,6 @@ export default class PushDataVueModule extends VueModuleBase {
             VueAppBaseInstanceHolder.instance.vueInstance.label("no_internet"),
             { timeout: 0 },
         );
-    }
-
-    private async notifications_handler(notifications: NotificationVO[]) {
-
-        if (!VueAppBaseInstanceHolder.instance) {
-            ConsoleHandler.error("notifications_handler:!VueAppBaseInstanceHolder.instance: Might loose some notifications:" + JSON.stringify(notifications));
-            return;
-        }
-        // notifications = APIControllerWrapper.try_translate_vos_from_api(notifications);
-        notifications = ObjectHandler.reapply_prototypes(notifications);
-
-        /**
-         * On regroupe par type pour gérer en bloc ensuite
-         */
-        const TYPE_NOTIF_SIMPLE: NotificationVO[] = [];
-        const TYPE_NOTIF_DAO: NotificationVO[] = [];
-        const TYPE_NOTIF_VARDATA: NotificationVO[] = [];
-        const TYPE_NOTIF_TECH: NotificationVO[] = [];
-        const TYPE_NOTIF_PROMPT: NotificationVO[] = [];
-        const TYPE_NOTIF_REDIRECT: NotificationVO[] = [];
-        const TYPE_NOTIF_APIRESULT: NotificationVO[] = [];
-        const TYPE_NOTIF_DOWNLOAD_FILE: NotificationVO[] = [];
-        const TYPE_NOTIF_VO_CREATED: NotificationVO[] = [];
-        const TYPE_NOTIF_VO_UPDATED: NotificationVO[] = [];
-        const TYPE_NOTIF_VO_DELETED: NotificationVO[] = [];
-
-        for (const i in notifications) {
-            const notification = notifications[i];
-
-            switch (notification.notification_type) {
-                case NotificationVO.TYPE_NOTIF_SIMPLE:
-                    if (!LocaleManager.i18n) {
-                        ConsoleHandler.warn("notifications_handler:LocaleManager.i18n not ready, skipping notification:" + notification);
-                        break;
-                    }
-
-                    TYPE_NOTIF_SIMPLE.push(notification);
-                    break;
-                case NotificationVO.TYPE_NOTIF_DAO:
-                    TYPE_NOTIF_DAO.push(notification);
-                    break;
-                case NotificationVO.TYPE_NOTIF_VARDATA:
-                    TYPE_NOTIF_VARDATA.push(notification);
-                    break;
-                case NotificationVO.TYPE_NOTIF_APIRESULT:
-                    TYPE_NOTIF_APIRESULT.push(notification);
-                    break;
-                case NotificationVO.TYPE_NOTIF_TECH:
-                    TYPE_NOTIF_TECH.push(notification);
-                    break;
-                case NotificationVO.TYPE_NOTIF_PROMPT:
-                    if (!LocaleManager.i18n) {
-                        ConsoleHandler.warn("notifications_handler:LocaleManager.i18n not ready, skipping notification:" + notification);
-                        break;
-                    }
-
-                    TYPE_NOTIF_PROMPT.push(notification);
-                    break;
-                case NotificationVO.TYPE_NOTIF_REDIRECT:
-                    TYPE_NOTIF_REDIRECT.push(notification);
-                    break;
-                case NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE:
-                    TYPE_NOTIF_DOWNLOAD_FILE.push(notification);
-                    break;
-                case NotificationVO.TYPE_NOTIF_VO_CREATED:
-                    TYPE_NOTIF_VO_CREATED.push(notification);
-                    break;
-                case NotificationVO.TYPE_NOTIF_VO_UPDATED:
-                    TYPE_NOTIF_VO_UPDATED.push(notification);
-                    break;
-                case NotificationVO.TYPE_NOTIF_VO_DELETED:
-                    TYPE_NOTIF_VO_DELETED.push(notification);
-                    break;
-            }
-        }
-
-        if (TYPE_NOTIF_SIMPLE && TYPE_NOTIF_SIMPLE.length) {
-            await this.notifications_handler_TYPE_NOTIF_SIMPLE(TYPE_NOTIF_SIMPLE);
-        }
-
-        if (TYPE_NOTIF_DAO && TYPE_NOTIF_DAO.length) {
-            await this.notifications_handler_TYPE_NOTIF_DAO(TYPE_NOTIF_DAO);
-        }
-
-        if (TYPE_NOTIF_VARDATA && TYPE_NOTIF_VARDATA.length) {
-            await this.notifications_handler_TYPE_NOTIF_VARDATA(TYPE_NOTIF_VARDATA);
-        }
-
-        if (TYPE_NOTIF_TECH && TYPE_NOTIF_TECH.length) {
-            await this.notifications_handler_TYPE_NOTIF_TECH(TYPE_NOTIF_TECH);
-        }
-
-        if (TYPE_NOTIF_PROMPT && TYPE_NOTIF_PROMPT.length) {
-            await this.notifications_handler_TYPE_NOTIF_PROMPT(TYPE_NOTIF_PROMPT);
-        }
-
-        if (TYPE_NOTIF_REDIRECT && TYPE_NOTIF_REDIRECT.length) {
-            await this.notifications_handler_TYPE_NOTIF_REDIRECT(TYPE_NOTIF_REDIRECT);
-        }
-
-        if (TYPE_NOTIF_DOWNLOAD_FILE && TYPE_NOTIF_DOWNLOAD_FILE.length) {
-            await this.notifications_handler_TYPE_NOTIF_DOWNLOAD_FILE(TYPE_NOTIF_DOWNLOAD_FILE);
-        }
-
-        if (TYPE_NOTIF_APIRESULT && TYPE_NOTIF_APIRESULT.length) {
-            await this.notifications_handler_TYPE_NOTIF_APIRESULT(TYPE_NOTIF_APIRESULT);
-        }
-
-        if (TYPE_NOTIF_VO_CREATED && TYPE_NOTIF_VO_CREATED.length) {
-            await this.notifications_handler_TYPE_NOTIF_VO_CREATED(TYPE_NOTIF_VO_CREATED);
-        }
-
-        if (TYPE_NOTIF_VO_UPDATED && TYPE_NOTIF_VO_UPDATED.length) {
-            await this.notifications_handler_TYPE_NOTIF_VO_UPDATED(TYPE_NOTIF_VO_UPDATED);
-        }
-
-        if (TYPE_NOTIF_VO_DELETED && TYPE_NOTIF_VO_DELETED.length) {
-            await this.notifications_handler_TYPE_NOTIF_VO_DELETED(TYPE_NOTIF_VO_DELETED);
-        }
     }
 
     private async notifications_handler_TYPE_NOTIF_VO_CREATED(notifications: NotificationVO[]) {
@@ -885,7 +887,7 @@ export default class PushDataVueModule extends VueModuleBase {
             }
 
             // VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
-            await VarsClientController.getInstance().notifyCallbacks(vos);
+            VarsClientController.getInstance().notifyCallbacks(vos);
         }
     }
 

@@ -22,6 +22,7 @@ import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkMessageController from '../Fork/ForkMessageController';
 import ModuleServerBase from '../ModuleServerBase';
+import PerfReportServerController from '../PerfReport/PerfReportServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import PushDataCronWorkersHandler from './PushDataCronWorkersHandler';
 import PushDataServerController from './PushDataServerController';
@@ -179,6 +180,8 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        PerfReportServerController.register_perf_module(PushDataServerController.PERF_MODULE_NAME);
 
         // Triggers pour mettre à jour les dates
         const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

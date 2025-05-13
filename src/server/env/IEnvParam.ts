@@ -84,6 +84,9 @@ export default interface IEnvParam {
     activate_module_perf_worker_messages?: boolean;
     activate_module_perf_bgthread_ping_latency?: boolean;
     activate_module_perf_bgthread_load_balancing?: boolean;
+    activate_module_perf_vars_datas_proxy?: boolean;
+    activate_module_perf_vars_tabs_subs_controller?: boolean;
+    activate_module_perf_push_data_server_controller?: boolean;
 
     debug_all_expressjs_perf?: boolean;
     debug_expressjs_request_reflexion_time?: boolean;
