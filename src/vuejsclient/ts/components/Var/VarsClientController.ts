@@ -338,7 +338,7 @@ export default class VarsClientController {
             }
         }
 
-        await all_promises(promises);
+        return all_promises(promises);
     }
 
     private async check_invalid_valued_params_registration() {
