@@ -3,9 +3,9 @@
         include ./AlertComponentContent.pug
 
     template(v-else)
-        v-popover(:id='v_pop_id' :content-offset='offset' :direction='tooltip_direction' :align='tooltip_align' :visibility="tooltip_visibility", :toggle-visible-on-click="toggle_visible_on_click")
+        VTooltip(:id='v_pop_id' :distance='offset' :placement='tooltip_direction' :triggers="tooltip_triggers" :autoHide="true" )
             include ./AlertComponentContent.pug
 
-            template(slot="popover-content")
+            template(slot="popper")
                 template(v-for='alert in alerts')
-                    Alertviewcomponent(:alert='alert', :show_alert_date="show_alert_date", :show_alert_content="show_alert_content")
+                    Alertviewcomponent(:alert='alert', :show_alert_icon="alert.show_alert_icon", :show_alert_date="show_alert_date", :show_alert_content="show_alert_content")

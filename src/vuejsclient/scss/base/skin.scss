@@ -614,3 +614,18 @@ i.fa-spin:before {
         display: none;
     }
 }
+
+.v-popper--theme-tooltip {
+    .v-popper__wrapper {
+        padding: 6px;
+        background: rgba(0, 0, 0, .8);
+        border-radius: 10px;
+
+        .v-popper__inner {
+            background: #fff;
+            overflow: visible;
+            color: #333;
+            padding: 3px 6px;
+        }
+    }
+}

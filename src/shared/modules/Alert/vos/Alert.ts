@@ -17,6 +17,7 @@ export default class Alert {
         public translation_params: any = null,
         public not_in_list: boolean = false,
         public creation_date: number = Dates.now(),
+        public show_alert_icon: boolean = true,
     ) { }
 
     public pin(): Alert {

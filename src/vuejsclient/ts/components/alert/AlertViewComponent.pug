@@ -1,5 +1,5 @@
-.alert_view_component.row
-    .col-sm-12
+.alert_view_component
+    .alert_view_component_content
         .type_icon_wrapper(v-if="show_alert_icon")
             template(v-if='is_error')
                 i.fa-solid.fa-exclamation-triangle.fa-fw.alert_component_error(aria-hidden="true")
@@ -10,8 +10,9 @@
             template(v-if='is_debug')
                 i.fa-solid.fa-exclamation-circle.fa-fw.alert_component_debug(aria-hidden="true")
 
-        template(v-if="show_alert_date")
-            .alert_date {{ date_alert }}
+        .alert_contenu(:class="{show_alert_icon: show_alert_icon}")
+            template(v-if="show_alert_date")
+                .alert_date {{ date_alert }}
 
-        template(v-if="show_alert_content")
-            .alert_content {{ label(alert.translatable_code, alert.translation_params) }}
+            template(v-if="show_alert_content")
+                .alert_content {{ label(alert.translatable_code, alert.translation_params) }}

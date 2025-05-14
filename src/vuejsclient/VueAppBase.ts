@@ -10,6 +10,7 @@ import 'moment/locale/de';
 import 'moment/locale/en-gb';
 import 'moment/locale/es';
 import "moment/locale/fr";
+import 'floating-vue/dist/style.css';
 
 import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import { ColorPanel, ColorPicker } from 'one-colorpicker';
@@ -66,6 +67,7 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
+import FloatingVue from 'floating-vue';
 
 // const loadComponent = async (component) => {
 //     try {
@@ -457,6 +459,7 @@ export default abstract class VueAppBase {
             }
         };
 
+        Vue.use(FloatingVue);
         Vue.use(VTooltip, { boundary: 'body' });
         Vue.use(Snotify);
         Vue.use(VueRouter);

@@ -33,9 +33,6 @@ export default class AlertComponent extends VueComponentBase {
     @Prop({ default: 'bottom' })
     private tooltip_direction: string;
 
-    @Prop({ default: 'center' })
-    private tooltip_align: string;
-
     @Prop({ default: true })
     private toggle_visible_on_click: boolean;
 
@@ -66,9 +63,8 @@ export default class AlertComponent extends VueComponentBase {
     private v_pop_id: string = 'AlertComponent__' + (AlertComponent.VPOP_UID++).toString();
 
 
-
-    get tooltip_visibility(): string {
-        return this.toggle_visible_on_click ? 'focus' : 'hover';
+    get tooltip_triggers(): string[] {
+        return this.toggle_visible_on_click ? ['focus', 'click', 'touch'] : ['hover'];
     }
 
     get alerts(): Alert[] {

@@ -1,19 +1,18 @@
 @import "skin-variables.scss";
 
 .alert_view_component {
-
-    padding-top: 0.3rem;
-    padding-bottom: 0.3rem;
+    position: relative;
 
     .type_icon_wrapper {
 
         i.fa,
         i.fa-solid,
         i.fa-duotone {
-            float: left;
+            position: absolute;
+            left: 2px;
+            top: 3px;
             font-size: 1.2rem;
             margin: 0px;
-            margin-right: 0.8rem;
         }
 
         .alert_component_error {
@@ -33,10 +32,15 @@
         }
     }
 
+    .alert_contenu {
+        &.show_alert_icon {
+            padding-left: 2rem;
+        }
+
+    }
+
     .alert_content {
         background: white;
-        padding: 0.3rem 1rem;
-        border-radius: 3px;
         font-size: 1.2rem;
         text-align: justify;
     }
