@@ -598,8 +598,8 @@ export default class ModuleTableDBService {
                     }
                 }
 
-                console.error('-');
-                console.error('INFO  : Champs en trop dans la base de données par rapport à la description logicielle :' + i + ':table:' + full_name + ':');
+                console.log('-');
+                console.log('INFO  : Champs en trop dans la base de données par rapport à la description logicielle :' + i + ':table:' + full_name + ':');
 
                 // On rajoute une contrôle de cohérence  :
                 //  Si le nom existe mais pas en minuscule, on considère que c'est une erreur, mais on ne supprime pas automatiquement
@@ -610,17 +610,17 @@ export default class ModuleTableDBService {
                     continue;
                 }
 
-                console.error('ACTION: Suppression automatique...');
+                console.log('ACTION: Suppression automatique...');
 
                 try {
                     const pgSQL: string = 'ALTER TABLE ' + full_name + ' DROP COLUMN ' + i + ';';
                     await this.db.none(pgSQL);
                     res = true;
-                    console.error('ACTION: OK');
+                    console.log('ACTION: OK');
                 } catch (error) {
                     console.error(error);
                 }
-                console.error('---');
+                console.log('---');
             }
         }
         return res;
@@ -653,9 +653,9 @@ export default class ModuleTableDBService {
 
             let has_added_field: boolean = false;
             if (!table_cols_by_name[field.field_name.toLowerCase()]) {
-                ConsoleHandler.error('-');
-                ConsoleHandler.error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + field.field_name + ':table:' + full_name + ':');
-                ConsoleHandler.error('ACTION: Création automatique...');
+                ConsoleHandler.log('-');
+                ConsoleHandler.log('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + field.field_name + ':table:' + full_name + ':');
+                ConsoleHandler.log('ACTION: Création automatique...');
 
                 let pgSQL: string = 'ALTER TABLE ' + full_name + ' ADD COLUMN ';
 
@@ -684,7 +684,7 @@ export default class ModuleTableDBService {
                     }
 
                     res = true;
-                    ConsoleHandler.error('ACTION: OK');
+                    ConsoleHandler.log('ACTION: OK');
                 } catch (error) {
                     ConsoleHandler.error(error);
 
@@ -692,7 +692,7 @@ export default class ModuleTableDBService {
                         queries_to_try_after_creation.push(pgSQL);
                     }
                 }
-                ConsoleHandler.error('---');
+                ConsoleHandler.log('---');
 
                 has_added_field = true;
             }
@@ -711,22 +711,22 @@ export default class ModuleTableDBService {
 
                 const index = field.field_name.toLowerCase() + '_ndx';
                 if (!table_cols_by_name[index]) {
-                    console.error('-');
-                    console.error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + index + ':table:' + full_name + ':');
-                    console.error('ACTION: Création automatique...');
+                    console.log('-');
+                    console.log('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + index + ':table:' + full_name + ':');
+                    console.log('ACTION: Création automatique...');
 
                     const pgSQL: string = 'ALTER TABLE ' + full_name + ' ADD COLUMN ' + index + ' text;';
                     try {
                         await this.db.none(pgSQL);
                         res = true;
-                        console.error('ACTION: OK');
+                        console.log('ACTION: OK');
                     } catch (error) {
                         console.error(error);
                         if (pgSQL.endsWith(';')) {
                             queries_to_try_after_creation.push(pgSQL);
                         }
                     }
-                    console.error('---');
+                    console.log('---');
                 }
             }
 
