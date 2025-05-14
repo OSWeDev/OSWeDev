@@ -60,7 +60,7 @@ import DefaultTranslationsServerManager from './modules/Translation/DefaultTrans
 // import { createTerminus } from '@godaddy/terminus';
 import { IClient } from 'pg-promise/typescript/pg-subset';
 import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
-import { field_names } from '../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../shared/tools/ObjectHandler';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
@@ -222,8 +222,8 @@ export default abstract class ServerBase {
             async error(err, e) {
                 StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'error');
                 ConsoleHandler.error(
-                    'ServerBase.PGP.error: ' + JSON.stringify(err) +
-                    ' query: ' + JSON.stringify({ query: e.query })
+                    'ServerBase.PGP.error: ' + ObjectHandler.json_stringify_simple(err) +
+                    ' query: ' + ObjectHandler.json_stringify_simple({ query: e.query })
                 );
             },
         });

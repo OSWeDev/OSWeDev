@@ -4,6 +4,8 @@ import IDistantVOBase from '../modules/IDistantVOBase';
 import ConsoleHandler from './ConsoleHandler';
 import RangeHandler from './RangeHandler';
 
+type Primitive = string | number | boolean | null | undefined | bigint | symbol;
+
 export const field_names: <T extends IDistantVOBase>(obj?: T) => { [P in keyof T]?: P } = <T extends IDistantVOBase>(obj?: T): { [P in keyof T]?: P } => {
 
     return new Proxy({}, {
@@ -54,6 +56,33 @@ export default class ObjectHandler {
             )) ? (JSON.parse(e) ? true : false) : false;
         } catch (error) { /* empty */ }
         return false;
+    }
+
+    /**
+     * Stringify un object en json. On ne traite que les champs dont le type est primitif :
+     * string, number, boolean, undefined, null, bigint, symbol
+     */
+    public static json_stringify_simple(e: any): string {
+        // Si ce n'est pas un objet (ou que c'est null) → sérialisation directe
+        if (e === null || typeof e !== "object") {
+            return JSON.stringify(e);
+        }
+
+        const flat: Record<string, Primitive> = {};
+
+        // On parcourt les propriétés énumérables et on garde celles qui sont primitives
+        for (const [key, value] of Object.entries(e)) {
+            const isPrimitive =
+                value === null ||
+                ["string", "number", "boolean", "undefined", "bigint", "symbol"].includes(typeof value);
+
+            if (isPrimitive) {
+                flat[key] = value as Primitive;
+            }
+            // Les autres types (object, function) sont ignorés
+        }
+
+        return JSON.stringify(flat);
     }
 
     /**
