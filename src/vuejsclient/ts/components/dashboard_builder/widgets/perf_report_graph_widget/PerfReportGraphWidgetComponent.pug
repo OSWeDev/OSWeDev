@@ -1,12 +1,6 @@
 .perf_report_graph_widget_component
     
+    input(type="text" v-model="filter_text" placeholder="...")
     .d3_perf_report_graph_widget_graph(ref="d3_perf_report_graph_widget_graph")
     //- Tooltip existant : veillez à bien avoir cet élément dans votre HTML
     #tooltip(style="position: absolute; visibility: hidden; background: #f4f4f4; padding: 5px; border: 1px solid #ccc; border-radius: 5px; font-size: 12px;")
-    //- #tooltip(
-    //-     style="position: absolute; 
-    //-             background-color: #f4f4f4; 
-    //-             padding: 5px; 
-    //-             border: 1px solid #ccc; 
-    //-             visibility: hidden;"
-    //- )

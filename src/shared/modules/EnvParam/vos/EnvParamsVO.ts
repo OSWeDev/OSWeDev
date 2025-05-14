@@ -202,6 +202,9 @@ export default class EnvParamsVO implements IDistantVOBase {
     public activate_module_perf_worker_messages: boolean;
     public activate_module_perf_bgthread_ping_latency: boolean;
     public activate_module_perf_bgthread_load_balancing: boolean;
+    public activate_module_perf_vars_datas_proxy: boolean;
+    public activate_module_perf_vars_tabs_subs_controller: boolean;
+    public activate_module_perf_push_data_server_controller: boolean;
 
     public debug_all_expressjs_perf: boolean;
     public debug_expressjs_request_reflexion_time: boolean;

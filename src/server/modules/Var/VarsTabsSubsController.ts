@@ -1,6 +1,7 @@
 import { PostThrottleParam, PreThrottleParam } from '../../../shared/annotations/Throttle';
 import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import PerfReportController from '../../../shared/modules/PerfReport/PerfReportController';
 import { StatThisMapKeys } from '../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
@@ -20,6 +21,7 @@ export default class VarsTabsSubsController {
     // public static TASK_NAME_notify_vardatas: string = 'VarsTabsSubsController.notify_vardatas';
     // public static TASK_NAME_get_subs_indexs: string = 'VarsTabsSubsController.get_subs_indexs';
 
+    public static PERF_MODULE_NAME: string = 'vars_tabs_subs_controller';
 
     public static PARAM_NAME_SUBS_CLEAN_THROTTLE: string = 'VarsTabsSubsController.SUBS_CLEAN_THROTTLE';
     public static PARAM_NAME_SUBS_CLEAN_DELAY: string = 'VarsTabsSubsController.SUBS_CLEAN_DELAY';
@@ -237,8 +239,26 @@ export default class VarsTabsSubsController {
             const users_tabs_subs = this._tabs_subs[var_data.index];
             // ConsoleHandler.log('REMOVETHIS:notify_vardatas.1:' + var_data.index + ':');
 
+            PerfReportController.add_event(
+                VarsTabsSubsController.PERF_MODULE_NAME,
+                'notify_vardatas',
+                'notify_vardatas',
+                null,
+                Dates.now_ms(),
+                'index:' + var_data.index + ':value:' + var_data.value + ':value_ts:' + var_data.value_ts + ':value_type:' + var_data.value_type + ':is_computing:' + is_computing,
+            );
+
             for (const user_id in users_tabs_subs) {
                 const tabs_subs = users_tabs_subs[user_id];
+
+                PerfReportController.add_event(
+                    VarsTabsSubsController.PERF_MODULE_NAME,
+                    'notify_vardatas to user',
+                    'notify_vardatas to user',
+                    null,
+                    Dates.now_ms(),
+                    'user_id: ' + user_id + ' - tabs: ' + Object.keys(tabs_subs).join(' ') + ' - index:' + var_data.index + ':value:' + var_data.value + ':value_ts:' + var_data.value_ts + ':value_type:' + var_data.value_type + ':is_computing:' + is_computing,
+                );
 
                 /**
                  * On doit demander tous les sockets actifs pour une tab
