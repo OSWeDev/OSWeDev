@@ -44,19 +44,18 @@
     .oselia_chat_btn_closed,
     .oselia_chat_btn_opening,
     .oselia_chat_btn_recording .oselia_chat_btn_opened {
-        position: relative;
         width: 80px;
         height: 80px;
         border: none;
         cursor: pointer;
         background-color: white;
         border-radius: 50px;
-        z-index: 9999;
         margin-right: 15px;
     }
 
     .oselia_chat_btn_closed,
     .oselia_chat_btn_opened {
+        position: static;
         background: url(/public/vuejsclient/img/logo_oselia_fb.png) no-repeat center center;
         background-color: white;
         background-size: contain;
@@ -69,7 +68,7 @@
     }
 
     .oselia_chat_btn_recording {
-        position: absolute;
+        position: relative;
         background-color: #002454;
         border: none;
         color: white;
@@ -87,7 +86,8 @@
         flex-direction: column;
         display: flex;
         right: 0px;
-    
+        z-index: -1;
+
         .wave {
             width: 6px;
             height: 6px;

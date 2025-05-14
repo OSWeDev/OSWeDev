@@ -2,7 +2,11 @@ import { Component, Prop } from 'vue-property-decorator';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import EventsController from '../../../../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerInstanceVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import ModuleOselia from '../../../../../../shared/modules/Oselia/ModuleOselia';
 import IPlanEnseigne from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
 import IPlanFacilitator from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanManager from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
@@ -22,11 +26,7 @@ import ProgramPlanTools from '../../ProgramPlanTools';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import ProgramPlanComponentModalTargetInfos from '../target_infos/ProgramPlanComponentModalTargetInfos';
 import "./ProgramPlanComponentModalCR.scss";
-import EventsController from '../../../../../../shared/modules/Eventify/EventsController';
-import EventifyEventInstanceVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
-import EventifyEventConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventConfVO';
-import ModuleOselia from '../../../../../../shared/modules/Oselia/ModuleOselia';
-import EventifyEventListenerInstanceVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
+import OseliaRealtimeController from '../../../dashboard_builder/widgets/oselia_thread_widget/OseliaRealtimeController';
 const debounce = require('lodash/debounce');
 
 @Component({
@@ -106,6 +106,11 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
     private edited_cr: IPlanRDVCR = null;
     private oselia_opened: boolean = false;
     private debounced_update_cr_action = debounce(this.update_cr_action, 1000);
+
+    // get show_oselia_button() {
+    //     if (EnvHandler.) {
+    //     }
+    // }
 
     get custom_cr_create_component() {
         return this.program_plan_controller.customCRCreateComponent;
@@ -310,11 +315,13 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
         EventsController.register_event_listener(get_oselia_realtime_close);
     }
 
-    private async switchOpenOselia() {
+    private switchOpenOselia() {
         this.oselia_opened = !this.oselia_opened;
-        const event_conf = new EventifyEventConfVO();
-        event_conf.name = ModuleOselia.EVENT_OSELIA_LAUNCH_REALTIME;
-        await EventsController.emit_event(EventifyEventInstanceVO.instantiate(event_conf, { launch: this.oselia_opened, cr_vo: this.selected_rdv_cr}));
+        if (this.oselia_opened) {
+            OseliaRealtimeController.getInstance().connect_to_realtime(this.selected_rdv_cr);
+        } else {
+            OseliaRealtimeController.getInstance().disconnect_to_realtime();
+        }
     }
 
     /**

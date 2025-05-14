@@ -10,6 +10,7 @@ export default class EnvHandler {
     public static code_google_analytics: string = null;
     public static version: string = null;
     public static activate_pwa: boolean = false;
+    public static block_oselia_on_cr: boolean = false;
     public static max_pool: number = null;
     public static debug_promise_pipeline: boolean = false;
     public static zoom_auto: boolean = false;

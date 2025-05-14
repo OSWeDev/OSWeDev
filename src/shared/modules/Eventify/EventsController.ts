@@ -389,7 +389,7 @@ export default class EventsController {
         cooldown_ms: number = 0,
         debounce_leading = false,
         param_type: number = EventifyEventListenerConfVO.PARAM_TYPE_NONE,
-    ): void {
+    ): EventifyEventListenerInstanceVO {
 
         if (EventsController.log_events_names[event_name]) {
             ConsoleHandler.log('on_every_event_throttle_cb "' + event_name + '"');
@@ -403,6 +403,8 @@ export default class EventsController {
         listener.debounce_leading = debounce_leading;
         listener.param_type = param_type;
         EventsController.register_event_listener(listener);
+
+        return listener;
     }
 
     private static async call_listener(listener: EventifyEventListenerInstanceVO, event: EventifyEventInstanceVO): Promise<void> {

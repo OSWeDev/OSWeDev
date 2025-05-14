@@ -165,6 +165,7 @@ export default interface IEnvParam {
     teams_message_max_size_auto_summarize?: boolean;
 
     block_teams_messages?: boolean;
+    block_oselia_on_cr?: boolean;
 
     express_secret: string;
     logo_path?: string;

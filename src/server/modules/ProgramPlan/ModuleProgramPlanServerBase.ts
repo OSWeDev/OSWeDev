@@ -48,13 +48,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return this.shared_module as ModuleProgramPlanBase;
     }
 
-    public static async edit_cr_word(term_to_modify: string, new_value: string, html_content, cr_vo): Promise<void> {
-        const escapedOldTerm = term_to_modify.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // échappe les caractères spéciaux
-        const regex = new RegExp(escapedOldTerm, 'gi');
-        for(const _html_content in cr_vo.html_contents) {
-            cr_vo.html_contents[_html_content] = cr_vo.html_contents[_html_content].replace(regex, new_value); // échappe les caractères spéciaux
-        }
-        await ModuleDAO.getInstance().insertOrUpdateVO(cr_vo);
+    public static async edit_cr_word(term_to_modify: string, new_value: string, cr_vo): Promise<void> {
+        // const escapedOldTerm = term_to_modify.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // échappe les caractères spéciaux
+        // const regex = new RegExp(escapedOldTerm, 'gi');
+        // for(const _html_content in cr_vo.html_contents) {
+        //     cr_vo.html_contents[_html_content] = cr_vo.html_contents[_html_content].replace(regex, new_value); // échappe les caractères spéciaux
+        // }
+        // await ModuleDAO.getInstance().insertOrUpdateVO(cr_vo);
     }
 
     // istanbul ignore next: cannot test configure

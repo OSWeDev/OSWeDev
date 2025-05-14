@@ -47,7 +47,6 @@ import type { RawData } from 'ws';
 interface ConversationContext {
     openaiSocket: WebSocket;
     clients: Set<WebSocket>;
-    cr_html_content?: string;
     cr_vo?: unknown;
 }
 export default class GPTAssistantAPIServerController {
@@ -1173,6 +1172,12 @@ export default class GPTAssistantAPIServerController {
                 this.wss.on('connection', (clientSocket: WebSocket) => {
                     let joinedConversationId: string | null = null;
 
+                    // Quand le client se connecte, on demande à l'assistant de se présenter
+                    // openaiSocket.send(JSON.stringify({
+                    //     type: 'session.update',
+                    // }));
+
+
                     /**
                      * Réception de message venant du client
                      */
@@ -1192,15 +1197,21 @@ export default class GPTAssistantAPIServerController {
                                     return;
                                 }
                                 convCtx.clients.add(clientSocket);
-                                clientSocket.send(JSON.stringify({ type: 'ready' }));
+                                clientSocket.send(JSON.stringify({ type: 'connected_to_conversation', msg: 'Vous êtes connecté à la conversation.' }));
                                 return;
                             }
 
                             // Après handshake : relayé vers OpenAI (texte ou binaire)
                             if (joinedConversationId) {
                                 const convCtx = GPTAssistantAPIServerController.conversations.get(joinedConversationId)!;
-                                if (convCtx.openaiSocket.readyState === WebSocket.OPEN) {
-                                    convCtx.openaiSocket.send(str);
+                                if (msg.type === 'cr_data') {
+                                    if (msg.cr_vo) {
+                                        convCtx.cr_vo = msg.cr_vo;
+                                    }
+                                } else {
+                                    if (convCtx.openaiSocket.readyState === WebSocket.OPEN) {
+                                        convCtx.openaiSocket.send(str);
+                                    }
                                 }
                             }
                         } catch (_) {
@@ -1208,7 +1219,11 @@ export default class GPTAssistantAPIServerController {
                             if (joinedConversationId) {
                                 const convCtx = GPTAssistantAPIServerController.conversations.get(joinedConversationId)!;
                                 if (convCtx.openaiSocket.readyState === WebSocket.OPEN) {
-                                    convCtx.openaiSocket.send(data, { binary: true });
+                                    const payload = {
+                                        type: 'input_audio_buffer.append',
+                                        audio: (data as Buffer).toString('base64'),   // PCM 16 bits / 24 kHz mono
+                                    };
+                                    convCtx.openaiSocket.send(JSON.stringify(payload));
                                 }
                             }
                         }
@@ -1262,15 +1277,44 @@ export default class GPTAssistantAPIServerController {
                 const sessionUpdate = {
                     type: 'session.update',
                     session: {
-                        turn_detection: null,
                         modalities: ['text', 'audio'],
                         output_audio_format: 'pcm16',
                         input_audio_transcription: {
                             model: 'whisper-1',
                         },
-                        input_audio_format: 'pcm16',
+                        input_audio_format: "pcm16",
+                        turn_detection: {
+                            type: "server_vad",          // ou "semantic_vad" ou "none"
+                            threshold: 0.5,
+                            silence_duration_ms: 2000,
+                            prefix_padding_ms: 300,
+                            create_response: true,
+                            interrupt_response: false,
+                        },
                         voice: 'alloy',
-                        instructions: 'Tu es un assistant vocal réactif et agréable, réponds rapidement en français.',
+                        instructions:
+                            "Tu es Osélia, 38 ans, responsable projet au sein de la société Wedev, très bien éduquée et cultivée, tes passions sont l'automobile et les chevaux, tu as un chien, tu es chaleureuse mais très professionnelle. " +
+                            "Dans Wedev tu travailles en équipe avec Julien (développeur et chef de projet technique pour l'application Crescendo+), Michaël (développeur), Josépha (développeur), Caroline (MOA, gère prioritairement la relation avec les DMS pour les problèmes de données), et Karine (MOA et directrice du projet Crescendo+). " +
+                            "Si on te tutoie, tu peux tutoyer en retour. " +
+                            "Dans le cadre du projet Crescendo+, ton travail est d'assister les collaborateurs à rédiger les comptes rendus des réunions avec leurs clients. ",
+                        tools: [
+                            {
+                                type: "function",
+                                name: "edit_cr_word",
+                                description: "Fonction permettant de remplacer le contenu d'un compte rendu.",
+                                parameters: {
+                                    type: "object",
+                                    properties: {
+                                        new_content: {
+                                            type: "string",
+                                            description: "Le nouveau contenu du compte rendu.",
+                                        },
+                                    },
+                                    required: ["new_content"],
+                                }
+                            }
+                        ],
+                        tool_choice: "auto",
                     },
                 } as const;
                 openaiSocket.send(JSON.stringify(sessionUpdate));
@@ -1292,13 +1336,36 @@ export default class GPTAssistantAPIServerController {
                         for (const c of clients) if (c.readyState === WebSocket.OPEN) c.send(raw, { binary: true });
                     } else if (msg?.type === 'session.updated') {
                         for (const c of clients) if (c.readyState === WebSocket.OPEN) {
-                            c.send(str);
-                            c.send(JSON.stringify({ type: 'ready' }));
+                            openaiSocket.send(JSON.stringify({
+                                type: "conversation.item.create",
+                                previous_item_id: null,
+                                item: {
+                                    id: "msg_001",
+                                    type: "message",
+                                    role: "user",
+                                    content: [
+                                        {
+                                            type: "input_text",
+                                            text: "Salut, tu peux m'aider à rédiger un compte rendu ?",
+                                        }
+                                    ]
+                                },
+                            }));
                         }
                     } else if (msg?.type === 'response.output_item.done' && msg.item?.name === 'edit_cr_word') {
+                        ConsoleHandler.log('OpenAI -> Server : edit_cr_word', msg, convCtx.cr_vo);
                         // Exécution côté serveur
-                        const args = JSON.parse(msg.item.arguments);
-                        await ModuleProgramPlanServerBase.edit_cr_word(args.term_to_modify, args.new_term, convCtx.cr_html_content, convCtx.cr_vo);
+                        // const args = JSON.parse(msg.item.arguments);
+                        // await ModuleProgramPlanServerBase.edit_cr_word(args.term_to_modify, args.new_term, convCtx.cr_vo);
+                    } else if (msg?.type === 'conversation.item.created' && msg.item?.role === 'user') {
+                        openaiSocket.send(JSON.stringify({
+                            type: 'response.create',
+                            response: { modalities: ['text', 'audio'] }
+                        }));
+                        for (const c of clients) if (c.readyState === WebSocket.OPEN) {
+                            c.send(JSON.stringify({ type: 'ready' }));
+                            c.send(str);
+                        }
                     } else {
                         for (const c of clients) if (c.readyState === WebSocket.OPEN) c.send(str);
                     }

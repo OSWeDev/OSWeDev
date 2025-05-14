@@ -2,6 +2,7 @@ import { ActionContext, ActionTree, GetterTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import IStoreModule from '../../../../store/IStoreModule';
 import { store_mutations_names } from "../../../../store/StoreModuleBase";
+import GPTAssistantAPIThreadVO from "../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO";
 
 export type OseliaContext = ActionContext<IOseliaState, any>;
 
@@ -12,6 +13,7 @@ export interface IOseliaState {
     left_panel_open: boolean;
 
     show_hidden_messages: boolean;
+    current_thread: GPTAssistantAPIThreadVO | null;
 }
 
 export default class OseliaStore implements IStoreModule<IOseliaState, OseliaContext> {
@@ -27,6 +29,7 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
         set_oselia_first_loading_done(state: IOseliaState, oselia_first_loading_done: boolean) { state.oselia_first_loading_done = oselia_first_loading_done; },
         set_left_panel_open(state: IOseliaState, left_panel_open: boolean) { state.left_panel_open = left_panel_open; },
         set_show_hidden_messages(state: IOseliaState, show_hidden_messages: boolean) { state.show_hidden_messages = show_hidden_messages; },
+        set_current_thread(state: IOseliaState, current_thread: GPTAssistantAPIThreadVO) { state.current_thread = current_thread; },
     };
     public actions: ActionTree<IOseliaState, OseliaContext>;
     public namespaced: boolean = true;
@@ -41,6 +44,7 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
             oselia_first_loading_done: false,
             left_panel_open: false,
             show_hidden_messages: false,
+            current_thread: null,
         };
 
 
@@ -51,6 +55,7 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
             get_oselia_first_loading_done(state: IOseliaState): boolean { return state.oselia_first_loading_done; },
             get_left_panel_open(state: IOseliaState): boolean { return state.left_panel_open; },
             get_show_hidden_messages(state: IOseliaState): boolean { return state.show_hidden_messages; },
+            get_current_thread(state: IOseliaState): GPTAssistantAPIThreadVO { return state.current_thread; },
         };
 
         this.actions = {
@@ -59,6 +64,7 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
             set_oselia_first_loading_done: (context: OseliaContext, oselia_first_loading_done: boolean) => context.commit(store_mutations_names(this).set_oselia_first_loading_done, oselia_first_loading_done),
             set_left_panel_open: (context: OseliaContext, left_panel_open: boolean) => context.commit(store_mutations_names(this).set_left_panel_open, left_panel_open),
             set_show_hidden_messages: (context: OseliaContext, show_hidden_messages: boolean) => context.commit(store_mutations_names(this).set_show_hidden_messages, show_hidden_messages),
+            set_current_thread: (context: OseliaContext, current_thread: GPTAssistantAPIThreadVO) => context.commit(store_mutations_names(this).set_current_thread, current_thread),
         };
     }
 
