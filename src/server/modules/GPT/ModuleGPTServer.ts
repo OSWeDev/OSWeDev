@@ -68,6 +68,7 @@ import OseliaRunTemplateServerController from '../Oselia/OseliaRunTemplateServer
 import ParamsServerController from '../Params/ParamsServerController';
 import PerfReportServerController from '../PerfReport/PerfReportServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import GPTAssistantAPIServerController from './GPTAssistantAPIServerController';
 import AssistantVoTypeDescription from './functions/get_vo_type_description/AssistantVoTypeDescription';
 import GPTAssistantAPIFunctionGetVoTypeDescriptionController from './functions/get_vo_type_description/GPTAssistantAPIFunctionGetVoTypeDescriptionController';
@@ -774,13 +775,38 @@ export default class ModuleGPTServer extends ModuleServerBase {
             // On génère via l'api GPT
             const speech_file_path = ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PATH + ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PREFIX + message_content.id + ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_SUFFIX;
             // const instructions = "Affect/personality: A cheerful guide \n\nTone: Friendly, clear, and reassuring, creating a calm atmosphere and making the listener feel confident and comfortable.\n\nPronunciation: Clear, articulate, and steady, ensuring each instruction is easily understood while maintaining a natural, conversational flow.\n\nPause: Brief, purposeful pauses after key instructions (e.g., \"cross the street\" and \"turn right\") to allow time for the listener to process the information and follow along.\n\nEmotion: Warm and supportive, conveying empathy and care, ensuring the listener feels guided and safe throughout the journey.";
-            const instructions = "Don't try to read exactly, but with the given text, try to convey the meaning in a way that is most natural and clear.";
+
+
+            // const instructions = "Don't try to read exactly, but with the given text, try to convey the meaning in a way that is most natural and clear.";
+            // const response = await ModuleGPTServer.openai.audio.speech.create({
+            //     model: "gpt-4o-mini-tts",
+            //     voice: "shimmer",
+            //     input: message_content.content_type_text.value,
+            //     instructions,
+            // });
+
+
+            const instructions = "Fais un résumé très synthétique adapté à une lecture audio naturelle des messages suivants :";
+            const completion = await ModuleGPTServer.openai.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [
+                    { role: "system", content: instructions },
+                    { role: "user", content: message_content.content_type_text.value }
+                ],
+                temperature: 0.3
+            });
+
+            const texteResume = completion.choices[0].message.content;
+
+            const instructions_tts = "Lecture agréable, avenante, pro mais pas trop formelle.";
             const response = await ModuleGPTServer.openai.audio.speech.create({
                 model: "gpt-4o-mini-tts",
                 voice: "shimmer",
-                input: message_content.content_type_text.value,
-                instructions,
+                input: texteResume,
+                instructions: instructions_tts,
             });
+
+
             // await response.stream_to_file(speech_file_path); // Doc GPT mais j'ai pas cette fonction :)
             const buffer = Buffer.from(await response.arrayBuffer());
             await ModuleFileServer.getInstance().makeSureThisFolderExists(ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PATH);
@@ -842,6 +868,10 @@ export default class ModuleGPTServer extends ModuleServerBase {
         thread_message_copy.thread_id = thread.pipe_outputs_to_thread_id;
         thread_message_copy.piped_from_thread_message_id = msg.id;
         thread_message_copy.piped_from_thread_id = thread.id;
+
+        thread_message_copy.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
+        thread_message_copy.user_id = await ModuleVersionedServer.getInstance().get_robot_user_id();
+
         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_message_copy);
     }
 
@@ -864,7 +894,10 @@ export default class ModuleGPTServer extends ModuleServerBase {
                 (async () => {
                     // On récupère le dernier run aussi pour savoir si il est en generate_voice_summary
                     last_run = await query(OseliaRunVO.API_TYPE_ID)
-                        .set_sort(new SortByVO(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().weight, true))
+                        .set_sorts([
+                            new SortByVO(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().weight, false),
+                            new SortByVO(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().id, false)
+                        ])
                         .exec_as_server()
                         .set_limit(1)
                         .select_vo<OseliaRunVO>();
@@ -893,6 +926,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
                 return;
             }
 
+            ConsoleHandler.log('push_new_oselia_run_on_supervisor_thread: creating new run on thread:' + thread_id + ' with template:' + run_template.name + ' and last_run:' + last_run?.id + ' and last_run.generate_voice_summary:' + last_run?.generate_voice_summary);
             await OseliaRunTemplateServerController.create_run_from_template(
                 run_template,
                 {},
@@ -982,7 +1016,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
                 EventsController.on_every_event_throttle_cb(
                     event_name,
                     this.push_new_oselia_run_on_supervisor_thread(piped_thread.id).bind(this),
-                    3000,
+                    20000,
                     true,
                     EventifyEventListenerConfVO.PARAM_TYPE_NONE
                 );
@@ -1021,7 +1055,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
                 if (assistant.agent_mem_access) {
                     const agent_mem_access_prepended_text: string = await ModuleParams.instance.getParamValueAsString(
                         OseliaAgentMemVO.ASSISTANT_INSTRUCTIONS_APPENDED_TEXT_PARAM_NAME,
-                        'Penses à consulter ta mémoire d\'assistant - agent_mem - avant le traitement pour prendre en compte les retours pertinents et les compléments d\'informations qui ont pu y être stockés dans des discussions précédentes.',
+                        'AVANT le traitement consulte OBLIGATOIREMENT ta mémoire d\'assistant - agent_mem -  pour prendre en compte les retours pertinents et les compléments d\'informations qui ont pu y être stockés dans des discussions précédentes.',
                         120000,
                     );
                     if (agent_mem_access_prepended_text && agent_mem_access_prepended_text.length) {

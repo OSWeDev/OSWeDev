@@ -1206,7 +1206,7 @@ export default class GPTAssistantAPIServerController {
             asking_message_vo.is_ready = false;
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(asking_message_vo);
 
-
+            let contents = [];
             const current_user = await query(UserVO.API_TYPE_ID).filter_by_id(user_id).set_limit(1).select_vo<UserVO>();
             const content = new GPTAssistantAPIThreadMessageContentVO();
             content.thread_message_id = asking_message_vo.id;
@@ -1216,7 +1216,7 @@ export default class GPTAssistantAPIServerController {
             content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
             content.weight = 0;
             content.hidden = hide_content;
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content);
+            contents.push(content);
 
             const content_name = new GPTAssistantAPIThreadMessageContentVO();
             content_name.thread_message_id = asking_message_vo.id;
@@ -1224,9 +1224,9 @@ export default class GPTAssistantAPIServerController {
             content_name.content_type_text.value = '<name:' + current_user.name + '>';
             content_name.gpt_thread_message_id = asking_message_vo.gpt_id;
             content_name.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
-            content_name.weight = 0;
+            content_name.weight = 1;
             content_name.hidden = true;
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content_name);
+            contents.push(content_name);
 
             const content_email = new GPTAssistantAPIThreadMessageContentVO();
             content_email.thread_message_id = asking_message_vo.id;
@@ -1234,9 +1234,9 @@ export default class GPTAssistantAPIServerController {
             content_email.content_type_text.value = '<email:' + current_user.email + '>';
             content_email.gpt_thread_message_id = asking_message_vo.gpt_id;
             content_email.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
-            content_email.weight = 0;
+            content_email.weight = 2;
             content_email.hidden = true;
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content_email);
+            contents.push(content_email);
 
             const content_phone = new GPTAssistantAPIThreadMessageContentVO();
             content_phone.thread_message_id = asking_message_vo.id;
@@ -1244,9 +1244,9 @@ export default class GPTAssistantAPIServerController {
             content_phone.content_type_text.value = '<phone:' + current_user.phone + '>';
             content_phone.gpt_thread_message_id = asking_message_vo.gpt_id;
             content_phone.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
-            content_phone.weight = 0;
+            content_phone.weight = 3;
             content_phone.hidden = true;
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content_phone);
+            contents.push(content_phone);
 
             const content_user_id = new GPTAssistantAPIThreadMessageContentVO();
             content_user_id.thread_message_id = asking_message_vo.id;
@@ -1254,11 +1254,12 @@ export default class GPTAssistantAPIServerController {
             content_user_id.content_type_text.value = '<user_id:' + user_id.toString() + '>';
             content_user_id.gpt_thread_message_id = asking_message_vo.gpt_id;
             content_user_id.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
-            content_user_id.weight = 0;
+            content_user_id.weight = 4;
             content_user_id.hidden = true;
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content_user_id);
+            contents.push(content_user_id);
 
             if (has_image_file) {
+                let i = 0;
                 for (const images of files_images) {
                     const c = new GPTAssistantAPIThreadMessageContentVO();
                     c.thread_message_id = asking_message_vo.id;
@@ -1266,11 +1267,13 @@ export default class GPTAssistantAPIServerController {
                     c.content_type_text.value = "[" + images.path + ":" + images.id.toString() + "]";
                     c.gpt_thread_message_id = asking_message_vo.gpt_id;
                     c.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
-                    c.weight = 0;
+                    c.weight = 5 + i++;
                     c.hidden = true;
-                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(c);
+                    contents.push(c);
                 }
             }
+            await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(contents);
+
             asking_message_vo.is_ready = true;
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(asking_message_vo);
         }
@@ -1703,7 +1706,7 @@ export default class GPTAssistantAPIServerController {
             oselia_run_purpose_state = OseliaRunVO.STATE_RUNNING;
         }
 
-        oselia_run.generate_voice_summary = generate_voice_summary;
+        oselia_run.generate_voice_summary = oselia_run.generate_voice_summary || generate_voice_summary;
         switch (oselia_run_purpose_state) {
             case OseliaRunVO.STATE_SPLITTING:
                 oselia_run.split_gpt_run_id = run_vo.id;

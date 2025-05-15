@@ -105,6 +105,14 @@ export default class ObjectHandler {
         }
     }
 
+    public static try_json_stringify(e: any): any {
+        try {
+            return JSON.stringify(e);
+        } catch (error) {
+            return e;
+        }
+    }
+
     public static try_is_json(e: any): boolean {
         try {
             return (e && (typeof e === 'string') && (

@@ -164,8 +164,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private media_recorder: MediaRecorder = null;
     private audio_chunks: Blob[] = [];
 
-    private waiting_for_new_run_summary: number = null;
-    private is_waiting_for_new_run_summary: boolean = false;
+    private auto_play_new_run_audio_summaries: boolean = false;
+    private last_run_id_checked_for_audio_summary: number = null;
 
     private functions_by_id: { [id: number]: GPTAssistantAPIFunctionVO } = {};
 
@@ -263,20 +263,29 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
     }
 
-    @Watch('oselia_runs')
+    @Watch('oselia_runs', { deep: true })
+    private async on_update_oselia_runs() {
+        this.check_next_audio_summary();
+    }
+
     @Throttle({
         param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
         throttle_ms: 100,
     })
-    private async on_update_oselia_runs() {
-        // On check qu'il y a pas un message vocal qui nous est destiné
-        if (!this.is_waiting_for_new_run_summary) {
+    private async check_next_audio_summary() {
+
+        if (!this.auto_play_new_run_audio_summaries) {
+            if (this.oselia_runs && this.oselia_runs.length > 0) {
+                this.last_run_id_checked_for_audio_summary = Math.max(...this.oselia_runs.map((run) => run.id));
+            } else {
+                this.last_run_id_checked_for_audio_summary = null;
+            }
             return;
         }
 
         if (this.oselia_runs?.length > 0) {
             for (const run of this.oselia_runs) {
-                if (this.waiting_for_new_run_summary && (run.id <= this.waiting_for_new_run_summary)) {
+                if (run.id <= this.last_run_id_checked_for_audio_summary) {
                     continue;
                 }
 
@@ -291,17 +300,15 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                     continue;
                 }
 
+                this.last_run_id_checked_for_audio_summary = run.id;
                 const audio = new Audio(voice_summary.path);
-                audio.play().then(() => {
-                    //
-                }).catch((error) => {
+                try {
+                    await audio.play();
+                } catch (error) {
                     ConsoleHandler.error(error);
-                });
+                }
             }
         }
-
-        this.waiting_for_new_run_summary = null;
-        this.is_waiting_for_new_run_summary = false;
     }
 
     private select_thread_id(thread_id: number) {
@@ -862,6 +869,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 return;
             }
 
+            this.auto_play_new_run_audio_summaries = false;
             await ModuleGPT.getInstance().ask_assistant(
                 gpt_assistant_id,
                 self.thread.gpt_thread_id,
@@ -1056,11 +1064,11 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                     }
 
                     const auto_commit_auto_input = this.auto_commit_auto_input;
+                    this.auto_play_new_run_audio_summaries = auto_commit_auto_input;
 
-                    if (auto_commit_auto_input) {
-                        // On stocke le dernier run connu avant la demande pour identifier rapidement le nouveau run dont on veut entendre le résumé
-                        this.waiting_for_new_run_summary = this.oselia_runs?.length > 0 ? this.oselia_runs[this.oselia_runs.length - 1].id : null;
-                        this.is_waiting_for_new_run_summary = true;
+                    // On stocke le dernier run connu avant la demande pour identifier rapidement le nouveau run dont on veut entendre le résumé
+                    if ((this.auto_play_new_run_audio_summaries) && (this.oselia_runs && this.oselia_runs.length > 0)) {
+                        this.last_run_id_checked_for_audio_summary = Math.max(...this.oselia_runs.map((run) => run.id));
                     }
 
                     const gpt_assistant_id = this.assistant?.gpt_assistant_id ? this.assistant.gpt_assistant_id : this.currently_selected_assistant?.gpt_assistant_id;

@@ -42,7 +42,7 @@ export default class Patch20250506AddOseliaFunction_OSELIA_app_mem_set_mem imple
             app_mem_set_mem.module_function = reflect<ModuleOseliaServer>().app_mem_set_mem;
             app_mem_set_mem.module_name = ModuleOseliaServer.getInstance().name;
             app_mem_set_mem.prepend_thread_vo = true;
-            app_mem_set_mem.gpt_function_name = GPTAssistantAPIFunctionVO.reflect<ModuleOseliaServer>().app_mem_set_mem;
+            app_mem_set_mem.gpt_function_name = reflect<ModuleOseliaServer>().app_mem_set_mem;
             app_mem_set_mem.json_stringify_output = false;
             app_mem_set_mem.gpt_function_description = "Fonction de mise à jour ou d'ajout d'informations utiles sur l'application. Cette mémoire a pour but de permettre à l'assistant de comprendre la solution pour laquelle il travaille, en particulier le langage métier, la typologie de clients et de produits, les spécificités de l'entreprise, etc... Elle est très majoritairement à l'initiative de l'utilisateur (plutôt qu'une initiative de l'assistant).";
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(app_mem_set_mem);

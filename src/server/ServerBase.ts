@@ -60,7 +60,7 @@ import EventsController from '../shared/modules/Eventify/EventsController';
 import OseliaReferrerVO from '../shared/modules/Oselia/vos/OseliaReferrerVO';
 import PerfReportController from '../shared/modules/PerfReport/PerfReportController';
 import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
-import { field_names } from '../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../shared/tools/ObjectHandler';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import StackContextWrapper from '../shared/tools/StackContextWrapper';
 import ServerExpressController from './ServerExpressController';
@@ -283,8 +283,8 @@ export default abstract class ServerBase {
             async error(err, e) {
                 StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'error');
                 ConsoleHandler.error(
-                    'ServerBase.PGP.error: ' + JSON.stringify(err) +
-                    ' query: ' + JSON.stringify({ query: e.query })
+                    'ServerBase.PGP.error: ' + ObjectHandler.try_json_stringify(err) +
+                    ' query: ' + ObjectHandler.try_json_stringify({ query: e.query })
                 );
             },
         });
