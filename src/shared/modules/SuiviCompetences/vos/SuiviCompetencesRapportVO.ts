@@ -3,6 +3,28 @@ import IVersionedVO from "../../Versioned/interfaces/IVersionedVO";
 export default class SuiviCompetencesRapportVO implements IVersionedVO {
     public static API_TYPE_ID: string = "suivi_comp_rapport";
 
+    public id: number;
+    public _type: string = SuiviCompetencesRapportVO.API_TYPE_ID;
+
+    public date: number;
+    public name: string;
+    public points_cles: string;
+    public objectif_prochaine_visite: string;
+    public commentaire_1: string;
+    public commentaire_2: string;
+    public prochain_suivi: string;
+
+    public user_id: number;
+    public suivi_comp_grille_id: number;
+
+    public parent_id: number;
+    public trashed: boolean;
+    public version_num: number;
+    public version_author_id: number;
+    public version_timestamp: number;
+    public version_edit_author_id: number;
+    public version_edit_timestamp: number;
+
     public static createNew(
         date: number,
         suivi_comp_grille_id: number,
@@ -26,26 +48,4 @@ export default class SuiviCompetencesRapportVO implements IVersionedVO {
 
         return res;
     }
-
-    public id: number;
-    public _type: string = SuiviCompetencesRapportVO.API_TYPE_ID;
-
-    public date: number;
-    public name: string;
-    public points_cles: string;
-    public objectif_prochaine_visite: string;
-    public commentaire_1: string;
-    public commentaire_2: string;
-    public prochain_suivi: string;
-
-    public user_id: number;
-    public suivi_comp_grille_id: number;
-
-    public parent_id: number;
-    public trashed: boolean;
-    public version_num: number;
-    public version_author_id: number;
-    public version_timestamp: number;
-    public version_edit_author_id: number;
-    public version_edit_timestamp: number;
 }

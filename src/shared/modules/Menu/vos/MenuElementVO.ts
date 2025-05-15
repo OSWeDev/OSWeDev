@@ -6,34 +6,6 @@ export default class MenuElementVO implements IDistantVOBase {
 
     public static API_TYPE_ID: string = "menu_elt";
 
-    public static create_new(
-        access_policy_name: string,
-        app_name: string,
-        name: string,
-        fa_class: string,
-        weight: number,
-        target: string,
-        target_is_routename: boolean = true,
-        menu_parent_id: number = null,
-        hidden: boolean = false,
-        target_blank: boolean = false,
-    ): MenuElementVO {
-
-        const res = new MenuElementVO();
-
-        res.access_policy_name = access_policy_name;
-        res.app_name = app_name;
-        res.name = name;
-        res.fa_class = fa_class;
-        res.weight = weight;
-        res.target = target;
-        res.target_is_routename = target_is_routename;
-        res.menu_parent_id = menu_parent_id;
-        res.hidden = hidden;
-        res.target_blank = target_blank;
-        return res;
-    }
-
     public id: number;
     public _type: string = MenuElementVO.API_TYPE_ID;
 
@@ -64,5 +36,33 @@ export default class MenuElementVO implements IDistantVOBase {
 
     get translatable_title(): string {
         return "menu.menuelements." + this.app_name + '.' + this.name + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+    }
+
+    public static create_new(
+        access_policy_name: string,
+        app_name: string,
+        name: string,
+        fa_class: string,
+        weight: number,
+        target: string,
+        target_is_routename: boolean = true,
+        menu_parent_id: number = null,
+        hidden: boolean = false,
+        target_blank: boolean = false,
+    ): MenuElementVO {
+
+        const res = new MenuElementVO();
+
+        res.access_policy_name = access_policy_name;
+        res.app_name = app_name;
+        res.name = name;
+        res.fa_class = fa_class;
+        res.weight = weight;
+        res.target = target;
+        res.target_is_routename = target_is_routename;
+        res.menu_parent_id = menu_parent_id;
+        res.hidden = hidden;
+        res.target_blank = target_blank;
+        return res;
     }
 }

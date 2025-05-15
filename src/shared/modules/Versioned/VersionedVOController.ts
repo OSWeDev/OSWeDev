@@ -129,6 +129,13 @@ export default class VersionedVOController implements IVOController {
                     continue;
                 }
 
+                // On garde les liaisons vers user_vo pour l'auteur et le modificateur
+                if ((vofield.field_name == field_names<IVersionedVO>().version_edit_author_id) ||
+                    (vofield.field_name == field_names<IVersionedVO>().version_author_id)) {
+                    newTableFields[vofield.field_name].set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+                    continue;
+                }
+
                 // Cas spécifique du lien parent_id, dans le vo trashed_versioned, qui doit pointer sur trashed du coup et pas sur ref
                 // et le parent_id du trashed qui pointe sur rien. D'ailleurs dans le trashed et dans le versioned en fait on ne veut pas garder les liens puisque sinon la version peut disparaitre.
                 // on doit garder les versions coute que coute et décider au moment de la restauration si oui ou non on peut restaurer (si j'ai un id qui existe plus, soit il existe en trashed de l'autre

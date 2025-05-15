@@ -21,19 +21,19 @@ import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleVersionedServer extends ModuleServerBase {
 
+    private static instance: ModuleVersionedServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleVersioned.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleVersionedServer.instance) {
             ModuleVersionedServer.instance = new ModuleVersionedServer();
         }
         return ModuleVersionedServer.instance;
-    }
-
-    private static instance: ModuleVersionedServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleVersioned.getInstance().name);
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers

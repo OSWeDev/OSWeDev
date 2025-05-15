@@ -113,6 +113,7 @@ import Patch20250102AddRightsSupervisedProbe from './patchs/postmodules/Patch202
 import Patch20250106createTableSupProbe from './patchs/premodules/Patch20250106createTableSupProbe';
 import Patch20250214AddRightsSupervisedPAUSE from './patchs/postmodules/Patch20250214AddRightsSupervisedPAUSE';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
+import Patch20250515ForeignKeysUserVersioning from './patchs/premodules/Patch20250515ForeignKeysUserVersioning';
 
 export default abstract class GeneratorBase {
 
@@ -203,6 +204,7 @@ export default abstract class GeneratorBase {
             Patch20240827DeleteVersionedAssistantsWithoutInstructions.getInstance(),
             Patch20241126TruncateLogs.getInstance(),
             Patch20250106createTableSupProbe.getInstance(),
+            Patch20250515ForeignKeysUserVersioning.getInstance(),
         ];
 
         this.post_modules_workers = [
