@@ -102,6 +102,9 @@ export default class ImageComponent extends VueComponentBase {
                     this.removeAllFiles();
                     this.addFile(file);
                 });
+                this.on("sending", function (file, xhr, formData) {
+                    formData.append("originalFilename", file.name);
+                });
 
                 try {
                     if (onInit) {

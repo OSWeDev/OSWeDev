@@ -125,7 +125,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
 
         await PushDataServerController.notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'file.upload.success');
 
-        let file_name: string = import_file.name;
+        let file_name: string = req.body.originalFilename ?? import_file.name;
         const folder_name: string = ModuleFile.FILES_ROOT + 'upload/';
         let filepath: string = folder_name + file_name;
 

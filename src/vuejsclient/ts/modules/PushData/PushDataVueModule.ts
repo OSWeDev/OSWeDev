@@ -964,6 +964,7 @@ export default class PushDataVueModule extends VueModuleBase {
 
                                     const formData = new FormData();
                                     formData.append('file', imgData, fileName);
+                                    formData.append("originalFilename", fileName);
 
                                     const res = await AjaxCacheClientController.getInstance().post(
                                         null,

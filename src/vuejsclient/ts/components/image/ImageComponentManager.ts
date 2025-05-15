@@ -20,6 +20,7 @@ export default class ImageComponentManager {
 
             const formData = new FormData();
             formData.append('file', file);
+            formData.append("originalFilename", file.name);
 
             imagevo = await AjaxCacheClientController.getInstance().post(
                 '/modules/ModuleImage/UploadImage',
