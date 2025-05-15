@@ -37,7 +37,12 @@ export default class CheckExtensionsV2 implements IGeneratorWorker {
             alter_role += (await this.add_extension_if_not_exists(db, "earthdistance"));
             alter_role += (await this.add_extension_if_not_exists(db, "pg_trgm"));
 
-            if (alter_role > 0) {
+            const rolsuper_q = await db.query("SELECT rolsuper FROM pg_roles WHERE rolname = '" + ConfigurationService.node_configuration.bdd_owner + "';");
+            if (
+                rolsuper_q?.length &&
+                rolsuper_q[0]?.rolsuper &&
+                (alter_role > 0)
+            ) {
                 await db.query("ALTER ROLE " + ConfigurationService.node_configuration.bdd_owner + " NOSUPERUSER;");
             }
 
