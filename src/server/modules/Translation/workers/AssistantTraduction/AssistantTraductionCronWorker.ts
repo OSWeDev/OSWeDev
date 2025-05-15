@@ -345,6 +345,11 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
 
     public async push_message_to_oselia(thread_vo: GPTAssistantAPIThreadVO, msg: string) {
         const new_thread_message = new GPTAssistantAPIThreadMessageVO();
+
+        // TODO FIXME ya surement mieux à faire
+        new_thread_message.oselia_run_id = null;
+        new_thread_message.autogen_voice_summary = false;
+
         new_thread_message.thread_id = thread_vo.id;
         new_thread_message.date = Dates.now();
         new_thread_message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
@@ -352,12 +357,12 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
         new_thread_message.assistant_id = thread_vo.current_default_assistant_id;
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_thread_message);
 
-        const mail_content = new GPTAssistantAPIThreadMessageContentVO();
-        mail_content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
-        mail_content.thread_message_id = new_thread_message.id;
-        mail_content.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
-        mail_content.content_type_text.value = msg;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(mail_content);
+        const messgae_content = new GPTAssistantAPIThreadMessageContentVO();
+        messgae_content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+        messgae_content.thread_message_id = new_thread_message.id;
+        messgae_content.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+        messgae_content.content_type_text.value = msg;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(messgae_content);
     }
 
 

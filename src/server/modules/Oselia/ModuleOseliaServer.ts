@@ -477,6 +477,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 if (new_file_vo) {
 
                     const new_thread_message = new GPTAssistantAPIThreadMessageVO();
+
+                    new_thread_message.oselia_run_id = null;
+                    new_thread_message.autogen_voice_summary = false;
+
                     new_thread_message.thread_id = thread_vo.id;
                     new_thread_message.date = Dates.now();
                     new_thread_message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
@@ -1936,6 +1940,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                         ConsoleHandler.log('ModuleOseliaServer:send_join_request:Owner of the thread is on the thread');
 
                         const new_thread_message = new GPTAssistantAPIThreadMessageVO();
+
+                        new_thread_message.oselia_run_id = null;
+                        new_thread_message.autogen_voice_summary = false;
+
                         new_thread_message.thread_id = target_thread.id;
                         new_thread_message.date = Dates.now();
                         new_thread_message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;

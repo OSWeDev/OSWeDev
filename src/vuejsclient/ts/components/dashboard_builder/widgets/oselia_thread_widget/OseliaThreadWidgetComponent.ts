@@ -169,6 +169,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     private functions_by_id: { [id: number]: GPTAssistantAPIFunctionVO } = {};
 
+    private audio_message_summary_playlist_paths: string[] = [];
+    private already_listed_audio_message_summaries_paths: { [path: string]: boolean } = {};
+
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(
         'OseliaThreadWidgetComponent.throttle_load_thread',
         this.load_thread.bind(this), 10);
@@ -184,6 +187,43 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         const { protocol, hostname, port } = window.location;
         return `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard/view/`;
     }
+
+    @Watch(reflect<OseliaThreadWidgetComponent>().thread_messages, { deep: true })
+    private async on_change_thread_messages() {
+        // Dans tous les cas, si un message arrive avec un fichier audio, on le marque comme lu (qu'il soit lancé ou pas)
+        // Si on est en mode audio, et qu'on a un nouveau message qui contient un audio, et qu'on l'a pas encore joué, on le pousse dans la playlist
+
+        for (const i in this.thread_messages) {
+            const thread_message = this.thread_messages[i];
+
+            if (this.already_read_audio_message_summaries_by_message_id[thread_message.id]) {
+                continue;
+            }
+
+            if ((!thread_message.autogen_voice_summary) || (!thread_message.autogen_tts_id)) {
+                continue;
+            }
+
+            const voice_summary = await query(FileVO.API_TYPE_ID)
+                .filter_by_id(thread_message.autogen_tts_id)
+                .select_vo<FileVO>();
+            if (!voice_summary) {
+                continue;
+            }
+
+            this.last_run_id_checked_for_audio_summary = run.id;
+            const audio = new Audio(voice_summary.path);
+            try {
+                await audio.play();
+            } catch (error) {
+                ConsoleHandler.error(error);
+            }
+
+            this.audio_message_summary_playlist_paths.push(voice_summary.path);
+        }
+    }
+
+    TODO lecture audio
 
     @Watch(reflect<OseliaThreadWidgetComponent>().currently_selected_assistant)
     private async on_change_currently_selected_assistant() {
@@ -345,10 +385,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 this.has_access_to_debug = await ModuleAccessPolicy.getInstance().testAccess(ModuleOselia.POLICY_BO_ACCESS);
             })(),
             (async () => {
-                if (this.has_access_to_debug) {
-                    const functions = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID).select_vos<GPTAssistantAPIFunctionVO>();
-                    this.functions_by_id = VOsTypesManager.vosArray_to_vosByIds(functions);
-                }
+                const functions = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID).select_vos<GPTAssistantAPIFunctionVO>();
+                this.functions_by_id = VOsTypesManager.vosArray_to_vosByIds(functions);
             })(),
         ]);
 

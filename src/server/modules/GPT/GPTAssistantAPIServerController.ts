@@ -893,15 +893,6 @@ export default class GPTAssistantAPIServerController {
                 .exec_as_server()
                 .select_vo<GPTAssistantAPIThreadMessageVO>();
 
-            asking_message_vo = await this.get_asking_message(
-                thread_vo,
-                last_thread_msg,
-                user_id,
-                content_text,
-                files,
-                hide_prompt
-            );
-
             //  La discussion est en place, on peut demander à l'assistant de répondre
             const run_vo = new GPTAssistantAPIRunVO();
             run_vo.assistant_id = assistant_vo.id;
@@ -957,6 +948,15 @@ export default class GPTAssistantAPIServerController {
                 user_id,
                 referrer_id,
                 generate_voice_summary,
+            );
+
+            asking_message_vo = await this.get_asking_message(
+                thread_vo,
+                last_thread_msg,
+                user_id,
+                content_text,
+                files,
+                hide_prompt
             );
 
             // à cette étape, le RUN est lancé côté OpenAI, on peut faire les chargements potentiellement nécessaires pour les fonctions
@@ -1137,6 +1137,7 @@ export default class GPTAssistantAPIServerController {
 
     private static async get_asking_message(
         thread_vo: GPTAssistantAPIThreadVO,
+        oselia_run: OseliaRunVO,
         last_thread_msg: GPTAssistantAPIThreadMessageVO,
         user_id: number,
         new_msg_content_text: string,
@@ -1150,6 +1151,9 @@ export default class GPTAssistantAPIServerController {
         if (new_msg_content_text || (new_msg_files && new_msg_files.length)) {
 
             asking_message_vo = new GPTAssistantAPIThreadMessageVO();
+
+            asking_message_vo.oselia_run_id = oselia_run ? oselia_run.id : null;
+            asking_message_vo.autogen_voice_summary = oselia_run.generate_voice_summary;
 
             if (new_msg_files && new_msg_files.length) {
 
