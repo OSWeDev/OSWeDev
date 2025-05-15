@@ -823,6 +823,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
         contact_id.set_many_to_one_target_moduletable_name(this.contact_type_id);
     }
 
+    // protected init_oselia_cr_tools(){
+    //     await this.init_oselia_cr_project_tools();
+
+    // }
+
+
     protected abstract callInitializePlanProgramCategory();
     protected abstract callInitializePlanContactType();
     protected abstract callInitializePlanFacilitatorRegion();
@@ -847,4 +853,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
     protected abstract callInitializePlanPartner();
     protected abstract callInitializePlanTargetFacilitator();
     protected abstract callInitializePlanTargetGroupContact();
+
+    protected abstract init_oselia_cr_project_tools();
 }

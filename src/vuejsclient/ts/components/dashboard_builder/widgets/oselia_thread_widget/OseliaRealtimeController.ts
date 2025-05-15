@@ -33,9 +33,11 @@ export default class OseliaRealtimeController {
 
     private call_thread: GPTAssistantAPIThreadVO | null = null;
     private cr_vo: IPlanRDVCR | null = null;
+    private cr_type: string | null = null;
     private in_cr_context: boolean = false;
     private is_playing: boolean = false;
-
+    private ctx: AudioContext | null = null;
+    private src: AudioBufferSourceNode | null = null;
 
     public static getInstance() {
         if (!OseliaRealtimeController.instance) {
@@ -58,13 +60,15 @@ export default class OseliaRealtimeController {
         await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('OseliaStore/set_current_thread', null);
     }
 
-    public async connect_to_realtime(cr_vo?: IPlanRDVCR) {
-        if(cr_vo) {
+    public async connect_to_realtime(cr_vo?: IPlanRDVCR, cr_type?: string) {
+        if(cr_vo && cr_type) {
             this.in_cr_context = true;
             this.cr_vo = cr_vo;
+            this.cr_type = cr_type;
         } else {
             this.in_cr_context = false;
             this.cr_vo = null;
+            this.cr_type = null;
         }
         // On a déjà lancé sur un autre CR, on met à jour le thread
         if (this.is_connected_to_realtime) {
@@ -102,7 +106,7 @@ export default class OseliaRealtimeController {
             await this.connect_to_server(call_thread?.gpt_thread_id);
         }
         if (this.in_cr_context) {
-            if (this.cr_vo) {
+            if (this.cr_vo && this.cr_type) {
                 // await this.send_function_to_realtime();
                 await this.send_cr_to_realtime();
             }
@@ -162,7 +166,6 @@ export default class OseliaRealtimeController {
         this.socket = null;
         this.is_connected_to_realtime = false;
         this.connection_ready = false;
-
         if (this.call_thread && this.call_thread.realtime_activated) {
             this.call_thread.realtime_activated = false;
             await ModuleDAO.getInstance().insertOrUpdateVO(this.call_thread);
@@ -278,21 +281,43 @@ export default class OseliaRealtimeController {
     }
 
     private playAudio(pcmData: Uint8Array) {
+        this.stopPlaying();
+
         this.is_playing = true;
-        const ctx = new AudioContext({ sampleRate: 24000 });
+        this.ctx = new AudioContext({ sampleRate: 24000 });
+
         const samples = pcmData.length / 2;
-        const buf = ctx.createBuffer(1, samples, 24000);
+        const buf = this.ctx.createBuffer(1, samples, 24000);
         const chan = buf.getChannelData(0);
         const dv = new DataView(pcmData.buffer);
+
         for (let i = 0; i < samples; i++) chan[i] = dv.getInt16(i * 2, true) / 32768;
-        const src = ctx.createBufferSource();
-        src.buffer = buf;
-        src.connect(ctx.destination);
-        src.start();
-        src.onended = () => {
+
+        this.src = this.ctx.createBufferSource();
+        this.src.buffer = buf;
+        this.src.connect(this.ctx.destination);
+        this.src.start();
+
+        this.src.onended = () => {
             this.is_playing = false;
-            ctx.close();
+            if (this.ctx) {
+                this.ctx.close();
+                this.ctx = null;
+            }
+            this.src = null;
         };
+    }
+
+    private stopPlaying() {
+        if (this.src) {
+            this.src.stop();
+            this.src = null;
+        }
+        if (this.ctx) {
+            this.ctx.close();
+            this.ctx = null;
+        }
+        this.is_playing = false;
     }
 
     private emitReady(state: boolean) {
@@ -314,6 +339,7 @@ export default class OseliaRealtimeController {
             this.socket.send(JSON.stringify({
                 type: "cr_data",
                 cr_vo: this.cr_vo,
+                cr_type: this.cr_type,
             }));
         }
     }

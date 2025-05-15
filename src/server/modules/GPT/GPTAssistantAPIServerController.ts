@@ -48,6 +48,7 @@ interface ConversationContext {
     openaiSocket: WebSocket;
     clients: Set<WebSocket>;
     cr_vo?: unknown;
+    cr_type?: string;
 }
 export default class GPTAssistantAPIServerController {
 
@@ -1208,6 +1209,9 @@ export default class GPTAssistantAPIServerController {
                                     if (msg.cr_vo) {
                                         convCtx.cr_vo = msg.cr_vo;
                                     }
+                                    if(msg.cr_type) {
+                                        convCtx.cr_type = msg.cr_type;
+                                    }
                                 } else {
                                     if (convCtx.openaiSocket.readyState === WebSocket.OPEN) {
                                         convCtx.openaiSocket.send(str);
@@ -1285,11 +1289,11 @@ export default class GPTAssistantAPIServerController {
                         input_audio_format: "pcm16",
                         turn_detection: {
                             type: "server_vad",          // ou "semantic_vad" ou "none"
-                            threshold: 0.5,
-                            silence_duration_ms: 2000,
+                            threshold: 0.7,
+                            silence_duration_ms: 1000,
                             prefix_padding_ms: 300,
                             create_response: true,
-                            interrupt_response: false,
+                            interrupt_response: true,
                         },
                         voice: 'alloy',
                         instructions:
@@ -1346,17 +1350,17 @@ export default class GPTAssistantAPIServerController {
                                     content: [
                                         {
                                             type: "input_text",
-                                            text: "Salut, tu peux m'aider à rédiger un compte rendu ?",
+                                            text: "[CECI N'EST PAS UN MESSAGE DE L'UTILISATEUR] - Dit bonjour à l'utilisateur et explique que tu es la pour l'assister dans la rédaction de son compte rendu.",
                                         }
                                     ]
                                 },
                             }));
                         }
                     } else if (msg?.type === 'response.output_item.done' && msg.item?.name === 'edit_cr_word') {
-                        ConsoleHandler.log('OpenAI -> Server : edit_cr_word', msg, convCtx.cr_vo);
+                        ConsoleHandler.log('OpenAI -> Server : edit_cr_word', msg, convCtx.cr_vo, convCtx.cr_type);
                         // Exécution côté serveur
-                        // const args = JSON.parse(msg.item.arguments);
-                        // await ModuleProgramPlanServerBase.edit_cr_word(args.term_to_modify, args.new_term, convCtx.cr_vo);
+                        const args = JSON.parse(msg.item.arguments);
+                        await ModuleProgramPlanServerBase.edit_cr_word(args.new_content, convCtx.cr_vo, convCtx.cr_type);
                     } else if (msg?.type === 'conversation.item.created' && msg.item?.role === 'user') {
                         openaiSocket.send(JSON.stringify({
                             type: 'response.create',

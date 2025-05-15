@@ -1,0 +1,10 @@
+import IDistantVOBase from '../../IDistantVOBase';
+
+
+export default interface IPlanRDVType extends IDistantVOBase {
+    template: string;
+    html_default_contents: string[];
+    field_titles: string[];
+    needs_grille_engagement: boolean;
+    empty_grille_engagement_filevo_id: number;
+}
