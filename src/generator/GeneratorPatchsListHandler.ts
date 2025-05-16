@@ -260,10 +260,6 @@ export default class GeneratorPatchsListHandler {
         Patch20250331RenameFavoriteFilterOptions.getInstance(),
         Patch20250331RemoveValueTables.getInstance(),
 
-        Patch20250505AddOseliaAssistantTraduction.getInstance(),
-        Patch20250505AddOseliaRunTemplate_AssistantTraduction.getInstance(),
-
-
         Patch20250506AddOseliaFunction_OSELIA_agent_mem_set_mem.getInstance(),
         Patch20250506AddOseliaFunction_OSELIA_app_mem_set_mem.getInstance(),
         Patch20250506AddOseliaFunction_OSELIA_user_mem_set_mem.getInstance(),
@@ -275,6 +271,9 @@ export default class GeneratorPatchsListHandler {
         Patch20250506AddOseliaFunction_OSELIA_agent_mem_get_keys.getInstance(),
         Patch20250506AddOseliaFunction_OSELIA_app_mem_get_keys.getInstance(),
         Patch20250506AddOseliaFunction_OSELIA_user_mem_get_keys.getInstance(),
+
+        Patch20250505AddOseliaAssistantTraduction.getInstance(),
+        Patch20250505AddOseliaRunTemplate_AssistantTraduction.getInstance(),
 
         Patch20250507DebugFavoritFiltersLimits.getInstance(),
 
