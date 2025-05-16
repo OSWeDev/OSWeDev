@@ -138,6 +138,8 @@ export default class ModuleEnvParam extends Module {
         // MAX_UNION_ALL_PER_QUERY ?: number;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_union_all_per_query, ModuleTableFieldVO.FIELD_TYPE_int, 'Max union all per query', false);
 
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().dont_use_default_translations, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Ne pas utiliser les traductions par défaut', true, true, false);
+
         // MUTE__NO_SORT_BY_BUT_QUERY_LIMIT ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().mute__no_sort_by_but_query_limit, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Mute no sort by but query limit', true);
 

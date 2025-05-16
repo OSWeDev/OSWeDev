@@ -22,6 +22,8 @@ export default interface IEnvParam {
     server_encoding: string;
     console_log_to_file: boolean;
 
+    dont_use_default_translations?: boolean;
+
     max_varsprocessdeploydeps?: number;
     max_varsprocessloaddatas?: number;
     max_varsprocessdagcleaner?: number;

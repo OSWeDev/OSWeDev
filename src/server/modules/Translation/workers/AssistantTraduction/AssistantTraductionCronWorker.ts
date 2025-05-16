@@ -319,6 +319,24 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
             // On ajoute un message indiquant le choix de l'assistant
             await this.push_message_to_oselia(thread_vo, text_choix);
 
+
+            if (thread_vo.last_oselia_run_id) {
+                const demande_assistant_traduction = await query(DemandeAssistantTraductionVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<DemandeAssistantTraductionVO>().text_id, missing_elt_id)
+                    .filter_by_num_eq(field_names<DemandeAssistantTraductionVO>().lang_id, missing_elt_lang_id)
+                    .filter_by_num_eq(field_names<DemandeAssistantTraductionVO>().oselia_run_id, thread_vo.last_oselia_run_id)
+                    .exec_as_server()
+                    .select_vo<DemandeAssistantTraductionVO>();
+
+                if (demande_assistant_traduction) {
+                    demande_assistant_traduction.traduction = traduction;
+                    demande_assistant_traduction.degre_certitude = degre_certitude;
+                    demande_assistant_traduction.explication = explication;
+                    demande_assistant_traduction.traduction_appliquee = degre_certitude >= MIN_CONFIDENT_LEVEL;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(demande_assistant_traduction);
+                }
+            }
+
             if (degre_certitude < MIN_CONFIDENT_LEVEL) {
                 // On ne met pas à jour la traduction si le degré de certitude est trop faible
                 ConsoleHandler.warn('AssistantTraductionCronWorker:set_translation:Le degré de certitude est <b>' + degre_certitude + ' < ' + MIN_CONFIDENT_LEVEL + '</b>, il faut vérifier manuellement et confirmer la traduction qui a été proposée. La création n\'est pas automatique.');
@@ -483,6 +501,8 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
         demande_assistant_traduction.lang_id = lang.id;
         demande_assistant_traduction.text_id = missing_elt.id;
         demande_assistant_traduction.oselia_run_id = oselia_run.id;
+        demande_assistant_traduction.code_text = missing_elt.code_text;
+        demande_assistant_traduction.code_lang = lang.code_lang;
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(demande_assistant_traduction);
 
         PerfReportController.add_event(
