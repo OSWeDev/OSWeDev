@@ -931,19 +931,12 @@ export default class GPTAssistantAPIServerController {
             if (additional_run_tools && additional_run_tools.length) {
                 run_vo.tools = await GPTAssistantAPIServerSyncAssistantsController.get_tools_definition_from_functions(Object.values(availableFunctions));
             }
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run_vo);
-
-            // On lie le run à la discussion
-            thread_vo.last_gpt_run_id = run_vo.id;
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
 
             // On gère la liaison à l'OséliaRun, on le crée au besoin
             oselia_run = await GPTAssistantAPIServerController.link_oselia_run_to_thread(
                 content_text,
                 thread_vo,
-                run_vo,
                 oselia_run,
-                oselia_run_purpose_state,
                 assistant_vo.id,
                 user_id,
                 referrer_id,
@@ -952,6 +945,7 @@ export default class GPTAssistantAPIServerController {
 
             asking_message_vo = await this.get_asking_message(
                 thread_vo,
+                oselia_run,
                 last_thread_msg,
                 user_id,
                 content_text,
@@ -1006,6 +1000,30 @@ export default class GPTAssistantAPIServerController {
 
             try {
 
+                // On lance le run
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run_vo);
+
+                // On a le run_id on en profite pour recoller à tous les vos importants
+                // On lie le run à la discussion
+                thread_vo.last_gpt_run_id = run_vo.id;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
+
+                // et à l'osélia run
+                switch (oselia_run_purpose_state) {
+                    case OseliaRunVO.STATE_SPLITTING:
+                        oselia_run.split_gpt_run_id = run_vo.id;
+                        break;
+                    case OseliaRunVO.STATE_RUNNING:
+                    default:
+                        oselia_run.run_gpt_run_id = run_vo.id;
+                        break;
+                    case OseliaRunVO.STATE_VALIDATING:
+                        oselia_run.validation_gpt_run_id = run_vo.id;
+                        break;
+                }
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run);
+
+                // On attend la résolution du run
                 await GPTAssistantAPIServerController.handle_run(
                     run_vo,
                     oselia_run,
@@ -1016,33 +1034,24 @@ export default class GPTAssistantAPIServerController {
                     referrer,
                     referrer_external_api_by_name,
                 );
+
             } catch (error) {
                 ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: handle_run: ' + error);
                 await GPTAssistantAPIServerController.close_thread_oselia(thread_vo);
                 return null;
             }
 
-            // Par défaut ça charge les 20 derniers messages, et en ajoutant after on a les messages après le asking_message - donc les réponses finalement
-            // const thread_messages = await ModuleGPTServer.openai.beta.threads.messages.list(thread_vo.gpt_thread_id, (asking_message_vo && asking_message_vo.gpt_id) ? {
-            //     before: asking_message_vo.gpt_id
-            // } : null);
+            // TODO fixme : faire du tri dans ce qui est encore pertinent / nécessaire pour les synchros, et ce qui fait juste perdre du temps...
+            await all_promises([
+                GPTAssistantAPIServerController.close_thread_oselia(thread_vo),
+                (async () => {
+                    const run = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.retrieve, ModuleGPTServer.openai.beta.threads.runs, thread_vo.gpt_thread_id, run_vo.gpt_run_id);
+                    await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(run_vo, run);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run_vo);
+                })(),
+            ]);
 
-            // const res: GPTAssistantAPIThreadMessageVO[] = [];
-
-            // for (const i in thread_messages.data) {
-            //     const thread_message: Message = thread_messages.data[i];
-
-
-            //     res.push(await GPTAssistantAPIServerController.check_or_create_message_vo(thread_message, thread_vo));
-            // }
-
-            await GPTAssistantAPIServerController.close_thread_oselia(thread_vo);
-
-            const run = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.retrieve, ModuleGPTServer.openai.beta.threads.runs, thread_vo.gpt_thread_id, run_vo.gpt_run_id);
-            await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(run_vo, run);
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run_vo);
-
-
+            // On récupère les nouveaux messages => réponses de gpt
             new_messages = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
                 .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
                 .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
@@ -1123,16 +1132,17 @@ export default class GPTAssistantAPIServerController {
     }
 
     private static async close_thread_oselia(thread_vo: GPTAssistantAPIThreadVO) {
-        await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
-
-        await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
-            .filter_by_id(thread_vo.id)
-            .exec_as_server()
-            .update_vos<GPTAssistantAPIThreadVO>({
-                oselia_is_running: false,
-                current_oselia_assistant_id: null,
-                current_oselia_prompt_id: null,
-            });
+        await all_promises([
+            GPTAssistantAPIServerController.resync_thread_messages(thread_vo),
+            query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                .filter_by_id(thread_vo.id)
+                .exec_as_server()
+                .update_vos<GPTAssistantAPIThreadVO>({
+                    oselia_is_running: false,
+                    current_oselia_assistant_id: null,
+                    current_oselia_prompt_id: null,
+                }),
+        ]);
     }
 
     private static async get_asking_message(
@@ -1657,9 +1667,7 @@ export default class GPTAssistantAPIServerController {
     private static async link_oselia_run_to_thread(
         prompt: string,
         thread_vo: GPTAssistantAPIThreadVO,
-        run_vo,
         oselia_run: OseliaRunVO,
-        oselia_run_purpose_state: number,
         assistant_id: number,
         user_id: number,
         referrer_id: number,
@@ -1706,25 +1714,14 @@ export default class GPTAssistantAPIServerController {
             oselia_run.use_validator = ask_assistant_run_template.use_validator;
             oselia_run.weight = weight;
             oselia_run.referrer_id = referrer_id;
-
-            oselia_run_purpose_state = OseliaRunVO.STATE_RUNNING;
         }
 
         oselia_run.generate_voice_summary = oselia_run.generate_voice_summary || generate_voice_summary;
-        switch (oselia_run_purpose_state) {
-            case OseliaRunVO.STATE_SPLITTING:
-                oselia_run.split_gpt_run_id = run_vo.id;
-                break;
-            case OseliaRunVO.STATE_RUNNING:
-                oselia_run.run_gpt_run_id = run_vo.id;
-                break;
-            case OseliaRunVO.STATE_VALIDATING:
-                oselia_run.validation_gpt_run_id = run_vo.id;
-                break;
-            default:
-                throw new Error('ask_assistant:oselia_run_purpose_state:Not implemented');
-        }
         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run);
+
+        // Et l'inverse : on lie la discussion à l'osélia run
+        thread_vo.last_oselia_run_id = oselia_run.id;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
 
         return oselia_run;
     }

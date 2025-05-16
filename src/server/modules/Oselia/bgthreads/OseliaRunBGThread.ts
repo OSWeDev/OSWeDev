@@ -365,6 +365,12 @@ export default class OseliaRunBGThread implements IBGThread {
         assistant: GPTAssistantAPIAssistantVO,
     ) {
 
+        // Si le thread ne référence pas ce run comme étant l'actif, il faut faire la modif
+        if (thread.last_oselia_run_id != run.id) {
+            thread.last_oselia_run_id = run.id;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread);
+        }
+
         switch (run.run_type) {
 
             case OseliaRunVO.RUN_TYPE_FOREACH_IN_SEPARATED_THREADS:

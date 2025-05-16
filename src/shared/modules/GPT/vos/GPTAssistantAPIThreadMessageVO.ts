@@ -97,6 +97,8 @@ export default class GPTAssistantAPIThreadMessageVO implements IDistantVOBase {
     public thread_id: number;
 
     public oselia_run_id: number;
+
+    public autogen_voice_summary_done: boolean;
     public autogen_voice_summary: boolean;
     public autogen_tts_id: number;
 

@@ -29,7 +29,8 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
         "OseliaRunVO.STATE_CANCELLED",
         "OseliaRunVO.STATE_EXPIRED",
         "OseliaRunVO.STATE_NEEDS_RERUN",
-        "OseliaRunVO.STATE_RERUN_ASKED"
+        "OseliaRunVO.STATE_RERUN_ASKED",
+        "OseliaRunVO.STATE_INITIALIZING",
     ];
     public static STATE_TODO: number = 0;
     public static STATE_SPLITTING: number = 1;
@@ -46,6 +47,7 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
     public static STATE_EXPIRED: number = 12;
     public static STATE_NEEDS_RERUN: number = 13;
     public static STATE_RERUN_ASKED: number = 14;
+    public static STATE_INITIALIZING: number = 15;
 
 
     public id: number;

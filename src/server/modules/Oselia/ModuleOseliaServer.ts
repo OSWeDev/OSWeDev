@@ -368,6 +368,9 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Réexecution demandée' },
             'OseliaRunVO.STATE_RERUN_ASKED'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'En cours de paramétrage' },
+            'OseliaRunVO.STATE_INITIALIZING'));
 
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaThreadTitleBuilderBGThread.getInstance());
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaOldRunsResyncBGThread.getInstance());

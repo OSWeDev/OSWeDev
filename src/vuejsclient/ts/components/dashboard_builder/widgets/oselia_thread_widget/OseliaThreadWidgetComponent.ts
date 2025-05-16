@@ -120,6 +120,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     public selectable_assistants: GPTAssistantAPIAssistantVO[] = [];
 
     public auto_commit_auto_input: boolean = (Cookies.get("auto_commit_auto_input") === "true");
+    public audio_message_summary_playlist_paths: string[] = [];
 
     public thread_cached_datas: OseliaThreadCacheVO[] = [];
     public sub_threads: GPTAssistantAPIThreadVO[] = [];
@@ -164,13 +165,12 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private media_recorder: MediaRecorder = null;
     private audio_chunks: Blob[] = [];
 
-    private auto_play_new_run_audio_summaries: boolean = false;
-    private last_run_id_checked_for_audio_summary: number = null;
+    // private auto_play_new_run_audio_summaries: boolean = false;
+    // private last_run_id_checked_for_audio_summary: number = null;
+    private already_read_message_ids: { [message_id: number]: boolean } = {};
+    private thread_already_read_message_ids_initialised: boolean = false;
 
     private functions_by_id: { [id: number]: GPTAssistantAPIFunctionVO } = {};
-
-    private audio_message_summary_playlist_paths: string[] = [];
-    private already_listed_audio_message_summaries_paths: { [path: string]: boolean } = {};
 
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(
         'OseliaThreadWidgetComponent.throttle_load_thread',
@@ -189,14 +189,32 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     @Watch(reflect<OseliaThreadWidgetComponent>().thread_messages, { deep: true })
-    private async on_change_thread_messages() {
+    private on_change_thread_messages() {
+        this.push_new_audio_summaries();
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 1000,
+    })
+    private async push_new_audio_summaries() {
         // Dans tous les cas, si un message arrive avec un fichier audio, on le marque comme lu (qu'il soit lancé ou pas)
         // Si on est en mode audio, et qu'on a un nouveau message qui contient un audio, et qu'on l'a pas encore joué, on le pousse dans la playlist
+
+        if (!this.thread_messages || this.thread_messages.length == 0) {
+            return;
+        }
 
         for (const i in this.thread_messages) {
             const thread_message = this.thread_messages[i];
 
-            if (this.already_read_audio_message_summaries_by_message_id[thread_message.id]) {
+            // Si c'est le premier chargement, on stocke juste les paths/message_ids pour se dire qu'on veut pas les lire ceux-là, on lira que les nouveaux après
+            if (!this.thread_already_read_message_ids_initialised) {
+                this.already_read_message_ids[thread_message.id] = true;
+                continue;
+            }
+
+            if (this.already_read_message_ids[thread_message.id]) {
                 continue;
             }
 
@@ -211,7 +229,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 continue;
             }
 
-            this.last_run_id_checked_for_audio_summary = run.id;
             const audio = new Audio(voice_summary.path);
             try {
                 await audio.play();
@@ -221,9 +238,46 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
             this.audio_message_summary_playlist_paths.push(voice_summary.path);
         }
+
+        this.thread_already_read_message_ids_initialised = true;
     }
 
-    TODO lecture audio
+    @Watch(reflect<OseliaThreadWidgetComponent>().audio_message_summary_playlist_paths, { deep: true })
+    private on_change_audio_message_summary_playlist_paths() {
+        this.read_next_audio_summary();
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 100,
+    })
+    private async read_next_audio_summary() {
+        if (!this.audio_message_summary_playlist_paths || this.audio_message_summary_playlist_paths.length == 0) {
+            return;
+        }
+
+        const audio_summary_path = this.audio_message_summary_playlist_paths.shift();
+        const audio = new Audio(audio_summary_path);
+
+        try {
+            await audio.play();
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        audio.onended = () => {
+            this.read_next_audio_summary();
+        };
+
+        audio.onerror = (error) => {
+            ConsoleHandler.error(JSON.stringify(error));
+            this.read_next_audio_summary();
+        };
+
+        audio.onabort = () => {
+            this.read_next_audio_summary();
+        };
+    }
 
     @Watch(reflect<OseliaThreadWidgetComponent>().currently_selected_assistant)
     private async on_change_currently_selected_assistant() {
@@ -278,7 +332,12 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     @Watch(reflect<OseliaThreadWidgetComponent>().thread, { immediate: true })
-    private async onchange_thread() {
+    private async onchange_thread(new_thread, old_thread) {
+
+        if (!(new_thread && old_thread && (new_thread.id == old_thread.id))) {
+            this.thread_already_read_message_ids_initialised = false;
+        }
+
         this.throttle_register_thread();
     }
 
@@ -303,53 +362,53 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
     }
 
-    @Watch('oselia_runs', { deep: true })
-    private async on_update_oselia_runs() {
-        this.check_next_audio_summary();
-    }
+    // @Watch('oselia_runs', { deep: true })
+    // private async on_update_oselia_runs() {
+    //     this.check_next_audio_summary();
+    // }
 
-    @Throttle({
-        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
-        throttle_ms: 100,
-    })
-    private async check_next_audio_summary() {
+    // @Throttle({
+    //     param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+    //     throttle_ms: 100,
+    // })
+    // private async check_next_audio_summary() {
 
-        if (!this.auto_play_new_run_audio_summaries) {
-            if (this.oselia_runs && this.oselia_runs.length > 0) {
-                this.last_run_id_checked_for_audio_summary = Math.max(...this.oselia_runs.map((run) => run.id));
-            } else {
-                this.last_run_id_checked_for_audio_summary = null;
-            }
-            return;
-        }
+    //     if (!this.auto_play_new_run_audio_summaries) {
+    //         if (this.oselia_runs && this.oselia_runs.length > 0) {
+    //             this.last_run_id_checked_for_audio_summary = Math.max(...this.oselia_runs.map((run) => run.id));
+    //         } else {
+    //             this.last_run_id_checked_for_audio_summary = null;
+    //         }
+    //         return;
+    //     }
 
-        if (this.oselia_runs?.length > 0) {
-            for (const run of this.oselia_runs) {
-                if (run.id <= this.last_run_id_checked_for_audio_summary) {
-                    continue;
-                }
+    //     if (this.oselia_runs?.length > 0) {
+    //         for (const run of this.oselia_runs) {
+    //             if (run.id <= this.last_run_id_checked_for_audio_summary) {
+    //                 continue;
+    //             }
 
-                if (!run.voice_summary_id) {
-                    continue;
-                }
+    //             if (!run.voice_summary_id) {
+    //                 continue;
+    //             }
 
-                const voice_summary = await query(FileVO.API_TYPE_ID)
-                    .filter_by_id(run.voice_summary_id)
-                    .select_vo<FileVO>();
-                if (!voice_summary) {
-                    continue;
-                }
+    //             const voice_summary = await query(FileVO.API_TYPE_ID)
+    //                 .filter_by_id(run.voice_summary_id)
+    //                 .select_vo<FileVO>();
+    //             if (!voice_summary) {
+    //                 continue;
+    //             }
 
-                this.last_run_id_checked_for_audio_summary = run.id;
-                const audio = new Audio(voice_summary.path);
-                try {
-                    await audio.play();
-                } catch (error) {
-                    ConsoleHandler.error(error);
-                }
-            }
-        }
-    }
+    //             this.last_run_id_checked_for_audio_summary = run.id;
+    //             const audio = new Audio(voice_summary.path);
+    //             try {
+    //                 await audio.play();
+    //             } catch (error) {
+    //                 ConsoleHandler.error(error);
+    //             }
+    //         }
+    //     }
+    // }
 
     private select_thread_id(thread_id: number) {
         this.set_active_field_filter({
@@ -907,7 +966,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 return;
             }
 
-            this.auto_play_new_run_audio_summaries = false;
+            // this.auto_play_new_run_audio_summaries = false;
             await ModuleGPT.getInstance().ask_assistant(
                 gpt_assistant_id,
                 self.thread.gpt_thread_id,
@@ -1102,12 +1161,12 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                     }
 
                     const auto_commit_auto_input = this.auto_commit_auto_input;
-                    this.auto_play_new_run_audio_summaries = auto_commit_auto_input;
+                    // this.auto_play_new_run_audio_summaries = auto_commit_auto_input;
 
-                    // On stocke le dernier run connu avant la demande pour identifier rapidement le nouveau run dont on veut entendre le résumé
-                    if ((this.auto_play_new_run_audio_summaries) && (this.oselia_runs && this.oselia_runs.length > 0)) {
-                        this.last_run_id_checked_for_audio_summary = Math.max(...this.oselia_runs.map((run) => run.id));
-                    }
+                    // // On stocke le dernier run connu avant la demande pour identifier rapidement le nouveau run dont on veut entendre le résumé
+                    // if ((this.auto_play_new_run_audio_summaries) && (this.oselia_runs && this.oselia_runs.length > 0)) {
+                    //     this.last_run_id_checked_for_audio_summary = Math.max(...this.oselia_runs.map((run) => run.id));
+                    // }
 
                     const gpt_assistant_id = this.assistant?.gpt_assistant_id ? this.assistant.gpt_assistant_id : this.currently_selected_assistant?.gpt_assistant_id;
                     const assistant_id = this.assistant?.id ? this.assistant.id : this.currently_selected_assistant?.id;

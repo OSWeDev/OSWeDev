@@ -40,9 +40,30 @@ export default class SuperviseurAssistantTraductionServerController {
                 ConsoleHandler.log('SuperviseurAssistantTraductionServerController:get_codes_that_need_translation:Récupération des codes à traduire pour le pattern: "' + pattern + '", la langue : "' + code_lang + '" et le thread: ' + thread_vo.id);
             }
 
+            // On vérifie le code langue et si ça existe pas, on renvoie les langues disponibles
+            const langs = await query(LangVO.API_TYPE_ID)
+                .exec_as_server()
+                .select_vos<LangVO>();
+            if (!langs) {
+                ConsoleHandler.error('SuperviseurAssistantTraductionServerController:get_codes_that_need_translation:Aucune langue n\'a été trouvée dans le système');
+                return 'Erreur : Aucune langue n\'a été trouvée dans le système. Une intervention technique est nécessaire.';
+            }
+
             if (!code_lang) {
                 ConsoleHandler.error('SuperviseurAssistantTraductionServerController:get_codes_that_need_translation:Aucune langue n\'a été fournie');
-                return 'Erreur : Aucune langue n\'a été fournie. Il est obligatoire de fournir ce paramètre.';
+
+                // On renvoie les langues disponibles
+                let res: string = '';
+                res += langs.map((l) => l.code_lang).join('\n');
+                return 'Erreur : Aucune langue n\'a été fournie. Il est obligatoire de fournir ce paramètre. Voici les langues disponibles :\n' + res;
+            }
+
+            if (!langs.find((l) => l.code_lang === code_lang)) {
+                ConsoleHandler.error('SuperviseurAssistantTraductionServerController:get_codes_that_need_translation:La langue fournie n\'existe pas dans le système');
+                // On renvoie les langues disponibles
+                let res: string = '';
+                res += langs.map((l) => l.code_lang).join('\n');
+                return 'Erreur : La langue fournie n\'existe pas dans le système. Voici les langues disponibles :\n' + res;
             }
 
             let regexp: RegExp = null;
@@ -101,7 +122,7 @@ export default class SuperviseurAssistantTraductionServerController {
                 return 'Aucun élément de traduction manquant trouvé avec ce pattern pour cette langue.';
             }
 
-            let res: string = 'Codes de traduction dont la traduction est manquante dans la langue "' + code_lang + '" correspondant au pattern /' + pattern + '/ (max 100 codes) :\n';
+            let res: string = 'Codes de traduction dont la traduction est manquante dans la langue "' + code_lang + '" correspondant au pattern /' + pattern + '/ (max 100 codes - 1 par ligne) :\n';
             res += missing_elts.map((ct) => ct.code_text).join('\n');
 
             if (ConfigurationService.node_configuration.debug_assistant_traduction) {
