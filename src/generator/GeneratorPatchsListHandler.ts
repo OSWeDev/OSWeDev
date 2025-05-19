@@ -83,6 +83,10 @@ import Patch20250509AddOselia_Superviseur_AssistantTraduction from './patchs/pos
 import Patch20250509AddOseliaFunction_OSELIA_get_codes_that_need_translation from './patchs/postmodules/Patch20250509AddOseliaFunction_OSELIA_get_codes_that_need_translation';
 import Patch20250509AddOseliaFunction_OSELIA_instantiate_assistant_traduction from './patchs/postmodules/Patch20250509AddOseliaFunction_OSELIA_instantiate_assistant_traduction';
 import Patch20250509AddOseliaFunction_OSELIA_push_message_to_supervised_thread_id from './patchs/postmodules/Patch20250509AddOseliaFunction_OSELIA_push_message_to_supervised_thread_id';
+import Patch20250512AddOseliaFunction_OSELIA_get_langs from './patchs/postmodules/Patch20250512AddOseliaFunction_OSELIA_get_langs';
+import Patch20250512AddOseliaRunTemplate_AskAssistant from './patchs/postmodules/Patch20250512AddOseliaRunTemplate_AskAssistant';
+import Patch20250512AddOseliaRunTemplate_NewDatasForSupervisor from './patchs/postmodules/Patch20250512AddOseliaRunTemplate_NewDatasForSupervisor';
+import Patch20250512OSELIA_ActivateFunction_getLangs_OnAssistant_SuperviseurTraduction from './patchs/postmodules/Patch20250512OSELIA_ActivateFunction_getLangs_OnAssistant_SuperviseurTraduction';
 import Patch20122024TruncateLogsUpdated from './patchs/premodules/Patch20122024TruncateLogsUpdated';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
@@ -260,10 +264,6 @@ export default class GeneratorPatchsListHandler {
         Patch20250422SetGraphDetailed.getInstance(),
         Patch20250331RemoveValueTables.getInstance(),
 
-        Patch20250505AddOseliaAssistantTraduction.getInstance(),
-        Patch20250505AddOseliaRunTemplate_AssistantTraduction.getInstance(),
-
-
         Patch20250506AddOseliaFunction_OSELIA_agent_mem_set_mem.getInstance(),
         Patch20250506AddOseliaFunction_OSELIA_app_mem_set_mem.getInstance(),
         Patch20250506AddOseliaFunction_OSELIA_user_mem_set_mem.getInstance(),
@@ -276,6 +276,9 @@ export default class GeneratorPatchsListHandler {
         Patch20250506AddOseliaFunction_OSELIA_app_mem_get_keys.getInstance(),
         Patch20250506AddOseliaFunction_OSELIA_user_mem_get_keys.getInstance(),
 
+        Patch20250505AddOseliaAssistantTraduction.getInstance(),
+        Patch20250505AddOseliaRunTemplate_AssistantTraduction.getInstance(),
+
         Patch20250507DebugFavoritFiltersLimits.getInstance(),
 
         Patch20250509AddOseliaFunction_OSELIA_get_codes_that_need_translation.getInstance(),
@@ -283,5 +286,11 @@ export default class GeneratorPatchsListHandler {
         Patch20250509AddOseliaFunction_OSELIA_push_message_to_supervised_thread_id.getInstance(),
 
         Patch20250509AddOselia_Superviseur_AssistantTraduction.getInstance(),
+        Patch20250512AddOseliaRunTemplate_AskAssistant.getInstance(),
+
+        Patch20250512AddOseliaRunTemplate_NewDatasForSupervisor.getInstance(),
+
+        Patch20250512AddOseliaFunction_OSELIA_get_langs.getInstance(),
+        Patch20250512OSELIA_ActivateFunction_getLangs_OnAssistant_SuperviseurTraduction.getInstance(),
     ];
 }

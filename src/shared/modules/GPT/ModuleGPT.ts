@@ -97,7 +97,8 @@ export default class ModuleGPT extends Module {
         content: string,
         files: FileVO[],
         user_id: number,
-        hide_content: boolean
+        hide_content: boolean,
+        generate_voice_summary: boolean,
     ) => Promise<GPTAssistantAPIThreadMessageVO[]> = APIControllerWrapper.sah<APIGPTAskAssistantParam, GPTAssistantAPIThreadMessageVO[]>(ModuleGPT.APINAME_ask_assistant);
 
     public get_tts_file: (message_content_id: number) => Promise<FileVO> = APIControllerWrapper.sah_optimizer<NumberParamVO, FileVO>(this.name, reflect<this>().get_tts_file);
@@ -692,6 +693,13 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().piped_from_thread_message_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Piped from - Message', false)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadMessageVO.API_TYPE_ID);
 
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().oselia_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Run Osélia', false)
+            .set_many_to_one_target_moduletable_name(OseliaRunVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().autogen_voice_summary, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Générer automatiquement le résumé vocal', true, true, false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().autogen_tts_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Résumé audio', false)
+            .set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().autogen_voice_summary_done, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Résumé vocal généré', true, true, false);
+
         ModuleTableController.create_new(this.name, GPTAssistantAPIThreadMessageVO, label, 'GPT Assistant API - Thread Message');
     }
 
@@ -735,6 +743,7 @@ export default class ModuleGPT extends Module {
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().piped_from_thread_message_content_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Piped from - Message Content', false)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().autogen_voice_summary_done, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Résumé vocal généré', true, true, false);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIThreadMessageContentVO, null, 'GPT Assistant API - Thread Message Content');
     }

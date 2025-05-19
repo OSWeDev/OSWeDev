@@ -96,6 +96,11 @@ export default class GPTAssistantAPIThreadMessageVO implements IDistantVOBase {
     public gpt_thread_id: string;
     public thread_id: number;
 
+    public oselia_run_id: number;
+
+    public autogen_voice_summary_done: boolean;
+    public autogen_voice_summary: boolean;
+    public autogen_tts_id: number;
 
     /**
      * Le prompt, si l'assistant vient de répondre à un prompt l'assistant_id est aussi saisi, sinon c'est le prompt en lui même
@@ -151,6 +156,8 @@ export default class GPTAssistantAPIThreadMessageVO implements IDistantVOBase {
      * @see GPTAssistantAPIThreadVO.pipe_outputs_to_thread_id
      */
     public piped_from_thread_message_id: number;
+
+
 
     public weight: number;
 

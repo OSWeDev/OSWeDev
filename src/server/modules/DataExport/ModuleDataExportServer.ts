@@ -665,6 +665,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             // Send mail
             if (SEND_IN_BLUE_TEMPLATE_ID) {
 
+                // On veut sortir le nom de l'export, si il ne commence pas par "Export-" et toute la partie du nom du fichier (pas du répertoire si on l'a avec)
+                // et on veut tout avant le "__"
+                const favorite_filter_export_name = filename.startsWith('Export-') ? null : filename.split('__')[0];
+
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(
                     ModuleDataExportServer.MAILCATEGORY_export_file_ready,
@@ -674,7 +678,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     {
                         EMAIL: user.email,
                         UID: user.id.toString(),
-                        FILEPATH: filepath
+                        FILEPATH: filepath,
+                        EXPORT_NAME: favorite_filter_export_name,
                     });
             } else {
 

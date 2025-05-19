@@ -239,14 +239,14 @@ export default class FavoritesFiltersVOService {
 
         // Export all exportable data
         for (const key in exportable_data) {
-            // - This exportable data must have to be created from the backend
+
             const xlsx_data: ExportContextQueryToXLSXParamVO = new ExportContextQueryToXLSXParamVO().from(
                 exportable_data[key]
             );
 
             // Replace the "{#Date}" placeholder with the current date
             const date_rgx = /\{(?<date_placeholder>\#Date)\}/;
-            let filename: string = xlsx_data.filename;
+            let filename: string = favorites_filters.name + '__' + xlsx_data.filename;
 
             if (date_rgx.test(filename)) {
                 filename = filename.replace(date_rgx, Dates.now().toString());

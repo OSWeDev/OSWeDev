@@ -182,6 +182,15 @@ export default class ModuleTranslation extends Module {
             .set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().oselia_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Oselia run', true)
             .set_many_to_one_target_moduletable_name(OseliaRunVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().code_text, ModuleTableFieldVO.FIELD_TYPE_string, 'Code texte', false);
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().code_lang, ModuleTableFieldVO.FIELD_TYPE_string, 'Code langue', false);
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().traduction, ModuleTableFieldVO.FIELD_TYPE_string, 'Traduction', false);
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().degre_certitude, ModuleTableFieldVO.FIELD_TYPE_float, 'Degré de certitude', false);
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().explication, ModuleTableFieldVO.FIELD_TYPE_string, 'Explication', false);
+
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().traduction_appliquee, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Traduction appliquée', false);
+
         ModuleTableController.create_new(this.name, DemandeAssistantTraductionVO, null, "Demandes d'assistant de traduction");
     }
 }

@@ -40,6 +40,10 @@ export default class CachedQueryHandler {
 
         if ((!cache) || ((cache.last_update_ms + cache.age_max_ms) < Dates.now_ms())) {
             const res = await expired_query_cb();
+
+            if (!CachedQueryHandler.cache[query_type_UID]) {
+                CachedQueryHandler.cache[query_type_UID] = {};
+            }
             CachedQueryHandler.cache[query_type_UID][this_query_INDEX] = { last_update_ms: Dates.now_ms(), data: res, age_max_ms: age_max_ms };
             return res;
         }

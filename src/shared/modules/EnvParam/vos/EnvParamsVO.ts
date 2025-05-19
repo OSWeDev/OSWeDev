@@ -40,6 +40,8 @@ export default class EnvParamsVO implements IDistantVOBase {
     // BLOCK_MAIL_DELIVERY: boolean;
     public block_mail_delivery: boolean;
 
+    public dont_use_default_translations: boolean;
+
     // MAIL_DELIVERY_WHITELIST: string;
     public mail_delivery_whitelist: string;
 

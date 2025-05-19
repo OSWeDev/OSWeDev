@@ -3,6 +3,10 @@ import IDistantVOBase from '../../IDistantVOBase';
 import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 
 export default class OseliaRunTemplateVO implements IDistantVOBase, IVersionedVO {
+
+    public static ASK_ASSISTANT_OSELIA_RUN_TEMPLATE: string = "Question posée à Osélia";
+    public static NEW_DATA_FOR_SUPERVISOR_OSELIA_RUN_TEMPLATE: string = "Nouvelles infos pour le superviseur";
+
     public static API_TYPE_ID: string = "oselia_run_template";
 
     public id: number;

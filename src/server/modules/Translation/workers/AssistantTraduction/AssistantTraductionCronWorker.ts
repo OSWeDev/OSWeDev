@@ -319,6 +319,24 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
             // On ajoute un message indiquant le choix de l'assistant
             await this.push_message_to_oselia(thread_vo, text_choix);
 
+
+            if (thread_vo.last_oselia_run_id) {
+                const demande_assistant_traduction = await query(DemandeAssistantTraductionVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<DemandeAssistantTraductionVO>().text_id, missing_elt_id)
+                    .filter_by_num_eq(field_names<DemandeAssistantTraductionVO>().lang_id, missing_elt_lang_id)
+                    .filter_by_num_eq(field_names<DemandeAssistantTraductionVO>().oselia_run_id, thread_vo.last_oselia_run_id)
+                    .exec_as_server()
+                    .select_vo<DemandeAssistantTraductionVO>();
+
+                if (demande_assistant_traduction) {
+                    demande_assistant_traduction.traduction = traduction;
+                    demande_assistant_traduction.degre_certitude = degre_certitude;
+                    demande_assistant_traduction.explication = explication;
+                    demande_assistant_traduction.traduction_appliquee = degre_certitude >= MIN_CONFIDENT_LEVEL;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(demande_assistant_traduction);
+                }
+            }
+
             if (degre_certitude < MIN_CONFIDENT_LEVEL) {
                 // On ne met pas à jour la traduction si le degré de certitude est trop faible
                 ConsoleHandler.warn('AssistantTraductionCronWorker:set_translation:Le degré de certitude est <b>' + degre_certitude + ' < ' + MIN_CONFIDENT_LEVEL + '</b>, il faut vérifier manuellement et confirmer la traduction qui a été proposée. La création n\'est pas automatique.');
@@ -345,6 +363,11 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
 
     public async push_message_to_oselia(thread_vo: GPTAssistantAPIThreadVO, msg: string) {
         const new_thread_message = new GPTAssistantAPIThreadMessageVO();
+
+        // TODO FIXME ya surement mieux à faire
+        new_thread_message.oselia_run_id = null;
+        new_thread_message.autogen_voice_summary = false;
+
         new_thread_message.thread_id = thread_vo.id;
         new_thread_message.date = Dates.now();
         new_thread_message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
@@ -352,12 +375,12 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
         new_thread_message.assistant_id = thread_vo.current_default_assistant_id;
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_thread_message);
 
-        const mail_content = new GPTAssistantAPIThreadMessageContentVO();
-        mail_content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
-        mail_content.thread_message_id = new_thread_message.id;
-        mail_content.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
-        mail_content.content_type_text.value = msg;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(mail_content);
+        const messgae_content = new GPTAssistantAPIThreadMessageContentVO();
+        messgae_content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+        messgae_content.thread_message_id = new_thread_message.id;
+        messgae_content.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+        messgae_content.content_type_text.value = msg;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(messgae_content);
     }
 
 
@@ -478,6 +501,8 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
         demande_assistant_traduction.lang_id = lang.id;
         demande_assistant_traduction.text_id = missing_elt.id;
         demande_assistant_traduction.oselia_run_id = oselia_run.id;
+        demande_assistant_traduction.code_text = missing_elt.code_text;
+        demande_assistant_traduction.code_lang = lang.code_lang;
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(demande_assistant_traduction);
 
         PerfReportController.add_event(

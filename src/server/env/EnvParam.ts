@@ -44,6 +44,8 @@ export default class EnvParam implements IEnvParam {
     public activate_incompatible_stack_context?: boolean = false;
     public throw_on_incompatible_stack_context?: boolean = false;
 
+    public dont_use_default_translations?: boolean = false;
+
     public threshold_too_many_imports_waiting?: number = null;
 
     public debug_forks?: boolean = false;

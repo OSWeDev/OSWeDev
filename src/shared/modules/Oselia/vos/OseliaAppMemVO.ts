@@ -2,6 +2,9 @@ import IDistantVOBase from '../../IDistantVOBase';
 import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 
 export default class OseliaAppMemVO implements IDistantVOBase, IVersionedVO {
+
+    public static ASSISTANT_INSTRUCTIONS_APPENDED_TEXT_PARAM_NAME: string = "OseliaAppMemVO.ASSISTANT_INSTRUCTIONS_APPENDED_TEXT";
+
     public static API_TYPE_ID: string = "oselia_app_mem";
 
     public id: number;

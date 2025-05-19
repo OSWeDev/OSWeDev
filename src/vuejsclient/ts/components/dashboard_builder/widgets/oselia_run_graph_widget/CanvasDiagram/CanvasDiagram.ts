@@ -353,6 +353,8 @@ export default class CanvasDiagram extends VueComponentBase {
                         return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '↩️', color: '#BA68C8' };
                     case OseliaRunVO.STATE_RERUN_ASKED:
                         return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔄', color: '#AB47BC' };
+                    case OseliaRunVO.STATE_INITIALIZING: // En cours de paramétrage avant lancement
+                        return { info: this.t(OseliaRunVO.STATE_LABELS[state]), icon: '🔧', color: '#FFB74D' };
                     default:
                         return { info: 'Inconnu', icon: '❔' };
                 }

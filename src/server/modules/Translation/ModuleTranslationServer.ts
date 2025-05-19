@@ -868,7 +868,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
 
         await this.add_locale_flat_translations(translatableTexts_by_id, lang_translations, res);
-        await this.add_locale_flat_translations(translatableTexts_by_id, default_translations, res);
+
+        // pour voir les traductions manquantes dans une langue : nodeenv:dont_use_default_translations
+        if (!ConfigurationService.node_configuration.dont_use_default_translations) {
+            await this.add_locale_flat_translations(translatableTexts_by_id, default_translations, res);
+        }
 
         if (!this.flat_translations) {
             this.flat_translations = {};

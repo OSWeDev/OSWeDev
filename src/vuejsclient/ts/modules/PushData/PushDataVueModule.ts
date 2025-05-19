@@ -988,7 +988,8 @@ export default class PushDataVueModule extends VueModuleBase {
                                         message,
                                         [new_file],
                                         VueAppController.getInstance().data_user.id,
-                                        true
+                                        true,
+                                        false,
                                     );
                                 }, 3000);
 
