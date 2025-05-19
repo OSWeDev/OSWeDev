@@ -43,12 +43,14 @@ import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssista
 import ModuleProgramPlanServerBase from '../ProgramPlan/ModuleProgramPlanServerBase';
 import { WebSocketServer, WebSocket } from 'ws';
 import type { RawData } from 'ws';
+import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 /** Structure interne d'une conversation */
 interface ConversationContext {
     openaiSocket: WebSocket;
     clients: Set<WebSocket>;
-    cr_vo?: unknown;
-    cr_type?: string;
+    cr_vo?: IPlanRDVCR;
+    cr_field_titles?: string[];
 }
 export default class GPTAssistantAPIServerController {
 
@@ -1163,32 +1165,29 @@ export default class GPTAssistantAPIServerController {
      */
     private static async create_realtime_session(conversationId: string): Promise<void> {
         try {
-            // 1) Crée le serveur WebSocket local une seule fois ---------------------------------
+            // 1) ----------------------------------------------------------------------
+            //    Création du WebSocketServer local (une seule instance)
             if (!this.wss) {
                 const PORT = Number(ConfigurationService.node_configuration.port) + 10;
                 this.wss = new WebSocketServer({ port: PORT });
                 ConsoleHandler.log(`WebSocket Server en écoute sur ws://localhost:${PORT}`);
 
-                // Handler connexion client ----------------------------------------------------
+                // —> Connexion d’un client navigateur / app
                 this.wss.on('connection', (clientSocket: WebSocket) => {
                     let joinedConversationId: string | null = null;
 
-                    // Quand le client se connecte, on demande à l'assistant de se présenter
-                    // openaiSocket.send(JSON.stringify({
-                    //     type: 'session.update',
-                    // }));
-
-
                     /**
-                     * Réception de message venant du client
-                     */
-                    const onClientMessage = (data: RawData) => {
+               * Message reçu du client
+               * → JSON : relais vers OpenAI
+               * → Binaire : buffer audio PCM16 24 kHz mono
+               */
+                    clientSocket.on('message', async (data: RawData) => {
                         try {
                             const str = data.toString('utf8');
                             const msg = JSON.parse(str);
-                            ConsoleHandler.log('Client -> Server :', msg);
+                            ConsoleHandler.log('Client → Server :', msg);
 
-                            // 1ère étape : handshake – le client indique la conversation qu’il rejoint
+                            // — Handshake : le client indique la conversation qu’il rejoint
                             if (!joinedConversationId && msg?.conversation_id) {
                                 joinedConversationId = msg.conversation_id;
                                 const convCtx = GPTAssistantAPIServerController.conversations.get(joinedConversationId);
@@ -1198,50 +1197,49 @@ export default class GPTAssistantAPIServerController {
                                     return;
                                 }
                                 convCtx.clients.add(clientSocket);
-                                clientSocket.send(JSON.stringify({ type: 'connected_to_conversation', msg: 'Vous êtes connecté à la conversation.' }));
+                                clientSocket.send(JSON.stringify({
+                                    type: 'connected_to_conversation',
+                                    msg: 'Vous êtes connecté à la conversation.'
+                                }));
                                 return;
                             }
 
-                            // Après handshake : relayé vers OpenAI (texte ou binaire)
+                            // — Après handshake : relais texte → OpenAI
                             if (joinedConversationId) {
                                 const convCtx = GPTAssistantAPIServerController.conversations.get(joinedConversationId)!;
                                 if (msg.type === 'cr_data') {
                                     if (msg.cr_vo) {
                                         convCtx.cr_vo = msg.cr_vo;
+                                        convCtx.cr_field_titles = await ModuleProgramPlanBase.getInstance()
+                                            .getRDVCRType(msg.cr_vo.rdv_id);
                                     }
-                                    if(msg.cr_type) {
-                                        convCtx.cr_type = msg.cr_type;
-                                    }
-                                } else {
-                                    if (convCtx.openaiSocket.readyState === WebSocket.OPEN) {
-                                        convCtx.openaiSocket.send(str);
-                                    }
+                                } else if (convCtx.openaiSocket.readyState === WebSocket.OPEN) {
+                                    convCtx.openaiSocket.send(str);
                                 }
                             }
                         } catch (_) {
-                            // Non‑JSON ⇒ binaire (audio)
+                            // — Binaire (audio) ---------------------------------------------------
                             if (joinedConversationId) {
                                 const convCtx = GPTAssistantAPIServerController.conversations.get(joinedConversationId)!;
                                 if (convCtx.openaiSocket.readyState === WebSocket.OPEN) {
                                     const payload = {
                                         type: 'input_audio_buffer.append',
-                                        audio: (data as Buffer).toString('base64'),   // PCM 16 bits / 24 kHz mono
-                                    };
+                                        audio: (data as Buffer).toString('base64'), // PCM 16 bits / 24 kHz mono
+                                    } as const;
                                     convCtx.openaiSocket.send(JSON.stringify(payload));
                                 }
                             }
                         }
-                    };
+                    });
 
-                    clientSocket.on('message', onClientMessage);
-
+                    // — Fermeture côté client ----------------------------------------------
                     clientSocket.on('close', () => {
                         if (joinedConversationId) {
                             const convCtx = GPTAssistantAPIServerController.conversations.get(joinedConversationId);
                             if (convCtx) {
                                 convCtx.clients.delete(clientSocket);
                                 if (convCtx.clients.size === 0) {
-                                    // Plus de participants → on ferme la socket OpenAI & supprime le contexte
+                                    // Dernier participant : on ferme la socket OpenAI
                                     if (convCtx.openaiSocket.readyState === WebSocket.OPEN) convCtx.openaiSocket.close();
                                     this.conversations.delete(joinedConversationId);
                                 }
@@ -1251,136 +1249,273 @@ export default class GPTAssistantAPIServerController {
                 });
             }
 
-            // 2) Si la conversation existe déjà, rien d'autre à faire --------------------------
-            if (this.conversations.has(conversationId)) {
-                return;
-            }
+            // 2) ----------------------------------------------------------------------
+            //    Conversation déjà initialisée ?
+            if (this.conversations.has(conversationId)) return;
 
-            // 3) Création de la socket OpenAI pour cette conversation ---------------------------
+            // 3) ----------------------------------------------------------------------
+            //    Ouverture de la socket OpenAI pour cette conversation
             const openaiSocket = new WebSocket(
-                'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01',
+                'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17',
                 {
                     headers: {
                         Authorization: `Bearer ${ConfigurationService.node_configuration.open_api_api_key}`,
                         'OpenAI-Beta': 'realtime=v1',
                     },
-                }
+                },
             );
 
             const convCtx: ConversationContext = {
                 openaiSocket,
                 clients: new Set<WebSocket>(),
-            };
+            } as const;
             this.conversations.set(conversationId, convCtx);
 
-            // Ajuste le seuil de listeners pour éviter MaxListenersExceededWarning
             openaiSocket.setMaxListeners(this.MAX_LISTENERS);
 
-            // --- Gestion des évènements OpenAI ----------------------------------------------
+            // ——————————————————————————————————————————
+            //  OPENAI → SERVER
+            // ——————————————————————————————————————————
+
+            /**
+           * Génère un ID unique côté serveur pour les items créés
+           */
+            const newItemId = () => `srv_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+
+            /**
+           * Envoie un item function_call_output + relance la génération
+           */
+            const sendFunctionCallOutput = (
+                callId: string,
+                previousItemId: string,
+                output: any,
+            ) => {
+                openaiSocket.send(JSON.stringify({
+                    type: 'conversation.item.create',
+                    previous_item_id: previousItemId,
+                    item: {
+                        id: newItemId(),
+                        type: 'function_call_output',
+                        call_id: callId,
+                        output: JSON.stringify(output ?? null),
+                    },
+                }));
+
+                // ► relance la génération (texte + audio suivant les préférences)
+                openaiSocket.send(JSON.stringify({ type: 'response.create', response: { modalities: ['text', 'audio'] }}));
+            };
+
+            // — Socket OPEN ------------------------------------------------------------
             openaiSocket.once('open', () => {
                 const sessionUpdate = {
                     type: 'session.update',
                     session: {
                         modalities: ['text', 'audio'],
                         output_audio_format: 'pcm16',
-                        input_audio_transcription: {
-                            model: 'whisper-1',
-                        },
-                        input_audio_format: "pcm16",
+                        input_audio_transcription: { model: 'whisper-1' },
+                        input_audio_format: 'pcm16',
                         turn_detection: {
-                            type: "server_vad",          // ou "semantic_vad" ou "none"
+                            type: 'server_vad',
                             threshold: 0.7,
-                            silence_duration_ms: 1000,
+                            silence_duration_ms: 500,
                             prefix_padding_ms: 300,
                             create_response: true,
                             interrupt_response: true,
                         },
                         voice: 'alloy',
-                        instructions:
-                            "Tu es Osélia, 38 ans, responsable projet au sein de la société Wedev, très bien éduquée et cultivée, tes passions sont l'automobile et les chevaux, tu as un chien, tu es chaleureuse mais très professionnelle. " +
-                            "Dans Wedev tu travailles en équipe avec Julien (développeur et chef de projet technique pour l'application Crescendo+), Michaël (développeur), Josépha (développeur), Caroline (MOA, gère prioritairement la relation avec les DMS pour les problèmes de données), et Karine (MOA et directrice du projet Crescendo+). " +
-                            "Si on te tutoie, tu peux tutoyer en retour. " +
+                        instructions: [
+                            "Tu es Osélia, assistant de rédaction de compte rendu, il faut que tu fasses des réponses amicales, mais concises, va au plus important.",
+                            "Si on te tutoie, tu peux tutoyer en retour. ",
                             "Dans le cadre du projet Crescendo+, ton travail est d'assister les collaborateurs à rédiger les comptes rendus des réunions avec leurs clients. ",
+                            "Tu es capable de comprendre le langage naturel et de répondre à des questions sur le projet, mais tu es aussi capable de faire des suggestions sur la rédaction du compte rendu. ",
+                            "Tu as accès aux différentes sections du compte rendu, qui te permette de comprendre de quoi on parle, et tu peux les modifiers. ",
+                            "Avant chaque modification, tu dois aussi récupérer les titres des différentes sections du compte rendu, puis tu dois récupérer le contenu de la section que tu dois modifier, pour être certain de ce que tu fais.",
+                            "Base toi TOUJOURS sur les titres des différentes sections du compte rendu pour savoir de quoi on parle, et quel section tu dois modifier",
+                            "Arrête de demander à l'utilisateur son accord pour tout et rien, il faut que ce soit rapide.",
+                            "Lorsque l'utilisateur te demande de modifier une section, tu dois le faire sans lui demander son accord, sauf si tu n'es pas sûr de ce qu'il veut.",
+                            "Réfléchis quand on te demande de modifier quelque chose, ne le fait pas bêtement, peut être qu'il faut modifier le reste du contenu aussi en fonction de ce que tu rajoute",
+                            "Lorsque l'utilisateur te demande de modifier une section et que tu ne la trouves pas, tu dois vérifier si elle correspond à peu près à une section existante, et si c'est le cas, tu dois lui demander confirmation avant de modifier quoi que ce soit.",
+                        ].join(' '),
                         tools: [
                             {
-                                type: "function",
-                                name: "edit_cr_word",
-                                description: "Fonction permettant de remplacer le contenu d'un compte rendu.",
+                                type: 'function',
+                                name: 'edit_cr_word',
+                                description: 'Remplace le contenu d’une section du compte‑rendu.',
                                 parameters: {
-                                    type: "object",
+                                    type: 'object',
                                     properties: {
                                         new_content: {
-                                            type: "string",
-                                            description: "Le nouveau contenu du compte rendu.",
+                                            type: 'string',
+                                            description: 'Nouveau contenu HTML (listes, gras, etc.).',
+                                        },
+                                        section: {
+                                            type: 'string',
+                                            description: 'Nom de la section à modifier.',
                                         },
                                     },
-                                    required: ["new_content"],
-                                }
-                            }
+                                    required: ['new_content', 'section'],
+                                },
+                            },
+                            {
+                                type: 'function',
+                                name: 'get_cr_field_titles',
+                                description: 'Renvoie la liste des titres de sections.',
+                            },
+                            {
+                                type: 'function',
+                                name: 'get_current_cr_field',
+                                description: 'Renvoie le contenu actuel d’une section.',
+                                parameters: {
+                                    type: 'object',
+                                    properties: {
+                                        section: { type: 'string', description: 'Section à récupérer.' },
+                                    },
+                                    required: ['section'],
+                                },
+                            },
                         ],
-                        tool_choice: "auto",
+                        tool_choice: 'auto',
                     },
                 } as const;
+
                 openaiSocket.send(JSON.stringify(sessionUpdate));
             });
 
+            // ——————————————————————————————————————————
+            //  Gestion des messages venant d’OpenAI
+            // ——————————————————————————————————————————
             openaiSocket.on('message', async (data: RawData) => {
-                // Broadcast vers tous les clients de la conversation
-                const clients = convCtx.clients;
-                if (clients.size === 0) return; // aucun auditeur
+                const { clients } = convCtx;
+                if (clients.size === 0) return; // personne pour écouter
 
+                // 1) — Essaye de parser en JSON
+                let msg: any = null;
                 try {
-                    const str = data.toString('utf8');
-                    const msg = JSON.parse(str);
-                    ConsoleHandler.log('OpenAI -> Server :', msg);
-
-                    // Audio encodé base64 → binaire
-                    if (msg?.type === 'output_audio_buffer' && msg?.audio) {
-                        const raw = Buffer.from(msg.audio, 'base64');
-                        for (const c of clients) if (c.readyState === WebSocket.OPEN) c.send(raw, { binary: true });
-                    } else if (msg?.type === 'session.updated') {
-                        for (const c of clients) if (c.readyState === WebSocket.OPEN) {
-                            openaiSocket.send(JSON.stringify({
-                                type: "conversation.item.create",
-                                previous_item_id: null,
-                                item: {
-                                    id: "msg_001",
-                                    type: "message",
-                                    role: "user",
-                                    content: [
-                                        {
-                                            type: "input_text",
-                                            text: "[CECI N'EST PAS UN MESSAGE DE L'UTILISATEUR] - Dit bonjour à l'utilisateur et explique que tu es la pour l'assister dans la rédaction de son compte rendu.",
-                                        }
-                                    ]
-                                },
-                            }));
-                        }
-                    } else if (msg?.type === 'response.output_item.done' && msg.item?.name === 'edit_cr_word') {
-                        ConsoleHandler.log('OpenAI -> Server : edit_cr_word', msg, convCtx.cr_vo, convCtx.cr_type);
-                        // Exécution côté serveur
-                        const args = JSON.parse(msg.item.arguments);
-                        await ModuleProgramPlanServerBase.edit_cr_word(args.new_content, convCtx.cr_vo, convCtx.cr_type);
-                    } else if (msg?.type === 'conversation.item.created' && msg.item?.role === 'user') {
-                        openaiSocket.send(JSON.stringify({
-                            type: 'response.create',
-                            response: { modalities: ['text', 'audio'] }
-                        }));
-                        for (const c of clients) if (c.readyState === WebSocket.OPEN) {
-                            c.send(JSON.stringify({ type: 'ready' }));
-                            c.send(str);
-                        }
-                    } else {
-                        for (const c of clients) if (c.readyState === WebSocket.OPEN) c.send(str);
-                    }
-                } catch (_) {
-                    // Non‑JSON → on relaie tel quel (binaire)
+                    msg = JSON.parse(data.toString('utf8'));
+                } catch {
+                    // Binaire → on broadcast tel quel
                     for (const c of clients) if (c.readyState === WebSocket.OPEN) c.send(data, { binary: true });
+                    return;
                 }
+
+                ConsoleHandler.log('OpenAI → Server :', msg);
+
+                if (msg?.type === 'input_audio_buffer.speech_started') {
+                    // ► Dis aux clients de couper le son immédiatement
+                    for (const c of clients) if (c.readyState === WebSocket.OPEN) {
+                        c.send(JSON.stringify({ type: 'stop_audio_playback' }));
+                    }
+                    return;
+                }
+                // 2) — Output audio (base64)
+                if (msg?.type === 'output_audio_buffer' && msg.audio) {
+                    const raw = Buffer.from(msg.audio, 'base64');
+                    for (const c of clients) if (c.readyState === WebSocket.OPEN) c.send(raw, { binary: true });
+                    return;
+                }
+
+                // 3) — Session prête : on fais jouer aux utilisateurs un son
+                if (msg?.type === 'session.updated') {
+                    for (const c of clients) if (c.readyState === WebSocket.OPEN) {
+                        c.send(JSON.stringify({ type: 'oselia_listening' }));
+                    }
+                    return;
+                }
+
+                // 4) — APPels de fonctions ------------------------------------------------
+                if (msg?.type === 'response.output_item.done' && msg.item?.type === 'function_call') {
+                    // ---------------------------------------------------------------------------
+                    // Récupération sûre des arguments de l’appel de fonction
+                    // ---------------------------------------------------------------------------
+                    const { name: fnName, arguments: rawArgs, call_id: callId, id: itemId } = msg.item;
+
+                    /**
+                     * Parse JSON de façon robuste :
+                     * - si `rawArgs` est déjà un objet → on le renvoie tel quel ;
+                     * - si c’est une string, on tente un JSON.parse ;
+                     * - en cas d’échec, on log et on retourne `{}` pour éviter le crash.
+                     */
+                    const args: Record<string, any> = (() => {
+                        if (rawArgs == null) return {};
+
+                        // Cas : OpenAI renvoie parfois directement un objet (rare, mais déjà vu)
+                        if (typeof rawArgs === 'object') return rawArgs as Record<string, any>;
+
+                        if (typeof rawArgs === 'string') {
+                            try {
+                                return JSON.parse(rawArgs);
+                            } catch (e) {
+                                ConsoleHandler.error(
+                                    `Impossible de parser les arguments de la fonction «${fnName}» : ${rawArgs}`,
+                                    e
+                                );
+                                return {};            // on continue sans planter
+                            }
+                        }
+
+                        // Type inattendu
+                        ConsoleHandler.warn(`Type inattendu pour arguments de ${fnName} :`, typeof rawArgs);
+                        return {};
+                    })();
+
+                    let output: unknown = null;
+                    try {
+                        switch (fnName) {
+                            case 'edit_cr_word': {
+                                output = await ModuleProgramPlanServerBase.edit_cr_word(
+                                    args.new_content,
+                                    args.section,
+                                    convCtx.cr_vo,
+                                    convCtx.cr_field_titles,
+                                );
+                                break;
+                            }
+                            case 'get_cr_field_titles': {
+                                output = convCtx.cr_field_titles ?? [];
+                                break;
+                            }
+                            case 'get_current_cr_field': {
+                                const cr_titles = convCtx.cr_field_titles ? convCtx.cr_field_titles.map(str => str.trim()).filter(str => str.length > 0) : [];
+                                const idx = cr_titles?.indexOf(args.section) ?? -1;
+                                output = idx >= 0 ? (convCtx.cr_vo as any)?.html_contents[idx] : null;
+                                break;
+                            }
+                            default:
+                                output = { error: `Fonction inconnue : ${fnName}` };
+                        }
+                    } catch (err) {
+                        ConsoleHandler.error(err);
+                        output = { error: String(err) };
+                    }
+
+                    // —> On envoie la sortie & on relance la génération
+                    sendFunctionCallOutput(callId, itemId, output);
+                    return;
+                }
+
+                // 5) — Item utilisateur créé (par OpenAI)
+                if (msg?.type === 'conversation.item.created' && msg.item?.role === 'user') {
+                    // En mode server_vad, OpenAI gère la création de la réponse ;
+                    // on relaie seulement l’évènement au(x) client(s)
+                    for (const c of clients) if (c.readyState === WebSocket.OPEN) {
+                        c.send(JSON.stringify({ type: 'ready' }));
+                        c.send(JSON.stringify(msg));
+                    }
+                    openaiSocket.send(JSON.stringify({
+                        type: 'response.create',
+                        response: { modalities: ['text', 'audio'] }
+                    }));
+                    return;
+                }
+
+                // 6) — Tout le reste : broadcast JSON tel quel
+                for (const c of clients) if (c.readyState === WebSocket.OPEN) c.send(JSON.stringify(msg));
             });
 
+            // ——————————————————————————————————————————
+            //  Fermeture / Erreur socket OpenAI
+            // ——————————————————————————————————————————
             openaiSocket.on('close', () => {
-                // On notifie les clients restants et on purge le contexte
                 for (const c of convCtx.clients) if (c.readyState === WebSocket.OPEN) c.close();
                 this.conversations.delete(conversationId);
             });
@@ -1390,20 +1525,9 @@ export default class GPTAssistantAPIServerController {
                 openaiSocket.close();
             });
         } catch (error) {
-            ConsoleHandler.error('create_realtime_session: ' + error);
+            ConsoleHandler.error('create_realtime_session : ' + error);
         }
     }
-
-    // private static async join_realtime_session( session_id: string,
-    //     conversation_id: string,
-    //     user_id: number): Promise<void> {
-    //     try {
-
-    //     } catch (error) {
-    //         ConsoleHandler.error('join_realtime_session: ' + error);
-    //         return;
-    //     }
-    // }
 
     private static async resync_thread_messages(thread_vo: GPTAssistantAPIThreadVO) {
         try {

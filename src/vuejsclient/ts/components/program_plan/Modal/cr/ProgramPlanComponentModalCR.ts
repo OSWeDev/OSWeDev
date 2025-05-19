@@ -318,7 +318,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
     private switchOpenOselia() {
         this.oselia_opened = !this.oselia_opened;
         if (this.oselia_opened) {
-            OseliaRealtimeController.getInstance().connect_to_realtime(this.selected_rdv_cr, this.program_plan_shared_module.rdv_type_id);
+            OseliaRealtimeController.getInstance().connect_to_realtime(this.selected_rdv_cr);
         } else {
             OseliaRealtimeController.getInstance().disconnect_to_realtime();
         }
