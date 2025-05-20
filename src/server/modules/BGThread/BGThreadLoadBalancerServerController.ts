@@ -1,6 +1,5 @@
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import PerfReportController from "../../../shared/modules/PerfReport/PerfReportController";
-import ForkedTasksController from "../Fork/ForkedTasksController";
 import BgthreadPerfModuleNamesHolder from "./BgthreadPerfModuleNamesHolder";
 import BGThreadLoadBalancer from "./vos/BGThreadLoadBalancer";
 
@@ -17,6 +16,7 @@ export default class BGThreadLoadBalancerServerController {
     public static async get_worker_latency(worker_name: string): Promise<number> {
         const start_ms = Dates.now_ms();
 
+        const ForkedTasksController = require("../Fork/ForkedTasksController").default;
         await ForkedTasksController.exec_task_on_bgthread_and_return_value(true, worker_name, BGThreadLoadBalancerServerController.GET_WORKER_LATENCY_TASK_NAME);
 
         PerfReportController.add_cooldown(
