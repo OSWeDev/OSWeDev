@@ -49,8 +49,10 @@ import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVC
 interface ConversationContext {
     openaiSocket: WebSocket;
     clients: Set<WebSocket>;
+    buffered: any[];
     cr_vo?: IPlanRDVCR;
     cr_field_titles?: string[];
+    current_user: UserVO;
 }
 export default class GPTAssistantAPIServerController {
 
@@ -1147,7 +1149,7 @@ export default class GPTAssistantAPIServerController {
         try {
             // Dans tout les cas on créer une websocket avec une nouvelle session
             // On ne peut pas rejoindre une session existante, il faut en créer une nouvelle à chaque fois
-            await this.create_realtime_session(conversation_id);
+            await this.create_realtime_session(conversation_id, user_id);
             // if(!session_id) {
             //     await this.create_realtime_session();
             // } else {
@@ -1163,8 +1165,15 @@ export default class GPTAssistantAPIServerController {
      * Initialise (si besoin) le serveur WebSocket local **et** la socket OpenAI pour la conversation.
      * @param conversationId identifiant logique de la conversation – un seul par socket OpenAI
      */
-    private static async create_realtime_session(conversationId: string): Promise<void> {
+    private static async create_realtime_session(conversationId: string, user_id: number): Promise<void> {
         try {
+            /* ────────────────────────────────────────────────────────────────
+            0)  Récupère l’utilisateur courant pour l’injecter dans le contexte
+            ──────────────────────────────────────────────────────────────────*/
+            const current_user = await query(UserVO.API_TYPE_ID)
+                .filter_by_id(user_id)
+                .set_limit(1)
+                .select_vo<UserVO>();
             // 1) ----------------------------------------------------------------------
             //    Création du WebSocketServer local (une seule instance)
             if (!this.wss) {
@@ -1197,6 +1206,11 @@ export default class GPTAssistantAPIServerController {
                                     return;
                                 }
                                 convCtx.clients.add(clientSocket);
+                                /* replay tous les messages manqués */
+                                for (const bufferedMsg of convCtx.buffered) {
+                                    clientSocket.send(JSON.stringify(bufferedMsg));
+                                }
+                                convCtx.buffered.length = 0;
                                 clientSocket.send(JSON.stringify({
                                     type: 'connected_to_conversation',
                                     msg: 'Vous êtes connecté à la conversation.'
@@ -1251,7 +1265,12 @@ export default class GPTAssistantAPIServerController {
 
             // 2) ----------------------------------------------------------------------
             //    Conversation déjà initialisée ?
-            if (this.conversations.has(conversationId)) return;
+            if (this.conversations.has(conversationId)) {
+                const oldCtx = this.conversations.get(conversationId)!;
+                for (const c of oldCtx.clients) c.close();
+                oldCtx.openaiSocket.close();
+                this.conversations.delete(conversationId);
+            }
 
             // 3) ----------------------------------------------------------------------
             //    Ouverture de la socket OpenAI pour cette conversation
@@ -1268,6 +1287,8 @@ export default class GPTAssistantAPIServerController {
             const convCtx: ConversationContext = {
                 openaiSocket,
                 clients: new Set<WebSocket>(),
+                buffered: [],
+                current_user
             } as const;
             this.conversations.set(conversationId, convCtx);
 
@@ -1316,9 +1337,9 @@ export default class GPTAssistantAPIServerController {
                         input_audio_format: 'pcm16',
                         turn_detection: {
                             type: 'server_vad',
-                            threshold: 0.7,
-                            silence_duration_ms: 500,
-                            prefix_padding_ms: 300,
+                            threshold: 0.5,
+                            silence_duration_ms: 400,
+                            prefix_padding_ms: 150,
                             create_response: true,
                             interrupt_response: true,
                         },
@@ -1326,7 +1347,8 @@ export default class GPTAssistantAPIServerController {
                         instructions: [
                             "Tu es Osélia, assistant de rédaction de compte rendu, il faut que tu fasses des réponses amicales, mais concises, va au plus important.",
                             "Si on te tutoie, tu peux tutoyer en retour. ",
-                            "Dans le cadre du projet Crescendo+, ton travail est d'assister les collaborateurs à rédiger les comptes rendus des réunions avec leurs clients. ",
+                            "Quand tu as besoin de connaître le prénom de l’utilisateur, appelle la fonction « get_current_user_name ».",
+                            "Ton travail est d'assister les collaborateurs à rédiger les comptes rendus des réunions avec leurs clients. ",
                             "Tu es capable de comprendre le langage naturel et de répondre à des questions sur le projet, mais tu es aussi capable de faire des suggestions sur la rédaction du compte rendu. ",
                             "Tu as accès aux différentes sections du compte rendu, qui te permette de comprendre de quoi on parle, et tu peux les modifiers. ",
                             "Avant chaque modification, tu dois aussi récupérer les titres des différentes sections du compte rendu, puis tu dois récupérer le contenu de la section que tu dois modifier, pour être certain de ce que tu fais.",
@@ -1373,6 +1395,11 @@ export default class GPTAssistantAPIServerController {
                                     required: ['section'],
                                 },
                             },
+                            {
+                                type: 'function',
+                                name: 'get_current_user_name',
+                                description: "Renvoie le prénom de l’utilisateur connecté.",
+                            },
                         ],
                         tool_choice: 'auto',
                     },
@@ -1399,6 +1426,11 @@ export default class GPTAssistantAPIServerController {
                 }
 
                 ConsoleHandler.log('OpenAI → Server :', msg);
+
+                if (convCtx.clients.size === 0) {
+                    convCtx.buffered.push(msg);
+                    return;
+                }
 
                 if (msg?.type === 'input_audio_buffer.speech_started') {
                     // ► Dis aux clients de couper le son immédiatement
@@ -1480,6 +1512,10 @@ export default class GPTAssistantAPIServerController {
                                 output = idx >= 0 ? (convCtx.cr_vo as any)?.html_contents[idx] : null;
                                 break;
                             }
+                            case 'get_current_user_name': {
+                                output = convCtx.current_user?.name ?? null;
+                                break;
+                            }
                             default:
                                 output = { error: `Fonction inconnue : ${fnName}` };
                         }
@@ -1498,13 +1534,8 @@ export default class GPTAssistantAPIServerController {
                     // En mode server_vad, OpenAI gère la création de la réponse ;
                     // on relaie seulement l’évènement au(x) client(s)
                     for (const c of clients) if (c.readyState === WebSocket.OPEN) {
-                        c.send(JSON.stringify({ type: 'ready' }));
                         c.send(JSON.stringify(msg));
                     }
-                    openaiSocket.send(JSON.stringify({
-                        type: 'response.create',
-                        response: { modalities: ['text', 'audio'] }
-                    }));
                     return;
                 }
 

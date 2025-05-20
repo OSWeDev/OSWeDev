@@ -34,9 +34,14 @@ export default class OseliaRealtimeController {
     private call_thread: GPTAssistantAPIThreadVO | null = null;
     private cr_vo: IPlanRDVCR | null = null;
     private in_cr_context: boolean = false;
-    private is_playing: boolean = false;
-    private ctx: AudioContext | null = null;
-    private src: AudioBufferSourceNode | null = null;
+    private audioCtx: AudioContext = new AudioContext({ sampleRate: 24_000 });
+    private currentSrc: AudioBufferSourceNode | null = null;
+    private currentItemId: string|null = null;
+    private queue: Uint8Array[] = [];
+    private isPlaying = false;
+    /**  Garantit qu’une seule opération (connect ou disconnect) s’exécute à la fois. */
+    private ready: Promise<void> = Promise.resolve();
+
 
     public static getInstance() {
         if (!OseliaRealtimeController.instance) {
@@ -46,54 +51,98 @@ export default class OseliaRealtimeController {
     }
 
     public async disconnect_to_realtime() {
+        return this.lock(() => this._disconnect_impl());
+    }
+
+
+    public async connect_to_realtime(cr_vo?: IPlanRDVCR) {
+        return this.lock(() => this._connect_impl(cr_vo));
+    }
+
+    /**  Implémentation interne : connexion */
+    private async _connect_impl(cr_vo?: IPlanRDVCR) {
+
+        /* 0)  Si déjà connecté → rien à faire */
+        if (this.is_connected_to_realtime && !cr_vo) return;
+
+        /* 1)  S’il y avait une connexion en cours, on la coupe proprement */
         if (this.is_connected_to_realtime) {
-            await this.stop_realtime();
+            await this._disconnect_impl();              // garanti non réentrant grâce à lock()
         }
-        if (this.call_thread) {
+
+        /* 2)  Mémorise le contexte CR */
+        this.in_cr_context = !!cr_vo;
+        this.cr_vo = cr_vo ?? null;
+
+        /* 3)  (re)crée un thread si besoin */
+        if (!this.call_thread) {
+            const thread_id = await ModuleOselia.getInstance().create_thread();
+            if (!thread_id) throw new Error('Impossible de créer le thread');
+            this.call_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                .filter_by_id(thread_id)
+                .select_vo<GPTAssistantAPIThreadVO>();
+            /*  + config assistant… */
+        }
+
+        /* 4)  Drapeaux */
+        this.connecting = true;
+        this.connection_ready = false;
+
+        /* 5)  Connecte au serveur + initialise VAD/micro */
+        await this.connect_to_server(this.call_thread.gpt_thread_id);
+        if (this.in_cr_context && this.cr_vo) {
+            await this.send_cr_to_realtime();
+        }
+        await this.initRecorder();          // démarre la capture micro
+
+        this.connecting = false;
+    }
+
+    /**  Implémentation interne : coupure */
+    private async _disconnect_impl() {
+
+        /* 0)  Rien à faire si déjà coupé */
+        if (!this.is_connected_to_realtime && !this.connecting) return;
+
+        /* 1)  Stoppe proprement le micro et l’audio */
+        await this.stopRecorder();          // libère micro & scriptProcessor
+        this.stopPlaying();                 // arrête la voix en cours
+        await this.audioCtx.close().catch(()=>{});
+        this.audioCtx = new AudioContext({ sampleRate: 24_000 });
+        /* 2)  Ferme le WebSocket si encore ouvert */
+        if (this.socket) {
+            if (this.socket.readyState === WebSocket.OPEN) {
+                const p = new Promise<void>(res => this.socket!.onclose = () => res());
+                this.socket.close();
+                await p;                     // attend réellement la fermeture
+            }
+            this.socket = null;
+        }
+
+        /* 3)  Reset complet des états internes */
+        this.is_connected_to_realtime = false;
+        this.connection_ready = false;
+        this.connecting = false;
+        this.queue = [];
+        this.currentSrc = null;
+
+        /* 4)  Sauve la VO si besoin */
+        if (this.call_thread && this.call_thread.realtime_activated) {
             this.call_thread.realtime_activated = false;
             await ModuleDAO.getInstance().insertOrUpdateVO(this.call_thread);
         }
-        this.call_thread = null;
-        this.is_connected_to_realtime = false;
-        this.connection_ready = false;
-        await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('OseliaStore/set_current_thread', null);
+
+        /* 5)  Notifie l’UI */
+        await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch(
+            'OseliaStore/set_current_thread', null
+        );
     }
 
-    public async connect_to_realtime(cr_vo?: IPlanRDVCR) {
-        if(cr_vo) {
-            this.in_cr_context = true;
-            this.cr_vo = cr_vo;
-        } else {
-            this.in_cr_context = false;
-            this.cr_vo = null;
-        }
-        // On a déjà lancé sur un autre CR, on met à jour le thread
-        if (this.is_connected_to_realtime) {
-            await this.disconnect_to_realtime();
-        }
-        this.connecting = true;
-        if (!this.call_thread) {
-            const new_thread_id = await ModuleOselia.getInstance().create_thread();
-            if (new_thread_id) {
-                const new_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
-                    .filter_by_id(new_thread_id)
-                    .select_vo<GPTAssistantAPIThreadVO>();
-                const realtimeAssistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<GPTAssistantAPIAssistantVO>().nom, ModuleGPT.ASSISTANT_REALTIME_NAME)
-                    .select_vo<GPTAssistantAPIAssistantVO>();
-                if (realtimeAssistant) {
-                    new_thread.current_oselia_assistant_id = realtimeAssistant.id;
-                    new_thread.current_default_assistant_id = realtimeAssistant.id;
-                }
-
-                this.call_thread = new_thread;
-                await this.startVAD(new_thread);
-            }
-        } else {
-            await this.startVAD(this.call_thread);
-        }
-
-        await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('OseliaStore/set_current_thread', this.call_thread);
+    /**  Petit helper interne */
+    private lock<T>(op: () => Promise<T>): Promise<T | void> {
+        const next = this.ready.then(op).catch(console.error);
+        this.ready = next.then(() => undefined);        // on ne propage pas le résultat
+        return next;
     }
 
     private async startVAD(call_thread?: GPTAssistantAPIThreadVO) {
@@ -176,41 +225,59 @@ export default class OseliaRealtimeController {
         if (typeof event.data === 'string') {
             const msg = JSON.parse(event.data);
             switch (msg.type) {
+                case 'output_audio_buffer':               // si tu gardes ce format
+                    if (msg.audio) this.enqueueAndPlay(this.base64ToUint8(msg.audio));
+                    break;
+                case 'response.audio.delta':
+                    if (msg.delta) this.enqueueAndPlay(this.base64ToUint8(msg.delta));
+                    break;
+                    // --- fin du flux pour un item --------------------
+                case 'output_audio_buffer.stopped':
+                case 'response.audio.done':
+                    break;
+                    // --- coupure forcée si l'utilisateur reparle -----
                 case 'stop_audio_playback':
-                    this.stopPlaying();          // ← coupe net l’audio en cours
-                    return;
-                case 'ready':
-                    this.connection_ready = true;
+                    this.stopPlaying();
+                    this.queue = [];
                     break;
                 case 'oselia_listening':
                     // On joue un son de "reconnaissance vocale"
                     const audio = new Audio("public/vuejsclient/sound/realtime-activated.wav");
                     audio.play().catch(err => console.error("Erreur de lecture :", err));
+                    this.connection_ready = true;
                     break;
-                case 'response.audio.delta':
-                    if (msg.delta) this.incomingAudioChunks.push(this.base64ToUint8(msg.delta));
-                    break;
-                case 'response.audio.done':
-                    this.playAudio(this.concatUint8Arrays(this.incomingAudioChunks));
-                    this.incomingAudioChunks = [];
-                    break;
-                case 'session.updated':
-                    break;
+                // case 'response.audio.delta':
+                //     if (msg.delta) this.incomingAudioChunks.push(this.base64ToUint8(msg.delta));
+                //     break;
                 default:
                     break;
             }
         } else {
-            this.playAudio(new Uint8Array(event.data));
+            this.enqueueAndPlay(new Uint8Array(event.data));
         }
     }
 
+    private enqueueAndPlay(pcm: Uint8Array) {
+        this.queue.push(pcm);
+        if (!this.isPlaying) this.playNext();
+    }
+
+    private playNext() {
+        if (this.queue.length === 0) return;
+        const pcm = this.queue.shift()!;
+        this.isPlaying = true;
+        this.playAudio(pcm, () => {
+            this.isPlaying = false;
+            this.playNext();
+        });
+    }
 
     private async initRecorder() {
         try {
             this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
             this.audioContext = new AudioContext({ sampleRate: 24000 });
             const source = this.audioContext.createMediaStreamSource(this.mediaStream);
-            this.scriptProcessor = this.audioContext.createScriptProcessor(1024, 1, 1);
+            this.scriptProcessor = this.audioContext.createScriptProcessor(256, 1, 1);
 
             this.scriptProcessor.onaudioprocess = (ev: AudioProcessingEvent) => {
                 const pcm = this.floatTo16BitPCM(ev.inputBuffer.getChannelData(0));
@@ -228,7 +295,7 @@ export default class OseliaRealtimeController {
         }
     }
     private sendAudioFrame(pcm: Int16Array) {
-        if (!this.socket || this.socket.readyState !== WebSocket.OPEN || !this.connection_ready) {
+        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
             return;
         }
 
@@ -283,41 +350,47 @@ export default class OseliaRealtimeController {
         return out;
     }
 
-    private playAudio(pcmData: Uint8Array) {
+    private playAudio(pcmData: Uint8Array, onEnded?: () => void) {
+        // stop la lecture courante sans fermer le contexte
         this.stopPlaying();
-        if (!pcmData || pcmData.byteLength < 2) return; // rien à jouer
-        this.is_playing = true;
-        this.ctx = new AudioContext({ sampleRate: 24_000 });
-        const sampleCount = Math.floor(pcmData.byteLength / 2);   // 1. tronquer
-        const buf = this.ctx.createBuffer(1, sampleCount, 24_000);
-        const chan = buf.getChannelData(0);
-        // 2. respecter le byteOffset et la byteLength du sous-tableau
-        const dv = new DataView(pcmData.buffer, pcmData.byteOffset, pcmData.byteLength);
-        for (let i = 0; i < sampleCount; i++) {
-            chan[i] = dv.getInt16(i * 2, /*littleEndian=*/true) / 0x8000; // 32768
+
+        if (!pcmData || pcmData.byteLength < 2) return;
+        this.isPlaying  = true;
+
+        /* 1)  Assure-toi que le contexte est actif */
+        if (this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume().catch(console.error);
         }
-        this.src = this.ctx.createBufferSource();
-        this.src.buffer = buf;
-        this.src.connect(this.ctx.destination);
-        this.src.start();
-        this.src.onended = () => {
-            this.is_playing = false;
-            this.ctx?.close();
-            this.ctx = null;
-            this.src = null;
+
+        /* 2)  Crée le buffer */
+        const sampleCount = pcmData.byteLength >> 1;                    // /2
+        const buf = this.audioCtx.createBuffer(1, sampleCount, 24_000);
+        const chan = buf.getChannelData(0);
+        const dv = new DataView(pcmData.buffer, pcmData.byteOffset, pcmData.byteLength);
+
+        for (let i = 0; i < sampleCount; i++) {
+            chan[i] = dv.getInt16(i << 1, true) / 0x8000;               // ↔  i*2
+        }
+
+        /* 3)  Joue le buffer */
+        this.currentSrc = this.audioCtx.createBufferSource();
+        this.currentSrc.buffer = buf;
+        this.currentSrc.connect(this.audioCtx.destination);
+        this.currentSrc.start();
+
+        this.currentSrc.onended = () => {
+            this.isPlaying = false;
+            this.currentSrc = null;
+            onEnded?.();
         };
     }
 
     private stopPlaying() {
-        if (this.src) {
-            this.src.stop();
-            this.src = null;
+        if (this.currentSrc) {
+            try { this.currentSrc.stop(); } catch (_) { /* empty */ }
+            this.currentSrc = null;
         }
-        if (this.ctx) {
-            this.ctx.close();
-            this.ctx = null;
-        }
-        this.is_playing = false;
+        this.isPlaying = false;
     }
 
     private emitReady(state: boolean) {
