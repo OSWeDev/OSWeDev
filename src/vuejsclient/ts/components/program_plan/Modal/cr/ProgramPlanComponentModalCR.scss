@@ -19,7 +19,7 @@
             float: right;
             margin-right: 10px;
             position: relative;
-        
+
             &.opened::after {
                 content: "";
                 position: absolute;
@@ -40,6 +40,30 @@
 
     .newcr,
     .updatecr {
+
+        .oselia_chat_btn_closed {
+            width: 75px;
+            height: 37px;
+            cursor: pointer;
+            background: url(/public/vuejsclient/img/logo_oselia_icon.png) no-repeat center center;
+            background-color: rgba(255, 255, 255, 0);
+            background-size: cover;
+            float: right;
+            margin-right: 10px;
+            position: relative;
+
+            &.opened::after {
+                content: "";
+                position: absolute;
+                top: -5px;
+                left: -5px;
+                width: 85px;
+                height: 47px;
+                border-radius: 8px;
+                background-color: rgba(0, 36, 84, 0.3);
+                animation: pulse 1.2s infinite ease-in-out;
+            }
+        }
 
         max-height: auto;
         overflow: hidden;
@@ -148,10 +172,13 @@
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
         opacity: 0.6;
     }
+
     50% {
         transform: scale(1.2);
         opacity: 1;

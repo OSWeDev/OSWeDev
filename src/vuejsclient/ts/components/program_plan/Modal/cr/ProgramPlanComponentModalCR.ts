@@ -1,4 +1,4 @@
-import { Component, Prop } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -106,11 +106,6 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
     private edited_cr: IPlanRDVCR = null;
     private oselia_opened: boolean = false;
     private debounced_update_cr_action = debounce(this.update_cr_action, 1000);
-
-    // get show_oselia_button() {
-    //     if (EnvHandler.) {
-    //     }
-    // }
 
     get custom_cr_create_component() {
         return this.program_plan_controller.customCRCreateComponent;
@@ -297,6 +292,15 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
         return (res && res.length) ? res : null;
     }
 
+    @Watch('oselia_opened')
+    private onOseliaOpened() {
+        if (this.oselia_opened) {
+            OseliaRealtimeController.getInstance().connect_to_realtime(this.selected_rdv_cr);
+        } else {
+            OseliaRealtimeController.getInstance().disconnect_to_realtime();
+        }
+    }
+
     private editCR(cr) {
         this.edited_cr = cr;
     }
@@ -317,25 +321,26 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
     private switchOpenOselia() {
         this.oselia_opened = !this.oselia_opened;
-        if (this.oselia_opened) {
-            OseliaRealtimeController.getInstance().connect_to_realtime(this.selected_rdv_cr);
-        } else {
-            OseliaRealtimeController.getInstance().disconnect_to_realtime();
-        }
     }
 
     /**
      * Called when creating a new CR. Confirmation, and if confirmed, creation.
      * @param cr
      */
-    private async create_cr(cr: IPlanRDVCR, no_confirmation?: boolean) {
+    private async create_cr(cr: IPlanRDVCR, launched_by_oselia?: boolean) {
+        if (launched_by_oselia) {
+            await this.create_cr_action(cr).then(() => {
+                this.switchOpenOselia();
+            });
+            return;
+        }
         if ((!this.selected_rdv) || (!cr)) {
             return;
         }
 
         const self = this;
 
-        if (!this.program_plan_controller.show_confirmation_create_cr || no_confirmation) {
+        if (!this.program_plan_controller.show_confirmation_create_cr) {
             await this.create_cr_action(cr);
             return;
         }

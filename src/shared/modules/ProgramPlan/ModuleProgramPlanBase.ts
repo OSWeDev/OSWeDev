@@ -830,6 +830,10 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     abstract getRDVCRType(rdv_id: number): Promise<string[]>;
+    abstract getAllConsultantsName(): Promise<{ name: string, user_id: number }[]>;
+    abstract editCRSectionContent(new_content: string, section: string, cr_vo, cr_field_titles): Promise<void>;
+    abstract setConsultantName(cr_vo, name: string): Promise<void>;
+    abstract getCurrentConsultant(cr_vo): Promise<string>;
 
     protected abstract callInitializePlanProgramCategory();
     protected abstract callInitializePlanContactType();

@@ -16,6 +16,7 @@ import { ModuleDAOGetter } from '../dao/store/DaoStore';
 import './OseliaChatHandlerComponent.scss';
 import { ModuleOseliaAction, ModuleOseliaGetter } from '../dashboard_builder/widgets/oselia_thread_widget/OseliaStore';
 import { ref } from 'vue';
+import OseliaRealtimeController from '../dashboard_builder/widgets/oselia_thread_widget/OseliaRealtimeController';
 @Component({
     template: require('./OseliaChatHandlerComponent.pug'),
 })
@@ -38,7 +39,8 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
     private isActiveOselia = false;
     private new_thread_id: string | null = null;
     private openingParams: object | null = null;
-
+    private isStopHover: boolean = false;
+    private isHoveringIframe: boolean = false;
     /* Verrou pour éviter plusieurs create_thread() simultanés */
     private creatingThread = false;
 
@@ -79,118 +81,82 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
             this.connection_established = false;
             this.currentThreadVO = null;
         }
+
+        if (this.connection_established) {
+            // Active la pulsation discrète
+            this.$nextTick(() => {
+                this.$el
+                    .querySelector('.oselia_chat_btn_stop-mini')
+                    ?.classList.add('visible');
+            });
+        }
     }
 
-    // @Watch('currentThreadVO', { deep: true }) private onCurrentThreadVOChange() {
-    //     if (!this.currentThreadVO) {
-    //         this.is_open = false;
-    //         return;
-    //     }
-    //     if (this.currentThreadVO.realtime_activated !== this.isActiveOselia) {
-    //         // Sync l'état local sur le VO, sans reboucler si déjà égal
-    //         this.isActiveOselia = this.currentThreadVO.realtime_activated;
-    //     }
-    //     if (this.currentThreadVO.realtime_activated) {
-    //         this.new_thread_id = this.currentThreadVO.gpt_thread_id;
-    //         this.is_open = true;
-    //         if (!this.ott) this.refreshOTT();
-    //     }
-    // }
-
-    // @Watch('isActiveOselia') private async onIsActiveOseliaChange() {
-    //     if (!this.currentThreadVO && !this.isActiveOselia) return; // rien à faire
-
-    //     if (this.isActiveOselia) {
-    //         // --- Activation realtime ----------------------------------
-    //         if (!this.new_thread_id && !this.creatingThread) {
-    //             try {
-    //                 this.creatingThread = true;
-    //                 const new_thread_id = await ModuleOselia.getInstance().create_thread();
-    //                 if (new_thread_id) {
-    //                     const new_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
-    //                         .filter_by_id(new_thread_id)
-    //                         .select_vo<GPTAssistantAPIThreadVO>();
-    //                     const realtimeAssistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
-    //                         .filter_by_text_eq(field_names<GPTAssistantAPIAssistantVO>().nom, ModuleGPT.ASSISTANT_REALTIME_NAME)
-    //                         .select_vo<GPTAssistantAPIAssistantVO>();
-    //                     if (realtimeAssistant) {
-    //                         new_thread.current_oselia_assistant_id = realtimeAssistant.id;
-    //                         new_thread.current_default_assistant_id = realtimeAssistant.id;
-    //                     }
-    //                     this.new_thread_id = new_thread.gpt_thread_id;
-    //                     this.register_single_vo_updates(
-    //                         GPTAssistantAPIThreadVO.API_TYPE_ID,
-    //                         new_thread.id,
-    //                         reflect<this>().currentThreadVO,
-    //                     );
-    //                     new_thread.realtime_activated = true;
-    //                     await ModuleDAO.getInstance().insertOrUpdateVO(new_thread);
-    //                 }
-    //             } finally {
-    //                 this.creatingThread = false;
-    //             }
-    //         } else if (this.currentThreadVO && !this.currentThreadVO.realtime_activated) {
-    //             this.currentThreadVO.realtime_activated = true;
-    //             await ModuleDAO.getInstance().insertOrUpdateVO(this.currentThreadVO);
-    //         }
-    //     } else if (this.currentThreadVO?.realtime_activated) {
-    //         // --- Désactivation realtime --------------------------------
-    //         this.currentThreadVO.realtime_activated = false;
-    //         await ModuleDAO.getInstance().insertOrUpdateVO(this.currentThreadVO);
-    //     }
-    // }
-
-    /* ------------------------------------------------------------------
-     *                       CYCLE DE VIE                                 */
-    private async mounted() {
-        // this.listener_EVENT_OSELIA_REALTIME_READY = EventsController.on_every_event_throttle_cb(
-        //     ModuleOselia.EVENT_OSELIA_REALTIME_READY,
-        //     (event: EventifyEventInstanceVO) => {
-        //         this.connection_established = event.param as boolean;
-        //         console.debug('OseliaChatHandlerComponent: connection_established', this.connection_established);
-        //         if (!this.connection_established) {
-        //             EventsController.emit_event(EventifyEventInstanceVO.new_event(ModuleOselia.EVENT_OSELIA_REALTIME_SEND_PARAMS, null));
-        //         } else {
-        //             EventsController.emit_event(EventifyEventInstanceVO.new_event(ModuleOselia.EVENT_OSELIA_REALTIME_SEND_PARAMS, this.openingParams));
-        //         }
-        //     },
-        //     10,
-        //     false,
-        // );
-
-        // this.listener_EVENT_OSELIA_LAUNCH_REALTIME = EventsController.on_every_event_throttle_cb(
-        //     ModuleOselia.EVENT_OSELIA_LAUNCH_REALTIME,
-        //     (event: EventifyEventInstanceVO) => {
-        //         const param = event.param ? event.param as { launch: boolean, params: object } : { launch: false, params: null };
-        //         this.isActiveOselia = param.launch;
-        //         this.openingParams = param.params;
-        //     },
-        //     10,
-        //     false,
-        // );
+    @Watch('connection_established')
+    private async onOpenStateChange(open: boolean) {
+        if (open) {
+            await this.$nextTick();                  // l’iframe est dans le DOM
+            await this.bindIframeHoverListeners(true);
+        } else {
+            await this.bindIframeHoverListeners(false);    // nettoie
+        }
     }
 
-    private async beforeDestroy() {
-        // await this.unregister_all_vo_event_callbacks();
-        // delete EventsController.registered_listeners[ModuleOselia.EVENT_OSELIA_REALTIME_READY][this.listener_EVENT_OSELIA_REALTIME_READY.instance_uid];
-        // delete EventsController.registered_listeners[ModuleOselia.EVENT_OSELIA_LAUNCH_REALTIME][this.listener_EVENT_OSELIA_LAUNCH_REALTIME.instance_uid];
+    beforeUnmount() {
+        this.bindIframeHoverListeners(false);
     }
 
     /* ------------------------------------------------------------------
      *                            ACTIONS                                 */
+
+    private async bindIframeHoverListeners(bind: boolean) {
+        const iframe = document.getElementById('OseliaContainer');
+        if (!iframe) { return; }
+        const enter = () => { this.isHoveringIframe = true; };
+        const leave = () => { this.isHoveringIframe = false; };
+        if (bind) {
+            iframe.addEventListener('mouseenter', enter);
+            iframe.addEventListener('mouseleave', leave);
+            // On stocke pour pouvoir unbind plus tard
+            (this as any)._iframeEnter = enter;
+            (this as any)._iframeLeave = leave;
+        } else {
+            iframe.removeEventListener('mouseenter', (this as any)._iframeEnter);
+            iframe.removeEventListener('mouseleave', (this as any)._iframeLeave);
+        }
+    }
+
+    private mainButtonClick() {
+        if (this.connection_established && this.isStopHover) {
+            this.stopClick();          // coupe la connexion
+        } else {
+            this.openClick();          // ouvre / ferme le chat
+        }
+    }
+
+    private toggleStopHover(on: boolean) {
+        if (!this.connection_established || this.isHoveringIframe) return;
+        this.isStopHover = on;
+    }
+
     private async openClick() {
         this.is_open = !this.is_open;
         if (this.is_open && !this.ott) await this.refreshOTT();
     }
 
-    private stopRecording() {
-    //     this.isActiveOselia = false;
-    //     EventsController.emit_event(EventifyEventInstanceVO.new_event(ModuleOselia.EVENT_OSELIA_CLOSE_REALTIME, false));
+    private async stopClick(): Promise<void> {
+        EventsController.emit_event(
+            EventifyEventInstanceVO.new_event(ModuleOselia.EVENT_OSELIA_CLOSE_REALTIME, false)
+        );
     }
 
     /* ------------------------------------------------------------------
      *                         HELPERS                                    */
     private async refreshOTT() {
-        this.ott = await ModuleOselia.getInstance().get_token_oselia(document.location.href);
+        const local_ott = await ModuleOselia.getInstance().get_token_oselia(document.location.href);
+        if (local_ott != this.ott) {
+            this.ott = local_ott;
+        }
     }
+
 }

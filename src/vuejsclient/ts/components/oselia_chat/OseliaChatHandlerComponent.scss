@@ -68,6 +68,7 @@
     }
 
     .oselia_chat_btn_recording {
+        cursor: pointer;
         position: relative;
         background-color: #002454;
         border: none;
@@ -98,7 +99,62 @@
             animation: wave 1.2s infinite ease-in-out;
             position: relative;
         }
+    }
 
+    .stop-cross {
+        display: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 38px;
+        font-weight: 700;
+        color: white;
+        line-height: 1;
+        pointer-events: none;
+    }
+
+    /* --- MODE STOP (hover) ------------------------------------------ */
+    .oselia_chat_btn_closed.stop-mode {
+        background-color: #ff0024;
+        background-image: none;
+
+        .oselia_chat_btn_recording {
+            display: none;
+        }
+
+        .stop-cross {
+            display: inline-block;
+            left: 36%;
+            top: 25%;
+            position: relative;
+            animation: pulse-red-mini 1.5s infinite;
+        }
+    }
+
+}
+
+.oselia_chat_handler.iframe-hover {
+
+    .oselia_chat_btn_closed.stop-mode {
+        background: url(/public/vuejsclient/img/logo_oselia_fb.png) no-repeat center center;
+        background-color: white;
+        background-size: contain;
+        width: 80px;
+        height: 80px;
+        border: none;
+        cursor: pointer;
+        border-radius: 50px;
+        position: static;
+        margin-right: 15px;
+    }
+
+    .stop-cross {
+        display: none !important;
+    }
+
+    .oselia_chat_btn_recording {
+        display: block !important;
     }
 }
 
@@ -113,5 +169,17 @@
     50% {
         transform: scale(2.5);
         opacity: 0;
+    }
+}
+
+@keyframes pulse-red-mini {
+
+    0%,
+    100% {
+        transform: scale(.8);
+    }
+
+    50% {
+        transform: scale(1);
     }
 }

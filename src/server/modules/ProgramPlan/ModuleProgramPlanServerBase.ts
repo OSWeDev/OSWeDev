@@ -48,16 +48,6 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return this.shared_module as ModuleProgramPlanBase;
     }
 
-    public static async edit_cr_word(new_content: string, section: string, cr_vo, cr_field_titles): Promise<void> {
-        if (!cr_vo || !cr_vo.html_contents) {
-            ConsoleHandler.error('ModuleProgramPlanServerBase.edit_cr_word: cr_vo or cr_vo.html_contents is null');
-            return;
-        }
-
-        cr_vo.html_contents[cr_field_titles.indexOf(section)] = new_content;
-        await ModuleDAO.getInstance().insertOrUpdateVO(cr_vo);
-    }
-
     // istanbul ignore next: cannot test configure
     public async configure() {
 

@@ -95,6 +95,7 @@ export default class OseliaRealtimeController {
         }
         await this.initRecorder();          // démarre la capture micro
 
+        await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('OseliaStore/set_current_thread', this.call_thread);
         this.connecting = false;
     }
 

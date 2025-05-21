@@ -45,6 +45,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import type { RawData } from 'ws';
 import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
+import IPlanRDV from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 /** Structure interne d'une conversation */
 interface ConversationContext {
     openaiSocket: WebSocket;
@@ -1346,6 +1347,10 @@ export default class GPTAssistantAPIServerController {
                         voice: 'alloy',
                         instructions: [
                             "Tu es Osélia, assistant de rédaction de compte rendu, il faut que tu fasses des réponses amicales, mais concises, va au plus important.",
+                            "Parle vite et réduit au maximum les pauses entre les mots",
+                            "C'est très important que tu te poses souvent la question : 'Est-ce que je place le bon contenu au bon endroit ?'",
+                            "C'est très important que tu te poses souvent la question : 'Est-ce que ce que je fais devrait impacter un autre endroit ?'",
+                            "Si l'utilisateur te demande de l'aider à remplir les champs vides, tu dois l'aider sous forme de questions, une question à la fois.",
                             "Si on te tutoie, tu peux tutoyer en retour. ",
                             "Quand tu as besoin de connaître le prénom de l’utilisateur, appelle la fonction « get_current_user_name ».",
                             "Ton travail est d'assister les collaborateurs à rédiger les comptes rendus des réunions avec leurs clients. ",
@@ -1374,14 +1379,28 @@ export default class GPTAssistantAPIServerController {
                                             type: 'string',
                                             description: 'Nom de la section à modifier.',
                                         },
+                                        confidence: {
+                                            type: 'number',
+                                            description: '% de Confiance de l’assistant, de 0 à 100.',
+                                        }
                                     },
-                                    required: ['new_content', 'section'],
+                                    required: ['new_content', 'section', 'confidence'],
                                 },
                             },
                             {
                                 type: 'function',
                                 name: 'get_cr_field_titles',
                                 description: 'Renvoie la liste des titres de sections.',
+                                parameters: {
+                                    type: 'object',
+                                    properties: {
+                                        confidence: {
+                                            type: 'number',
+                                            description: '% de Confiance de l’assistant, de 0 à 100.',
+                                        }
+                                    },
+                                    required: ['confidence'],
+                                }
                             },
                             {
                                 type: 'function',
@@ -1391,14 +1410,74 @@ export default class GPTAssistantAPIServerController {
                                     type: 'object',
                                     properties: {
                                         section: { type: 'string', description: 'Section à récupérer.' },
+                                        confidence: {
+                                            type: 'number',
+                                            description: '% de Confiance de l’assistant, de 0 à 100.',
+                                        }
                                     },
-                                    required: ['section'],
+                                    required: ['section', 'confidence'],
                                 },
                             },
                             {
                                 type: 'function',
                                 name: 'get_current_user_name',
                                 description: "Renvoie le prénom de l’utilisateur connecté.",
+                                parameters: {
+                                    type: 'object',
+                                    properties: {
+                                        confidence: {
+                                            type: 'number',
+                                            description: '% de Confiance de l’assistant, de 0 à 100.',
+                                        }
+                                    },
+                                    required: ['confidence'],
+                                },
+                            },
+                            {
+                                type: 'function',
+                                name: 'get_current_consultant',
+                                description: "Renvoie le consultant lié au compte rendu.",
+                                parameters: {
+                                    type: 'object',
+                                    properties: {
+                                        confidence: {
+                                            type: 'number',
+                                            description: '% de Confiance de l’assistant, de 0 à 100.',
+                                        }
+                                    },
+                                    required: ['confidence'],
+                                },
+                            },
+                            {
+                                type: 'function',
+                                name: 'get_all_consultants',
+                                description: "Renvoie les prénoms de tous les consultants existants.",
+                                parameters: {
+                                    type: 'object',
+                                    properties: {
+                                        confidence: {
+                                            type: 'number',
+                                            description: '% de Confiance de l’assistant, de 0 à 100.',
+                                        }
+                                    },
+                                    required: ['confidence'],
+                                },
+                            },
+                            {
+                                type: 'function',
+                                name: 'set_current_consultant',
+                                description: "Modifie le consultant lié au compte rendu.",
+                                parameters: {
+                                    type: 'object',
+                                    properties: {
+                                        consultant_name: { type: 'string', description: 'Nom du nouveau consultant.' },
+                                        confidence: {
+                                            type: 'number',
+                                            description: '% de Confiance de l’assistant, de 0 à 100.',
+                                        }
+                                    },
+                                    required: ['consultant_name', 'confidence'],
+                                },
                             },
                         ],
                         tool_choice: 'auto',
@@ -1491,10 +1570,15 @@ export default class GPTAssistantAPIServerController {
                     })();
 
                     let output: unknown = null;
+                    const confidence_error_msg = "Confiance trop faible dans la demande, pose les questions qu'il te manquerait pour être sûr.";
                     try {
                         switch (fnName) {
                             case 'edit_cr_word': {
-                                output = await ModuleProgramPlanServerBase.edit_cr_word(
+                                if(args.confidence && args.confidence < 100) {
+                                    output = { error: confidence_error_msg };
+                                    break;
+                                }
+                                output = await ModuleProgramPlanBase.getInstance().editCRSectionContent(
                                     args.new_content,
                                     args.section,
                                     convCtx.cr_vo,
@@ -1503,17 +1587,60 @@ export default class GPTAssistantAPIServerController {
                                 break;
                             }
                             case 'get_cr_field_titles': {
+                                if(args.confidence && args.confidence < 100) {
+                                    output = { error: confidence_error_msg };
+                                    break;
+                                }
                                 output = convCtx.cr_field_titles ?? [];
                                 break;
                             }
                             case 'get_current_cr_field': {
+                                if(args.confidence && args.confidence < 100) {
+                                    output = { error: confidence_error_msg };
+                                    break;
+                                }
                                 const cr_titles = convCtx.cr_field_titles ? convCtx.cr_field_titles.map(str => str.trim()).filter(str => str.length > 0) : [];
                                 const idx = cr_titles?.indexOf(args.section) ?? -1;
                                 output = idx >= 0 ? (convCtx.cr_vo as any)?.html_contents[idx] : null;
                                 break;
                             }
                             case 'get_current_user_name': {
+                                if(args.confidence && args.confidence < 100) {
+                                    output = { error: confidence_error_msg };
+                                    break;
+                                }
                                 output = convCtx.current_user?.name ?? null;
+                                break;
+                            }
+                            case 'get_current_consultant': {
+                                if(args.confidence && args.confidence < 100) {
+                                    output = { error: confidence_error_msg };
+                                    break;
+                                }
+                                const name = convCtx.cr_vo ? await ModuleProgramPlanBase.getInstance().getCurrentConsultant(convCtx.cr_vo): null;
+                                output = name;
+                                break;
+                            }
+                            case 'get_all_consultants': {
+                                if(args.confidence && args.confidence < 100) {
+                                    output = { error: confidence_error_msg };
+                                    break;
+                                }
+                                const consultants_names = await ModuleProgramPlanBase.getInstance()
+                                    .getAllConsultantsName();
+                                output = consultants_names;
+                                break;
+                            }
+                            case 'set_current_consultant': {
+                                if(args.confidence && args.confidence < 100) {
+                                    output = { error: confidence_error_msg };
+                                    break;
+                                }
+                                output = await ModuleProgramPlanBase.getInstance()
+                                    .setConsultantName(
+                                        convCtx.cr_vo,
+                                        args.consultant_name
+                                    );
                                 break;
                             }
                             default:
