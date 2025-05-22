@@ -16,4 +16,9 @@ export default interface ICustomCRReadComponent {
      * PROP
      */
     set_cr_html_content: (html: string) => void;
+
+    /**
+     * Method that launches the edit of the CR
+     */
+    launch_edit: () => Promise<void>;
 }

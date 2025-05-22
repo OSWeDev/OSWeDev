@@ -408,6 +408,10 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
     }
 
+    private async launch_edit() {
+        await this.editCR(this.selected_rdv_cr);
+    }
+
     /**
      * Called when updating a CR. Confirmation, and if confirmed, update.
      * @param cr

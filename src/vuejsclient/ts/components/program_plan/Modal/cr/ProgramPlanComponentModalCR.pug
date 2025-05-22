@@ -11,7 +11,7 @@
                             .oselia_chat_btn_closed(:class="{ 'opened': oselia_opened }" @click='switchOpenOselia()')
                     .row
                         .col-sm-12
-                            .custom_cr_read_component(:is="custom_cr_read_component" :rdv='selected_rdv' :cr='selected_rdv_cr' :set_cr_html_content="set_cr_html_content")
+                            .custom_cr_read_component(:is="custom_cr_read_component" :rdv='selected_rdv' :cr='selected_rdv_cr' :set_cr_html_content="set_cr_html_content" :launch_edit="launch_edit")
                     
     .row(v-if="selected_rdv && selected_rdv.id && canaddcr")
         .col-sm-12.newcr
