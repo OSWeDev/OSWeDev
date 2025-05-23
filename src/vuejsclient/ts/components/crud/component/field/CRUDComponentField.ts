@@ -1994,6 +1994,24 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     /**
+     * Si on a pas chargé tous les éléments ciblables, on doit le faire ici (ou du moins obtenir un id_ranges global)
+     */
+    private async select_all_async() {
+        switch (this.field.type) {
+            case DatatableField.REF_RANGES_FIELD_TYPE:
+                const vos_refranges = await query((this.field as RefRangesReferenceDatatableFieldVO<any>).targetModuleTable.vo_type).field('id').select_vos<IDistantVOBase>();
+                this.field_value = vos_refranges ? vos_refranges.map((elem) => RangeHandler.create_single_elt_NumRange(elem.id, NumSegment.TYPE_INT)) : [];
+                break;
+            case DatatableField.MANY_TO_MANY_FIELD_TYPE:
+            case DatatableField.ONE_TO_MANY_FIELD_TYPE:
+                const vos = await query((this.field as RefRangesReferenceDatatableFieldVO<any>).targetModuleTable.vo_type).field('id').select_vos<IDistantVOBase>();
+                this.field_value = vos ? vos.map((elem) => elem.id) : [];
+                break;
+        }
+        await this.onChangeField();
+    }
+
+    /**
      * On est sur un field de type array par définition
      */
     private async select_none() {

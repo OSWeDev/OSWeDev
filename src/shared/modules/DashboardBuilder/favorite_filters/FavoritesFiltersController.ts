@@ -111,6 +111,8 @@ export default class FavoritesFiltersController {
         //  - (For related filters) If the user choose to config its dates filters, the default_field_filters must be updated
         //    depending on if default_field_filters has one related to a date widget_options
 
+        const filters_
+
         // Create context_field_filters with the default one
         for (const api_type_id in default_field_filters) {
             const filters = default_field_filters[api_type_id];
@@ -172,6 +174,10 @@ export default class FavoritesFiltersController {
                     );
                 }
             }
+
+            // Une fois qu'on a écrasé, on doit aussi rejouer les filtrages par défaut pour les champs qui d'une part dépendent d'un custom filter surchargé, et d'autre part ne sont pas déjà surchargés ...
+            TODO
+
         }
 
         // Merge/replace context_field_filters with custom_field_filters
