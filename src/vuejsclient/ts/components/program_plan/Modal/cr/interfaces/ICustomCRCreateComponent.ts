@@ -10,7 +10,7 @@ export default interface ICustomCRCreateComponent {
     /**
      * PROP to call when the cr is ready to be saved in server (confirmation is handled by this prop)
      */
-    create_cr: (cr: IPlanRDVCR, launched_by_oselia?: boolean) => Promise<void>;
+    create_cr: (cr: IPlanRDVCR) => Promise<void>;
 
     /**
      * Method that must call create_cr and do whatever you want with the cr before saving

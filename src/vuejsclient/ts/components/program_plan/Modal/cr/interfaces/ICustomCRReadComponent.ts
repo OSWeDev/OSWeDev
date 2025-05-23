@@ -12,13 +12,10 @@ export default interface ICustomCRReadComponent {
      */
     cr: IPlanRDVCR;
 
+    oselia_opened: boolean;
+
     /**
      * PROP
      */
     set_cr_html_content: (html: string) => void;
-
-    /**
-     * Method that launches the edit of the CR
-     */
-    launch_edit: () => Promise<void>;
 }

@@ -46,6 +46,7 @@ import type { RawData } from 'ws';
 import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanRDV from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 /** Structure interne d'une conversation */
 interface ConversationContext {
     openaiSocket: WebSocket;
@@ -1135,6 +1136,27 @@ export default class GPTAssistantAPIServerController {
         return new_messages;
     }
 
+    public static async postupdate_rdv_cr_vo_handle_pipe(vo: DAOUpdateVOHolder<any>) {
+        const convCtx = GPTAssistantAPIServerController.conversations.forEach(async (ctx) => {
+            if (ctx.cr_vo && ctx.cr_vo.id == vo.post_update_vo.id) {
+                ctx.cr_vo = vo.post_update_vo;
+                ctx.cr_field_titles = await ModuleProgramPlanBase.getInstance().getRDVCRType(vo.post_update_vo.rdv_id);
+                ctx.openaiSocket.send(JSON.stringify({
+                    type: 'conversation.item.create',
+                    item: {
+                        type: 'message',
+                        role: "system",
+                        "content": [
+                            {
+                                "type": "input_text",
+                                "text": "Le compte rendu vient d'être modifié par l'utilisateur"
+                            }
+                        ]
+                    },
+                }));
+            }
+        });
+    }
 
     /**
      * Demander un run d'un assistant suite à un nouveau message
@@ -1344,13 +1366,13 @@ export default class GPTAssistantAPIServerController {
                             create_response: true,
                             interrupt_response: true,
                         },
-                        voice: 'alloy',
+                        voice: 'shimmer',
                         instructions: [
                             "Tu es Osélia, assistant de rédaction de compte rendu, il faut que tu fasses des réponses amicales, mais concises, va au plus important.",
                             "Parle vite et réduit au maximum les pauses entre les mots",
                             "C'est très important que tu te poses souvent la question : 'Est-ce que je place le bon contenu au bon endroit ?'",
                             "C'est très important que tu te poses souvent la question : 'Est-ce que ce que je fais devrait impacter un autre endroit ?'",
-                            "Si l'utilisateur te demande de l'aider à remplir les champs vides, tu dois l'aider sous forme de questions, une question à la fois.",
+                            "Si l'utilisateur te demande de l'aider à remplir les champs vides, tu dois l'aider sous forme de questions, une question à la fois. Mais sur TOUT le compte rendu.",
                             "Si on te tutoie, tu peux tutoyer en retour. ",
                             "Quand tu as besoin de connaître le prénom de l’utilisateur, appelle la fonction « get_current_user_name ».",
                             "Ton travail est d'assister les collaborateurs à rédiger les comptes rendus des réunions avec leurs clients. ",
@@ -1362,6 +1384,7 @@ export default class GPTAssistantAPIServerController {
                             "Lorsque l'utilisateur te demande de modifier une section, tu dois le faire sans lui demander son accord, sauf si tu n'es pas sûr de ce qu'il veut.",
                             "Réfléchis quand on te demande de modifier quelque chose, ne le fait pas bêtement, peut être qu'il faut modifier le reste du contenu aussi en fonction de ce que tu rajoute",
                             "Lorsque l'utilisateur te demande de modifier une section et que tu ne la trouves pas, tu dois vérifier si elle correspond à peu près à une section existante, et si c'est le cas, tu dois lui demander confirmation avant de modifier quoi que ce soit.",
+                            "IMPORTANT: Avant chaque appel de fonction, préviens l'utilisateur de ce que tu vas faire, pour qu'il ne patiente pas sans savoir, mais de façon concise, pas besoin de détailler, il faut que tu reste rapide et conscis."
                         ].join(' '),
                         tools: [
                             {
@@ -1470,7 +1493,7 @@ export default class GPTAssistantAPIServerController {
                                 parameters: {
                                     type: 'object',
                                     properties: {
-                                        consultant_name: { type: 'string', description: 'Nom du nouveau consultant.' },
+                                        consultant_name: { type: 'string', description: 'Nom du nouveau consultant. Attention, il doit être présent dans les consultants existants' },
                                         confidence: {
                                             type: 'number',
                                             description: '% de Confiance de l’assistant, de 0 à 100.',
@@ -1634,6 +1657,12 @@ export default class GPTAssistantAPIServerController {
                             case 'set_current_consultant': {
                                 if(args.confidence && args.confidence < 100) {
                                     output = { error: confidence_error_msg };
+                                    break;
+                                }
+                                const list_of_consultants = await ModuleProgramPlanBase.getInstance()
+                                    .getAllConsultantsName();
+                                if (args.consultant_name && !list_of_consultants.includes(args.consultant_name)) {
+                                    output = { error: `Le consultant ${args.consultant_name} n'existe pas dans la liste des consultants. Il faut strictement un consultant existant de cette liste.` };
                                     break;
                                 }
                                 output = await ModuleProgramPlanBase.getInstance()

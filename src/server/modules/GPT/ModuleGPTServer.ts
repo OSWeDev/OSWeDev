@@ -70,6 +70,7 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
+import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -307,6 +308,10 @@ export default class ModuleGPTServer extends ModuleServerBase {
          */
         postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerController, this.postcreate_ThreadMessageVO_handle_pipe);
         postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, GPTAssistantAPIServerController, this.postcreate_ThreadMessageContentVO_handle_pipe);
+
+        if(ModuleProgramPlanBase.getInstance().rdv_cr_type_id){
+            postUpdateTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, GPTAssistantAPIServerController, GPTAssistantAPIServerController.postupdate_rdv_cr_vo_handle_pipe);
+        }
 
         if (!ConfigurationService.node_configuration.open_api_api_key) {
             ConsoleHandler.warn('OPEN_API_API_KEY is not set in configuration');

@@ -34,7 +34,7 @@ export default class OseliaRealtimeController {
     private call_thread: GPTAssistantAPIThreadVO | null = null;
     private cr_vo: IPlanRDVCR | null = null;
     private in_cr_context: boolean = false;
-    private audioCtx: AudioContext = new AudioContext({ sampleRate: 24_000 });
+    private audioCtx: AudioContext = new AudioContext({ sampleRate: 44_100  });
     private currentSrc: AudioBufferSourceNode | null = null;
     private currentItemId: string|null = null;
     private queue: Uint8Array[] = [];

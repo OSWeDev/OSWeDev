@@ -327,13 +327,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
      * Called when creating a new CR. Confirmation, and if confirmed, creation.
      * @param cr
      */
-    private async create_cr(cr: IPlanRDVCR, launched_by_oselia?: boolean) {
-        if (launched_by_oselia) {
-            await this.create_cr_action(cr).then(() => {
-                this.switchOpenOselia();
-            });
-            return;
-        }
+    private async create_cr(cr: IPlanRDVCR) {
         if ((!this.selected_rdv) || (!cr)) {
             return;
         }
@@ -406,10 +400,6 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
             });
         }));
 
-    }
-
-    private async launch_edit() {
-        await this.editCR(this.selected_rdv_cr);
     }
 
     /**
