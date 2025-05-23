@@ -177,7 +177,7 @@ export default class VarDAGNode extends DAGNodeBase {
      * L'usage du constructeur est prohibé, il faut utiliser la factory
      */
     private constructor(public var_dag: VarDAG, public var_data: VarDataBaseVO) {
-        super();
+        super(var_data.index);
     }
 
     get lock_current_step(): boolean {

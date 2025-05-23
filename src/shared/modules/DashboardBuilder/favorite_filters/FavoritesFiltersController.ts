@@ -4,7 +4,9 @@
  * FavoritesFiltersController
  */
 
+import { cloneDeep } from "lodash";
 import RangeHandler from "../../../tools/RangeHandler";
+import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
 import Dates from "../../FormatDatesNombres/Dates/Dates";
@@ -17,11 +19,6 @@ import FavoritesFiltersVO from "../vos/FavoritesFiltersVO";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
 
 export default class FavoritesFiltersController {
-
-
-    private static instance: FavoritesFiltersController = null;
-
-    private constructor() { }
 
     /**
      * can_export_favorites_filters
@@ -194,15 +191,55 @@ export default class FavoritesFiltersController {
             }
         }
 
+        // Une fois qu'on a défini les customs, on les pousse dans les datas type var qui dépendent de ces customs
+        // On doit aussi retrouver tous les custom_filters des colonnes de l'export_datas qui seraient dépendantes (car de type var probablement) de ce filtre
+        // Donc dans export_params.exportable_datas[x].custom_filters[y][z]
+        if (favorites_filters?.export_params?.exportable_data) {
+            for (const exportable_data_key in favorites_filters.export_params.exportable_data) {
+                const exportable_data = favorites_filters.export_params.exportable_data[exportable_data_key];
+
+                const custom_filters = exportable_data.custom_filters;
+                if (custom_filters) {
+
+                    for (const custom_filter_key_1 in custom_filters) {
+                        const custom_filter = custom_filters[custom_filter_key_1];
+
+                        for (const custom_filter_key_2 in custom_filter) {
+                            const custom_arbo = custom_filter[custom_filter_key_2];
+
+                            if (custom_arbo.vo_type !== ContextFilterVO.CUSTOM_FILTERS_TYPE) {
+                                continue;
+                            }
+
+                            if ((!custom_field_filters) || (!custom_field_filters[custom_arbo.vo_type]) || (!custom_field_filters[custom_arbo.vo_type][custom_arbo.field_name])) {
+                                continue;
+                            }
+
+                            const custom_copy = cloneDeep(custom_field_filters[custom_arbo.vo_type][custom_arbo.field_name]);
+                            custom_filter[custom_filter_key_2] = custom_copy;
+                        }
+                    }
+                }
+            }
+        }
+
+
         return context_field_filters;
     }
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): FavoritesFiltersController {
-        if (!FavoritesFiltersController.instance) {
-            FavoritesFiltersController.instance = new FavoritesFiltersController();
-        }
+    // /**
+    //  * On génère le context de requete global qui par défaut est celui du dashboard, et est surchargé par les filtres favoris
+    //  * On utilise l'arborescence des widgets pour savoir dans quel ordre on doit appliquer les filtres
+    //  * Le fonctionnement est le suivant :
+    //  *  - On part du haut de l'arbre niveau par niveau (depth first)
+    //  *  - Si le widget n'est pas un filtrage, osef
+    //  *  - On demande les context de filtre de ce widget, basé sur les filtres déjà params et sur le context actuellement généré
+    //  *  - Pour chaque champs du context filter ou du customfilter qui sont impactés par le widget, si on a un filtre dans le filtrefavori, on l'applique
+    //  *
+    //  * @param {FavoritesFiltersVO} favorites_filters
+    //  * @returns {Promise<FieldFiltersVO>}
+    //  */
+    // public static async create_field_filters_for_export(favorites_filters: FavoritesFiltersVO): Promise<FieldFiltersVO> {
 
-        return FavoritesFiltersController.instance;
-    }
+    // }
 }

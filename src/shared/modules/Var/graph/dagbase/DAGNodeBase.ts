@@ -18,7 +18,7 @@ export default abstract class DAGNodeBase {
 
     public tags: { [tag_name: string]: boolean } = {};
 
-    protected constructor() { }
+    protected constructor(public node_name: string) { }
 
     /**
      * @returns true si le noeuds à des deps descendantes, false sinon => dans ce cas on parle de noeud feuille/leaf
