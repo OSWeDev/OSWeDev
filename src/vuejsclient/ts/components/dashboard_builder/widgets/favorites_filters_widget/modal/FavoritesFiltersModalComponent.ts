@@ -476,7 +476,15 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
                     monthfilter_options?.hide_filter ||
                     yearfilter_options?.hide_filter
                 ) {
-                    continue;
+
+                    // Cas particulier des filtres qui dépendent d'un autre, la dep ne marche pas côté serveur pour le moment, il faut donc paramétrer la date côté client
+                    if (
+                        (!(monthfilter_options.is_relative_to_other_filter && monthfilter_options.relative_to_other_filter_id)) &&
+                        (!(yearfilter_options.is_relative_to_other_filter && yearfilter_options.relative_to_other_filter_id))
+                    ) {
+
+                        continue;
+                    }
                 }
 
                 // Set the dates default config to custumize

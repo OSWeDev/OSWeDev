@@ -75,7 +75,7 @@
                 template(v-if='is_relative_to_other_filter')
                     div {{ label('year_filter_widget_component.is_relative_to_other_filter') }}
                         
-                    template(v-if='relative_to_other_filter_id')
+                    template(v-if='relative_to_other_filter_id && other_filters_by_name && other_filters_by_name[relative_to_other_filter_id]')
                         span {{ label('year_filter_widget_component.relative_to_other_filter_id') }} :
                         span {{ other_filters_by_name[relative_to_other_filter_id].name }}
                     
