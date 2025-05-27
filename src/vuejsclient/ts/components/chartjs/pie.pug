@@ -1,5 +1,6 @@
 piechart(
-    v-if="chart_data && chart_options && chart_plugins"
+    v-if="chart_data && chart_options"
+    :key="'pie_chart_' + chart_key"
     :data="chart_data"
     :options="chart_options"
     :plugins="chart_plugins"

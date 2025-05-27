@@ -1,5 +1,6 @@
 barchart(
     v-if="chart_data && chart_options"
+    :key="'bar_chart_' + chart_key"
     :data="chart_data"
     :options="chart_options"
 )

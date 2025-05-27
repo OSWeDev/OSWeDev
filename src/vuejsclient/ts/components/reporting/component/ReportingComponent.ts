@@ -36,7 +36,7 @@ export default class ReportingComponent extends ReportingComponentBase {
     @Prop({ default: null })
     public default_filter_datevs_active_option: string;
 
-    @Prop({ default: {} })
+    @Prop({ default: () => ({}) })
     public vue_tables_options_default: any;
 
     private selected_card: CardVO = null;

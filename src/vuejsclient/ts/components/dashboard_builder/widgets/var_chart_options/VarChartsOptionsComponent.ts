@@ -37,7 +37,7 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
     @Prop({ default: null })
     private get_custom_filters!: string[];
 
-    @Prop({ default: [] })
+    @Prop({ default: () => ([]) })
     private fields_that_could_get_scales_filter!: VarChartScalesOptionsVO[];
 
     /**
@@ -163,7 +163,7 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         const res: Array<{ id: number; label: string; palette: DashboardGraphColorPaletteVO }> = [];
         this.color_palettes = [];
 
-        const palettes : DashboardGraphColorPaletteVO[] = await query(DashboardGraphColorPaletteVO.API_TYPE_ID).select_vos();
+        const palettes: DashboardGraphColorPaletteVO[] = await query(DashboardGraphColorPaletteVO.API_TYPE_ID).select_vos();
         for (const pal of palettes) {
             res.push({
                 id: pal.id,

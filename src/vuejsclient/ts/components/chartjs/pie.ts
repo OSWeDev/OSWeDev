@@ -16,19 +16,51 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 })
 export default class ChartJsPieComponent extends VueComponentBase {
 
-    @Prop({ default: {} })
+    @Prop({ default: () => ({}) })
     private options: any;
 
-    @Prop({ default: [] })
+    @Prop({ default: () => ([]) })
     private labels: string[];
 
-    @Prop({ default: {} })
-    private plugins: any[];
+    @Prop({ default: () => ({}) })
+    private plugins: any;
 
-    @Prop({ default: [] })
+    @Prop({ default: () => ([]) })
     private datasets: ChartJsDataSetDescriptor[];
 
     private debounced_rerender = debounce(this.rerender, 500);
+    private chart_key: number = 0;
+
+    get chart_options() {
+        if (Object.keys(this.options)?.length > 0) {
+            return this.options;
+        }
+
+        return null;
+    }
+
+    get chart_plugins() {
+        if (Object.keys(this.plugins)?.length > 0) {
+            return this.plugins;
+        }
+
+        return null;
+    }
+
+    get chart_data() {
+        return {
+            labels: this.labels,
+            datasets: this.datasets
+        };
+    }
+
+    @Watch('datasets')
+    @Watch('chart_options')
+    @Watch('chart_plugins')
+    @Watch('labels')
+    private onchanges() {
+        this.debounced_rerender();
+    }
 
     public async created() {
         let chart = Chart;
@@ -43,46 +75,13 @@ export default class ChartJsPieComponent extends VueComponentBase {
         this.debounced_rerender();
     }
 
-    @Watch('datasets')
-    @Watch('chart_options_')
-    @Watch('chart_plugins')
-    @Watch('labels')
-    private onchanges() {
-        this.debounced_rerender();
-    }
-
     private rerender() {
-        this['renderChart'](this.chart_data, this.chart_options, this.chart_plugins);
-    }
-
-    get chart_options() {
-        // return Object.assign(
-        //     {
-        //         plugins: {
-        //             labels: false,
-        //         }
-        //     },
-        //     this.options
-        // );
-        if (this.options.plugins) {
-            return this.options;
-        } else {
-            return
+        if (!this.chart_data &&
+            !this.chart_options
+        ) {
+            return;
         }
-    }
 
-    get chart_plugins() {
-        if (this.plugins.length > 0) {
-            return this.plugins;
-        } else {
-            return
-        }
-    }
-
-    get chart_data() {
-        return {
-            labels: this.labels,
-            datasets: this.datasets
-        };
+        this.chart_key++;
     }
 }
