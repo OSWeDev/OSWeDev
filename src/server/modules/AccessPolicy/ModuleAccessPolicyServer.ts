@@ -238,6 +238,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 session = Object.assign(session, session.impersonated_from);
                 delete session.impersonated_from;
 
+                ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]] = session;
+
                 if (!session.save) {
                     ConsoleHandler.error('ModuleAccessPolicyServer.logout_sid:session.save:session.save not found:SID:' + sid);
                     return;
@@ -474,6 +476,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session = Object.assign(session, session.impersonated_from);
             delete session.impersonated_from; // POURQUOI c'était commenté ???
+
+            ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]] = session;
 
             const uid: number = session.uid;
 
