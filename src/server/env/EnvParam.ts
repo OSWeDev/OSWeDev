@@ -50,6 +50,9 @@ export default class EnvParam implements IEnvParam {
 
     public debug_forks?: boolean = false;
     public debug_vars?: boolean = false;
+    public debug_vars_prepare_updates_in_out?: boolean = true;
+    public debug_vars_handle_invalidators_in_out?: boolean = true;
+    public debug_vars_processes_ordered_vos?: boolean = true;
     public debug_vars_processes?: boolean = false;
     public debug_vars_invalidation?: boolean = false;
     public debug_vars_invalidation_param_intersector?: boolean = false;
