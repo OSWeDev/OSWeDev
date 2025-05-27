@@ -155,7 +155,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                     .filter_is_false(field_names<CRUDFieldRemoverConfVO>().is_update)
                     .select_vo<CRUDFieldRemoverConfVO>();
             } catch (error) {
-                if (error.message == 'Multiple results on select_vo is not allowed : ' + this.api_type_id) {
+                if (error.message.startsWith('Multiple results on select_vo is not allowed')) {
                     /**
                      * On gère les doublons au cas où on ait un problème de synchronisation en supprimant les plus récents
                      */
@@ -164,7 +164,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                         .filter_is_false(field_names<CRUDFieldRemoverConfVO>().is_update)
                         .set_sort(new SortByVO(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().id, true))
                         .select_vos<CRUDFieldRemoverConfVO>();
-                    doublons.shift();
+                    this.crud_field_remover_conf = doublons.shift();
                     await ModuleDAO.instance.deleteVOs(doublons);
                 }
             }

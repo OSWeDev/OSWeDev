@@ -1269,7 +1269,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
 
         const res: T[] = await ModuleContextFilter.instance.select_vos(this);
         if (res && (res.length > 1)) {
-            throw new Error('Multiple results on select_vo is not allowed  : ' + this.base_api_type_id);
+            throw new Error('Multiple results on select_vo is not allowed : ' + this.base_api_type_id);
         }
         return (res && res.length) ? res[0] : null;
     }

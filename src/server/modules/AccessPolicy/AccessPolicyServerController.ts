@@ -759,7 +759,7 @@ export default class AccessPolicyServerController {
         try {
             roleFromBDD = await query(RoleVO.API_TYPE_ID).filter_by_text_eq(field_names<RoleVO>().translatable_name, role.translatable_name).select_vo<RoleVO>();
         } catch (error) {
-            if (error.message == 'Multiple results on select_vo is not allowed : ' + RoleVO.API_TYPE_ID) {
+            if (error.message.startsWith('Multiple results on select_vo is not allowed')) {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate role ' + role.translatable_name + ' detected, deleting it');
                 const vos = await query(RoleVO.API_TYPE_ID).filter_by_text_eq(field_names<RoleVO>().translatable_name, role.translatable_name).select_vos<RoleVO>();
@@ -817,7 +817,7 @@ export default class AccessPolicyServerController {
         try {
             groupFromBDD = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq(field_names<AccessPolicyGroupVO>().translatable_name, group.translatable_name).select_vo<AccessPolicyGroupVO>();
         } catch (error) {
-            if (error.message == 'Multiple results on select_vo is not allowed : ' + AccessPolicyGroupVO.API_TYPE_ID) {
+            if (error.message.startsWith('Multiple results on select_vo is not allowed')) {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate group ' + group.translatable_name + ' detected, deleting it');
                 const vos = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq(field_names<AccessPolicyGroupVO>().translatable_name, group.translatable_name).select_vos<AccessPolicyGroupVO>();
@@ -878,7 +878,7 @@ export default class AccessPolicyServerController {
         try {
             policyFromBDD = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq(field_names<AccessPolicyVO>().translatable_name, policy.translatable_name).select_vo<AccessPolicyVO>();
         } catch (error) {
-            if (error.message == 'Multiple results on select_vo is not allowed :' + AccessPolicyVO.API_TYPE_ID) {
+            if (error.message.startsWith('Multiple results on select_vo is not allowed')) {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate policy ' + policy.translatable_name + ' detected, deleting it');
                 const vos = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq(field_names<AccessPolicyVO>().translatable_name, policy.translatable_name).select_vos<AccessPolicyVO>();
@@ -954,7 +954,7 @@ export default class AccessPolicyServerController {
         try {
             dependencyFromBDD = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq(field_names<PolicyDependencyVO>().src_pol_id, dependency.src_pol_id).filter_by_num_eq(field_names<PolicyDependencyVO>().depends_on_pol_id, dependency.depends_on_pol_id).select_vo<PolicyDependencyVO>();
         } catch (error) {
-            if (error.message == 'Multiple results on select_vo is not allowed : ' + PolicyDependencyVO.API_TYPE_ID) {
+            if (error.message.startsWith('Multiple results on select_vo is not allowed')) {
                 // Gestion cas duplication de dépendance qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate policy dependency ' + dependency.src_pol_id + ' -> ' + dependency.depends_on_pol_id + ' detected, deleting it');
                 const vos = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq(field_names<PolicyDependencyVO>().src_pol_id, dependency.src_pol_id).filter_by_num_eq(field_names<PolicyDependencyVO>().depends_on_pol_id, dependency.depends_on_pol_id).select_vos<PolicyDependencyVO>();
