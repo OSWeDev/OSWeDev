@@ -51,6 +51,9 @@ export default interface IEnvParam {
     debug_convert_varparamfields_to_vardatas?: boolean;
     debug_forks?: boolean;
     debug_vars?: boolean;
+    debug_vars_prepare_updates_in_out?: boolean;
+    debug_vars_handle_invalidators_in_out?: boolean;
+    debug_vars_processes_ordered_vos?: boolean;
     debug_vars_processes?: boolean;
     debug_vars_invalidation?: boolean;
     debug_vars_current_tree?: boolean;

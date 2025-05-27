@@ -160,7 +160,9 @@ export default class VarsProcessInvalidator {
                 const ordered_vos_cud = (VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) ? VarsDatasVoUpdateHandler.ordered_vos_cud.splice(0, VarsProcessInvalidator.max_ordered_vos_cud).filter((e) => !!e) : [];
 
                 if (ordered_vos_cud.length) {
-                    ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb ordered_vos_cud:' + ordered_vos_cud.length + '/' + VarsProcessInvalidator.max_ordered_vos_cud + ' max - (' + VarsDatasVoUpdateHandler.ordered_vos_cud.length + ' restants)');
+                    if (ConfigurationService.node_configuration.debug_vars_processes_ordered_vos) {
+                        ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb ordered_vos_cud:' + ordered_vos_cud.length + '/' + VarsProcessInvalidator.max_ordered_vos_cud + ' max - (' + VarsDatasVoUpdateHandler.ordered_vos_cud.length + ' restants)');
+                    }
                     handles_vocuds = true;
                     has_max_vocuds = (ordered_vos_cud.length == VarsProcessInvalidator.max_ordered_vos_cud);
                 }

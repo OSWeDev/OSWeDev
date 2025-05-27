@@ -749,7 +749,10 @@ export default class VarsDatasVoUpdateHandler {
         if (!invalidators_array || !invalidators_array.length) {
             return;
         }
-        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:IN:' + invalidators_array.length);
+
+        if (ConfigurationService.node_configuration.debug_vars_handle_invalidators_in_out) {
+            ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:IN:' + invalidators_array.length);
+        }
 
         // On fait l'union et on regroupe par conf d'invalidation
         const invalidators_by_varconf_id: { [invalidation_conf_key: string]: VarDataInvalidatorVO[] } = this.union_invalidators(invalidators_array);
@@ -885,7 +888,9 @@ export default class VarsDatasVoUpdateHandler {
 
         VarDAGNode.unlock_nodes(nodes_to_unlock);
 
-        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:OUT');
+        if (ConfigurationService.node_configuration.debug_vars_handle_invalidators_in_out) {
+            ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:OUT');
+        }
     }
 
     /**
@@ -1093,7 +1098,9 @@ export default class VarsDatasVoUpdateHandler {
     ) {
 
         if (ordered_vos_cud && ordered_vos_cud.length) {
-            ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:IN :ordered_vos_cud length:' + ordered_vos_cud.length);
+            if (ConfigurationService.node_configuration.debug_vars_prepare_updates_in_out) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:IN :ordered_vos_cud length:' + ordered_vos_cud.length);
+            }
         } else {
             return;
         }
@@ -1138,7 +1145,9 @@ export default class VarsDatasVoUpdateHandler {
             }
         }
 
-        ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + ordered_vos_cud.length + ':vo_ids_by_api_type_id_for_log:' + JSON.stringify(vo_ids_by_api_type_id_for_log));
+        if (ConfigurationService.node_configuration.debug_vars_prepare_updates_in_out) {
+            ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + ordered_vos_cud.length + ':vo_ids_by_api_type_id_for_log:' + JSON.stringify(vo_ids_by_api_type_id_for_log));
+        }
     }
 
     // @ThrottleExecAsServerRunsOnBgThread(
