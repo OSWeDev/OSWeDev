@@ -2073,8 +2073,8 @@ export default class CRUDComponentField extends VueComponentBase
 
     private async validate_inline_input(event) {
 
+        CRUDFormServices.auto_updates_waiting[this.this_CRUDComp_UID] = false;
         if (this.auto_validate_start) {
-            CRUDFormServices.auto_updates_waiting[this.this_CRUDComp_UID] = false;
             this.auto_validate_start = null;
         }
 
@@ -2283,6 +2283,10 @@ export default class CRUDComponentField extends VueComponentBase
 
         if (this.auto_validate_start) {
             await this.prepare_auto_validate(true, null);
+        }
+
+        if (CRUDFormServices.auto_updates_waiting[this.this_CRUDComp_UID]) {
+            CRUDFormServices.auto_updates_waiting[this.this_CRUDComp_UID] = false;
         }
 
         delete CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb[this.this_CRUDComp_UID];
