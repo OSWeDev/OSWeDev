@@ -439,6 +439,20 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                     return;
                 }
 
+                if (!createdVO || !createdVO.id) {
+                    self.creating_vo = false;
+                    reject({
+                        body: self.label('crud.create.errors.create_failure'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                    return;
+                }
+
                 self.creating_vo = false;
 
                 self.$emit(createdVO._type + '_create', createdVO);

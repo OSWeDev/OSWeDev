@@ -28,6 +28,9 @@ include ../../../../../views/mixins/loading.pug
                         span {{ vo_id_to_human_readable_field_value }}
 
             template(v-else)
+                template(v-if="field_description")
+                    .description.italic.mb-2 {{ field_description }}
+
                 template(v-if="field.type == 'Simple' || field.type == 'INPUT'")
                     include ./simple_input_types.pug
 
@@ -39,9 +42,6 @@ include ../../../../../views/mixins/loading.pug
 
                 template(v-else-if="(field.type == 'OneToMany') || (field.type == 'ManyToMany')")
                     include ./onetomany_input.pug
-
-                template(v-if="field_description")
-                    .description.italic.mb-2 {{ field_description }}
 
                 template(v-if="show_inline_form_in_crud")
                     fieldset
