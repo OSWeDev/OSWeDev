@@ -1,9 +1,11 @@
 import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
+import NumRange from "../../../../shared/modules/DataRender/vos/NumRange";
 import NumSegment from "../../../../shared/modules/DataRender/vos/NumSegment";
 import TimeSegment from "../../../../shared/modules/DataRender/vos/TimeSegment";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import SuiviCompetencesVarsNamesHolder from "../../../../shared/modules/SuiviCompetences/vars/SuiviCompetencesVarsNamesHolder";
 import SuiviCompetencesRapportSousGroupeDataRangesVO from "../../../../shared/modules/SuiviCompetences/vars/vos/SuiviCompetencesRapportSousGroupeDataRangesVO";
+import SuiviCompetencesGrilleVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGrilleVO";
 import SuiviCompetencesGroupeVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGroupeVO";
 import SuiviCompetencesItemRapportVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesItemRapportVO";
 import SuiviCompetencesItemVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesItemVO";
@@ -115,6 +117,16 @@ export default class VarDaySuiviCompetencesNiveauMaturiteSousGroupeController ex
     public has_changed_important_field<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): boolean {
 
         switch (u_vo_holder.pre_update_vo._type) {
+            case SuiviCompetencesRapportVO.API_TYPE_ID:
+                return true;
+            case SuiviCompetencesGrilleVO.API_TYPE_ID:
+                if (
+                    ((u_vo_holder.pre_update_vo as any as SuiviCompetencesGrilleVO).calcul_niveau_maturite != (u_vo_holder.post_update_vo as any as SuiviCompetencesGrilleVO).calcul_niveau_maturite) ||
+                    (!RangeHandler.are_same((u_vo_holder.pre_update_vo as any as SuiviCompetencesGrilleVO).suivi_comp_item_id_ranges, (u_vo_holder.post_update_vo as any as SuiviCompetencesGrilleVO).suivi_comp_item_id_ranges))
+                ) {
+                    return true;
+                }
+                break;
             case SuiviCompetencesItemRapportVO.API_TYPE_ID:
                 if (
                     ((u_vo_holder.pre_update_vo as any as SuiviCompetencesItemRapportVO).indicateur != (u_vo_holder.post_update_vo as any as SuiviCompetencesItemRapportVO).indicateur)
@@ -152,57 +164,65 @@ export default class VarDaySuiviCompetencesNiveauMaturiteSousGroupeController ex
     }
 
     public async get_invalid_params_intersectors_from_vo<T extends IDistantVOBase>(var_name: string, vo: T): Promise<SuiviCompetencesRapportSousGroupeDataRangesVO> {
-        let tsp_groupe_id: number = null;
-        let tsp_sous_groupe_ids: number[] = null;
-        let rapport_ids: number[] = null;
+        let rapport_id_ranges: NumRange[] = null;
+        let tsp_groupe_id_ranges: NumRange[] = null;
+        let tsp_sous_groupe_id_ranges: NumRange[] = null;
 
         switch (vo._type) {
+            case SuiviCompetencesRapportVO.API_TYPE_ID:
+                rapport_id_ranges = [RangeHandler.create_single_elt_NumRange((vo as any as SuiviCompetencesRapportVO).id, NumSegment.TYPE_INT)];
+                break;
+            case SuiviCompetencesGrilleVO.API_TYPE_ID:
+                break;
             case SuiviCompetencesItemRapportVO.API_TYPE_ID:
-                let tsp_item: SuiviCompetencesItemVO = await query(SuiviCompetencesItemVO.API_TYPE_ID).filter_by_id((vo as any as SuiviCompetencesItemRapportVO).suivi_comp_item_id).select_vo();
-                tsp_groupe_id = tsp_item ? tsp_item.groupe_id : null;
+                const tsp_item: SuiviCompetencesItemVO = await query(SuiviCompetencesItemVO.API_TYPE_ID).filter_by_id((vo as any as SuiviCompetencesItemRapportVO).suivi_comp_item_id).select_vo();
+                tsp_groupe_id_ranges = tsp_item ? [RangeHandler.create_single_elt_NumRange(tsp_item.groupe_id, NumSegment.TYPE_INT)] : null;
 
                 if (tsp_item.sous_groupe_id) {
-                    tsp_sous_groupe_ids = [tsp_item.sous_groupe_id];
+                    tsp_sous_groupe_id_ranges = [RangeHandler.create_single_elt_NumRange(tsp_item.sous_groupe_id, NumSegment.TYPE_INT)];
                 }
 
-                rapport_ids = [(vo as any as SuiviCompetencesItemRapportVO).rapport_id];
+                rapport_id_ranges = [RangeHandler.create_single_elt_NumRange((vo as any as SuiviCompetencesItemRapportVO).rapport_id, NumSegment.TYPE_INT)];
                 break;
             case SuiviCompetencesItemVO.API_TYPE_ID:
-                tsp_groupe_id = (vo as any as SuiviCompetencesItemVO).groupe_id;
+                tsp_groupe_id_ranges = [RangeHandler.create_single_elt_NumRange((vo as any as SuiviCompetencesItemVO).groupe_id, NumSegment.TYPE_INT)];
 
                 if ((vo as any as SuiviCompetencesItemVO).sous_groupe_id) {
-                    tsp_sous_groupe_ids = [(vo as any as SuiviCompetencesItemVO).sous_groupe_id];
+                    tsp_sous_groupe_id_ranges = [RangeHandler.create_single_elt_NumRange((vo as any as SuiviCompetencesItemVO).sous_groupe_id, NumSegment.TYPE_INT)];
                 }
                 break;
             case SuiviCompetencesGroupeVO.API_TYPE_ID:
-                tsp_groupe_id = (vo as any as SuiviCompetencesGroupeVO).id;
-                let tsp_sous_groupes: any[] = await query(SuiviCompetencesSousGroupeVO.API_TYPE_ID)
+                tsp_groupe_id_ranges = [RangeHandler.create_single_elt_NumRange((vo as any as SuiviCompetencesGroupeVO).id, NumSegment.TYPE_INT)];
+                const tsp_sous_groupes: any[] = await query(SuiviCompetencesSousGroupeVO.API_TYPE_ID)
                     .field(field_names<SuiviCompetencesSousGroupeVO>().id)
                     .filter_by_num_eq(field_names<SuiviCompetencesSousGroupeVO>().groupe_id, (vo as any as SuiviCompetencesGroupeVO).id)
                     .select_vos();
-                tsp_sous_groupe_ids = tsp_sous_groupes ? tsp_sous_groupes.map((e) => e.id) : null;
+                tsp_sous_groupe_id_ranges = tsp_sous_groupes ? RangeHandler.create_multiple_NumRange_from_ids(tsp_sous_groupes.map((e) => e.id), NumSegment.TYPE_INT) : null;
                 break;
             case SuiviCompetencesSousGroupeVO.API_TYPE_ID:
-                tsp_groupe_id = (vo as any as SuiviCompetencesSousGroupeVO).groupe_id;
-                tsp_sous_groupe_ids = [(vo as any as SuiviCompetencesSousGroupeVO).id];
+                tsp_groupe_id_ranges = [RangeHandler.create_single_elt_NumRange((vo as any as SuiviCompetencesSousGroupeVO).groupe_id, NumSegment.TYPE_INT)];
+                tsp_sous_groupe_id_ranges = [RangeHandler.create_single_elt_NumRange((vo as any as SuiviCompetencesSousGroupeVO).id, NumSegment.TYPE_INT)];
                 break;
         }
 
-        if (!rapport_ids || !rapport_ids.length) {
-            let rapports: any[] = await query(SuiviCompetencesRapportVO.API_TYPE_ID).select_vos<SuiviCompetencesRapportVO>();
-            rapport_ids = rapports ? rapports.map((e) => e.id) : null;
+        if (!rapport_id_ranges?.length) {
+            rapport_id_ranges = [RangeHandler.getMaxNumRange()];
         }
 
-        if (!tsp_groupe_id || !tsp_sous_groupe_ids || !tsp_sous_groupe_ids.length || !rapport_ids || !rapport_ids.length) {
-            return null;
+        if (!tsp_groupe_id_ranges?.length) {
+            tsp_groupe_id_ranges = [RangeHandler.getMaxNumRange()];
+        }
+
+        if (!tsp_sous_groupe_id_ranges?.length) {
+            tsp_sous_groupe_id_ranges = [RangeHandler.getMaxNumRange()];
         }
 
         return SuiviCompetencesRapportSousGroupeDataRangesVO.createNew<SuiviCompetencesRapportSousGroupeDataRangesVO>(
             var_name,
             false,
-            RangeHandler.create_multiple_NumRange_from_ids(rapport_ids, NumSegment.TYPE_INT),
-            [RangeHandler.create_single_elt_NumRange(tsp_groupe_id, NumSegment.TYPE_INT)],
-            RangeHandler.create_multiple_NumRange_from_ids(tsp_sous_groupe_ids, NumSegment.TYPE_INT),
+            rapport_id_ranges,
+            tsp_groupe_id_ranges,
+            tsp_sous_groupe_id_ranges,
         );
     }
 

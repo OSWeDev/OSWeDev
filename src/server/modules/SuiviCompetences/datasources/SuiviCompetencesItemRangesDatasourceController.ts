@@ -23,7 +23,7 @@ export default class SuiviCompetencesItemRangesDatasourceController extends Data
         if (!SuiviCompetencesItemRangesDatasourceController.instance) {
             SuiviCompetencesItemRangesDatasourceController.instance = new SuiviCompetencesItemRangesDatasourceController(
                 'SuiviCompetencesItemRangesDatasourceController',
-                [SuiviCompetencesItemVO.API_TYPE_ID, SuiviCompetencesGroupeVO.API_TYPE_ID, SuiviCompetencesSousGroupeVO.API_TYPE_ID],
+                [SuiviCompetencesRapportVO.API_TYPE_ID, SuiviCompetencesGrilleVO.API_TYPE_ID, SuiviCompetencesItemVO.API_TYPE_ID, SuiviCompetencesGroupeVO.API_TYPE_ID, SuiviCompetencesSousGroupeVO.API_TYPE_ID],
                 { 'fr-fr': 'Suivi Competences Item' }
             );
         }

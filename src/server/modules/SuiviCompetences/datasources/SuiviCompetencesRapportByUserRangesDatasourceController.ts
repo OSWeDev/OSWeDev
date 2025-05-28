@@ -9,6 +9,8 @@ import DataSourceControllerMatroidIndexedBase from "../../Var/datasource/DataSou
 
 export default class SuiviCompetencesRapportByUserRangesDatasourceController extends DataSourceControllerMatroidIndexedBase {
 
+    protected static instance: SuiviCompetencesRapportByUserRangesDatasourceController = null;
+
     public static getInstance(): SuiviCompetencesRapportByUserRangesDatasourceController {
         if (!SuiviCompetencesRapportByUserRangesDatasourceController.instance) {
             SuiviCompetencesRapportByUserRangesDatasourceController.instance = new SuiviCompetencesRapportByUserRangesDatasourceController(
@@ -18,8 +20,6 @@ export default class SuiviCompetencesRapportByUserRangesDatasourceController ext
         }
         return SuiviCompetencesRapportByUserRangesDatasourceController.instance;
     }
-
-    protected static instance: SuiviCompetencesRapportByUserRangesDatasourceController = null;
 
     public async get_data(param: SuiviCompetencesUserDataRangesVO | SuiviCompetencesGroupeUserTsRangesDataRangesVO | SuiviCompetencesSousGroupeUserTsRangesDataRangesVO): Promise<{ [user_id: number]: SuiviCompetencesRapportVO[] }> {
         let res: { [user_id: number]: SuiviCompetencesRapportVO[] } = {};

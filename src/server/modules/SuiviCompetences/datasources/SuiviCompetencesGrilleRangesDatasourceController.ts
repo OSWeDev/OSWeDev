@@ -11,6 +11,8 @@ import DataSourceControllerMatroidIndexedBase from "../../Var/datasource/DataSou
 
 export default class SuiviCompetencesGrilleRangesDatasourceController extends DataSourceControllerMatroidIndexedBase {
 
+    protected static instance: SuiviCompetencesGrilleRangesDatasourceController = null;
+
     public static getInstance(): SuiviCompetencesGrilleRangesDatasourceController {
         if (!SuiviCompetencesGrilleRangesDatasourceController.instance) {
             SuiviCompetencesGrilleRangesDatasourceController.instance = new SuiviCompetencesGrilleRangesDatasourceController(
@@ -21,8 +23,6 @@ export default class SuiviCompetencesGrilleRangesDatasourceController extends Da
         }
         return SuiviCompetencesGrilleRangesDatasourceController.instance;
     }
-
-    protected static instance: SuiviCompetencesGrilleRangesDatasourceController = null;
 
     public async get_data(param: SuiviCompetencesUserDataRangesVO): Promise<{ [grille_id: number]: SuiviCompetencesGroupeResult[] }> {
         let grilles: SuiviCompetencesGrilleVO[] = await query(SuiviCompetencesGrilleVO.API_TYPE_ID).select_vos<SuiviCompetencesGrilleVO>();
