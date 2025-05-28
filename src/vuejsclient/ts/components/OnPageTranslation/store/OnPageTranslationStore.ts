@@ -32,7 +32,7 @@ export default class OnPageTranslationStore implements IStoreModule<IOnPageTrans
                     if (missing) {
                         state.page_translations[code].missing = true;
                     }
-                    return;
+                    continue;
                 }
 
                 Vue.set(state.page_translations, code, new OnPageTranslationItem(code, missing));
