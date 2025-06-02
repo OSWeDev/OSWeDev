@@ -535,6 +535,22 @@ export default class ModuleGPTServer extends ModuleServerBase {
         POLICY_generate_response = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_generate_response, DefaultTranslationVO.create_new({
             'fr-fr': 'API: generate_response'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_USE_OSELIA_REALTIME: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_USE_OSELIA_REALTIME.group_id = group.id;
+        POLICY_USE_OSELIA_REALTIME.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_USE_OSELIA_REALTIME.translatable_name = ModuleGPT.POLICY_USE_OSELIA_REALTIME;
+        POLICY_USE_OSELIA_REALTIME = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_USE_OSELIA_REALTIME, DefaultTranslationVO.create_new({
+            'fr-fr': 'API: use oselia realtime voice'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_USE_OSELIA_REALTIME_IN_CR: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_USE_OSELIA_REALTIME_IN_CR.group_id = group.id;
+        POLICY_USE_OSELIA_REALTIME_IN_CR.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_USE_OSELIA_REALTIME_IN_CR.translatable_name = ModuleGPT.POLICY_USE_OSELIA_REALTIME_IN_CR;
+        POLICY_USE_OSELIA_REALTIME_IN_CR = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_USE_OSELIA_REALTIME_IN_CR, DefaultTranslationVO.create_new({
+            'fr-fr': 'API: use oselia realtime voice in CR'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
     public registerAccessHooks(): void {

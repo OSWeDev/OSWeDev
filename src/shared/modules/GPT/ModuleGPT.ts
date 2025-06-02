@@ -72,7 +72,8 @@ export default class ModuleGPT extends Module {
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".FO_ACCESS";
     public static POLICY_ask_assistant = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".ask_assistant";
     public static POLICY_rerun = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".rerun";
-
+    public static POLICY_USE_OSELIA_REALTIME: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + '.USE_OSELIA_REALTIME';
+    public static POLICY_USE_OSELIA_REALTIME_IN_CR: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + '.USE_OSELIA_REALTIME_IN_CR';
     /**
      * @deprecated use Assistants instead => cheaper / faster / better control. Will be removed soon
      */
@@ -183,7 +184,7 @@ export default class ModuleGPT extends Module {
         ));
 
         APIControllerWrapper.registerApi(PostAPIDefinition.new<APIRealtimeVoiceConnectParam, void>(
-            ModuleGPT.POLICY_ask_assistant,
+            ModuleGPT.POLICY_USE_OSELIA_REALTIME,
             this.name,
             reflect<this>().connect_to_realtime_voice,
             null,

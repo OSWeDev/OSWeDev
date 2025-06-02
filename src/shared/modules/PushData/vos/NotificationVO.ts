@@ -18,6 +18,7 @@ export default class NotificationVO implements IDistantVOBase {
         'notification.TYPE_NOTIF_VO_CREATED',
         'notification.TYPE_NOTIF_VO_UPDATED',
         'notification.TYPE_NOTIF_VO_DELETED',
+        'notification.TYPE_NOTIF_EVENT',
     ];
     public static TYPE_NOTIF_SIMPLE: number = 0;
     public static TYPE_NOTIF_DAO: number = 1;
@@ -32,6 +33,7 @@ export default class NotificationVO implements IDistantVOBase {
     public static TYPE_NOTIF_VO_CREATED: number = 10;
     public static TYPE_NOTIF_VO_UPDATED: number = 11;
     public static TYPE_NOTIF_VO_DELETED: number = 12;
+    public static TYPE_NOTIF_EVENT: number = 13;
 
     public static TECH_DISCONNECT_AND_REDIRECT_HOME: string = "TYPE_NOTIF_TECH_DISCONNECT_AND_REDIRECT_HOME";
     public static TECH_LOGGED_AND_REDIRECT: string = "TYPE_NOTIF_TECH_LOGGED_AND_REDIRECT";
@@ -89,4 +91,8 @@ export default class NotificationVO implements IDistantVOBase {
     public notif_route: string;
     public notif_route_params_name: string[];
     public notif_route_params_values: string[];
+
+    // For Event Notification
+    public event_name: string;
+    public event_param_json: string;
 }

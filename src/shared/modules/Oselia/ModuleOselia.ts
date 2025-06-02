@@ -5,6 +5,7 @@ import ExternalAPIAuthentificationVO from '../API/vos/ExternalAPIAuthentificatio
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import DefaultParamTranslatorVO, { DefaultParamTranslatorVOStatic } from '../API/vos/apis/DefaultParamTranslatorVO';
+import EventParamVO, { EventParamStatic } from '../API/vos/apis/EventParamVO';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import UserParamVO, { UserParamStatic } from '../API/vos/apis/UserParamVO';
@@ -91,12 +92,15 @@ export default class ModuleOselia extends Module {
     public static APINAME_create_thread: string = "oselia__create_thread";
 
     public static APINAME_replay_function_call: string = "oselia__replay_function_call";
+    public static APINAME_notify_thread_loaded: string = "oselia__notify_thread_loaded";
+    public static APINAME_notify_thread_loading: string = "oselia__notify_thread_loading";
 
     public static EVENT_OSELIA_LAUNCH_REALTIME: string = 'oselia__launch_realtime';
     public static EVENT_OSELIA_CLOSE_REALTIME: string = 'oselia__close_realtime';
     public static EVENT_OSELIA_REALTIME_READY: string = 'oselia__realtime_ready';
     public static EVENT_OSELIA_REALTIME_SEND_PARAMS: string = 'oselia__realtime_send_params';
-
+    public static EVENT_OSELIA_LOADING_FRAME: string = 'oselia__loading_frame';
+    public static EVENT_OSELIA_LOADED_FRAME: string = 'oselia__loaded_frame';
     // public static APINAME_get_thread_text_content: string = "get_thread_text_content";
 
     private static instance: ModuleOselia = null;
@@ -120,6 +124,8 @@ export default class ModuleOselia extends Module {
         APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleOselia>().replay_function_call);
 
     public replay_function_call: (function_call_id: number) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_replay_function_call);
+    public notify_thread_loaded: (client_tab_id: string, event_name: string, event_param?) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_notify_thread_loaded);
+    public notify_thread_loading: (client_tab_id: string, event_name: string, event_param?) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_notify_thread_loading);
 
     private constructor() {
 
@@ -427,6 +433,20 @@ export default class ModuleOselia extends Module {
             ModuleOselia.APINAME_replay_function_call,
             [OseliaRunFunctionCallVO.API_TYPE_ID],
             NumberParamVOStatic,
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<EventParamVO, void>(
+            null,
+            ModuleOselia.APINAME_notify_thread_loaded,
+            null,
+            EventParamStatic,
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<EventParamVO, void>(
+            null,
+            ModuleOselia.APINAME_notify_thread_loading,
+            null,
+            EventParamStatic
         ));
     }
 

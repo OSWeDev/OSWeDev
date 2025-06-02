@@ -6,7 +6,7 @@
                 @click="mainButtonClick"                    
                 @mouseenter="toggleStopHover(true)"          
                 @mouseleave="toggleStopHover(false)"         
-                :class="{'stop-mode': connection_established && isStopHover}"
+                :class="{'stop-mode': connection_established && isStopHover, 'loading'  : iframe_is_loading}"
                 :style="connection_established ? {} : { 'box-shadow': '10px 5px 11px #939393' }"
             )
                 .oselia_chat_btn_closed_icon
@@ -24,4 +24,4 @@
 
                 // --- Iframe Oselia visible uniquement quand ouvert + URL dispo
                 template(v-if="oselia_url && is_open")
-                    iframe(:src="oselia_url" id="OseliaContainer")
+                    iframe(:src="oselia_url" id="OseliaContainer" :class="{'opened': !iframe_is_loading}")

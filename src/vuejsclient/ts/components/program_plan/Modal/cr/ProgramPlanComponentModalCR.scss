@@ -112,6 +112,26 @@
         margin-bottom: 12px;
         text-align: left;
 
+        i.closing {
+            position: relative; // nécessaire pour le pseudo-élément
+            color: $danger_color; // même rouge que la corbeille
+            transform: rotate(90deg); // tourne la croix pour la différencier
+            transition: color .3s, transform .3s;
+
+            &::after {
+                // halo animé
+                content: '';
+                position: absolute;
+                top: -8px;
+                left: -8px;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                background: rgba($danger_color, .15);
+                animation: pulse 1s infinite ease-in-out;
+            }
+        }
+
         pre {
             white-space: pre-wrap;
             white-space: -moz-pre-wrap;
@@ -174,12 +194,12 @@
 
     0%,
     100% {
-        transform: scale(1);
+        transform: scale(0.8);
         opacity: 0.6;
     }
 
     50% {
-        transform: scale(1.2);
+        transform: scale(1);
         opacity: 1;
     }
 }

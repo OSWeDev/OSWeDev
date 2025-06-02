@@ -135,6 +135,8 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_create_thread, this.create_thread.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_replay_function_call, this.replay_function_call.bind(this));
 
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_notify_thread_loaded, this.notify_thread_loaded.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_notify_thread_loading, this.notify_thread_loading.bind(this));
         APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleOselia>().instantiate_oselia_run_from_event, this.instantiate_oselia_run_from_event.bind(this));
     }
 
@@ -1497,6 +1499,16 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
     private async get_screen_track() {
         return ModuleOseliaServer.screen_track;
+    }
+
+    private async notify_thread_loaded(client_tab_id: string, event_name: string, event_param?): Promise<void> {
+        const uid = StackContext.get('UID');
+        await PushDataServerController.notifyEvent(uid, client_tab_id, event_name, event_param);
+    }
+
+    private async notify_thread_loading(client_tab_id: string, event_name: string, event_param?): Promise<void> {
+        const uid = StackContext.get('UID');
+        await PushDataServerController.notifyEvent(uid, client_tab_id, event_name, event_param);
     }
 
     private async create_thread(

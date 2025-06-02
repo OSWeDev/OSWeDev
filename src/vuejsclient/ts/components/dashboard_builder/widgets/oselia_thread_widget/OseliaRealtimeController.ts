@@ -137,6 +137,9 @@ export default class OseliaRealtimeController {
         await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch(
             'OseliaStore/set_current_thread', null
         );
+
+        const audio = new Audio("public/vuejsclient/sound/realtime-deactivated.mp3");
+        audio.play().catch(err => console.error("Erreur de lecture :", err));
     }
 
     /**  Petit helper interne */
@@ -217,8 +220,8 @@ export default class OseliaRealtimeController {
             this.call_thread.realtime_activated = false;
             await ModuleDAO.getInstance().insertOrUpdateVO(this.call_thread);
         }
-        // TO REMOVE
-        // this.emitReady(false);
+        const audio = new Audio("public/vuejsclient/sound/realtime-deactivated.mp3");
+        audio.play().catch(err => console.error("Erreur de lecture :", err));
     }
 
 
@@ -243,7 +246,7 @@ export default class OseliaRealtimeController {
                     break;
                 case 'oselia_listening':
                     // On joue un son de "reconnaissance vocale"
-                    const audio = new Audio("public/vuejsclient/sound/realtime-activated.wav");
+                    const audio = new Audio("public/vuejsclient/sound/realtime-activated.mp3");
                     audio.play().catch(err => console.error("Erreur de lecture :", err));
                     this.connection_ready = true;
                     break;
@@ -418,20 +421,5 @@ export default class OseliaRealtimeController {
     }
 
     private async mounted() {
-        // TO REMOVE
-        // const get_oselia_realtime_params = EventifyEventListenerInstanceVO.new_listener(
-        //     ModuleOselia.EVENT_OSELIA_REALTIME_SEND_PARAMS,
-        //     (event: EventifyEventInstanceVO) => {
-        //         const param = event.param;
-        //         if (param["cr_vo"]) {
-        //             this.in_cr_context = true;
-        //             this.cr_vo = param["cr_vo"] as IPlanRDVCR;
-        //         } else {
-        //             this.in_cr_context = false;
-        //             this.cr_vo = null;
-        //         }
-        //     }
-        // );
-        // EventsController.register_event_listener(get_oselia_realtime_params);
     }
 }

@@ -49,6 +49,10 @@ import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
 import './OseliaThreadWidgetComponent.scss';
 import GPTRealtimeAPISessionVO from "../../../../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO";
+import { EventEmitter } from "events";
+import EventsController from "../../../../../../shared/modules/Eventify/EventsController";
+import EventifyEventInstanceVO from "../../../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO";
+import EventifyEventListenerInstanceVO from "../../../../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO";
 
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
@@ -132,8 +136,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     public thread: GPTAssistantAPIThreadVO = null;
     public oselia_runs: OseliaRunVO[] = [];
     public realtime_session: GPTRealtimeAPISessionVO = null;
+    public is_loading_thread: boolean = true;
     private has_access_to_thread: boolean = false;
-    private is_loading_thread: boolean = true;
     private assistant_is_busy: boolean = false;
     private current_thread_id: number = null;
     private assistant: GPTAssistantAPIAssistantVO = null;
@@ -151,6 +155,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private is_creating_thread: boolean = false;
     private realtime_on: boolean = false;
     private send_message_create: boolean = false;
+    private listener_EVENT_OSELIA_LOADING_FRAME: EventifyEventListenerInstanceVO = null;
+    private event_tab_id: string = null;
     // private is_recording_voice: boolean = false;
     // private voice_record: MediaRecorder = null;
     private use_realtime_voice: boolean = false;
@@ -259,6 +265,14 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
     }
 
+    @Watch(reflect<OseliaThreadWidgetComponent>().is_loading_thread, { immediate: true })
+    private async on_is_loading_thread_change() {
+        if (!this.event_tab_id) {
+            return;
+        }
+        const param = "{\"is_loading\": " + this.is_loading_thread + "}";
+        await ModuleOselia.getInstance().notify_thread_loaded(this.event_tab_id, ModuleOselia.EVENT_OSELIA_LOADED_FRAME,param );
+    }
 
     private select_thread_id(thread_id: number) {
         this.set_active_field_filter({
@@ -321,6 +335,18 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 }
             }
         });
+
+        this.listener_EVENT_OSELIA_LOADING_FRAME = EventsController.on_every_event_throttle_cb(
+            ModuleOselia.EVENT_OSELIA_LOADING_FRAME,
+            (event: EventifyEventInstanceVO) => {
+                const param = JSON.parse(event.param as string);
+                if (param.tab_id) {
+                    this.event_tab_id = param.tab_id;
+                }
+            },
+            10,
+            false,
+        );
     }
 
     private async load_thread() {

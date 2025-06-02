@@ -33,6 +33,15 @@
         border-radius: 1em;
         box-shadow: 5px 5px 10px #CCC;
         background: white;
+
+        transform: translateX(150%); // caché par défaut
+        transition: transform .3s cubic-bezier(.34, 1.56, .64, 1),
+            box-shadow .3s;
+
+        &.opened {
+            // ajoute / retire cette classe au clic
+            transform: translateX(0);
+        }
     }
 }
 
@@ -59,6 +68,12 @@
         background: url(/public/vuejsclient/img/logo_oselia_fb.png) no-repeat center center;
         background-color: white;
         background-size: contain;
+    }
+
+    .oselia_chat_btn_closed {
+        &.loading {
+            animation: shake .8s ease-in-out infinite;
+        }
     }
 
     .oselia_chat_btn_opening i {
@@ -181,5 +196,40 @@
 
     50% {
         transform: scale(1);
+    }
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0) rotate(0);
+    }
+
+    15% {
+        transform: translateX(-2px) rotate(-2deg);
+    }
+
+    30% {
+        transform: translateX(2px) rotate(2deg);
+    }
+
+    45% {
+        transform: translateX(-1px) rotate(-1deg);
+    }
+
+    60% {
+        transform: translateX(1px) rotate(1deg);
+    }
+
+    75% {
+        transform: translateX(-.5px) rotate(-.5deg);
+    }
+}
+
+// Respecte les préférences d’accessibilité
+@media (prefers-reduced-motion: reduce) {
+    .oselia_chat_btn_closed.loading {
+        animation: none;
     }
 }
