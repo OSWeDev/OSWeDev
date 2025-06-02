@@ -1,11 +1,7 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
 import AbstractVO from "../../VO/abstract/AbstractVO";
-import DashboardBuilderController from "../DashboardBuilderController";
 import IDashboardGridItem from "../interfaces/IDashboardGridItem";
-import FieldValueFilterWidgetOptionsVO from "./FieldValueFilterWidgetOptionsVO";
-import MonthFilterWidgetOptionsVO from "./MonthFilterWidgetOptionsVO";
-import YearFilterWidgetOptionsVO from "./YearFilterWidgetOptionsVO";
 
 export default class DashboardPageWidgetVO extends AbstractVO implements IDistantVOBase, IDashboardGridItem, IWeightedItem {
     public static API_TYPE_ID: string = "dashboard_pwidget";
@@ -40,9 +36,9 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
     public weight: number;
 
     /**
-     * @deprecated sera supprimé rapidement au profit des vos de params des widgets
+     * Le nom du type de données qui permet de configurer les options du widget.
      */
-    public json_options: string;
+    public widget_options_vo_type: string;
 
     public background: string;
 
@@ -50,23 +46,4 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
     public dashboard_viewport_id: number;
 
     public title: string;
-
-    /**
-     * Create a new instance from a widget_options object
-     *
-     * @param {any | FieldValueFilterWidgetOptionsVO | MonthFilterWidgetOptionsVO | YearFilterWidgetOptionsVO} widget_options
-     * @returns
-     */
-    public from_widget_options(widget_options: any | FieldValueFilterWidgetOptionsVO | MonthFilterWidgetOptionsVO | YearFilterWidgetOptionsVO) {
-        let json_options = null;
-
-        if (typeof widget_options === 'object') {
-            json_options = JSON.stringify(widget_options);
-        }
-
-        this.json_options = json_options;
-
-
-        return this;
-    }
 }

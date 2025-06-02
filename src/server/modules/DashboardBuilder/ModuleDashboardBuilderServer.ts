@@ -5073,9 +5073,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(new_widgets_viewport);
     }
 
-    private async do_copy_dashboard() {
+    private async get_dashboard_json_for_copy(dashboard_id: number): Promise<string> {
 
-        if (!this.dashboard) {
+        if (!dashboard_id) {
             return null;
         }
 
@@ -5084,11 +5084,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
          *  attention sur les trads on colle des codes de remplacement pour les ids qui auront été insérés après import
          */
         let export_vos: IDistantVOBase[] = [];
-        const db = this.dashboard;
+        const db = await query(DashboardVO.API_TYPE_ID)
+            .filter_by_id(dashboard_id)
+            .select_vo<DashboardVO>();
+        if (!db) {
+            ConsoleHandler.error(`ModuleDashboardBuilderServer:get_dashboard_json_for_copy: Dashboard with id ${dashboard_id} not found.`);
+            return null;
+        }
+
         export_vos.push(ModuleTableController.translate_vos_to_api(db));
 
         const pages = await this.load_dashboard_pages_by_dashboard_id(
-            this.dashboard.id,
+            db.id,
             { refresh: true },
         );
 
@@ -5096,7 +5103,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             export_vos = export_vos.concat(pages.map((p) => ModuleTableController.translate_vos_to_api(p)));
         }
 
-        const graphvorefs = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardGraphVORefVO>().dashboard_id, this.dashboard.id).select_vos<DashboardGraphVORefVO>();
+        const graphvorefs = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardGraphVORefVO>().dashboard_id, db.id).select_vos<DashboardGraphVORefVO>();
         if (graphvorefs && graphvorefs.length) {
             export_vos = export_vos.concat(graphvorefs.map((p) => ModuleTableController.translate_vos_to_api(p)));
         }

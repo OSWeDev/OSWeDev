@@ -1,11 +1,11 @@
 import NumRange from "../../../DataRender/vos/NumRange";
 import TSRange from "../../../DataRender/vos/TSRange";
-import IDistantVOBase from "../../../IDistantVOBase";
+import WidgetOptionsBaseVO from "./WidgetOptionsBaseVO";
 
 
-export default class FieldValueFilterPageWidgetOptionVO implements IDistantVOBase {
+export default class FieldValueFilterPageWidgetOptionsVO extends WidgetOptionsBaseVO {
 
-    public static API_TYPE_ID: string = "field_value_filter_page_widget_option";
+    public static API_TYPE_ID: string = "field_value_filter_page_widget_options"; // Attention à la migration pour les patchs : changement subtile, ajout d'un s à la fin....
 
     public static CHECKBOX_COLUMNS_LABELS: string[] = [
         'FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS.1',
@@ -22,11 +22,7 @@ export default class FieldValueFilterPageWidgetOptionVO implements IDistantVOBas
     public static CHECKBOX_COLUMNS_6: number = 4;
     public static CHECKBOX_COLUMNS_12: number = 5;
 
-    public _type: string = FieldValueFilterPageWidgetOptionVO.API_TYPE_ID;
-
-    public id: number;
-
-    public page_widget_id: number;
+    public _type: string = FieldValueFilterPageWidgetOptionsVO.API_TYPE_ID;
 
     public vo_field_ref_id: number;
     public vo_field_ref_lvl2_id: number;
@@ -57,7 +53,7 @@ export default class FieldValueFilterPageWidgetOptionVO implements IDistantVOBas
     public exclude_ts_range_values: TSRange;
 
 
-    public hide_filter: boolean;
+    // public hide_filter: boolean; TODO Patch migration vers hide_widget
     public no_inter_filter: boolean; // Do not use the active_field_filter
     public has_other_ref_api_type_id: boolean;
     public other_ref_api_type_id: string;
@@ -73,9 +69,11 @@ export default class FieldValueFilterPageWidgetOptionVO implements IDistantVOBas
     public show_count_value: boolean; // Seulement pour enum pour l'instant
     public active_field_on_autovalidate_advanced_filter: boolean;
     public force_filter_by_all_api_type_ids: boolean; // (Pour la supervision)
+
     public bg_color: string;
     public fg_color_value: string;
-    public fg_color_text: string;
+    // public fg_color_text: string; // TODO Patch migration vers font_color
+
     public can_select_all: boolean;
     public can_select_none: boolean;
     public default_advanced_ref_field_filter_type: number;
