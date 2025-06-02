@@ -3,15 +3,14 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import DashboardPageWidgetVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
 import YearFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/YearFilterWidgetManager';
-import YearFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
+import YearFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
+import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import YearFilterInputComponent from '../../../../year_filter_input/YearFilterInputComponent';
-import YearFilterWidgetComponent from '../YearFilterWidgetComponent';
 import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './YearFilterWidgetOptionsButtonSetterComponent.scss';
 
@@ -75,7 +74,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
     // Current filter may cumulate years
     private is_year_cumulated_selected: boolean = false;
 
-    private can_configure_auto_select_year_relative_mode: boolean = false;
+    private can_configure_auto_select_year_relative_mode: boolean = true;
 
     private widget_options: YearFilterWidgetOptionsVO = null;
 
@@ -86,9 +85,146 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
         false
     );
 
-    private mounted() {
-        this.throttled_load_all_years_page_widgets();
+    // get other_filters_by_name(): { [filter_name: string]: DashboardPageWidgetVO } {
+    //     if (!this.all_years_page_widgets) {
+    //         return null;
+    //     }
+
+    //     const res: { [filter_name: string]: DashboardPageWidgetVO } = {};
+
+    //     for (const i in this.all_years_page_widgets) {
+    //         const year_page_widget = this.all_years_page_widgets[i];
+
+    //         if (year_page_widget.id == this.page_widget.id) {
+    //             continue;
+    //         }
+
+    //         // Only YearFilterWidget (of the same type)
+    //         if (year_page_widget.widget_id !== this.page_widget.widget_id) {
+    //             continue;
+    //         }
+
+    //         if (!year_page_widget.json_options) {
+    //             continue;
+    //         }
+
+    //         const other_filter_options = JSON.parse(year_page_widget.json_options) as YearFilterWidgetOptionsVO;
+    //         if (!other_filter_options) {
+    //             continue;
+    //         }
+
+    //         if (other_filter_options.is_vo_field_ref) {
+    //             if ((!other_filter_options.vo_field_ref) || (!other_filter_options.vo_field_ref.api_type_id) || (!other_filter_options.vo_field_ref.field_id)) {
+    //                 continue;
+    //             }
+
+    //             const name = 'Widget ID:' + year_page_widget.id + ' : ' + other_filter_options.vo_field_ref.api_type_id + '.' + other_filter_options.vo_field_ref.field_id;
+    //             if (res[name]) {
+    //                 continue;
+    //             }
+    //             res[name] = year_page_widget;
+    //         } else {
+    //             if (!other_filter_options.custom_filter_name) {
+    //                 continue;
+    //             }
+
+    //             const name = 'Widget ID:' + year_page_widget.id + ' : ' + other_filter_options.custom_filter_name;
+    //             if (res[name]) {
+    //                 continue;
+    //             }
+    //             res[name] = year_page_widget;
+    //         }
+    //     }
+
+    //     return res;
+    // }
+
+    // get other_filter_selected_years(): { [year: string]: boolean } {
+    //     if (!this.relative_to_this_filter) {
+    //         return null;
+    //     }
+
+    //     const other_filter_selected_years = this.relative_to_this_filter.selected_years;
+    //     if (!other_filter_selected_years) {
+    //         return null;
+    //     }
+
+    //     return other_filter_selected_years;
+    // }
+
+    get default_placeholder_translation(): string {
+        return this.label('DOWFilterWidget.filter_placeholder');
     }
+
+    get vo_field_ref(): VOFieldRefVO {
+        const options: YearFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
+    }
+
+    get vo_field_ref_label(): string {
+        if ((!this.widget_options) || (!this.vo_field_ref)) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
+    }
+
+    // get relative_to_this_filter(): YearFilterWidgetComponent {
+    //     if (!this.widget_options.auto_select_year_relative_mode) {
+    //         return null;
+    //     }
+
+    //     if (!this.widget_options.is_relative_to_other_filter) {
+    //         return null;
+    //     }
+
+    //     if (!this.widget_options.relative_to_other_filter_id) {
+    //         return null;
+    //     }
+
+    //     return this.get_page_widgets_components_by_pwid[this.widget_options.relative_to_other_filter_id] as YearFilterWidgetComponent;
+    // }
+
+    get is_vo_field_ref(): boolean {
+        if (!this.widget_options) {
+            return true;
+        }
+
+        return this.widget_options.is_vo_field_ref;
+    }
+
+    get custom_filter_name(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.custom_filter_name;
+    }
+
+    get years(): string[] {
+        return YearFilterWidgetManager.get_available_years_from_widget_options(
+            this.widget_options
+        );
+    }
+
+    /**
+     * Can Select All
+     *  - Can select all clickable button
+     */
+    get can_select_all(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.can_select_all;
+    }
+
 
     /**
      * onchange_page_widget
@@ -267,6 +403,10 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
         this.$emit('onchange_page_widget', this.page_widget);
     }
 
+    private mounted() {
+        this.throttled_load_all_years_page_widgets();
+    }
+
     /**
      * load_all_years_page_widgets
      *  - Load all years page widgets (to be used in relative_to_other_filter_id)
@@ -278,16 +418,16 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
         );
     }
 
-    /**
-     * toggle_can_configure_auto_select_year_relative_mode
-     */
-    private toggle_can_configure_auto_select_year_relative_mode(): void {
-        this.can_configure_auto_select_year_relative_mode = !this.can_configure_auto_select_year_relative_mode;
-        if (!this.can_configure_auto_select_year_relative_mode) {
-            this.auto_select_year_min = 0;
-            this.auto_select_year_max = 0;
-        }
-    }
+    // /**
+    //  * toggle_can_configure_auto_select_year_relative_mode
+    //  */
+    // private toggle_can_configure_auto_select_year_relative_mode(): void {
+    //     this.can_configure_auto_select_year_relative_mode = !this.can_configure_auto_select_year_relative_mode;
+    //     if (!this.can_configure_auto_select_year_relative_mode) {
+    //         this.auto_select_year_min = 0;
+    //         this.auto_select_year_max = 0;
+    //     }
+    // }
 
     /**
      * Handle Select All Change
@@ -478,145 +618,4 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
             false
         ).from(props);
     }
-
-    get other_filters_by_name(): { [filter_name: string]: DashboardPageWidgetVO } {
-        if (!this.all_years_page_widgets) {
-            return null;
-        }
-
-        const res: { [filter_name: string]: DashboardPageWidgetVO } = {};
-
-        for (const i in this.all_years_page_widgets) {
-            const year_page_widget = this.all_years_page_widgets[i];
-
-            if (year_page_widget.id == this.page_widget.id) {
-                continue;
-            }
-
-            // Only YearFilterWidget (of the same type)
-            if (year_page_widget.widget_id !== this.page_widget.widget_id) {
-                continue;
-            }
-
-            if (!year_page_widget.json_options) {
-                continue;
-            }
-
-            const other_filter_options = JSON.parse(year_page_widget.json_options) as YearFilterWidgetOptionsVO;
-            if (!other_filter_options) {
-                continue;
-            }
-
-            if (other_filter_options.is_vo_field_ref) {
-                if ((!other_filter_options.vo_field_ref) || (!other_filter_options.vo_field_ref.api_type_id) || (!other_filter_options.vo_field_ref.field_id)) {
-                    continue;
-                }
-
-                const name = 'Widget ID:' + year_page_widget.id + ' : ' + other_filter_options.vo_field_ref.api_type_id + '.' + other_filter_options.vo_field_ref.field_id;
-                if (res[name]) {
-                    continue;
-                }
-                res[name] = year_page_widget;
-            } else {
-                if (!other_filter_options.custom_filter_name) {
-                    continue;
-                }
-
-                const name = 'Widget ID:' + year_page_widget.id + ' : ' + other_filter_options.custom_filter_name;
-                if (res[name]) {
-                    continue;
-                }
-                res[name] = year_page_widget;
-            }
-        }
-
-        return res;
-    }
-
-    get other_filter_selected_years(): { [year: string]: boolean } {
-        if (!this.relative_to_this_filter) {
-            return null;
-        }
-
-        const other_filter_selected_years = this.relative_to_this_filter.selected_years;
-        if (!other_filter_selected_years) {
-            return null;
-        }
-
-        return other_filter_selected_years;
-    }
-
-    get default_placeholder_translation(): string {
-        return this.label('DOWFilterWidget.filter_placeholder');
-    }
-
-    get vo_field_ref(): VOFieldRefVO {
-        const options: YearFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
-    }
-
-    get vo_field_ref_label(): string {
-        if ((!this.widget_options) || (!this.vo_field_ref)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
-    }
-
-    get relative_to_this_filter(): YearFilterWidgetComponent {
-        if (!this.widget_options.auto_select_year_relative_mode) {
-            return null;
-        }
-
-        if (!this.widget_options.is_relative_to_other_filter) {
-            return null;
-        }
-
-        if (!this.widget_options.relative_to_other_filter_id) {
-            return null;
-        }
-
-        return this.get_page_widgets_components_by_pwid[this.widget_options.relative_to_other_filter_id] as YearFilterWidgetComponent;
-    }
-
-    get is_vo_field_ref(): boolean {
-        if (!this.widget_options) {
-            return true;
-        }
-
-        return this.widget_options.is_vo_field_ref;
-    }
-
-    get custom_filter_name(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.custom_filter_name;
-    }
-
-    get years(): string[] {
-        return YearFilterWidgetManager.get_available_years_from_widget_options(
-            this.widget_options
-        );
-    }
-
-    /**
-     * Can Select All
-     *  - Can select all clickable button
-     */
-    get can_select_all(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.can_select_all;
-    }
-
 }

@@ -61,9 +61,22 @@ export default class GPTAssistantAPIThreadMessageContentVO implements IDistantVO
      * Si on a généré un fichier audio pour ce message, on le stocke ici
      */
     public tts_file_id: number;
+    public autogen_voice_summary_done: boolean;
 
     public hidden: boolean;
 
     public weight: number;
     public type: number;
+
+    /**
+     * Lien vers le thread duquel on a pipe/dupliqué le message content
+     * @see GPTAssistantAPIThreadVO.pipe_outputs_to_thread_id
+     */
+    public piped_from_thread_id: number;
+
+    /**
+     * Lien vers le thread message content qu'on a pipe/dupliqué ici
+     * @see GPTAssistantAPIThreadVO.pipe_outputs_to_thread_id
+     */
+    public piped_from_thread_message_content_id: number;
 }

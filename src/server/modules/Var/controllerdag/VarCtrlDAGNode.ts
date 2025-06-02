@@ -6,6 +6,14 @@ import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 
 export default class VarCtrlDAGNode extends DAGNodeBase {
 
+
+    /**
+     * L'usage du constructeur est prohibé, il faut utiliser la factory
+     */
+    private constructor(public dag: DAG<VarCtrlDAGNode>, public var_controller: VarServerControllerBase<any>) {
+        super(var_controller.varConf.id.toString());
+    }
+
     /**
      * Factory de noeuds en fonction du nom. Permet d'assurer l'unicité des params dans l'arbre
      *  La value du noeud est celle du var_data passé en param, et donc si undefined le noeud est non calculé
@@ -17,13 +25,6 @@ export default class VarCtrlDAGNode extends DAGNodeBase {
         }
 
         return new VarCtrlDAGNode(dag, var_controller/*, is_registered*/).linkToDAG();
-    }
-
-    /**
-     * L'usage du constructeur est prohibé, il faut utiliser la factory
-     */
-    private constructor(public dag: DAG<VarCtrlDAGNode>, public var_controller: VarServerControllerBase<any>) {
-        super();
     }
 
     /**

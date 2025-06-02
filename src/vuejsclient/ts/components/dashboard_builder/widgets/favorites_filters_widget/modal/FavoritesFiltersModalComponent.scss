@@ -147,6 +147,23 @@
         }
     }
 
+    .export_frequency_day_in_week {
+        .input_wrapper {
+            input {
+                width: 100%;
+                min-height: 40px;
+                display: block;
+                padding: 0px 40px 0 8px;
+                border-radius: 5px;
+                border: 1px solid #e8e8e8;
+                background: #fff;
+                font-size: 14px;
+                padding-left: 10px;
+                margin-bottom: 8px;
+            }
+        }
+    }
+
     .nav-pills {
         margin-bottom: 16px;
 

@@ -138,10 +138,15 @@ export default class ModuleEnvParam extends Module {
         // MAX_UNION_ALL_PER_QUERY ?: number;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_union_all_per_query, ModuleTableFieldVO.FIELD_TYPE_int, 'Max union all per query', false);
 
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().dont_use_default_translations, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Ne pas utiliser les traductions par défaut', true, true, false);
+
         // MUTE__NO_SORT_BY_BUT_QUERY_LIMIT ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().mute__no_sort_by_but_query_limit, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Mute no sort by but query limit', true);
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_reruns_of_oselia, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug reruns of Oselia', true, true, false);
+
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_assistant_traduction, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug assistant traduction', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_superviseur_assistant_traduction, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug superviseur assistant traduction', true, true, false);
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_playwright_controller, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug Playwright controller', true, true, false);
 
@@ -157,6 +162,8 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_db_query_add_activated_many_to_many, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug DB query add activated many to many', true);
         // DEBUG_convert_varparamfields_to_vardatas ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_convert_varparamfields_to_vardatas, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug convert varparamfields to vardatas', true);
+
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().threshold_too_many_imports_waiting, ModuleTableFieldVO.FIELD_TYPE_int, 'Seuil pour alerte : trop d\'imports en attente', false);
         // DEBUG_FORKS ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_forks, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug forks', true);
         // DEBUG_VARS ?: boolean;
@@ -211,6 +218,9 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_worker_messages, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Worker messages', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_bgthread_ping_latency, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Ping latency', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_bgthread_load_balancing, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Load balancing', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_vars_datas_proxy, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - VarsDatasProxy', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_vars_tabs_subs_controller, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - VarsTabsSubsController', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_push_data_server_controller, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - PushDataServerController', true, true, false);
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_all_expressjs_perf, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug all ExpressJS perf', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_expressjs_request_reflexion_time, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug ExpressJS request reflexion time', true, true, false);

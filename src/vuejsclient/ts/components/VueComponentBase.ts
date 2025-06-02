@@ -703,6 +703,31 @@ export default class VueComponentBase extends Vue
         return res;
     }
 
+    protected fire_modal_inert(class_selector: string) {
+        if (!class_selector) {
+            return;
+        }
+
+        // Attend que Vue ait faire le nécessaire pour que le DOM soit à jour
+        this.$nextTick(() => {
+            if (!document.querySelector(class_selector)) {
+                return;
+            }
+
+            // Je veux faire un mouseenter et mouseleave pour que les modals soient inertes
+            document.querySelector(class_selector).addEventListener('mouseenter', () => {
+                $('.modal').each(function () {
+                    this.inert = true;
+                });
+            });
+            document.querySelector(class_selector).addEventListener('mouseleave', () => {
+                $('.modal').each(function () {
+                    this.inert = false;
+                });
+            });
+        });
+    }
+
     protected simple_var_evolution(datas: VarDataBaseVO[]) {
 
         try {

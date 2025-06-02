@@ -1,8 +1,8 @@
 
 
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import EventsController from '../../../shared/modules/Eventify/EventsController';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import PerfReportController from '../../../shared/modules/PerfReport/PerfReportController';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -16,7 +16,6 @@ import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import CurrentVarDAGHolder from './CurrentVarDAGHolder';
 import VarsBGThreadNameHolder from './VarsBGThreadNameHolder';
-import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
 
 /**
  * L'objectif est de créer un proxy d'accès aux données des vars_datas en base pour qu'on puisse intercaler un buffer de mise à jour progressif en BDD
@@ -28,6 +27,8 @@ export default class VarsDatasProxy {
     // public static TASK_NAME_add_to_tree_and_return_datas_that_need_notification = 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification';
 
     public static PARAM_NAME_filter_var_datas_by_index_size_limit = 'VarsDatasProxy.filter_var_datas_by_index_size_limit';
+
+    public static PERF_MODULE_NAME: string = 'vars_datas_proxy';
 
     private static get_var_data_or_ask_to_bgthread: <T extends VarDataBaseVO>(throttle_index: string, param_index: string) => Promise<T> = ThrottlePipelineHelper.declare_throttled_pipeline(
         'VarsDatasProxy.get_var_data_or_ask_to_bgthread',
@@ -50,6 +51,8 @@ export default class VarsDatasProxy {
         found: { [index: string]: VarDataBaseVO },
         not_found_indexes: string[]) {
 
+        const date_in_ms = Dates.now_ms();
+
         const res: T[] = [];
         const promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'VarsDatasProxy.get_exact_params_from_bdd');
 
@@ -59,6 +62,8 @@ export default class VarsDatasProxy {
             await promises_pipeline.push((async () => {
 
                 const this_not_found_indexes: { [index: string]: boolean } = {};
+                const this_date_in: number = Dates.now_ms();
+
                 for (const i in var_data_indexes) {
                     this_not_found_indexes[var_data_indexes[i]] = true;
                 }
@@ -72,6 +77,16 @@ export default class VarsDatasProxy {
                     delete this_not_found_indexes[var_data.index];
                 }
 
+                PerfReportController.add_call(
+                    VarsDatasProxy.PERF_MODULE_NAME,
+                    'get_exact_params_from_bdd:' + api_type_id,
+                    'get_exact_params_from_bdd:' + api_type_id,
+                    null,
+                    this_date_in,
+                    Dates.now_ms(),
+                    'FOUND: ' + bdd_res.map((var_data) => var_data.index).join(',') + ' / NOT_FOUND: ' + Object.keys(this_not_found_indexes).join(','),
+                );
+
                 for (const i in this_not_found_indexes) {
                     not_found_indexes.push(i);
                 }
@@ -79,6 +94,16 @@ export default class VarsDatasProxy {
         }
 
         await promises_pipeline.end();
+
+        PerfReportController.add_call(
+            VarsDatasProxy.PERF_MODULE_NAME,
+            'get_exact_params_from_bdd',
+            'get_exact_params_from_bdd',
+            null,
+            date_in_ms,
+            Dates.now_ms(),
+            Object.keys(var_datas_indexes_by_type).map((api_type_id) => api_type_id + ':' + var_datas_indexes_by_type[api_type_id].join(',')).join(' / '),
+        );
 
         return res;
     }
@@ -168,6 +193,8 @@ export default class VarsDatasProxy {
             return null;
         }
 
+        const date_in_ms = Dates.now_ms();
+
         const params_indexes_by_api_type_id: { [api_type_id: string]: string[] } = {};
         const found: { [index: string]: T } = {};
 
@@ -213,6 +240,16 @@ export default class VarsDatasProxy {
             }
         }
 
+        PerfReportController.add_call(
+            VarsDatasProxy.PERF_MODULE_NAME,
+            '_get_var_datas_or_ask_to_bgthread',
+            '_get_var_datas_or_ask_to_bgthread',
+            null,
+            date_in_ms,
+            Dates.now_ms(),
+            'FOUND and notifiable: ' + Object.keys(vars_to_notify).join(',') + ' / NOT_FOUND and added to tree: ' + not_found_indexes.join(','),
+        );
+
         return vars_to_notify;
     }
 
@@ -240,6 +277,8 @@ export default class VarsDatasProxy {
 
         // On stocke les promises de cette itération pour les attendre toutes avant de résoudre la promise de l'appel
         const this_call_instance_promises = [];
+
+        const date_in_ms = Dates.now_ms();
 
         try {
 
@@ -272,6 +311,17 @@ export default class VarsDatasProxy {
             }
 
             await all_promises(this_call_instance_promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
+
+            PerfReportController.add_call(
+                VarsDatasProxy.PERF_MODULE_NAME,
+                'add_to_tree_and_return_datas_that_need_notification',
+                'add_to_tree_and_return_datas_that_need_notification',
+                null,
+                date_in_ms,
+                Dates.now_ms(),
+                'Added to tree and notifiable: ' + Object.keys(vars_to_notify).join(',') + ' / all indexes added to tree: ' + Object.keys(indexs).join(','),
+            );
+
             return vars_to_notify;
         } catch (error) {
 

@@ -1,28 +1,24 @@
-import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import FieldFiltersVOManager from "../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager";
-import VOFieldRefVOManager from "../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager";
-import WidgetOptionsVOManager from "../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager";
-import FavoritesFiltersExportFrequencyVO from "../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersExportFrequencyVO";
-import FavoritesFiltersExportParamsVO from "../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersExportParamsVO";
-import FavoritesFiltersVO from "../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO";
-import FieldFiltersVO from "../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO";
-import ExportContextQueryToXLSXParamVO from "../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO";
-import ExportContextQueryToXLSXQueryVO from "../../../../shared/modules/DataExport/vos/ExportContextQueryToXLSXQueryVO";
-import TimeSegment from "../../../../shared/modules/DataRender/vos/TimeSegment";
-import TSRange from "../../../../shared/modules/DataRender/vos/TSRange";
-import Dates from "../../../../shared/modules/FormatDatesNombres/Dates/Dates";
-import RangeHandler from "../../../../shared/tools/RangeHandler";
-import ModuleDAOServer from "../../DAO/ModuleDAOServer";
+
 
 /**
- * FavoritesFiltersVOService
+ * FavoritesFiltersController
  */
-export default class FavoritesFiltersVOService {
 
+import { cloneDeep } from "lodash";
+import RangeHandler from "../../../tools/RangeHandler";
+import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import TimeSegment from "../../DataRender/vos/TimeSegment";
+import TSRange from "../../DataRender/vos/TSRange";
+import Dates from "../../FormatDatesNombres/Dates/Dates";
+import FieldFiltersVOManager from "../manager/FieldFiltersVOManager";
+import VOFieldRefVOManager from "../manager/VOFieldRefVOManager";
+import WidgetOptionsVOManager from "../manager/WidgetOptionsVOManager";
+import FavoritesFiltersExportFrequencyVO from "../vos/FavoritesFiltersExportFrequencyVO";
+import FavoritesFiltersExportParamsVO from "../vos/FavoritesFiltersExportParamsVO";
+import FavoritesFiltersVO from "../vos/FavoritesFiltersVO";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
 
-    private static instance: FavoritesFiltersVOService = null;
-
-    private constructor() { }
+export default class FavoritesFiltersController {
 
     /**
      * can_export_favorites_filters
@@ -46,6 +42,11 @@ export default class FavoritesFiltersVOService {
 
         const export_frequency = export_params.export_frequency;
 
+        // Si on a une date de début des exports, on peut pas lancer tant qu'elle n'est pas passée
+        if (export_params.begin_export_after_ts && (export_params.begin_export_after_ts > Dates.now())) {
+            return false; // On ne peut pas exporter avant la date de début
+        }
+
         // Permier export
         if (!export_params.last_export_at_ts) {
             return true;
@@ -59,6 +60,9 @@ export default class FavoritesFiltersVOService {
             case FavoritesFiltersExportFrequencyVO.GRANULARITY_MONTH:
                 time_segment = TimeSegment.TYPE_MONTH;
                 break;
+            case FavoritesFiltersExportFrequencyVO.GRANULARITY_WEEK:
+                time_segment = TimeSegment.TYPE_WEEK;
+                break;
             case FavoritesFiltersExportFrequencyVO.GRANULARITY_YEAR:
                 time_segment = TimeSegment.TYPE_YEAR;
                 break;
@@ -69,7 +73,10 @@ export default class FavoritesFiltersVOService {
 
         let export_after: number = Dates.add(last_export.min, export_frequency.every, time_segment);
         if (export_frequency.granularity === FavoritesFiltersExportFrequencyVO.GRANULARITY_MONTH) {
-            export_after = Dates.add(export_after, export_frequency.day_in_month, TimeSegment.TYPE_DAY); // ajouter le jour de day_in_month
+            export_after = Dates.add(export_after, export_frequency.day_in_month - 1, TimeSegment.TYPE_DAY); // ajouter le jour de day_in_month
+        }
+        if (export_frequency.granularity === FavoritesFiltersExportFrequencyVO.GRANULARITY_WEEK) {
+            export_after = Dates.add(export_after, export_frequency.day_in_week - 1, TimeSegment.TYPE_DAY); // ajouter le jour de day_in_week
         }
         export_after = Dates.add(export_after, export_frequency.prefered_time, TimeSegment.TYPE_HOUR); // ajouter l'heure de prefered time
 
@@ -100,6 +107,8 @@ export default class FavoritesFiltersVOService {
         // TODO: Deduct default_field_filters behaviors depending on the favorites_filters_options
         //  - (For related filters) If the user choose to config its dates filters, the default_field_filters must be updated
         //    depending on if default_field_filters has one related to a date widget_options
+
+        // const filters_
 
         // Create context_field_filters with the default one
         for (const api_type_id in default_field_filters) {
@@ -162,6 +171,10 @@ export default class FavoritesFiltersVOService {
                     );
                 }
             }
+
+            // Une fois qu'on a écrasé, on doit aussi rejouer les filtrages par défaut pour les champs qui d'une part dépendent d'un custom filter surchargé, et d'autre part ne sont pas déjà surchargés ...
+            // TODO
+
         }
 
         // Merge/replace context_field_filters with custom_field_filters
@@ -178,103 +191,55 @@ export default class FavoritesFiltersVOService {
             }
         }
 
+        // Une fois qu'on a défini les customs, on les pousse dans les datas type var qui dépendent de ces customs
+        // On doit aussi retrouver tous les custom_filters des colonnes de l'export_datas qui seraient dépendantes (car de type var probablement) de ce filtre
+        // Donc dans export_params.exportable_datas[x].custom_filters[y][z]
+        if (favorites_filters?.export_params?.exportable_data) {
+            for (const exportable_data_key in favorites_filters.export_params.exportable_data) {
+                const exportable_data = favorites_filters.export_params.exportable_data[exportable_data_key];
+
+                const custom_filters = exportable_data.custom_filters;
+                if (custom_filters) {
+
+                    for (const custom_filter_key_1 in custom_filters) {
+                        const custom_filter = custom_filters[custom_filter_key_1];
+
+                        for (const custom_filter_key_2 in custom_filter) {
+                            const custom_arbo = custom_filter[custom_filter_key_2];
+
+                            if (custom_arbo.vo_type !== ContextFilterVO.CUSTOM_FILTERS_TYPE) {
+                                continue;
+                            }
+
+                            if ((!custom_field_filters) || (!custom_field_filters[custom_arbo.vo_type]) || (!custom_field_filters[custom_arbo.vo_type][custom_arbo.field_name])) {
+                                continue;
+                            }
+
+                            const custom_copy = cloneDeep(custom_field_filters[custom_arbo.vo_type][custom_arbo.field_name]);
+                            custom_filter[custom_filter_key_2] = custom_copy;
+                        }
+                    }
+                }
+            }
+        }
+
+
         return context_field_filters;
     }
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): FavoritesFiltersVOService {
-        if (!FavoritesFiltersVOService.instance) {
-            FavoritesFiltersVOService.instance = new FavoritesFiltersVOService();
-        }
+    // /**
+    //  * On génère le context de requete global qui par défaut est celui du dashboard, et est surchargé par les filtres favoris
+    //  * On utilise l'arborescence des widgets pour savoir dans quel ordre on doit appliquer les filtres
+    //  * Le fonctionnement est le suivant :
+    //  *  - On part du haut de l'arbre niveau par niveau (depth first)
+    //  *  - Si le widget n'est pas un filtrage, osef
+    //  *  - On demande les context de filtre de ce widget, basé sur les filtres déjà params et sur le context actuellement généré
+    //  *  - Pour chaque champs du context filter ou du customfilter qui sont impactés par le widget, si on a un filtre dans le filtrefavori, on l'applique
+    //  *
+    //  * @param {FavoritesFiltersVO} favorites_filters
+    //  * @returns {Promise<FieldFiltersVO>}
+    //  */
+    // public static async create_field_filters_for_export(favorites_filters: FavoritesFiltersVO): Promise<FieldFiltersVO> {
 
-        return FavoritesFiltersVOService.instance;
-    }
-
-    /**
-     * Start Export Datatable Using Favorites Filters
-     *
-     * @return {Promise<void>}
-     */
-    public async export_all_favorites_filters_datatable(): Promise<void> {
-
-        // For all favorites filters, Export by using export_params
-        const all_favorites_filters: FavoritesFiltersVO[] = await query(FavoritesFiltersVO.API_TYPE_ID)
-            .select_vos<FavoritesFiltersVO>();
-
-        for (const fav_i in all_favorites_filters) {
-            const favorites_filters: FavoritesFiltersVO = all_favorites_filters[fav_i];
-
-            // Can I export ?
-            const can_export = FavoritesFiltersVOService.can_export_favorites_filters(favorites_filters);
-
-            if (!can_export) {
-                continue;
-            }
-
-            // Export favorites_filters datatable
-            await this.export_favorites_filters_datatable(favorites_filters);
-        }
-    }
-
-    /**
-     * export_favorites_filters_datatable
-     * - This method is responsible for exporting the datatable of the given favorites_filters
-     *
-     * @param favorites_filters
-     */
-    public async export_favorites_filters_datatable(favorites_filters: FavoritesFiltersVO): Promise<void> {
-        const export_params: FavoritesFiltersExportParamsVO = favorites_filters.export_params;
-        const exportable_data = export_params.exportable_data;
-
-        // Actual context field_filters to be used for the export
-        const context_field_filters: FieldFiltersVO = await FavoritesFiltersVOService.create_field_filters_for_export(
-            favorites_filters
-        );
-
-        // Export all exportable data
-        for (const key in exportable_data) {
-            // - This exportable data must have to be created from the backend
-            const xlsx_data: ExportContextQueryToXLSXParamVO = new ExportContextQueryToXLSXParamVO().from(
-                exportable_data[key]
-            );
-
-            // Replace the "{#Date}" placeholder with the current date
-            const date_rgx = /\{(?<date_placeholder>\#Date)\}/;
-            let filename: string = xlsx_data.filename;
-
-            if (date_rgx.test(filename)) {
-                filename = filename.replace(date_rgx, Dates.now().toString());
-            }
-
-            const export_contextquery_to_xlsx: ExportContextQueryToXLSXQueryVO = ExportContextQueryToXLSXQueryVO.create_new(
-                filename,
-                xlsx_data.context_query,
-                xlsx_data.ordered_column_list,
-                xlsx_data.column_labels,
-                xlsx_data.exportable_datatable_custom_field_columns,
-                xlsx_data.columns,
-                xlsx_data.fields,
-                xlsx_data.varcolumn_conf,
-                context_field_filters,
-                xlsx_data.custom_filters,
-                xlsx_data.active_api_type_ids,
-                xlsx_data.discarded_field_paths,
-                xlsx_data.is_secured,
-                xlsx_data.file_access_policy_name,
-                favorites_filters.export_params.export_to_user_id_ranges,
-                xlsx_data.do_not_use_filter_by_datatable_field_uid,
-                xlsx_data.export_active_field_filters,
-                favorites_filters.export_params.field_filters_column_translatable_titles,
-                xlsx_data.export_vars_indicator,
-                xlsx_data.send_email_with_export_notification
-            );
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(export_contextquery_to_xlsx);
-        }
-
-        // Set up last_export_at_ts timestamp
-        export_params.last_export_at_ts = Dates.now();
-
-        // update this favorites_filters
-        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(favorites_filters);
-    }
+    // }
 }

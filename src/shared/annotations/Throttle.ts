@@ -80,6 +80,14 @@ export default function Throttle(options: ThrottleOptions) {
             throw new Error('The post-throttle parameter is not defined');
         }
 
+        if ((postThrottleIndex !== undefined) && ((postThrottleIndex > 1) || (postThrottleIndex < 0))) {
+            throw new Error('The post-throttle parameter index is not valid');
+        }
+
+        if ((preThrottleIndex !== undefined) && (preThrottleIndex != 0)) {
+            throw new Error('The pre-throttle parameter index is not valid');
+        }
+
         descriptor.value = async function (...args: any[]) { // Attention si on déclare la fonction avec la flèche on perd le this
 
             let needs_to_declare_throttle = false;
@@ -175,10 +183,11 @@ export default function Throttle(options: ThrottleOptions) {
                                         originalMethod,
                                         self,
                                         'Throttle.throttles_stackable_args',
-                                        null,
-                                        l.current_params_stack as unknown[]);
+                                        (postThrottleIndex == 1) ? null : l.current_params_stack as unknown[],
+                                        (postThrottleIndex == 0) ? null : l.current_params_stack as unknown[],
+                                    );
                                 } else {
-                                    await originalMethod.apply(self, [l.current_params_stack as unknown[]]);
+                                    await originalMethod.apply(self, (postThrottleIndex == 1) ? [null, l.current_params_stack as unknown[]] : [l.current_params_stack as unknown[]]);
                                 }
                             },
                         );

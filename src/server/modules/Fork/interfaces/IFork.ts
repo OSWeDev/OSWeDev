@@ -1,4 +1,4 @@
-import IForkProcess from './IForkProcess';
+import type { IForkProcess } from './IForkProcess';
 import { Worker } from 'worker_threads';
 
 export default interface IFork {

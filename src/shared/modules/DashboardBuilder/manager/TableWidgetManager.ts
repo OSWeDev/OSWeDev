@@ -221,8 +221,8 @@ export default class TableWidgetManager {
             all_page_widgets_by_id
         );
 
-        const limit = (widget_options?.limit == null) ? TableWidgetOptionsVO.DEFAULT_LIMIT : widget_options.limit;
-        const pagination_offset = 0;
+        // const limit = (widget_options?.limit == null) ? TableWidgetOptionsVO.DEFAULT_LIMIT : widget_options.limit;
+        // const pagination_offset = 0;
 
         let crud_api_type_id = widget_options.crud_api_type_id ? widget_options.crud_api_type_id : null;
         if (!crud_api_type_id) {
@@ -248,7 +248,7 @@ export default class TableWidgetManager {
         );
 
         const context_query: ContextQueryVO = query(crud_api_type_id)
-            .set_limit(limit, pagination_offset)
+            .set_limit(0, 0) // On exporte toujours tous les résultats en filtres favoris
             .using(api_type_ids)
             .add_filters(context_filter);
 

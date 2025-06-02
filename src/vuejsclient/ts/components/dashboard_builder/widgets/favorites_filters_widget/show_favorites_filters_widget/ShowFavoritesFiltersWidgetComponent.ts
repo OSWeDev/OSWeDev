@@ -4,6 +4,7 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import FavoritesFiltersController from '../../../../../../../shared/modules/DashboardBuilder/favorite_filters/FavoritesFiltersController';
 import FavoritesFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FavoritesFiltersVOManager';
 import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
@@ -37,6 +38,8 @@ import './ShowFavoritesFiltersWidgetComponent.scss';
 })
 export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBase {
 
+    private static TESTUID = 0;
+
     @ModuleDashboardPageGetter
     private get_Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent;
 
@@ -51,6 +54,9 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
+
+    @ModuleDashboardPageAction
+    private clear_active_field_filters: () => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -70,7 +76,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private tmp_active_favorites_filters_option: FavoritesFiltersVO = null;
     private old_tmp_active_favorites_filters_option: FavoritesFiltersVO = null;
 
-    private old_active_field_filters: FieldFiltersVO = null;
+    // private old_active_field_filters: FieldFiltersVO = null;
 
     private favorites_filters_visible_options: FavoritesFiltersVO[] = [];
 
@@ -79,6 +85,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private force_filter_change: boolean = false;
 
     private actual_query: string = null;
+    private TESTUID__pasteque: number = ShowFavoritesFiltersWidgetComponent.TESTUID++;
 
     private is_initialized: boolean = false;
     private is_updating = false;
@@ -90,12 +97,6 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(
         'ShowFavoritesFiltersWidgetComponent.update_visible_options',
         this.update_visible_options.bind(this),
-        50,
-        false
-    );
-    private throttled_update_active_field_filters = ThrottleHelper.declare_throttle_without_args(
-        'ShowFavoritesFiltersWidgetComponent.update_active_field_filters',
-        this.update_active_field_filters.bind(this),
         50,
         false
     );
@@ -168,6 +169,57 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
     }
 
+
+    // /**
+    //  * Update Active Field Filters
+    //  *  - Update page filters, we must have a delay
+    //  *  - Must have to be a combination between current active_field_filters and favorites_field_filters
+    //  *  - Overwrite active_field_filters with the favorites one
+    //  *  - We should keep the hidden page field filters
+    //  *
+    //  * @returns {void}
+    //  */
+    // // @Throttle({
+    // //     param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+    // //     throttle_ms: 50,
+    // //     leading: false,
+    // // })
+    // private async update_active_field_filters(): Promise<void> {
+    //     const favorites_filters: FavoritesFiltersVO = this.tmp_active_favorites_filters_option;
+    //     // const old_active_field_filters = this.old_active_field_filters;
+
+    //     // get default hidden field_filters of the dashboard_page
+    //     let field_filters: FieldFiltersVO = await FieldFiltersVOManager.find_default_field_filters_by_dashboard_page_id(
+    //         this.dashboard_page.id
+    //     );
+
+    //     // if (!favorites_filters?.options?.overwrite_active_field_filters) {
+    //     //     field_filters = FieldFiltersVOManager.merge_field_filters(field_filters, old_active_field_filters);
+    //     // }
+
+    //     if (favorites_filters?.field_filters) {
+    //         field_filters = FieldFiltersVOManager.merge_field_filters(field_filters, favorites_filters?.field_filters);
+    //     }
+
+    //     // Case when is_updating is true,
+    //     // We may want to overwrite favorites_filters with selected one
+    //     // We must do it to have the possible non-selected options in the modal
+    //     if (this.is_updating) {
+    //         field_filters = FieldFiltersVOManager.merge_field_filters(field_filters, this.get_active_field_filters);
+    //     }
+
+    //     this.set_active_field_filters(field_filters);
+    // }
+
+    private async update_active_field_filters(): Promise<void> {
+        const favorites_filters: FavoritesFiltersVO = this.tmp_active_favorites_filters_option;
+        const context_field_filters: FieldFiltersVO = await FavoritesFiltersController.create_field_filters_for_export(
+            favorites_filters
+        );
+
+        this.set_active_field_filters(context_field_filters);
+    }
+
     /**
      * Watch on widget_options
      *  - Shall happen first on component init or each time widget_options changes
@@ -227,6 +279,18 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     // @Watch('tmp_active_favorites_filters_option')
     private async validate_favorites_filters_selection(): Promise<void> {
 
+        // private async validate_favorites_filters_selection(favorites_filters: FavoritesFiltersVO = null): Promise<void> {
+
+        //         const favorites_filters_to_use = favorites_filters || this.tmp_active_favorites_filters_option;
+
+        //         if (!favorites_filters_to_use) {
+        //             if (this.is_updating) {
+        //                 this.tmp_active_favorites_filters_option = this.old_tmp_active_favorites_filters_option;
+        //             }
+
+        //             return;
+        //         }
+
         if (!this.tmp_active_favorites_filters_option) {
             if (this.is_updating) {
                 this.tmp_active_favorites_filters_option = this.old_tmp_active_favorites_filters_option;
@@ -244,11 +308,11 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             isEmpty(this.tmp_active_favorites_filters_option?.field_filters) ||
             !isEqual(this.tmp_active_favorites_filters_option, this.old_tmp_active_favorites_filters_option)
         ) {
-            this.old_active_field_filters = cloneDeep(this.get_active_field_filters);
+            // this.old_active_field_filters = cloneDeep(this.get_active_field_filters);
             await this.reset_all_visible_active_field_filters();
         }
 
-        this.throttled_update_active_field_filters();
+        await this.update_active_field_filters();
 
         this.old_tmp_active_favorites_filters_option = cloneDeep(this.tmp_active_favorites_filters_option);
     }
@@ -358,41 +422,6 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         this.throttled_update_visible_options();
     }
 
-    /**
-     * Update Active Field Filters
-     *  - Update page filters, we must have a delay
-     *  - Must have to be a combination between current active_field_filters and favorites_field_filters
-     *  - Overwrite active_field_filters with the favorites one
-     *  - We should keep the hidden page field filters
-     *
-     * @returns {void}
-     */
-    private async update_active_field_filters(): Promise<void> {
-        const favorites_filters: FavoritesFiltersVO = this.tmp_active_favorites_filters_option;
-        const old_active_field_filters = this.old_active_field_filters;
-
-        // get default hidden field_filters of the dashboard_page
-        let field_filters: FieldFiltersVO = await FieldFiltersVOManager.find_default_field_filters_by_dashboard_page_id(
-            this.dashboard_page.id
-        );
-
-        if (!favorites_filters?.options?.overwrite_active_field_filters) {
-            field_filters = FieldFiltersVOManager.merge_field_filters(field_filters, old_active_field_filters);
-        }
-
-        if (favorites_filters?.field_filters) {
-            field_filters = FieldFiltersVOManager.merge_field_filters(field_filters, favorites_filters?.field_filters);
-        }
-
-        // Case when is_updating is true,
-        // We may want to overwrite favorites_filters with selected one
-        // We must do it to have the possible non-selected options in the modal
-        if (this.is_updating) {
-            field_filters = FieldFiltersVOManager.merge_field_filters(field_filters, this.get_active_field_filters);
-        }
-
-        this.set_active_field_filters(field_filters);
-    }
 
     /**
      * Reset All Visible Active Filters
@@ -452,11 +481,16 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * @param {FavoritesFiltersVO} favorites_filters
      */
     private async handle_edit_favorites_filters(favorites_filters: FavoritesFiltersVO): Promise<void> {
+
         // We must set is_updating to true in order to keep the favorites_filters
         this.is_updating = true;
 
         // TODO: if favorites_filters is active, keep it active if not set to active
         this.tmp_active_favorites_filters_option = favorites_filters;
+
+        // La première étape c'est de clear les filtres + appliquer le filtre qu'on veut modifier, pour avoir une visualisation propre dans la modale
+        this.clear_active_field_filters();
+        await this.validate_favorites_filters_selection();
 
         // We must have a delay before open the modal
         // which is the time to update the active_field_filters

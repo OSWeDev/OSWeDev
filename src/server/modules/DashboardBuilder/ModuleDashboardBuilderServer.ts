@@ -38,7 +38,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import DashboardBuilderCronWorkersHandler from './DashboardBuilderCronWorkersHandler';
 import DashboardCycleChecker from './DashboardCycleChecker';
-import FavoritesFiltersVOService from './service/FavoritesFiltersVOService';
+import FavoritesFiltersServerController from './favorite_filters/FavoritesFiltersServerController';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -90,7 +90,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Heure préférée'
         }, 'dashboard_viewer.favorites_filters.export_frequency_prefered_time.___LABEL___'));
-
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Jour'
@@ -210,6 +209,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Seconde'
         }, 'VarChoroplethChartWidgetOptionsComponent.dimension_custom_filter_segment_types.5.___LABEL___'));
 
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Commencer les exports à partir du'
+        }, 'dashboard_viewer.favorites_filters.begin_export_after_ts.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Graphique de var - Radar'
@@ -2754,6 +2757,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Jour de la semaine : 1 pour lundi, 7 pour dimanche" },
+            'dashboard_viewer.favorites_filters.export_frequency_day_in_week_tooltip.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Afficher le champ de recherche" },
             'field_value_filter_widget_component.show_search_field.___LABEL___'
         ));
@@ -3251,6 +3258,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Jour du mois pour l'export de données requis" },
             'dashboard_viewer.favorites_filters.export_frequency_day_in_month_required.___LABEL___'
         ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Jour de la semaine requis pour l'export de données" },
+            'dashboard_viewer.favorites_filters.export_frequency_day_in_week_required.___LABEL___'
+        ));
+
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Données à exporté requis" },
             'dashboard_viewer.favorites_filters.selected_exportable_data_required.___LABEL___'
@@ -3286,6 +3299,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Jour dans le mois *:" },
             'dashboard_viewer.favorites_filters.export_frequency_day_in_month.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Jour dans la semaine *:" },
+            'dashboard_viewer.favorites_filters.export_frequency_day_in_week.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Sélectionnez les tableaux de valeurs à exporter *:" },
@@ -3983,7 +4000,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Justifié" },
             'cms_bloc_text.alignement.justifie.___LABEL___'
         ));
-
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Options de la liste" },
@@ -4728,7 +4744,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
      * @return {Promise<void>}
      */
     public async start_export_favorites_filters_datatable(): Promise<void> {
-        FavoritesFiltersVOService.getInstance().export_all_favorites_filters_datatable();
+        FavoritesFiltersServerController.export_all_favorites_filters_datatable();
     }
 
     // istanbul ignore next: cannot test registerAccessPolicies

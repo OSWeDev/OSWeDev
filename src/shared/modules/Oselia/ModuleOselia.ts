@@ -25,6 +25,8 @@ import Module from '../Module';
 import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import LangVO from '../Translation/vos/LangVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
+import OseliaAgentMemVO from './vos/OseliaAgentMemVO';
+import OseliaAppMemVO from './vos/OseliaAppMemVO';
 import OseliaAssistantPriceVO from './vos/OseliaAssistantPriceVO';
 import OseliaChatVO from './vos/OseliaChatVO';
 import OseliaImagePriceVO from './vos/OseliaImagePriceVO';
@@ -40,6 +42,7 @@ import OseliaThreadReferrerVO from './vos/OseliaThreadReferrerVO';
 import OseliaThreadRoleVO from './vos/OseliaThreadRoleVO';
 import OseliaThreadUserVO from './vos/OseliaThreadUserVO';
 import OseliaTokenPriceVO from './vos/OseliaTokenPriceVO';
+import OseliaUserMemVO from './vos/OseliaUserMemVO';
 import OseliaUserReferrerOTTVO from './vos/OseliaUserReferrerOTTVO';
 import OseliaUserReferrerVO from './vos/OseliaUserReferrerVO';
 import OseliaVisionPriceVO from './vos/OseliaVisionPriceVO';
@@ -56,7 +59,6 @@ export default class ModuleOselia extends Module {
     public static OSELIA_DB_ID_PARAM_NAME: string = 'ModuleOselia.oselia_db_id';
     public static OSELIA_EXPORT_DASHBOARD_ID_PARAM_NAME: string = 'ModuleOselia.oselia_export_dashboard_id';
     public static OSELIA_THREAD_DASHBOARD_ID_PARAM_NAME: string = 'ModuleOselia.oselia_thread_dashboard_id';
-    public static WEBHOOK_TEAMS_PARAM_NAME: string = 'ModuleOselia.WEBHOOK_TEAMS';
 
     /**
      * Définition des noms des rôles de thread
@@ -151,6 +153,10 @@ export default class ModuleOselia extends Module {
         this.initializeOseliaRunFunctionCallVO();
 
         this.initializeOseliaThreadCacheVO();
+
+        this.initialize_OseliaUserMemVO();
+        this.initialize_OseliaAppMemVO();
+        this.initialize_OseliaAgentMemVO();
     }
 
     public initializeOseliaThreadCacheVO() {
@@ -311,6 +317,10 @@ export default class ModuleOselia extends Module {
             .set_many_to_one_target_moduletable_name(EventifyEventInstanceVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().listener_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Listener source du run', false)
             .set_many_to_one_target_moduletable_name(EventifyEventListenerInstanceVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().generate_voice_summary, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Générer un résumé vocal', true, true, false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().voice_summary_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Résumé vocal', false)
+            .set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
 
         ModuleTableController.create_new(this.name, OseliaRunVO, label, 'Oselia - Run');
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[OseliaRunVO.API_TYPE_ID]);
@@ -730,5 +740,53 @@ export default class ModuleOselia extends Module {
                 DefaultTranslationVO.create_new({ 'fr-fr': "Lien Thread/Utilisateur/Role Osélia" })
             )
         );
+    }
+
+    private initialize_OseliaUserMemVO() {
+        const field_id = ModuleTableFieldController.create_new(OseliaUserMemVO.API_TYPE_ID, field_names<OseliaUserMemVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true)
+            .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        const field_key = ModuleTableFieldController.create_new(OseliaUserMemVO.API_TYPE_ID, field_names<OseliaUserMemVO>().key, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'entrée', true);
+        ModuleTableFieldController.create_new(OseliaUserMemVO.API_TYPE_ID, field_names<OseliaUserMemVO>().value, ModuleTableFieldVO.FIELD_TYPE_string, 'Valeur', true);
+
+        VersionedVOController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(
+                this.name,
+                OseliaUserMemVO,
+                null,
+                DefaultTranslationVO.create_new({ 'fr-fr': "Mémoire Osélia liée à l'utilisateur" })
+            )
+        );
+        ModuleTableCompositeUniqueKeyController.add_composite_unique_key_to_vo_type(OseliaUserMemVO.API_TYPE_ID, [field_id, field_key]);
+    }
+
+    private initialize_OseliaAppMemVO() {
+        ModuleTableFieldController.create_new(OseliaAppMemVO.API_TYPE_ID, field_names<OseliaAppMemVO>().key, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'entrée', true).unique();
+        ModuleTableFieldController.create_new(OseliaAppMemVO.API_TYPE_ID, field_names<OseliaAppMemVO>().value, ModuleTableFieldVO.FIELD_TYPE_string, 'Valeur', true);
+
+        VersionedVOController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(
+                this.name,
+                OseliaAppMemVO,
+                null,
+                DefaultTranslationVO.create_new({ 'fr-fr': "Mémoire Osélia globale à l'application" })
+            )
+        );
+    }
+
+    private initialize_OseliaAgentMemVO() {
+        const field_id = ModuleTableFieldController.create_new(OseliaAgentMemVO.API_TYPE_ID, field_names<OseliaAgentMemVO>().agent_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Agent', true)
+            .set_many_to_one_target_moduletable_name(OseliaRunTemplateVO.API_TYPE_ID);
+        const field_key = ModuleTableFieldController.create_new(OseliaAgentMemVO.API_TYPE_ID, field_names<OseliaAgentMemVO>().key, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'entrée', true);
+        ModuleTableFieldController.create_new(OseliaAgentMemVO.API_TYPE_ID, field_names<OseliaAgentMemVO>().value, ModuleTableFieldVO.FIELD_TYPE_string, 'Valeur', true);
+
+        VersionedVOController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(
+                this.name,
+                OseliaAgentMemVO,
+                null,
+                DefaultTranslationVO.create_new({ 'fr-fr': "Mémoire Osélia liée à l'agent" })
+            )
+        );
+        ModuleTableCompositeUniqueKeyController.add_composite_unique_key_to_vo_type(OseliaAgentMemVO.API_TYPE_ID, [field_id, field_key]);
     }
 }

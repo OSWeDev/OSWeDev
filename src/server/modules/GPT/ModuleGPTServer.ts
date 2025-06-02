@@ -1,6 +1,8 @@
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { FileLike } from 'openai/uploads';
+import { isMainThread } from 'worker_threads';
+import Throttle from '../../../shared/annotations/Throttle';
 import APIControllerWrapper from "../../../shared/modules/API/APIControllerWrapper";
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -10,9 +12,13 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
+import EventsController from '../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
@@ -31,7 +37,13 @@ import GPTAssistantAPIVectorStoreVO from '../../../shared/modules/GPT/vos/GPTAss
 import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import OseliaAgentMemVO from '../../../shared/modules/Oselia/vos/OseliaAgentMemVO';
+import OseliaAppMemVO from '../../../shared/modules/Oselia/vos/OseliaAppMemVO';
+import OseliaRunTemplateVO from '../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
+import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
 import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
+import OseliaUserMemVO from '../../../shared/modules/Oselia/vos/OseliaUserMemVO';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -48,14 +60,18 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import EventsServerController from '../Eventify/EventsServerController';
 import { originalCreateReadStream } from '../File/ArchiveServerController';
 import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import OseliaRunBGThread from '../Oselia/bgthreads/OseliaRunBGThread';
+import OseliaRunTemplateServerController from '../Oselia/OseliaRunTemplateServerController';
 import ParamsServerController from '../Params/ParamsServerController';
 import PerfReportServerController from '../PerfReport/PerfReportServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import GPTAssistantAPIServerController from './GPTAssistantAPIServerController';
 import AssistantVoTypeDescription from './functions/get_vo_type_description/AssistantVoTypeDescription';
 import GPTAssistantAPIFunctionGetVoTypeDescriptionController from './functions/get_vo_type_description/GPTAssistantAPIFunctionGetVoTypeDescriptionController';
@@ -75,6 +91,15 @@ export default class ModuleGPTServer extends ModuleServerBase {
     public static MESSAGE_CONTENT_TTS_FILE_PATH: string = './sfiles/message_content_tts/';
     public static MESSAGE_CONTENT_TTS_FILE_PREFIX: string = 'message_content_tts_';
     public static MESSAGE_CONTENT_TTS_FILE_SUFFIX: string = '.mp3';
+
+    // public static MESSAGE_TTS_FILE_PATH: string = './sfiles/message_tts/';
+    // public static MESSAGE_TTS_FILE_PREFIX: string = 'message_tts_';
+    // public static MESSAGE_TTS_FILE_SUFFIX: string = '.mp3';
+
+    // public static MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_PATH: string = './sfiles/oselia_run_summary_tts/';
+    // public static MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_PREFIX: string = 'oselia_run_summary_tts_';
+    // public static MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_SUFFIX: string = '.mp3';
+
     public static openai: OpenAI = null;
 
 
@@ -91,6 +116,111 @@ export default class ModuleGPTServer extends ModuleServerBase {
             ModuleGPTServer.instance = new ModuleGPTServer();
         }
         return ModuleGPTServer.instance;
+    }
+
+    /**
+     * Dans un contexte vocal (oselia run associé au message avec option vocale), on génère le fichier audio quand le message est complet
+     */
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_MAP,
+        throttle_ms: 100,
+        leading: false,
+    })
+    private async auto_get_tts_file(message_content_vo_by_id: { [id: number]: GPTAssistantAPIThreadMessageContentVO }) {
+
+        const promises = [];
+        for (const i in message_content_vo_by_id) {
+            const message_content_vo = message_content_vo_by_id[i];
+
+            if (message_content_vo.autogen_voice_summary_done) {
+                // On ne fait rien si on a déjà fait une demande
+                continue;
+            }
+
+            promises.push((async () => {
+
+                await this.get_tts_file(message_content_vo.id);
+
+                // On marque le message comme ayant été traité pour éviter les doublons
+                message_content_vo.autogen_voice_summary_done = true;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message_content_vo);
+            })());
+        }
+        await all_promises(promises);
+    }
+
+
+    // /**
+    //  * Dans un contexte vocal (oselia run associé au message avec option vocale), on génère le fichier audio quand le message est complet
+    //  */
+    // @Throttle({
+    //     param_type: EventifyEventListenerConfVO.PARAM_TYPE_MAP,
+    //     throttle_ms: 1000,
+    //     leading: false,
+    // })
+    // private async auto_get_tts_file(message_content_vo_by_id: { [id: number]: GPTAssistantAPIThreadMessageContentVO }) {
+
+    //     const mesage_by_id: { [id: number]: GPTAssistantAPIThreadMessageVO } = {};
+
+    //     const promises = [] as Promise<any>[]; // On va faire un tableau de promesses pour les lancer en parallèle
+    //     for (const i in message_content_vo_by_id) {
+    //         const message_content_vo = message_content_vo_by_id[i];
+
+    //         if (message_content_vo.autogen_voice_summary_done) {
+    //             // On ne fait rien si on a déjà fait une demande
+    //             continue;
+    //         }
+
+    //         promises.push(
+    //             (async () => {
+    //                 const message_vo = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+    //                     .filter_by_id(message_content_vo.thread_message_id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+    //                     .filter_is_true(field_names<GPTAssistantAPIThreadMessageVO>().is_ready)
+    //                     .filter_is_true(field_names<GPTAssistantAPIThreadMessageVO>().autogen_voice_summary)
+    //                     .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().autogen_voice_summary_done)
+    //                     .exec_as_server()
+    //                     .select_vo<GPTAssistantAPIThreadMessageVO>();
+
+    //                 if (!message_vo) {
+    //                     // On ne fait rien si le message n'est pas prêt ou n'est pas en autogen, ou déjà fait
+    //                     return;
+    //                 }
+
+    //                 // message_vo.autogen_voice_summary_done = true; // On bloque les futurs demandes pour éviter les duplications d'audio
+    //                 message_content_vo.autogen_voice_summary_done = true;
+    //                 ModuleDAOServer.instance.insertOrUpdateVOs_as_server([message_vo, message_content_vo]);
+
+    //                 mesage_by_id[message_vo.id] = message_vo;
+    //             })()
+    //         );
+    //     }
+
+    //     await all_promises(promises);
+
+    //     // Pour tous les messages à gérer, on va générer le fichier audio
+    //     const promises2 = [];
+
+    //     for (const i in mesage_by_id) {
+    //         const message_vo = mesage_by_id[i];
+
+    //         promises2.push(this.get_tts_file_for_message(message_vo.id));
+    //     }
+
+    //     await all_promises(promises2);
+    // }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_MAP,
+        throttle_ms: 1000,
+        leading: false,
+    })
+    private async set_message_is_ready(message_ids: { [id: number]: boolean }) {
+        await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+            .filter_by_ids(Object.keys(message_ids).map((id) => parseInt(id)))
+            .exec_as_server()
+            .update_vos({
+                is_ready: true,
+            } as GPTAssistantAPIThreadMessageVO);
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -122,6 +252,45 @@ export default class ModuleGPTServer extends ModuleServerBase {
         // On isole les messages du run qu'on veut refaire, ainsi que les messages suivants le run (quelque soit leur role)
 
         throw new Error('Method not implemented.');
+    }
+
+
+    public async wait_for_runs_to_finish_on_thread(thread: GPTAssistantAPIThreadVO, run_gpt_id: string = null): Promise<void> {
+        /**
+         * On doit vérifier que le run GPT est pas en cours, et sinon, on attend la fin du run précédent pour push les nouveaux messages
+         */
+        const runs = await GPTAssistantAPIServerController.wrap_api_call(
+            ModuleGPTServer.openai.beta.threads.runs.list,
+            ModuleGPTServer.openai.beta.threads.runs,
+            thread.gpt_thread_id,
+        );
+        const activeRun = runs.data.find(run => {
+            if (run_gpt_id && (run.id !== run_gpt_id)) {
+                return false;
+            }
+
+            return ['queued', 'in_progress', 'requires_action', 'cancelling'].includes(run.status);
+        });
+        if (activeRun) {
+            // On doit passer par une attente de libération du thread
+            const event_name = GPTAssistantAPIRunVO.STATUS_UPDATE_EVENT_NAME_TEMPLATE
+                .replace('{rungpt_id}', activeRun.id.toString());
+
+            let current_state: number = GPTAssistantAPIRunVO.FROM_OPENAI_STATUS_MAP[activeRun.status];
+            const working_states: number[] = [
+                GPTAssistantAPIRunVO.STATUS_QUEUED,
+                GPTAssistantAPIRunVO.STATUS_IN_PROGRESS,
+                GPTAssistantAPIRunVO.STATUS_REQUIRES_ACTION,
+                GPTAssistantAPIRunVO.STATUS_CANCELLING,
+            ];
+
+            while (working_states.indexOf(current_state) >= 0) {
+                const updated_run: GPTAssistantAPIRunVO = await EventsController.await_next_event(event_name) as GPTAssistantAPIRunVO;
+
+                current_state = updated_run.status;
+                ConsoleHandler.log('postcreate_ThreadMessageVO_handle_pipe: waiting for run to finish:' + updated_run.id + ':' + updated_run.status);
+            }
+        }
     }
 
     /**
@@ -158,8 +327,22 @@ export default class ModuleGPTServer extends ModuleServerBase {
         files: FileVO[],
         user_id: number,
         hide_content: boolean,
+        generate_voice_summary: boolean,
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
-        return GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, thread_title, content, files, user_id, hide_content);
+        return GPTAssistantAPIServerController.ask_assistant(
+            assistant_id,
+            thread_id,
+            thread_title,
+            content,
+            files,
+            user_id,
+            hide_content,
+            null,
+            null,
+            null,
+            null,
+            generate_voice_summary,
+        );
     }
 
     // /**
@@ -199,6 +382,10 @@ export default class ModuleGPTServer extends ModuleServerBase {
         const postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
 
         preCreateTrigger.registerHandler(GPTCompletionAPIConversationVO.API_TYPE_ID, this, this.handleTriggerPreCreateGPTCompletionAPIConversationVO);
+
+        // En amont, si on configure des mémoires sur un assitsant, on doit vérifier la présence d'une phrase dédiée à l'usage de cette mémoire, si une phrase est paramétrée en base
+        preCreateTrigger.registerHandler(GPTAssistantAPIAssistantVO.API_TYPE_ID, this, this.pre_create_trigger_handler_for_AssistantVO_check_memory_appended_texts);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIAssistantVO.API_TYPE_ID, this, this.pre_update_trigger_handler_for_AssistantVO_check_memory_appended_texts);
 
         /**
          * On défini les triggers des synchros avec OpenAI
@@ -269,6 +456,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
         preUpdateTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunsController, GPTAssistantAPIServerSyncRunsController.pre_update_trigger_handler_for_RunVO);
         preDeleteTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunsController, GPTAssistantAPIServerSyncRunsController.pre_delete_trigger_handler_for_RunVO);
 
+        postUpdateTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, this, this.on_post_update_run_emit_event);
+
         /**
          * GPTAssistantAPIThreadMessageContentVO
          * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
@@ -285,6 +474,12 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
         // Juste pour init la date
         preCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, this, this.pre_create_trigger_handler_for_ThreadMessageVO);
+
+        /**
+         * On configure le pipe des messages pour les pousser aussi dans le thread cible si on a un thread cible
+         */
+        postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, this, this.postcreate_ThreadMessageVO_handle_pipe);
+        postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, this, this.postcreate_ThreadMessageContentVO_handle_pipe);
 
         if (!ConfigurationService.node_configuration.open_api_api_key) {
             ConsoleHandler.warn('OPEN_API_API_KEY is not set in configuration');
@@ -626,7 +821,14 @@ export default class ModuleGPTServer extends ModuleServerBase {
         return true;
     }
 
-    private async transcribe_file(filevo_id: number): Promise<string> {
+    private async transcribe_file(
+        filevo_id: number,
+        auto_commit_auto_input: boolean,
+        gpt_assistant_id: string,
+        gpt_thread_id: string,
+        user_id: number,
+    ): Promise<string> {
+
         const filevo: FileVO = await query(FileVO.API_TYPE_ID)
             .filter_by_id(filevo_id)
             .exec_as_server()
@@ -674,12 +876,118 @@ export default class ModuleGPTServer extends ModuleServerBase {
                 ConsoleHandler.error('transcribe_file:No transcription found');
                 return null;
             }
+
+            if (auto_commit_auto_input) {
+                await ModuleGPT.getInstance().ask_assistant(
+                    gpt_assistant_id,
+                    gpt_thread_id,
+                    null,
+                    transcription.text,
+                    null,
+                    user_id,
+                    false,
+                    true,
+                );
+            }
+
         } catch (error) {
             ConsoleHandler.error('transcribe_file:ERROR:' + error);
         }
 
         return transcription.text;
     }
+
+
+    private async get_tts_file_for_message(message_id: number): Promise<FileVO> {
+        // if (!message_id) {
+        return null;
+        // }
+
+        // const message: GPTAssistantAPIThreadMessageVO = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+        //     .filter_by_id(message_id)
+        //     .exec_as_server()
+        //     .select_vo<GPTAssistantAPIThreadMessageVO>();
+
+        // if (!message) {
+        //     return null;
+        // }
+
+        // if (message.autogen_tts_id) {
+        //     return await await query(FileVO.API_TYPE_ID)
+        //         .filter_by_id(message.autogen_tts_id)
+        //         .exec_as_server()
+        //         .select_vo<FileVO>();
+        // }
+
+
+        // let file: FileVO = null;
+
+        // // On charge les contenus de type texte
+        // const contents: OpenAI.Beta.Threads.Messages.TextContentBlock[] = await GPTAssistantAPIServerSyncThreadMessagesController.message_contents_to_openai_api(message) as OpenAI.Beta.Threads.Messages.TextContentBlock[];
+
+        // if (!contents || contents.length == 0) {
+        //     ConsoleHandler.warn('get_tts_file_for_message:No contents found:' + message_id);
+        //     return null;
+        // }
+
+        // const text_content = contents.map((content) => content.text).join('\n');
+
+        // if (!text_content) {
+        //     ConsoleHandler.warn('get_tts_file_for_message:No text content found:' + message_id);
+        //     return null;
+        // }
+
+        // // On génère via l'api GPT
+        // const speech_file_path = ModuleGPTServer.MESSAGE_TTS_FILE_PATH + ModuleGPTServer.MESSAGE_TTS_FILE_PREFIX + message.id + ModuleGPTServer.MESSAGE_TTS_FILE_SUFFIX;
+        // // const instructions = "Affect/personality: A cheerful guide \n\nTone: Friendly, clear, and reassuring, creating a calm atmosphere and making the listener feel confident and comfortable.\n\nPronunciation: Clear, articulate, and steady, ensuring each instruction is easily understood while maintaining a natural, conversational flow.\n\nPause: Brief, purposeful pauses after key instructions (e.g., \"cross the street\" and \"turn right\") to allow time for the listener to process the information and follow along.\n\nEmotion: Warm and supportive, conveying empathy and care, ensuring the listener feels guided and safe throughout the journey.";
+
+
+        // // const instructions = "Don't try to read exactly, but with the given text, try to convey the meaning in a way that is most natural and clear.";
+        // // const response = await ModuleGPTServer.openai.audio.speech.create({
+        // //     model: "gpt-4o-mini-tts",
+        // //     voice: "shimmer",
+        // //     input: message_content.content_type_text.value,
+        // //     instructions,
+        // // });
+
+
+        // const instructions = "Fais un résumé très synthétique adapté à une lecture audio naturelle des messages suivants. Tu es Osélia, l'initiatrice des messages textes et du résumé vocal, parle à la première personne.";
+        // const completion = await ModuleGPTServer.openai.chat.completions.create({
+        //     model: "gpt-4o-mini",
+        //     messages: [
+        //         { role: "system", content: instructions },
+        //         { role: "user", content: text_content }
+        //     ],
+        //     temperature: 0.3
+        // });
+
+        // const texteResume = completion.choices[0].message.content;
+
+        // const instructions_tts = "Lecture agréable, avenante, pro mais pas trop formelle.";
+        // const response = await ModuleGPTServer.openai.audio.speech.create({
+        //     model: "gpt-4o-mini-tts",
+        //     voice: "shimmer",
+        //     input: texteResume,
+        //     instructions: instructions_tts,
+        // });
+
+
+        // // await response.stream_to_file(speech_file_path); // Doc GPT mais j'ai pas cette fonction :)
+        // const buffer = Buffer.from(await response.arrayBuffer());
+        // await ModuleFileServer.getInstance().makeSureThisFolderExists(ModuleGPTServer.MESSAGE_TTS_FILE_PATH);
+        // await ModuleFileServer.getInstance().writeFile(speech_file_path, buffer);
+
+        // file = new FileVO();
+        // file.path = speech_file_path;
+        // file.file_access_policy_name = ModuleGPT.POLICY_BO_ACCESS;
+        // file.is_secured = true;
+        // await ModuleDAOServer.instance.insertOrUpdateVO_as_server(file);
+        // message.autogen_tts_id = file.id;
+        // await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message);
+
+        // return file;
+    }
+
 
     private async get_tts_file(message_content_id: number): Promise<FileVO> {
         if (!message_content_id) {
@@ -700,13 +1008,38 @@ export default class ModuleGPTServer extends ModuleServerBase {
             // On génère via l'api GPT
             const speech_file_path = ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PATH + ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PREFIX + message_content.id + ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_SUFFIX;
             // const instructions = "Affect/personality: A cheerful guide \n\nTone: Friendly, clear, and reassuring, creating a calm atmosphere and making the listener feel confident and comfortable.\n\nPronunciation: Clear, articulate, and steady, ensuring each instruction is easily understood while maintaining a natural, conversational flow.\n\nPause: Brief, purposeful pauses after key instructions (e.g., \"cross the street\" and \"turn right\") to allow time for the listener to process the information and follow along.\n\nEmotion: Warm and supportive, conveying empathy and care, ensuring the listener feels guided and safe throughout the journey.";
-            const instructions = "Don't try to read exactly, but with the given text, try to convey the meaning in a way that is most natural and clear.";
+
+
+            // const instructions = "Don't try to read exactly, but with the given text, try to convey the meaning in a way that is most natural and clear.";
+            // const response = await ModuleGPTServer.openai.audio.speech.create({
+            //     model: "gpt-4o-mini-tts",
+            //     voice: "shimmer",
+            //     input: message_content.content_type_text.value,
+            //     instructions,
+            // });
+
+
+            const instructions = "Fais un résumé très synthétique adapté à une lecture audio naturelle des messages suivants. Tu es Osélia, l'initiatrice des messages textes qui te sont fournis et du résumé vocal - le texte que tu vas produire sera lu par toi, parle à la première personne.";
+            const completion = await ModuleGPTServer.openai.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [
+                    { role: "system", content: instructions },
+                    { role: "user", content: message_content.content_type_text.value }
+                ],
+                temperature: 0.3
+            });
+
+            const texteResume = completion.choices[0].message.content;
+
+            const instructions_tts = "Lecture agréable, avenante, souriante, énergique, pro mais pas trop formelle. Lecture rapide avec peu d'espace entre les mots, le but est de faire un résumé synthétique, rapide et dynamique.";
             const response = await ModuleGPTServer.openai.audio.speech.create({
                 model: "gpt-4o-mini-tts",
                 voice: "shimmer",
-                input: message_content.content_type_text.value,
-                instructions,
+                input: texteResume,
+                instructions: instructions_tts,
             });
+
+
             // await response.stream_to_file(speech_file_path); // Doc GPT mais j'ai pas cette fonction :)
             const buffer = Buffer.from(await response.arrayBuffer());
             await ModuleFileServer.getInstance().makeSureThisFolderExists(ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PATH);
@@ -731,5 +1064,296 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     private async summerize(thread_vo: number): Promise<FileVO> {
         throw new Error('Not implemented');
+    }
+
+    private async postcreate_ThreadMessageVO_handle_pipe(msg: GPTAssistantAPIThreadMessageVO) {
+
+        // Si le message est un prompt initial, on l'ignore, et si le message est un role user, on l'ignore aussi pour le moment (à voir, mais faut pouvoir identifier correctement ces messages, ...)
+        if ((msg.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) || msg.prompt_id) {
+            return;
+        }
+
+        // 1 : On vérifie si on a un thread cible
+        // 2 : On push le message dans le thread cible, on fait le lien vers ce message pour indiqué que c'est une copie issue d'un pipe
+        const thread: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(msg.thread_id)
+            .exec_as_server()
+            .set_max_age_ms(60000) // Le param de pipe devrait pas changer toutes les secondes... voir pas du tout en fait
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!thread) {
+            return;
+        }
+
+        if (!thread.pipe_outputs_to_thread_id) {
+            return;
+        }
+
+        const piped_thread: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(thread.pipe_outputs_to_thread_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!piped_thread) {
+            ConsoleHandler.error('postcreate_ThreadMessageVO_handle_pipe: piped_thread not found');
+            return;
+        }
+
+        const thread_message_copy = Object.assign(new GPTAssistantAPIThreadMessageVO(), msg);
+        thread_message_copy.id = null;
+        thread_message_copy.gpt_id = null;
+        thread_message_copy.gpt_thread_id = piped_thread.gpt_thread_id;
+        thread_message_copy.gpt_run_id = null;
+        thread_message_copy.thread_id = thread.pipe_outputs_to_thread_id;
+        thread_message_copy.piped_from_thread_message_id = msg.id;
+        thread_message_copy.piped_from_thread_id = thread.id;
+
+        thread_message_copy.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
+        thread_message_copy.user_id = await ModuleVersionedServer.getInstance().get_robot_user_id();
+
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_message_copy);
+    }
+
+    private push_new_oselia_run_on_supervisor_thread(thread_id: number) {
+        return async () => {
+            let nb_todo_runs: number = 0;
+            let last_run: OseliaRunVO = null;
+            let run_template = null;
+            let thread_vo: GPTAssistantAPIThreadVO = null;
+            await all_promises([
+                (async () => {
+                    // si il n'y a pas de oselia_run actuellement en attente de run, alors on en pousse un, de type nouvelles_infos_pour_superviseur
+                    nb_todo_runs = await query(OseliaRunVO.API_TYPE_ID)
+                        .filter_by_num_eq(field_names<OseliaRunVO>().thread_id, thread_id)
+                        .filter_by_num_eq(field_names<OseliaRunVO>().state, OseliaRunVO.STATE_TODO)
+                        .exec_as_server()
+                        .set_limit(1)
+                        .select_count();
+                })(),
+                (async () => {
+                    // On récupère le dernier run aussi pour savoir si il est en generate_voice_summary
+                    last_run = await query(OseliaRunVO.API_TYPE_ID)
+                        .set_sorts([
+                            new SortByVO(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().weight, false),
+                            new SortByVO(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().id, false)
+                        ])
+                        .exec_as_server()
+                        .set_limit(1)
+                        .select_vo<OseliaRunVO>();
+                })(),
+                (async () => {
+                    run_template = await query(OseliaRunTemplateVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<OseliaRunTemplateVO>().name, OseliaRunTemplateVO.NEW_DATA_FOR_SUPERVISOR_OSELIA_RUN_TEMPLATE)
+                        .exec_as_server()
+                        .select_vo<OseliaRunTemplateVO>();
+                })(),
+                (async () => {
+                    thread_vo = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                        .filter_by_id(thread_id)
+                        .exec_as_server()
+                        .select_vo<GPTAssistantAPIThreadVO>();
+                })(),
+            ]);
+
+            if (nb_todo_runs > 0) {
+                ConsoleHandler.log('push_new_oselia_run_on_supervisor_thread: already a run in todo state on thread:' + thread_id);
+                return;
+            }
+
+            if (!run_template) {
+                ConsoleHandler.error('push_new_oselia_run_on_supervisor_thread: run_template not found:' + OseliaRunTemplateVO.NEW_DATA_FOR_SUPERVISOR_OSELIA_RUN_TEMPLATE);
+                return;
+            }
+
+            ConsoleHandler.log('push_new_oselia_run_on_supervisor_thread: creating new run on thread:' + thread_id + ' with template:' + run_template.name + ' and last_run:' + last_run?.id + ' and last_run.generate_voice_summary:' + last_run?.generate_voice_summary);
+            await OseliaRunTemplateServerController.create_run_from_template(
+                run_template,
+                {},
+                {},
+                null,
+                thread_vo,
+                null,
+                null,
+                null,
+                null,
+                !!last_run?.generate_voice_summary,
+            );
+        };
+    }
+
+    private async postcreate_ThreadMessageContentVO_handle_pipe(msg_content: GPTAssistantAPIThreadMessageContentVO) {
+
+        // TODO FIXME !! // On vérifie si on a un fichier audio à traiter
+        if ((!msg_content.hidden) && (!msg_content.autogen_voice_summary_done)) {
+            this.auto_get_tts_file({ [msg_content.id]: msg_content });
+        }
+
+        // 1 : On vérifie si on a un thread cible
+        // 2 : On push le message content dans le thread cible => en retrouvant la copie du message qui a du être faite déjà du coup aussi. On fait le lien vers ce message content pour indiqué que c'est une copie issue d'un pipe
+        const thread: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(msg_content.thread_message_id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+            .exec_as_server()
+            .set_max_age_ms(60000) // Le param de pipe devrait pas changer toutes les secondes... voir pas du tout en fait
+            .set_discarded_field_path(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().piped_from_thread_message_id)
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!thread) {
+            return;
+        }
+
+        if (!thread.pipe_outputs_to_thread_id) {
+            return;
+        }
+
+        // On doit retrouver le message lié
+        const piped_message: GPTAssistantAPIThreadMessageVO = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().piped_from_thread_message_id, msg_content.thread_message_id)
+            .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().piped_from_thread_id, thread.id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadMessageVO>();
+
+        if (!piped_message) {
+            // ConsoleHandler.error('postcreate_ThreadMessageContentVO_handle_pipe: piped_message not found');
+            // ça peut être normal si c'est un prompt ou un user role pour le moment
+            return;
+        }
+
+        const piped_thread: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(thread.pipe_outputs_to_thread_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!piped_thread) {
+            ConsoleHandler.error('postcreate_ThreadMessageContentVO_handle_pipe: piped_thread not found');
+            return;
+        }
+
+        this.wait_for_runs_to_finish_on_thread(piped_thread).then(async () => {
+
+            const thread_message_content_copy = Object.assign(new GPTAssistantAPIThreadMessageContentVO(), msg_content);
+            thread_message_content_copy.id = null;
+            thread_message_content_copy.thread_message_id = piped_message.id;
+            thread_message_content_copy.piped_from_thread_message_content_id = msg_content.id;
+            thread_message_content_copy.piped_from_thread_id = thread.id;
+            thread_message_content_copy.gpt_thread_message_id = piped_message.gpt_id;
+            thread_message_content_copy.hidden = true; // On le cache pour pas qu'il soit visible dans la discussion
+
+            let content_type_text: string = msg_content.content_type_text?.value;
+            if (!content_type_text) {
+                content_type_text = "<Message issu/pipe/dupliqué du thread [" + thread.id + "]>";
+            } else {
+                content_type_text = "<Message issu/pipe/dupliqué du thread [" + thread.id + "]:" + content_type_text + ">";
+            }
+            thread_message_content_copy.content_type_text.value = content_type_text;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_message_content_copy);
+
+            // Et comme on a fait la copie de contenu, on peut planifier le .is_ready = true sur le message
+            // (on le fait pas directement des fois qu'il y ai plusieurs contenus dans ce message)
+            ModuleGPTServer.getInstance().set_message_is_ready({ [piped_message.id]: true });
+
+
+            // On crée un listener si pas encore existant pour rajouter un OseliaRunVO dans le thread cible, pour initier une nouvelle réflexion avec les nouveaux éléments reçus
+            // On doit fairte un sémaphore pour s'assurer qu'on crée un seul oselia_run quelque soit le nombre de messages qui s'ajoutent à la discussion
+            const event_name = GPTAssistantAPIRunVO.NEW_PIPED_MESSAGE_EVENT_NAME_TEMPLATE
+                .replace('{gpt_thread_id}', piped_thread.gpt_thread_id.toString());
+
+            // Si on a pas encore créé de listener pour cet event, on le fait
+            if (!EventsController.registered_listeners[event_name]) {
+                EventsController.on_every_event_throttle_cb(
+                    event_name,
+                    this.push_new_oselia_run_on_supervisor_thread(piped_thread.id).bind(this),
+                    20000,
+                    true,
+                    EventifyEventListenerConfVO.PARAM_TYPE_NONE
+                );
+            }
+
+            EventsController.emit_event(EventifyEventInstanceVO.new_event(event_name));
+        });
+    }
+
+    private async pre_create_trigger_handler_for_AssistantVO_check_memory_appended_texts(assistant: GPTAssistantAPIAssistantVO): Promise<boolean> {
+        return this.check_memory_appended_texts(assistant);
+    }
+    private async pre_update_trigger_handler_for_AssistantVO_check_memory_appended_texts(assistant_wrapper: DAOUpdateVOHolder<GPTAssistantAPIAssistantVO>): Promise<boolean> {
+        return this.check_memory_appended_texts(assistant_wrapper.post_update_vo);
+    }
+
+    private async check_memory_appended_texts(assistant: GPTAssistantAPIAssistantVO): Promise<boolean> {
+
+        // Est-ce qu'on doit ajouter ou supprimer le marqueur ?
+        const appended_texts: string[] = [];
+
+        await all_promises([
+            (async () => {
+                if (assistant.app_mem_access) {
+                    const app_mem_access_prepended_text: string = await ModuleParams.instance.getParamValueAsString(
+                        OseliaAppMemVO.ASSISTANT_INSTRUCTIONS_APPENDED_TEXT_PARAM_NAME,
+                        'Penses à consulter la mémoire de l\'application - app_mem - pour comprendre le contexte de la conversation, les subtilités de cette solution, le langage métier, ...',
+                        120000,
+                    );
+                    if (app_mem_access_prepended_text && app_mem_access_prepended_text.length) {
+                        appended_texts.push(app_mem_access_prepended_text);
+                    }
+                }
+            })(),
+            (async () => {
+                if (assistant.agent_mem_access) {
+                    const agent_mem_access_prepended_text: string = await ModuleParams.instance.getParamValueAsString(
+                        OseliaAgentMemVO.ASSISTANT_INSTRUCTIONS_APPENDED_TEXT_PARAM_NAME,
+                        'AVANT le traitement consulte OBLIGATOIREMENT ta mémoire d\'assistant - agent_mem -  pour prendre en compte les retours pertinents et les compléments d\'informations qui ont pu y être stockés dans des discussions précédentes.',
+                        120000,
+                    );
+                    if (agent_mem_access_prepended_text && agent_mem_access_prepended_text.length) {
+                        appended_texts.push(agent_mem_access_prepended_text);
+                    }
+                }
+            })(),
+            (async () => {
+                if (assistant.user_mem_access) {
+                    const user_mem_access_prepended_text: string = await ModuleParams.instance.getParamValueAsString(
+                        OseliaUserMemVO.ASSISTANT_INSTRUCTIONS_APPENDED_TEXT_PARAM_NAME,
+                        'AVANT de répondre à l\'utilisateur si tu as un user_id identifié auquel répondre, tu DOIS vérifier la mémoire de cet utilisateur - user_mem - pour savoir comment formatter ta réponse, comment t\'adresser à ton interlocuteur.',
+                        120000,
+                    );
+                    if (user_mem_access_prepended_text && user_mem_access_prepended_text.length) {
+                        appended_texts.push(user_mem_access_prepended_text);
+                    }
+                }
+            })(),
+        ]);
+
+        // On se met un marqueur pour savoir si on a déjà fait le traitement
+        const appended_text: string =
+            (appended_texts && appended_texts.length) ?
+                ('<!-- GPTAssistantAPIMemoryVO:appended_texts START -->\n' +
+                    appended_texts.join('\n') +
+                    '<!-- GPTAssistantAPIMemoryVO:appended_texts END -->\n')
+                :
+                '';
+
+        if (appended_text && appended_text.length) {
+            // On ajoute en fin d'instructions, ou on remplace si il y avait déjà, le segment en fin d'instruction
+            assistant.instructions = assistant.instructions.replace(/<!-- GPTAssistantAPIMemoryVO:appended_texts START -->[\s\S]*?<!-- GPTAssistantAPIMemoryVO:appended_texts END -->/g, appended_text);
+            if (assistant.instructions.indexOf('<!-- GPTAssistantAPIMemoryVO:appended_texts START -->') === -1) {
+                assistant.instructions += appended_text;
+            }
+        } else {
+            // On supprime le segment si il existe actuellement dans les instructions de l'assistant
+            assistant.instructions = assistant.instructions.replace(/<!-- GPTAssistantAPIMemoryVO:appended_texts START -->[\s\S]*?<!-- GPTAssistantAPIMemoryVO:appended_texts END -->/g, '');
+        }
+
+        return true;
+    }
+
+    private async on_post_update_run_emit_event(run_wrapper: DAOUpdateVOHolder<GPTAssistantAPIRunVO>): Promise<void> {
+        // Si l'état change, on veut emit un event sur le nouvel état du thread
+        if (run_wrapper.pre_update_vo.status != run_wrapper.post_update_vo.status) {
+            const event_name = GPTAssistantAPIRunVO.STATUS_UPDATE_EVENT_NAME_TEMPLATE
+                .replace('{rungpt_id}', run_wrapper.post_update_vo.gpt_run_id.toString());
+
+            // On broadcast l'évènement puisque c'est potentiellement un ask_assistant (sur apibgthread) qui attend une fin de run (oseliabgthread)
+            EventsServerController.broadcast_event(EventifyEventInstanceVO.new_event(event_name, run_wrapper.post_update_vo));
+        }
     }
 }

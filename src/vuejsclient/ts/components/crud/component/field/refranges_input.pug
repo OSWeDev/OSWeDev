@@ -72,6 +72,13 @@
                     i.fa-solid.fa-square-x(@click='props.remove(props.option)')
 
             //- ??? track-by="text_uid"
+        
+        template(v-if="!is_readonly && !hide_text_cliquable")
+            .text_cliquable.ml-1(@click='select_all_async') {{ label('select_all') }}
+            .inter_text -
+            .text_cliquable(@click='select_none') {{ label('select_none') }}
+
+        include ./CRUDComponentFieldFooter
 
     template(v-else)
         //- div RAAAAAAAAAAAAAAAA

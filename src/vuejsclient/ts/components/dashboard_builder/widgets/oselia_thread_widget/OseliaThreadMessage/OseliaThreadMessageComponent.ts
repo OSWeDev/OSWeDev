@@ -208,6 +208,10 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
                             event.preventDefault();
                         }
                     }
+
+                    if (content.tts_file_id) {
+                        this.$emit('push_tts_file_id', content.tts_file_id);
+                    }
                 }
 
             }

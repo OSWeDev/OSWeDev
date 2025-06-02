@@ -44,9 +44,15 @@ export default class EnvParam implements IEnvParam {
     public activate_incompatible_stack_context?: boolean = false;
     public throw_on_incompatible_stack_context?: boolean = false;
 
+    public dont_use_default_translations?: boolean = false;
+
+    public threshold_too_many_imports_waiting?: number = null;
 
     public debug_forks?: boolean = false;
     public debug_vars?: boolean = false;
+    public debug_vars_prepare_updates_in_out?: boolean = true;
+    public debug_vars_handle_invalidators_in_out?: boolean = true;
+    public debug_vars_processes_ordered_vos?: boolean = true;
     public debug_vars_processes?: boolean = false;
     public debug_vars_invalidation?: boolean = false;
     public debug_vars_invalidation_param_intersector?: boolean = false;
@@ -65,6 +71,9 @@ export default class EnvParam implements IEnvParam {
     public debug_playwright_controller?: boolean = false;
 
     public debug_reruns_of_oselia?: boolean = false;
+
+    public debug_assistant_traduction?: boolean = false;
+    public debug_superviseur_assistant_traduction?: boolean = false;
 
     public debug_select_datatable_rows_query_res?: boolean = false;
 
@@ -142,6 +151,9 @@ export default class EnvParam implements IEnvParam {
     public activate_module_perf_worker_messages?: boolean = false;
     public activate_module_perf_bgthread_ping_latency?: boolean = false;
     public activate_module_perf_bgthread_load_balancing?: boolean = false;
+    public activate_module_perf_vars_datas_proxy?: boolean = false;
+    public activate_module_perf_vars_tabs_subs_controller?: boolean = false;
+    public activate_module_perf_push_data_server_controller?: boolean = false;
 
     // Lenteurs sur ExpressJS - lenteurs sur la partie réflexion (calculs, requetes, ...) et sur la partie envoie de la réponse
     /**

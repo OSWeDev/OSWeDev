@@ -75,6 +75,26 @@ import Patch20250422SetGraphDetailed from './patchs/postmodules/Patch20250422Set
 import Patch20250425AddDefaultViewportToWidgets from './patchs/postmodules/Patch20250425AddDefaultViewportToWidgets';
 import Patch20250425RenameTradsMenuCMS from './patchs/postmodules/Patch20250425RenameTradsMenuCMS';
 import Patch20250428InitDashboardVOTile from './patchs/postmodules/Patch20250428InitDashboardVOTile';
+import Patch20250505AddOseliaAssistantTraduction from './patchs/postmodules/Patch20250505AddOseliaAssistantTraduction';
+import Patch20250505AddOseliaRunTemplate_AssistantTraduction from './patchs/postmodules/Patch20250505AddOseliaRunTemplate_AssistantTraduction';
+import Patch20250506AddOseliaFunction_OSELIA_agent_mem_get_entries from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_agent_mem_get_entries';
+import Patch20250506AddOseliaFunction_OSELIA_agent_mem_get_keys from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_agent_mem_get_keys';
+import Patch20250506AddOseliaFunction_OSELIA_agent_mem_set_mem from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_agent_mem_set_mem';
+import Patch20250506AddOseliaFunction_OSELIA_app_mem_get_entries from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_app_mem_get_entries';
+import Patch20250506AddOseliaFunction_OSELIA_app_mem_get_keys from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_app_mem_get_keys';
+import Patch20250506AddOseliaFunction_OSELIA_app_mem_set_mem from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_app_mem_set_mem';
+import Patch20250506AddOseliaFunction_OSELIA_user_mem_get_entries from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_user_mem_get_entries';
+import Patch20250506AddOseliaFunction_OSELIA_user_mem_get_keys from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_user_mem_get_keys';
+import Patch20250506AddOseliaFunction_OSELIA_user_mem_set_mem from './patchs/postmodules/Patch20250506AddOseliaFunction_OSELIA_user_mem_set_mem';
+import Patch20250507DebugFavoritFiltersLimits from './patchs/postmodules/Patch20250507DebugFavoritFiltersLimits';
+import Patch20250509AddOselia_Superviseur_AssistantTraduction from './patchs/postmodules/Patch20250509AddOselia_Superviseur_AssistantTraduction';
+import Patch20250509AddOseliaFunction_OSELIA_get_codes_that_need_translation from './patchs/postmodules/Patch20250509AddOseliaFunction_OSELIA_get_codes_that_need_translation';
+import Patch20250509AddOseliaFunction_OSELIA_instantiate_assistant_traduction from './patchs/postmodules/Patch20250509AddOseliaFunction_OSELIA_instantiate_assistant_traduction';
+import Patch20250509AddOseliaFunction_OSELIA_push_message_to_supervised_thread_id from './patchs/postmodules/Patch20250509AddOseliaFunction_OSELIA_push_message_to_supervised_thread_id';
+import Patch20250512AddOseliaFunction_OSELIA_get_langs from './patchs/postmodules/Patch20250512AddOseliaFunction_OSELIA_get_langs';
+import Patch20250512AddOseliaRunTemplate_AskAssistant from './patchs/postmodules/Patch20250512AddOseliaRunTemplate_AskAssistant';
+import Patch20250512AddOseliaRunTemplate_NewDatasForSupervisor from './patchs/postmodules/Patch20250512AddOseliaRunTemplate_NewDatasForSupervisor';
+import Patch20250512OSELIA_ActivateFunction_getLangs_OnAssistant_SuperviseurTraduction from './patchs/postmodules/Patch20250512OSELIA_ActivateFunction_getLangs_OnAssistant_SuperviseurTraduction';
 import Patch20122024TruncateLogsUpdated from './patchs/premodules/Patch20122024TruncateLogsUpdated';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
@@ -118,6 +138,8 @@ import Patch20250106createTableSupProbe from './patchs/premodules/Patch20250106c
 import Patch20250228DeleteDuplicateGraphVO from './patchs/premodules/Patch20250228DeleteDuplicateGraphVO';
 import Patch20250304DropArchivesConfVO from './patchs/premodules/Patch20250304TruncateArchivesConfVO';
 import Patch20250428PrepareRemovalTemplateNAmeOseliaRun from './patchs/premodules/Patch20250428PrepareRemovalTemplateNAmeOseliaRun';
+import Patch20250507InitLastOseliaRunID from './patchs/premodules/Patch20250507InitLastOseliaRunID';
+import Patch20250507OseliaRunTemplateNames from './patchs/premodules/Patch20250507OseliaRunTemplateNames';
 
 export default class GeneratorPatchsListHandler {
 
@@ -167,6 +189,8 @@ export default class GeneratorPatchsListHandler {
         Patch20250228DeleteDuplicateGraphVO.getInstance(),
         Patch20250304DropArchivesConfVO.getInstance(),
         Patch20250428PrepareRemovalTemplateNAmeOseliaRun.getInstance(),
+        Patch20250507OseliaRunTemplateNames.getInstance(),
+        Patch20250507InitLastOseliaRunID.getInstance(),
     ];
 
     public static post_modules_workers: IGeneratorWorker[] = [
@@ -256,5 +280,33 @@ export default class GeneratorPatchsListHandler {
         Patch20250425AddDefaultViewportToWidgets.getInstance(),
 
         Patch20250428InitDashboardVOTile.getInstance(),
+        Patch20250506AddOseliaFunction_OSELIA_agent_mem_set_mem.getInstance(),
+        Patch20250506AddOseliaFunction_OSELIA_app_mem_set_mem.getInstance(),
+        Patch20250506AddOseliaFunction_OSELIA_user_mem_set_mem.getInstance(),
+
+        Patch20250506AddOseliaFunction_OSELIA_agent_mem_get_entries.getInstance(),
+        Patch20250506AddOseliaFunction_OSELIA_app_mem_get_entries.getInstance(),
+        Patch20250506AddOseliaFunction_OSELIA_user_mem_get_entries.getInstance(),
+
+        Patch20250506AddOseliaFunction_OSELIA_agent_mem_get_keys.getInstance(),
+        Patch20250506AddOseliaFunction_OSELIA_app_mem_get_keys.getInstance(),
+        Patch20250506AddOseliaFunction_OSELIA_user_mem_get_keys.getInstance(),
+
+        Patch20250505AddOseliaAssistantTraduction.getInstance(),
+        Patch20250505AddOseliaRunTemplate_AssistantTraduction.getInstance(),
+
+        Patch20250507DebugFavoritFiltersLimits.getInstance(),
+
+        Patch20250509AddOseliaFunction_OSELIA_get_codes_that_need_translation.getInstance(),
+        Patch20250509AddOseliaFunction_OSELIA_instantiate_assistant_traduction.getInstance(),
+        Patch20250509AddOseliaFunction_OSELIA_push_message_to_supervised_thread_id.getInstance(),
+
+        Patch20250509AddOselia_Superviseur_AssistantTraduction.getInstance(),
+        Patch20250512AddOseliaRunTemplate_AskAssistant.getInstance(),
+
+        Patch20250512AddOseliaRunTemplate_NewDatasForSupervisor.getInstance(),
+
+        Patch20250512AddOseliaFunction_OSELIA_get_langs.getInstance(),
+        Patch20250512OSELIA_ActivateFunction_getLangs_OnAssistant_SuperviseurTraduction.getInstance(),
     ];
 }

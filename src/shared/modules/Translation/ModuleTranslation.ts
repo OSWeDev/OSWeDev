@@ -9,9 +9,11 @@ import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import Module from '../Module';
+import OseliaRunVO from '../Oselia/vos/OseliaRunVO';
 import GetTranslationParamVO, { GetTranslationParamVOStatic } from './apis/GetTranslationParamVO';
 import TParamVO, { TParamVOStatic } from './apis/TParamVO';
 import DefaultTranslationVO from './vos/DefaultTranslationVO';
+import DemandeAssistantTraductionVO from './vos/DemandeAssistantTraductionVO';
 import LangVO from './vos/LangVO';
 import TranslatableTextVO from './vos/TranslatableTextVO';
 import TranslationVO from './vos/TranslationVO';
@@ -38,14 +40,6 @@ export default class ModuleTranslation extends Module {
     public static APINAME_T: string = "t";
     public static APINAME_LABEL: string = "label";
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleTranslation {
-        if (!ModuleTranslation.instance) {
-            ModuleTranslation.instance = new ModuleTranslation();
-        }
-        return ModuleTranslation.instance;
-    }
-
     private static instance: ModuleTranslation = null;
 
     public getALL_LOCALES: () => Promise<{ [code_lang: string]: { [code_text: string]: any } }> = APIControllerWrapper.sah(ModuleTranslation.APINAME_getALL_LOCALES);
@@ -64,6 +58,15 @@ export default class ModuleTranslation extends Module {
         super("translation", ModuleTranslation.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleTranslation {
+        if (!ModuleTranslation.instance) {
+            ModuleTranslation.instance = new ModuleTranslation();
+        }
+        return ModuleTranslation.instance;
+    }
+
 
     public get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang_id: number) {
         return ModuleTranslation.POLICY_LANG_SELECTOR_PER_LANG_ACCESS_PREFIX + '_' + lang_id;
@@ -135,51 +138,59 @@ export default class ModuleTranslation extends Module {
         this.initialize_TranslatableTextVO();
         this.initialize_TranslationVO();
         this.initialize_DefaultTranslationVO();
+        this.initialize_DemandeAssistantTraductionVO();
     }
 
     private initialize_LangVO() {
         // Création de la table lang
         const label_field = ModuleTableFieldController.create_new(LangVO.API_TYPE_ID, field_names<LangVO>().code_lang, ModuleTableFieldVO.FIELD_TYPE_string, 'Code de la langue', true).unique();
-        const datatable_fields = [
-            label_field,
-            ModuleTableFieldController.create_new(LangVO.API_TYPE_ID, field_names<LangVO>().code_flag, ModuleTableFieldVO.FIELD_TYPE_string, 'Code du drapeau', false),
-            ModuleTableFieldController.create_new(LangVO.API_TYPE_ID, field_names<LangVO>().code_phone, ModuleTableFieldVO.FIELD_TYPE_string, 'Indicatif (+33)', false),
-        ];
-        const datatable_lang = ModuleTableController.create_new(this.name, LangVO, label_field, "Langues");
+        ModuleTableFieldController.create_new(LangVO.API_TYPE_ID, field_names<LangVO>().code_flag, ModuleTableFieldVO.FIELD_TYPE_string, 'Code du drapeau', false);
+        ModuleTableFieldController.create_new(LangVO.API_TYPE_ID, field_names<LangVO>().code_phone, ModuleTableFieldVO.FIELD_TYPE_string, 'Indicatif (+33)', false);
+
+        ModuleTableController.create_new(this.name, LangVO, label_field, "Langues");
     }
 
     private initialize_TranslatableTextVO() {
         // Création de la table translatableText
         const label_field = ModuleTableFieldController.create_new(TranslatableTextVO.API_TYPE_ID, field_names<TranslatableTextVO>().code_text, ModuleTableFieldVO.FIELD_TYPE_string, 'Id du text', true).unique();
-        const datatable_fields = [
-            label_field
-        ];
-        const datatable_translatabletext = ModuleTableController.create_new(this.name, TranslatableTextVO, label_field, "Codes");
+        ModuleTableController.create_new(this.name, TranslatableTextVO, label_field, "Codes");
     }
 
     private initialize_TranslationVO() {
         // Création de la table translation
-        const field_lang_id = ModuleTableFieldController.create_new(TranslationVO.API_TYPE_ID, field_names<TranslationVO>().lang_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Langue', true);
-        const field_text_id = ModuleTableFieldController.create_new(TranslationVO.API_TYPE_ID, field_names<TranslationVO>().text_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Text', true);
+        const field_lang_id = ModuleTableFieldController.create_new(TranslationVO.API_TYPE_ID, field_names<TranslationVO>().lang_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Langue', true)
+            .set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
+        const field_text_id = ModuleTableFieldController.create_new(TranslationVO.API_TYPE_ID, field_names<TranslationVO>().text_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Text', true)
+            .set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
         const label_field = ModuleTableFieldController.create_new(TranslationVO.API_TYPE_ID, field_names<TranslationVO>().translated, ModuleTableFieldVO.FIELD_TYPE_string, 'Texte traduit', true);
-        const datatable_fields = [
-            field_lang_id,
-            field_text_id,
-            label_field
-        ];
 
-        const datatable_translation = ModuleTableController.create_new(this.name, TranslationVO, label_field, "Traductions");
+        ModuleTableController.create_new(this.name, TranslationVO, label_field, "Traductions");
         ModuleTableCompositeUniqueKeyController.add_composite_unique_key_to_vo_type(TranslationVO.API_TYPE_ID, [field_lang_id, field_text_id]);
-        field_lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
-        field_text_id.set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
     }
 
     private initialize_DefaultTranslationVO() {
         const label_field = ModuleTableFieldController.create_new(DefaultTranslationVO.API_TYPE_ID, field_names<DefaultTranslationVO>().code_text, ModuleTableFieldVO.FIELD_TYPE_string, 'Code texte de la traduction', true).unique();
-        const datatable_fields = [
-            label_field,
-            ModuleTableFieldController.create_new(DefaultTranslationVO.API_TYPE_ID, field_names<DefaultTranslationVO>().default_translations, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Traductions', true),
-        ];
-        const datatable_translatabletext = ModuleTableController.create_new(this.name, DefaultTranslationVO, label_field, "Traductions par défaut");
+        ModuleTableFieldController.create_new(DefaultTranslationVO.API_TYPE_ID, field_names<DefaultTranslationVO>().default_translations, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Traductions', true);
+
+        ModuleTableController.create_new(this.name, DefaultTranslationVO, label_field, "Traductions par défaut");
+    }
+
+    private initialize_DemandeAssistantTraductionVO() {
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().lang_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Langue', true)
+            .set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().text_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Texte', true)
+            .set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().oselia_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Oselia run', true)
+            .set_many_to_one_target_moduletable_name(OseliaRunVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().code_text, ModuleTableFieldVO.FIELD_TYPE_string, 'Code texte', false);
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().code_lang, ModuleTableFieldVO.FIELD_TYPE_string, 'Code langue', false);
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().traduction, ModuleTableFieldVO.FIELD_TYPE_string, 'Traduction', false);
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().degre_certitude, ModuleTableFieldVO.FIELD_TYPE_float, 'Degré de certitude', false);
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().explication, ModuleTableFieldVO.FIELD_TYPE_string, 'Explication', false);
+
+        ModuleTableFieldController.create_new(DemandeAssistantTraductionVO.API_TYPE_ID, field_names<DemandeAssistantTraductionVO>().traduction_appliquee, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Traduction appliquée', false);
+
+        ModuleTableController.create_new(this.name, DemandeAssistantTraductionVO, null, "Demandes d'assistant de traduction");
     }
 }

@@ -4,13 +4,14 @@ import VOFieldRefVO from "./VOFieldRefVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import TSRange from "../../DataRender/vos/TSRange";
 import ObjectHandler from "../../../tools/ObjectHandler";
+import IWidgetFilterDependancy from "../interfaces/IWidgetFilterDependancy";
 
 /**
  * @class FieldValueFilterWidgetOptionsVO
  *  - options for field value filter widget
  * @deprecated on doit utiliser un vrai VO pour les options de widget
  */
-export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
+export default class FieldValueFilterWidgetOptionsVO extends AbstractVO implements IWidgetFilterDependancy {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.placeholder.";
     public static VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.advanced_mode_placeholder.";

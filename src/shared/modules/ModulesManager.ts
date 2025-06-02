@@ -59,7 +59,7 @@ export default class ModulesManager {
         moduleObj.registerApis();
     }
     public static getModuleByNameAndRole(name: string, role: string) {
-        const module = this.modules_by_name[name];
+        const module = this.modules_by_name[name ? name.toLowerCase() : null];
 
         return module?.getModuleComponentByRole(role) ?? null;
     }

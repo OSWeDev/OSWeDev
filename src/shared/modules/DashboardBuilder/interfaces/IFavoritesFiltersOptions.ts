@@ -5,8 +5,9 @@ import YearFilterWidgetOptionsVO from "../vos/YearFilterWidgetOptionsVO";
  * IFavoritesFiltersOptions
  */
 export default interface IFavoritesFiltersOptions {
-    // Overwrite active field filters
-    overwrite_active_field_filters: boolean;
+    // Obligatoirement pour le moment
+    // // Overwrite active field filters
+    // overwrite_active_field_filters: boolean;
 
     // Is the current favorites field_filters fixed dates
     is_field_filters_fixed_dates: boolean; // if true, use fixed dates field_filters, else use custom dates widget_options

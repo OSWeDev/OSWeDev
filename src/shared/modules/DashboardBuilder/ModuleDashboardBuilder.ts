@@ -689,6 +689,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().every, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb de segment', true, true, 1);
         ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().granularity, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de segment', true, true, FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY).setEnumValues(FavoritesFiltersExportFrequencyVO.GRANULARITY_LABELS);
         ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().day_in_month, ModuleTableFieldVO.FIELD_TYPE_int, 'Jour du mois', true, true, 1);
+        ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().day_in_week, ModuleTableFieldVO.FIELD_TYPE_int, 'Jour de la semaine', true, true, 1);
         ModuleTableFieldController.create_new(FavoritesFiltersExportFrequencyVO.API_TYPE_ID, field_names<FavoritesFiltersExportFrequencyVO>().prefered_time, ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite, 'Heure de l\'export', true, true, 3).set_format_localized_time(true);
 
         ModuleTableController.create_new(this.name, FavoritesFiltersExportFrequencyVO, null, "Fréquence d'export");
@@ -698,6 +699,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().export_frequency, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Fréquence d\'export', true, true, null);
         ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().exportable_data, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Données exportables', true, true, null);
         ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().is_export_planned, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Export planifié', true, true, false);
+        ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().begin_export_after_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de début', false).set_segmentation_type(TimeSegment.TYPE_DAY);
         ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().last_export_at_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernier export', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().export_to_user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Utilisateurs ciblés', true)
             .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);

@@ -127,7 +127,19 @@ export default class VersionedVOController implements IVOController {
                 const vofield = moduleTableFields[i];
 
                 if (!vofield.foreign_ref_vo_type) {
-                    continue;
+                    if (!((database == VersionedVOController.VERSIONED_DATABASE) || (database == VersionedVOController.VERSIONED_TRASHED_DATABASE) || (database == VersionedVOController.TRASHED_DATABASE))) {
+                        continue;
+                    }
+
+                    if (![
+                        ModuleTableFieldVO.FIELD_TYPE_refrange_array,
+                        ModuleTableFieldVO.FIELD_TYPE_foreign_key,
+                        ModuleTableFieldVO.FIELD_TYPE_file_ref,
+                        ModuleTableFieldVO.FIELD_TYPE_image_ref,
+                        ModuleTableFieldVO.FIELD_TYPE_int,
+                    ].includes(vofield.field_type)) {
+                        continue;
+                    }
                 }
 
                 // Cas spécifique du lien parent_id, dans le vo trashed_versioned, qui doit pointer sur trashed du coup et pas sur ref

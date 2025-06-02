@@ -274,6 +274,8 @@ export default class ModuleVarServer extends ModuleServerBase {
     public async configure() {
 
         PerfReportServerController.register_perf_module(VarDAGNode.PERF_MODULE_NAME);
+        PerfReportServerController.register_perf_module(VarsDatasProxy.PERF_MODULE_NAME);
+        PerfReportServerController.register_perf_module(VarsTabsSubsController.PERF_MODULE_NAME);
 
         await this.init_auto_vars_confs();
 

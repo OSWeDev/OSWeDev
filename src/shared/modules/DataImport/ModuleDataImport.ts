@@ -1,6 +1,6 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ConsoleHandler from '../../tools/ConsoleHandler';
-import { field_names } from '../../tools/ObjectHandler';
+import { field_names, reflect } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
@@ -79,14 +79,6 @@ export default class ModuleDataImport extends Module {
 
     public static IMPORT_TABLE_PREFIX: string = '_i_';
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleDataImport {
-        if (!ModuleDataImport.instance) {
-            ModuleDataImport.instance = new ModuleDataImport();
-        }
-        return ModuleDataImport.instance;
-    }
-
     private static instance: ModuleDataImport = null;
 
     public reimportdih: (dih: DataImportHistoricVO) => Promise<void> = APIControllerWrapper.sah(ModuleDataImport.APINAME_reimportdih);
@@ -102,14 +94,30 @@ export default class ModuleDataImport extends Module {
     public importJSON: (import_json: string, import_on_vo: IDistantVOBase) => Promise<IDistantVOBase[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_importJSON);
     public getDataImportColumnsFromFormatId: (data_import_format_id: number) => Promise<DataImportColumnVO[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId);
 
+    public alert_too_many_imports_waiting: () => Promise<string> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().alert_too_many_imports_waiting);
+
     private constructor() {
 
         super("data_import", ModuleDataImport.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
 
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleDataImport {
+        if (!ModuleDataImport.instance) {
+            ModuleDataImport.instance = new ModuleDataImport();
+        }
+        return ModuleDataImport.instance;
+    }
+
     public registerApis() {
 
+        APIControllerWrapper.registerApi(GetAPIDefinition.new<void, DataImportHistoricVO[]>(
+            null,
+            this.name,
+            reflect<this>().alert_too_many_imports_waiting,
+            [DataImportHistoricVO.API_TYPE_ID],
+        ));
         APIControllerWrapper.registerApi(new PostAPIDefinition<DataImportHistoricVO, void>(
             DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DataImportHistoricVO.API_TYPE_ID),
             ModuleDataImport.APINAME_reimportdih,

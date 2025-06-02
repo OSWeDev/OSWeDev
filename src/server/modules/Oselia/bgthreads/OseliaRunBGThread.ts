@@ -10,7 +10,7 @@ import OseliaRunTemplateVO from '../../../../shared/modules/Oselia/vos/OseliaRun
 import OseliaRunVO from '../../../../shared/modules/Oselia/vos/OseliaRunVO';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
-import ObjectHandler, { field_names } from '../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
@@ -72,7 +72,7 @@ export default class OseliaRunBGThread implements IBGThread {
     private static instance: OseliaRunBGThread = null;
 
     public current_timeout: number = 10000;
-    public MAX_timeout: number = 100000;
+    public MAX_timeout: number = 30000;
     public MIN_timeout: number = 10;
 
     public exec_in_dedicated_thread: boolean = true;
@@ -107,7 +107,7 @@ export default class OseliaRunBGThread implements IBGThread {
             // On prend un run, dans un état a priori prêt à être traité, et qui soit a pas de thread, soit a pas de tag sur le thread pour indiquer qu'on a déjà testé
             const query_run = query(OseliaRunVO.API_TYPE_ID)
                 .filter_is_null_or_empty(field_names<OseliaRunVO>().end_date) // Pas terminé
-                .filter_by_num_has(field_names<OseliaRunVO>().state, OseliaRunBGThread.VALID_NEXT_RUN_STATES, OseliaRunVO.API_TYPE_ID) // On peut avancer (théoriquement modulo siblinigs, ...)
+                .filter_by_num_has(field_names<OseliaRunVO>().state, OseliaRunBGThread.VALID_NEXT_RUN_STATES, OseliaRunVO.API_TYPE_ID) // On peut avancer (théoriquement modulo siblings, ...)
                 // et c'est là qu'on indique soit ya pas encore de thread, soit ya pas de tag pour indiquer qu'on a déjà testé
                 .add_filters([
                     ContextFilterVO.or([
@@ -117,6 +117,9 @@ export default class OseliaRunBGThread implements IBGThread {
                     ])
                 ])
                 .set_sort(new SortByVO(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().start_date, true))
+
+                .set_discarded_field_path(GPTAssistantAPIThreadVO.API_TYPE_ID, reflect<GPTAssistantAPIThreadVO>().last_oselia_run_id) // On veut passer par le lien thread_id dans le run et pas par le lien last_oselia_run_id dans le thread
+
                 .exec_as_server()
                 .set_limit(1);
 
@@ -137,8 +140,15 @@ export default class OseliaRunBGThread implements IBGThread {
             }
 
             // On doit créer/récupérer le thread asap pour le sémaphore
-            const assistant = await OseliaRunServerController.get_run_assistant(run);
+            let assistant = await OseliaRunServerController.get_run_assistant(run);
             const thread = await OseliaRunServerController.get_run_thread(run, assistant);
+
+            if ((!assistant) && (thread.current_oselia_assistant_id || thread.current_default_assistant_id)) {
+                assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                    .filter_by_id(thread.current_oselia_assistant_id || thread.current_default_assistant_id)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIAssistantVO>();
+            }
 
             // On prend le semaphore
             this.currently_running_thread_ids[run.thread_id] = run.thread_id;
@@ -212,7 +222,10 @@ export default class OseliaRunBGThread implements IBGThread {
                         .filter_by_id(next_handleable_run.assistant_id)
                         .exec_as_server()
                         .select_vo<GPTAssistantAPIAssistantVO>() :
-                    null;
+                    await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                        .filter_by_id(thread.current_oselia_assistant_id)
+                        .exec_as_server()
+                        .select_vo<GPTAssistantAPIAssistantVO>();
         }
 
         switch (next_handleable_run.state) {
@@ -351,6 +364,12 @@ export default class OseliaRunBGThread implements IBGThread {
         thread: GPTAssistantAPIThreadVO,
         assistant: GPTAssistantAPIAssistantVO,
     ) {
+
+        // Si le thread ne référence pas ce run comme étant l'actif, il faut faire la modif
+        if (thread.last_oselia_run_id != run.id) {
+            thread.last_oselia_run_id = run.id;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread);
+        }
 
         switch (run.run_type) {
 

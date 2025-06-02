@@ -23,6 +23,9 @@ export default class OseliaRunTemplateServerController {
         thread_vo: GPTAssistantAPIThreadVO = null,
         user: UserVO = null,
         parent_run_id: number = null,
+        pipe_outputs_to_thread_id: number = null,
+        initial_content_text: string = null,
+        generate_voice_summary: boolean = false,
     ): Promise<OseliaRunVO> {
 
         try {
@@ -40,6 +43,14 @@ export default class OseliaRunTemplateServerController {
                 thread_vo = thread.thread_vo;
             }
             await OseliaServerController.link_thread_to_referrer(thread_vo, referrer);
+
+            // On configure le pipe des messages pour les pousser aussi dans le thread actuel
+            // TODO : à voir dans quelle mesure c'est la bonne solution pour donner l'aperçu du thread enfant dans le parent.
+            //      peut-etre qu'il faut faire des résumés en chemin et pas tout pipe... à voir
+            if (thread_vo.id !== pipe_outputs_to_thread_id) {
+                thread_vo.pipe_outputs_to_thread_id = pipe_outputs_to_thread_id;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
+            }
 
             if (initial_cache_values) {
                 for (const key in initial_cache_values) {
@@ -70,7 +81,10 @@ export default class OseliaRunTemplateServerController {
             oselia_run.childrens_are_multithreaded = template.childrens_are_multithreaded;
             oselia_run.hide_outputs = template.hide_outputs;
             oselia_run.hide_prompt = template.hide_prompt;
-            oselia_run.initial_content_text = template.initial_content_text;
+
+            // Si on fournit un initial_content_text, on l'append au initial_content_text du template, pour apporter un complément d'info spécifique à ce run
+            oselia_run.initial_content_text = template.initial_content_text ? template.initial_content_text + '\n' + initial_content_text : initial_content_text;
+
             oselia_run.initial_prompt_id = template.initial_prompt_id;
             oselia_run.initial_prompt_parameters = initial_prompt_parameters;
             oselia_run.name = template.name;
@@ -79,6 +93,7 @@ export default class OseliaRunTemplateServerController {
             oselia_run.parent_run_id = parent_run_id;
             oselia_run.template_id = template.id;
             oselia_run.template_name = template.name;
+            oselia_run.generate_voice_summary = generate_voice_summary;
 
             /**
              * Si le state de départ est pas TODO, on doit figer les dates de début et de fin des taches déjà réalisées
@@ -130,9 +145,25 @@ export default class OseliaRunTemplateServerController {
             oselia_run.use_splitter = template.use_splitter;
             oselia_run.use_validator = template.use_validator;
             oselia_run.user_id = user.id;
-            oselia_run.weight = template.weight;
+
+            // Le point doit être soit celui du template si on est sur un sous-thread, soit le nb de run sans parents + 1
+            if (!oselia_run.parent_run_id) {
+                const weight = (await query(OseliaRunVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<OseliaRunVO>().thread_id, thread_vo.id)
+                    .filter_is_null_or_empty(field_names<OseliaRunVO>().parent_run_id)
+                    .exec_as_server()
+                    .select_count()) + 1;
+                oselia_run.weight = weight;
+            } else {
+                oselia_run.weight = template.weight;
+            }
             oselia_run.referrer_id = referrer.id;
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(oselia_run);
+
+            if (!thread_vo.last_oselia_run_id) {
+                thread_vo.last_oselia_run_id = oselia_run.id;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
+            }
 
             /**
              * On doit créer les sous tâches aussi

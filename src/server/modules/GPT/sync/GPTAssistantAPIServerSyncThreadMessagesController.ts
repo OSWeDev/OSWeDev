@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash';
+import { Metadata } from 'openai/resources';
 import { Annotation, FileCitationAnnotation, FilePathAnnotation, ImageFileContentBlock, ImageURLContentBlock, Message, MessageContent, MessageContentPartParam, MessageCreateParams, MessagesPage, TextContentBlock, TextContentBlockParam } from 'openai/resources/beta/threads/messages';
 import { Thread } from 'openai/resources/beta/threads/threads';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
@@ -14,6 +15,8 @@ import GPTAssistantAPIThreadMessageContentTextVO from '../../../../shared/module
 import GPTAssistantAPIThreadMessageContentVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
 import GPTAssistantAPIThreadMessageVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
+import OseliaRunVO from '../../../../shared/modules/Oselia/vos/OseliaRunVO';
+import { StatThisMapKeys } from '../../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -27,8 +30,7 @@ import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncCont
 import GPTAssistantAPIServerSyncFilesController from './GPTAssistantAPIServerSyncFilesController';
 import GPTAssistantAPIServerSyncRunsController from './GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerSyncThreadsController';
-import { StatThisMapKeys } from '../../../../shared/modules/Stats/annotations/StatThisMapKeys';
-import { Metadata } from 'openai/resources';
+import GPTAssistantAPIRunVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
 
 export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
@@ -286,6 +288,114 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
         }
     }
 
+    public static async message_contents_to_openai_api(vo: GPTAssistantAPIThreadMessageVO): Promise<MessageContent[]> {
+        const res: MessageContent[] = [];
+
+        if (!vo) {
+            return res;
+        }
+
+        const contents = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
+            .filter_by_id(vo.id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+            .set_sort(new SortByVO(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().weight, true))
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIThreadMessageContentVO>();
+
+        let user = null;
+
+        for (const i in contents) {
+            const content = contents[i];
+
+            switch (content.type) {
+                case GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT:
+
+                    const annotations: Annotation[] = [];
+
+                    for (const j in content.content_type_text.annotations) {
+                        const annotation = content.content_type_text.annotations[j];
+
+                        switch (annotation._type) {
+                            case GPTAssistantAPIThreadMessageContentFileCitationVO.API_TYPE_ID:
+                                annotations.push({
+                                    start_index: annotation.start_index,
+                                    end_index: annotation.end_index,
+                                    text: annotation.text,
+                                    file_citation: {
+                                        file_id: (annotation as GPTAssistantAPIThreadMessageContentFileCitationVO).gpt_file_id,
+                                        quote: (annotation as GPTAssistantAPIThreadMessageContentFileCitationVO).quote,
+                                    } as FileCitationAnnotation.FileCitation,
+                                    type: 'file_citation',
+                                    // (annotation as GPTAssistantAPIThreadMessageContentFileCitationVO).quote
+                                } as FileCitationAnnotation);
+                                break;
+                            case GPTAssistantAPIThreadMessageContentFilePathVO.API_TYPE_ID:
+                                annotations.push({
+                                    start_index: annotation.start_index,
+                                    end_index: annotation.end_index,
+                                    file_path: {
+                                        file_id: (annotation as GPTAssistantAPIThreadMessageContentFilePathVO).gpt_file_id,
+                                    } as FilePathAnnotation.FilePath,
+                                    text: annotation.text,
+                                    type: 'file_path'
+                                } as FilePathAnnotation);
+                                break;
+                        }
+                    }
+
+                    // On ajoute le nom de l'emetteur du message + son id - si on est sur un message de type user
+                    // eslint-disable-next-line no-case-declarations
+                    let content_type_text = content.content_type_text.value;
+                    // if (vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
+                    //     if (!user) {
+                    //         user = await query(UserVO.API_TYPE_ID).filter_by_id(vo.user_id).exec_as_server().select_vo<UserVO>();
+                    //     }
+
+                    //     const intro_info_user = GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(user);
+                    //     if (!content_type_text.startsWith(intro_info_user)) {
+                    //         content_type_text = intro_info_user + content_type_text;
+                    //     }
+                    // }
+
+                    res.push({
+                        type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],
+                        text: {
+                            value: content_type_text,
+                            annotations: annotations,
+                        }
+                    } as TextContentBlock);
+                    break;
+                case GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE_URL:
+                    res.push({
+                        type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],
+                        image_url: {
+                            url: content.content_type_image_url.url,
+                            detail: content.content_type_image_url.detail,
+                        }
+                    } as ImageURLContentBlock);
+                    break;
+                case GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE:
+                    res.push({
+                        type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],
+                        image_file: {
+                            file_id: content.content_type_image_file.gpt_file_id,
+                            detail: content.content_type_image_file.detail,
+                        }
+                    } as ImageFileContentBlock);
+                    break;
+
+                case GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL:
+                case GPTAssistantAPIThreadMessageContentVO.TYPE_EMAIL:
+                    // Ne concernent pas OpenAI.
+                    break;
+
+                default:
+                    throw new Error('Unknown content type');
+            }
+        }
+
+        return res;
+    }
+
     /**
      * On récupère tous les messages d'un thread de l'API GPT et on les intègre dans Osélia si on ne les a pas encore
      * Et on archive les messages qui n'existent plus dans GPT
@@ -366,6 +476,29 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
         if (!thread_message_vo) {
             // On le crée
             thread_message_vo = new GPTAssistantAPIThreadMessageVO();
+
+            // Identifier le run qui a enclenché la création de ce message
+            const gpt_run_vo: GPTAssistantAPIRunVO = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<GPTAssistantAPIRunVO>().gpt_run_id, thread_message.run_id)
+                .filter_by_num_eq(field_names<GPTAssistantAPIRunVO>().thread_id, thread_vo.id)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIRunVO>();
+
+            if (!gpt_run_vo) {
+                throw new Error('Error while syncing thread message : gpt_run_vo not found for run_id : ' + thread_message.run_id);
+            }
+
+            const oselia_run: OseliaRunVO = await query(OseliaRunVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<OseliaRunVO>().thread_id, thread_vo.id)
+                .filter_by_num_eq(field_names<OseliaRunVO>().run_gpt_run_id, gpt_run_vo.id)
+                .exec_as_server()
+                .select_vo<OseliaRunVO>();
+
+            if (oselia_run) {
+                thread_message_vo.oselia_run_id = oselia_run ? oselia_run.id : null;
+                thread_message_vo.autogen_voice_summary = oselia_run.generate_voice_summary;
+            }
+
             needs_update = true;
 
             // Si on a pas de user à associer, on prend celui du thread
@@ -731,114 +864,6 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             }
 
             res.push(attachment_vo);
-        }
-
-        return res;
-    }
-
-    private static async message_contents_to_openai_api(vo: GPTAssistantAPIThreadMessageVO): Promise<MessageContent[]> {
-        const res: MessageContent[] = [];
-
-        if (!vo) {
-            return res;
-        }
-
-        const contents = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
-            .filter_by_id(vo.id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-            .set_sort(new SortByVO(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().weight, true))
-            .exec_as_server()
-            .select_vos<GPTAssistantAPIThreadMessageContentVO>();
-
-        let user = null;
-
-        for (const i in contents) {
-            const content = contents[i];
-
-            switch (content.type) {
-                case GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT:
-
-                    const annotations: Annotation[] = [];
-
-                    for (const j in content.content_type_text.annotations) {
-                        const annotation = content.content_type_text.annotations[j];
-
-                        switch (annotation._type) {
-                            case GPTAssistantAPIThreadMessageContentFileCitationVO.API_TYPE_ID:
-                                annotations.push({
-                                    start_index: annotation.start_index,
-                                    end_index: annotation.end_index,
-                                    text: annotation.text,
-                                    file_citation: {
-                                        file_id: (annotation as GPTAssistantAPIThreadMessageContentFileCitationVO).gpt_file_id,
-                                        quote: (annotation as GPTAssistantAPIThreadMessageContentFileCitationVO).quote,
-                                    } as FileCitationAnnotation.FileCitation,
-                                    type: 'file_citation',
-                                    // (annotation as GPTAssistantAPIThreadMessageContentFileCitationVO).quote
-                                } as FileCitationAnnotation);
-                                break;
-                            case GPTAssistantAPIThreadMessageContentFilePathVO.API_TYPE_ID:
-                                annotations.push({
-                                    start_index: annotation.start_index,
-                                    end_index: annotation.end_index,
-                                    file_path: {
-                                        file_id: (annotation as GPTAssistantAPIThreadMessageContentFilePathVO).gpt_file_id,
-                                    } as FilePathAnnotation.FilePath,
-                                    text: annotation.text,
-                                    type: 'file_path'
-                                } as FilePathAnnotation);
-                                break;
-                        }
-                    }
-
-                    // On ajoute le nom de l'emetteur du message + son id - si on est sur un message de type user
-                    // eslint-disable-next-line no-case-declarations
-                    let content_type_text = content.content_type_text.value;
-                    // if (vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
-                    //     if (!user) {
-                    //         user = await query(UserVO.API_TYPE_ID).filter_by_id(vo.user_id).exec_as_server().select_vo<UserVO>();
-                    //     }
-
-                    //     const intro_info_user = GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(user);
-                    //     if (!content_type_text.startsWith(intro_info_user)) {
-                    //         content_type_text = intro_info_user + content_type_text;
-                    //     }
-                    // }
-
-                    res.push({
-                        type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],
-                        text: {
-                            value: content_type_text,
-                            annotations: annotations,
-                        }
-                    } as TextContentBlock);
-                    break;
-                case GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE_URL:
-                    res.push({
-                        type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],
-                        image_url: {
-                            url: content.content_type_image_url.url,
-                            detail: content.content_type_image_url.detail,
-                        }
-                    } as ImageURLContentBlock);
-                    break;
-                case GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE:
-                    res.push({
-                        type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],
-                        image_file: {
-                            file_id: content.content_type_image_file.gpt_file_id,
-                            detail: content.content_type_image_file.detail,
-                        }
-                    } as ImageFileContentBlock);
-                    break;
-
-                case GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL:
-                case GPTAssistantAPIThreadMessageContentVO.TYPE_EMAIL:
-                    // Ne concernent pas OpenAI.
-                    break;
-
-                default:
-                    throw new Error('Unknown content type');
-            }
         }
 
         return res;
