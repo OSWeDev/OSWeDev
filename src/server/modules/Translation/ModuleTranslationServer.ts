@@ -791,8 +791,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             .select_vos<TranslationVO>();
     }
 
-    public async get_translation_samples(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
-        return await AssistantTraductionCronWorker.getInstance().get_translation_samples(thread_vo, pattern);
+    public async get_translation_samples_by_code_text(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
+        return await AssistantTraductionCronWorker.getInstance().get_translation_samples_by_code_text(thread_vo, pattern);
+    }
+    public async get_translation_samples_by_translated_text(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
+        return await AssistantTraductionCronWorker.getInstance().get_translation_samples_by_translated_text(thread_vo, pattern);
     }
 
     public async set_translation(thread_vo: GPTAssistantAPIThreadVO, traduction: string, degre_certitude: number, explication: string): Promise<string> {

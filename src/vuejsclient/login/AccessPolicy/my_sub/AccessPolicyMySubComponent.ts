@@ -47,18 +47,22 @@ export default class AccessPolicyMySubComponent extends VueComponentBase {
         }
     }
 
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 100,
+    })
     private async switch_sub() {
         if ((!this.mail_category?.id) || (!this.data_user?.id)) {
             return;
         }
 
-        const mail_category_user: MailCategoryUserVO = await query(MailCategoryUserVO.API_TYPE_ID)
+        const existing_mail_category_user: MailCategoryUserVO[] = await query(MailCategoryUserVO.API_TYPE_ID)
             .filter_by_id(this.mail_category.id, MailCategoryVO.API_TYPE_ID)
             .filter_by_id(this.data_user.id, UserVO.API_TYPE_ID)
-            .select_vo<MailCategoryUserVO>();
+            .select_vos<MailCategoryUserVO>();
 
-        if (!!mail_category_user) {
-            await ModuleDAO.getInstance().deleteVOs([mail_category_user]);
+        if ((!!existing_mail_category_user) && (existing_mail_category_user.length > 0)) {
+            await ModuleDAO.getInstance().deleteVOs(existing_mail_category_user);
         } else {
             const new_mail_category_user: MailCategoryUserVO = new MailCategoryUserVO();
             new_mail_category_user.mail_category_id = this.mail_category.id;

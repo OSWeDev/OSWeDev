@@ -47,7 +47,7 @@ export default class Patch20250505AddOseliaAssistantTraduction implements IGener
             assistant = await this.declare_assistant();
         }
 
-        await this.declare_fonction_get_translation_samples(assistant);
+        await this.declare_fonction_get_translation_samples_by_code_text(assistant);
         await this.declare_fonction_set_translation(assistant);
 
         // On déclare aussi le prompt de l'assistant traduction
@@ -83,32 +83,27 @@ export default class Patch20250505AddOseliaAssistantTraduction implements IGener
         assistant.description = "Assistant OSELIA pour la résolution des traductions manquantes";
         assistant.archived = false;
 
-        assistant.instructions = "Dans le cadre de la traduction des UI strings pour l'application web interne Stellantis (ventes pièces de rechange & KPIs), ton rôle est de fournir des traductions précises en respectant strictement le langage métier et en maintenant une longueur en anglais égale ou inférieure au texte original en français afin de préserver l'affichage.\n " +
-
-            "Tu as obligatoirement à ta disposition :\n " +
-            "1. En tout premier lieu tu dois systématiquement charger le lexique de l'application pour améliorer ta traduction : la clé de l'app_mem doit contenir le mot \"Lexique\" ou \"Glossaire\" ;" +
-            "2. la fonction get_translation_samples(regex) pour récupérer des traductions existantes à partir d'expressions régulières ;\n " +
-            "2. la mémoire applicative 'Lexique métier (FR → EN)' qui contient obligatoirement le jargon métier exact à utiliser.\n " +
-
+        assistant.instructions = "Dans le cadre de la traduction des textes de l'UI pour une application web, ton rôle est de fournir des traductions précises en respectant le langage métier et en maintenant une longueur dans la nouvelle langue égale ou inférieure au texte original dans la langue par défaut afin de préserver l'affichage.\n " +
+            "\n" +
+            "Tu as à ta disposition :\n " +
+            "- la fonction get_translation_samples_by_code_text(regex) pour récupérer des traductions existantes à partir d'expressions régulières du code de traduction. Par exemple si tu dois traduire le code admin.menu.user.tooltip.___LABEL___, tu peux t'intéresser à connaître les traductions existantes pour 'admin[.]menu[.][^.]+[.]tooltip[.]___LABEL___' pour tenter de voir comment sont construites les autres tooltips du menu si il y en a.\n " +
+            "- la fonction get_translation_samples_by_translated_text(regex) pour récupérer des traductions existantes à partir d'expressions régulières du texte traduit. Par exemple si tu dois traduire en anglais le code admin.menu.user.tooltip.___LABEL___, et que dans la traduction en français de ce code tu trouves \"Cette page permet de configurer les utilisateurs de l'application\", tu peux t'intéresser aux traductions qui contiendrait l'expression \"utilisateurs de l'application\" pour essayer de voir si cette espression a déjà été traduite en anglais et si oui comment.\n " +
+            "- la mémoire applicative, la mémoire agent, qui sont là pour t'aider à préciser ton fonctionnement ou t'apporter des subtilités importantes sur le language métier.\n " +
+            "\n" +
             "Pour chaque traduction :\n " +
-            "- Vérifie en premier lieu s'il existe une traduction du même code dans une autre langue via get_translation_samples(). Si elle existe, base-toi dessus pour produire ta traduction.\n " +
-            "- Analyse également les traductions des codes proches (logique similaire, même module ou terminant par une partie similaire avant '.___LABEL___').\n " +
-            "- Effectue obligatoirement au moins 10 recherches d'exemples pour chaque traduction demandée.\n " +
+            "- Si tu as une traduction existante dans une autre langue que celle demandée pour ce code text, base-toi dessus pour produire ta traduction.\n " +
+            "- Analyse également les traductions des codes proches (logique similaire, même module ou terminant par une partie similaire avant '.___LABEL___'. La terminaison en ___LABEL___ est habituelle).\n " +
+            "- Effectue obligatoirement au moins 10 recherches d'exemples pour chaque traduction demandée, en privilégiant les recherches par texte plutôt que par code (avec get_translation_samples_by_translated_text) pour maintenir une cohérence dans les textes de la solution\n " +
             "- Si les recherches montrent un contre-exemple à ta traduction envisagée, modifie ton choix immédiatement et poursuis tes recherches jusqu'à certitude.\n " +
-
+            "\n" +
             "Règles spécifiques à respecter absolument :\n " +
-            "- Conserve toujours les identifiants de codes intacts.\n " +
-            "- Si une traduction est ambiguë ou manque au lexique métier, indique explicitement un niveau de confiance inférieur à 50 et demande de l'aide.\n " +
+            "- Si un lexique t'es fourni, et si des expressions ou des acronymes du texte que tu dois traduire (pas dans le code mais dans la traduction dans une autre langue peut-etre) apparaissent dedans, tu dois le respecter.\n " +
             "- Ignore les nombres présents dans les codes (ex : .*[.]00750[.].*, .*[.]750[.].*, .*[.]751[.].*) pour déterminer une proximité de sens.\n " +
             "- Si un mot important manque dans le lexique, recherche-le en adaptant la forme (singulier/pluriel, masculin/féminin, inversion ordre des mots).\n " +
             "- Lorsque tu obtiens une traduction existante en langue par défaut, ta traduction proposée doit être aussi courte ou plus courte, en utilisant acronymes, abréviations ou synonymes sans altérer le sens métier.\n " +
-
-            "Ton workflow est strictement celui-ci :\n " +
-            "1. Recherche systématiquement dans la mémoire applicative (app_mem) le lexique/glossaire et dans ta mémoire agent (agent_mem) des informations complémentaires.\n " +
-            "2. Effectue au moins 10 appels à get_translation_samples avant d'envisager une traduction.\n " +
-            "3. Formule une traduction, évalue ta confiance entre 0 et 100 (100 = certitude totale).\n " +
-            "4. Envoie la traduction avec set_translation accompagnée obligatoirement d'une explication synthétique (format HTML) détaillant clairement : les exemples consultés, ton raisonnement, et la raison précise de tout doute éventuel.\n " +
-
+            "- Reste cohérent avec les traductions déjà existantes dans la langue demandée. Si l'on traduit 'L'application' par 'The application' dans une autre partie de l'application, utilise 'The application' pour ce code_text aussi. Si on utilise 'WebApp', alors tu dois continuer d'utiliser WepApp.\n " +
+            "- A la fin du processus et quelque soit l'issue de celui-ci, envoie la traduction avec set_translation accompagnée obligatoirement d'une explication synthétique (format HTML) détaillant clairement : les exemples consultés, ton raisonnement, et la raison précise de tout doute éventuel.\n " +
+            "\n" +
             "Ne génère aucun message spontané, utilise uniquement les appels de fonctions sauf si une explication détaillée supplémentaire t'est explicitement demandée par la suite.";
         assistant.model = "gpt-4o-mini";
         assistant.tools_functions = true;
@@ -120,28 +115,28 @@ export default class Patch20250505AddOseliaAssistantTraduction implements IGener
         return assistant;
     }
 
-    private async declare_fonction_get_translation_samples(assistant: GPTAssistantAPIAssistantVO): Promise<GPTAssistantAPIFunctionVO> {
-        let fonction_get_translation_samples = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+    private async declare_fonction_get_translation_samples_by_code_text(assistant: GPTAssistantAPIAssistantVO): Promise<GPTAssistantAPIFunctionVO> {
+        let fonction_get_translation_samples_by_code_text = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleTranslation.getInstance().name)
-            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_function, reflect<ModuleTranslationServer>().get_translation_samples)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_function, reflect<ModuleTranslationServer>().get_translation_samples_by_code_text)
             .exec_as_server()
             .select_vo<GPTAssistantAPIFunctionVO>();
-        if (!fonction_get_translation_samples) {
-            fonction_get_translation_samples = new GPTAssistantAPIFunctionVO();
+        if (!fonction_get_translation_samples_by_code_text) {
+            fonction_get_translation_samples_by_code_text = new GPTAssistantAPIFunctionVO();
 
-            fonction_get_translation_samples.archived = false;
-            fonction_get_translation_samples.module_function = reflect<ModuleTranslationServer>().get_translation_samples;
-            fonction_get_translation_samples.module_name = ModuleTranslation.getInstance().name;
-            fonction_get_translation_samples.prepend_thread_vo = true;
-            fonction_get_translation_samples.gpt_function_name = reflect<ModuleTranslationServer>().get_translation_samples;
-            fonction_get_translation_samples.gpt_function_description = "Cette fonction permet de récupérer des exemples de traductions déjà définies sur la base d'une expression régulière. " +
+            fonction_get_translation_samples_by_code_text.archived = false;
+            fonction_get_translation_samples_by_code_text.module_function = reflect<ModuleTranslationServer>().get_translation_samples_by_code_text;
+            fonction_get_translation_samples_by_code_text.module_name = ModuleTranslation.getInstance().name;
+            fonction_get_translation_samples_by_code_text.prepend_thread_vo = true;
+            fonction_get_translation_samples_by_code_text.gpt_function_name = reflect<ModuleTranslationServer>().get_translation_samples_by_code_text;
+            fonction_get_translation_samples_by_code_text.gpt_function_description = "Cette fonction permet de récupérer des exemples de traductions déjà définies sur la base d'une expression régulière. " +
                 "Elle prend en argument une expression régulière qui permet de filtrer les traductions par le code_text traduit. " +
                 "Elle retourne une liste d'exemples -limitée à 100 code_text- de traductions déjà définies, avec les code_lang.";
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(fonction_get_translation_samples);
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(fonction_get_translation_samples_by_code_text);
 
             const argument = new GPTAssistantAPIFunctionParamVO();
             argument.archived = false;
-            argument.function_id = fonction_get_translation_samples.id;
+            argument.function_id = fonction_get_translation_samples_by_code_text.id;
             argument.gpt_funcparam_description = "Expression régulière pour filtrer les exemples de traduction à récupérer. On filtre le code_text traduit, pas la traduction.";
             argument.gpt_funcparam_name = "regex";
             argument.required = true;
@@ -152,19 +147,67 @@ export default class Patch20250505AddOseliaAssistantTraduction implements IGener
 
         let assistant_link = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<GPTAssistantAPIAssistantFunctionVO>().assistant_id, assistant.id)
-            .filter_by_num_eq(field_names<GPTAssistantAPIAssistantFunctionVO>().function_id, fonction_get_translation_samples.id)
+            .filter_by_num_eq(field_names<GPTAssistantAPIAssistantFunctionVO>().function_id, fonction_get_translation_samples_by_code_text.id)
             .exec_as_server()
             .select_vo<GPTAssistantAPIAssistantFunctionVO>();
         if (!assistant_link) {
             assistant_link = new GPTAssistantAPIAssistantFunctionVO();
             assistant_link.assistant_id = assistant.id;
-            assistant_link.function_id = fonction_get_translation_samples.id;
+            assistant_link.function_id = fonction_get_translation_samples_by_code_text.id;
             assistant_link.weight = 2;
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(assistant_link);
         }
 
-        return fonction_get_translation_samples;
+        return fonction_get_translation_samples_by_code_text;
     }
+
+
+    private async declare_fonction_get_translation_samples_by_translated_text(assistant: GPTAssistantAPIAssistantVO): Promise<GPTAssistantAPIFunctionVO> {
+        let fonction_get_translation_samples_by_translated_text = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleTranslation.getInstance().name)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_function, reflect<ModuleTranslationServer>().get_translation_samples_by_translated_text)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionVO>();
+        if (!fonction_get_translation_samples_by_translated_text) {
+            fonction_get_translation_samples_by_translated_text = new GPTAssistantAPIFunctionVO();
+
+            fonction_get_translation_samples_by_translated_text.archived = false;
+            fonction_get_translation_samples_by_translated_text.module_function = reflect<ModuleTranslationServer>().get_translation_samples_by_translated_text;
+            fonction_get_translation_samples_by_translated_text.module_name = ModuleTranslation.getInstance().name;
+            fonction_get_translation_samples_by_translated_text.prepend_thread_vo = true;
+            fonction_get_translation_samples_by_translated_text.gpt_function_name = reflect<ModuleTranslationServer>().get_translation_samples_by_translated_text;
+            fonction_get_translation_samples_by_translated_text.gpt_function_description = "Cette fonction permet de récupérer des exemples de traductions déjà définies sur la base d'une expression régulière. " +
+                "Elle prend en argument une expression régulière qui permet de filtrer les traductions par le code_text traduit. " +
+                "Elle retourne une liste d'exemples -limitée à 100 code_text- de traductions déjà définies, avec les code_lang.";
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(fonction_get_translation_samples_by_translated_text);
+
+            const argument = new GPTAssistantAPIFunctionParamVO();
+            argument.archived = false;
+            argument.function_id = fonction_get_translation_samples_by_translated_text.id;
+            argument.gpt_funcparam_description = "Expression régulière pour filtrer les exemples de traduction à récupérer. On filtre le code_text traduit, pas la traduction.";
+            argument.gpt_funcparam_name = "regex";
+            argument.required = true;
+            argument.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
+            argument.weight = 1;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(argument);
+        }
+
+        let assistant_link = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<GPTAssistantAPIAssistantFunctionVO>().assistant_id, assistant.id)
+            .filter_by_num_eq(field_names<GPTAssistantAPIAssistantFunctionVO>().function_id, fonction_get_translation_samples_by_translated_text.id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIAssistantFunctionVO>();
+        if (!assistant_link) {
+            assistant_link = new GPTAssistantAPIAssistantFunctionVO();
+            assistant_link.assistant_id = assistant.id;
+            assistant_link.function_id = fonction_get_translation_samples_by_translated_text.id;
+            assistant_link.weight = 2;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(assistant_link);
+        }
+
+        return fonction_get_translation_samples_by_translated_text;
+    }
+
 
     private async declare_fonction_set_translation(assistant: GPTAssistantAPIAssistantVO): Promise<GPTAssistantAPIFunctionVO> {
         let fonction_set_translation = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)

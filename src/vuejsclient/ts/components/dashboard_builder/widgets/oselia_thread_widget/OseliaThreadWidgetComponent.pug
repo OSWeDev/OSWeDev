@@ -51,6 +51,7 @@
                                 :thread='thread'
                                 :thread_message='thread_message'
                                 @thread_message_updated='thread_message_updated'
+                                @push_tts_file_id='push_tts_file_id'
                             )
                         template(v-if='thread.oselia_is_running')
                             .thread_message.thread_message_assistant

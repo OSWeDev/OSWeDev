@@ -117,27 +117,27 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
     }
 
     /**
-     * Fonction qui permet à l'assistant de récupérer des exemples de traduction, via un pattern, et dans la limite de 100 exemples
+     * Fonction qui permet à l'assistant de récupérer des exemples de traduction, via un pattern, et dans la limite de 25 exemples
      * @param pattern
      * @param thread_vo
      */
-    public async get_translation_samples(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
+    public async get_translation_samples_by_translated_text(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
 
         try {
 
             if (ConfigurationService.node_configuration.debug_assistant_traduction) {
-                ConsoleHandler.log('AssistantTraductionCronWorker:get_translation_samples:Récupération des exemples de traduction pour le pattern: ' + pattern + ' et le thread: ' + thread_vo.id);
+                ConsoleHandler.log('AssistantTraductionCronWorker:get_translation_samples_by_translated_text:Récupération des exemples de traduction pour le pattern: ' + pattern + ' et le thread: ' + thread_vo.id);
             }
 
             if (!pattern) {
-                ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples:Aucun pattern n\'a été fourni');
+                ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples_by_translated_text:Aucun pattern n\'a été fourni');
                 return 'Erreur : Aucun pattern n\'a été fourni. Il est obligatoire de fournir ce paramètre.';
             }
 
             const regexp = new RegExp(pattern);
 
             if (!regexp) {
-                ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples:Le pattern fourni n\'est pas un pattern d\'expression régulière valide');
+                ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples_by_translated_text:Le pattern fourni n\'est pas un pattern d\'expression régulière valide');
                 return 'Erreur : Le pattern fourni n\'est pas un pattern d\'expression régulière valide. Il est obligatoire de fournir un pattern valide.';
             }
 
@@ -145,7 +145,122 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
             const metadatas: IParamOseliaAssistantTraduction = thread_vo.metadata as IParamOseliaAssistantTraduction;
 
             if (!metadatas) {
-                ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples:Impossible de trouver les metadatas de l\'assistant Traduction');
+                ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples_by_translated_text:Impossible de trouver les metadatas de l\'assistant Traduction');
+                return 'Erreur : impossible de trouver les metadatas de l\'assistant Traduction. Une intervention d\'un technicien est nécessaire pour pouvoir continuer le traitement.';
+            }
+
+            // On rajoute au besoin la cloture du pattern
+            if (pattern[0] != '^') {
+                pattern = '^' + pattern;
+            }
+
+            if (pattern[pattern.length - 1] != '$') {
+                pattern = pattern + '$';
+            }
+
+            /**
+             * On va renvoyer toutes les traductions dont le text traduit correspond au pattern, et on indiquera les codes langues dans la réponse pour chaque traduction
+             * On charge en fait les codes texts, et on donnera la trad dans toutes les langues, dont celle qui match le pattern
+             */
+            const translatable_texts: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
+                .filter_by_reg_exp(field_names<TranslationVO>().translated, pattern, TranslationVO.API_TYPE_ID)
+                .filter_is_not_null(field_names<TranslationVO>().translated, TranslationVO.API_TYPE_ID)
+                .exec_as_server()
+                .set_limit(25)
+                .select_vos<TranslatableTextVO>();
+
+            if ((!translatable_texts) || (!translatable_texts.length)) {
+                ConsoleHandler.error('AssistantTraductionCronWorker:Erreur lors de la récupération des textes traduisibles pour le pattern: ' + pattern);
+                return 'Erreur : Impossible de récupérer les textes traduisibles pour le pattern: ' + pattern + '. Une intervention d\'un technicien est nécessaire pour pouvoir continuer le traitement.';
+            }
+
+            const samples: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
+                .filter_by_ids(translatable_texts.map((e) => e.id), TranslatableTextVO.API_TYPE_ID)
+                .filter_is_not_null(field_names<TranslationVO>().translated)
+                .exec_as_server()
+                .select_vos<TranslationVO>();
+
+            if ((!samples) || (!samples.length)) {
+                ConsoleHandler.log('AssistantTraductionCronWorker:get_translation_samples_by_translated_text:Aucun exemple de traduction ne correspond à ce pattern : ' + pattern);
+                return 'Aucun exemple de traduction ne correspond à ce pattern.';
+            }
+
+            const langs: LangVO[] = await query(LangVO.API_TYPE_ID)
+                .exec_as_server()
+                .set_max_age_ms(1000 * 60 * 60) // 1h aucune pression pour recharger les langues...
+                .select_vos<LangVO>();
+            const lang_by_id: { [lang_id: number]: LangVO } = VOsTypesManager.vosArray_to_vosByIds(langs);
+
+            const translatable_text_by_id: { [text_id: number]: TranslatableTextVO } = VOsTypesManager.vosArray_to_vosByIds(translatable_texts);
+
+            const samples_by_code_text_and_code_lang: { [code_text: string]: { [code_lang: string]: string } } = {};
+            for (const i in samples) {
+                const sample = samples[i];
+                const translatable_text = translatable_text_by_id[sample.text_id];
+
+                if (!translatable_text) {
+                    ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples_by_translated_text:Impossible de trouver le texte traduisible pour le sample: ' + sample.id);
+                    continue;
+                }
+
+                const lang = lang_by_id[sample.lang_id];
+
+                if (!lang) {
+                    ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples_by_translated_text:Impossible de trouver la langue pour le sample: ' + sample.id);
+                    continue;
+                }
+
+                if (!samples_by_code_text_and_code_lang[translatable_text.code_text]) {
+                    samples_by_code_text_and_code_lang[translatable_text.code_text] = {};
+                }
+
+                samples_by_code_text_and_code_lang[translatable_text.code_text][lang.code_lang] = sample.translated;
+            }
+
+            let res: string = 'Exemples (max 25) de traduction correspondant au pattern /' + pattern + '/ :\n';
+            res += JSON.stringify(samples_by_code_text_and_code_lang);
+
+            if (ConfigurationService.node_configuration.debug_assistant_traduction) {
+                ConsoleHandler.log('AssistantTraductionCronWorker:get_translation_samples_by_translated_text:Récupération des exemples de traduction pour le pattern: ' + pattern + ' et le thread: ' + thread_vo.id + ' - ' + JSON.stringify(samples_by_code_text_and_code_lang, null, 2));
+            }
+
+            return res;
+        } catch (error) {
+            ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples_by_translated_text:Erreur lors de la récupération des exemples de traduction: ' + error);
+            return error;
+        }
+    }
+
+    /**
+     * Fonction qui permet à l'assistant de récupérer des exemples de traduction, via un pattern, et dans la limite de 100 exemples
+     * @param pattern
+     * @param thread_vo
+     */
+    public async get_translation_samples_by_code_text(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
+
+        try {
+
+            if (ConfigurationService.node_configuration.debug_assistant_traduction) {
+                ConsoleHandler.log('AssistantTraductionCronWorker:get_translation_samples_by_code_text:Récupération des exemples de traduction pour le pattern: ' + pattern + ' et le thread: ' + thread_vo.id);
+            }
+
+            if (!pattern) {
+                ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples_by_code_text:Aucun pattern n\'a été fourni');
+                return 'Erreur : Aucun pattern n\'a été fourni. Il est obligatoire de fournir ce paramètre.';
+            }
+
+            const regexp = new RegExp(pattern);
+
+            if (!regexp) {
+                ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples_by_code_text:Le pattern fourni n\'est pas un pattern d\'expression régulière valide');
+                return 'Erreur : Le pattern fourni n\'est pas un pattern d\'expression régulière valide. Il est obligatoire de fournir un pattern valide.';
+            }
+
+            // On récupère les infos directement des metadatas du thread
+            const metadatas: IParamOseliaAssistantTraduction = thread_vo.metadata as IParamOseliaAssistantTraduction;
+
+            if (!metadatas) {
+                ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples_by_code_text:Impossible de trouver les metadatas de l\'assistant Traduction');
                 return 'Erreur : impossible de trouver les metadatas de l\'assistant Traduction. Une intervention d\'un technicien est nécessaire pour pouvoir continuer le traitement.';
             }
 
@@ -169,7 +284,7 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
                 .select_vos<TranslationVO>();
 
             if ((!samples) || (!samples.length)) {
-                ConsoleHandler.log('AssistantTraductionCronWorker:get_translation_samples:Aucun exemple de traduction ne correspond à ce pattern : ' + pattern);
+                ConsoleHandler.log('AssistantTraductionCronWorker:get_translation_samples_by_code_text:Aucun exemple de traduction ne correspond à ce pattern : ' + pattern);
                 return 'Aucun exemple de traduction ne correspond à ce pattern.';
             }
 
@@ -197,14 +312,14 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
                 const translatable_text = translatable_text_by_id[sample.text_id];
 
                 if (!translatable_text) {
-                    ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples:Impossible de trouver le texte traduisible pour le sample: ' + sample.id);
+                    ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples_by_code_text:Impossible de trouver le texte traduisible pour le sample: ' + sample.id);
                     continue;
                 }
 
                 const lang = lang_by_id[sample.lang_id];
 
                 if (!lang) {
-                    ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples:Impossible de trouver la langue pour le sample: ' + sample.id);
+                    ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples_by_code_text:Impossible de trouver la langue pour le sample: ' + sample.id);
                     continue;
                 }
 
@@ -219,12 +334,12 @@ export default class AssistantTraductionCronWorker implements ICronWorker {
             res += JSON.stringify(samples_by_code_text_and_code_lang);
 
             if (ConfigurationService.node_configuration.debug_assistant_traduction) {
-                ConsoleHandler.log('AssistantTraductionCronWorker:get_translation_samples:Récupération des exemples de traduction pour le pattern: ' + pattern + ' et le thread: ' + thread_vo.id + ' - ' + JSON.stringify(samples_by_code_text_and_code_lang, null, 2));
+                ConsoleHandler.log('AssistantTraductionCronWorker:get_translation_samples_by_code_text:Récupération des exemples de traduction pour le pattern: ' + pattern + ' et le thread: ' + thread_vo.id + ' - ' + JSON.stringify(samples_by_code_text_and_code_lang, null, 2));
             }
 
             return res;
         } catch (error) {
-            ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples:Erreur lors de la récupération des exemples de traduction: ' + error);
+            ConsoleHandler.error('AssistantTraductionCronWorker:get_translation_samples_by_code_text:Erreur lors de la récupération des exemples de traduction: ' + error);
             return error;
         }
     }

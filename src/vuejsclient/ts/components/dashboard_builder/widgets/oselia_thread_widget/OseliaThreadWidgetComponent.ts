@@ -121,6 +121,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     public auto_commit_auto_input: boolean = (Cookies.get("auto_commit_auto_input") === "true");
     public audio_message_summary_playlist_paths: string[] = [];
+    public audio_messages_already_read: { [tts_file_id: number]: boolean } = {};
+    public audio_is_playing: boolean = false;
+    public current_audio: HTMLAudioElement = null;
 
     public thread_cached_datas: OseliaThreadCacheVO[] = [];
     public sub_threads: GPTAssistantAPIThreadVO[] = [];
@@ -188,93 +191,102 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         return `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard/view/`;
     }
 
-    @Watch(reflect<OseliaThreadWidgetComponent>().thread_messages, { deep: true })
-    private on_change_thread_messages() {
-        this.push_new_audio_summaries();
-    }
+    // @Watch(reflect<OseliaThreadWidgetComponent>().thread_messages, { deep: true })
+    // private on_change_thread_messages() {
+    //     this.push_new_audio_summaries();
+    // }
+
+    // @Throttle({
+    //     param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+    //     throttle_ms: 1000,
+    // })
+    // private async push_new_audio_summaries() {
+    //     // Dans tous les cas, si un message arrive avec un fichier audio, on le marque comme lu (qu'il soit lancé ou pas)
+    //     // Si on est en mode audio, et qu'on a un nouveau message qui contient un audio, et qu'on l'a pas encore joué, on le pousse dans la playlist
+
+    //     if (!this.thread_messages || this.thread_messages.length == 0) {
+    //         return;
+    //     }
+
+    //     for (const i in this.thread_messages) {
+    //         const thread_message = this.thread_messages[i];
+
+    //         // Si c'est le premier chargement, on stocke juste les paths/message_ids pour se dire qu'on veut pas les lire ceux-là, on lira que les nouveaux après
+    //         if (!this.thread_already_read_message_ids_initialised) {
+    //             this.already_read_message_ids[thread_message.id] = true;
+    //             continue;
+    //         }
+
+    //         if (this.already_read_message_ids[thread_message.id]) {
+    //             continue;
+    //         }
+
+    //         if ((!thread_message.autogen_voice_summary) || (!thread_message.autogen_tts_id)) {
+    //             continue;
+    //         }
+
+    //         const voice_summary = await query(FileVO.API_TYPE_ID)
+    //             .filter_by_id(thread_message.autogen_tts_id)
+    //             .select_vo<FileVO>();
+    //         if (!voice_summary) {
+    //             continue;
+    //         }
+
+    //         const audio = new Audio(voice_summary.path);
+    //         try {
+    //             await audio.play();
+    //         } catch (error) {
+    //             ConsoleHandler.error(error);
+    //         }
+
+    //         this.audio_message_summary_playlist_paths.push(voice_summary.path);
+    //     }
+
+    //     this.thread_already_read_message_ids_initialised = true;
+    // }
+
+    // @Watch(reflect<OseliaThreadWidgetComponent>().audio_message_summary_playlist_paths, { deep: true })
+    // private on_change_audio_message_summary_playlist_paths() {
+    //     this.read_next_audio_summary();
+    // }
 
     @Throttle({
         param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
-        throttle_ms: 1000,
-    })
-    private async push_new_audio_summaries() {
-        // Dans tous les cas, si un message arrive avec un fichier audio, on le marque comme lu (qu'il soit lancé ou pas)
-        // Si on est en mode audio, et qu'on a un nouveau message qui contient un audio, et qu'on l'a pas encore joué, on le pousse dans la playlist
-
-        if (!this.thread_messages || this.thread_messages.length == 0) {
-            return;
-        }
-
-        for (const i in this.thread_messages) {
-            const thread_message = this.thread_messages[i];
-
-            // Si c'est le premier chargement, on stocke juste les paths/message_ids pour se dire qu'on veut pas les lire ceux-là, on lira que les nouveaux après
-            if (!this.thread_already_read_message_ids_initialised) {
-                this.already_read_message_ids[thread_message.id] = true;
-                continue;
-            }
-
-            if (this.already_read_message_ids[thread_message.id]) {
-                continue;
-            }
-
-            if ((!thread_message.autogen_voice_summary) || (!thread_message.autogen_tts_id)) {
-                continue;
-            }
-
-            const voice_summary = await query(FileVO.API_TYPE_ID)
-                .filter_by_id(thread_message.autogen_tts_id)
-                .select_vo<FileVO>();
-            if (!voice_summary) {
-                continue;
-            }
-
-            const audio = new Audio(voice_summary.path);
-            try {
-                await audio.play();
-            } catch (error) {
-                ConsoleHandler.error(error);
-            }
-
-            this.audio_message_summary_playlist_paths.push(voice_summary.path);
-        }
-
-        this.thread_already_read_message_ids_initialised = true;
-    }
-
-    @Watch(reflect<OseliaThreadWidgetComponent>().audio_message_summary_playlist_paths, { deep: true })
-    private on_change_audio_message_summary_playlist_paths() {
-        this.read_next_audio_summary();
-    }
-
-    @Throttle({
-        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
-        throttle_ms: 100,
+        throttle_ms: 10,
     })
     private async read_next_audio_summary() {
         if (!this.audio_message_summary_playlist_paths || this.audio_message_summary_playlist_paths.length == 0) {
             return;
         }
 
+        if (this.audio_is_playing) {
+            // Si un audio est déjà en cours de lecture, on ne lance pas le suivant
+            return;
+        }
+        this.audio_is_playing = true;
+
         const audio_summary_path = this.audio_message_summary_playlist_paths.shift();
-        const audio = new Audio(audio_summary_path);
+        this.current_audio = new Audio(audio_summary_path);
 
         try {
-            await audio.play();
+            await this.current_audio.play();
         } catch (error) {
             ConsoleHandler.error(error);
         }
 
-        audio.onended = () => {
+        this.current_audio.onended = () => {
+            this.audio_is_playing = false;
             this.read_next_audio_summary();
         };
 
-        audio.onerror = (error) => {
+        this.current_audio.onerror = (error) => {
+            this.audio_is_playing = false;
             ConsoleHandler.error(JSON.stringify(error));
             this.read_next_audio_summary();
         };
 
-        audio.onabort = () => {
+        this.current_audio.onabort = () => {
+            this.audio_is_playing = false;
             this.read_next_audio_summary();
         };
     }
@@ -419,7 +431,15 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async beforeDestroy() {
+        if (this.audio_is_playing && this.current_audio) {
+            this.current_audio.pause();
+            this.current_audio = null;
+        }
+        this.audio_is_playing = false;
         await this.unregister_all_vo_event_callbacks();
+
+        window.removeEventListener('keydown', this.handleShortcutKeyDown);
+        window.removeEventListener('keyup', this.handleShortcutKeyUp);
     }
 
     private openLeftPanel() {
@@ -469,6 +489,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 }
             }
         });
+
+        window.addEventListener('keydown', this.handleShortcutKeyDown);
+        window.addEventListener('keyup', this.handleShortcutKeyUp);
     }
 
     private async load_thread() {
@@ -950,6 +973,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
+        // On accepte de lire les réponses audio
+        this.thread_already_read_message_ids_initialised = true;
+
         const self = this;
         this.assistant_is_busy = true;
 
@@ -1117,6 +1143,13 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
+        if (this.audio_is_playing && this.current_audio) {
+            // Si on est en train de jouer un audio, on l'arrête
+            this.current_audio.pause();
+            this.current_audio = null;
+            this.audio_is_playing = false;
+        }
+
         const audioChunks = [];
 
         if (!this.input_voice_is_recording) {
@@ -1207,6 +1240,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                         thread = new_thread_vo;
                     }
 
+                    // On accepte de lire les réponses audio
+                    this.thread_already_read_message_ids_initialised = true;
+
                     const transcription = await ModuleGPT.getInstance().transcribe_file(
                         file_vo.id,
                         auto_commit_auto_input,
@@ -1275,6 +1311,63 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         } catch (error) {
             ConsoleHandler.error('do_upload_file error:' + error);
             return null;
+        }
+    }
+
+    private async push_tts_file_id(tts_file_id: number) {
+        if (this.audio_messages_already_read[tts_file_id]) {
+            return;
+        }
+
+        this.audio_messages_already_read[tts_file_id] = true;
+
+        if (!this.thread_already_read_message_ids_initialised) {
+            return;
+        }
+
+        const file = await query(FileVO.API_TYPE_ID)
+            .filter_by_id(tts_file_id)
+            .select_vo<FileVO>();
+
+        this.audio_message_summary_playlist_paths.push(file.path);
+        this.read_next_audio_summary();
+    }
+
+    private handleShortcutKeyDown(event: KeyboardEvent) {
+        // Si on est focalisé dans un input/textarea ou un élément contentEditable, on ignore
+        const target = event.target as HTMLElement;
+        const tag = target.tagName.toLowerCase();
+        if (
+            tag === 'input' ||
+            tag === 'textarea' ||
+            target.isContentEditable
+        ) {
+            return;
+        }
+
+
+        if (event.code === 'KeyV' && !this.input_voice_is_recording) {
+            this.start_recording();
+            event.preventDefault();
+        }
+    }
+
+    private handleShortcutKeyUp(event: KeyboardEvent) {
+        // Même filtre qu’au keydown
+        const target = event.target as HTMLElement;
+        const tag = target.tagName.toLowerCase();
+        if (
+            tag === 'input' ||
+            tag === 'textarea' ||
+            target.isContentEditable
+        ) {
+            return;
+        }
+
+
+        if (event.code === 'KeyV' && this.input_voice_is_recording) {
+            this.stop_recording();
+            event.preventDefault();
         }
     }
 }

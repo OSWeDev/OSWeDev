@@ -282,7 +282,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             'oselia.join_request.deny.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
-            { 'fr-fr': 'Maintenir appuyer et parler (nécessite d\'accepter la demande d\'accès au micro)' },
+            { 'fr-fr': 'Maintenir appuyé et parler (nécessite d\'accepter la demande d\'accès au micro) - Raccourci clavier : Maintenir la touche "v" (pour *vocal*).' },
             'oselia_thread_widget_component.thread_message_input_voice.tooltip.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(

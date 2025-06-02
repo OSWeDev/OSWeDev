@@ -90,13 +90,13 @@ export default class ModuleGPTServer extends ModuleServerBase {
     public static MESSAGE_CONTENT_TTS_FILE_PREFIX: string = 'message_content_tts_';
     public static MESSAGE_CONTENT_TTS_FILE_SUFFIX: string = '.mp3';
 
-    public static MESSAGE_TTS_FILE_PATH: string = './sfiles/message_tts/';
-    public static MESSAGE_TTS_FILE_PREFIX: string = 'message_tts_';
-    public static MESSAGE_TTS_FILE_SUFFIX: string = '.mp3';
+    // public static MESSAGE_TTS_FILE_PATH: string = './sfiles/message_tts/';
+    // public static MESSAGE_TTS_FILE_PREFIX: string = 'message_tts_';
+    // public static MESSAGE_TTS_FILE_SUFFIX: string = '.mp3';
 
-    public static MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_PATH: string = './sfiles/oselia_run_summary_tts/';
-    public static MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_PREFIX: string = 'oselia_run_summary_tts_';
-    public static MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_SUFFIX: string = '.mp3';
+    // public static MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_PATH: string = './sfiles/oselia_run_summary_tts/';
+    // public static MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_PREFIX: string = 'oselia_run_summary_tts_';
+    // public static MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_SUFFIX: string = '.mp3';
 
     public static openai: OpenAI = null;
 
@@ -121,14 +121,12 @@ export default class ModuleGPTServer extends ModuleServerBase {
      */
     @Throttle({
         param_type: EventifyEventListenerConfVO.PARAM_TYPE_MAP,
-        throttle_ms: 1000,
+        throttle_ms: 100,
         leading: false,
     })
     private async auto_get_tts_file(message_content_vo_by_id: { [id: number]: GPTAssistantAPIThreadMessageContentVO }) {
 
-        const mesage_by_id: { [id: number]: GPTAssistantAPIThreadMessageVO } = {};
-
-        const promises = [] as Promise<any>[]; // On va faire un tableau de promesses pour les lancer en parallèle
+        const promises = [];
         for (const i in message_content_vo_by_id) {
             const message_content_vo = message_content_vo_by_id[i];
 
@@ -137,43 +135,77 @@ export default class ModuleGPTServer extends ModuleServerBase {
                 continue;
             }
 
-            promises.push(
-                (async () => {
-                    const message_vo = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-                        .filter_by_id(message_content_vo.thread_message_id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-                        .filter_is_true(field_names<GPTAssistantAPIThreadMessageVO>().is_ready)
-                        .filter_is_true(field_names<GPTAssistantAPIThreadMessageVO>().autogen_voice_summary)
-                        .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().autogen_voice_summary_done)
-                        .exec_as_server()
-                        .select_vo<GPTAssistantAPIThreadMessageVO>();
+            promises.push((async () => {
 
-                    if (!message_vo) {
-                        // On ne fait rien si le message n'est pas prêt ou n'est pas en autogen, ou déjà fait
-                        return;
-                    }
+                await this.get_tts_file(message_content_vo.id);
 
-                    message_vo.autogen_voice_summary_done = true; // On bloque les futurs demandes pour éviter les duplications d'audio
-                    message_content_vo.autogen_voice_summary_done = true;
-                    ModuleDAOServer.instance.insertOrUpdateVOs_as_server([message_vo, message_content_vo]);
-
-                    mesage_by_id[message_vo.id] = message_vo;
-                })()
-            );
+                // On marque le message comme ayant été traité pour éviter les doublons
+                message_content_vo.autogen_voice_summary_done = true;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message_content_vo);
+            })());
         }
-
         await all_promises(promises);
-
-        // Pour tous les messages à gérer, on va générer le fichier audio
-        const promises2 = [];
-
-        for (const i in mesage_by_id) {
-            const message_vo = mesage_by_id[i];
-
-            promises2.push(this.get_tts_file_for_message(message_vo.id));
-        }
-
-        await all_promises(promises2);
     }
+
+
+    // /**
+    //  * Dans un contexte vocal (oselia run associé au message avec option vocale), on génère le fichier audio quand le message est complet
+    //  */
+    // @Throttle({
+    //     param_type: EventifyEventListenerConfVO.PARAM_TYPE_MAP,
+    //     throttle_ms: 1000,
+    //     leading: false,
+    // })
+    // private async auto_get_tts_file(message_content_vo_by_id: { [id: number]: GPTAssistantAPIThreadMessageContentVO }) {
+
+    //     const mesage_by_id: { [id: number]: GPTAssistantAPIThreadMessageVO } = {};
+
+    //     const promises = [] as Promise<any>[]; // On va faire un tableau de promesses pour les lancer en parallèle
+    //     for (const i in message_content_vo_by_id) {
+    //         const message_content_vo = message_content_vo_by_id[i];
+
+    //         if (message_content_vo.autogen_voice_summary_done) {
+    //             // On ne fait rien si on a déjà fait une demande
+    //             continue;
+    //         }
+
+    //         promises.push(
+    //             (async () => {
+    //                 const message_vo = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+    //                     .filter_by_id(message_content_vo.thread_message_id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+    //                     .filter_is_true(field_names<GPTAssistantAPIThreadMessageVO>().is_ready)
+    //                     .filter_is_true(field_names<GPTAssistantAPIThreadMessageVO>().autogen_voice_summary)
+    //                     .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().autogen_voice_summary_done)
+    //                     .exec_as_server()
+    //                     .select_vo<GPTAssistantAPIThreadMessageVO>();
+
+    //                 if (!message_vo) {
+    //                     // On ne fait rien si le message n'est pas prêt ou n'est pas en autogen, ou déjà fait
+    //                     return;
+    //                 }
+
+    //                 // message_vo.autogen_voice_summary_done = true; // On bloque les futurs demandes pour éviter les duplications d'audio
+    //                 message_content_vo.autogen_voice_summary_done = true;
+    //                 ModuleDAOServer.instance.insertOrUpdateVOs_as_server([message_vo, message_content_vo]);
+
+    //                 mesage_by_id[message_vo.id] = message_vo;
+    //             })()
+    //         );
+    //     }
+
+    //     await all_promises(promises);
+
+    //     // Pour tous les messages à gérer, on va générer le fichier audio
+    //     const promises2 = [];
+
+    //     for (const i in mesage_by_id) {
+    //         const message_vo = mesage_by_id[i];
+
+    //         promises2.push(this.get_tts_file_for_message(message_vo.id));
+    //     }
+
+    //     await all_promises(promises2);
+    // }
 
     @Throttle({
         param_type: EventifyEventListenerConfVO.PARAM_TYPE_MAP,
@@ -951,76 +983,76 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
 
     private async get_tts_file(message_content_id: number): Promise<FileVO> {
-        // if (!message_content_id) {
-        return null;
-        // }
+        if (!message_content_id) {
+            return null;
+        }
 
-        // const message_content: GPTAssistantAPIThreadMessageContentVO = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
-        //     .filter_by_id(message_content_id)
-        //     .exec_as_server()
-        //     .select_vo<GPTAssistantAPIThreadMessageContentVO>();
+        const message_content: GPTAssistantAPIThreadMessageContentVO = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
+            .filter_by_id(message_content_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadMessageContentVO>();
 
-        // if (!message_content) {
-        //     return null;
-        // }
+        if (!message_content) {
+            return null;
+        }
 
-        // let file: FileVO = null;
-        // if (!message_content.tts_file_id) {
-        //     // On génère via l'api GPT
-        //     const speech_file_path = ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PATH + ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PREFIX + message_content.id + ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_SUFFIX;
-        //     // const instructions = "Affect/personality: A cheerful guide \n\nTone: Friendly, clear, and reassuring, creating a calm atmosphere and making the listener feel confident and comfortable.\n\nPronunciation: Clear, articulate, and steady, ensuring each instruction is easily understood while maintaining a natural, conversational flow.\n\nPause: Brief, purposeful pauses after key instructions (e.g., \"cross the street\" and \"turn right\") to allow time for the listener to process the information and follow along.\n\nEmotion: Warm and supportive, conveying empathy and care, ensuring the listener feels guided and safe throughout the journey.";
-
-
-        //     // const instructions = "Don't try to read exactly, but with the given text, try to convey the meaning in a way that is most natural and clear.";
-        //     // const response = await ModuleGPTServer.openai.audio.speech.create({
-        //     //     model: "gpt-4o-mini-tts",
-        //     //     voice: "shimmer",
-        //     //     input: message_content.content_type_text.value,
-        //     //     instructions,
-        //     // });
+        let file: FileVO = null;
+        if (!message_content.tts_file_id) {
+            // On génère via l'api GPT
+            const speech_file_path = ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PATH + ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PREFIX + message_content.id + ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_SUFFIX;
+            // const instructions = "Affect/personality: A cheerful guide \n\nTone: Friendly, clear, and reassuring, creating a calm atmosphere and making the listener feel confident and comfortable.\n\nPronunciation: Clear, articulate, and steady, ensuring each instruction is easily understood while maintaining a natural, conversational flow.\n\nPause: Brief, purposeful pauses after key instructions (e.g., \"cross the street\" and \"turn right\") to allow time for the listener to process the information and follow along.\n\nEmotion: Warm and supportive, conveying empathy and care, ensuring the listener feels guided and safe throughout the journey.";
 
 
-        //     const instructions = "Fais un résumé très synthétique adapté à une lecture audio naturelle des messages suivants. Tu es Osélia, l'initiatrice des messages textes et du résumé vocal, parle à la première personne.";
-        //     const completion = await ModuleGPTServer.openai.chat.completions.create({
-        //         model: "gpt-4o-mini",
-        //         messages: [
-        //             { role: "system", content: instructions },
-        //             { role: "user", content: message_content.content_type_text.value }
-        //         ],
-        //         temperature: 0.3
-        //     });
-
-        //     const texteResume = completion.choices[0].message.content;
-
-        //     const instructions_tts = "Lecture agréable, avenante, pro mais pas trop formelle.";
-        //     const response = await ModuleGPTServer.openai.audio.speech.create({
-        //         model: "gpt-4o-mini-tts",
-        //         voice: "shimmer",
-        //         input: texteResume,
-        //         instructions: instructions_tts,
-        //     });
+            // const instructions = "Don't try to read exactly, but with the given text, try to convey the meaning in a way that is most natural and clear.";
+            // const response = await ModuleGPTServer.openai.audio.speech.create({
+            //     model: "gpt-4o-mini-tts",
+            //     voice: "shimmer",
+            //     input: message_content.content_type_text.value,
+            //     instructions,
+            // });
 
 
-        //     // await response.stream_to_file(speech_file_path); // Doc GPT mais j'ai pas cette fonction :)
-        //     const buffer = Buffer.from(await response.arrayBuffer());
-        //     await ModuleFileServer.getInstance().makeSureThisFolderExists(ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PATH);
-        //     await ModuleFileServer.getInstance().writeFile(speech_file_path, buffer);
+            const instructions = "Fais un résumé très synthétique adapté à une lecture audio naturelle des messages suivants. Tu es Osélia, l'initiatrice des messages textes qui te sont fournis et du résumé vocal - le texte que tu vas produire sera lu par toi, parle à la première personne.";
+            const completion = await ModuleGPTServer.openai.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [
+                    { role: "system", content: instructions },
+                    { role: "user", content: message_content.content_type_text.value }
+                ],
+                temperature: 0.3
+            });
 
-        //     file = new FileVO();
-        //     file.path = speech_file_path;
-        //     file.file_access_policy_name = ModuleGPT.POLICY_BO_ACCESS;
-        //     file.is_secured = true;
-        //     await ModuleDAOServer.instance.insertOrUpdateVO_as_server(file);
-        //     message_content.tts_file_id = file.id;
-        //     await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message_content);
-        // } else {
-        //     file = await query(FileVO.API_TYPE_ID)
-        //         .filter_by_id(message_content.tts_file_id)
-        //         .exec_as_server()
-        //         .select_vo<FileVO>();
-        // }
+            const texteResume = completion.choices[0].message.content;
 
-        // return file;
+            const instructions_tts = "Lecture agréable, avenante, souriante, énergique, pro mais pas trop formelle. Lecture rapide avec peu d'espace entre les mots, le but est de faire un résumé synthétique, rapide et dynamique.";
+            const response = await ModuleGPTServer.openai.audio.speech.create({
+                model: "gpt-4o-mini-tts",
+                voice: "shimmer",
+                input: texteResume,
+                instructions: instructions_tts,
+            });
+
+
+            // await response.stream_to_file(speech_file_path); // Doc GPT mais j'ai pas cette fonction :)
+            const buffer = Buffer.from(await response.arrayBuffer());
+            await ModuleFileServer.getInstance().makeSureThisFolderExists(ModuleGPTServer.MESSAGE_CONTENT_TTS_FILE_PATH);
+            await ModuleFileServer.getInstance().writeFile(speech_file_path, buffer);
+
+            file = new FileVO();
+            file.path = speech_file_path;
+            file.file_access_policy_name = ModuleGPT.POLICY_BO_ACCESS;
+            file.is_secured = true;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(file);
+            message_content.tts_file_id = file.id;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message_content);
+        } else {
+            file = await query(FileVO.API_TYPE_ID)
+                .filter_by_id(message_content.tts_file_id)
+                .exec_as_server()
+                .select_vo<FileVO>();
+        }
+
+        return file;
     }
 
     private async summerize(thread_vo: number): Promise<FileVO> {
@@ -1145,9 +1177,9 @@ export default class ModuleGPTServer extends ModuleServerBase {
     private async postcreate_ThreadMessageContentVO_handle_pipe(msg_content: GPTAssistantAPIThreadMessageContentVO) {
 
         // TODO FIXME !! // On vérifie si on a un fichier audio à traiter
-        // if ((!msg_content.hidden) && (!msg_content.autogen_voice_summary_done)) {
-        //     this.auto_get_tts_file({ [msg_content.id]: msg_content });
-        // }
+        if ((!msg_content.hidden) && (!msg_content.autogen_voice_summary_done)) {
+            this.auto_get_tts_file({ [msg_content.id]: msg_content });
+        }
 
         // 1 : On vérifie si on a un thread cible
         // 2 : On push le message content dans le thread cible => en retrouvant la copie du message qui a du être faite déjà du coup aussi. On fait le lien vers ce message content pour indiqué que c'est une copie issue d'un pipe
