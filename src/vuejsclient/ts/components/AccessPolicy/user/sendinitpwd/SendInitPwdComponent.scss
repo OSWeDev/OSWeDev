@@ -1,7 +1,11 @@
 @import 'skin-variables.scss';
 
 .sendinitpwd_component {
-    
+
+    .btn-group {
+        display: inline-flex;
+    }
+
     .mail_stats_events .bubble_wrapper {
         margin-top: 6px;
     }
