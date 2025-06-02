@@ -1,7 +1,6 @@
-import { createReadStream } from 'fs';
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources';
-import { isMainThread } from 'worker_threads';
+import { FileLike } from 'openai/uploads';
 import APIControllerWrapper from "../../../shared/modules/API/APIControllerWrapper";
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -41,6 +40,7 @@ import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import BGThreadServerDataManager from '../BGThread/BGThreadServerDataManager';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
@@ -48,9 +48,11 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import { originalCreateReadStream } from '../File/ArchiveServerController';
 import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import OseliaRunBGThread from '../Oselia/bgthreads/OseliaRunBGThread';
 import ParamsServerController from '../Params/ParamsServerController';
 import PerfReportServerController from '../PerfReport/PerfReportServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
@@ -67,10 +69,6 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
-import FileHandler from '../../../shared/tools/FileHandler';
-import path from 'path';
-import { FileLike } from 'openai/uploads';
-import { originalCreateReadStream } from '../File/ArchiveServerController';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -391,11 +389,16 @@ export default class ModuleGPTServer extends ModuleServerBase {
             return;
         }
 
-        // On va juste arrêter tous les runs encore en cours au démarrage de l'application pour le moment, jusqu'à ce qu'on ait un système de reprise
-        // TODO FIXME : mettre en place un système de reprise
+        // // On va juste arrêter tous les runs encore en cours au démarrage de l'application pour le moment, jusqu'à ce qu'on ait un système de reprise
+        // // TODO FIXME : mettre en place un système de reprise
 
-        if (!isMainThread) {
-            // On évite de le faire sur tous les processus
+        // if (!isMainThread) {
+        //     // On évite de le faire sur tous les processus
+        //     return;
+        // }
+
+        if (!BGThreadServerDataManager.valid_bgthreads_names[OseliaRunBGThread.BGTHREAD_NAME]) {
+            // On ne fait pas de sync si le bgthread n'est pas lancé
             return;
         }
 

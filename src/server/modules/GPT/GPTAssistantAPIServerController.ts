@@ -768,8 +768,12 @@ export default class GPTAssistantAPIServerController {
                         in_ts_ms,
                     );
                 } catch (error) {
-                    ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - PromisePipeline inner promise - error: ' + error);
-                    function_response = "TECHNICAL MALFUNCTION : submit_tool_outputs - error: " + error;
+                    ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - PromisePipeline inner promise - error: ' +
+                        error + ' - function: ' + function_vo.gpt_function_name +
+                        ' - function args: "' + tool_call_function_args + '"');
+                    function_response = "TECHNICAL MALFUNCTION : submit_tool_outputs - error: " +
+                        error + ' - function: ' + function_vo.gpt_function_name +
+                        ' - function args: "' + tool_call_function_args + '"';
                 }
             }))();
         } else {
@@ -1385,8 +1389,14 @@ export default class GPTAssistantAPIServerController {
                                     return;
 
                                 } catch (error) {
-                                    ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - error: ' + error);
-                                    function_response = "TECHNICAL MALFUNCTION : submit_tool_outputs - error: " + error;
+                                    ConsoleHandler.error(
+                                        'GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - error: ' + error +
+                                        ' - function: ' + tool_call.function.name +
+                                        ' - function args: ' + tool_call.function.arguments
+                                    );
+                                    function_response = "TECHNICAL MALFUNCTION : submit_tool_outputs - error: " + error +
+                                        ' - function: ' + tool_call.function.name +
+                                        ' - function args: ' + tool_call.function.arguments;
 
                                     oselia_run_function_call_vo.end_date = Dates.now();
                                     oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_ERROR;
