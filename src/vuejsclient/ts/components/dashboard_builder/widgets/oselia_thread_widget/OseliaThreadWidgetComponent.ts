@@ -76,7 +76,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     public get_can_run_assistant: boolean;
     @ModuleOseliaGetter
     public get_oselia_first_loading_done: boolean;
-
+    @ModuleOseliaGetter
+    public get_parent_client_tab_id: string;
     @ModuleOseliaGetter
     public get_show_hidden_messages: boolean;
     @ModuleOseliaAction
@@ -155,8 +156,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private is_creating_thread: boolean = false;
     private realtime_on: boolean = false;
     private send_message_create: boolean = false;
-    private listener_EVENT_OSELIA_LOADING_FRAME: EventifyEventListenerInstanceVO = null;
-    private event_tab_id: string = null;
     // private is_recording_voice: boolean = false;
     // private voice_record: MediaRecorder = null;
     private use_realtime_voice: boolean = false;
@@ -265,13 +264,14 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
     }
 
-    @Watch(reflect<OseliaThreadWidgetComponent>().is_loading_thread, { immediate: true })
+    @Watch(reflect<OseliaThreadWidgetComponent>().get_parent_client_tab_id, { immediate: true })
     private async on_is_loading_thread_change() {
-        if (!this.event_tab_id) {
+        if(!this.get_parent_client_tab_id) {
             return;
         }
+
         const param = "{\"is_loading\": " + this.is_loading_thread + "}";
-        await ModuleOselia.getInstance().notify_thread_loaded(this.event_tab_id, ModuleOselia.EVENT_OSELIA_LOADED_FRAME,param );
+        await ModuleOselia.getInstance().notify_thread_loaded(this.get_parent_client_tab_id, ModuleOselia.EVENT_OSELIA_LOADED_FRAME,param );
     }
 
     private select_thread_id(thread_id: number) {
@@ -335,18 +335,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 }
             }
         });
-
-        this.listener_EVENT_OSELIA_LOADING_FRAME = EventsController.on_every_event_throttle_cb(
-            ModuleOselia.EVENT_OSELIA_LOADING_FRAME,
-            (event: EventifyEventInstanceVO) => {
-                const param = JSON.parse(event.param as string);
-                if (param.tab_id) {
-                    this.event_tab_id = param.tab_id;
-                }
-            },
-            10,
-            false,
-        );
     }
 
     private async load_thread() {

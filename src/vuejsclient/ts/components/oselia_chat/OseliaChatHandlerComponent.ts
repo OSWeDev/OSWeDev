@@ -50,6 +50,7 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
     private listener_EVENT_OSELIA_LAUNCH_REALTIME: EventifyEventListenerInstanceVO = null;
     /* Stockage des listeners pour unbind */
     private listeners: EventifyEventListenerInstanceVO[] = [];
+    private tab_id: string | null = null;
 
     /* ------------------------------------------------------------------
      *                            GETTERS                                */
@@ -57,7 +58,7 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
         if (!this.ott) return null;
         const { protocol, hostname, port } = window.location;
         return `${protocol}//${hostname}${port ? `:${port}` : ''}/api_handler/oselia__open_oselia_db/${this.ott}/${this.new_thread_id ?? '_'
-        }/_`;
+        }/_/${this.tab_id ?? ''}`;
     }
 
     /* ------------------------------------------------------------------
@@ -111,6 +112,7 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
      *                            ACTIONS                                 */
 
     private async mounted() {
+        this.tab_id = AjaxCacheClientController.getInstance().client_tab_id;
         this.listener_EVENT_OSELIA_LOADED_FRAME = EventsController.on_every_event_throttle_cb(
             ModuleOselia.EVENT_OSELIA_LOADED_FRAME,
             (event: EventifyEventInstanceVO) => {
@@ -156,10 +158,6 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
     private async openClick() {
         this.is_open = !this.is_open;
         this.iframe_is_loading = !this.iframe_is_loading;
-        const param = {
-            tab_id: AjaxCacheClientController.getInstance().client_tab_id,
-        };
-        await ModuleOselia.getInstance().notify_thread_loading(AjaxCacheClientController.getInstance().client_tab_id, ModuleOselia.EVENT_OSELIA_LOADING_FRAME,param );
         if (this.is_open && !this.ott) await this.refreshOTT();
     }
 

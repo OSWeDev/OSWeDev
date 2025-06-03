@@ -136,7 +136,6 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_replay_function_call, this.replay_function_call.bind(this));
 
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_notify_thread_loaded, this.notify_thread_loaded.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_notify_thread_loading, this.notify_thread_loading.bind(this));
         APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleOselia>().instantiate_oselia_run_from_event, this.instantiate_oselia_run_from_event.bind(this));
     }
 
@@ -1506,11 +1505,6 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         await PushDataServerController.notifyEvent(uid, client_tab_id, event_name, event_param);
     }
 
-    private async notify_thread_loading(client_tab_id: string, event_name: string, event_param?): Promise<void> {
-        const uid = StackContext.get('UID');
-        await PushDataServerController.notifyEvent(uid, client_tab_id, event_name, event_param);
-    }
-
     private async create_thread(
         req: Request,
         res: Response) {
@@ -1632,6 +1626,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         referrer_user_ott: string,
         openai_thread_id: string,
         openai_assistant_id: string,
+        parent_client_tab_id: string,
         req: Request,
         call_id:number,
     ): Promise<void> {
@@ -1780,9 +1775,9 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             /**
              * Enfin, on redirige vers la page de discussion avec le paramètre qui va bien pour init le thread
              */
-            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia/' + thread.thread_vo.id);
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia/' + thread.thread_vo.id + '/' + parent_client_tab_id);
         } else {
-            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia/' + '_' + '/');
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia/' + '_' + '/' + parent_client_tab_id);
         }
     }
 

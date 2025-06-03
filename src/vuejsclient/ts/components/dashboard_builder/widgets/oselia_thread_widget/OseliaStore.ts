@@ -12,6 +12,8 @@ export interface IOseliaState {
     oselia_first_loading_done: boolean;
     left_panel_open: boolean;
 
+    parent_client_tab_id: string;
+
     show_hidden_messages: boolean;
     current_thread: GPTAssistantAPIThreadVO | null;
 }
@@ -30,6 +32,9 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
         set_left_panel_open(state: IOseliaState, left_panel_open: boolean) { state.left_panel_open = left_panel_open; },
         set_show_hidden_messages(state: IOseliaState, show_hidden_messages: boolean) { state.show_hidden_messages = show_hidden_messages; },
         set_current_thread(state: IOseliaState, current_thread: GPTAssistantAPIThreadVO) { state.current_thread = current_thread; },
+        set_parent_client_tab_id(state: IOseliaState, parent_client_tab_id: string) {
+            state.parent_client_tab_id = parent_client_tab_id;
+        },
     };
     public actions: ActionTree<IOseliaState, OseliaContext>;
     public namespaced: boolean = true;
@@ -45,6 +50,7 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
             left_panel_open: false,
             show_hidden_messages: false,
             current_thread: null,
+            parent_client_tab_id: null,
         };
 
 
@@ -56,6 +62,9 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
             get_left_panel_open(state: IOseliaState): boolean { return state.left_panel_open; },
             get_show_hidden_messages(state: IOseliaState): boolean { return state.show_hidden_messages; },
             get_current_thread(state: IOseliaState): GPTAssistantAPIThreadVO { return state.current_thread; },
+            get_parent_client_tab_id(state: IOseliaState): string {
+                return state.parent_client_tab_id;
+            },
         };
 
         this.actions = {
@@ -65,6 +74,7 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
             set_left_panel_open: (context: OseliaContext, left_panel_open: boolean) => context.commit(store_mutations_names(this).set_left_panel_open, left_panel_open),
             set_show_hidden_messages: (context: OseliaContext, show_hidden_messages: boolean) => context.commit(store_mutations_names(this).set_show_hidden_messages, show_hidden_messages),
             set_current_thread: (context: OseliaContext, current_thread: GPTAssistantAPIThreadVO) => context.commit(store_mutations_names(this).set_current_thread, current_thread),
+            set_parent_client_tab_id: (context: OseliaContext, parent_client_tab_id: string) => context.commit(store_mutations_names(this).set_parent_client_tab_id, parent_client_tab_id),
         };
     }
 

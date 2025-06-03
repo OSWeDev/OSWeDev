@@ -8,7 +8,7 @@ import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import VueComponentBase from '../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../dashboard_builder/page/DashboardPageStore';
 import './OseliaDBComponent.scss';
-import { ModuleOseliaGetter } from '../../dashboard_builder/widgets/oselia_thread_widget/OseliaStore';
+import { ModuleOseliaAction, ModuleOseliaGetter } from '../../dashboard_builder/widgets/oselia_thread_widget/OseliaStore';
 import OseliaReferrerVO from '../../../../../shared/modules/Oselia/vos/OseliaReferrerVO';
 import OseliaUserReferrerOTTVO from '../../../../../shared/modules/Oselia/vos/OseliaUserReferrerOTTVO';
 
@@ -23,6 +23,9 @@ export default class OseliaDBComponent extends VueComponentBase {
     @Prop({ default: null })
     private thread_vo_id: number;
 
+    @Prop({ default: null })
+    private parent_client_tab_id: string;
+
     @ModuleDashboardPageAction
     private set_active_field_filters: (active_field_filters: FieldFiltersVO) => void;
 
@@ -32,9 +35,15 @@ export default class OseliaDBComponent extends VueComponentBase {
     @ModuleOseliaGetter
     private get_oselia_first_loading_done: boolean;
 
+    @ModuleOseliaAction
+    private set_parent_client_tab_id: (parent_client_tab_id: string) => void;
+
     private oselia_db_id: number = null;
 
     private async mounted() {
+
+        this.set_parent_client_tab_id(this.parent_client_tab_id);
+
         this.oselia_db_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_DB_ID_PARAM_NAME, null, 10000);
         if (!this.oselia_db_id) {
             this.$router.push({

@@ -24,4 +24,4 @@
 
                 // --- Iframe Oselia visible uniquement quand ouvert + URL dispo
                 template(v-if="oselia_url && is_open")
-                    iframe(:src="oselia_url" id="OseliaContainer" :class="{'opened': !iframe_is_loading}")
+                    iframe(:src="oselia_url" id="OseliaContainer" :class="{'opened': !iframe_is_loading}" @load="send_client_tab_id")
