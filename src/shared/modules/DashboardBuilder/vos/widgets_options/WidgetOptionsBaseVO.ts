@@ -1,5 +1,4 @@
 import IDistantVOBase from "../../../IDistantVOBase";
-import FontSizeVO from "./tools/FontSizeVO";
 
 
 export default abstract class WidgetOptionsBaseVO implements IDistantVOBase {
@@ -18,17 +17,18 @@ export default abstract class WidgetOptionsBaseVO implements IDistantVOBase {
     public hide_widget: boolean;
 
 
-    /**
-     * La couleur de bg du widget
-     *  -> Anciennement bg_color sur les widgets de type filtre
-     */
-    public bg_color: string;
 
     /**
-     * La couleur principale du texte du widget
-     *  -> Anciennement fg_color_text sur les widgets de type filtre
+     * Style du widget => ref de WidgetStyleVO
      */
-    public font_color: string;
+    public widget_style_id: number;
+
+    // /**
+    //  * La couleur principale du texte du widget
+    //  *  -> Anciennement fg_color_text sur les widgets de type filtre
+    //  */
+    // public font_color: string;
+
 
     /**
      * Le titre du widget
@@ -41,18 +41,6 @@ export default abstract class WidgetOptionsBaseVO implements IDistantVOBase {
      * Par défaut oui
      */
     public title_display: boolean;
-
-    /**
-     * font color du title
-     * inherit
-     */
-    public title_font_color: string;
-
-    /**
-     * La taille de la police du titre du widget
-     * Par défaut 1.2 em
-     */
-    public title_font_size: FontSizeVO;
 
     /**
      * La description du widget. Peut-être important pour le lien avec Osélia et les agents pour leur expliquer le comportement, la fonction d'un widget.
