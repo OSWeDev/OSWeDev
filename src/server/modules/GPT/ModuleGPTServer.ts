@@ -126,9 +126,43 @@ export default class ModuleGPTServer extends ModuleServerBase {
     })
     private async auto_get_tts_file(message_content_vo_by_id: { [id: number]: GPTAssistantAPIThreadMessageContentVO }) {
 
-        const promises = [];
+        /**
+         * Avant ça je doit checker si on doit générer un fichier audio pour le message, et si oui, on le fait
+         * On charge donc le vo du message qui contient le content
+         */
+        let promises = [];
+        const contents_to_handle: { [id: number]: GPTAssistantAPIThreadMessageContentVO } = {};
         for (const i in message_content_vo_by_id) {
             const message_content_vo = message_content_vo_by_id[i];
+
+            if (message_content_vo.autogen_voice_summary_done) {
+                // On ne fait rien si on a déjà fait une demande
+                continue;
+            }
+
+            promises.push((async () => {
+                const message_vo = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                    .filter_by_id(message_content_vo.thread_message_id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIThreadMessageVO>();
+
+                if (!message_vo) {
+                    return;
+                }
+
+                if (!message_vo.autogen_voice_summary) {
+                    // On ne fait rien si le message n'est pas en autogen
+                    return;
+                }
+
+                contents_to_handle[message_content_vo.id] = message_content_vo;
+            })());
+        }
+        await all_promises(promises);
+
+        promises = [];
+        for (const i in contents_to_handle) {
+            const message_content_vo = contents_to_handle[i];
 
             if (message_content_vo.autogen_voice_summary_done) {
                 // On ne fait rien si on a déjà fait une demande
@@ -1176,7 +1210,6 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     private async postcreate_ThreadMessageContentVO_handle_pipe(msg_content: GPTAssistantAPIThreadMessageContentVO) {
 
-        // TODO FIXME !! // On vérifie si on a un fichier audio à traiter
         if ((!msg_content.hidden) && (!msg_content.autogen_voice_summary_done)) {
             this.auto_get_tts_file({ [msg_content.id]: msg_content });
         }

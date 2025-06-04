@@ -396,10 +396,10 @@ export default class TableWidgetManager {
             //     continue;
             // }
 
-            if (from_default) {
-                table_columns.push(new TableColumnDescVO().from(column));
-                continue;
-            }
+            // if (from_default) {
+            //     table_columns.push(new TableColumnDescVO().from(column));
+            //     continue;
+            // }
 
             if (column.show_if_any_filter_active?.length > 0) {
 
