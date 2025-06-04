@@ -330,7 +330,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
             ModuleOselia.EVENT_OSELIA_CLOSE_REALTIME,
             (event: EventifyEventInstanceVO) => {
                 this.oselia_opened = event.param as boolean;
-            }
+            },
         );
         EventsController.register_event_listener(get_oselia_realtime_close);
         this.POLICY_CAN_USE_REALTIME = await ModuleAccessPolicy.getInstance().testAccess(ModuleGPT.POLICY_USE_OSELIA_REALTIME_IN_CR);

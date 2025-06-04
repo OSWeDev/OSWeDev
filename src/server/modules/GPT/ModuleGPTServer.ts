@@ -71,6 +71,7 @@ import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GP
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
 import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -118,6 +119,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().get_tts_file, this.get_tts_file.bind(this));
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().transcribe_file, this.transcribe_file.bind(this));
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().summerize, this.summerize.bind(this));
+        APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().edit_cr_word, this.edit_cr_word.bind(this));
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().connect_to_realtime_voice, this.connect_to_realtime_voice.bind(this));
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_sync_openai_datas] = this.sync_openai_datas;
@@ -782,6 +784,29 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     private async summerize(thread_vo: number): Promise<FileVO> {
         throw new Error('Not implemented');
+    }
+
+    /**
+     * Met à jour une section spécifique avec un nouveau contenu HTML.
+     *
+     * @param new_content - Nouveau contenu HTML à insérer (peut inclure listes, gras, etc.).
+     * @param section - Nom de la section à modifier.
+     * @param cr_vo - Instance de IPlanRDVCR représentant le CR à modifier.
+     * @param cr_field_titles - Titres des champs du CR pour identifier la section.
+     * @return Promise<unknown> - Résultat de l'opération d'édition.
+     */
+    private async edit_cr_word(new_content: string, section: string, cr_vo: IPlanRDVCR,cr_field_titles: string[]): Promise<unknown> {
+        if (!ModuleProgramPlanBase.getInstance().rdv_cr_type_id) {
+            ConsoleHandler.error('edit_cr_word: No RDV CR type ID configured');
+            return;
+        }
+
+        return await ModuleProgramPlanBase.getInstance().editCRSectionContent(
+            new_content,
+            section,
+            cr_vo,
+            cr_field_titles,
+        );
     }
 
     private async postcreate_ThreadMessageVO_handle_pipe(msg: GPTAssistantAPIThreadMessageVO) {

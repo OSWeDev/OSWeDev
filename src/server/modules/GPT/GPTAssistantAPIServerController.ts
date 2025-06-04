@@ -47,6 +47,7 @@ import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModulePro
 import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanRDV from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
 /** Structure interne d'une conversation */
 interface ConversationContext {
     openaiSocket: WebSocket;
@@ -1202,8 +1203,9 @@ export default class GPTAssistantAPIServerController {
             if (!this.wss) {
                 const PORT = Number(ConfigurationService.node_configuration.port) + 10;
                 this.wss = new WebSocketServer({ port: PORT });
-                ConsoleHandler.log(`WebSocket Server en écoute sur ws://localhost:${PORT}`);
-
+                if(ConfigurationService.node_configuration.debug_oselia_realtime) {
+                    ConsoleHandler.log(`WebSocket Server en écoute sur ws://localhost:${PORT}`);
+                }
                 // —> Connexion d’un client navigateur / app
                 this.wss.on('connection', (clientSocket: WebSocket) => {
                     let joinedConversationId: string | null = null;
@@ -1217,8 +1219,9 @@ export default class GPTAssistantAPIServerController {
                         try {
                             const str = data.toString('utf8');
                             const msg = JSON.parse(str);
-                            ConsoleHandler.log('Client → Server :', msg);
-
+                            if (ConfigurationService.node_configuration.debug_oselia_realtime) {
+                                ConsoleHandler.log('Client → Server :', msg);
+                            }
                             // — Handshake : le client indique la conversation qu’il rejoint
                             if (!joinedConversationId && msg?.conversation_id) {
                                 joinedConversationId = msg.conversation_id;
@@ -1368,23 +1371,22 @@ export default class GPTAssistantAPIServerController {
                         },
                         voice: 'shimmer',
                         instructions: [
-                            "Tu es Osélia, assistant de rédaction de compte rendu, il faut que tu fasses des réponses amicales, mais concises, va au plus important.",
-                            "Parle vite et réduit au maximum les pauses entre les mots",
-                            "C'est très important que tu te poses souvent la question : 'Est-ce que je place le bon contenu au bon endroit ?'",
-                            "C'est très important que tu te poses souvent la question : 'Est-ce que ce que je fais devrait impacter un autre endroit ?'",
-                            "Si l'utilisateur te demande de l'aider à remplir les champs vides, tu dois l'aider sous forme de questions, une question à la fois. Mais sur TOUT le compte rendu.",
-                            "Si on te tutoie, tu peux tutoyer en retour. ",
-                            "Quand tu as besoin de connaître le prénom de l’utilisateur, appelle la fonction « get_current_user_name ».",
-                            "Ton travail est d'assister les collaborateurs à rédiger les comptes rendus des réunions avec leurs clients. ",
-                            "Tu es capable de comprendre le langage naturel et de répondre à des questions sur le projet, mais tu es aussi capable de faire des suggestions sur la rédaction du compte rendu. ",
-                            "Tu as accès aux différentes sections du compte rendu, qui te permette de comprendre de quoi on parle, et tu peux les modifiers. ",
-                            "Avant chaque modification, tu dois aussi récupérer les titres des différentes sections du compte rendu, puis tu dois récupérer le contenu de la section que tu dois modifier, pour être certain de ce que tu fais.",
-                            "Base toi TOUJOURS sur les titres des différentes sections du compte rendu pour savoir de quoi on parle, et quel section tu dois modifier",
-                            "Arrête de demander à l'utilisateur son accord pour tout et rien, il faut que ce soit rapide.",
-                            "Lorsque l'utilisateur te demande de modifier une section, tu dois le faire sans lui demander son accord, sauf si tu n'es pas sûr de ce qu'il veut.",
-                            "Réfléchis quand on te demande de modifier quelque chose, ne le fait pas bêtement, peut être qu'il faut modifier le reste du contenu aussi en fonction de ce que tu rajoute",
-                            "Lorsque l'utilisateur te demande de modifier une section et que tu ne la trouves pas, tu dois vérifier si elle correspond à peu près à une section existante, et si c'est le cas, tu dois lui demander confirmation avant de modifier quoi que ce soit.",
-                            "IMPORTANT: Avant chaque appel de fonction, préviens l'utilisateur de ce que tu vas faire, pour qu'il ne patiente pas sans savoir, mais de façon concise, pas besoin de détailler, il faut que tu reste rapide et conscis."
+                            "Tu es Osélia, assistant de rédaction de compte rendu ; réponds avec un ton amical, ultra-concis (≤ 2 phrases, sauf cas complexe).",
+                            "Évite les pauses et tournures inutiles ; va droit au but.",
+                            "Si l’utilisateur te tutoie, tutoie-le en retour.",
+                            "Lorsque tu dois citer le prénom de l’utilisateur pour la première fois, appelle la fonction « get_current_user_name ».",
+                            "Avant toute action : 1) récupère la liste des titres du compte rendu ; 2) identifie la section concernée ; 3) récupère son contenu.",
+                            "Modifie une section sans demander d’accord si la demande est claire.",
+                            "Si la section n’existe pas : cherche une correspondance proche ; s’il y en a une, demande confirmation ; sinon, demande quelle section viser.",
+                            "Après chaque modification, vérifie si d’autres sections doivent être ajustées pour rester cohérent.",
+                            "Lorsque l’utilisateur demande de remplir des champs vides : pose une seule question à la fois, dans l’ordre des sections.",
+                            "Quand la conversation débute, propose à l'utilisateur de l'aider à remplir les champs vides du compte rendu.",
+                            "Si l’utilisateur te demande de modifier le consultant, appelle la fonction « set_current_consultant » avec le nom du consultant.",
+                            "Si l'utilisateur te demande de l'aider à remplir les champs vides, propose-lui de le faire section par section.",
+                            "Avant de modifier une section, vérifie son contenu actuel avec « get_current_cr_field » et repère s'il y a des endroits qui attendent d'être compléter.",
+                            "Si tu détectes une incohérence (dates, client, montants…), pose immédiatement une question de clarification avant de modifier.",
+                            "Pose-toi en permanence : « Le contenu est-il au bon endroit ? » et « Cela impacte-t-il une autre section ? »."
+
                         ].join(' '),
                         tools: [
                             {
@@ -1526,9 +1528,9 @@ export default class GPTAssistantAPIServerController {
                     for (const c of clients) if (c.readyState === WebSocket.OPEN) c.send(data, { binary: true });
                     return;
                 }
-
-                ConsoleHandler.log('OpenAI → Server :', msg);
-
+                if (ConfigurationService.node_configuration.debug_oselia_realtime) {
+                    ConsoleHandler.log('OpenAI → Server :', msg);
+                }
                 if (convCtx.clients.size === 0) {
                     convCtx.buffered.push(msg);
                     return;
@@ -1601,7 +1603,7 @@ export default class GPTAssistantAPIServerController {
                                     output = { error: confidence_error_msg };
                                     break;
                                 }
-                                output = await ModuleProgramPlanBase.getInstance().editCRSectionContent(
+                                output = await ModuleGPT.getInstance().edit_cr_word(
                                     args.new_content,
                                     args.section,
                                     convCtx.cr_vo,

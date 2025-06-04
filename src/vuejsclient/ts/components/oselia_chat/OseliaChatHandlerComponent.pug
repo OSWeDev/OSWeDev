@@ -23,5 +23,5 @@
                 span.stop-cross ×
 
                 // --- Iframe Oselia visible uniquement quand ouvert + URL dispo
-                template(v-if="oselia_url && is_open")
-                    iframe(:src="oselia_url" id="OseliaContainer" :class="{'opened': !iframe_is_loading}" @load="send_client_tab_id")
+                template(v-if="oselia_url && (is_open || is_closing)")
+                    iframe(:src="oselia_url" id="OseliaContainer" :class="{'opened': iframe_loaded, 'closing': is_closing}")

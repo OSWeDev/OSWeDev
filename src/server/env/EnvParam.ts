@@ -136,6 +136,7 @@ export default class EnvParam implements IEnvParam {
 
     public block_teams_messages?: boolean = true;
     public block_oselia_on_cr?: boolean = true;
+    public debug_oselia_realtime?: boolean = false;
 
     public create_event_perf_report?: boolean = false;
     public activate_module_perf_throttle_queries?: boolean = false;

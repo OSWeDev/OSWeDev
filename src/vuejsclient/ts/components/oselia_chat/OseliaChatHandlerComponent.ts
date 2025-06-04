@@ -18,6 +18,7 @@ import { ModuleOseliaAction, ModuleOseliaGetter } from '../dashboard_builder/wid
 import { ref } from 'vue';
 import OseliaRealtimeController from '../dashboard_builder/widgets/oselia_thread_widget/OseliaRealtimeController';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
+import { sleep } from 'openai/core';
 @Component({
     template: require('./OseliaChatHandlerComponent.pug'),
 })
@@ -34,9 +35,11 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
     *                          ÉTAT LOCAL                               */
     public currentThreadVO: GPTAssistantAPIThreadVO | null = null;
     private iframe_is_loading: boolean = false;
+    private iframe_loaded: boolean = false;
     private connection_established: boolean = false;
     private isActive = false;
     private is_open = false;
+    private is_closing = false;
     private ott: string | null = null;
     private isActiveOselia = false;
     private new_thread_id: string | null = null;
@@ -70,17 +73,25 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
     @Watch(reflect<OseliaChatHandlerComponent>().get_current_thread, { deep: true })
     private async onCurrentThreadChange() {
         if (this.get_current_thread) {
+            if ((this.currentThreadVO && this.get_current_thread) && (this.currentThreadVO.id == this.get_current_thread.id)) {
+                if (this.connection_established != this.get_current_thread.realtime_activated) {
+                    this.connection_established = this.get_current_thread.realtime_activated;
+                }
+                // Si le thread n’a pas changé, on ne fait rien
+                return;
+            }
             this.currentThreadVO = this.get_current_thread;
             if (this.currentThreadVO) {
                 this.new_thread_id = this.currentThreadVO.gpt_thread_id;
                 this.connection_established = this.currentThreadVO.realtime_activated;
                 this.is_open = true;
-                await this.refreshOTT();
+                if (!this.iframe_loaded) {
+                    this.iframe_is_loading = true;
+                }
+                if (!this.ott) {
+                    await this.refreshOTT();
+                }
             }
-        } else {
-            this.new_thread_id = null;
-            this.connection_established = false;
-            this.currentThreadVO = null;
         }
 
         if (this.connection_established) {
@@ -101,6 +112,11 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
         } else {
             await this.bindIframeHoverListeners(false);    // nettoie
         }
+    }
+
+    @Watch('iframe_is_loading')
+    private async onIframeLoadingChange(is_loading: boolean) {
+        this.iframe_loaded = !is_loading;  // l’iframe est chargée si elle n’est pas en train de charger
     }
 
     beforeUnmount() {
@@ -156,16 +172,49 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
     }
 
     private async openClick() {
-        this.is_open = !this.is_open;
-        this.iframe_is_loading = !this.iframe_is_loading;
-        if (this.is_open && !this.ott) await this.refreshOTT();
+        // --- 1. FERMER si déjà ouvert -------------------------------
+        if (this.is_open) {
+            this.is_open = false;            // cache le template <iframe>
+            this.iframe_is_loading = false;  // coupe l’animation
+            this.iframe_loaded = false;      // l’iframe n’est plus chargée
+            this.is_closing = true;        // on est en train de fermer
+            this.ott = null;
+            sleep(1000).then(() => {
+                this.is_closing = false;   // on a fini de fermer
+            });
+            // On ne touche pas à iframe_loaded : il servira au prochain open
+            return;
+        }
+
+        // --- 2. OUVRIR sinon ----------------------------------------
+        this.is_open = true;
+
+        // Si le contenu n’a encore jamais été chargé,
+        // on affiche le loader jusqu’au onload
+        if (!this.iframe_loaded) {
+            this.iframe_is_loading = true;
+        }
+
+        if (!this.ott) {
+            await this.refreshOTT();
+        }
     }
 
     private async stopClick(): Promise<void> {
         EventsController.emit_event(
             EventifyEventInstanceVO.new_event(ModuleOselia.EVENT_OSELIA_CLOSE_REALTIME, false)
         );
-        this.iframe_is_loading = false;
+        if (this.is_open) {
+            this.is_open = false;            // cache le template <iframe>
+            this.iframe_is_loading = false;
+            this.iframe_loaded = false;      // l’iframe n’est plus chargée
+            this.is_closing = true;        // on est en train de fermer
+            this.ott = null;
+            sleep(1000).then(() => {
+                this.is_closing = false;   // on a fini de fermer
+            });
+            return;
+        }
     }
 
     /* ------------------------------------------------------------------

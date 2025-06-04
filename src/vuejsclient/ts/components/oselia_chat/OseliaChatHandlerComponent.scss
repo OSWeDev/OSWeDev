@@ -42,7 +42,13 @@
             // ajoute / retire cette classe au clic
             transform: translateX(0);
         }
+
+        &.closing {
+            // ajoute / retire cette classe au clic
+            transform: translateX(150%);
+        }
     }
+
 }
 
 .oselia_chat_handler {
@@ -70,10 +76,20 @@
         background-size: contain;
     }
 
-    .oselia_chat_btn_closed {
-        &.loading {
-            animation: shake .8s ease-in-out infinite;
-        }
+
+    .oselia_chat_btn_closed.loading::after {
+        content: "";
+        position: sticky;
+        inset: 0;
+        background: inherit;
+        border-radius: inherit;
+        animation: shake 0.8s ease-in-out infinite;
+        pointer-events: none;
+        margin-right: 15px;
+        width: 80px;
+        height: 80px;
+        display: block;
+        bottom: 20px;
     }
 
     .oselia_chat_btn_opening i {

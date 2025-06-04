@@ -264,7 +264,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
     }
 
-    @Watch(reflect<OseliaThreadWidgetComponent>().get_parent_client_tab_id, { immediate: true })
+    @Watch(reflect<OseliaThreadWidgetComponent>().is_loading_thread, { immediate: true })
     private async on_is_loading_thread_change() {
         if(!this.get_parent_client_tab_id) {
             return;
