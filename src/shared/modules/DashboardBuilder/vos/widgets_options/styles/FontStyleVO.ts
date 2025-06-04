@@ -37,6 +37,26 @@ export default class FontStyleVO implements IDistantVOBase {
         [FontStyleVO.WEIGHT_BLACK]: "FontStyleVO.WEIGHT_BLACK",
     };
 
+    public static STYLE_NORMAL: number = 0;
+    public static STYLE_ITALIC: number = 1;
+    public static STYLE_OBLIQUE: number = 2;
+    public static STYLE_INITIAL: number = 3;
+    public static STYLE_INHERIT: number = 4;
+    public static STYLE_LABELS: { [style: number]: string } = {
+        [FontStyleVO.STYLE_NORMAL]: "FontStyleVO.STYLE_NORMAL",
+        [FontStyleVO.STYLE_ITALIC]: "FontStyleVO.STYLE_ITALIC",
+        [FontStyleVO.STYLE_OBLIQUE]: "FontStyleVO.STYLE_OBLIQUE",
+        [FontStyleVO.STYLE_INITIAL]: "FontStyleVO.STYLE_INITIAL",
+        [FontStyleVO.STYLE_INHERIT]: "FontStyleVO.STYLE_INHERIT",
+    };
+
+    public static STYLE_ENUM_TO_CSS: { [style_enum: number]: string } = {
+        [FontStyleVO.STYLE_NORMAL]: "normal",
+        [FontStyleVO.STYLE_ITALIC]: "italic",
+        [FontStyleVO.STYLE_OBLIQUE]: "oblique",
+        [FontStyleVO.STYLE_INITIAL]: "initial",
+        [FontStyleVO.STYLE_INHERIT]: "inherit",
+    };
 
     public static API_TYPE_ID: string = "font_style";
 
@@ -68,6 +88,16 @@ export default class FontStyleVO implements IDistantVOBase {
      * Correspond à FontStyleVO.WEIGHT_*
      */
     public font_weight: number;
+
+    /**
+     * Le style de la police de caractère
+     */
+    public style: number;
+
+    /**
+     * La hauteur de ligne de la police de caractère
+     */
+    public line_height: SizeAndUnitVO;
 
     /**
      * La couleur de la police de caractère

@@ -31,6 +31,11 @@ export default class WidgetStyleVO implements IDistantVOBase {
     public title_font_style_id: number;
 
     /**
+     * Le padding du titre => ref de PaddingStyleVO
+     */
+    public title_padding_id: number;
+
+    /**
      * Le style de la bordure du widget
      */
     public border_style_id: BorderStyleVO;
