@@ -6,6 +6,7 @@ import Durations from '../modules/FormatDatesNombres/Dates/Durations';
 import HourSegment from '../modules/DataRender/vos/HourSegment';
 import TimeSegment from '../modules/DataRender/vos/TimeSegment';
 import Dates from '../modules/FormatDatesNombres/Dates/Dates';
+import ValueFilterVO from '../modules/DashboardBuilder/vos/widgets_options/tools/ValueFilterVO';
 
 export default class FilterObj<T, U, K> {
 
@@ -511,9 +512,9 @@ export const percentFilter = FilterObj.createNew(
     FilterObj.FILTER_TYPE_percent,
 );
 
-export const ARRONDI_TYPE_CEIL: number = 0;
-export const ARRONDI_TYPE_FLOOR: number = 1;
-export const ARRONDI_TYPE_ROUND: number = 2;
+export const ARRONDI_TYPE_CEIL: number = ValueFilterVO.ROUNDED_TYPE_CEIL;
+export const ARRONDI_TYPE_FLOOR: number = ValueFilterVO.ROUNDED_TYPE_FLOOR;
+export const ARRONDI_TYPE_ROUND: number = ValueFilterVO.ROUNDED_TYPE_ROUND;
 
 /**
  * Interface For IFixed
