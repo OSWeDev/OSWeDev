@@ -1,10 +1,9 @@
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
-import VOFieldRefVO from "./VOFieldRefVO";
-import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import TSRange from "../../DataRender/vos/TSRange";
 import ObjectHandler from "../../../tools/ObjectHandler";
 import IWidgetFilterDependancy from "../interfaces/IWidgetFilterDependancy";
+import DataFilterOptionVO from "./widgets_options/tools/DataFilterOptionVO";
 
 /**
  * @class FieldValueFilterWidgetOptionsVO
@@ -106,11 +105,11 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO implemen
         public hide_btn_switch_advanced?: boolean,
         public hide_advanced_string_filter_type?: boolean,
         public vo_field_ref_multiple?: VOFieldRefVO[],
-        public default_showed_filter_opt_values?: DataFilterOption[], // Default filter options to show (supervision case by example)
+        public default_showed_filter_opt_values?: DataFilterOptionVO[], // Default filter options to show (supervision case by example)
         /**
          * @deprecated repace by default_number_values
          */
-        public default_filter_opt_values?: DataFilterOption[],
+        public default_filter_opt_values?: DataFilterOptionVO[],
         public default_ts_range_values?: TSRange,
         /**
          * @deprecated repace by default_number_values
@@ -120,7 +119,7 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO implemen
         public no_inter_filter?: boolean, // Do not use the active_field_filter
         public has_other_ref_api_type_id?: boolean,
         public other_ref_api_type_id?: string,
-        public exclude_filter_opt_values?: DataFilterOption[],
+        public exclude_filter_opt_values?: DataFilterOptionVO[],
         public exclude_ts_range_values?: TSRange,
         public placeholder_advanced_mode?: string,
         public separation_active_filter?: boolean,
@@ -194,32 +193,32 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO implemen
     /**
      * Get Exclude Values
      *
-     * @returns {DataFilterOption[]}
+     * @returns {DataFilterOptionVO[]}
      */
-    public get_exclude_values(): DataFilterOption[] {
+    public get_exclude_values(): DataFilterOptionVO[] {
 
         if (!(this.exclude_filter_opt_values?.length > 0)) {
             return null;
         }
 
-        return this.exclude_filter_opt_values?.map((val) => new DataFilterOption().from(val));
+        return this.exclude_filter_opt_values?.map((val) => new DataFilterOptionVO().from(val));
     }
 
     /**
      * get_default_filter_options
      *  - Get default filter options (setted in the widget options while configuring)
      *
-     * @returns {DataFilterOption[]}
+     * @returns {DataFilterOptionVO[]}
      */
-    public get_default_filter_options(): DataFilterOption[] {
+    public get_default_filter_options(): DataFilterOptionVO[] {
         if (!this.default_filter_opt_values?.length) {
             return null;
         }
 
         if (Array.isArray(this.default_filter_opt_values) && (this.default_filter_opt_values.length > 0)) {
-            return this.default_filter_opt_values.map((val) => new DataFilterOption().from(val));
+            return this.default_filter_opt_values.map((val) => new DataFilterOptionVO().from(val));
         }
 
-        return [new DataFilterOption().from(this.default_filter_opt_values as any)];
+        return [new DataFilterOptionVO().from(this.default_filter_opt_values as any)];
     }
 }

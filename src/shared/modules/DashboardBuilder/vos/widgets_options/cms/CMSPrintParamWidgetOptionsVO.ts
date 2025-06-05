@@ -15,9 +15,8 @@ export default class CMSPrintParamWidgetOptionsVO extends AbstractVO {
     public static TYPE_DATE_LABEL: string = 'cms_print_param.date';
 
     public type_param: number;
-
-    public param: ParamVO; // Pourquoi le param ? et pas la ref ou le name ? par ce que la la value est figée non ?
-    public titre: string; // C'est standard
+    public param: ParamVO;
+    public titre: string;
 
     public static createNew(
         type_param: number,

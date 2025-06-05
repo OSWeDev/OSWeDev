@@ -9,11 +9,11 @@ import ContextQueryVO from "../../ContextFilter/vos/ContextQueryVO";
 import ModuleTableController from "../../DAO/ModuleTableController";
 import ModuleTableFieldVO from "../../DAO/vos/ModuleTableFieldVO";
 import ModuleTableVO from "../../DAO/vos/ModuleTableVO";
-import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import VOFieldRefVOHandler from "../handlers/VOFieldRefVOHandler";
 import BooleanFilterModel from "../models/BooleanFilterModel";
 import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
 import VOFieldRefVO from "../vos/VOFieldRefVO";
+import DataFilterOptionVO from "../vos/widgets_options/tools/DataFilterOptionVO";
 import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 
 /**
@@ -59,11 +59,11 @@ export default class FieldValueFilterWidgetManager {
         }
 
         if (VOFieldRefVOHandler.is_type_enum(vo_field_ref)) {
-            const default_filters_options: DataFilterOption[] = [];
+            const default_filters_options: DataFilterOptionVO[] = [];
 
             for (const i in widget_options?.default_filter_opt_values) {
                 const props = widget_options.default_filter_opt_values[i];
-                const data_filter_option = new DataFilterOption().from(props);
+                const data_filter_option = new DataFilterOptionVO().from(props);
                 default_filters_options.push(data_filter_option);
             }
 
@@ -74,11 +74,11 @@ export default class FieldValueFilterWidgetManager {
         }
 
         if (VOFieldRefVOHandler.is_type_number(vo_field_ref)) {
-            const default_filters_options: DataFilterOption[] = [];
+            const default_filters_options: DataFilterOptionVO[] = [];
 
             for (const i in widget_options?.default_filter_opt_values) {
                 const props = widget_options.default_filter_opt_values[i];
-                const data_filter_option = new DataFilterOption().from(props);
+                const data_filter_option = new DataFilterOptionVO().from(props);
                 default_filters_options.push(data_filter_option);
             }
 
@@ -89,11 +89,11 @@ export default class FieldValueFilterWidgetManager {
         }
 
         if (VOFieldRefVOHandler.is_type_string(vo_field_ref)) {
-            const default_filters_options: DataFilterOption[] = [];
+            const default_filters_options: DataFilterOptionVO[] = [];
 
             for (const i in widget_options?.default_filter_opt_values) {
                 const props = widget_options.default_filter_opt_values[i];
-                const data_filter_option = new DataFilterOption().from(props);
+                const data_filter_option = new DataFilterOptionVO().from(props);
                 default_filters_options.push(data_filter_option);
             }
 
@@ -165,7 +165,7 @@ export default class FieldValueFilterWidgetManager {
      */
     public static create_context_filter_from_enum_filter_types(
         vo_field_ref: VOFieldRefVO,
-        enum_filter_options: DataFilterOption[]
+        enum_filter_options: DataFilterOptionVO[]
     ): ContextFilterVO {
 
         let context_filter: ContextFilterVO = null;
@@ -184,7 +184,7 @@ export default class FieldValueFilterWidgetManager {
         let has_null_value: boolean = false;
 
         for (const i in locale_enum_filter_options) {
-            const active_option: DataFilterOption = locale_enum_filter_options[i];
+            const active_option: DataFilterOptionVO = locale_enum_filter_options[i];
 
             if (active_option.id == RangeHandler.MIN_INT) {
                 has_null_value = true;
@@ -238,7 +238,7 @@ export default class FieldValueFilterWidgetManager {
      */
     public static create_context_filter_from_number_filter_types(
         vo_field_ref: VOFieldRefVO,
-        number_filter_options: DataFilterOption[]
+        number_filter_options: DataFilterOptionVO[]
     ): ContextFilterVO {
 
         let context_filter: ContextFilterVO = null;
@@ -306,7 +306,7 @@ export default class FieldValueFilterWidgetManager {
      * Create Context Filter From Ref Field Filter Options
      *
      * @param {VOFieldRefVO} [vo_field_ref]
-     * @param {DataFilterOption[]} [ref_field_filter_options]
+     * @param {DataFilterOptionVO[]} [ref_field_filter_options]
      * @param {VOFieldRefVO[]} [options.vo_field_ref_multiple]
      * @param {VOFieldRefVO} [options.vo_field_ref]
      *
@@ -314,7 +314,7 @@ export default class FieldValueFilterWidgetManager {
      */
     public static create_context_filter_from_ref_field_filter_options(
         vo_field_ref: VOFieldRefVO,
-        ref_field_filter_options: DataFilterOption[],
+        ref_field_filter_options: DataFilterOptionVO[],
         options?: {
             vo_field_ref_multiple?: VOFieldRefVO[],
             vo_field_ref?: VOFieldRefVO,
@@ -322,7 +322,7 @@ export default class FieldValueFilterWidgetManager {
     ): ContextFilterVO {
         const context_filter: ContextFilterVO[] = [];
 
-        let locale_ref_field_filter_options: DataFilterOption[] = null;
+        let locale_ref_field_filter_options: DataFilterOptionVO[] = null;
 
         if (TypesHandler.getInstance().isArray(ref_field_filter_options)) {
             locale_ref_field_filter_options = ref_field_filter_options;
@@ -440,7 +440,7 @@ export default class FieldValueFilterWidgetManager {
      * Create Context Filter From String Filter Options
      *
      * @param {VOFieldRefVO} [vo_field_ref]
-     * @param {DataFilterOption[]} [string_filter_options]
+     * @param {DataFilterOptionVO[]} [string_filter_options]
      * @param {VOFieldRefVO[]} [options.vo_field_ref_multiple]
      * @param {VOFieldRefVO} [options.vo_field_ref]
      *
@@ -448,7 +448,7 @@ export default class FieldValueFilterWidgetManager {
      */
     public static create_context_filter_from_string_filter_options(
         vo_field_ref: VOFieldRefVO,
-        string_filter_options: DataFilterOption[],
+        string_filter_options: DataFilterOptionVO[],
         options?: {
             vo_field_ref_multiple?: VOFieldRefVO[],
             vo_field_ref?: VOFieldRefVO,
@@ -456,7 +456,7 @@ export default class FieldValueFilterWidgetManager {
     ): ContextFilterVO {
         const context_filter: ContextFilterVO[] = [];
 
-        let locale_string_filter_options: DataFilterOption[] = null;
+        let locale_string_filter_options: DataFilterOptionVO[] = null;
 
         if (TypesHandler.getInstance().isArray(string_filter_options)) {
             locale_string_filter_options = string_filter_options;

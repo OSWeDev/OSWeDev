@@ -1,16 +1,16 @@
 import moment from 'moment';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import ConversionHandler from '../../../shared/tools/ConversionHandler';
 import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
+import DataFilterOptionVO from '../../../shared/modules/DashboardBuilder/vos/widgets_options/tools/DataFilterOptionVO';
 
 export default class ContextQueryFieldServerController {
 
     public static translate_db_res_to_dataoption(
         query_field: ContextQueryFieldVO,
         db_res: any
-    ): DataFilterOption[] {
+    ): DataFilterOptionVO[] {
 
         if (db_res == null) {
             /**
@@ -21,11 +21,11 @@ export default class ContextQueryFieldServerController {
 
         const field = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[query_field.api_type_id][query_field.field_name];
         const field_type = field ? field.field_type : ((query_field.field_name == 'id') ? ModuleTableFieldVO.FIELD_TYPE_int : null);
-        const res: DataFilterOption[] = [];
+        const res: DataFilterOptionVO[] = [];
 
         let use_default_res = true;
-        const default_res = new DataFilterOption(
-            DataFilterOption.STATE_SELECTABLE,
+        const default_res = new DataFilterOptionVO(
+            DataFilterOptionVO.STATE_SELECTABLE,
             db_res.toString(),
             null
         );
@@ -85,8 +85,8 @@ export default class ContextQueryFieldServerController {
                 use_default_res = false;
                 for (const i in db_res) {
                     const db_i_res = db_res[i];
-                    const data_option = new DataFilterOption(
-                        DataFilterOption.STATE_SELECTABLE,
+                    const data_option = new DataFilterOptionVO(
+                        DataFilterOptionVO.STATE_SELECTABLE,
                         db_i_res,
                         null
                     );

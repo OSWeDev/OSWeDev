@@ -3,7 +3,7 @@ import { Watch } from 'vue-property-decorator';
 import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import AnimationController from '../../../../../../../shared/modules/Animation/AnimationController';
 import AnimationModuleVO from '../../../../../../../shared/modules/Animation/vos/AnimationModuleVO';
-import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import DataFilterOptionVO from '../../../../../../../shared/modules/DataRender/vos/DataFilterOptionVO';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleAnimationReportingVuexGetter } from '../../../store/AnimationReportingVuexStore';
 
@@ -13,10 +13,10 @@ import { ModuleAnimationReportingVuexGetter } from '../../../store/AnimationRepo
 export default class VueAnimationReportingFiltresComponent extends VueComponentBase {
 
     @ModuleAnimationReportingVuexGetter
-    private get_filter_anim_theme_active_options: DataFilterOption[];
+    private get_filter_anim_theme_active_options: DataFilterOptionVO[];
 
-    private tmp_filter_module_termine: DataFilterOption = null;
-    private tmp_filter_module_valide: DataFilterOption = null;
+    private tmp_filter_module_termine: DataFilterOptionVO = null;
+    private tmp_filter_module_valide: DataFilterOptionVO = null;
 
     @Watch('tmp_filter_module_termine')
     private change_tmp_filter_module_termine() {
@@ -32,7 +32,7 @@ export default class VueAnimationReportingFiltresComponent extends VueComponentB
         return this.label(role.translatable_name);
     }
 
-    private condition_by_anim_theme(anim_module: AnimationModuleVO, anim_theme_options: DataFilterOption[]): boolean {
+    private condition_by_anim_theme(anim_module: AnimationModuleVO, anim_theme_options: DataFilterOptionVO[]): boolean {
         const res: boolean = true;
 
         if (this.get_filter_anim_theme_active_options && this.get_filter_anim_theme_active_options.length > 0) {
@@ -42,7 +42,7 @@ export default class VueAnimationReportingFiltresComponent extends VueComponentB
         return res;
     }
 
-    private multiselectOptionLabel(filter_item: DataFilterOption): string {
+    private multiselectOptionLabel(filter_item: DataFilterOptionVO): string {
         if ((filter_item == null) || (typeof filter_item == 'undefined')) {
             return '';
         }
@@ -50,10 +50,10 @@ export default class VueAnimationReportingFiltresComponent extends VueComponentB
         return filter_item.label;
     }
 
-    get filter_options(): DataFilterOption[] {
+    get filter_options(): DataFilterOptionVO[] {
         return [
-            new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.t('YES'), AnimationController.OPTION_YES),
-            new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.t('NO'), AnimationController.OPTION_NO),
+            new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.t('YES'), AnimationController.OPTION_YES),
+            new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.t('NO'), AnimationController.OPTION_NO),
         ];
     }
 }

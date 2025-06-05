@@ -8,10 +8,10 @@ export default class CMSBooleanButtonWidgetOptionsVO extends AbstractVO {
     public color: string;
     public text_color: string;
     public vo_field_ref: VOFieldRefVO;
-    public icone_ok: string; // classes de FA icons (classescssvos ? avec un type fa ??)
+    public icone_ok: string;
     public icone_nok: string;
     public radius: number;
-    public user_field_ref: VOFieldRefVO; // ???? flo sait pas
+    public user_field_ref: VOFieldRefVO;
 
     public static createNew(
         title_ok: string,

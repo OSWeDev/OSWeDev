@@ -1,22 +1,22 @@
-import DataFilterOption from './vos/DataFilterOption';
+import DataFilterOptionVO from '../DashboardBuilder/vos/widgets_options/tools/DataFilterOptionVO';
 
-export default class DataFilterOptionsHandler {
-    public static getInstance(): DataFilterOptionsHandler {
-        if (!DataFilterOptionsHandler.instance) {
-            DataFilterOptionsHandler.instance = new DataFilterOptionsHandler();
+export default class DataFilterOptionVOsHandler {
+    public static getInstance(): DataFilterOptionVOsHandler {
+        if (!DataFilterOptionVOsHandler.instance) {
+            DataFilterOptionVOsHandler.instance = new DataFilterOptionVOsHandler();
         }
-        return DataFilterOptionsHandler.instance;
+        return DataFilterOptionVOsHandler.instance;
     }
 
-    private static instance: DataFilterOptionsHandler = null;
+    private static instance: DataFilterOptionVOsHandler = null;
 
     private constructor() { }
 
     /**
      * FIXME:TODO/ Est-ce que les groupes devraient pas êtreordonnés aussi ? (.options)
      */
-    public sort_options(options: DataFilterOption[]) {
-        options.sort((a: DataFilterOption, b: DataFilterOption) => {
+    public sort_options(options: DataFilterOptionVO[]) {
+        options.sort((a: DataFilterOptionVO, b: DataFilterOptionVO) => {
             return (a.label < b.label) ? -1 : ((a.label > b.label) ? 1 : 0);
         });
     }

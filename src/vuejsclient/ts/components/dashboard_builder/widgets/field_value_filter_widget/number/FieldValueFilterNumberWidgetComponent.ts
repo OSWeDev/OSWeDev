@@ -19,7 +19,8 @@ import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vo
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import AdvancedNumberFilter from '../../../../../../../shared/modules/DashboardBuilder/vos/widgets_options/advanced_filters/AdvancedNumberFilter';
+import DataFilterOptionVO from '../../../../../../../shared/modules/DataRender/vos/DataFilterOptionVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
@@ -31,7 +32,6 @@ import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFilter
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
-import AdvancedNumberFilter from '../../../../../../../shared/modules/DashboardBuilder/vos/widgets_options/advanced_filters/AdvancedNumberFilter';
 import './FieldValueFilterNumberWidgetComponent.scss';
 
 @Component({
@@ -71,9 +71,9 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     private default_values_changed: boolean = false; //Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
 
 
-    private tmp_active_filter_options: DataFilterOption[] = null;
+    private tmp_active_filter_options: DataFilterOptionVO[] = null;
 
-    private filter_visible_options: DataFilterOption[] = [];
+    private filter_visible_options: DataFilterOptionVO[] = [];
 
     private advanced_filters: boolean = false;
     private advanced_number_filters: AdvancedNumberFilter[] = [new AdvancedNumberFilter()];
@@ -217,17 +217,17 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
     }
 
-    get default_values(): DataFilterOption[] {
+    get default_values(): DataFilterOptionVO[] {
         const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.default_filter_opt_values) || (!options.default_filter_opt_values.length)) {
             return null;
         }
 
-        const res: DataFilterOption[] = [];
+        const res: DataFilterOptionVO[] = [];
 
         for (const i in options.default_filter_opt_values) {
-            res.push(new DataFilterOption(
+            res.push(new DataFilterOptionVO(
                 options.default_filter_opt_values[i].select_state,
                 options.default_filter_opt_values[i].label,
                 options.default_filter_opt_values[i].id,
@@ -247,17 +247,17 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         return res;
     }
 
-    get exclude_values(): DataFilterOption[] {
+    get exclude_values(): DataFilterOptionVO[] {
         const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.exclude_filter_opt_values) || (!options.exclude_filter_opt_values.length)) {
             return null;
         }
 
-        const res: DataFilterOption[] = [];
+        const res: DataFilterOptionVO[] = [];
 
         for (const i in options.exclude_filter_opt_values) {
-            res.push(new DataFilterOption(
+            res.push(new DataFilterOptionVO(
                 options.exclude_filter_opt_values[i].select_state,
                 options.exclude_filter_opt_values[i].label,
                 options.exclude_filter_opt_values[i].id,
@@ -617,7 +617,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 );
             }
 
-            let tmp: DataFilterOption[] = [];
+            let tmp: DataFilterOptionVO[] = [];
 
             const api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ?
                 this.other_ref_api_type_id :
@@ -702,9 +702,9 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             }
 
             if (this.add_is_null_selectable) {
-                tmp.unshift(new DataFilterOption(
-                    DataFilterOption.STATE_SELECTABLE,
-                    this.label('datafilteroption.is_null'),
+                tmp.unshift(new DataFilterOptionVO(
+                    DataFilterOptionVO.STATE_SELECTABLE,
+                    this.label('datafilteroptionDataFilterOptionVO.is_null'),
                     RangeHandler.MIN_INT,
                 ));
             }
@@ -752,12 +752,12 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 this.advanced_number_filters = [new AdvancedNumberFilter()];
             }
 
-            const tmp_active_filter_options: DataFilterOption[] = [];
+            const tmp_active_filter_options: DataFilterOptionVO[] = [];
 
             let i: number = 0;
             RangeHandler.foreach_ranges_sync(filter.param_numranges, (num) => {
-                const datafilter = new DataFilterOption(
-                    DataFilterOption.STATE_SELECTED,
+                const datafilter = new DataFilterOptionVO(
+                    DataFilterOptionVO.STATE_SELECTED,
                     num.toString(),
                     parseInt(i.toString())
                 );

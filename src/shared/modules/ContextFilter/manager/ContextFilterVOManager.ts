@@ -2,8 +2,7 @@ import ObjectHandler from "../../../tools/ObjectHandler";
 import RangeHandler from "../../../tools/RangeHandler";
 import ModuleTableFieldVO from "../../DAO/vos/ModuleTableFieldVO";
 import FieldFiltersVO from "../../DashboardBuilder/vos/FieldFiltersVO";
-import VOFieldRefVO from "../../DashboardBuilder/vos/VOFieldRefVO";
-import DataFilterOption from "../../DataRender/vos/DataFilterOption";
+import DataFilterOptionVO from "../../DashboardBuilder/vos/widgets_options/tools/DataFilterOptionVO";
 import NumSegment from "../../DataRender/vos/NumSegment";
 import TSRange from "../../DataRender/vos/TSRange";
 import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
@@ -67,14 +66,14 @@ export default class ContextFilterVOManager {
     /**
      * Create Context Filter From Data Filter Option
      *
-     * @param {DataFilterOption} active_option
+     * @param {DataFilterOptionVO} active_option
      * @param {TSRange} ts_range
      * @param {ModuleTableFieldVO} field
      * @param {VOFieldRefVO} vo_field_ref
      * @returns {ContextFilterVO}
      */
     public static create_context_filter_from_data_filter_option(
-        active_option: DataFilterOption,
+        active_option: DataFilterOptionVO,
         ts_range: TSRange,
         field: ModuleTableFieldVO,
         vo_field_ref: VOFieldRefVO

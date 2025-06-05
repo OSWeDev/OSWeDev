@@ -27,7 +27,7 @@ import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/dat
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
-import DataFilterOption from '../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import DataFilterOptionVO from '../../../../../../shared/modules/DataRender/vos/DataFilterOptionVO';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
@@ -63,8 +63,8 @@ import CRUDComponentManager from '../../CRUDComponentManager';
 import CRUDCreateFormComponent from '../create/CRUDCreateFormComponent';
 import CRUDCreateFormController from '../create/CRUDCreateFormController';
 import CRUDFormServices from '../CRUDFormServices';
-import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
 import PlainVoObjFieldComponent from '../plain_vo_obj/PlainVoObjFieldComponent';
+import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
 import './CRUDComponentField.scss';
 const debounce = require('lodash/debounce');
 
@@ -232,7 +232,7 @@ export default class CRUDComponentField extends VueComponentBase
 
     private auto_validate_start: number = null;
 
-    private select_options: number[] | DataFilterOption[] = [];
+    private select_options: number[] | DataFilterOptionVO[] = [];
     private isLoadingOptions: boolean = false;
     private field_value: any = null;
     private field_value_range: { [type_date: string]: string } = {};
@@ -262,7 +262,7 @@ export default class CRUDComponentField extends VueComponentBase
     private actual_query: string = null;
     private last_calculation_cpt: number = 0;
 
-    private filter_visible_options: DataFilterOption[] = [];
+    private filter_visible_options: DataFilterOptionVO[] = [];
 
     private field_value_labels_by_id: { [id: number]: string } = {};
 
@@ -413,8 +413,8 @@ export default class CRUDComponentField extends VueComponentBase
         return this.auto_validate_inline_input && !!this.auto_validate_start;
     }
 
-    get async_load_options_field_value(): DataFilterOption[] {
-        const res: DataFilterOption[] = [];
+    get async_load_options_field_value(): DataFilterOptionVO[] {
+        const res: DataFilterOptionVO[] = [];
 
         if (!this.field_value) {
             return res;
@@ -428,8 +428,8 @@ export default class CRUDComponentField extends VueComponentBase
                 return res;
             }
 
-            res.push(new DataFilterOption(
-                DataFilterOption.STATE_SELECTED,
+            res.push(new DataFilterOptionVO(
+                DataFilterOptionVO.STATE_SELECTED,
                 this.field_value_labels_by_id[this.field_value],
                 this.field_value,
             ));
@@ -448,8 +448,8 @@ export default class CRUDComponentField extends VueComponentBase
                         return;
                     }
 
-                    res.push(new DataFilterOption(
-                        DataFilterOption.STATE_SELECTED,
+                    res.push(new DataFilterOptionVO(
+                        DataFilterOptionVO.STATE_SELECTED,
                         this.field_value_labels_by_id[e],
                         e,
                     ));
@@ -463,8 +463,8 @@ export default class CRUDComponentField extends VueComponentBase
                 continue;
             }
 
-            res.push(new DataFilterOption(
-                DataFilterOption.STATE_SELECTED,
+            res.push(new DataFilterOptionVO(
+                DataFilterOptionVO.STATE_SELECTED,
                 this.field_value_labels_by_id[id],
                 id,
             ));
@@ -495,9 +495,9 @@ export default class CRUDComponentField extends VueComponentBase
         return vo_field.description;
     }
 
-    set async_load_options_field_value(values: DataFilterOption | DataFilterOption[]) {
+    set async_load_options_field_value(values: DataFilterOptionVO | DataFilterOptionVO[]) {
 
-        const value = values as DataFilterOption;
+        const value = values as DataFilterOptionVO;
         // Si on est sur un many to one ou un one to many, c'est un int qu'on attend. si c'est many to many, c'est un array
         if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
             if (values && isArray(values) && values.length) {
@@ -818,7 +818,7 @@ export default class CRUDComponentField extends VueComponentBase
         const currently_selected_vos: IDistantVOBase[] = query_currently_selected_vos ? await query_currently_selected_vos.select_vos() : null;
         const options = await context_query.select_vos();
 
-        const tmp: DataFilterOption[] = [];
+        const tmp: DataFilterOptionVO[] = [];
 
         // We must keep and apply the last request response
         // - This widget may already have perform a request
@@ -826,14 +826,14 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        const values_semaphore_by_id: { [id: number]: DataFilterOption } = {};
+        const values_semaphore_by_id: { [id: number]: DataFilterOptionVO } = {};
         // const is_translatable_label: boolean = (field_label.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text); TODO FIXME osef on refuse les label translatables pour le moment
 
         for (const i in options) {
             const option = options[i];
 
-            values_semaphore_by_id[option.id] = new DataFilterOption(
-                DataFilterOption.STATE_SELECTABLE,
+            values_semaphore_by_id[option.id] = new DataFilterOptionVO(
+                DataFilterOptionVO.STATE_SELECTABLE,
                 option[field_label.field_name],
                 option.id
             );
@@ -848,8 +848,8 @@ export default class CRUDComponentField extends VueComponentBase
             const option = currently_selected_vos[i];
 
             if (!values_semaphore_by_id[option.id]) {
-                values_semaphore_by_id[option.id] = new DataFilterOption(
-                    DataFilterOption.STATE_SELECTED,
+                values_semaphore_by_id[option.id] = new DataFilterOptionVO(
+                    DataFilterOptionVO.STATE_SELECTED,
                     option[field_label.field_name],
                     option.id
                 );
@@ -860,7 +860,7 @@ export default class CRUDComponentField extends VueComponentBase
                 Vue.set(this.field_value_labels_by_id, option.id, option[field_label.field_name]);
             }
 
-            values_semaphore_by_id[option.id].select_state = DataFilterOption.STATE_SELECTED;
+            values_semaphore_by_id[option.id].select_state = DataFilterOptionVO.STATE_SELECTED;
         }
 
         this.filter_visible_options = tmp;
@@ -1567,13 +1567,13 @@ export default class CRUDComponentField extends VueComponentBase
             //         newOptions.push(option.id);
             //     }
             // }
-            const newOptions: DataFilterOption[] = [];
+            const newOptions: DataFilterOptionVO[] = [];
             for (const index in ordered_option_array) {
                 const option: IDistantVOBase = ordered_option_array[index];
 
                 if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
-                    newOptions.push(new DataFilterOption(
-                        DataFilterOption.STATE_SELECTABLE,
+                    newOptions.push(new DataFilterOptionVO(
+                        DataFilterOptionVO.STATE_SELECTABLE,
                         await manyToOne.voIdToHumanReadable(option.id, options[option.id]),
                         option.id,
                     ));
@@ -1659,7 +1659,7 @@ export default class CRUDComponentField extends VueComponentBase
         const ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
 
         // const newOptions: number[] = [];
-        const newOptions: DataFilterOption[] = [];
+        const newOptions: DataFilterOptionVO[] = [];
 
         for (const index in ordered_option_array) {
             const option: IDistantVOBase = ordered_option_array[index];
@@ -1667,8 +1667,8 @@ export default class CRUDComponentField extends VueComponentBase
             if ((await manyToOne.dataToHumanReadable(option)).toLowerCase().indexOf(query_str.toLowerCase()) >= 0) {
 
                 if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
-                    newOptions.push(new DataFilterOption(
-                        DataFilterOption.STATE_SELECTABLE,
+                    newOptions.push(new DataFilterOptionVO(
+                        DataFilterOptionVO.STATE_SELECTABLE,
                         await manyToOne.voIdToHumanReadable(option.id, options[option.id]),
                         option.id,
                     ));
@@ -1771,14 +1771,14 @@ export default class CRUDComponentField extends VueComponentBase
                 //     }
                 // }
 
-                const newOptions: DataFilterOption[] = [];
+                const newOptions: DataFilterOptionVO[] = [];
 
                 for (const index in ordered_option_array) {
                     const option: IDistantVOBase = ordered_option_array[index];
 
                     if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
-                        newOptions.push(new DataFilterOption(
-                            DataFilterOption.STATE_SELECTABLE,
+                        newOptions.push(new DataFilterOptionVO(
+                            DataFilterOptionVO.STATE_SELECTABLE,
                             await refrangesField.voIdToHumanReadable(option.id, options[option.id]),
                             option.id,
                         ));
@@ -1817,14 +1817,14 @@ export default class CRUDComponentField extends VueComponentBase
                 //     }
                 // }
 
-                const newOptions: DataFilterOption[] = [];
+                const newOptions: DataFilterOptionVO[] = [];
 
                 for (const index in ordered_option_array) {
                     const option: IDistantVOBase = ordered_option_array[index];
 
                     if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
-                        newOptions.push(new DataFilterOption(
-                            DataFilterOption.STATE_SELECTABLE,
+                        newOptions.push(new DataFilterOptionVO(
+                            DataFilterOptionVO.STATE_SELECTABLE,
                             await OneToManyField.voIdToHumanReadable(option.id, options[option.id]),
                             option.id,
                         ));
@@ -1864,14 +1864,14 @@ export default class CRUDComponentField extends VueComponentBase
                 //     }
                 // }
 
-                const newOptions: DataFilterOption[] = [];
+                const newOptions: DataFilterOptionVO[] = [];
 
                 for (const index in ordered_option_array) {
                     const option: IDistantVOBase = ordered_option_array[index];
 
                     if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
-                        newOptions.push(new DataFilterOption(
-                            DataFilterOption.STATE_SELECTABLE,
+                        newOptions.push(new DataFilterOptionVO(
+                            DataFilterOptionVO.STATE_SELECTABLE,
                             await manyToManyField.voIdToHumanReadable(option.id, options[option.id]),
                             option.id,
                         ));
@@ -1911,14 +1911,14 @@ export default class CRUDComponentField extends VueComponentBase
                 //     }
                 // }
 
-                const newOptions: DataFilterOption[] = [];
+                const newOptions: DataFilterOptionVO[] = [];
 
                 for (const index in ordered_option_array) {
                     const option: IDistantVOBase = ordered_option_array[index];
 
                     if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
-                        newOptions.push(new DataFilterOption(
-                            DataFilterOption.STATE_SELECTABLE,
+                        newOptions.push(new DataFilterOptionVO(
+                            DataFilterOptionVO.STATE_SELECTABLE,
                             await manyToOneField.voIdToHumanReadable(option.id, options[option.id]),
                             option.id,
                         ));

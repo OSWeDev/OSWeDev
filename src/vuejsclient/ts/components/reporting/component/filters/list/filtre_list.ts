@@ -1,8 +1,8 @@
 import Component from 'vue-class-component';
-import { Watch, Prop } from 'vue-property-decorator';
-import { ServerTable, ClientTable, Event } from 'vue-tables-2';
+import { Prop, Watch } from 'vue-property-decorator';
+import { Event } from 'vue-tables-2';
+import DataFilterOptionVO from '../../../../../../../shared/modules/DataRender/vos/DataFilterOptionVO';
 import VueComponentBase from '../../../../VueComponentBase';
-import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 
 @Component({
     template: require('./filtre_list.pug'),
@@ -17,9 +17,9 @@ export default class VueFilterListComponent extends VueComponentBase {
     public default_value: any[];
 
     @Prop({ default: null })
-    public all_values: DataFilterOption[];
+    public all_values: DataFilterOptionVO[];
 
-    public values: DataFilterOption[] = [];
+    public values: DataFilterOptionVO[] = [];
 
     @Watch('values')
     public on_change_values(): void {

@@ -11,11 +11,10 @@ import ThemeModuleDataRangesVO from '../../../../../../../shared/modules/Animati
 import AnimationModuleVO from '../../../../../../../shared/modules/Animation/vos/AnimationModuleVO';
 import AnimationThemeVO from '../../../../../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from '../../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
-import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ExportHistoricVO from '../../../../../../../shared/modules/DataExport/vos/ExportHistoricVO';
-import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import DataFilterOptionVO from '../../../../../../../shared/modules/DataRender/vos/DataFilterOptionVO';
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -77,17 +76,17 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
     private get_percent_module_finished: number;
 
     @ModuleAnimationReportingVuexGetter
-    private get_filter_anim_theme_active_options: DataFilterOption[];
+    private get_filter_anim_theme_active_options: DataFilterOptionVO[];
     @ModuleAnimationReportingVuexGetter
-    private get_filter_anim_module_active_options: DataFilterOption[];
+    private get_filter_anim_module_active_options: DataFilterOptionVO[];
     @ModuleAnimationReportingVuexGetter
-    private get_filter_role_active_options: DataFilterOption[];
+    private get_filter_role_active_options: DataFilterOptionVO[];
     @ModuleAnimationReportingVuexGetter
-    private get_filter_user_active_options: DataFilterOption[];
+    private get_filter_user_active_options: DataFilterOptionVO[];
     @ModuleAnimationReportingVuexGetter
-    private get_filter_module_termine_active_option: DataFilterOption;
+    private get_filter_module_termine_active_option: DataFilterOptionVO;
     @ModuleAnimationReportingVuexGetter
-    private get_filter_module_valide_active_option: DataFilterOption;
+    private get_filter_module_valide_active_option: DataFilterOptionVO;
 
     private is_init: boolean = false;
     private temps_passe_total_param: ThemeModuleDataRangesVO = null;

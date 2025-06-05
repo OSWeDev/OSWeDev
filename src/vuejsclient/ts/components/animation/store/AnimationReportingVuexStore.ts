@@ -1,12 +1,12 @@
-import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
-import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
+import { ActionContext, ActionTree, GetterTree } from "vuex";
+import { namespace } from 'vuex-class/lib/bindings';
 import { ActionHandlerWithPayload, getStoreAccessors } from "vuex-typescript";
 import RoleVO from '../../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../../../shared/modules/AccessPolicy/vos/UserVO';
 import AnimationModuleVO from '../../../../../shared/modules/Animation/vos/AnimationModuleVO';
 import AnimationThemeVO from '../../../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from "../../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
-import DataFilterOption from '../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import DataFilterOptionVO from '../../../../../shared/modules/DataRender/vos/DataFilterOptionVO';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from "../../../../../shared/modules/DataRender/vos/NumSegment";
 import RangeHandler from "../../../../../shared/tools/RangeHandler";
@@ -17,23 +17,23 @@ export type AnimationReportingContext = ActionContext<IAnimationReportingVueXSta
 
 export interface IAnimationReportingVueXState {
     all_anim_theme_by_ids: { [id: number]: AnimationThemeVO };
-    filter_anim_theme_active_options: DataFilterOption[];
+    filter_anim_theme_active_options: DataFilterOptionVO[];
     anim_theme_id_ranges: NumRange[];
 
     all_anim_module_by_ids: { [id: number]: AnimationModuleVO };
-    filter_anim_module_active_options: DataFilterOption[];
+    filter_anim_module_active_options: DataFilterOptionVO[];
     anim_module_id_ranges: NumRange[];
 
     all_role_by_ids: { [id: number]: RoleVO };
-    filter_role_active_options: DataFilterOption[];
+    filter_role_active_options: DataFilterOptionVO[];
     role_id_ranges: NumRange[];
 
     all_user_by_ids: { [id: number]: UserVO };
-    filter_user_active_options: DataFilterOption[];
+    filter_user_active_options: DataFilterOptionVO[];
     user_id_ranges: NumRange[];
 
-    filter_module_termine_active_option: DataFilterOption;
-    filter_module_valide_active_option: DataFilterOption;
+    filter_module_termine_active_option: DataFilterOptionVO;
+    filter_module_valide_active_option: DataFilterOptionVO;
     percent_module_finished: number;
 
     all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } };
@@ -48,7 +48,7 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
     public getters: GetterTree<IAnimationReportingVueXState, AnimationReportingContext>;
     public mutations = {
         set_all_anim_theme_by_ids: (state: IAnimationReportingVueXState, all_anim_theme_by_ids: { [id: number]: AnimationThemeVO }) => state.all_anim_theme_by_ids = all_anim_theme_by_ids,
-        set_filter_anim_theme_active_options: (state: IAnimationReportingVueXState, filter_anim_theme_active_options: DataFilterOption[]) => state.filter_anim_theme_active_options = filter_anim_theme_active_options,
+        set_filter_anim_theme_active_options: (state: IAnimationReportingVueXState, filter_anim_theme_active_options: DataFilterOptionVO[]) => state.filter_anim_theme_active_options = filter_anim_theme_active_options,
         set_anim_theme_id_ranges: (state: IAnimationReportingVueXState) => {
             const res: NumRange[] = [];
 
@@ -68,7 +68,7 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
         },
 
         set_all_anim_module_by_ids: (state: IAnimationReportingVueXState, all_anim_module_by_ids: { [id: number]: AnimationModuleVO }) => state.all_anim_module_by_ids = all_anim_module_by_ids,
-        set_filter_anim_module_active_options: (state: IAnimationReportingVueXState, filter_anim_module_active_options: DataFilterOption[]) => state.filter_anim_module_active_options = filter_anim_module_active_options,
+        set_filter_anim_module_active_options: (state: IAnimationReportingVueXState, filter_anim_module_active_options: DataFilterOptionVO[]) => state.filter_anim_module_active_options = filter_anim_module_active_options,
         set_anim_module_id_ranges: (state: IAnimationReportingVueXState) => {
             const res: NumRange[] = [];
 
@@ -110,7 +110,7 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
         },
 
         set_all_role_by_ids: (state: IAnimationReportingVueXState, all_role_by_ids: { [id: number]: RoleVO }) => state.all_role_by_ids = all_role_by_ids,
-        set_filter_role_active_options: (state: IAnimationReportingVueXState, filter_role_active_options: DataFilterOption[]) => state.filter_role_active_options = filter_role_active_options,
+        set_filter_role_active_options: (state: IAnimationReportingVueXState, filter_role_active_options: DataFilterOptionVO[]) => state.filter_role_active_options = filter_role_active_options,
         set_role_id_ranges: (state: IAnimationReportingVueXState) => {
             const res: NumRange[] = [];
 
@@ -147,7 +147,7 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
         },
 
         set_all_user_by_ids: (state: IAnimationReportingVueXState, all_user_by_ids: { [id: number]: UserVO }) => state.all_user_by_ids = all_user_by_ids,
-        set_filter_user_active_options: (state: IAnimationReportingVueXState, filter_user_active_options: DataFilterOption[]) => state.filter_user_active_options = filter_user_active_options,
+        set_filter_user_active_options: (state: IAnimationReportingVueXState, filter_user_active_options: DataFilterOptionVO[]) => state.filter_user_active_options = filter_user_active_options,
         set_user_id_ranges: (state: IAnimationReportingVueXState) => {
             const res: NumRange[] = [];
 
@@ -178,8 +178,8 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
 
         set_all_aum_by_theme_module_user: (state: IAnimationReportingVueXState, all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } }) => state.all_aum_by_theme_module_user = all_aum_by_theme_module_user,
 
-        set_filter_module_termine_active_option: (state: IAnimationReportingVueXState, filter_module_termine_active_option: DataFilterOption) => state.filter_module_termine_active_option = filter_module_termine_active_option,
-        set_filter_module_valide_active_option: (state: IAnimationReportingVueXState, filter_module_valide_active_option: DataFilterOption) => state.filter_module_valide_active_option = filter_module_valide_active_option,
+        set_filter_module_termine_active_option: (state: IAnimationReportingVueXState, filter_module_termine_active_option: DataFilterOptionVO) => state.filter_module_termine_active_option = filter_module_termine_active_option,
+        set_filter_module_valide_active_option: (state: IAnimationReportingVueXState, filter_module_valide_active_option: DataFilterOptionVO) => state.filter_module_valide_active_option = filter_module_valide_active_option,
 
         set_percent_module_finished: (state: IAnimationReportingVueXState) => {
             let total_aum: number = 0;
@@ -273,19 +273,19 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
 
         this.actions = {
             set_all_anim_theme_by_ids: (context: AnimationReportingContext, all_anim_theme_by_ids: { [id: number]: AnimationThemeVO }) => context.commit(store_mutations_names(this).set_all_anim_theme_by_ids, all_anim_theme_by_ids),
-            set_filter_anim_theme_active_options: (context: AnimationReportingContext, filter_anim_theme_active_options: DataFilterOption[]) => context.commit(store_mutations_names(this).set_filter_anim_theme_active_options, filter_anim_theme_active_options),
+            set_filter_anim_theme_active_options: (context: AnimationReportingContext, filter_anim_theme_active_options: DataFilterOptionVO[]) => context.commit(store_mutations_names(this).set_filter_anim_theme_active_options, filter_anim_theme_active_options),
             set_anim_theme_id_ranges: (context: AnimationReportingContext) => context.commit(store_mutations_names(this).set_anim_theme_id_ranges, null),
 
             set_all_anim_module_by_ids: (context: AnimationReportingContext, all_anim_module_by_ids: { [id: number]: AnimationModuleVO }) => context.commit(store_mutations_names(this).set_all_anim_module_by_ids, all_anim_module_by_ids),
-            set_filter_anim_module_active_options: (context: AnimationReportingContext, filter_anim_module_active_options: DataFilterOption[]) => context.commit(store_mutations_names(this).set_filter_anim_module_active_options, filter_anim_module_active_options),
+            set_filter_anim_module_active_options: (context: AnimationReportingContext, filter_anim_module_active_options: DataFilterOptionVO[]) => context.commit(store_mutations_names(this).set_filter_anim_module_active_options, filter_anim_module_active_options),
             set_anim_module_id_ranges: (context: AnimationReportingContext) => context.commit(store_mutations_names(this).set_anim_module_id_ranges, null),
 
             set_all_role_by_ids: (context: AnimationReportingContext, all_role_by_ids: { [id: number]: RoleVO }) => context.commit(store_mutations_names(this).set_all_role_by_ids, all_role_by_ids),
-            set_filter_role_active_options: (context: AnimationReportingContext, filter_role_active_options: DataFilterOption[]) => context.commit(store_mutations_names(this).set_filter_role_active_options, filter_role_active_options),
+            set_filter_role_active_options: (context: AnimationReportingContext, filter_role_active_options: DataFilterOptionVO[]) => context.commit(store_mutations_names(this).set_filter_role_active_options, filter_role_active_options),
             set_role_id_ranges: (context: AnimationReportingContext) => context.commit(store_mutations_names(this).set_role_id_ranges, null),
 
             set_all_user_by_ids: (context: AnimationReportingContext, all_user_by_ids: { [id: number]: UserVO }) => context.commit(store_mutations_names(this).set_all_user_by_ids, all_user_by_ids),
-            set_filter_user_active_options: (context: AnimationReportingContext, filter_user_active_options: DataFilterOption[]) => context.commit(store_mutations_names(this).set_filter_user_active_options, filter_user_active_options),
+            set_filter_user_active_options: (context: AnimationReportingContext, filter_user_active_options: DataFilterOptionVO[]) => context.commit(store_mutations_names(this).set_filter_user_active_options, filter_user_active_options),
             set_user_id_ranges: (context: AnimationReportingContext) => context.commit(store_mutations_names(this).set_user_id_ranges, null),
 
             set_all_aum_by_theme_module_user: async (context: AnimationReportingContext, all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } }) => {
@@ -301,8 +301,8 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
                 context.commit(store_mutations_names(this).set_percent_module_finished, null);
             },
 
-            set_filter_module_termine_active_option: (context: AnimationReportingContext, filter_module_termine_active_option: DataFilterOption) => context.commit(store_mutations_names(this).set_filter_module_termine_active_option, filter_module_termine_active_option),
-            set_filter_module_valide_active_option: (context: AnimationReportingContext, filter_module_valide_active_option: DataFilterOption) => context.commit(store_mutations_names(this).set_filter_module_valide_active_option, filter_module_valide_active_option),
+            set_filter_module_termine_active_option: (context: AnimationReportingContext, filter_module_termine_active_option: DataFilterOptionVO) => context.commit(store_mutations_names(this).set_filter_module_termine_active_option, filter_module_termine_active_option),
+            set_filter_module_valide_active_option: (context: AnimationReportingContext, filter_module_valide_active_option: DataFilterOptionVO) => context.commit(store_mutations_names(this).set_filter_module_valide_active_option, filter_module_valide_active_option),
 
             set_percent_module_finished: (context: AnimationReportingContext) => context.commit(store_mutations_names(this).set_percent_module_finished, null),
 

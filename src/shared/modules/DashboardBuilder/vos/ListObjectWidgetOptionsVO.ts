@@ -21,7 +21,7 @@ export default class ListObjectWidgetOptionsVO extends AbstractVO {
     };
 
     public type_display: number;
-    public display_orientation: number;
+    public display_orientation: number; // list horizonal => cartes. a voir
     public number_of_elements: number;
     public sort_dimension_by: string;
     public image_id: VOFieldRefVO;

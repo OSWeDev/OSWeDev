@@ -14,7 +14,7 @@ import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vo
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import DataFilterOptionVO from '../../../../../../../shared/modules/DataRender/vos/DataFilterOptionVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
@@ -25,8 +25,8 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
-import './FieldValueFilterEnumWidgetComponent.scss';
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
+import './FieldValueFilterEnumWidgetComponent.scss';
 
 @Component({
     template: require('./FieldValueFilterEnumWidgetComponent.pug'),
@@ -71,9 +71,9 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private default_values_changed: boolean = false; //Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
 
 
-    private tmp_active_filter_options: DataFilterOption[] = []; // Local active filter options
+    private tmp_active_filter_options: DataFilterOptionVO[] = []; // Local active filter options
 
-    private filter_visible_options: DataFilterOption[] = [];
+    private filter_visible_options: DataFilterOptionVO[] = [];
 
     private warn_existing_external_filters: boolean = false;
 
@@ -252,7 +252,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         return res;
     }
 
-    get default_values(): DataFilterOption[] {
+    get default_values(): DataFilterOptionVO[] {
         const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         // May be an array if multi select or a single value if not
@@ -263,7 +263,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         return options.get_default_filter_options();
     }
 
-    get exclude_values(): DataFilterOption[] {
+    get exclude_values(): DataFilterOptionVO[] {
         const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.exclude_filter_opt_values) || (!options.exclude_filter_opt_values.length)) {
@@ -295,7 +295,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
          * Try apply query params
          */
         let update_tmp_active_filter_options: boolean = false;
-        const updated_tmp_active_filter_options: DataFilterOption[] = [];
+        const updated_tmp_active_filter_options: DataFilterOptionVO[] = [];
 
         // get all search params (including ?)
         const queryString = window.location.search;
@@ -312,7 +312,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             const filter_value_number: number = parseInt(filter_value_str);
 
             // On doit retrouver la valeur dans les options disponibles
-            let filter_value: DataFilterOption = null;
+            let filter_value: DataFilterOptionVO = null;
             for (const i in this.filter_visible_options) {
                 const filter_opt = this.filter_visible_options[i];
                 if (filter_opt.numeric_value == filter_value_number) {
@@ -325,8 +325,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                 update_tmp_active_filter_options = true;
                 updated_tmp_active_filter_options.push(filter_value);
             } else {
-                filter_value = new DataFilterOption(
-                    DataFilterOption.STATE_SELECTED,
+                filter_value = new DataFilterOptionVO(
+                    DataFilterOptionVO.STATE_SELECTED,
                     filter_value_str,
                     null,
                     false,
@@ -413,7 +413,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return;
         }
 
-        let active_filter_options: DataFilterOption[] = null;
+        let active_filter_options: DataFilterOptionVO[] = null;
         let context_filter: ContextFilterVO = null;
 
         if (TypesHandler.getInstance().isArray(this.tmp_active_filter_options)) {
@@ -441,7 +441,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         // Translate active options to context filter
         for (const i in active_filter_options) {
-            const active_option: DataFilterOption = active_filter_options[i];
+            const active_option: DataFilterOptionVO = active_filter_options[i];
 
             if (active_option.id == RangeHandler.MIN_INT) {
                 has_null_value = true;
@@ -596,7 +596,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      */
     private async load_filter_visible_options(launch_cpt: number): Promise<void> {
 
-        let data_filter_options: DataFilterOption[] = await FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options(
+        let data_filter_options: DataFilterOptionVO[] = await FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options(
             this.dashboard,
             this.get_dashboard_api_type_ids,
             this.get_discarded_field_paths,
@@ -624,8 +624,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         if (default_showed_filter_opt_values?.length > 0) {
             // Add default_showed_filter_opt_values to data_filter_options (if not already in)
             const filter_options_to_add = default_showed_filter_opt_values.filter(
-                (default_showed_filter_opt_value: DataFilterOption) => !data_filter_options.find(
-                    (data_filter_option: DataFilterOption) => data_filter_option.numeric_value == default_showed_filter_opt_value.numeric_value
+                (default_showed_filter_opt_value: DataFilterOptionVO) => !data_filter_options.find(
+                    (data_filter_option: DataFilterOptionVO) => data_filter_option.numeric_value == default_showed_filter_opt_value.numeric_value
                 )
             );
 
@@ -639,20 +639,20 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         }
 
         if (this.add_is_null_selectable) {
-            data_filter_options.unshift(new DataFilterOption(
-                DataFilterOption.STATE_SELECTABLE,
-                this.label('dataFilteroption.is_null'),
+            data_filter_options.unshift(new DataFilterOptionVO(
+                DataFilterOptionVO.STATE_SELECTABLE,
+                this.label('dataFilteroptionDataFilterOptionVO.is_null'),
                 RangeHandler.MIN_INT,
             ));
         }
 
         // We should keep all distinct filters
         this.filter_visible_options = [this.filter_visible_options, data_filter_options].reduce(
-            (accumulator: DataFilterOption[], currentVal: DataFilterOption[]) => {
+            (accumulator: DataFilterOptionVO[], currentVal: DataFilterOptionVO[]) => {
 
                 // Add all filters that are not in accumulator (by numeric_value)
                 const overflowing_filters = currentVal.filter(
-                    (filter: DataFilterOption) => !accumulator.find(
+                    (filter: DataFilterOptionVO) => !accumulator.find(
                         (acc_filter) => acc_filter.numeric_value === filter.numeric_value
                     )
                 );
@@ -684,10 +684,10 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      *  - Select all fields of the current active filter
      */
     private handle_select_all(): void {
-        let selection: DataFilterOption[] = [];
+        let selection: DataFilterOptionVO[] = [];
 
         selection = this.filter_visible_options?.map((filter) =>
-            new DataFilterOption(DataFilterOption.STATE_SELECTED, filter.label, filter.id)
+            new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTED, filter.label, filter.id)
         );
 
         this.tmp_active_filter_options = selection;
@@ -829,9 +829,9 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private try_apply_context_filter(context_filter: ContextFilterVO): boolean {
 
         // create single data context_filter to apply
-        const createDataFilter = (val: number): DataFilterOption => {
-            const dataFilter = new DataFilterOption(
-                DataFilterOption.STATE_SELECTED,
+        const createDataFilter = (val: number): DataFilterOptionVO => {
+            const dataFilter = new DataFilterOptionVO(
+                DataFilterOptionVO.STATE_SELECTED,
                 this.t(this.field.enum_values[val]),
                 val
             );
@@ -849,7 +849,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return true;
         }
 
-        const active_filter_options: DataFilterOption[] = [];
+        const active_filter_options: DataFilterOptionVO[] = [];
 
         // context_filter must have one of the given param to continue
         if (!(context_filter.param_numranges?.length > 0)
@@ -882,7 +882,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         return true;
     }
 
-    private filter_visible_label(dfo: DataFilterOption): string {
+    private filter_visible_label(dfo: DataFilterOptionVO): string {
         return dfo.label;
     }
 
@@ -890,10 +890,10 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      * select_option
      *  - Select option
      *
-     * @param {DataFilterOption} dfo
+     * @param {DataFilterOptionVO} dfo
      * @returns {void}
      */
-    private select_option(dfo: DataFilterOption): void {
+    private select_option(dfo: DataFilterOptionVO): void {
         if (!dfo) {
             return;
         }
@@ -919,7 +919,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         }
     }
 
-    private getStyle(dfo: DataFilterOption) {
+    private getStyle(dfo: DataFilterOptionVO) {
         if (!dfo) {
             return null;
         }

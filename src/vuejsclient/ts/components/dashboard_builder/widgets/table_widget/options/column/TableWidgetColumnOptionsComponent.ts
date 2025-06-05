@@ -12,7 +12,7 @@ import DashboardPageWidgetVO from '../../../../../../../../shared/modules/Dashbo
 import DashboardWidgetVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import TableColumnDescVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
-import DataFilterOption from '../../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import DataFilterOptionVO from '../../../../../../../../shared/modules/DataRender/vos/DataFilterOptionVO';
 import TimeSegment from '../../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../../../shared/modules/IDistantVOBase';
@@ -118,7 +118,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private column_dynamic_component: string = null;
     private column_dynamic_var: string = null;
     private column_dynamic_page_widget: DashboardPageWidgetVO = null;
-    private tmp_column_dynamic_time_segment: DataFilterOption = null;
+    private tmp_column_dynamic_time_segment: DataFilterOptionVO = null;
     private page_widget_options: DashboardPageWidgetVO[] = [];
 
     get column_dynamic_page_widget_is_type_string(): boolean {
@@ -251,12 +251,12 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return this.widget_options.can_filter_by;
     }
 
-    get segmentation_type_options(): DataFilterOption[] {
-        const res: DataFilterOption[] = [];
+    get segmentation_type_options(): DataFilterOptionVO[] {
+        const res: DataFilterOptionVO[] = [];
 
         for (const segmentation_type in TimeSegment.TYPE_NAMES_ENUM) {
-            const new_opt: DataFilterOption = new DataFilterOption(
-                DataFilterOption.STATE_SELECTABLE,
+            const new_opt: DataFilterOptionVO = new DataFilterOptionVO(
+                DataFilterOptionVO.STATE_SELECTABLE,
                 this.t(TimeSegment.TYPE_NAMES_ENUM[segmentation_type]),
                 parseInt(segmentation_type)
             );

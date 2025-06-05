@@ -11,7 +11,6 @@ import ContextQueryVO, { query } from "../../ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
 import ModuleTableController from "../../DAO/ModuleTableController";
 import ModuleTableVO from "../../DAO/vos/ModuleTableVO";
-import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import DashboardVO from "../vos/DashboardVO";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
@@ -20,6 +19,7 @@ import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
 import DashboardBuilderDataFilterManager from "./DashboardBuilderDataFilterManager";
 import FieldFiltersVOManager from "./FieldFiltersVOManager";
 import FieldValueFilterWidgetManager from './FieldValueFilterWidgetManager';
+import DataFilterOptionVO from "../vos/widgets_options/tools/DataFilterOptionVO";
 
 /**
  * FieldValueFilterEnumWidgetManager
@@ -94,7 +94,7 @@ export default class FieldValueFilterEnumWidgetManager {
      * @param {options.active_api_type_ids} options.active_api_type_ids - Setted on user selection (select option) to specify query on specified vos api ids
      * @param {options.query_api_type_ids} options.query_api_type_ids - Setted from widget options to have custom|default query on specified vos api ids
      * @param {options.with_count} options.with_count - Setted from widget options to have count on each data_filter
-     * @returns {Promise<DataFilterOption[]>}
+     * @returns {Promise<DataFilterOptionVO[]>}
      */
     public static async find_enum_data_filters_from_widget_options(
         dashboard: DashboardVO,
@@ -108,12 +108,12 @@ export default class FieldValueFilterEnumWidgetManager {
             with_count?: boolean; // Setted from widget options to have count on each data_filter
             user?: UserVO;
         }
-    ): Promise<DataFilterOption[]> {
+    ): Promise<DataFilterOptionVO[]> {
 
         widget_options = cloneDeep(widget_options);
 
         const added_data_filter: { [numeric_value: number]: boolean } = {};
-        let enum_data_filters: DataFilterOption[] = [];
+        let enum_data_filters: DataFilterOptionVO[] = [];
 
         const actual_query: string = null;
 
@@ -292,7 +292,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
         promise_pipeline.push(async () => {
 
-            const data_filters: DataFilterOption[] = await ModuleContextFilter.instance.select_filter_visible_options(
+            const data_filters: DataFilterOptionVO[] = await ModuleContextFilter.instance.select_filter_visible_options(
                 context_query,
                 actual_query
             );
@@ -312,7 +312,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
         // We should always have the same sort order
         // - Sort enum_data_filters by numeric_value
-        enum_data_filters = enum_data_filters?.sort((a: DataFilterOption, b: DataFilterOption) => {
+        enum_data_filters = enum_data_filters?.sort((a: DataFilterOptionVO, b: DataFilterOptionVO) => {
             return a.numeric_value - b.numeric_value;
         });
 
@@ -325,8 +325,8 @@ export default class FieldValueFilterEnumWidgetManager {
      * @param {DashboardVO} dashboard  the actual dashboard
      * @param {FieldValueFilterWidgetOptionsVO} widget_options the actual widget options
      * @param {FieldFiltersVO} active_field_filters Active field filters (from the user selection) from the actual dashboard
-     * @param {DataFilterOption[]} selected_active_filter_options Selected filter active options from the actual dashboard
-     * @param {DataFilterOption[]} enum_data_filters All enum data filters from the actual dashboard
+     * @param {DataFilterOptionVO[]} selected_active_filter_options Selected filter active options from the actual dashboard
+     * @param {DataFilterOptionVO[]} enum_data_filters All enum data filters from the actual dashboard
      * @param {options.active_api_type_ids} options.active_api_type_ids - Setted on user selection (select option) to specify query on specified vos api ids
      * @param {options.query_api_type_ids} options.query_api_type_ids - Setted from widget options to have custom|default query on specified vos api ids
      * @param {options.with_count} options.with_count - Setted from widget options to have count on each data_filter
@@ -336,8 +336,8 @@ export default class FieldValueFilterEnumWidgetManager {
         dashboard: DashboardVO,
         widget_options: FieldValueFilterWidgetOptionsVO,
         active_field_filters: FieldFiltersVO, // Active field filters from the actual dashboard
-        selected_active_filter_options: DataFilterOption[], // Selected filter active options from the actual dashboard
-        enum_data_filters: DataFilterOption[], // Enum data filters from the actual dashboard
+        selected_active_filter_options: DataFilterOptionVO[], // Selected filter active options from the actual dashboard
+        enum_data_filters: DataFilterOptionVO[], // Enum data filters from the actual dashboard
         options?: {
             active_api_type_ids?: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
             query_api_type_ids?: string[]; // Setted from widget options to have custom|default query on specified vos api ids
@@ -435,13 +435,13 @@ export default class FieldValueFilterEnumWidgetManager {
         );
 
         for (const enum_data_key in enum_data_filters) {
-            const filter_opt: DataFilterOption = enum_data_filters[enum_data_key];
+            const filter_opt: DataFilterOptionVO = enum_data_filters[enum_data_key];
 
             if (!filter_opt) {
                 continue;
             }
 
-            const is_selected = selected_active_filter_options?.find((selected_active_filter_option: DataFilterOption) => {
+            const is_selected = selected_active_filter_options?.find((selected_active_filter_option: DataFilterOptionVO) => {
                 return selected_active_filter_option.numeric_value == filter_opt.numeric_value;
             });
 

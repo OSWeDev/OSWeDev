@@ -1,5 +1,6 @@
 import NumRange from "../../../DataRender/vos/NumRange";
 import TSRange from "../../../DataRender/vos/TSRange";
+import DataFilterOptionVO from "./tools/DataFilterOptionVO";
 import WidgetOptionsBaseVO from "./WidgetOptionsBaseVO";
 
 
@@ -44,9 +45,9 @@ export default class FieldValueFilterPageWidgetOptionsVO extends WidgetOptionsBa
     public vo_field_ref_multiple_id_ranges: NumRange[];
 
     // ????? comment on gère ça ?
-    public default_showed_filter_opt_values: DataFilterOption[]; // Default filter options to show
-    public default_filter_opt_values: DataFilterOption[];
-    public exclude_filter_opt_values: DataFilterOption[];
+    public default_showed_filter_opt_values: DataFilterOptionVO[]; // Default filter options to show
+    public default_filter_opt_values: DataFilterOptionVO[];
+    public exclude_filter_opt_values: DataFilterOptionVO[];
 
     public default_boolean_values: number[];
     public default_ts_range_values: TSRange;
@@ -86,25 +87,25 @@ export default class FieldValueFilterPageWidgetOptionsVO extends WidgetOptionsBa
     public auto_select_date_max: number;
 
     /*
-    public get_exclude_values(): DataFilterOption[] {
+    public get_exclude_values(): DataFilterOptionVO[] {
 
         if (!(this.exclude_filter_opt_values?.length > 0)) {
             return null;
         }
 
-        return this.exclude_filter_opt_values?.map((val) => new DataFilterOption().from(val));
+        return this.exclude_filter_opt_values?.map((val) => new DataFilterOptionVO().from(val));
     }
 
-    public get_default_filter_options(): DataFilterOption[] {
+    public get_default_filter_options(): DataFilterOptionVO[] {
         if (!this.default_filter_opt_values?.length) {
             return null;
         }
 
         if (Array.isArray(this.default_filter_opt_values) && (this.default_filter_opt_values.length > 0)) {
-            return this.default_filter_opt_values.map((val) => new DataFilterOption().from(val));
+            return this.default_filter_opt_values.map((val) => new DataFilterOptionVO().from(val));
         }
 
-        return [new DataFilterOption().from(this.default_filter_opt_values as any)];
+        return [new DataFilterOptionVO().from(this.default_filter_opt_values as any)];
     }
     */
 }

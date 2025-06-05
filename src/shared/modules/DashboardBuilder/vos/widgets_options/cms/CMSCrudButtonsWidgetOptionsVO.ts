@@ -6,13 +6,9 @@ export default class CMSCrudButtonsWidgetOptionsVO extends AbstractVO {
     public show_add: boolean;
     public show_update: boolean;
     public show_delete: boolean;
-
-    public show_manual_vo_type: boolean; // si pas en mode template, et /ou si en mode template mais envie de créer autre chose permet de définir la pable cible
-    public manual_vo_type: string; // ref modultable
-
-    public show_add_edit_fk: boolean; // ???
-
-    // à globaliser, les rôles pouvant afficher le widget
+    public show_manual_vo_type: boolean;
+    public manual_vo_type: string;
+    public show_add_edit_fk: boolean;
     public role_access: RoleVO[];
 
     public static createNew(

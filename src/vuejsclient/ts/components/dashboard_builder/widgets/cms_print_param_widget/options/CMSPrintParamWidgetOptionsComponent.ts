@@ -8,7 +8,7 @@ import { query } from '../../../../../../../shared/modules/ContextFilter/vos/Con
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import CMSPrintParamWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/CMSPrintParamWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import DataFilterOptionVO from '../../../../../../../shared/modules/DataRender/vos/DataFilterOptionVO';
 import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import ParamVO from '../../../../../../../shared/modules/Params/vos/ParamVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -37,13 +37,13 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
 
     private param_selected: ParamVO = null;
     private param_options: ParamVO[] = [];
-    private type_param_selected: DataFilterOption = null;
-    private type_param_options: DataFilterOption[] = [
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_STRING_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_STRING),
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_BOOLEAN_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_BOOLEAN),
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_INT_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_INT),
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_FLOAT_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_FLOAT),
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_DATE_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_DATE)
+    private type_param_selected: DataFilterOptionVO = null;
+    private type_param_options: DataFilterOptionVO[] = [
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_STRING_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_STRING),
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_BOOLEAN_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_BOOLEAN),
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_INT_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_INT),
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_FLOAT_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_FLOAT),
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_DATE_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_DATE)
     ];
 
     private optionsEditeur = {

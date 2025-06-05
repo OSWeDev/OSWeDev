@@ -10,7 +10,7 @@ import ModuleDAO from '../DAO/ModuleDAO';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import DataFilterOption from '../DataRender/vos/DataFilterOption';
+import DataFilterOptionVO from '../DashboardBuilder/vos/widgets_options/tools/DataFilterOptionVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import DocumentVO from '../Document/vos/DocumentVO';
 import FileVO from '../File/vos/FileVO';
@@ -70,12 +70,12 @@ export default class ModuleAnimation extends Module {
     /** @see {@link ModuleAnimationServer.getUQRsByThemesAndModules} */
     public getUQRsByThemesAndModules: (user_ids: number[], theme_ids: number[], module_ids: number[]) => Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } }> = APIControllerWrapper.sah(ModuleAnimation.APINAME_getUQRsByThemesAndModules);
     public getAumsFiltered: (
-        filter_anim_theme_active_options: DataFilterOption[],
-        filter_anim_module_active_options: DataFilterOption[],
-        filter_role_active_options: DataFilterOption[],
-        filter_user_active_options: DataFilterOption[],
-        filter_module_termine_active_option: DataFilterOption,
-        filter_module_valide_active_option: DataFilterOption,
+        filter_anim_theme_active_options: DataFilterOptionVO[],
+        filter_anim_module_active_options: DataFilterOptionVO[],
+        filter_role_active_options: DataFilterOptionVO[],
+        filter_user_active_options: DataFilterOptionVO[],
+        filter_module_termine_active_option: DataFilterOptionVO,
+        filter_module_valide_active_option: DataFilterOptionVO,
     ) => Promise<AnimationUserModuleVO[]> = APIControllerWrapper.sah(ModuleAnimation.APINAME_getAumsFiltered);
     /**
      * remise à zero des modules et themes pour les utilisateurs

@@ -10,7 +10,7 @@ import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import CMSImageWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/CMSImageWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import DataFilterOptionVO from '../../../../../../../shared/modules/DataRender/vos/DataFilterOptionVO';
 import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -39,25 +39,25 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase {
     private use_for_template: boolean = false;
     private field_ref_for_template: VOFieldRefVO = null;
     private position: number = null;
-    private position_selected: DataFilterOption = null;
+    private position_selected: DataFilterOptionVO = null;
     private mise_en_page: number = null;
-    private mise_en_page_selected: DataFilterOption = null;
+    private mise_en_page_selected: DataFilterOptionVO = null;
 
-    private position_options: DataFilterOption[] = [
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE),
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_GAUCHE_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_GAUCHE),
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_DROITE_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_DROITE),
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_HAUT_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_HAUT),
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_BAS_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_BAS),
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_HAUT_GAUCHE_LABEL), CMSImageWidgetOptionsVO.POSITION_HAUT_GAUCHE),
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_HAUT_DROITE_LABEL), CMSImageWidgetOptionsVO.POSITION_HAUT_DROITE),
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_BAS_GAUCHE_LABEL), CMSImageWidgetOptionsVO.POSITION_BAS_GAUCHE),
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_BAS_DROITE_LABEL), CMSImageWidgetOptionsVO.POSITION_BAS_DROITE),
+    private position_options: DataFilterOptionVO[] = [
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE),
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_GAUCHE_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_GAUCHE),
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_DROITE_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_DROITE),
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_HAUT_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_HAUT),
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_CENTRE_BAS_LABEL), CMSImageWidgetOptionsVO.POSITION_CENTRE_BAS),
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_HAUT_GAUCHE_LABEL), CMSImageWidgetOptionsVO.POSITION_HAUT_GAUCHE),
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_HAUT_DROITE_LABEL), CMSImageWidgetOptionsVO.POSITION_HAUT_DROITE),
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_BAS_GAUCHE_LABEL), CMSImageWidgetOptionsVO.POSITION_BAS_GAUCHE),
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.POSITION_BAS_DROITE_LABEL), CMSImageWidgetOptionsVO.POSITION_BAS_DROITE),
     ];
 
-    private mise_en_page_options: DataFilterOption[] = [
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_COUVRIR_LABEL), CMSImageWidgetOptionsVO.MISE_EN_PAGE_COUVRIR),
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_CONTENIR_LABEL), CMSImageWidgetOptionsVO.MISE_EN_PAGE_CONTENIR),
+    private mise_en_page_options: DataFilterOptionVO[] = [
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_COUVRIR_LABEL), CMSImageWidgetOptionsVO.MISE_EN_PAGE_COUVRIR),
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label(CMSImageWidgetOptionsVO.MISE_EN_PAGE_CONTENIR_LABEL), CMSImageWidgetOptionsVO.MISE_EN_PAGE_CONTENIR),
     ];
 
     private next_update_options: CMSImageWidgetOptionsVO = null;

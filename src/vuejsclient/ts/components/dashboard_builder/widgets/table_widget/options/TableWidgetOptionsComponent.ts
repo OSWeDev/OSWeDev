@@ -9,12 +9,13 @@ import { query } from '../../../../../../../shared/modules/ContextFilter/vos/Con
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
-import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import DataFilterOptionVO from '../../../../../../../shared/modules/DataRender/vos/DataFilterOptionVO';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
@@ -29,7 +30,6 @@ import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/Drop
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './TableWidgetOptionsComponent.scss';
 import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
-import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 @Component({
     template: require('./TableWidgetOptionsComponent.pug'),
@@ -96,10 +96,10 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private show_message_no_data: boolean = false;
     private message_no_data: string = null;
 
-    private tmp_default_export_option: DataFilterOption = null;
-    private export_page_options: DataFilterOption[] = [
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label('table_widget.choose_export_type.page'), 1),
-        new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label('table_widget.choose_export_type.all'), 2),
+    private tmp_default_export_option: DataFilterOptionVO = null;
+    private export_page_options: DataFilterOptionVO[] = [
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label('table_widget.choose_export_type.page'), 1),
+        new DataFilterOptionVO(DataFilterOptionVO.STATE_SELECTABLE, this.label('table_widget.choose_export_type.all'), 2),
     ];
     private tmp_has_default_export_option: boolean = false;
     private tmp_has_export_maintenance_alert: boolean = false;
@@ -151,12 +151,12 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         return res.map((c) => c.translatable_title);
     }
 
-    get segmentation_type_options(): DataFilterOption[] {
-        const res: DataFilterOption[] = [];
+    get segmentation_type_options(): DataFilterOptionVO[] {
+        const res: DataFilterOptionVO[] = [];
 
         for (const segmentation_type in TimeSegment.TYPE_NAMES_ENUM) {
-            const new_opt: DataFilterOption = new DataFilterOption(
-                DataFilterOption.STATE_SELECTABLE,
+            const new_opt: DataFilterOptionVO = new DataFilterOptionVO(
+                DataFilterOptionVO.STATE_SELECTABLE,
                 this.t(TimeSegment.TYPE_NAMES_ENUM[segmentation_type]),
                 parseInt(segmentation_type)
             );
@@ -680,7 +680,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
-    private filter_visible_label(dfo: DataFilterOption): string {
+    private filter_visible_label(dfo: DataFilterOptionVO): string {
         return dfo.label;
     }
 

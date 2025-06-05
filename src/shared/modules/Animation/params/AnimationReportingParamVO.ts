@@ -2,17 +2,17 @@
 
 import IAPIParamTranslator from "../../API/interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../../API/interfaces/IAPIParamTranslatorStatic";
-import DataFilterOption from "../../DataRender/vos/DataFilterOption";
+import DataFilterOptionVO from "../../DashboardBuilder/vos/widgets_options/tools/DataFilterOptionVO";
 
 export default class AnimationReportingParamVO implements IAPIParamTranslator<AnimationReportingParamVO> {
 
     public static fromParams(
-        filter_anim_theme_active_options: DataFilterOption[],
-        filter_anim_module_active_options: DataFilterOption[],
-        filter_role_active_options: DataFilterOption[],
-        filter_user_active_options: DataFilterOption[],
-        filter_module_termine_active_option: DataFilterOption,
-        filter_module_valide_active_option: DataFilterOption
+        filter_anim_theme_active_options: DataFilterOptionVO[],
+        filter_anim_module_active_options: DataFilterOptionVO[],
+        filter_role_active_options: DataFilterOptionVO[],
+        filter_user_active_options: DataFilterOptionVO[],
+        filter_module_termine_active_option: DataFilterOptionVO,
+        filter_module_valide_active_option: DataFilterOptionVO
     ): AnimationReportingParamVO {
         return new AnimationReportingParamVO(
             filter_anim_theme_active_options,
@@ -34,12 +34,12 @@ export default class AnimationReportingParamVO implements IAPIParamTranslator<An
     }
 
     public constructor(
-        public filter_anim_theme_active_options: DataFilterOption[],
-        public filter_anim_module_active_options: DataFilterOption[],
-        public filter_role_active_options: DataFilterOption[],
-        public filter_user_active_options: DataFilterOption[],
-        public filter_module_termine_active_option: DataFilterOption,
-        public filter_module_valide_active_option: DataFilterOption) {
+        public filter_anim_theme_active_options: DataFilterOptionVO[],
+        public filter_anim_module_active_options: DataFilterOptionVO[],
+        public filter_role_active_options: DataFilterOptionVO[],
+        public filter_user_active_options: DataFilterOptionVO[],
+        public filter_module_termine_active_option: DataFilterOptionVO,
+        public filter_module_valide_active_option: DataFilterOptionVO) {
     }
 }
 

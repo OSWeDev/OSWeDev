@@ -1,3 +1,4 @@
+import NumRange from "../../../../DataRender/vos/NumRange";
 import IDistantVOBase from "../../../../IDistantVOBase";
 import BorderStyleVO from "./BorderStyleVO";
 
@@ -25,17 +26,6 @@ export default class WidgetStyleVO implements IDistantVOBase {
     public bg_color_id: number;
 
     /**
-     * Le style du titre => ref de FontStyleVO
-     *  -> Anciennement fg_color_text sur les widgets de type filtre
-     */
-    public title_font_style_id: number;
-
-    /**
-     * Le padding du titre => ref de PaddingStyleVO
-     */
-    public title_padding_id: number;
-
-    /**
      * Le style de la bordure du widget
      */
     public border_style_id: BorderStyleVO;
@@ -44,4 +34,32 @@ export default class WidgetStyleVO implements IDistantVOBase {
      * Le padding => ref de PaddingStyleVO
      */
     public padding_style_id: number;
+
+    /**
+     * Refs de ClasseCSSVO
+     */
+    public widget_classe_id_ranges: NumRange[];
+
+    //#region title
+    /**
+     * Translatable field
+     */
+    public title: string;
+
+    /**
+     * Le style du titre => ref de FontStyleVO
+     *  -> Anciennement fg_color_text sur les widgets de type filtre
+     */
+    public title_font_style_id: number;
+
+    /**
+     * Refs de ClasseCSSVO
+     */
+    public title_classe_id_ranges: NumRange[];
+
+    /**
+     * Le padding du titre => ref de PaddingStyleVO
+     */
+    public title_padding_id: number;
+    //#endregion
 }

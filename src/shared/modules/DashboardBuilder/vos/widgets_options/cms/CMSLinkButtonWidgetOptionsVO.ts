@@ -9,10 +9,10 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
     public color: string;
     public text_color: string;
     public about_blank: boolean;
-    public radius: number; // Récurrent, unitandsize ?
-    public url_field_ref: VOFieldRefVO; // is_template ?is_url_field
-    public icone: string; // fa classes (classescssvos ? avec un type fa ??)
-    public is_url_field: boolean;// is_template ? YES
+    public radius: number;
+    public url_field_ref: VOFieldRefVO;
+    public icone: string;
+    public is_url_field: boolean;
     public role_access: RoleVO[];
     public button_class: string;
 

@@ -4,10 +4,7 @@ import AbstractVO from "../../VO/abstract/AbstractVO";
 export default class CMSLikeButtonWidgetOptionsVO extends AbstractVO {
 
     public color: string;
-
-    //user_list_id_ranges! (pas renommer osef)
     public user_list: NumRange[];
-
     public radius: number;
 
     public static createNew(

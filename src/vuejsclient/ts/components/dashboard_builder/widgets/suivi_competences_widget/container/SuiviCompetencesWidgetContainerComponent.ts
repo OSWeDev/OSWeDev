@@ -9,7 +9,7 @@ import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import SuiviCompetencesWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/SuiviCompetencesWidgetOptionsVO';
-import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import DataFilterOptionVO from '../../../../../../../shared/modules/DataRender/vos/DataFilterOptionVO';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import ModuleSuiviCompetences from '../../../../../../../shared/modules/SuiviCompetences/ModuleSuiviCompetences';
 import SuiviCompetencesGroupeResult from '../../../../../../../shared/modules/SuiviCompetences/apis/SuiviCompetencesGroupeResult';
@@ -59,8 +59,8 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
     private filtered_groupes: SuiviCompetencesGroupeResult[] = [];
     private rapport_item_by_ids: { [item_id: number]: SuiviCompetencesItemRapportVO } = {};
     private all_rapport_item_by_ids: { [item_id: number]: SuiviCompetencesItemRapportVO } = {};
-    private indicateur_option_rapport_item_by_ids: { [item_id: number]: DataFilterOption } = {};
-    private indicateur_options_by_item_ids: { [item_id: number]: DataFilterOption[] } = {};
+    private indicateur_option_rapport_item_by_ids: { [item_id: number]: DataFilterOptionVO } = {};
+    private indicateur_options_by_item_ids: { [item_id: number]: DataFilterOptionVO[] } = {};
 
     get widget_options(): SuiviCompetencesWidgetOptionsVO {
         if (!this.page_widget) {
@@ -286,13 +286,13 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
 
     private reload_indicateur_option_rapport_item_by_ids() {
 
-        let res: { [item_id: number]: DataFilterOption } = {};
+        let res: { [item_id: number]: DataFilterOptionVO } = {};
 
         for (let i in this.rapport_item_by_ids) {
             let item_site: SuiviCompetencesItemRapportVO = this.rapport_item_by_ids[i];
 
             if (item_site.indicateur != null) {
-                res[item_site.suivi_comp_item_id] = this.indicateur_options_by_item_ids[item_site.suivi_comp_item_id].find((indicateur: DataFilterOption) => {
+                res[item_site.suivi_comp_item_id] = this.indicateur_options_by_item_ids[item_site.suivi_comp_item_id].find((indicateur: DataFilterOptionVO) => {
                     return indicateur.id == item_site.indicateur;
                 });
             }
@@ -302,7 +302,7 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
     }
 
     private reload_indicateur_options_by_item_ids() {
-        let res: { [item_id: number]: DataFilterOption[] } = {};
+        let res: { [item_id: number]: DataFilterOptionVO[] } = {};
 
         for (let i in this.all_groupes) {
             for (let j in this.all_groupes[i].sous_groupe) {
@@ -315,13 +315,13 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
                         continue;
                     }
 
-                    let indicateurs: DataFilterOption[] = [];
+                    let indicateurs: DataFilterOptionVO[] = [];
 
                     for (let i_idx in indicateurs_item) {
                         let indicateur: SuiviCompetencesIndicateurVO = indicateurs_item[i_idx];
 
-                        indicateurs.push(new DataFilterOption(
-                            DataFilterOption.STATE_SELECTABLE,
+                        indicateurs.push(new DataFilterOptionVO(
+                            DataFilterOptionVO.STATE_SELECTABLE,
                             indicateur.titre,
                             (parseInt(i_idx) + 1),
                             false,

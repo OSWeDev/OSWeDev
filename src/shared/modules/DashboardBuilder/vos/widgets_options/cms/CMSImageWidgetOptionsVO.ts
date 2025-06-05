@@ -28,7 +28,7 @@ export default class CMSImageWidgetOptionsVO extends AbstractVO {
     public static MISE_EN_PAGE_CONTENIR_LABEL: string = 'cms_image.mise_en_page.contenir';
 
     public file_id: number;
-    public radius: number; // à voir si c'est redondant avec le borderstyle du widget en round corners mais c'est pas dit
+    public radius: number;
     public use_for_template: boolean;
     public field_ref_for_template: VOFieldRefVO;
     public position: number;

@@ -19,7 +19,9 @@ import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuil
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import AdvancedRefFieldFilter from '../../../../../../../shared/modules/DashboardBuilder/vos/widgets_options/advanced_filters/AdvancedRefFieldFilter';
+import AdvancedStringFilter from '../../../../../../../shared/modules/DashboardBuilder/vos/widgets_options/advanced_filters/AdvancedStringFilter';
+import DataFilterOptionVO from '../../../../../../../shared/modules/DataRender/vos/DataFilterOptionVO';
 import TSRange from '../../../../../../../shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -33,8 +35,6 @@ import MultipleVoFieldRefHolderComponent from '../../../options_tools/multiple_v
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import BooleanFilter from '../boolean/BooleanFilter';
-import AdvancedStringFilter from '../../../../../../../shared/modules/DashboardBuilder/vos/widgets_options/advanced_filters/AdvancedStringFilter';
-import AdvancedRefFieldFilter from '../../../../../../../shared/modules/DashboardBuilder/vos/widgets_options/advanced_filters/AdvancedRefFieldFilter';
 import './FieldValueFilterWidgetOptionsComponent.scss';
 
 @Component({
@@ -116,14 +116,14 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
     private max_visible_options: number = null;
     private checkbox_columns: number = null;
-    private tmp_segmentation_type: DataFilterOption = null;
+    private tmp_segmentation_type: DataFilterOptionVO = null;
 
-    private tmp_default_showed_filter_opt_values: DataFilterOption[] = [];
-    private tmp_default_filter_opt_values: DataFilterOption[] = [];
+    private tmp_default_showed_filter_opt_values: DataFilterOptionVO[] = [];
+    private tmp_default_filter_opt_values: DataFilterOptionVO[] = [];
     private tmp_default_ts_range_values: TSRange = null;
     private tmp_default_boolean_values: number[] = [];
 
-    private tmp_exclude_filter_opt_values: DataFilterOption[] = [];
+    private tmp_exclude_filter_opt_values: DataFilterOptionVO[] = [];
     private tmp_exclude_ts_range_values: TSRange = null;
 
     private enum_bg_colors: { [enum_value: number]: string } = {};
@@ -147,8 +147,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private can_select_all: boolean = false;
     private can_select_none: boolean = false;
 
-    private default_filter_visible_options: DataFilterOption[] = [];
-    private filter_visible_options: DataFilterOption[] = [];
+    private default_filter_visible_options: DataFilterOptionVO[] = [];
+    private filter_visible_options: DataFilterOptionVO[] = [];
     private actual_query: string = null;
 
     private next_update_options: FieldValueFilterWidgetOptionsVO = null;
@@ -294,12 +294,12 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return this.widget_options.get_placeholder_name_code_text(this.page_widget.id);
     }
 
-    get segmentation_type_options(): DataFilterOption[] {
-        const res: DataFilterOption[] = [];
+    get segmentation_type_options(): DataFilterOptionVO[] {
+        const res: DataFilterOptionVO[] = [];
 
         for (const segmentation_type in TimeSegment.TYPE_NAMES_ENUM) {
-            const new_opt: DataFilterOption = new DataFilterOption(
-                DataFilterOption.STATE_SELECTABLE,
+            const new_opt: DataFilterOptionVO = new DataFilterOptionVO(
+                DataFilterOptionVO.STATE_SELECTABLE,
                 this.t(TimeSegment.TYPE_NAMES_ENUM[segmentation_type]),
                 parseInt(segmentation_type)
             );
@@ -1502,7 +1502,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         }
 
         const field_sort: VOFieldRefVO = this.vo_field_sort ? this.vo_field_sort : this.vo_field_ref;
-        let data_filters: DataFilterOption[] = [];
+        let data_filters: DataFilterOptionVO[] = [];
 
         if (this.is_type_enum) {
             // Load data_filters for enum
@@ -1584,9 +1584,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         }
 
         if (this.add_is_null_selectable) {
-            data_filters.unshift(new DataFilterOption(
-                DataFilterOption.STATE_SELECTABLE,
-                this.label('datafilteroption.is_null'),
+            data_filters.unshift(new DataFilterOptionVO(
+                DataFilterOptionVO.STATE_SELECTABLE,
+                this.label('datafilteroptionDataFilterOptionVO.is_null'),
                 RangeHandler.MIN_INT,
             ));
         }
@@ -1602,8 +1602,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             for (const i in this.default_enum_filter_options) {
                 const label = this.default_enum_filter_options[i];
 
-                const data_filter = new DataFilterOption().from({
-                    select_state: DataFilterOption.STATE_SELECTABLE,
+                const data_filter = new DataFilterOptionVO().from({
+                    select_state: DataFilterOptionVO.STATE_SELECTABLE,
                     numeric_value: parseInt(i),
                     string_value: label,
                     label: this.t(label),
@@ -1634,7 +1634,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return null;
     }
 
-    private filter_visible_label(dfo: DataFilterOption): string {
+    private filter_visible_label(dfo: DataFilterOptionVO): string {
         return dfo.label;
     }
 
@@ -1663,7 +1663,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.show_hide_enum_color_options = !this.show_hide_enum_color_options;
     }
 
-    private getStyle(dfo: DataFilterOption) {
+    private getStyle(dfo: DataFilterOptionVO) {
         if (!dfo) {
             return null;
         }

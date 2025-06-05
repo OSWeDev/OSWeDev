@@ -12,8 +12,6 @@ import OneToManyReferenceDatatableFieldVO from '../../DAO/vos/datatable/OneToMan
 import RefRangesReferenceDatatableFieldVO from '../../DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
 import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import FieldFiltersVO from '../../DashboardBuilder/vos/FieldFiltersVO';
-import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
-import DataFilterOption from '../../DataRender/vos/DataFilterOption';
 import TSRange from '../../DataRender/vos/TSRange';
 import TimeSegment from '../../DataRender/vos/TimeSegment';
 import Dates from '../../FormatDatesNombres/Dates/Dates';
@@ -24,6 +22,7 @@ import ContextFilterVO from '../vos/ContextFilterVO';
 import ContextQueryFieldVO from '../vos/ContextQueryFieldVO';
 import { query } from '../vos/ContextQueryVO';
 import { field_names } from '../../../tools/ObjectHandler';
+import DataFilterOptionVO from '../../DashboardBuilder/vos/widgets_options/tools/DataFilterOptionVO';
 
 /**
  * ContextFilterVOHandler
@@ -593,7 +592,7 @@ export default class ContextFilterVOHandler {
     }
 
     public static add_context_filters_exclude_values(
-        exclude_values: DataFilterOption[],
+        exclude_values: DataFilterOptionVO[],
         vo_field_ref: VOFieldRefVO,
         query_filters: ContextFilterVO[],
         concat_exclude_values: boolean
@@ -611,7 +610,7 @@ export default class ContextFilterVOHandler {
         for (const j in exclude_values) {
             const active_option = exclude_values[j];
 
-            const new_exclude_values = ContextFilterVOHandler.get_ContextFilterVO_from_DataFilterOption(active_option, null, field, vo_field_ref);
+            const new_exclude_values = ContextFilterVOHandler.get_ContextFilterVO_from_DataFilterOptionVO(active_option, null, field, vo_field_ref);
 
             if (!new_exclude_values) {
                 continue;
@@ -701,7 +700,7 @@ export default class ContextFilterVOHandler {
      * @deprecated We must use a Factory to create Objects depending on properties (the right way)
      * @use ContextFilterVOManager.create_context_filter_from_data_filter_option instead
      */
-    public static get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableFieldVO, vo_field_ref: VOFieldRefVO): ContextFilterVO {
+    public static get_ContextFilterVO_from_DataFilterOptionVO(active_option: DataFilterOptionVO, ts_range: TSRange, field: ModuleTableFieldVO, vo_field_ref: VOFieldRefVO): ContextFilterVO {
         return ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, ts_range, field, vo_field_ref);
     }
 

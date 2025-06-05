@@ -24,7 +24,6 @@ import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableField
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
-import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import StatsController from '../../../shared/modules/Stats/StatsController';
@@ -58,6 +57,7 @@ import ContextAccessServerController from './ContextAccessServerController';
 import ContextFieldPathServerController from './ContextFieldPathServerController';
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
+import DataFilterOptionVO from '../../../shared/modules/DashboardBuilder/vos/widgets_options/tools/DataFilterOptionVO';
 
 export default class ContextQueryServerController {
 
@@ -544,19 +544,19 @@ export default class ContextQueryServerController {
     }
 
     /**
-     * Filtrer des datafilteroption (pour les filtrages type multiselect) avec les context filters, en indiquant obligatoirement le champs ciblé
+     * Filtrer des DataFilterOptionVO (pour les filtrages type multiselect) avec les context filters, en indiquant obligatoirement le champs ciblé
      * @param context_query le champs fields doit être rempli avec un seul champs, celui qui correspond au filtrage du multiselect, et l'alias "label" a priori
      */
     public static async select_filter_visible_options(
         context_query: ContextQueryVO,
         actual_query: string
-    ): Promise<DataFilterOption[]> {
+    ): Promise<DataFilterOptionVO[]> {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');
         }
 
-        const res: DataFilterOption[] = [];
+        const res: DataFilterOptionVO[] = [];
 
         if (!context_query.base_api_type_id) {
             throw new Error('Invalid context_query param');
@@ -613,7 +613,7 @@ export default class ContextQueryServerController {
         // Anonymisation déjà faite par le select_datatable_rows
         for (const i in query_res) {
             const res_field = query_res[i] ? query_res[i][field.alias] : null;
-            const line_options: DataFilterOption[] = ContextQueryFieldServerController.translate_db_res_to_dataoption(field, res_field);
+            const line_options: DataFilterOptionVO[] = ContextQueryFieldServerController.translate_db_res_to_dataoption(field, res_field);
 
             if (line_options) {
                 res.push(...line_options);
