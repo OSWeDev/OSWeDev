@@ -710,6 +710,7 @@ export default class VueComponentBase extends Vue
 
         // Attend que Vue ait faire le nécessaire pour que le DOM soit à jour
         this.$nextTick(() => {
+
             if (!document.querySelector(class_selector)) {
                 return;
             }
