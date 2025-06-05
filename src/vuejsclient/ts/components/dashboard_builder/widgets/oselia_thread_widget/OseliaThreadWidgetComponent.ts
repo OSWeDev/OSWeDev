@@ -239,8 +239,26 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     @Watch(reflect<OseliaThreadWidgetComponent>().thread, { immediate: true })
-    private async onchange_thread() {
+    private async onchange_thread(new_thread: GPTAssistantAPIThreadVO, old_thread: GPTAssistantAPIThreadVO) {
+        if (!new_thread) {
+            await this.unregister_all_vo_event_callbacks();
+            this.current_thread_id = null;
+            return;
+        }
+
+        if (!!old_thread && (old_thread.id === new_thread.id)) {
+            return;
+        }
         this.throttle_register_thread();
+    }
+
+    @Watch(reflect<OseliaThreadWidgetComponent>().thread_messages, { deep: true })
+    private on_thread_messages_change(new_messages: GPTAssistantAPIThreadMessageVO[], old_messages: GPTAssistantAPIThreadMessageVO[]) {
+        if (!old_messages || (new_messages.length > old_messages.length)) {
+            this.$nextTick(() => {
+                this.scroll_to_bottom();
+            });
+        }
     }
 
     @Watch(reflect<OseliaThreadWidgetComponent>().data_received)

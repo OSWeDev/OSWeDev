@@ -48,6 +48,9 @@ import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVC
 import IPlanRDV from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
+import GPTRealtimeAPISessionVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO';
+import GPTRealtimeAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionVO';
+import GPTRealtimeAPIFunctionParametersVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionParametersVO';
 /** Structure interne d'une conversation */
 interface ConversationContext {
     openaiSocket: WebSocket;
@@ -56,6 +59,7 @@ interface ConversationContext {
     cr_vo?: IPlanRDVCR;
     cr_field_titles?: string[];
     current_user: UserVO;
+    current_thread_id: string;
 }
 export default class GPTAssistantAPIServerController {
 
@@ -1169,16 +1173,22 @@ export default class GPTAssistantAPIServerController {
     public static async connect_to_realtime_voice(
         session_id: string,
         conversation_id: string,
+        thread_id: string,
         user_id: number): Promise<void> {
         try {
-            // Dans tout les cas on créer une websocket avec une nouvelle session
-            // On ne peut pas rejoindre une session existante, il faut en créer une nouvelle à chaque fois
-            await this.create_realtime_session(conversation_id, user_id);
-            // if(!session_id) {
-            //     await this.create_realtime_session();
-            // } else {
-            //     await this.join_realtime_session(session_id, conversation_id, user_id);
-            // }
+            let session: GPTRealtimeAPISessionVO = null;
+            if (!session_id || !conversation_id || !thread_id || !user_id) {
+                ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: Invalid parameters');
+                return;
+            }
+
+            if (session_id) {
+                session = await query(GPTRealtimeAPISessionVO.API_TYPE_ID)
+                    .filter_by_id(parseInt(session_id))
+                    .exec_as_server()
+                    .select_vo<GPTRealtimeAPISessionVO>();
+            }
+            await this.create_realtime_session(session, conversation_id, thread_id, user_id);
         } catch(error) {
             ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: ' + error);
         }
@@ -1189,8 +1199,34 @@ export default class GPTAssistantAPIServerController {
      * Initialise (si besoin) le serveur WebSocket local **et** la socket OpenAI pour la conversation.
      * @param conversationId identifiant logique de la conversation – un seul par socket OpenAI
      */
-    private static async create_realtime_session(conversationId: string, user_id: number): Promise<void> {
+    private static async create_realtime_session(session: GPTRealtimeAPISessionVO, conversationId: string, thread_id: string, user_id: number): Promise<void> {
         try {
+            let session_functions: GPTRealtimeAPIFunctionVO[] = [];
+            let params_by_function_id: Record<number, GPTRealtimeAPIFunctionParametersVO[]> = {};
+            if (!session) {
+                ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: Invalid session');
+                return;
+            } else {
+                session_functions = await query(GPTRealtimeAPIFunctionVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<GPTRealtimeAPIFunctionVO>().session_id, session.id)
+                    .exec_as_server()
+                    .select_vos<GPTRealtimeAPIFunctionVO>();
+                const functionIds = session_functions.map(f => f.id);
+
+                const sessionFunctionParams: GPTRealtimeAPIFunctionParametersVO[] = [];
+                for (const func of session_functions) {
+                    sessionFunctionParams.push(...await query(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID)
+                        .filter_by_num_eq(field_names<GPTRealtimeAPIFunctionParametersVO>().function_id, func.id)
+                        .exec_as_server()
+                        .select_vos<GPTRealtimeAPIFunctionParametersVO>());
+                }
+
+                params_by_function_id =
+                    sessionFunctionParams.reduce((acc, p) => {
+                        (acc[p.function_id] ||= []).push(p);
+                        return acc;
+                    }, {} as Record<number, GPTRealtimeAPIFunctionParametersVO[]>);
+            }
             /* ────────────────────────────────────────────────────────────────
             0)  Récupère l’utilisateur courant pour l’injecter dans le contexte
             ──────────────────────────────────────────────────────────────────*/
@@ -1232,6 +1268,7 @@ export default class GPTAssistantAPIServerController {
                                     return;
                                 }
                                 convCtx.clients.add(clientSocket);
+                                convCtx.current_thread_id = thread_id;
                                 /* replay tous les messages manqués */
                                 for (const bufferedMsg of convCtx.buffered) {
                                     clientSocket.send(JSON.stringify(bufferedMsg));
@@ -1301,7 +1338,7 @@ export default class GPTAssistantAPIServerController {
             // 3) ----------------------------------------------------------------------
             //    Ouverture de la socket OpenAI pour cette conversation
             const openaiSocket = new WebSocket(
-                'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17',
+                'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2025-06-03',
                 {
                     headers: {
                         Authorization: `Bearer ${ConfigurationService.node_configuration.open_api_api_key}`,
@@ -1314,7 +1351,8 @@ export default class GPTAssistantAPIServerController {
                 openaiSocket,
                 clients: new Set<WebSocket>(),
                 buffered: [],
-                current_user
+                current_user,
+                current_thread_id: thread_id,
             } as const;
             this.conversations.set(conversationId, convCtx);
 
@@ -1351,165 +1389,74 @@ export default class GPTAssistantAPIServerController {
                 // ► relance la génération (texte + audio suivant les préférences)
                 openaiSocket.send(JSON.stringify({ type: 'response.create', response: { modalities: ['text', 'audio'] }}));
             };
+            const tools: {
+                type: string,
+                name: string,
+                description: string,
+                parameters: {
+                    type: string,
+                    properties: object,
+                    required: string[],
+                }
+            }[] = [];
 
+            for (const func of session_functions) {
+                tools.push({
+                    type: 'function',
+                    name: func.name,
+                    description: func.description,
+                    parameters: {
+                        type: 'object',
+                        properties: params_by_function_id[func.id].reduce((acc, param) => {
+                            acc[param.name] = {
+                                type: GPTRealtimeAPIFunctionParametersVO.TYPE_TO_OPENAI[param.type],
+                                description: param.description,
+                            };
+                            return acc;
+                        }, {} as Record<string, { type: string; description: string }>),
+                        required: params_by_function_id[func.id].filter(p => p.required).map(p => p.name),
+                    },
+                });
+            }
             // — Socket OPEN ------------------------------------------------------------
             openaiSocket.once('open', () => {
                 const sessionUpdate = {
                     type: 'session.update',
                     session: {
-                        modalities: ['text', 'audio'],
-                        output_audio_format: 'pcm16',
-                        input_audio_transcription: { model: 'whisper-1' },
-                        input_audio_format: 'pcm16',
+                        modalities: session.modalities ? session.modalities : ['text', 'audio'],
+                        output_audio_format: session.output_audio_format ? session.output_audio_format : 'pcm16',
+                        input_audio_transcription: {  model: session.input_audio_transcription_model ? session.input_audio_transcription_model: 'whisper-1' },
+                        input_audio_format: session.input_audio_format ? session.input_audio_format : 'pcm16',
                         turn_detection: {
-                            type: 'server_vad',
-                            threshold: 0.5,
-                            silence_duration_ms: 400,
-                            prefix_padding_ms: 150,
+                            type: session.turn_detection_type ? session.turn_detection_type : 'server_vad',
+                            threshold: session.turn_detection_threshold ? session.turn_detection_threshold : 0.5,
+                            silence_duration_ms: session.turn_detection_silence_duration_ms ? session.turn_detection_silence_duration_ms : 400,
+                            prefix_padding_ms: session.turn_detection_prefix_padding_ms ? session.turn_detection_prefix_padding_ms : 150,
                             create_response: true,
                             interrupt_response: true,
                         },
-                        voice: 'shimmer',
-                        instructions: [
-                            "Tu es Osélia, assistant de rédaction de compte rendu ; réponds avec un ton amical, ultra-concis (≤ 2 phrases, sauf cas complexe).",
-                            "Évite les pauses et tournures inutiles ; va droit au but.",
-                            "Si l’utilisateur te tutoie, tutoie-le en retour.",
-                            "Lorsque tu dois citer le prénom de l’utilisateur pour la première fois, appelle la fonction « get_current_user_name ».",
-                            "Avant toute action : 1) récupère la liste des titres du compte rendu ; 2) identifie la section concernée ; 3) récupère son contenu.",
-                            "Modifie une section sans demander d’accord si la demande est claire.",
-                            "Si la section n’existe pas : cherche une correspondance proche ; s’il y en a une, demande confirmation ; sinon, demande quelle section viser.",
-                            "Après chaque modification, vérifie si d’autres sections doivent être ajustées pour rester cohérent.",
-                            "Lorsque l’utilisateur demande de remplir des champs vides : pose une seule question à la fois, dans l’ordre des sections.",
-                            "Quand la conversation débute, propose à l'utilisateur de l'aider à remplir les champs vides du compte rendu.",
-                            "Si l’utilisateur te demande de modifier le consultant, appelle la fonction « set_current_consultant » avec le nom du consultant.",
-                            "Si l'utilisateur te demande de l'aider à remplir les champs vides, propose-lui de le faire section par section.",
-                            "Avant de modifier une section, vérifie son contenu actuel avec « get_current_cr_field » et repère s'il y a des endroits qui attendent d'être compléter.",
-                            "Si tu détectes une incohérence (dates, client, montants…), pose immédiatement une question de clarification avant de modifier.",
-                            "Pose-toi en permanence : « Le contenu est-il au bon endroit ? » et « Cela impacte-t-il une autre section ? »."
-
-                        ].join(' '),
-                        tools: [
-                            {
-                                type: 'function',
-                                name: 'edit_cr_word',
-                                description: 'Remplace le contenu d’une section du compte‑rendu.',
-                                parameters: {
-                                    type: 'object',
-                                    properties: {
-                                        new_content: {
-                                            type: 'string',
-                                            description: 'Nouveau contenu HTML (listes, gras, etc.).',
-                                        },
-                                        section: {
-                                            type: 'string',
-                                            description: 'Nom de la section à modifier.',
-                                        },
-                                        confidence: {
-                                            type: 'number',
-                                            description: '% de Confiance de l’assistant, de 0 à 100.',
-                                        }
-                                    },
-                                    required: ['new_content', 'section', 'confidence'],
-                                },
-                            },
-                            {
-                                type: 'function',
-                                name: 'get_cr_field_titles',
-                                description: 'Renvoie la liste des titres de sections.',
-                                parameters: {
-                                    type: 'object',
-                                    properties: {
-                                        confidence: {
-                                            type: 'number',
-                                            description: '% de Confiance de l’assistant, de 0 à 100.',
-                                        }
-                                    },
-                                    required: ['confidence'],
-                                }
-                            },
-                            {
-                                type: 'function',
-                                name: 'get_current_cr_field',
-                                description: 'Renvoie le contenu actuel d’une section.',
-                                parameters: {
-                                    type: 'object',
-                                    properties: {
-                                        section: { type: 'string', description: 'Section à récupérer.' },
-                                        confidence: {
-                                            type: 'number',
-                                            description: '% de Confiance de l’assistant, de 0 à 100.',
-                                        }
-                                    },
-                                    required: ['section', 'confidence'],
-                                },
-                            },
-                            {
-                                type: 'function',
-                                name: 'get_current_user_name',
-                                description: "Renvoie le prénom de l’utilisateur connecté.",
-                                parameters: {
-                                    type: 'object',
-                                    properties: {
-                                        confidence: {
-                                            type: 'number',
-                                            description: '% de Confiance de l’assistant, de 0 à 100.',
-                                        }
-                                    },
-                                    required: ['confidence'],
-                                },
-                            },
-                            {
-                                type: 'function',
-                                name: 'get_current_consultant',
-                                description: "Renvoie le consultant lié au compte rendu.",
-                                parameters: {
-                                    type: 'object',
-                                    properties: {
-                                        confidence: {
-                                            type: 'number',
-                                            description: '% de Confiance de l’assistant, de 0 à 100.',
-                                        }
-                                    },
-                                    required: ['confidence'],
-                                },
-                            },
-                            {
-                                type: 'function',
-                                name: 'get_all_consultants',
-                                description: "Renvoie les prénoms de tous les consultants existants.",
-                                parameters: {
-                                    type: 'object',
-                                    properties: {
-                                        confidence: {
-                                            type: 'number',
-                                            description: '% de Confiance de l’assistant, de 0 à 100.',
-                                        }
-                                    },
-                                    required: ['confidence'],
-                                },
-                            },
-                            {
-                                type: 'function',
-                                name: 'set_current_consultant',
-                                description: "Modifie le consultant lié au compte rendu.",
-                                parameters: {
-                                    type: 'object',
-                                    properties: {
-                                        consultant_name: { type: 'string', description: 'Nom du nouveau consultant. Attention, il doit être présent dans les consultants existants' },
-                                        confidence: {
-                                            type: 'number',
-                                            description: '% de Confiance de l’assistant, de 0 à 100.',
-                                        }
-                                    },
-                                    required: ['consultant_name', 'confidence'],
-                                },
-                            },
-                        ],
+                        voice: session.voice ? session.voice : 'shimmer',
+                        instructions: session.instructions ? session.instructions : 'Vous êtes un assistant virtuel.',
+                        tools: [...tools],
                         tool_choice: 'auto',
                     },
                 } as const;
 
                 openaiSocket.send(JSON.stringify(sessionUpdate));
+                openaiSocket.send(JSON.stringify({
+                    type: 'conversation.item.create',
+                    item: {
+                        id: newItemId(),
+                        type: 'message',
+                        role: 'system',
+                        content: [
+                            {
+                                type: "input_text",
+                                text: "Désormais, parle comme une vidéo en X2, sans hésitations, sans répétitions, sans pauses inutiles, sans respiration. Je ne te demande pas changer ta façon de faire, mais simplement ta façon de parler.",
+                            }
+                        ],
+                    },
+                }));
             });
 
             // ——————————————————————————————————————————
@@ -1674,6 +1621,18 @@ export default class GPTAssistantAPIServerController {
                                     );
                                 break;
                             }
+                            // case 'set_comprehension': {
+                            //     if (!args.text_comprehended || args.text_comprehended.length === 0) {
+                            //         output = { error: 'Le texte à mettre à jour ne peut pas être vide.' };
+                            //         break;
+                            //     }
+                            //     output = await ModuleGPT.getInstance().insert_comprehended_text(
+                            //         convCtx.current_thread_id,
+                            //         args.text_comprehended,
+                            //         convCtx.current_user.id
+                            //     );
+                            //     break;
+                            // }
                             default:
                                 output = { error: `Fonction inconnue : ${fnName}` };
                         }
@@ -1697,7 +1656,25 @@ export default class GPTAssistantAPIServerController {
                     return;
                 }
 
-                // 6) — Tout le reste : broadcast JSON tel quel
+                // 6) Transcription audio
+                if (msg?.type === 'response.audio_transcript.done' && msg.transcript) {
+                    this.send_transcription_to_thread(
+                        convCtx.current_thread_id,
+                        msg.transcript,
+                        convCtx.current_user.id,
+                        true
+                    );
+                }
+
+                if (msg?.type === 'conversation.item.input_audio_transcription.completed') {
+                    this.send_transcription_to_thread(
+                        convCtx.current_thread_id,
+                        msg.transcript,
+                        convCtx.current_user.id,
+                    );
+                }
+
+                // 7) — Tout le reste : broadcast JSON tel quel
                 for (const c of clients) if (c.readyState === WebSocket.OPEN) c.send(JSON.stringify(msg));
             });
 
@@ -1726,6 +1703,63 @@ export default class GPTAssistantAPIServerController {
         } catch (error) {
             ConsoleHandler.error('GPTAssistantAPIServerController.resync_thread_messages: ' + error);
         }
+    }
+
+    private static async send_transcription_to_thread(
+        thread_id: string,
+        transcription: string,
+        user_id: number,
+        from_oselia?: boolean
+    ) {
+        if (!transcription || transcription.length === 0) {
+            return;
+        }
+
+        const thread_vo: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(parseInt(thread_id))
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!thread_vo) {
+            ConsoleHandler.error('send_transcription_to_thread: Thread not found');
+            return;
+        }
+
+
+        const last_thread_msg: GPTAssistantAPIThreadMessageVO = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
+            .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
+            .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, true))
+            .set_limit(1)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadMessageVO>();
+
+        const asking_message_vo = new GPTAssistantAPIThreadMessageVO();
+        asking_message_vo.date = Dates.now();
+        asking_message_vo.gpt_thread_id = thread_vo.gpt_thread_id;
+        asking_message_vo.thread_id = thread_vo.id;
+        asking_message_vo.weight = last_thread_msg ? last_thread_msg.weight + 1 : 0;
+        if (from_oselia) {
+            asking_message_vo.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
+        } else {
+            asking_message_vo.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
+        }
+        asking_message_vo.user_id = user_id ? user_id : thread_vo.user_id;
+        asking_message_vo.is_ready = false;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(asking_message_vo);
+
+        const message_content = new GPTAssistantAPIThreadMessageContentVO();
+        message_content.thread_message_id = asking_message_vo.id;
+        message_content.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+        message_content.content_type_text.value = transcription;
+        message_content.gpt_thread_message_id = asking_message_vo.gpt_id;
+        message_content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+        message_content.weight = 0;
+        message_content.hidden = false;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message_content);
+
+        asking_message_vo.is_ready = true;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(asking_message_vo);
     }
 
     private static async close_thread_oselia(thread_vo: GPTAssistantAPIThreadVO) {

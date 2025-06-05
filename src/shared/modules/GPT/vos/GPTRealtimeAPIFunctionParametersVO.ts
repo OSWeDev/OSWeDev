@@ -46,6 +46,7 @@ export default class GPTRealtimeAPIFunctionParametersVO implements IDistantVOBas
     public id: number;
     public _type: string = GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID;
     public name: string;
+    public description: string;
     public function_id: number;
 
     public required: boolean;

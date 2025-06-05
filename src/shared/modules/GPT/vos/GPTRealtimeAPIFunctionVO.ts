@@ -13,4 +13,5 @@ export default class GPTRealtimeAPIFunctionVO implements IDistantVOBase {
     public type: string = "function";
     public name: string;
     public description: string;
+    public session_id: number;
 }

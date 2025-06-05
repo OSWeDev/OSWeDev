@@ -13,6 +13,7 @@ import { query } from '../../../../../../shared/modules/ContextFilter/vos/Contex
 import GPTAssistantAPIAssistantVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
 import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import VueAppBaseInstanceHolder from '../../../../../VueAppBaseInstanceHolder';
+import GPTRealtimeAPISessionVO from '../../../../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO';
 
 export default class OseliaRealtimeController {
 
@@ -39,6 +40,7 @@ export default class OseliaRealtimeController {
     private currentItemId: string|null = null;
     private queue: Uint8Array[] = [];
     private isPlaying = false;
+    private session_id: number | null = null;
     /**  Garantit qu’une seule opération (connect ou disconnect) s’exécute à la fois. */
     private ready: Promise<void> = Promise.resolve();
 
@@ -172,9 +174,15 @@ export default class OseliaRealtimeController {
     private async connect_to_server(gpt_thread_id: string | null) {
         if (this.is_connected_to_realtime) return;
         try {
+            if (this.in_cr_context) {
+                this.session_id = (await query(GPTRealtimeAPISessionVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<GPTRealtimeAPISessionVO>().name, ModuleOselia.OSELIA_REALTIME_CR_SESSION_NAME)
+                    .select_vo<GPTRealtimeAPISessionVO>()).id;
+            }
             await ModuleGPT.getInstance().connect_to_realtime_voice(
-                null,
+                String(this.session_id),
                 gpt_thread_id,
+                String(this.call_thread.id),
                 VueAppController.getInstance().data_user.id
             );
 

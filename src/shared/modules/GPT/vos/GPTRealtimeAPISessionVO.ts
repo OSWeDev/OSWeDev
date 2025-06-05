@@ -11,6 +11,7 @@ export default class GPTRealtimeAPISessionVO implements IDistantVOBase {
     // The Unix timestamp (in seconds) for when the thread was created.
     public created_at: number;
 
+    public name: string;
     // Timestamp for when the token expires. Currently, all tokens expire after one minute.
     public client_secret_expires_at: string;
 
