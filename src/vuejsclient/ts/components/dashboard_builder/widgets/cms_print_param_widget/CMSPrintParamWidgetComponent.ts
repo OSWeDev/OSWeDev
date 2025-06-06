@@ -32,7 +32,7 @@ export default class CMSPrintParamWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
-    private titre: string = null;
+    private print_titre: string = null;
     private type_param: number = null;
     private param: ParamVO = null;
 
@@ -59,13 +59,13 @@ export default class CMSPrintParamWidgetComponent extends VueComponentBase {
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.widget_options) {
-            this.titre = "";
+            this.print_titre = "";
             this.type_param = null;
             this.param = null;
             return;
         }
 
-        this.titre = this.widget_options.titre;
+        this.print_titre = this.widget_options.print_titre;
         this.type_param = this.widget_options.type_param;
         this.param = this.widget_options.param;
 

@@ -1,23 +1,25 @@
-import NumRange from "../../DataRender/vos/NumRange";
-import AbstractVO from "../../VO/abstract/AbstractVO";
+import NumRange from "../../../../DataRender/vos/NumRange";
+import ColorVO from "../styles/ColorVO";
+import SizeAndUnitVO from "../styles/SizeAndUnitVO";
+import WidgetOptionsBaseVO from "../WidgetOptionsBaseVO";
 
-export default class CMSLikeButtonWidgetOptionsVO extends AbstractVO {
+export default class CMSLikeButtonWidgetOptionsVO extends WidgetOptionsBaseVO {
 
-    public color: string;
+    public static API_TYPE_ID: string = "cms_like_button_widget_options";
+    public _type: string = CMSLikeButtonWidgetOptionsVO.API_TYPE_ID;
+
+    /**
+     * Anciennement color
+     */
+    public color_id: ColorVO;
+
+    /**
+     * Liste des utilisateurs qui ont liké
+     */
     public user_list: NumRange[];
-    public radius: number;
 
-    public static createNew(
-        color: string,
-        user_list: NumRange[],
-        radius: number
-    ): CMSLikeButtonWidgetOptionsVO {
-        const res = new CMSLikeButtonWidgetOptionsVO();
-
-        res.color = color;
-        res.user_list = user_list;
-        res.radius = radius;
-
-        return res;
-    }
+    /**
+     * Anciennement radius number
+     */
+    public radius: SizeAndUnitVO;
 }

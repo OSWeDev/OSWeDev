@@ -5,7 +5,7 @@ export default class CMSBooleanButtonWidgetOptionsVO extends AbstractVO {
 
     public title_ok: string;
     public title_nok: string;
-    public color: string;
+    public color: string; // bg ou ?
     public text_color: string;
     public vo_field_ref: VOFieldRefVO;
     public icone_ok: string; // classes de FA icons (classescssvos ? avec un type fa ??)

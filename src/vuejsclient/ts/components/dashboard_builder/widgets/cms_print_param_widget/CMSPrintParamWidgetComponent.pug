@@ -1,8 +1,8 @@
 include ../../../../../views/mixins/loading.pug
 
 .cms_print_param_widget_component
-    template(v-if='titre')
-        .titre(v-html="titre" class="ql-editor" style="word-wrap: break-word;")
+    template(v-if='print_titre')
+        .titre(v-html="print_titre" class="ql-editor" style="word-wrap: break-word;")
 
     template(v-if='printed_param')
         .printed_param {{ printed_param }}

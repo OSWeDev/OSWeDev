@@ -1,9 +1,8 @@
 
 
 import IDistantVOBase from "../../IDistantVOBase";
-import AbstractVO from '../../VO/abstract/AbstractVO';
 
-export default class FavoritesFiltersExportFrequencyVO extends AbstractVO implements IDistantVOBase {
+export default class FavoritesFiltersExportFrequencyVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "favorites_filters_export_frequency";
 
     public static GRANULARITY_LABELS: string[] = [

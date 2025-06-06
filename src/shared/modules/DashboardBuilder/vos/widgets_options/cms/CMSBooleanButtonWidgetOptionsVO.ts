@@ -1,41 +1,51 @@
-import AbstractVO from "../../VO/abstract/AbstractVO";
-import VOFieldRefVO from "./VOFieldRefVO";
+import NumRange from "../../../../DataRender/vos/NumRange";
+import SizeAndUnitVO from "../styles/SizeAndUnitVO";
+import WidgetOptionsBaseVO from "../WidgetOptionsBaseVO";
 
-export default class CMSBooleanButtonWidgetOptionsVO extends AbstractVO {
+export default class CMSBooleanButtonWidgetOptionsVO extends WidgetOptionsBaseVO {
+
+    public static API_TYPE_ID: string = "cms_boolean_button_widget_options";
+    public _type: string = CMSBooleanButtonWidgetOptionsVO.API_TYPE_ID;
 
     public title_ok: string;
     public title_nok: string;
-    public color: string;
-    public text_color: string;
-    public vo_field_ref: VOFieldRefVO;
-    public icone_ok: string;
-    public icone_nok: string;
-    public radius: number;
-    public user_field_ref: VOFieldRefVO;
 
-    public static createNew(
-        title_ok: string,
-        title_nok: string,
-        color: string,
-        text_color: string,
-        vo_field_ref: VOFieldRefVO,
-        icone_ok: string,
-        icone_nok: string,
-        radius: number,
-        user_field_ref: VOFieldRefVO,
-    ): CMSBooleanButtonWidgetOptionsVO {
-        const res = new CMSBooleanButtonWidgetOptionsVO();
+    /**
+     * Anciennement color
+     */
+    public bg_color_id: number;
 
-        res.title_ok = title_ok;
-        res.title_nok = title_nok;
-        res.color = color;
-        res.text_color = text_color;
-        res.vo_field_ref = vo_field_ref;
-        res.icone_ok = icone_ok;
-        res.icone_nok = icone_nok;
-        res.radius = radius;
-        res.user_field_ref = user_field_ref;
+    /**
+     * Anciennement text_color
+     */
+    public text_color_style_id: number;
 
-        return res;
-    }
+    /**
+     * Anciennement vo_field_ref
+     */
+    public vo_field_ref_id: number;
+
+    /**
+     * classes fa par exemple pour les icones
+     * Anciennement icone_ok
+     */
+    public icone_ok_classe_id_ranges: NumRange[];
+    /**
+     * classes fa par exemple pour les icones
+     * Anciennement icone_nok
+     */
+    public icone_nok_classe_id_ranges: NumRange[];
+
+    /**
+     * Anciennement radius
+     */
+    public border_radius: SizeAndUnitVO;
+
+    /**
+     * Anciennement user_field_ref
+     * A voir si c'est la bonne méthode à terme, pas convaincu, on a explicitement un filtre de user ici,
+     * avec soit un lien directement dans l'objet vo_field_ref_id._type soit dans une table elle-meme liée à vo_field_ref_id._type directement...
+     * difficile à expliquer dans l'interface cette logique...
+     */
+    public user_field_ref_id: number;
 }

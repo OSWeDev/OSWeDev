@@ -6,10 +6,9 @@ import HourRange from "../../DataRender/vos/HourRange";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
-import AbstractVO from "../../VO/abstract/AbstractVO";
 import ContextQueryVO from "./ContextQueryVO";
 
-export default class ContextFilterVO extends AbstractVO implements IDistantVOBase {
+export default class ContextFilterVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "context_filter";
 
     public static CUSTOM_FILTERS_TYPE: string = "__custom_filters__";
@@ -394,16 +393,6 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
 
         first_filter.right_hook = filters[filters.length - 1];
         return res;
-    }
-
-    /**
-     * Hydrate this from the given properties
-     *
-     * @param {Partial<T>} props
-     * @returns {T}
-     */
-    public from(props: Partial<ContextFilterVO>): this {
-        return super.from(props);
     }
 
     /**

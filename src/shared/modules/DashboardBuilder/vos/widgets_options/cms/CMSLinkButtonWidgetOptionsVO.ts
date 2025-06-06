@@ -1,48 +1,52 @@
-import RoleVO from "../../AccessPolicy/vos/RoleVO";
-import AbstractVO from "../../VO/abstract/AbstractVO";
-import VOFieldRefVO from "./VOFieldRefVO";
+import NumRange from "../../../../DataRender/vos/NumRange";
+import ColorVO from "../styles/ColorVO";
+import SizeAndUnitVO from "../styles/SizeAndUnitVO";
+import WidgetOptionsBaseVO from "../WidgetOptionsBaseVO";
 
-export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
+export default class CMSLinkButtonWidgetOptionsVO extends WidgetOptionsBaseVO {
+
+    public static API_TYPE_ID: string = "cms_link_button_widget_options";
+    public _type: string = CMSLinkButtonWidgetOptionsVO.API_TYPE_ID;
 
     public url: string;
-    public title: string;
-    public color: string;
-    public text_color: string;
+
+    /**
+     * Titre du bouton
+     */
+    public button_title: string;
+
+    /**
+     * Anciennement color
+     */
+    public button_bg_color_id: ColorVO;
+
+    /**
+     * Anciennement text_color
+     */
+    public button_text_color: string;
+
     public about_blank: boolean;
-    public radius: number;
-    public url_field_ref: VOFieldRefVO;
-    public icone: string;
+
+    /**
+     * Anciennement radius number
+     */
+    public button_radius: SizeAndUnitVO;
+
+    /**
+     * Anciennement url_field_ref
+     */
+    public url_field_ref_id: number;
+
+    /**
+     * Classes CSS pour l'icone du bouton
+     * Anciennement button_icone
+     */
+    public button_icone_classe_id_ranges: NumRange[];
+
     public is_url_field: boolean;
-    public role_access: RoleVO[];
-    public button_class: string;
 
-    public static createNew(
-        url: string,
-        title: string,
-        color: string,
-        text_color: string,
-        about_blank: boolean,
-        radius: number,
-        url_field_ref: VOFieldRefVO,
-        icone: string,
-        is_url_field: boolean,
-        role_access: RoleVO[],
-        button_class: string,
-    ): CMSLinkButtonWidgetOptionsVO {
-        const res = new CMSLinkButtonWidgetOptionsVO();
-
-        res.url = url;
-        res.title = title;
-        res.color = color;
-        res.text_color = text_color;
-        res.about_blank = about_blank;
-        res.radius = radius;
-        res.url_field_ref = url_field_ref;
-        res.icone = icone;
-        res.is_url_field = is_url_field;
-        res.role_access = role_access;
-        res.button_class = button_class;
-
-        return res;
-    }
+    /**
+     * Anciennement button_class string
+     */
+    public button_classe_id_ranges: NumRange[];
 }

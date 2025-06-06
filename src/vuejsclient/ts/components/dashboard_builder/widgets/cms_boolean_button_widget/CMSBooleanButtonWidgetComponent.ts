@@ -74,7 +74,7 @@ export default class CMSBooleanButtonWidgetComponent extends VueComponentBase {
         this.icone_nok = this.widget_options.icone_nok;
         this.radius = this.widget_options.radius;
 
-        // Pour le moment, le widget ne fonctionne que si l'objet à un lien avec les users
+        // Pour le moment, le widget ne fonctionne que si l'objet à un lien avec les users, et une seule occurrence par user...
         const user = VueAppController.getInstance().data_user;
 
         const vo_field = await query(this.widget_options.vo_field_ref.api_type_id)

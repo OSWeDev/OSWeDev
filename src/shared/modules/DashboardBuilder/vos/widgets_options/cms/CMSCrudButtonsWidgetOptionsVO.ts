@@ -1,35 +1,20 @@
-import RoleVO from "../../AccessPolicy/vos/RoleVO";
-import AbstractVO from "../../VO/abstract/AbstractVO";
+import WidgetOptionsBaseVO from "../WidgetOptionsBaseVO";
 
-export default class CMSCrudButtonsWidgetOptionsVO extends AbstractVO {
+export default class CMSCrudButtonsWidgetOptionsVO extends WidgetOptionsBaseVO {
+
+    public static API_TYPE_ID: string = "cms_crud_buttons_widget_options";
+    public _type: string = CMSCrudButtonsWidgetOptionsVO.API_TYPE_ID;
 
     public show_add: boolean;
     public show_update: boolean;
     public show_delete: boolean;
+
+    /**
+     * si pas en mode template, et /ou si en mode template mais envie de créer autre chose permet de définir la pable cible
+     */
     public show_manual_vo_type: boolean;
-    public manual_vo_type: string;
-    public show_add_edit_fk: boolean;
-    public role_access: RoleVO[];
-
-    public static createNew(
-        show_add: boolean,
-        show_update: boolean,
-        show_delete: boolean,
-        show_manual_vo_type: boolean,
-        manual_vo_type: string,
-        show_add_edit_fk: boolean,
-        role_access: RoleVO[],
-    ): CMSCrudButtonsWidgetOptionsVO {
-        const res = new CMSCrudButtonsWidgetOptionsVO();
-
-        res.show_add = show_add;
-        res.show_update = show_update;
-        res.show_delete = show_delete;
-        res.show_manual_vo_type = show_manual_vo_type;
-        res.manual_vo_type = manual_vo_type;
-        res.show_add_edit_fk = show_add_edit_fk;
-        res.role_access = role_access;
-
-        return res;
-    }
+    /**
+     * Anciennement manual_vo_type string, ref module_table maintenant
+     */
+    public manual_vo_type_id: number;
 }

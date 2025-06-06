@@ -1,6 +1,6 @@
-import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
-import TSRange from "../../DataRender/vos/TSRange";
-import IDistantVOBase from "../../IDistantVOBase";
+import IWeightedItem from "../../../../tools/interfaces/IWeightedItem";
+import TSRange from "../../../DataRender/vos/TSRange";
+import IDistantVOBase from "../../../IDistantVOBase";
 
 export default class AdvancedDateFilterOptDescVO implements IDistantVOBase, IWeightedItem {
 

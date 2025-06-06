@@ -1,23 +1,16 @@
-import AbstractVO from "../../VO/abstract/AbstractVO";
-import VOFieldRefVO from "./VOFieldRefVO";
+import WidgetOptionsBaseVO from "../WidgetOptionsBaseVO";
 
-export default class CMSVisionneusePdfWidgetOptionsVO extends AbstractVO {
+export default class CMSVisionneusePdfWidgetOptionsVO extends WidgetOptionsBaseVO {
+
+    public static API_TYPE_ID: string = "cms_visionneuse_pdf_widget_options";
+    public _type: string = CMSVisionneusePdfWidgetOptionsVO.API_TYPE_ID;
 
     public file_id: number;
+
     public use_for_template: boolean;
-    public field_ref_for_template: VOFieldRefVO;
 
-    public static createNew(
-        file_id: number,
-        use_for_template: boolean,
-        field_ref_for_template: VOFieldRefVO,
-    ): CMSVisionneusePdfWidgetOptionsVO {
-        const res = new CMSVisionneusePdfWidgetOptionsVO();
-
-        res.file_id = file_id;
-        res.use_for_template = use_for_template;
-        res.field_ref_for_template = field_ref_for_template;
-
-        return res;
-    }
+    /**
+     * Anciennement field_ref_for_template
+     */
+    public field_ref_for_template_id: number;
 }

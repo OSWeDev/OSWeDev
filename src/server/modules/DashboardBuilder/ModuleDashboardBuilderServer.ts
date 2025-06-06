@@ -4106,22 +4106,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
-            { 'fr-fr': "Le titre est une date ?" },
-            'cms_bloc_text.widget_option.titre_template_is_date.___LABEL___'
-        ));
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
-            { 'fr-fr': "Le sous-titre est une date ?" },
-            'cms_bloc_text.widget_option.sous_titre_template_is_date.___LABEL___'
-        ));
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
-            { 'fr-fr': "Le sur-titre est une date ?" },
-            'cms_bloc_text.widget_option.sur_titre_template_is_date.___LABEL___'
-        ));
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
-            { 'fr-fr': "Le contenu est une date ?" },
-            'cms_bloc_text.widget_option.contenu_template_is_date.___LABEL___'
-        ));
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Ajouter un texte après le sous-titre" },
             'cms_bloc_text.widget_option.sous_titre_symbole.___LABEL___'
         ));
