@@ -51,12 +51,15 @@ import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
 import GPTRealtimeAPISessionVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO';
 import GPTRealtimeAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionVO';
 import GPTRealtimeAPIFunctionParametersVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionParametersVO';
+import ICheckListItem from '../../../shared/modules/CheckList/interfaces/ICheckListItem';
+import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
 /** Structure interne d'une conversation */
 interface ConversationContext {
     openaiSocket: WebSocket;
     clients: Set<WebSocket>;
     buffered: any[];
     cr_vo?: IPlanRDVCR;
+    prime_object?: Map<ICheckListItem, DatatableField<any, any>[]>;
     cr_field_titles?: string[];
     current_user: UserVO;
     current_thread_id: string;
@@ -1289,6 +1292,10 @@ export default class GPTAssistantAPIServerController {
                                         convCtx.cr_vo = msg.cr_vo;
                                         convCtx.cr_field_titles = await ModuleProgramPlanBase.getInstance()
                                             .getRDVCRType(msg.cr_vo.rdv_id);
+                                    }
+                                } else if (msg.type === 'prime_object') {
+                                    if (msg.prime_object) {
+                                        convCtx.prime_object = msg.prime_object;
                                     }
                                 } else if (convCtx.openaiSocket.readyState === WebSocket.OPEN) {
                                     convCtx.openaiSocket.send(str);

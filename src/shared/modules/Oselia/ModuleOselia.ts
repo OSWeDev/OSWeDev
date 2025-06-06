@@ -61,6 +61,7 @@ export default class ModuleOselia extends Module {
     public static OSELIA_EXPORT_DASHBOARD_ID_PARAM_NAME: string = 'ModuleOselia.oselia_export_dashboard_id';
     public static OSELIA_THREAD_DASHBOARD_ID_PARAM_NAME: string = 'ModuleOselia.oselia_thread_dashboard_id';
     public static OSELIA_REALTIME_CR_SESSION_NAME: string = 'Editeur de Compte Rendu';
+    public static OSELIA_REALTIME_PRIME_SESSION_NAME: string = 'Editeur de Primes';
     /**
      * Définition des noms des rôles de thread
      */

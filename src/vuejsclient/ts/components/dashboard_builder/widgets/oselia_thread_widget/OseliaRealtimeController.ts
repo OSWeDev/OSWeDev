@@ -35,6 +35,7 @@ export default class OseliaRealtimeController {
     private call_thread: GPTAssistantAPIThreadVO | null = null;
     private cr_vo: IPlanRDVCR | null = null;
     private in_cr_context: boolean = false;
+    private in_prime_context: boolean = false;
     private audioCtx: AudioContext = new AudioContext({ sampleRate: 44_100  });
     private currentSrc: AudioBufferSourceNode | null = null;
     private currentItemId: string|null = null;
@@ -44,6 +45,7 @@ export default class OseliaRealtimeController {
     /**  Garantit qu’une seule opération (connect ou disconnect) s’exécute à la fois. */
     private ready: Promise<void> = Promise.resolve();
 
+    private prime_object: any = null;
 
     public static getInstance() {
         if (!OseliaRealtimeController.instance) {
@@ -57,15 +59,15 @@ export default class OseliaRealtimeController {
     }
 
 
-    public async connect_to_realtime(cr_vo?: IPlanRDVCR) {
-        return this.lock(() => this._connect_impl(cr_vo));
+    public async connect_to_realtime(cr_vo?: IPlanRDVCR,prime_field?:any) {
+        return this.lock(() => this._connect_impl(cr_vo, prime_field));
     }
 
     /**  Implémentation interne : connexion */
-    private async _connect_impl(cr_vo?: IPlanRDVCR) {
+    private async _connect_impl(cr_vo?: IPlanRDVCR,prime_field?:any) {
 
         /* 0)  Si déjà connecté → rien à faire */
-        if (this.is_connected_to_realtime && !cr_vo) return;
+        if (this.is_connected_to_realtime && !cr_vo && !prime_field) return;
 
         /* 1)  S’il y avait une connexion en cours, on la coupe proprement */
         if (this.is_connected_to_realtime) {
@@ -75,6 +77,8 @@ export default class OseliaRealtimeController {
         /* 2)  Mémorise le contexte CR */
         this.in_cr_context = !!cr_vo;
         this.cr_vo = cr_vo ?? null;
+        this.prime_object = prime_field ?? null;
+        this.in_prime_context = !!this.prime_object;
 
         /* 3)  (re)crée un thread si besoin */
         if (!this.call_thread) {
@@ -94,6 +98,9 @@ export default class OseliaRealtimeController {
         await this.connect_to_server(this.call_thread.gpt_thread_id);
         if (this.in_cr_context && this.cr_vo) {
             await this.send_cr_to_realtime();
+        }
+        if (this.in_prime_context && this.prime_object) {
+            await this.send_prime_object_to_realtime();
         }
         await this.initRecorder();          // démarre la capture micro
 
@@ -177,6 +184,11 @@ export default class OseliaRealtimeController {
             if (this.in_cr_context) {
                 this.session_id = (await query(GPTRealtimeAPISessionVO.API_TYPE_ID)
                     .filter_by_text_eq(field_names<GPTRealtimeAPISessionVO>().name, ModuleOselia.OSELIA_REALTIME_CR_SESSION_NAME)
+                    .select_vo<GPTRealtimeAPISessionVO>()).id;
+            }
+            if( this.in_prime_context ) {
+                this.session_id = (await query(GPTRealtimeAPISessionVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<GPTRealtimeAPISessionVO>().name, ModuleOselia.OSELIA_REALTIME_PRIME_SESSION_NAME)
                     .select_vo<GPTRealtimeAPISessionVO>()).id;
             }
             await ModuleGPT.getInstance().connect_to_realtime_voice(
@@ -409,21 +421,20 @@ export default class OseliaRealtimeController {
         EventsController.emit_event(EventifyEventInstanceVO.new_event(ModuleOselia.EVENT_OSELIA_REALTIME_READY, state));
     }
 
-
-    // private async send_function_to_realtime() {
-    //     if (this.socket?.readyState === WebSocket.OPEN) {
-    //         this.socket.send(JSON.stringify({
-    //             "type": "session.update",
-
-    //         }));
-    //     }
-    // }
-
     private async send_cr_to_realtime(){
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify({
                 type: "cr_data",
                 cr_vo: this.cr_vo,
+            }));
+        }
+    }
+
+    private async send_prime_object_to_realtime() {
+        if (this.socket?.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify({
+                type: "prime_object",
+                prime_object: this.prime_object,
             }));
         }
     }

@@ -13,6 +13,11 @@ import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import CheckListControllerBase from '../CheckListControllerBase';
 import "./CheckListModalComponent.scss";
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import EnvHandler from '../../../../../shared/tools/EnvHandler';
+import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleGPT from '../../../../../shared/modules/GPT/ModuleGPT';
+import OseliaRealtimeController from '../../dashboard_builder/widgets/oselia_thread_widget/OseliaRealtimeController';
+import { Data } from 'vue';
 
 @Component({
     template: require('./CheckListModalComponent.pug')
@@ -43,6 +48,9 @@ export default class CheckListModalComponent extends VueComponentBase {
     @Prop({ default: false })
     private do_async_loading: boolean;
 
+    @Prop({ default: false })
+    private oselia_opened: boolean;
+
     private all_steps_done: boolean = false;
     private has_previous_step: boolean = false;
     private has_next_step: boolean = false;
@@ -55,7 +63,6 @@ export default class CheckListModalComponent extends VueComponentBase {
     private tooltip_fields: { [field_id: string]: string } = null;
     private finalize_checklist_starting: boolean = false;
     private all_editable_fields: Array<DatatableField<any, any>> = null;
-
 
     get editable_fields(): Array<DatatableField<any, any>> {
 
@@ -102,12 +109,28 @@ export default class CheckListModalComponent extends VueComponentBase {
         this.debounced_update_state_step();
     }
 
+    @Watch('oselia_opened')
+    private onOseliaOpened() {
+        if(!this.checklist_item || this.editable_fields.length == 0) {
+            return;
+        }
+        // Mapping checklist_item and editable fields
+        const res = new Map<ICheckListItem, DatatableField<any, any>[]>();
+        res.set(this.checklist_item, this.editable_fields);
+        if (this.oselia_opened) {
+            OseliaRealtimeController.getInstance().connect_to_realtime(null, res);
+        } else {
+            OseliaRealtimeController.getInstance().disconnect_to_realtime();
+        }
+    }
+
+
     private onchangevo(vo: IDistantVOBase, field: DatatableField<any, any>, value: any) {
         // ConsoleHandler.error('TODO FIXME DELETE ME : CheckListModalComponent::onchangevo:' + JSON.stringify(vo) + ':' + JSON.stringify(value));
         this.$emit('onchangevo', vo, field, value);
     }
 
-    private mounted() {
+    private async mounted() {
         this.debounced_update_state_step();
     }
 
