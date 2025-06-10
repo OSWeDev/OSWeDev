@@ -118,6 +118,7 @@ import Patch20240329Adduniqroleconstraint from './patchs/premodules/Patch2024032
 import Patch20240329Adduniqtranslatabletextconstraint from './patchs/premodules/Patch20240329Adduniqtranslatabletextconstraint';
 import Patch20240329Adduniquserconstraints from './patchs/premodules/Patch20240329Adduniquserconstraints';
 import Patch20240329CeliaToOseliaDBWidget from './patchs/premodules/Patch20240329CeliaToOseliaDBWidget';
+import Patch20240329AddManyuniqsconstraints from './patchs/premodules/Patch20240329AddManyuniqsconstraints';
 import Patch20240415Adduniqmail_id from './patchs/premodules/Patch20240415Adduniqmail_id';
 import Patch20240515RunStatusToEnum from './patchs/premodules/Patch20240515RunStatusToEnum';
 import Patch20240521ChangeFormatDbAssistants from './patchs/premodules/Patch20240521ChangeFormatDbAssistants';
@@ -181,6 +182,7 @@ export default class GeneratorPatchsListHandler {
         Patch20250304DropArchivesConfVO.getInstance(),
         Patch20250507OseliaRunTemplateNames.getInstance(),
         Patch20250507InitLastOseliaRunID.getInstance(),
+        Patch20240329AddManyuniqsconstraints.getInstance(),
     ];
 
     public static post_modules_workers: IGeneratorWorker[] = [

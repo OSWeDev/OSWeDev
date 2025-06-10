@@ -22,22 +22,20 @@ export default class GeneratePdfParamVO implements IAPIParamTranslator<GenerateP
         sous_rep: string,
         file_name: string,
         html: string,
-        save_to_desktop: boolean,
-        options: {} = { encoding: 'utf-8' }): GeneratePdfParamVO {
+        options: any): GeneratePdfParamVO {
 
-        return new GeneratePdfParamVO(sous_rep, file_name, html, save_to_desktop, options);
+        return new GeneratePdfParamVO(sous_rep, file_name, html, options);
     }
 
     public static getAPIParams(param: GeneratePdfParamVO): any[] {
-        return [param.sous_rep, param.file_name, param.html, param.save_to_desktop, param.options];
+        return [param.sous_rep, param.file_name, param.html, param.options];
     }
 
     public constructor(
         public sous_rep: string,
         public file_name: string,
         public html: string,
-        public save_to_desktop: boolean,
-        public options: {} = { encoding: 'utf-8' },
+        public options: any,
     ) { }
 
     public translateToURL(): string {
