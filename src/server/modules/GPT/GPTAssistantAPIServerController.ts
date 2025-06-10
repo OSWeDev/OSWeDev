@@ -53,13 +53,17 @@ import GPTRealtimeAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTRealtim
 import GPTRealtimeAPIFunctionParametersVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionParametersVO';
 import ICheckListItem from '../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 /** Structure interne d'une conversation */
 interface ConversationContext {
     openaiSocket: WebSocket;
     clients: Set<WebSocket>;
     buffered: any[];
     cr_vo?: IPlanRDVCR;
-    prime_object?: Map<ICheckListItem, DatatableField<any, any>[]>;
+    prime_object?: {
+        item: ICheckListItem;
+        fields: DatatableField<any, any>[];
+    };
     cr_field_titles?: string[];
     current_user: UserVO;
     current_thread_id: string;
@@ -1296,6 +1300,7 @@ export default class GPTAssistantAPIServerController {
                                 } else if (msg.type === 'prime_object') {
                                     if (msg.prime_object) {
                                         convCtx.prime_object = msg.prime_object;
+                                        convCtx.prime_object.item.name == 'Updated';
                                     }
                                 } else if (convCtx.openaiSocket.readyState === WebSocket.OPEN) {
                                     convCtx.openaiSocket.send(str);

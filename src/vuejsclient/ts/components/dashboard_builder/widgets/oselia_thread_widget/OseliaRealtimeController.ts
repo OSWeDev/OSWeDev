@@ -14,6 +14,8 @@ import GPTAssistantAPIAssistantVO from '../../../../../../shared/modules/GPT/vos
 import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import VueAppBaseInstanceHolder from '../../../../../VueAppBaseInstanceHolder';
 import GPTRealtimeAPISessionVO from '../../../../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO';
+import ICheckListItem from '../../../../../../shared/modules/CheckList/interfaces/ICheckListItem';
+import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 
 export default class OseliaRealtimeController {
 
@@ -45,7 +47,7 @@ export default class OseliaRealtimeController {
     /**  Garantit qu’une seule opération (connect ou disconnect) s’exécute à la fois. */
     private ready: Promise<void> = Promise.resolve();
 
-    private prime_object: any = null;
+    private prime_object: Map<ICheckListItem, DatatableField<any, any>[]> = null;
 
     public static getInstance() {
         if (!OseliaRealtimeController.instance) {
@@ -59,15 +61,15 @@ export default class OseliaRealtimeController {
     }
 
 
-    public async connect_to_realtime(cr_vo?: IPlanRDVCR,prime_field?:any) {
-        return this.lock(() => this._connect_impl(cr_vo, prime_field));
+    public async connect_to_realtime(cr_vo?: IPlanRDVCR,prime_object?:Map<ICheckListItem, DatatableField<any, any>[]>): Promise<void> {
+        return this.lock(() => this._connect_impl(cr_vo, prime_object));
     }
 
     /**  Implémentation interne : connexion */
-    private async _connect_impl(cr_vo?: IPlanRDVCR,prime_field?:any) {
+    private async _connect_impl(cr_vo?: IPlanRDVCR,prime_object?:Map<ICheckListItem, DatatableField<any, any>[]>): Promise<void> {
 
         /* 0)  Si déjà connecté → rien à faire */
-        if (this.is_connected_to_realtime && !cr_vo && !prime_field) return;
+        if (this.is_connected_to_realtime && !cr_vo && !prime_object) return;
 
         /* 1)  S’il y avait une connexion en cours, on la coupe proprement */
         if (this.is_connected_to_realtime) {
@@ -77,7 +79,7 @@ export default class OseliaRealtimeController {
         /* 2)  Mémorise le contexte CR */
         this.in_cr_context = !!cr_vo;
         this.cr_vo = cr_vo ?? null;
-        this.prime_object = prime_field ?? null;
+        this.prime_object = prime_object ?? null;
         this.in_prime_context = !!this.prime_object;
 
         /* 3)  (re)crée un thread si besoin */
@@ -432,9 +434,16 @@ export default class OseliaRealtimeController {
 
     private async send_prime_object_to_realtime() {
         if (this.socket?.readyState === WebSocket.OPEN) {
+            const primeSerializable = Array.from(this.prime_object.entries()).map(
+                ([item, fields]) => ({
+                    item,
+                    fields,
+                })
+            );
+
             this.socket.send(JSON.stringify({
                 type: "prime_object",
-                prime_object: this.prime_object,
+                prime_object: primeSerializable,
             }));
         }
     }
