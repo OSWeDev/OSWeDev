@@ -803,6 +803,10 @@ export default abstract class ServerBase {
      * @returns
      */
     protected redirect_login_or_home(req: Request, res: Response, uid: number, url: string = null) {
+
+        let redirect_code = 302;
+        let destination = null;
+
         if (!uid) {
             const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 
@@ -810,27 +814,45 @@ export default abstract class ServerBase {
                 ConsoleHandler.log('ServerBase:redirect_login_or_home:redirecting to login:fullUrl:' + fullUrl + ':url:' + url + ':req.originalUrl:' + req.originalUrl);
             }
 
-            res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
-            return;
+            destination = '/login#?redirect_to=' + encodeURIComponent(fullUrl);
+            // res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
+            // return;
         }
 
-        if (req.session && req.session.last_fragmented_url) {
+        if ((!destination) && req.session && req.session.last_fragmented_url) {
             if (ConfigurationService.node_configuration.log_login_redirects) {
                 ConsoleHandler.log('ServerBase:redirect_login_or_home:redirecting to login:req.session.last_fragmented_url:' + req.session.last_fragmented_url + ':url:' + url + ':req.originalUrl:' + req.originalUrl);
             }
             req.session.last_fragmented_url = null;
 
-            res.redirect(307, req
-                .url
-                .replace(/\/f\//, '/#/'));
-            return;
+            redirect_code = 307;
+            destination = req.url.replace(/\/f\//, '/#/');
+            // res.redirect(307, req
+            //     .url
+            //     .replace(/\/f\//, '/#/'));
+            // return;
         }
 
         if (ConfigurationService.node_configuration.log_login_redirects) {
             ConsoleHandler.log('ServerBase:redirect_login_or_home:redirecting to home:url:' + url + ':req.originalUrl:' + req.originalUrl);
         }
 
-        res.redirect(url ? url : '/');
+        if (!destination) {
+            destination = url ? url : '/';
+        }
+
+        if (res.headersSent) {
+            // On doit pas refaire un res.send ou redirect à cette étape, on intercepte et on tente d'envoyer une notif de redirect, 
+            if (!req?.session?.sid) {
+                // On ne put rien faire, on laisse tomber
+                ConsoleHandler.error('ServerBase:redirect_login_or_home:res.headersSent but no session.sid to notify user and redirect');
+                return;
+            }
+            PushDataServerController.notify_user_and_redirect(req.session.sid, destination);
+            return;
+        }
+
+        res.redirect(redirect_code, destination);
         return;
     }
 
