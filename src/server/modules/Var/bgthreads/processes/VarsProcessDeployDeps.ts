@@ -6,7 +6,7 @@ import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../../../env/ConfigurationService';
-import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
+import VarDAGNode, { NodesMapForLockOrUnlock } from '../../../../modules/Var/vos/VarDAGNode';
 import VarsDeployDepsHandler from '../../VarsDeployDepsHandler';
 import VarsServerController from '../../VarsServerController';
 import VarsProcessBase from './VarsProcessBase';
@@ -37,7 +37,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
         return VarsProcessDeployDeps.instance;
     }
 
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean> {
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: NodesMapForLockOrUnlock): Promise<boolean> {
 
         const nodes_to_handle: { [node_name: string]: VarDAGNode } = {};
         const nodes_deps_to_deploy: { [node_name: string]: { [dep_id: string]: VarDataBaseVO } } = {};
@@ -105,7 +105,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
 
                         promises.push((async () => {
                             const n = await VarDAGNode.getInstance(node.var_dag, data, true/*, true*/);
-                            nodes_to_unlock[n.node_name] = n;
+                            nodes_to_unlock.add(n);
                         })());
                     }
                     await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
@@ -179,13 +179,13 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
         return true;
     }
 
-    protected worker_sync(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): boolean {
+    protected worker_sync(node: VarDAGNode, nodes_to_unlock: NodesMapForLockOrUnlock): boolean {
 
         throw new Error('not implemented');
         // return false;
     }
 
-    protected async worker_async(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean> {
+    protected async worker_async(node: VarDAGNode, nodes_to_unlock: NodesMapForLockOrUnlock): Promise<boolean> {
 
         throw new Error('not implemented');
         // if (ConfigurationService.node_configuration.debug_vars) {

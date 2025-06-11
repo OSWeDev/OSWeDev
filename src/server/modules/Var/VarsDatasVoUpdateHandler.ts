@@ -21,7 +21,7 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import StackContext from '../../StackContext';
 import ThrottleExecAsServerRunsOnBgThread from '../../annotations/ThrottleExecAsServerRunsOnBgThread';
 import ConfigurationService from '../../env/ConfigurationService';
-import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
+import VarDAGNode, { NodesMapForLockOrUnlock } from '../../modules/Var/vos/VarDAGNode';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -811,7 +811,7 @@ export default class VarsDatasVoUpdateHandler {
 
         await promise_pipeline.end();
 
-        const nodes_to_unlock: { [index: string]: VarDAGNode } = {};
+        const nodes_to_unlock: NodesMapForLockOrUnlock = new NodesMapForLockOrUnlock();
         const all_vardagnode_promises = [];
 
         // On réinsère les vars pixel never delete qui ont été invalidées en db
@@ -821,7 +821,7 @@ export default class VarsDatasVoUpdateHandler {
 
                 all_vardagnode_promises.push((async () => {
                     const n = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(invalidated_pixel_never_delete.index), true/*, true*/);
-                    nodes_to_unlock[n.node_name] = n;
+                    nodes_to_unlock.add(n);
                 })());
             }
         }
@@ -882,7 +882,7 @@ export default class VarsDatasVoUpdateHandler {
             // Attention : bien forcer de recharger de la base puisque la version qu'on a ici est issue d'un cache local, pas de la base à date
             all_vardagnode_promises.push((async () => {
                 const n = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false/*, true*/);
-                nodes_to_unlock[n.node_name] = n;
+                nodes_to_unlock.add(n);
             })());
         }
 

@@ -14,7 +14,7 @@ import { all_promises } from "../../../shared/tools/PromiseTools";
 import RangeHandler from "../../../shared/tools/RangeHandler";
 import ThreadHandler from "../../../shared/tools/ThreadHandler";
 import ConfigurationService from "../../env/ConfigurationService";
-import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
+import VarDAGNode, { NodesMapForLockOrUnlock } from '../../modules/Var/vos/VarDAGNode';
 import PixelVarDataController from "./PixelVarDataController";
 import VarsImportsHandler from "./VarsImportsHandler";
 import VarsServerController from "./VarsServerController";
@@ -24,7 +24,7 @@ export default class VarsDeployDepsHandler {
     public static async handle_deploy_deps(
         node: VarDAGNode,
         deps: { [index: string]: VarDataBaseVO },
-        nodes_to_unlock: { [index: string]: VarDAGNode },
+        nodes_to_unlock: NodesMapForLockOrUnlock,
     ) {
 
         const time_in = Dates.now_ms();
@@ -93,7 +93,7 @@ export default class VarsDeployDepsHandler {
                     return;
                 }
 
-                nodes_to_unlock[dep_node.node_name] = dep_node;
+                nodes_to_unlock.add(dep_node);
 
                 // dep_node.is_client_sub_dep = dep_node.is_client_sub_dep || node.is_client_sub || node.is_client_sub_dep;
                 // dep_node.is_server_sub_dep = dep_node.is_server_sub_dep || node.is_server_sub || node.is_server_sub_dep;
@@ -149,7 +149,7 @@ export default class VarsDeployDepsHandler {
     public static async load_caches_and_imports_on_var_to_deploy(
         node: VarDAGNode,
         limit_to_aggregated_datas: boolean,
-        nodes_to_unlock: { [index: string]: VarDAGNode },
+        nodes_to_unlock: NodesMapForLockOrUnlock,
     ): Promise<boolean> {
 
         const time_in = Dates.now_ms();
@@ -219,7 +219,7 @@ export default class VarsDeployDepsHandler {
 
                 promises.push((async () => {
                     const n = await VarDAGNode.getInstance(node.var_dag, data, true/*, true*/);
-                    nodes_to_unlock[n.node_name] = n;
+                    nodes_to_unlock.add(n);
                 })());
             }
             await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
@@ -268,7 +268,7 @@ export default class VarsDeployDepsHandler {
         varconf: VarConfVO,
         limit_to_aggregated_datas: boolean,
         DEBUG_VARS: boolean,
-        nodes_to_unlock: { [index: string]: VarDAGNode },
+        nodes_to_unlock: NodesMapForLockOrUnlock,
     ): Promise<boolean> {
 
         const prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
@@ -409,7 +409,7 @@ export default class VarsDeployDepsHandler {
         pixel_cache: { counter: number, aggregated_value: number },
         prod_cardinaux: number,
         DEBUG_VARS: boolean,
-        nodes_to_unlock: { [index: string]: VarDAGNode },
+        nodes_to_unlock: NodesMapForLockOrUnlock,
     ) {
 
         const aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
@@ -430,7 +430,7 @@ export default class VarsDeployDepsHandler {
             const aggregated_data = aggregated_datas[depi];
             promises.push((async () => {
                 const n = await VarDAGNode.getInstance(node.var_dag, aggregated_data, false/*, true*/);
-                nodes_to_unlock[n.node_name] = n;
+                nodes_to_unlock.add(n);
             })());
         }
         await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
@@ -450,7 +450,7 @@ export default class VarsDeployDepsHandler {
         pixel_cache: { counter: number, aggregated_value: number },
         prod_cardinaux: number,
         DEBUG_VARS: boolean,
-        nodes_to_unlock: { [index: string]: VarDAGNode },
+        nodes_to_unlock: NodesMapForLockOrUnlock,
     ) {
 
         const known_pixels_query = query(varconf.var_data_vo_type);
@@ -525,7 +525,7 @@ export default class VarsDeployDepsHandler {
             const aggregated_data = aggregated_datas[depi];
             promises.push((async () => {
                 const n = await VarDAGNode.getInstance(node.var_dag, aggregated_data, true/*, true*/);
-                nodes_to_unlock[n.node_name] = n;
+                nodes_to_unlock.add(n);
             })());
         }
         await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici

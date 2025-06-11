@@ -1,4 +1,4 @@
-import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
+import VarDAGNode, { NodesMapForLockOrUnlock } from '../../../../modules/Var/vos/VarDAGNode';
 import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import MatroidController from '../../../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
@@ -41,14 +41,14 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
         return VarsProcessUpdateDB.instance;
     }
 
-    protected worker_sync(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): boolean {
+    protected worker_sync(node: VarDAGNode, nodes_to_unlock: NodesMapForLockOrUnlock): boolean {
         return false;
     }
-    protected async worker_async(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean> {
+    protected async worker_async(node: VarDAGNode, nodes_to_unlock: NodesMapForLockOrUnlock): Promise<boolean> {
         return false;
     }
 
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean> {
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: NodesMapForLockOrUnlock): Promise<boolean> {
 
         let nodes_by_type_and_index: { [type: string]: { [index: string]: VarDAGNode } } = {};
         let printed_tree: boolean = false;

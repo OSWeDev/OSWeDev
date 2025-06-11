@@ -6,7 +6,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
-import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
+import VarDAGNode, { NodesMapForLockOrUnlock } from '../../modules/Var/vos/VarDAGNode';
 import VarsDatasProxy from './VarsDatasProxy';
 
 export default class VarsImportsHandler {
@@ -41,7 +41,7 @@ export default class VarsImportsHandler {
      */
     public async load_imports_and_split_nodes(
         node: VarDAGNode,
-        nodes_to_unlock: { [index: string]: VarDAGNode },
+        nodes_to_unlock: NodesMapForLockOrUnlock,
         FOR_TU_imports: VarDataBaseVO[] = null) {
 
         const imports: VarDataBaseVO[] = FOR_TU_imports ? FOR_TU_imports : (ConfigurationService.IS_UNIT_TEST_MODE ? [] : await ModuleDAO.instance.getVarImportsByMatroidParams(node.var_data._type, [node.var_data], null));
@@ -64,7 +64,7 @@ export default class VarsImportsHandler {
         node: VarDAGNode,
         imports: VarDataBaseVO[],
         optimization__has_only_atomic_imports: boolean,
-        nodes_to_unlock: { [index: string]: VarDAGNode },
+        nodes_to_unlock: NodesMapForLockOrUnlock,
     ) {
 
         if ((!imports) || (!imports.length)) {
@@ -186,7 +186,7 @@ export default class VarsImportsHandler {
         node: VarDAGNode,
         imported_datas: VarDataBaseVO[],
         remaining_computations: VarDataBaseVO[],
-        nodes_to_unlock: { [index: string]: VarDAGNode },
+        nodes_to_unlock: NodesMapForLockOrUnlock,
     ) {
 
         /**
@@ -215,7 +215,7 @@ export default class VarsImportsHandler {
              */
             promises.push((async () => {
                 const n = await VarDAGNode.getInstance(node.var_dag, imported_data, true/*, true*/);
-                nodes_to_unlock[n.node_name] = n;
+                nodes_to_unlock.add(n);
             })());
         }
 
@@ -228,7 +228,7 @@ export default class VarsImportsHandler {
              */
             promises.push((async () => {
                 const n = await VarDAGNode.getInstance(node.var_dag, remaining_computation, false/*, true*/);
-                nodes_to_unlock[n.node_name] = n;
+                nodes_to_unlock.add(n);
             })());
         }
         await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici

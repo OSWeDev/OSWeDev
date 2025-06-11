@@ -1,4 +1,4 @@
-import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
+import VarDAGNode, { NodesMapForLockOrUnlock } from '../../../../modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
@@ -32,14 +32,14 @@ export default class VarsProcessNotifyEnd extends VarsProcessBase {
         return VarsProcessNotifyEnd.instance;
     }
 
-    protected worker_sync(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): boolean {
+    protected worker_sync(node: VarDAGNode, nodes_to_unlock: NodesMapForLockOrUnlock): boolean {
         return false;
     }
-    protected async worker_async(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean> {
+    protected async worker_async(node: VarDAGNode, nodes_to_unlock: NodesMapForLockOrUnlock): Promise<boolean> {
         return false;
     }
 
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean> {
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: NodesMapForLockOrUnlock): Promise<boolean> {
 
         const notifVardatasParams: NotifVardatasParam[] = [];
         const vardatas: VarDataBaseVO[] = [];
