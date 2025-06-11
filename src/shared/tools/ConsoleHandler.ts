@@ -106,19 +106,19 @@ export default class ConsoleHandler {
     }
 
     public static error(error: string | Error, ...params): void {
-        ConsoleHandler.log_action(ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR), error, ...params);
+        ConsoleHandler.log_action(ConsoleHandler.get_log_type(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR), error, ...params);
     }
 
     public static warn(error: string | Error, ...params): void {
-        ConsoleHandler.log_action(ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_WARN), error, ...params);
+        ConsoleHandler.log_action(ConsoleHandler.get_log_type(ModuleLogger.PARAM_LOGGER_LOG_TYPE_WARN), error, ...params);
     }
 
     public static log(error: string | Error, ...params): void {
-        ConsoleHandler.log_action(ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG), error, ...params);
+        ConsoleHandler.log_action(ConsoleHandler.get_log_type(ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG), error, ...params);
     }
 
     public static debug(error: string | Error, ...params): void {
-        ConsoleHandler.log_action(ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_DEBUG), error, ...params);
+        ConsoleHandler.log_action(ConsoleHandler.get_log_type(ModuleLogger.PARAM_LOGGER_LOG_TYPE_DEBUG), error, ...params);
     }
 
     public static log_action(log_type: number, error: string | Error, ...params): void {
@@ -130,7 +130,7 @@ export default class ConsoleHandler {
         if (ConsoleHandler.logger_handler) {
             ConsoleHandler.logger_handler.log(log_type, date, msg, ...params);
 
-            if (log_type == ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR)) {
+            if (log_type == ConsoleHandler.get_log_type(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR)) {
                 // On ERROR we flush immediately
                 ConsoleHandler.logger_handler.force_flush();
             }
@@ -145,7 +145,7 @@ export default class ConsoleHandler {
 
         ConsoleHandler.log_to_console_cache.push({ msg: msg, date: date, params: params, log_type: log_type, url: url });
 
-        if (log_type == ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR)) {
+        if (log_type == ConsoleHandler.get_log_type(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR)) {
             // On ERROR we flush immediately
             ConsoleHandler.log_to_console();
         } else {
@@ -189,10 +189,10 @@ export default class ConsoleHandler {
                 continue;
             }
 
-            const log_type_id: number = log.log_type ?? ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG);
+            const log_type_id: number = log.log_type ?? ConsoleHandler.get_log_type(ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG);
 
             // On va vérifier quel niveau min on doit log
-            if (log_type_id <= ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_CLIENT_MAX)) {
+            if (log_type_id <= ConsoleHandler.get_log_type(ModuleLogger.PARAM_LOGGER_LOG_TYPE_CLIENT_MAX)) {
                 logs.push(LogVO.createNew(
                     (((typeof process !== "undefined") && process.pid) ? process.pid : null),
                     log_type_id,
@@ -207,14 +207,14 @@ export default class ConsoleHandler {
             let log_type_str: string = 'log';
 
             switch (log.log_type) {
-                case ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR):
+                case ConsoleHandler.get_log_type(ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR):
                     log_type_str = 'error';
                     break;
-                case ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_WARN):
+                case ConsoleHandler.get_log_type(ModuleLogger.PARAM_LOGGER_LOG_TYPE_WARN):
                     log_type_str = 'warn';
                     break;
-                case ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG):
-                case ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_DEBUG):
+                case ConsoleHandler.get_log_type(ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG):
+                case ConsoleHandler.get_log_type(ModuleLogger.PARAM_LOGGER_LOG_TYPE_DEBUG):
                     log_type_str = 'log';
                     break;
             }
@@ -238,7 +238,7 @@ export default class ConsoleHandler {
             ConsoleHandler.old_console_log('[LT ' + this.get_formatted_timestamp(date) + '] ' + msg + ' (' + throttled_logs_counter[log] + 'x)');
 
             if (ConsoleHandler.logger_handler) {
-                ConsoleHandler.logger_handler.log(ParamsManager.getParamValue(ModuleLogger.PARAM_LOGGER_LOG_TYPE_DEBUG), date, msg + ' (' + throttled_logs_counter[log] + 'x)');
+                ConsoleHandler.logger_handler.log(ConsoleHandler.get_log_type(ModuleLogger.PARAM_LOGGER_LOG_TYPE_DEBUG), date, msg + ' (' + throttled_logs_counter[log] + 'x)');
             }
         }
     }
@@ -252,5 +252,26 @@ export default class ConsoleHandler {
 
     private static get_text_msg(error: string | Error): string {
         return (error ? ((error as Error).message ? ((error as Error).message + ':' + (error as Error).stack) : error?.toString()) : error?.toString());
+    }
+
+    private static get_log_type(log_type_name: string): number {
+        const res: number = ParamsManager.getParamValue(log_type_name);
+
+        if (!!res) {
+            return res;
+        }
+
+        switch (log_type_name) {
+            case ModuleLogger.PARAM_LOGGER_LOG_TYPE_ERROR:
+                return 1;
+            case ModuleLogger.PARAM_LOGGER_LOG_TYPE_WARN:
+                return 2;
+            case ModuleLogger.PARAM_LOGGER_LOG_TYPE_LOG:
+                return 3;
+            case ModuleLogger.PARAM_LOGGER_LOG_TYPE_DEBUG:
+                return 4;
+        }
+
+        return null;
     }
 }
