@@ -17,6 +17,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ModuleVocus from '../../../shared/modules/Vocus/ModuleVocus';
 import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -201,6 +202,8 @@ export default class ModuleVocusServer extends ModuleServerBase {
                 break;
             }
         }
+
+        await all_promises(promises);
 
         const res: VocusInfoVO[] = [];
         for (const i in res_map) {
