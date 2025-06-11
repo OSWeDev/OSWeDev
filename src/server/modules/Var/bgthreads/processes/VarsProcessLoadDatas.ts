@@ -120,17 +120,17 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
         return VarsProcessLoadDatas.instance;
     }
 
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean> {
 
         // On charge les datas (pas predeps) de tous les nodes
         return VarsProcessLoadDatas.load_nodes_datas(nodes, false);
     }
 
-    protected worker_sync(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): boolean {
+    protected worker_sync(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): boolean {
         throw new Error('not implemented');
     }
 
-    protected async worker_async(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
+    protected async worker_async(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean> {
         throw new Error('not implemented');
         // const controller = VarsServerController.getVarControllerById(node.var_data.var_id);
 

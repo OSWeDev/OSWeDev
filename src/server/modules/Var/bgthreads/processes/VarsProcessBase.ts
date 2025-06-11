@@ -77,7 +77,7 @@ export default abstract class VarsProcessBase {
         this.waiting_valid_nodes = null;
 
         // On lock le node pour éviter la mise à jour trop rapide du current_step, et on delock en fin de traitement
-        const nodes_to_unlock: VarDAGNode[] = valid_nodes ? Object.values(valid_nodes) : [];
+        const nodes_to_unlock: { [index: string]: VarDAGNode } = valid_nodes ? valid_nodes : {};
 
         if (valid_nodes && Object.keys(valid_nodes).length) {
             // A voir si on peut faire ce check sans baisser la perf globale, surtout depuis qu'on passe en events
@@ -121,7 +121,7 @@ export default abstract class VarsProcessBase {
     private async handle_individual_worker(
         promise_pipeline: PromisePipeline,
         valid_nodes: { [node_name: string]: VarDAGNode },
-        nodes_to_unlock: VarDAGNode[],
+        nodes_to_unlock: { [index: string]: VarDAGNode },
     ): Promise<boolean> {
 
         const self = this;
@@ -333,7 +333,7 @@ export default abstract class VarsProcessBase {
 
     private async handle_batch_worker(
         batch_nodes: { [node_name: string]: VarDAGNode },
-        nodes_to_unlock: VarDAGNode[],
+        nodes_to_unlock: { [index: string]: VarDAGNode },
     ): Promise<boolean> {
 
         const has_something_to_do = batch_nodes ? Object.keys(batch_nodes).length > 0 : false;
@@ -427,8 +427,8 @@ export default abstract class VarsProcessBase {
         return filtered_nodes;
     }
 
-    protected abstract worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: VarDAGNode[]): Promise<boolean>;
+    protected abstract worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean>;
 
-    protected abstract worker_async(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): Promise<boolean>;
-    protected abstract worker_sync(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): boolean;
+    protected abstract worker_async(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean>;
+    protected abstract worker_sync(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): boolean;
 }

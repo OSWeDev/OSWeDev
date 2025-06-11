@@ -37,7 +37,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
         return VarsProcessDeployDeps.instance;
     }
 
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean> {
 
         const nodes_to_handle: { [node_name: string]: VarDAGNode } = {};
         const nodes_deps_to_deploy: { [node_name: string]: { [dep_id: string]: VarDataBaseVO } } = {};
@@ -104,7 +104,8 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
                         aggregated_deps['AGG_' + (index++)] = data;
 
                         promises.push((async () => {
-                            nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, data, true/*, true*/));
+                            const n = await VarDAGNode.getInstance(node.var_dag, data, true/*, true*/);
+                            nodes_to_unlock[n.node_name] = n;
                         })());
                     }
                     await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
@@ -178,13 +179,13 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
         return true;
     }
 
-    protected worker_sync(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): boolean {
+    protected worker_sync(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): boolean {
 
         throw new Error('not implemented');
         // return false;
     }
 
-    protected async worker_async(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
+    protected async worker_async(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean> {
 
         throw new Error('not implemented');
         // if (ConfigurationService.node_configuration.debug_vars) {

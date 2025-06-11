@@ -215,13 +215,13 @@ export default class VarDAGNode extends DAGNodeBase {
         return VarsServerController.has_valid_value(this.var_data);
     }
 
-    public static unlock_nodes(nodes: VarDAGNode[]) {
+    public static unlock_nodes(nodes: { [index: string]: VarDAGNode }) {
         for (const i in nodes) {
             nodes[i].unlock();
         }
     }
 
-    public static lock_nodes(nodes: VarDAGNode[]) {
+    public static lock_nodes(nodes: { [index: string]: VarDAGNode }) {
         for (const i in nodes) {
             nodes[i].lock();
         }

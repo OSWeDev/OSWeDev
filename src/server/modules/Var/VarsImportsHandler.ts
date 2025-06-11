@@ -11,6 +11,11 @@ import VarsDatasProxy from './VarsDatasProxy';
 
 export default class VarsImportsHandler {
 
+    private static instance: VarsImportsHandler = null;
+
+    protected constructor() {
+    }
+
     /**
      * Multithreading notes :
      *  - There's only one bgthread doing all the computations, and separated from the other threads if the project decides to do so
@@ -21,11 +26,6 @@ export default class VarsImportsHandler {
             VarsImportsHandler.instance = new VarsImportsHandler();
         }
         return VarsImportsHandler.instance;
-    }
-
-    private static instance: VarsImportsHandler = null;
-
-    protected constructor() {
     }
 
     /**
@@ -41,7 +41,7 @@ export default class VarsImportsHandler {
      */
     public async load_imports_and_split_nodes(
         node: VarDAGNode,
-        nodes_to_unlock: VarDAGNode[],
+        nodes_to_unlock: { [index: string]: VarDAGNode },
         FOR_TU_imports: VarDataBaseVO[] = null) {
 
         const imports: VarDataBaseVO[] = FOR_TU_imports ? FOR_TU_imports : (ConfigurationService.IS_UNIT_TEST_MODE ? [] : await ModuleDAO.instance.getVarImportsByMatroidParams(node.var_data._type, [node.var_data], null));
@@ -64,7 +64,7 @@ export default class VarsImportsHandler {
         node: VarDAGNode,
         imports: VarDataBaseVO[],
         optimization__has_only_atomic_imports: boolean,
-        nodes_to_unlock: VarDAGNode[],
+        nodes_to_unlock: { [index: string]: VarDAGNode },
     ) {
 
         if ((!imports) || (!imports.length)) {
@@ -186,7 +186,7 @@ export default class VarsImportsHandler {
         node: VarDAGNode,
         imported_datas: VarDataBaseVO[],
         remaining_computations: VarDataBaseVO[],
-        nodes_to_unlock: VarDAGNode[],
+        nodes_to_unlock: { [index: string]: VarDAGNode },
     ) {
 
         /**
@@ -214,7 +214,8 @@ export default class VarsImportsHandler {
              * On indique qu'on a déjà fait un chargement du cache complet
              */
             promises.push((async () => {
-                nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, imported_data, true/*, true*/));
+                const n = await VarDAGNode.getInstance(node.var_dag, imported_data, true/*, true*/);
+                nodes_to_unlock[n.node_name] = n;
             })());
         }
 
@@ -226,7 +227,8 @@ export default class VarsImportsHandler {
              * On indique qu'on a pas encore fait de chargement du cache complet
              */
             promises.push((async () => {
-                nodes_to_unlock.push(await VarDAGNode.getInstance(node.var_dag, remaining_computation, false/*, true*/));
+                const n = await VarDAGNode.getInstance(node.var_dag, remaining_computation, false/*, true*/);
+                nodes_to_unlock[n.node_name] = n;
             })());
         }
         await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici

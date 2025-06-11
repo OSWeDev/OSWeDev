@@ -41,14 +41,14 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
         return VarsProcessUpdateDB.instance;
     }
 
-    protected worker_sync(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): boolean {
+    protected worker_sync(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): boolean {
         return false;
     }
-    protected async worker_async(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
+    protected async worker_async(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean> {
         return false;
     }
 
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean> {
 
         let nodes_by_type_and_index: { [type: string]: { [index: string]: VarDAGNode } } = {};
         let printed_tree: boolean = false;

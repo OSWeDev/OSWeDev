@@ -29,14 +29,14 @@ export default class VarsProcessCompute extends VarsProcessBase {
         return VarsProcessCompute.instance;
     }
 
-    protected async worker_async(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
+    protected async worker_async(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean> {
         return false;
     }
-    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: VarDAGNode[]): Promise<boolean> {
+    protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }, nodes_to_unlock: { [index: string]: VarDAGNode }): Promise<boolean> {
         return false;
     }
 
-    protected worker_sync(node: VarDAGNode, nodes_to_unlock: VarDAGNode[]): boolean {
+    protected worker_sync(node: VarDAGNode, nodes_to_unlock: { [index: string]: VarDAGNode }): boolean {
 
         const controller = VarsServerController.getVarControllerById(node.var_data.var_id);
 

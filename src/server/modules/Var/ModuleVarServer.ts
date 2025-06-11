@@ -1251,7 +1251,9 @@ export default class ModuleVarServer extends ModuleServerBase {
                 return null;
             }
 
-            const nodes_to_unlock: VarDAGNode[] = [node];
+            const nodes_to_unlock: { [index: string]: VarDAGNode } = {
+                [node.node_name]: node
+            };
 
             await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(
                 node,
@@ -1815,7 +1817,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         subs.push(...Object.keys(VarsClientsSubsCacheHolder.clients_subs_indexes_cache));
 
         const all_vardagnode_promises: Array<Promise<any>> = [];
-        const nodes_to_unlock: VarDAGNode[] = [];
+        const nodes_to_unlock: { [index: string]: VarDAGNode } = {};
         for (const j in subs) {
 
             const index = subs[j];
@@ -1826,7 +1828,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             // on vient de supprimer => ok mais les imports ???
             all_vardagnode_promises.push((async () => {
-                nodes_to_unlock.push(await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false));
+                const n = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false);
+                nodes_to_unlock[n.node_name] = n;
             })());
         }
 

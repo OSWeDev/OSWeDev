@@ -811,7 +811,7 @@ export default class VarsDatasVoUpdateHandler {
 
         await promise_pipeline.end();
 
-        const nodes_to_unlock: VarDAGNode[] = [];
+        const nodes_to_unlock: { [index: string]: VarDAGNode } = {};
         const all_vardagnode_promises = [];
 
         // On réinsère les vars pixel never delete qui ont été invalidées en db
@@ -820,7 +820,8 @@ export default class VarsDatasVoUpdateHandler {
                 const invalidated_pixel_never_delete = invalidated_pixels_never_delete[i];
 
                 all_vardagnode_promises.push((async () => {
-                    nodes_to_unlock.push(await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(invalidated_pixel_never_delete.index), true/*, true*/));
+                    const n = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(invalidated_pixel_never_delete.index), true/*, true*/);
+                    nodes_to_unlock[n.node_name] = n;
                 })());
             }
         }
@@ -880,7 +881,8 @@ export default class VarsDatasVoUpdateHandler {
             }
             // Attention : bien forcer de recharger de la base puisque la version qu'on a ici est issue d'un cache local, pas de la base à date
             all_vardagnode_promises.push((async () => {
-                nodes_to_unlock.push(await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false/*, true*/));
+                const n = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false/*, true*/);
+                nodes_to_unlock[n.node_name] = n;
             })());
         }
 
