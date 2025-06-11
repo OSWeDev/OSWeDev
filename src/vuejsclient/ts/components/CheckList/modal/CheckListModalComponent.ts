@@ -18,6 +18,7 @@ import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/Modul
 import ModuleGPT from '../../../../../shared/modules/GPT/ModuleGPT';
 import OseliaRealtimeController from '../../dashboard_builder/widgets/oselia_thread_widget/OseliaRealtimeController';
 import { Data } from 'vue';
+import { reflect } from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./CheckListModalComponent.pug')
@@ -31,10 +32,10 @@ export default class CheckListModalComponent extends VueComponentBase {
     public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
     @Prop({ default: null })
-    private checklist: ICheckList;
+    public checklist_item: ICheckListItem;
 
     @Prop({ default: null })
-    private checklist_item: ICheckListItem;
+    private checklist: ICheckList;
 
     @Prop({ default: null })
     private checkpoint: ICheckPoint;
@@ -114,11 +115,10 @@ export default class CheckListModalComponent extends VueComponentBase {
         if(!this.checklist_item || this.editable_fields.length == 0) {
             return;
         }
+
         // Mapping checklist_item and editable fields
-        const res = new Map<ICheckListItem, DatatableField<any, any>[]>();
-        res.set(this.checklist_item, this.editable_fields);
         if (this.oselia_opened) {
-            OseliaRealtimeController.getInstance().connect_to_realtime(null, res);
+            OseliaRealtimeController.getInstance().connect_to_realtime(null, this.checklist_item);
         } else {
             OseliaRealtimeController.getInstance().disconnect_to_realtime();
         }
@@ -131,8 +131,14 @@ export default class CheckListModalComponent extends VueComponentBase {
     }
 
     private async mounted() {
+        // this.checklist_shared_module.checklistitem_type_id
+        // this.register_single_vo_updates(this.checklist_item._type, this.checklist_item.id, reflect<this>().checklist_item );
         this.debounced_update_state_step();
     }
+
+    // private async beforeDestroy() {
+    //     await this.unregister_all_vo_event_callbacks();
+    // }
 
     private async update_state_step() {
         this.all_steps_done = false;

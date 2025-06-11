@@ -60,10 +60,7 @@ interface ConversationContext {
     clients: Set<WebSocket>;
     buffered: any[];
     cr_vo?: IPlanRDVCR;
-    prime_object?: {
-        item: ICheckListItem;
-        fields: DatatableField<any, any>[];
-    };
+    prime_object?: ICheckListItem;
     cr_field_titles?: string[];
     current_user: UserVO;
     current_thread_id: string;
@@ -1228,11 +1225,17 @@ export default class GPTAssistantAPIServerController {
                         .select_vos<GPTRealtimeAPIFunctionParametersVO>());
                 }
 
+                // test unitaires
+                if( sessionFunctionParams.length === 0) {
+                    ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: No function parameters found for session ' + session.id);
+                } else {
+
                 params_by_function_id =
                     sessionFunctionParams.reduce((acc, p) => {
                         (acc[p.function_id] ||= []).push(p);
                         return acc;
                     }, {} as Record<number, GPTRealtimeAPIFunctionParametersVO[]>);
+                }
             }
             /* ────────────────────────────────────────────────────────────────
             0)  Récupère l’utilisateur courant pour l’injecter dans le contexte
@@ -1300,7 +1303,6 @@ export default class GPTAssistantAPIServerController {
                                 } else if (msg.type === 'prime_object') {
                                     if (msg.prime_object) {
                                         convCtx.prime_object = msg.prime_object;
-                                        convCtx.prime_object.item.name == 'Updated';
                                     }
                                 } else if (convCtx.openaiSocket.readyState === WebSocket.OPEN) {
                                     convCtx.openaiSocket.send(str);
@@ -1417,7 +1419,7 @@ export default class GPTAssistantAPIServerController {
                     type: 'function',
                     name: func.name,
                     description: func.description,
-                    parameters: {
+                    parameters:  Object.keys(params_by_function_id).length > 0 ?{
                         type: 'object',
                         properties: params_by_function_id[func.id].reduce((acc, param) => {
                             acc[param.name] = {
@@ -1427,6 +1429,10 @@ export default class GPTAssistantAPIServerController {
                             return acc;
                         }, {} as Record<string, { type: string; description: string }>),
                         required: params_by_function_id[func.id].filter(p => p.required).map(p => p.name),
+                    } : {
+                        type: 'object',
+                        properties: {},
+                        required: [],
                     },
                 });
             }
@@ -1451,24 +1457,11 @@ export default class GPTAssistantAPIServerController {
                         instructions: session.instructions ? session.instructions : 'Vous êtes un assistant virtuel.',
                         tools: [...tools],
                         tool_choice: 'auto',
+                        speed:1.2,
                     },
                 } as const;
 
                 openaiSocket.send(JSON.stringify(sessionUpdate));
-                openaiSocket.send(JSON.stringify({
-                    type: 'conversation.item.create',
-                    item: {
-                        id: newItemId(),
-                        type: 'message',
-                        role: 'system',
-                        content: [
-                            {
-                                type: "input_text",
-                                text: "Désormais, parle comme une vidéo en X2, sans hésitations, sans répétitions, sans pauses inutiles, sans respiration. Je ne te demande pas changer ta façon de faire, mais simplement ta façon de parler.",
-                            }
-                        ],
-                    },
-                }));
             });
 
             // ——————————————————————————————————————————
@@ -1476,7 +1469,6 @@ export default class GPTAssistantAPIServerController {
             // ——————————————————————————————————————————
             openaiSocket.on('message', async (data: RawData) => {
                 const { clients } = convCtx;
-                if (clients.size === 0) return; // personne pour écouter
 
                 // 1) — Essaye de parser en JSON
                 let msg: any = null;
@@ -1485,6 +1477,12 @@ export default class GPTAssistantAPIServerController {
                 } catch {
                     // Binaire → on broadcast tel quel
                     for (const c of clients) if (c.readyState === WebSocket.OPEN) c.send(data, { binary: true });
+                    return;
+                }
+
+                // --- AUCUN client connecté : on stocke et on sort ---
+                if (convCtx.clients.size === 0) {
+                    convCtx.buffered.push(msg ?? data);   // on garde aussi le binaire
                     return;
                 }
                 if (ConfigurationService.node_configuration.debug_oselia_realtime) {
@@ -1633,18 +1631,30 @@ export default class GPTAssistantAPIServerController {
                                     );
                                 break;
                             }
-                            // case 'set_comprehension': {
-                            //     if (!args.text_comprehended || args.text_comprehended.length === 0) {
-                            //         output = { error: 'Le texte à mettre à jour ne peut pas être vide.' };
-                            //         break;
-                            //     }
-                            //     output = await ModuleGPT.getInstance().insert_comprehended_text(
-                            //         convCtx.current_thread_id,
-                            //         args.text_comprehended,
-                            //         convCtx.current_user.id
-                            //     );
-                            //     break;
-                            // }
+                            case 'set_first_etape': {
+
+                                output = await ModuleProgramPlanBase.getInstance()
+                                    .setFirstEtape(convCtx.prime_object);
+                                break;
+                            }
+                            case 'set_second_etape': {
+
+                                output = await ModuleProgramPlanBase.getInstance()
+                                    .setSecondEtape(convCtx.prime_object);
+                                break;
+                            }
+                            case 'set_third_etape': {
+
+                                output = await ModuleProgramPlanBase.getInstance()
+                                    .setThirdEtape(convCtx.prime_object);
+                                break;
+                            }
+                            case 'set_fourth_etape': {
+
+                                output = await ModuleProgramPlanBase.getInstance()
+                                    .setFourthEtape(convCtx.prime_object);
+                                break;
+                            }
                             default:
                                 output = { error: `Fonction inconnue : ${fnName}` };
                         }

@@ -47,7 +47,7 @@ export default class OseliaRealtimeController {
     /**  Garantit qu’une seule opération (connect ou disconnect) s’exécute à la fois. */
     private ready: Promise<void> = Promise.resolve();
 
-    private prime_object: Map<ICheckListItem, DatatableField<any, any>[]> = null;
+    private prime_object: ICheckListItem = null;
 
     public static getInstance() {
         if (!OseliaRealtimeController.instance) {
@@ -61,12 +61,12 @@ export default class OseliaRealtimeController {
     }
 
 
-    public async connect_to_realtime(cr_vo?: IPlanRDVCR,prime_object?:Map<ICheckListItem, DatatableField<any, any>[]>): Promise<void> {
+    public async connect_to_realtime(cr_vo?: IPlanRDVCR,prime_object?:ICheckListItem): Promise<void> {
         return this.lock(() => this._connect_impl(cr_vo, prime_object));
     }
 
     /**  Implémentation interne : connexion */
-    private async _connect_impl(cr_vo?: IPlanRDVCR,prime_object?:Map<ICheckListItem, DatatableField<any, any>[]>): Promise<void> {
+    private async _connect_impl(cr_vo?: IPlanRDVCR,prime_object?:ICheckListItem): Promise<void> {
 
         /* 0)  Si déjà connecté → rien à faire */
         if (this.is_connected_to_realtime && !cr_vo && !prime_object) return;
@@ -98,12 +98,7 @@ export default class OseliaRealtimeController {
 
         /* 5)  Connecte au serveur + initialise VAD/micro */
         await this.connect_to_server(this.call_thread.gpt_thread_id);
-        if (this.in_cr_context && this.cr_vo) {
-            await this.send_cr_to_realtime();
-        }
-        if (this.in_prime_context && this.prime_object) {
-            await this.send_prime_object_to_realtime();
-        }
+
         await this.initRecorder();          // démarre la capture micro
 
         await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('OseliaStore/set_current_thread', this.call_thread);
@@ -208,10 +203,20 @@ export default class OseliaRealtimeController {
             this.socket = new WebSocket(`${wsProtocol}://${hostname}:${targetPort}`);
             this.socket.binaryType = 'arraybuffer';
 
-            this.socket.onopen = () => {
+            this.socket.onopen = async () => {
                 ConsoleHandler.log('WS Opened');
                 this.connecting = false;
                 this.socket!.send(JSON.stringify({ conversation_id: gpt_thread_id }));
+            
+                // ⬇ ICI : envoie les données après handshake
+                setTimeout(() => {
+                    if (this.in_cr_context && this.cr_vo) {
+                        this.send_cr_to_realtime();
+                    }
+                    if (this.in_prime_context && this.prime_object) {
+                        this.send_prime_object_to_realtime();
+                    }
+                }, 50);
             };
             this.socket.onmessage = this.handleSocketMessage.bind(this);
             this.socket.onclose = () => {
@@ -434,16 +439,10 @@ export default class OseliaRealtimeController {
 
     private async send_prime_object_to_realtime() {
         if (this.socket?.readyState === WebSocket.OPEN) {
-            const primeSerializable = Array.from(this.prime_object.entries()).map(
-                ([item, fields]) => ({
-                    item,
-                    fields,
-                })
-            );
 
             this.socket.send(JSON.stringify({
                 type: "prime_object",
-                prime_object: primeSerializable,
+                prime_object: this.prime_object,
             }));
         }
     }

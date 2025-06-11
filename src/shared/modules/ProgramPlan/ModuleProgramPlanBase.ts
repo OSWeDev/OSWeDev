@@ -829,11 +829,20 @@ export default abstract class ModuleProgramPlanBase extends Module {
         contact_id.set_many_to_one_target_moduletable_name(this.contact_type_id);
     }
 
+
+    //#region CR
     abstract getRDVCRType(rdv_id: number): Promise<string[]>;
     abstract getAllConsultantsName(): Promise<{ name: string, user_id: number }[]>;
     abstract editCRSectionContent(new_content: string, section: string, cr_vo, cr_field_titles): Promise<void>;
     abstract setConsultantName(cr_vo, name: string): Promise<void>;
     abstract getCurrentConsultant(cr_vo): Promise<string>;
+    //#endregion
+    //#region Primes
+    abstract setFirstEtape(checklist_id): Promise<void>;
+    abstract setSecondEtape(checklist_id): Promise<void>;
+    abstract setThirdEtape(checklist_id): Promise<void>;
+    abstract setFourthEtape(checklist_id): Promise<void>;
+    //#endregion
 
     protected abstract callInitializePlanProgramCategory();
     protected abstract callInitializePlanContactType();
