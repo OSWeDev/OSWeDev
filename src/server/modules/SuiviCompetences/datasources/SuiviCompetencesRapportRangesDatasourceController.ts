@@ -25,6 +25,7 @@ export default class SuiviCompetencesRapportRangesDatasourceController extends D
             .filter_by_ids(param.suivi_comp_rapport_id_ranges)
             .filter_by_date_x_ranges(field_names<SuiviCompetencesRapportVO>().date, param.ts_ranges)
             .set_sort(new SortByVO(SuiviCompetencesRapportVO.API_TYPE_ID, field_names<SuiviCompetencesRapportVO>().date, false))
+            .exec_as_server()
             .select_vos<SuiviCompetencesRapportVO>();
     }
 }

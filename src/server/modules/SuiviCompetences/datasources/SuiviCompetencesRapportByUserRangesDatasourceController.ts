@@ -26,6 +26,7 @@ export default class SuiviCompetencesRapportByUserRangesDatasourceController ext
 
         let rapport_query: ContextQueryVO = query(SuiviCompetencesRapportVO.API_TYPE_ID)
             .filter_by_num_x_ranges(field_names<SuiviCompetencesRapportVO>().user_id, param.user_id_ranges)
+            .exec_as_server()
             .set_sort(new SortByVO(SuiviCompetencesRapportVO.API_TYPE_ID, field_names<SuiviCompetencesRapportVO>().date, false));
 
         if (

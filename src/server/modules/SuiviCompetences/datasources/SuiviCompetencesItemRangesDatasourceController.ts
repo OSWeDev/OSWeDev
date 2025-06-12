@@ -46,20 +46,23 @@ export default class SuiviCompetencesItemRangesDatasourceController extends Data
                         query(SuiviCompetencesRapportVO.API_TYPE_ID)
                             .field(field_names<SuiviCompetencesRapportVO>().suivi_comp_grille_id)
                             .filter_by_ids(param.suivi_comp_rapport_id_ranges)
+                            .exec_as_server()
                     )
+                    .exec_as_server()
                     .select_vos()
             );
         });
 
         await promise_pipeline.push(async () => {
             groupe_by_ids = VOsTypesManager.vosArray_to_vosByIds(
-                await query(SuiviCompetencesGroupeVO.API_TYPE_ID).filter_by_ids(param.suivi_comp_groupe_id_ranges).select_vos()
+                await query(SuiviCompetencesGroupeVO.API_TYPE_ID).filter_by_ids(param.suivi_comp_groupe_id_ranges).exec_as_server().select_vos()
             );
         });
 
         await promise_pipeline.push(async () => {
             let query_: ContextQueryVO = query(SuiviCompetencesSousGroupeVO.API_TYPE_ID)
-                .filter_by_num_x_ranges(field_names<SuiviCompetencesSousGroupeVO>().groupe_id, param.suivi_comp_groupe_id_ranges);
+                .filter_by_num_x_ranges(field_names<SuiviCompetencesSousGroupeVO>().groupe_id, param.suivi_comp_groupe_id_ranges)
+                .exec_as_server();
 
             if ((param as SuiviCompetencesRapportSousGroupeDataRangesVO).suivi_comp_sous_groupe_id_ranges?.length) {
                 query_.filter_by_ids(
@@ -74,7 +77,8 @@ export default class SuiviCompetencesItemRangesDatasourceController extends Data
 
         await promise_pipeline.push(async () => {
             let query_: ContextQueryVO = query(SuiviCompetencesItemVO.API_TYPE_ID)
-                .filter_by_num_x_ranges(field_names<SuiviCompetencesItemVO>().groupe_id, param.suivi_comp_groupe_id_ranges);
+                .filter_by_num_x_ranges(field_names<SuiviCompetencesItemVO>().groupe_id, param.suivi_comp_groupe_id_ranges)
+                .exec_as_server();
 
             if ((param as SuiviCompetencesRapportSousGroupeDataRangesVO).suivi_comp_sous_groupe_id_ranges?.length) {
                 query_.filter_by_num_x_ranges(

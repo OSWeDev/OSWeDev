@@ -25,7 +25,7 @@ export default class SuiviCompetencesGrilleRangesDatasourceController extends Da
     }
 
     public async get_data(param: SuiviCompetencesUserDataRangesVO): Promise<{ [grille_id: number]: SuiviCompetencesGroupeResult[] }> {
-        let grilles: SuiviCompetencesGrilleVO[] = await query(SuiviCompetencesGrilleVO.API_TYPE_ID).select_vos<SuiviCompetencesGrilleVO>();
+        let grilles: SuiviCompetencesGrilleVO[] = await query(SuiviCompetencesGrilleVO.API_TYPE_ID).exec_as_server().select_vos<SuiviCompetencesGrilleVO>();
 
         let res: { [grille_id: number]: SuiviCompetencesGroupeResult[] } = {};
 

@@ -6,6 +6,8 @@ import DataSourceControllerMatroidIndexedBase from "../../Var/datasource/DataSou
 
 export default class SuiviCompetencesGroupeRangesDatasourceController extends DataSourceControllerMatroidIndexedBase {
 
+    protected static instance: SuiviCompetencesGroupeRangesDatasourceController = null;
+
     public static getInstance(): SuiviCompetencesGroupeRangesDatasourceController {
         if (!SuiviCompetencesGroupeRangesDatasourceController.instance) {
             SuiviCompetencesGroupeRangesDatasourceController.instance = new SuiviCompetencesGroupeRangesDatasourceController(
@@ -17,9 +19,7 @@ export default class SuiviCompetencesGroupeRangesDatasourceController extends Da
         return SuiviCompetencesGroupeRangesDatasourceController.instance;
     }
 
-    protected static instance: SuiviCompetencesGroupeRangesDatasourceController = null;
-
     public async get_data(param: SuiviCompetencesUserDataRangesVO): Promise<SuiviCompetencesGroupeVO[]> {
-        return query(SuiviCompetencesGroupeVO.API_TYPE_ID).select_vos<SuiviCompetencesGroupeVO>();
+        return query(SuiviCompetencesGroupeVO.API_TYPE_ID).exec_as_server().select_vos<SuiviCompetencesGroupeVO>();
     }
 }

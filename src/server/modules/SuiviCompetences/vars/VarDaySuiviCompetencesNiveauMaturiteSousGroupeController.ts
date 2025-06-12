@@ -175,7 +175,7 @@ export default class VarDaySuiviCompetencesNiveauMaturiteSousGroupeController ex
             case SuiviCompetencesGrilleVO.API_TYPE_ID:
                 break;
             case SuiviCompetencesItemRapportVO.API_TYPE_ID:
-                const tsp_item: SuiviCompetencesItemVO = await query(SuiviCompetencesItemVO.API_TYPE_ID).filter_by_id((vo as any as SuiviCompetencesItemRapportVO).suivi_comp_item_id).select_vo();
+                const tsp_item: SuiviCompetencesItemVO = await query(SuiviCompetencesItemVO.API_TYPE_ID).filter_by_id((vo as any as SuiviCompetencesItemRapportVO).suivi_comp_item_id).exec_as_server().select_vo();
                 tsp_groupe_id_ranges = tsp_item ? [RangeHandler.create_single_elt_NumRange(tsp_item.groupe_id, NumSegment.TYPE_INT)] : null;
 
                 if (tsp_item.sous_groupe_id) {
@@ -196,6 +196,7 @@ export default class VarDaySuiviCompetencesNiveauMaturiteSousGroupeController ex
                 const tsp_sous_groupes: any[] = await query(SuiviCompetencesSousGroupeVO.API_TYPE_ID)
                     .field(field_names<SuiviCompetencesSousGroupeVO>().id)
                     .filter_by_num_eq(field_names<SuiviCompetencesSousGroupeVO>().groupe_id, (vo as any as SuiviCompetencesGroupeVO).id)
+                    .exec_as_server()
                     .select_vos();
                 tsp_sous_groupe_id_ranges = tsp_sous_groupes ? RangeHandler.create_multiple_NumRange_from_ids(tsp_sous_groupes.map((e) => e.id), NumSegment.TYPE_INT) : null;
                 break;

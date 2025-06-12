@@ -184,7 +184,7 @@ export default class VarDaySuiviCompetencesNiveauMaturiteGroupeController extend
             case SuiviCompetencesGrilleVO.API_TYPE_ID:
                 break;
             case SuiviCompetencesItemRapportVO.API_TYPE_ID:
-                const tsp_item: SuiviCompetencesItemVO = await query(SuiviCompetencesItemVO.API_TYPE_ID).filter_by_id((vo as any as SuiviCompetencesItemRapportVO).suivi_comp_item_id).select_one();
+                const tsp_item: SuiviCompetencesItemVO = await query(SuiviCompetencesItemVO.API_TYPE_ID).filter_by_id((vo as any as SuiviCompetencesItemRapportVO).suivi_comp_item_id).exec_as_server().select_vo();
                 tsp_groupe_id_ranges = tsp_item ? [RangeHandler.create_single_elt_NumRange(tsp_item.groupe_id, NumSegment.TYPE_INT)] : null;
                 rapport_id_ranges = [RangeHandler.create_single_elt_NumRange((vo as any as SuiviCompetencesItemRapportVO).rapport_id, NumSegment.TYPE_INT)];
                 break;
