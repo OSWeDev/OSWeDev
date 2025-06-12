@@ -69,7 +69,13 @@ export default class ModuleTableFieldController {
         }
         ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type][field_name] = res;
 
-        res.cascade_on_delete = field_required;
+        // Si refrange_array, on force cascade_on_delete à false pour ne pas supprimer les lignes
+        // Il faut plutôt supprimer les items à l'intérieur de la refrange_array
+        if (field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
+            res.cascade_on_delete = false;
+        } else {
+            res.cascade_on_delete = field_required;
+        }
 
         if (!field_label) {
             field_label = DefaultTranslationVO.create_new({ [DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION]: res.field_name });

@@ -17,6 +17,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ModuleVocus from '../../../shared/modules/Vocus/ModuleVocus';
 import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -102,13 +103,13 @@ export default class ModuleVocusServer extends ModuleServerBase {
      * Objectif: Renvoyer tous les IDistantVoBase qui sont liées à ce vo (par type + id) par une liaison 1/n, n/1 ou n/n
      * TODO : (dans le cas du n/n on pourrait renvoyer directement la cible finale, pas le vo de la table n/n)
      */
-    public async getVosRefsById(
+    public async getVosRefsByTypeAndId(
         API_TYPE_ID: string,
         id: number,
         segmentation_ranges: IRange[] = null,
         limit: number = 1000,
         limit_to_cascading_refs: boolean = false
-    ): Promise<VocusInfoVO[]> {
+    ): Promise<{ [type: string]: { [id: number]: VocusInfoVO } }> {
 
         const res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
 
@@ -150,7 +151,8 @@ export default class ModuleVocusServer extends ModuleServerBase {
                     continue;
                 }
 
-                if (limit_to_cascading_refs && !field.cascade_on_delete) {
+                // On prend en compte les champs de type refrange_array car on gère la cascade autrement
+                if (limit_to_cascading_refs && !field.cascade_on_delete && (field.field_type != ModuleTableFieldVO.FIELD_TYPE_refrange_array)) {
                     continue;
                 }
 
@@ -178,6 +180,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
                     tmp.is_cascade = tmp.is_cascade || refField.cascade_on_delete;
                     tmp.linked_id = refvo.id;
                     tmp.linked_type = refvo._type;
+                    tmp.linked_field_id = refField.field_id;
 
                     const table = ModuleTableController.module_tables_by_vo_type[refField.module_table_vo_type];
                     const table_label_function = ModuleTableController.table_label_function_by_vo_type[refField.module_table_vo_type];
@@ -202,7 +205,27 @@ export default class ModuleVocusServer extends ModuleServerBase {
             }
         }
 
+        await all_promises(promises);
+
+        return res_map;
+    }
+
+    public async getVosRefsById(
+        API_TYPE_ID: string,
+        id: number,
+        segmentation_ranges: IRange[] = null,
+        limit: number = 1000,
+        limit_to_cascading_refs: boolean = false
+    ): Promise<VocusInfoVO[]> {
         const res: VocusInfoVO[] = [];
+        const res_map: { [type: string]: { [id: number]: VocusInfoVO } } = await this.getVosRefsByTypeAndId(
+            API_TYPE_ID,
+            id,
+            segmentation_ranges,
+            limit,
+            limit_to_cascading_refs,
+        );
+
         for (const i in res_map) {
             for (const j in res_map[i]) {
 

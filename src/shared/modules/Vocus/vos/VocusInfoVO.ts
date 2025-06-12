@@ -9,6 +9,7 @@ export default class VocusInfoVO implements IDistantVOBase {
     public linked_type: string;
     public linked_label: string;
     public linked_id: number;
+    public linked_field_id: string;
 
     public is_cascade: boolean;
 }

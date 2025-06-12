@@ -89,6 +89,7 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
+import RangesCutResult from '../../../shared/modules/Matroid/vos/RangesCutResult';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -2593,40 +2594,87 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  *  ça directement applicativement => attention à l'impact sur les perfs. L'objectif est surtout de s'assurer qu'on
                  *  appelle bien tous les triggers et entre autre les droits de suppression des dépendances
                  */
-                const deps: VocusInfoVO[] = await ModuleVocusServer.getInstance().getVosRefsById(vo._type, vo.id, null, null, true);
+                const deps_by_type_and_id: { [type: string]: { [id: number]: VocusInfoVO } } = await ModuleVocusServer.getInstance().getVosRefsByTypeAndId(vo._type, vo.id, null, null, true);
 
                 // Si on a une interdiction de supprimer un item à mi-chemin, il faudrait restaurer tout ceux qui ont été supprimés
                 //  c'est pas le cas du tout en l'état puisqu'au mieux on peut restaurer ceux visible sur ce niveau de deps, mais leurs
                 //  deps sont définitivement perdues...
-                const deps_to_delete: IDistantVOBase[] = [];
-                let DEBUG_deps_types_to_delete: string = null;
 
-                for (const dep_i in deps) {
-                    const dep = deps[dep_i];
+                for (const dep_type in deps_by_type_and_id) {
+                    const deps_to_delete: IDistantVOBase[] = [];
+                    const deps_to_update: IDistantVOBase[] = [];
+                    let DEBUG_deps_types_to_delete: string = null;
+                    let DEBUG_deps_types_to_update: string = null;
 
-                    if (!dep.is_cascade) {
-                        continue;
+                    for (const dep_id in deps_by_type_and_id[dep_type]) {
+                        const dep = deps_by_type_and_id[dep_type][dep_id];
+
+                        // On va regarder si c'est un refrange_array pour nettoyer les ranges
+                        const dep_field: ModuleTableFieldVO = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[dep.linked_type][dep.linked_field_id];
+                        let depVO: IDistantVOBase = null;
+
+                        if (dep_field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
+                            depVO = await query(dep.linked_type).filter_by_id(dep.linked_id).select_vo();
+
+                            if (!depVO) {
+                                continue;
+                            }
+
+                            const cutter: RangesCutResult<NumRange> = RangeHandler.cut_ranges<NumRange>(RangeHandler.create_single_elt_NumRange(vo.id, NumSegment.TYPE_INT), depVO[dep_field.field_name]);
+
+                            // Si cutter a des éléments restants ou plus rien mais champ non obligatoire, on les met à jour
+                            // sinon on ne met pas à jour le champ, mais on supprime la ligne
+                            if (
+                                !!cutter?.remaining_items?.length ||
+                                (!dep_field.field_required && !cutter?.remaining_items?.length)
+                            ) {
+                                depVO[dep_field.field_name] = cutter?.remaining_items;
+
+                                deps_to_update.push(depVO);
+                                if (!DEBUG_deps_types_to_update) {
+                                    DEBUG_deps_types_to_update = depVO._type;
+                                } else {
+                                    DEBUG_deps_types_to_update += ', ' + depVO._type;
+                                }
+                                continue;
+                            }
+                        } else if (!dep.is_cascade) {
+                            continue;
+                        }
+
+                        if (!depVO) {
+                            depVO = await query(dep.linked_type).filter_by_id(dep.linked_id).select_vo();
+                        }
+
+                        deps_to_delete.push(await query(dep.linked_type).filter_by_id(dep.linked_id).select_vo());
+
+                        if (!DEBUG_deps_types_to_delete) {
+                            DEBUG_deps_types_to_delete = depVO._type;
+                        } else {
+                            DEBUG_deps_types_to_delete += ', ' + depVO._type;
+                        }
                     }
-                    const depVO = await query(dep.linked_type).filter_by_id(dep.linked_id).select_vo();
-                    deps_to_delete.push(await query(dep.linked_type).filter_by_id(dep.linked_id).select_vo());
-                    if (!DEBUG_deps_types_to_delete) {
-                        DEBUG_deps_types_to_delete = depVO._type;
-                    } else {
-                        DEBUG_deps_types_to_delete += ', ' + depVO._type;
+
+                    if (deps_to_delete?.length) {
+                        const dep_ires: InsertOrDeleteQueryResult[] = await ModuleDAOServer.instance.deleteVOs_as_server(deps_to_delete, exec_as_server);
+
+                        if ((!dep_ires) || (dep_ires.length != deps_to_delete.length)) {
+                            ConsoleHandler.error('FAILED DELETE DEPS :' + vo._type + ':' + vo.id + ':ABORT DELETION: DEPS_TYPES:' + DEBUG_deps_types_to_delete);
+                            continue;
+                        }
+                    }
+
+                    if (deps_to_update?.length) {
+                        const dep_ires: InsertOrDeleteQueryResult[] = await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(deps_to_update, exec_as_server);
+
+                        if ((!dep_ires) || (dep_ires.length != deps_to_update.length)) {
+                            ConsoleHandler.error('FAILED UPDATE DEPS :' + vo._type + ':' + vo.id + ':ABORT UPDATED: DEPS_TYPES:' + DEBUG_deps_types_to_update);
+                            continue;
+                        }
                     }
                 }
 
-                if (deps_to_delete && deps_to_delete.length) {
-                    const dep_ires: InsertOrDeleteQueryResult[] = await ModuleDAOServer.instance.deleteVOs_as_server(deps_to_delete, exec_as_server);
-
-                    if ((!dep_ires) || (dep_ires.length != deps_to_delete.length)) {
-                        ConsoleHandler.error('FAILED DELETE DEPS :' + vo._type + ':' + vo.id + ':ABORT DELETION: DEPS_TYPES:' + DEBUG_deps_types_to_delete);
-                        continue;
-                    }
-                }
-
-
-                let full_name = null;
+                let full_name: string = null;
 
                 if (moduletable.is_segmented) {
                     // Si on est sur une table segmentée on adapte le comportement
