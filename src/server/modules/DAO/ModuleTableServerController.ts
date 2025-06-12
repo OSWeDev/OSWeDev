@@ -15,6 +15,7 @@ import RangeHandler from "../../../shared/tools/RangeHandler";
 import ConfigurationService from "../../env/ConfigurationService";
 import ModuleDAOServer from "./ModuleDAOServer";
 import ModuleTableFieldServerController from "./ModuleTableFieldServerController";
+import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 
 export default class ModuleTableServerController {
 
@@ -164,7 +165,7 @@ export default class ModuleTableServerController {
      * Sur le générateur :
      *      - On tente de récupérer la version en base, on la met à jour et sinon on la crée.
      *      puis on met à jour dans le cache de l'application
-     *      - On supprime aussi les tables qui sont pas dans la def actuelle
+     *      - On supprime aussi les tables qui sont pas dans la def actuelle et qui sont en CODE FIRST
      * Dans cette fonction on ne pense qu'à mettre à jour la base pour le ModuleTableVO, pas la table du vo_type en elle-même
      */
     public static async push_ModuleTableVO_conf_to_db() {
@@ -181,19 +182,33 @@ export default class ModuleTableServerController {
                     .filter_by_text_eq(field_names<ModuleTableVO>().vo_type, vo_type)
                     .select_vo<ModuleTableVO>();
 
+                let merged_db_table = table;
                 if (!db_table) {
                     db_table = table;
+                    db_table.definition_type = ModuleTableVO.DEFINITION_TYPE_CODE; // On est en train de créer la table depuis la conf issue du code, on est donc en code first
+                } else {
+                    merged_db_table = Object.assign(db_table, table);
+                    merged_db_table.id = db_table.id;
                 }
 
-                db_table = Object.assign(db_table, table);
+                // On check qu'on a des mises à jour à faire sinon on ne fait rien
+                if (JSON.stringify(merged_db_table) !== JSON.stringify(db_table)) {
+                    ConsoleHandler.log('ModuleTableController.push_ModuleTableVOs_to_db: updating table for vo_type ' + vo_type + ' with id ' + merged_db_table.id);
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(merged_db_table);
+                }
 
-                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(db_table);
+                // On met à jour le cache de l'application
+                ModuleTableController.module_tables_by_vo_type[vo_type] = merged_db_table;
+                ModuleTableController.module_tables_by_vo_id[merged_db_table.id] = merged_db_table;
             });
         }
 
         await promise_pipeline.push(async () => {
-            const db_tables = await query(ModuleTableVO.API_TYPE_ID).filter_by_text_has_none(field_names<ModuleTableVO>().vo_type, Object.keys(ModuleTableController.module_tables_by_vo_type)).select_vos<ModuleTableVO>();
-            await ModuleDAOServer.instance.deleteVOs_as_server(db_tables);
+            await query(ModuleTableVO.API_TYPE_ID)
+                .filter_by_text_has_none(field_names<ModuleTableVO>().vo_type, Object.keys(ModuleTableController.module_tables_by_vo_type))
+                .filter_by_num_eq(field_names<ModuleTableVO>().definition_type, ModuleTableVO.DEFINITION_TYPE_CODE) // On ne supprime que les tables qui sont définies en code first, pas celles qui sont créées en nocode
+                .exec_as_server()
+                .delete_vos();
         });
 
         await promise_pipeline.end();

@@ -2,6 +2,7 @@ import { isArray } from "lodash";
 import moment from "moment";
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleTableController from "../../../shared/modules/DAO/ModuleTableController";
+import ModuleTableFieldController from "../../../shared/modules/DAO/ModuleTableFieldController";
 import ModuleTableFieldVO from "../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 import ModuleTableVO from "../../../shared/modules/DAO/vos/ModuleTableVO";
 import HourRange from "../../../shared/modules/DataRender/vos/HourRange";
@@ -12,6 +13,7 @@ import TSRange from "../../../shared/modules/DataRender/vos/TSRange";
 import TimeSegment from "../../../shared/modules/DataRender/vos/TimeSegment";
 import GeoPointVO from "../../../shared/modules/GeoPoint/vos/GeoPointVO";
 import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
+import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import ConversionHandler from "../../../shared/tools/ConversionHandler";
 import DateHandler from "../../../shared/tools/DateHandler";
 import MatroidIndexHandler from "../../../shared/tools/MatroidIndexHandler";
@@ -229,37 +231,76 @@ export default class ModuleTableFieldServerController {
      * Sur le générateur :
      *      - On tente de récupérer la version en base, on la met à jour et sinon on la crée.
      *      puis on met à jour dans le cache de l'application
-     *      - On supprime aussi les tables qui sont pas dans la def actuelle
+     *      - On supprime aussi les champs qui sont pas dans la def actuelle et qui sont en CODE FIRST
      * Dans cette fonction on ne pense qu'à mettre à jour la base pour le ModuleTableVO, pas la table du vo_type en elle-même
      */
-    public static async push_ModuleTableVO_conf_to_db() {
-        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'ModuleTableController.push_ModuleTableVOs_to_db');
+    public static async push_ModuleTableFieldVO_conf_to_db() {
+        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'ModuleTableController.push_ModuleTableFieldVO_conf_to_db');
 
-        for (const vo_type in ModuleTableController.module_tables_by_vo_type) {
-            const table = ModuleTableController.module_tables_by_vo_type[vo_type];
-            if (!table) {
-                throw new Error('ModuleTableController.push_ModuleTableVOs_to_db: no table for vo_type ' + vo_type);
+        for (const vo_type in ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name) {
+            const fields_by_name = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type];
+            if (!fields_by_name) {
+                throw new Error('ModuleTableFieldController.push_ModuleTableFieldVO_conf_to_db: no fields for vo_type ' + vo_type);
             }
 
-            await promise_pipeline.push(async () => {
-                let db_table = await query(ModuleTableVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<ModuleTableVO>().vo_type, vo_type)
-                    .select_vo<ModuleTableVO>();
+            const db_table = ModuleTableController.module_tables_by_vo_type[vo_type];
+            if ((!db_table) || (!db_table.id)) {
+                throw new Error('ModuleTableFieldController.push_ModuleTableFieldVO_conf_to_db: no table found for vo_type ' + vo_type + ' or table has no id');
+            }
 
-                if (!db_table) {
-                    db_table = table;
-                }
 
-                db_table = Object.assign(db_table, table);
+            for (const field_name in fields_by_name) {
+                const field = fields_by_name[field_name];
 
-                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(db_table);
-            });
+                await promise_pipeline.push(async () => {
+                    let db_field = await query(ModuleTableFieldVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<ModuleTableVO>().vo_type, vo_type, ModuleTableVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<ModuleTableFieldVO>().field_name, field_name)
+                        .select_vo<ModuleTableFieldVO>();
+
+                    let merged_db_field = field;
+                    if (!db_field) {
+                        db_field = field;
+                        db_field.module_table_id = db_table.id;
+                    } else {
+                        merged_db_field = Object.assign(db_field, field);
+                        merged_db_field.id = db_field.id;
+                    }
+
+                    // On check qu'on a des mises à jour à faire sinon on ne fait rien
+                    if (JSON.stringify(merged_db_field) !== JSON.stringify(db_field)) {
+                        ConsoleHandler.log('ModuleTableFieldController.push_ModuleTableFieldVO_conf_to_db: updating field ' + field_name + ' for vo_type ' + vo_type);
+                        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(merged_db_field);
+                    }
+
+                    // On met à jour le cache de l'application
+                    ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type][field_name] = merged_db_field;
+
+                    if (!ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id[db_table.id]) {
+                        ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id[db_table.id] = {};
+                    }
+
+                    ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id[db_table.id][merged_db_field.id] = merged_db_field;
+                });
+            }
         }
 
-        await promise_pipeline.push(async () => {
-            const db_tables = await query(ModuleTableVO.API_TYPE_ID).filter_by_text_has_none(field_names<ModuleTableVO>().vo_type, Object.keys(ModuleTableController.module_tables_by_vo_type)).select_vos<ModuleTableVO>();
-            await ModuleDAOServer.instance.deleteVOs_as_server(db_tables);
-        });
+        // On doit supprimer d'une part les champs qui sont dans des vos CODE FIRST pas référencés => mais ça le VO du moduletable lié a été supprimé et le champs est cascade donc osef
+        // On doit supprimer les champs qui sont dans des vos CODE FIRST référencés mais le champs lui ne l'est pas
+        // On touche pas aux NOCODE
+
+        for (const vo_type in ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name) {
+            const field_ids = Object.keys(ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type]);
+
+            await promise_pipeline.push(async () => {
+                await query(ModuleTableFieldVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<ModuleTableVO>().vo_type, vo_type, ModuleTableVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<ModuleTableVO>().definition_type, ModuleTableVO.DEFINITION_TYPE_CODE, ModuleTableVO.API_TYPE_ID)
+                    .filter_by_text_has_none(field_names<ModuleTableFieldVO>().field_name, field_ids)
+                    .exec_as_server()
+                    .delete_vos();
+            });
+        }
 
         await promise_pipeline.end();
     }

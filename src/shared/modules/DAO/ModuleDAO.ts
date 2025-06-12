@@ -500,6 +500,8 @@ export default class ModuleDAO extends Module {
         const label_field = ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().table_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
         ModuleTableController.create_new(this.name, ModuleTableVO, label_field, "Format tables");
 
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().definition_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de définition', true, true, ModuleTableVO.DEFINITION_TYPE_CODE).setEnumValues(ModuleTableVO.DEFINITION_TYPE_LABELS);
+
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom complet', true);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().uid, ModuleTableFieldVO.FIELD_TYPE_string, 'UID', true);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().is_segmented, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Segmenté', true, true, false);

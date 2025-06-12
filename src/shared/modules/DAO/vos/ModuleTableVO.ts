@@ -22,8 +22,17 @@ export default class ModuleTableVO implements IDistantVOBase {
 
     public static API_TYPE_ID: string = "module_table";
 
+    public static DEFINITION_TYPE_CODE: number = 0;
+    public static DEFINITION_TYPE_NOCODE: number = 1;
+    public static DEFINITION_TYPE_LABELS: { [type: number]: string } = {
+        [ModuleTableVO.DEFINITION_TYPE_CODE]: "ModuleTableVO.DEFINITION_TYPE_CODE",
+        [ModuleTableVO.DEFINITION_TYPE_NOCODE]: "ModuleTableVO.DEFINITION_TYPE_NOCODE",
+    };
+
     public id: number;
     public _type: string = ModuleTableVO.API_TYPE_ID;
+
+    public definition_type: number;
 
     public table_name: string;
     public full_name: string;
