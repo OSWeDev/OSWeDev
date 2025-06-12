@@ -1220,12 +1220,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         const res: FormattedDatasStats = new FormattedDatasStats();
         res.format_id = data_import_format_id;
-        let query_res = await ModuleDAOServer.instance.query('SELECT COUNT(1) a FROM ' + moduletable.full_name + ' WHERE importation_state!=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
+        let query_res = await ModuleDAOServer.instance.query('SELECT COUNT(1) a FROM ' + moduletable.full_name + ' WHERE importation_state!=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT, null, true);
         res.nb_row_unvalidated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
-        query_res = await ModuleDAOServer.instance.query('SELECT COUNT(1) a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
+        query_res = await ModuleDAOServer.instance.query('SELECT COUNT(1) a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT, null, true);
         res.nb_row_validated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
         const fields = Object.keys(ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduletable.vo_type]).join(') + COUNT(');
-        query_res = await ModuleDAOServer.instance.query('SELECT COUNT(' + fields + ') a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
+        query_res = await ModuleDAOServer.instance.query('SELECT COUNT(' + fields + ') a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT, null, true);
         res.nb_fields_validated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
 
         return res;

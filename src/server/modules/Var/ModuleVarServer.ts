@@ -908,7 +908,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         for (const api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
 
             const moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
-            promises.push(ModuleDAOServer.instance.query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';'));
+            promises.push(ModuleDAOServer.instance.query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';', null, true));
         }
         await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 

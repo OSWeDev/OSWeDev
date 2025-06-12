@@ -245,7 +245,7 @@ export default class VarsDatasVoUpdateHandler {
             await promise_pipeline.push(async () => {
                 const moduleTable = ModuleTableController.module_tables_by_vo_type[api_type_id];
                 const request = "DELETE FROM " + moduleTable.full_name + " WHERE _bdd_only_index in ('" + indexes.join("','") + "');";
-                await ModuleDAOServer.instance.query(request);
+                await ModuleDAOServer.instance.query(request, null, true);
             });
         }
 
@@ -806,7 +806,7 @@ export default class VarsDatasVoUpdateHandler {
 
             const moduleTable = ModuleTableController.module_tables_by_vo_type[api_type_id];
             const request = '(' + conditions.join(') OR (') + ')';
-            await promise_pipeline.push(async () => ModuleDAOServer.instance.query("DELETE FROM " + moduleTable.full_name + " WHERE " + request + ";"));
+            await promise_pipeline.push(async () => ModuleDAOServer.instance.query("DELETE FROM " + moduleTable.full_name + " WHERE " + request + ";", null, true));
         }
 
         await promise_pipeline.end();
