@@ -23,8 +23,8 @@
                 multiselect.var_name_selector(
                     :preselect-first="false"
                     :multiple="false"
-                    v-model="param_selected"
-                    :options="param_options"
+                    v-model="param_name_selected"
+                    :options="param_name_options"
                     :allow-empty="false",
                     label="label",
                     :custom-label="multiselectOptionLabel"
@@ -32,7 +32,7 @@
                     :searchable="true"
                     :internal-search="true"
 
-                    name="param_selector"
+                    name="param_name_selector"
                     track-by="id"
                 )
         

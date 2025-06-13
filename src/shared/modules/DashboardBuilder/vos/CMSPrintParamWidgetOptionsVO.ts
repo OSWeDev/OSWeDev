@@ -15,18 +15,18 @@ export default class CMSPrintParamWidgetOptionsVO extends AbstractVO {
     public static TYPE_DATE_LABEL: string = 'cms_print_param.date';
 
     public type_param: number;
-    public param: ParamVO;
+    public param_name: string;
     public titre: string;
 
     public static createNew(
         type_param: number,
-        param: ParamVO,
+        param_name: string,
         titre: string
     ): CMSPrintParamWidgetOptionsVO {
         const res = new CMSPrintParamWidgetOptionsVO();
 
         res.type_param = type_param;
-        res.param = param;
+        res.param_name = param_name;
         res.titre = titre;
 
         return res;

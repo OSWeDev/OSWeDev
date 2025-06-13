@@ -34,7 +34,7 @@ export default class CMSPrintParamWidgetComponent extends VueComponentBase {
 
     private titre: string = null;
     private type_param: number = null;
-    private param: ParamVO = null;
+    private param_name: string = null;
 
     private printed_param: string = null;
 
@@ -61,23 +61,23 @@ export default class CMSPrintParamWidgetComponent extends VueComponentBase {
         if (!this.widget_options) {
             this.titre = "";
             this.type_param = null;
-            this.param = null;
+            this.param_name = null;
             return;
         }
 
         this.titre = this.widget_options.titre;
         this.type_param = this.widget_options.type_param;
-        this.param = this.widget_options.param;
+        this.param_name = this.widget_options.param_name;
 
-        this.printed_param = await this.get_value_param(this.param, this.type_param);
+        this.printed_param = await this.get_value_param(this.param_name, this.type_param);
     }
 
     private async mounted() {
         this.onchange_widget_options();
     }
 
-    private async get_value_param(param: ParamVO, type_param: number): Promise<string> {
-        if (!param || !type_param) {
+    private async get_value_param(param_name: string, type_param: number): Promise<string> {
+        if (!param_name || !type_param) {
             return null;
         }
 
@@ -86,20 +86,20 @@ export default class CMSPrintParamWidgetComponent extends VueComponentBase {
         switch (type_param) {
 
             case CMSPrintParamWidgetOptionsVO.TYPE_STRING:
-                return await ModuleParams.getInstance().getParamValueAsString(param.name);
+                return await ModuleParams.getInstance().getParamValueAsString(param_name);
 
             case CMSPrintParamWidgetOptionsVO.TYPE_BOOLEAN:
-                bool = await ModuleParams.getInstance().getParamValueAsBoolean(param.name);
+                bool = await ModuleParams.getInstance().getParamValueAsBoolean(param_name);
                 return bool ? this.label('print_param.boolean.true') : this.label('print_param.boolean.false');
 
             case CMSPrintParamWidgetOptionsVO.TYPE_INT:
-                return (await ModuleParams.getInstance().getParamValueAsInt(param.name)).toString();
+                return (await ModuleParams.getInstance().getParamValueAsInt(param_name)).toString();
 
             case CMSPrintParamWidgetOptionsVO.TYPE_FLOAT:
-                return (await ModuleParams.getInstance().getParamValueAsFloat(param.name)).toString();
+                return (await ModuleParams.getInstance().getParamValueAsFloat(param_name)).toString();
 
             case CMSPrintParamWidgetOptionsVO.TYPE_DATE:
-                date = await ModuleParams.getInstance().getParamValueAsInt(param.name);
+                date = await ModuleParams.getInstance().getParamValueAsInt(param_name);
                 return date ? Dates.format(date, "DD/MM/YYYY") : null;
 
             default:

@@ -32,11 +32,11 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private type_param: number = null;
-    private param: ParamVO = null;
+    private param_name: string = null;
     private titre: string = null;
 
-    private param_selected: ParamVO = null;
-    private param_options: ParamVO[] = [];
+    private param_name_selected: string = null;
+    private param_name_options: string[] = [];
     private type_param_selected: DataFilterOption = null;
     private type_param_options: DataFilterOption[] = [
         new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_STRING_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_STRING),
@@ -87,13 +87,13 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
     private async onchange_widget_options() {
         if (!this.widget_options) {
             this.type_param = CMSPrintParamWidgetOptionsVO.TYPE_STRING;
-            this.param = null;
+            this.param_name = "";
             this.titre = "";
             return;
         }
 
         this.type_param = this.widget_options.type_param;
-        this.param = this.widget_options.param;
+        this.param_name = this.widget_options.param_name;
         this.titre = this.widget_options.titre;
     }
 
@@ -102,13 +102,13 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
         this.type_param = this.type_param_selected?.id;
     }
 
-    @Watch('param_selected')
-    private async onchange_param_selected() {
-        this.param = this.param_selected;
+    @Watch('param_name_selected')
+    private async onchange_param_name_selected() {
+        this.param_name = this.param_name_selected;
     }
 
     @Watch('type_param')
-    @Watch('param')
+    @Watch('param_name')
     @Watch('titre')
     private async onchange_bloc_text() {
         if (!this.widget_options) {
@@ -116,11 +116,11 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
         }
 
         if (this.widget_options.type_param != this.type_param ||
-            this.widget_options.param != this.param ||
+            this.widget_options.param_name != this.param_name ||
             this.widget_options.titre != this.titre
         ) {
             this.next_update_options.type_param = this.type_param;
-            this.next_update_options.param = this.param;
+            this.next_update_options.param_name = this.param_name;
             this.next_update_options.titre = this.titre;
 
             await this.throttled_update_options();
@@ -141,12 +141,13 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
             this.type_param = CMSPrintParamWidgetOptionsVO.TYPE_STRING;
         }
 
-        if (!this.param_options || this.param_options?.length == 0) {
-            this.param_options = await query(ParamVO.API_TYPE_ID).select_vos();
+        if (!this.param_name_options || this.param_name_options?.length == 0) {
+            const param_options: ParamVO[] = await query(ParamVO.API_TYPE_ID).select_vos();
+            this.param_name_options = param_options.map(param => param.name);
         }
 
         this.type_param_selected = this.type_param_options.find((type_param_option) => type_param_option.id == this.type_param);
-        this.param_selected = this.param_options.find((param_option) => param_option == this.param);
+        this.param_name_selected = this.param_name_options.find((param_option) => param_option == this.param_name);
 
         await this.throttled_update_options();
     }
@@ -154,7 +155,7 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
     private get_default_options(): CMSPrintParamWidgetOptionsVO {
         return CMSPrintParamWidgetOptionsVO.createNew(
             CMSPrintParamWidgetOptionsVO.TYPE_STRING,
-            null,
+            "",
             "",
         );
     }
@@ -176,11 +177,11 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
         this.$emit('update_layout_widget', this.page_widget);
     }
 
-    private multiselectOptionLabel(filter_item: ParamVO): string {
+    private multiselectOptionLabel(filter_item: string): string {
         if ((filter_item == null) || (typeof filter_item == 'undefined')) {
             return '';
         }
 
-        return filter_item.name;
+        return filter_item;
     }
 }
