@@ -7,16 +7,17 @@ import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTable
 import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
 import CRUDCNVOManyToManyRefVO from '../../../../../shared/modules/DAO/vos/CRUDCNVOManyToManyRefVO';
 import CRUDCNVOOneToManyRefVO from '../../../../../shared/modules/DAO/vos/CRUDCNVOOneToManyRefVO';
+import CRUDFieldRemoverConfVO from '../../../../../shared/modules/DAO/vos/CRUDFieldRemoverConfVO';
+import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToManyReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO';
 import ManyToOneReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 import OneToManyReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableFieldVO';
-import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import RefRangesReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
+import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import SimpleDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
-import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
@@ -25,13 +26,12 @@ import ImageVO from '../../../../../shared/modules/Image/vos/ImageVO';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
-import CRUDFieldRemoverConfVO from '../../../../../shared/modules/DAO/vos/CRUDFieldRemoverConfVO';
-import { field_names } from '../../../../../shared/tools/ObjectHandler';
 
 export default class CRUDFormServices {
 
@@ -212,6 +212,24 @@ export default class CRUDFormServices {
         vo_init: IDistantVOBase,
         onChangeVO: (vo: IDistantVOBase) => void): Promise<IDistantVOBase> {
 
+        const crud_field_rmvs: CRUDFieldRemoverConfVO[] = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
+            .filter_boolean_value(field_names<CRUDFieldRemoverConfVO>().is_update, false)
+            .filter_by_text_eq(field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, crud.readDatatable.API_TYPE_ID)
+            .select_vos<CRUDFieldRemoverConfVO>();
+        const hidden_fields: {
+            [datatable_field_uid: string]: boolean
+        } = {};
+
+        for (const i in crud_field_rmvs) { // On devrait avoir qu'un api_type_id
+            const crud_field_rmvs_i = crud_field_rmvs[i];
+
+            for (const j in crud_field_rmvs_i.module_table_field_ids) {
+                const remv_field = crud_field_rmvs_i.module_table_field_ids[j];
+
+                hidden_fields[remv_field] = true;
+            }
+        }
+
         let obj = {
             _type: crud.readDatatable.API_TYPE_ID,
             id: null,
@@ -252,7 +270,7 @@ export default class CRUDFormServices {
         }
 
         // On passe la traduction en IHM sur les champs
-        const newVO = await this.dataToIHM(obj, crud.createDatatable, false);
+        const newVO = await this.dataToIHM(obj, crud.createDatatable, false, hidden_fields);
 
         if (crud.hook_prepare_new_vo_for_creation) {
             await crud.hook_prepare_new_vo_for_creation(newVO);
@@ -263,7 +281,12 @@ export default class CRUDFormServices {
         return newVO;
     }
 
-    public static async dataToIHM(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): Promise<IDistantVOBase> {
+    public static async dataToIHM(
+        vo: IDistantVOBase,
+        datatable: Datatable<any>,
+        isUpdate: boolean,
+        hidden_fields: { [datatable_field_uid: string]: boolean },
+    ): Promise<IDistantVOBase> {
 
         const res = Object.assign({}, vo);
 
@@ -274,6 +297,9 @@ export default class CRUDFormServices {
                 continue;
             }
 
+            if (hidden_fields[field.datatable_field_uid]) {
+                continue;
+            }
 
             if (isUpdate) {
 
@@ -351,7 +377,12 @@ export default class CRUDFormServices {
         return res;
     }
 
-    public static IHMToData(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): IDistantVOBase {
+    public static IHMToData(
+        vo: IDistantVOBase,
+        datatable: Datatable<any>,
+        isUpdate: boolean,
+        hidden_fields: { [datatable_field_uid: string]: boolean },
+    ): IDistantVOBase {
 
         const res = Object.assign({}, vo);
 
@@ -363,6 +394,10 @@ export default class CRUDFormServices {
             }
 
             if ((field.type == ReferenceDatatableField.MANY_TO_MANY_FIELD_TYPE) || (field.type == ReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE)) {
+                continue;
+            }
+
+            if (hidden_fields[field.datatable_field_uid]) {
                 continue;
             }
 

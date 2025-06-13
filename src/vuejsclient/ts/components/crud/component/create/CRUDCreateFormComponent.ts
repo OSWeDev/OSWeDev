@@ -1,3 +1,4 @@
+import { cloneDeep, isEqual } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
@@ -8,6 +9,7 @@ import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTa
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
 import CRUDCreateNewVOAndRefsVO from '../../../../../../shared/modules/DAO/vos/CRUDCreateNewVOAndRefsVO';
 import CRUDFieldRemoverConfVO from '../../../../../../shared/modules/DAO/vos/CRUDFieldRemoverConfVO';
+import ModuleTableVO from '../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -21,8 +23,6 @@ import DatatableComponent from '../../../datatable/component/DatatableComponent'
 import CRUDComponentManager from '../../CRUDComponentManager';
 import CRUDFormServices from '../CRUDFormServices';
 import "./CRUDCreateFormComponent.scss";
-import { cloneDeep, isEqual } from 'lodash';
-import ModuleTableVO from '../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 
 @Component({
     template: require('./CRUDCreateFormComponent.pug'),
@@ -421,7 +421,21 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                     }
 
                     // On passe la traduction depuis IHM sur les champs
-                    const apiokVo = CRUDFormServices.IHMToData(self.newVO, self.crud.createDatatable, false);
+                    const hidden_fields: {
+                        [datatable_field_uid: string]: boolean
+                    } = {};
+
+                    for (const i in this.crud_field_remover_conf) { // On devrait avoir qu'un api_type_id
+                        const crud_field_rmvs_i = this.crud_field_remover_conf[i];
+
+                        for (const j in crud_field_rmvs_i.module_table_field_ids) {
+                            const remv_field = crud_field_rmvs_i.module_table_field_ids[j];
+
+                            hidden_fields[remv_field] = true;
+                        }
+                    }
+
+                    const apiokVo = CRUDFormServices.IHMToData(self.newVO, self.crud.createDatatable, false, hidden_fields);
 
                     createdVO = await self.create_vo_and_refs(apiokVo, reject);
                 } catch (error) {

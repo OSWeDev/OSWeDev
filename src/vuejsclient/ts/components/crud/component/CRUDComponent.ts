@@ -5,6 +5,7 @@ import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQu
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
 import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
+import CRUDFieldRemoverConfVO from '../../../../../shared/modules/DAO/vos/CRUDFieldRemoverConfVO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
@@ -17,13 +18,11 @@ import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datat
 import SimpleDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
-import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ImageVO from '../../../../../shared/modules/Image/vos/ImageVO';
-import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import ModuleVocus from '../../../../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
-import DateHandler from '../../../../../shared/tools/DateHandler';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
@@ -126,6 +125,8 @@ export default class CRUDComponent extends VueComponentBase {
     private crud_createDatatable_key: number = 0;
     private crud_updateDatatable_key: number = 0;
 
+    private hidden_fields: { [datatable_field_uid: string]: boolean } = {};
+
     // get updateDatatable_select_options_enabled_by_datatable_field_uid(): { [datatable_field_uid: string]: number[] } {
     //     let res: { [datatable_field_uid: string]: number[] } = {};
 
@@ -205,8 +206,10 @@ export default class CRUDComponent extends VueComponentBase {
             return;
         }
 
+        this.init_hidden_fields();
+
         // On passe la traduction en IHM sur les champs
-        this.editableVO = await this.dataToIHM(this.selectedVO, this.crud.updateDatatable, true);
+        this.editableVO = await CRUDFormServices.dataToIHM(this.selectedVO, this.crud.updateDatatable, true, this.hidden_fields);
         this.onChangeVO(this.editableVO);
     }
 
@@ -495,160 +498,13 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         // On passe la traduction en IHM sur les champs
-        this.newVO = await this.dataToIHM(obj, this.crud.createDatatable, false);
+        this.newVO = await CRUDFormServices.dataToIHM(obj, this.crud.createDatatable, false, this.hidden_fields);
 
         if (this.crud.hook_prepare_new_vo_for_creation) {
             await this.crud.hook_prepare_new_vo_for_creation(this.newVO);
         }
 
         this.onChangeVO(this.newVO);
-    }
-
-    private async dataToIHM(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): Promise<IDistantVOBase> {
-
-        const res = Object.assign({}, vo);
-
-        for (const i in datatable.fields) {
-            const field = datatable.fields[i];
-
-            if (field.datatable_field_uid != field.module_table_field_id) {
-                continue;
-            }
-
-
-            if (isUpdate) {
-
-                res[field.datatable_field_uid] = await field.dataToUpdateIHM(res[field.datatable_field_uid], res);
-            } else {
-
-                res[field.datatable_field_uid] = await field.dataToCreateIHM(res[field.datatable_field_uid], res);
-            }
-
-            if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                const simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).field_type;
-
-                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange) {
-
-                    if (res[field.datatable_field_uid]) {
-
-                        const value = res[field.datatable_field_uid];
-                        const parts: string[] = value.split('-');
-
-                        if ((!parts) || (parts.length <= 0)) {
-                            continue;
-                        }
-
-                        if (parts[0] && parts[0].trim() && (parts[0].trim() != "")) {
-                            res[field.datatable_field_uid + "_start"] = DateHandler.getInstance().formatDayForIndex(ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[0].trim()).unix());
-                        }
-                        if (parts[1] && parts[1].trim() && (parts[1].trim() != "")) {
-                            res[field.datatable_field_uid + "_end"] = DateHandler.getInstance().formatDayForIndex(ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[1].trim()).unix());
-                        }
-                    }
-                }
-
-                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
-                    // TODO FIXME ASAP VARS
-                }
-                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_numrange_array) {
-                    // TODO FIXME ASAP VARS
-                }
-
-                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) {
-                    // TODO FIXME ASAP VARS
-                }
-
-                // if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange_array) {
-                //     // TODO FIXME ASAP VARS
-                // }
-
-                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) {
-                    // TODO FIXME ASAP VARS
-                }
-
-                if ((simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_tstz_array) ||
-                    (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_float_array) ||
-                    (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_int_array) ||
-                    (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_string_array) ||
-                    (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_html_array)) {
-                    res[field.datatable_field_uid] = res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
-                }
-
-                for (const j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
-                    const tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
-
-                    if (simpleFieldType == tableFieldTypeController.name) {
-                        await tableFieldTypeController.dataToIHM(vo, (field as SimpleDatatableFieldVO<any, any>), res, datatable, isUpdate);
-                    }
-                }
-            }
-        }
-
-        return res;
-    }
-
-    private IHMToData(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): IDistantVOBase {
-
-        const res = Object.assign({}, vo);
-
-        for (const i in datatable.fields) {
-            const field = datatable.fields[i];
-
-            if (field.datatable_field_uid != field.module_table_field_id) {
-                continue;
-            }
-
-            if ((field.type == ReferenceDatatableField.MANY_TO_MANY_FIELD_TYPE) || (field.type == ReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE)) {
-                continue;
-            }
-
-            if (isUpdate) {
-
-                res[field.datatable_field_uid] = field.UpdateIHMToData(res[field.datatable_field_uid], res);
-            } else {
-
-                res[field.datatable_field_uid] = field.CreateIHMToData(res[field.datatable_field_uid], res);
-            }
-
-            if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                const simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).field_type;
-
-                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange) {
-                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange) {
-                        res[field.datatable_field_uid + "_start"] = undefined;
-                        res[field.datatable_field_uid + "_end"] = undefined;
-                    }
-
-                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
-                        // TODO FIXME ASAP VARS
-                    }
-                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_numrange_array) {
-                        // TODO FIXME ASAP VARS
-                    }
-                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) {
-                        // TODO FIXME ASAP VARS
-                    }
-
-                    // if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange_array) {
-                    //     // TODO FIXME ASAP VARS
-                    // }
-
-                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) {
-                        // TODO FIXME ASAP VARS
-                    }
-
-                    for (const j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
-                        const tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
-
-                        if (simpleFieldType == tableFieldTypeController.name) {
-                            tableFieldTypeController.IHMToData(vo, field as SimpleDatatableFieldVO<any, any>, res, datatable, isUpdate);
-                        }
-                    }
-                }
-            }
-        }
-
-        return res;
     }
 
     private async createVO() {
@@ -696,7 +552,7 @@ export default class CRUDComponent extends VueComponentBase {
                     }
 
                     // On passe la traduction depuis IHM sur les champs
-                    const apiokVo = self.IHMToData(self.newVO, self.crud.createDatatable, false);
+                    const apiokVo = CRUDFormServices.IHMToData(self.newVO, self.crud.createDatatable, false, this.hidden_fields);
 
                     // On utilise le trigger si il est présent sur le crud
                     if (self.crud.preCreate) {
@@ -1053,7 +909,7 @@ export default class CRUDComponent extends VueComponentBase {
                     }
 
                     // On passe la traduction depuis IHM sur les champs
-                    const apiokVo = self.IHMToData(self.editableVO, self.crud.updateDatatable, true);
+                    const apiokVo = CRUDFormServices.IHMToData(self.editableVO, self.crud.updateDatatable, true, this.hidden_fields);
 
                     // On utilise le trigger si il est présent sur le crud
                     if (self.crud.preUpdate) {
@@ -1345,5 +1201,27 @@ export default class CRUDComponent extends VueComponentBase {
                 },
             ],
         });
+    }
+
+    private async init_hidden_fields() {
+        const crud_field_rmv: CRUDFieldRemoverConfVO = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
+            .filter_boolean_value(field_names<CRUDFieldRemoverConfVO>().is_update, !!this.selectedVO.id)
+            .filter_by_text_eq(field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, this.crud.readDatatable.API_TYPE_ID)
+            .select_vo<CRUDFieldRemoverConfVO>();
+        const hidden_fields: {
+            [datatable_field_uid: string]: boolean
+        } = {};
+
+        for (const i in crud_field_rmv) { // On devrait avoir qu'un api_type_id
+            const crud_field_rmvs_i = crud_field_rmv[i];
+
+            for (const j in crud_field_rmvs_i.module_table_field_ids) {
+                const remv_field = crud_field_rmvs_i.module_table_field_ids[j];
+
+                hidden_fields[remv_field] = true;
+            }
+        }
+
+        this.hidden_fields = hidden_fields;
     }
 }

@@ -2,10 +2,10 @@ import { RouteConfig } from 'vue-router';
 import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
-import CRUDHandler from '../../../../shared/tools/CRUDHandler';
-import MenuController from '../menu/MenuController';
 import { StatThisArrayLength } from '../../../../shared/modules/Stats/annotations/StatThisArrayLength';
 import { StatThisMapKeys } from '../../../../shared/modules/Stats/annotations/StatThisMapKeys';
+import CRUDHandler from '../../../../shared/tools/CRUDHandler';
+import MenuController from '../menu/MenuController';
 
 export default class CRUDComponentManager {
 
@@ -80,7 +80,7 @@ export default class CRUDComponentManager {
         const route_name: string = 'Manage ' + API_TYPE_ID;
 
         if (!crud) {
-            crud = CRUD.getNewCRUD(API_TYPE_ID);
+            crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[API_TYPE_ID] || CRUD.getNewCRUD(API_TYPE_ID);
         }
 
         CRUDComponentManager.getInstance().cruds_by_api_type_id[API_TYPE_ID] = crud;
