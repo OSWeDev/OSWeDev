@@ -16,6 +16,11 @@
             @click="doAutofit"
         ) {{ label('oselia_run_graph_widget_component.autofit_button') }}
 
+        button.show-selection-panel-button.btn-danger(
+            v-if="showSelectionPanelButton"
+            @click="activateShowSelectionPanel"
+        ) {{ label('oselia_run_graph_widget_component.show_selection_panel_button') }}
+
     template(v-if='has_agent')
        
         // On insère le Canvas
@@ -24,7 +29,7 @@
             :selectedItem.sync="selectedItem"
             :updatedItem="updatedItem"
             :reDraw="reDraw"
-            :isRunVo="is_single_run_found"
+            :isRunVo="isRunDiagram"
             :executeAutofit="executeAutofit"
             @select_item="selectItem"
             @canAutofit="canAutofit"
@@ -36,20 +41,25 @@
     
         
     // Panel de sélection d'item
-    SelectionPanel(
-        v-if="selectedItem"
-        :items="items"
-        :selectedItem="selectedItem"
-        :selectedItemRunInfo="selectedItemRunInfo"
-        :removeItemFn="removeItem"
-        :editItemFn="editSelectItem"
-        @replayFunctionCall="replayFunctionCall"
-    )
+    transition(name="fade-slide")
+        SelectionPanel(
+            v-if="showSelectionPanel"
+            :items="items"
+            :selectedItem="selectedItem"
+            :selectedItemRunInfo="selectedItemRunInfo"
+            :removeItemFn="removeItem"
+            :editItemFn="editSelectItem"
+            @replayFunctionCall="replayFunctionCall"
+        )
 
     // Panel d'ajout
-    AddPanel(
-        v-if="showAddPanel"
-        :items="choices_of_item"
-        :addItemFn="addItem"
-    )
+    transition(name="fade-slide")
+        AddPanel(
+            v-if="showAddPanel"
+            :items="choices_of_item"
+            :addItemFn="addItem"
+            :displayMode="display_mode"
+            :changeDisplayModeFn="setDisplayMode"
+            :type_of_item_displayed="type_of_item_displayed"
+        )
 

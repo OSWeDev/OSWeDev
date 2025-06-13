@@ -16,13 +16,17 @@ import VueAppBaseInstanceHolder from '../../../../../VueAppBaseInstanceHolder';
 import GPTRealtimeAPISessionVO from '../../../../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO';
 import ICheckListItem from '../../../../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import { ModuleOseliaGetter } from './OseliaStore';
+import VueComponentBase from '../../../VueComponentBase';
 
-export default class OseliaRealtimeController {
-
+export default class OseliaRealtimeController extends VueComponentBase {
     private static instance: OseliaRealtimeController = null;
 
-    private connecting = false;
+    @ModuleOseliaGetter public get_current_thread!: GPTAssistantAPIThreadVO | null;
 
+    public session_overload_object: GPTRealtimeAPISessionVO | null = null;
+
+    private connecting = false;
     private socket: WebSocket | null = null;
     private audioContext: AudioContext | null = null;
     private mediaStream: MediaStream | null = null;
@@ -54,6 +58,13 @@ export default class OseliaRealtimeController {
             OseliaRealtimeController.instance = new OseliaRealtimeController();
         }
         return OseliaRealtimeController.instance;
+    }
+
+    @Watch('get_current_thread')
+    private async onCurrentThreadChange(new_thread: GPTAssistantAPIThreadVO | null) {
+        if (!this.call_thread && new_thread) {
+            this.call_thread = new_thread;
+        }
     }
 
     public async disconnect_to_realtime() {
@@ -178,15 +189,19 @@ export default class OseliaRealtimeController {
     private async connect_to_server(gpt_thread_id: string | null) {
         if (this.is_connected_to_realtime) return;
         try {
-            if (this.in_cr_context) {
-                this.session_id = (await query(GPTRealtimeAPISessionVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<GPTRealtimeAPISessionVO>().name, ModuleOselia.OSELIA_REALTIME_CR_SESSION_NAME)
-                    .select_vo<GPTRealtimeAPISessionVO>()).id;
-            }
-            if( this.in_prime_context ) {
-                this.session_id = (await query(GPTRealtimeAPISessionVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<GPTRealtimeAPISessionVO>().name, ModuleOselia.OSELIA_REALTIME_PRIME_SESSION_NAME)
-                    .select_vo<GPTRealtimeAPISessionVO>()).id;
+            if (this.session_overload_object) {
+                this.session_id = this.session_overload_object.id;
+            } else {
+                if (this.in_cr_context) {
+                    this.session_id = (await query(GPTRealtimeAPISessionVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<GPTRealtimeAPISessionVO>().name, ModuleOselia.OSELIA_REALTIME_CR_SESSION_NAME)
+                        .select_vo<GPTRealtimeAPISessionVO>()).id;
+                }
+                if( this.in_prime_context ) {
+                    this.session_id = (await query(GPTRealtimeAPISessionVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<GPTRealtimeAPISessionVO>().name, ModuleOselia.OSELIA_REALTIME_PRIME_SESSION_NAME)
+                        .select_vo<GPTRealtimeAPISessionVO>()).id;
+                }
             }
             await ModuleGPT.getInstance().connect_to_realtime_voice(
                 String(this.session_id),
@@ -207,7 +222,7 @@ export default class OseliaRealtimeController {
                 ConsoleHandler.log('WS Opened');
                 this.connecting = false;
                 this.socket!.send(JSON.stringify({ conversation_id: gpt_thread_id }));
-            
+
                 // ⬇ ICI : envoie les données après handshake
                 setTimeout(() => {
                     if (this.in_cr_context && this.cr_vo) {
