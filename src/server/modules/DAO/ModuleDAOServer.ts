@@ -2485,8 +2485,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 // Ajout des triggers, avant et après suppression.
                 //  Attention si un des output est false avant suppression, on annule la suppression
                 const res: boolean[] = await StackContext.exec_as_server(
-                    DAOServerController.pre_create_trigger_hook.trigger,
-                    DAOServerController.pre_create_trigger_hook,
+                    DAOServerController.pre_delete_trigger_hook.trigger,
+                    DAOServerController.pre_delete_trigger_hook,
                     exec_as_server,
                     vo._type,
                     vo,
