@@ -1,6 +1,6 @@
 import { isEqual } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import SupervisionTypeWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -23,6 +23,7 @@ import SupervisionTypeWidgetOptionsVO from '../../../../../../../shared/modules/
     }
 })
 export default class SupervisionTypeWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];

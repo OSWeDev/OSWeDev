@@ -1,4 +1,4 @@
-import { Component, Prop, Watch } from 'vue-property-decorator';
+import { Component, Inject, Prop, Watch } from 'vue-property-decorator';
 
 import CanvasDiagram from './CanvasDiagram/CanvasDiagram';
 import SelectionPanel from './SelectionPanel/SelectionPanel';
@@ -43,6 +43,7 @@ import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventi
     template: require('./OseliaRunGraphWidgetComponent.pug')
 })
 export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleOseliaGetter
     private get_show_hidden_messages: boolean;
@@ -139,7 +140,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     // -------------------------------------------------------------------------
     // WATCHERS
     // -------------------------------------------------------------------------
-    @Watch('choices_of_item', { immediate:true, deep: true})
+    @Watch('choices_of_item', { immediate: true, deep: true })
     private async onChoicesOfItemChange() {
         // Si on est en mode single run, on n’utilise pas le vieux mécanisme
         if (this.is_single_run_found) {
@@ -247,7 +248,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
                 return;
             } else {
                 // Si on avait un run unique avant, on le supprime
-                if(this.is_single_run_found) {
+                if (this.is_single_run_found) {
                     this.is_single_run_found = false;
                     this.single_run = null;
                     this.items = {};
@@ -266,7 +267,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
                     .select_vos<OseliaRunTemplateVO>();
                 for (const item of this.choices_of_item) {
                     if (this.items[item.id]) {
-                        if(this.choices_of_item.findIndex((i) => i.id == item.id) != -1) {
+                        if (this.choices_of_item.findIndex((i) => i.id == item.id) != -1) {
                             this.choices_of_item.splice(this.choices_of_item.findIndex((i) => i.id == item.id), 1);
                         }
                     }
@@ -275,6 +276,14 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
 
             return;
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
 
@@ -323,14 +332,14 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
                     .set_sort(new SortByVO(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().weight, true))
                     .select_vos<OseliaRunTemplateVO>();
                 for (const child of _children) {
-                    if(this.choices_of_item.findIndex((item) => item.id == Number(child.id)) != -1) {
+                    if (this.choices_of_item.findIndex((item) => item.id == Number(child.id)) != -1) {
                         this.choices_of_item.splice(this.choices_of_item.findIndex((item) => item.id == Number(child.id)), 1);
                     }
                 }
             }
         }
         this.$set(this.items, itemId, itemAdded);
-        if(this.choices_of_item.findIndex((item) => item.id == Number(itemId)) != -1) {
+        if (this.choices_of_item.findIndex((item) => item.id == Number(itemId)) != -1) {
             this.choices_of_item.splice(this.choices_of_item.findIndex((item) => item.id == Number(itemId)), 1);
         }
     }

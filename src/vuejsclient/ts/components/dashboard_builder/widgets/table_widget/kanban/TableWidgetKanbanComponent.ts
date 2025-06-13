@@ -3,7 +3,7 @@ import 'jquery-contextmenu/dist/jquery.contextMenu.min.css';
 
 import { cloneDeep, debounce, isEqual } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
@@ -91,6 +91,7 @@ import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_co
     }
 })
 export default class TableWidgetKanbanComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleDAOAction
     private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
@@ -1150,6 +1151,14 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             this.can_create_right = await ModuleAccessPolicy.getInstance().testAccess(
                 DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     public async getquerystr() {

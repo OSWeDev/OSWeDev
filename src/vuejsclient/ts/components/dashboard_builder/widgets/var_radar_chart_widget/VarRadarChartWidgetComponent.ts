@@ -1,6 +1,6 @@
 import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -38,6 +38,7 @@ import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsType
     template: require('./VarRadarChartWidgetComponent.pug')
 })
 export default class VarRadarChartWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
@@ -361,6 +362,14 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
         this.current_options = this.options;
         this.current_var_dataset_descriptor = this.var_dataset_descriptor;
         this.current_var_params_by_datasets = this.var_params_by_datasets;
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private get_bool_option(option: string, default_value: boolean): boolean {

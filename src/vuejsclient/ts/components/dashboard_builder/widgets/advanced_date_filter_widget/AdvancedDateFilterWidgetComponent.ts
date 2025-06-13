@@ -1,6 +1,6 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
@@ -15,12 +15,12 @@ import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSeg
 import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
 import './AdvancedDateFilterWidgetComponent.scss';
 import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetOptions';
@@ -34,18 +34,7 @@ import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetO
 })
 export default class AdvancedDateFilterWidgetComponent extends VueComponentBase {
 
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-    @ModuleDashboardPageGetter
-    private get_page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
-    @ModuleDashboardPageAction
-    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
-    @ModuleDashboardPageAction
-    private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
-    @ModuleDashboardPageAction
-    private set_page_widget_component_by_pwid: (param: { pwid: number, page_widget_component: VueComponentBase }) => void;
-    @ModuleDashboardPageAction
-    private clear_active_field_filters: () => void;
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -63,6 +52,13 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     private tmp_ts_range: TSRange = null;
     private tmp_ts_ranges: TSRange[] = [];
     private old_widget_options: AdvancedDateFilterWidgetOptions = null;
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+    get get_page_widgets_components_by_pwid(): { [pwid: number]: VueComponentBase } {
+        return this.vuexGet<{ [pwid: number]: VueComponentBase }>(reflect<this>().get_page_widgets_components_by_pwid);
+    }
 
     get is_auto_selectable_choice() {
         return (this.opts && (this.opts.length == 1) && (this.opts[0].search_type == AdvancedDateFilterOptDescVO.SEARCH_TYPE_CUSTOM));
@@ -469,6 +465,32 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
         this.tmp_ts_ranges = cloneDeep(this.other_filter_tmp_ts_ranges);
     }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
+    }
+
+    public remove_active_field_filter(params: { vo_type: string, field_id: string }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, params);
+    }
+
+    public set_page_widget_component_by_pwid(param: { pwid: number, page_widget_component: VueComponentBase }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
+    }
+
+    public clear_active_field_filters() {
+        return this.vuexAct(reflect<this>().set_active_field_filter);
+    }
+
+
 
     private async mounted() {
         ResetFiltersWidgetController.getInstance().register_reseter(

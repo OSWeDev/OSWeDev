@@ -1,7 +1,7 @@
 import { cloneDeep, debounce, isEqual } from 'lodash';
 import Vue from 'vue';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
@@ -47,6 +47,7 @@ import ModuleTableController from '../../../../../../../shared/modules/DAO/Modul
     }
 })
 export default class FieldValueFilterRefFieldWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
@@ -136,6 +137,14 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
         AdvancedRefFieldFilter.FILTER_TYPE_EST_NULL,
         AdvancedRefFieldFilter.FILTER_TYPE_NEST_PAS_NULL,
     ];
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
 
     private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.declare_throttle_without_args(
         'FieldValueFilterRefFieldWidgetComponent.throttled_update_visible_options',

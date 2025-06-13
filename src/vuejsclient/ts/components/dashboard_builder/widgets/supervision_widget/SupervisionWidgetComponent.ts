@@ -1,6 +1,6 @@
 import { cloneDeep, isEqual, isEmpty } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Vue, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Vue, Watch } from 'vue-property-decorator';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import SupervisionTypeWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
@@ -44,6 +44,7 @@ import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsType
     }
 })
 export default class SupervisionWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
@@ -214,6 +215,14 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         this.selected_items = {};
 
         this.throttled_update_visible_options();
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private async mounted() {

@@ -1,4 +1,4 @@
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import Component from 'vue-class-component';
 import { cloneDeep } from 'lodash';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
@@ -29,6 +29,7 @@ import './FavoritesFiltersWidgetOptionsComponent.scss';
     }
 })
 export default class FavoritesFiltersWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -121,6 +122,14 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
 
             this.throttled_update_options();
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     /**

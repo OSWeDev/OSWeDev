@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
+import { Inject, Prop } from 'vue-property-decorator';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
@@ -16,6 +16,7 @@ import './OseliaThreadWidgetOptionsComponent.scss';
     }
 })
 export default class OseliaThreadWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
     private dashboard: DashboardVO;
@@ -50,5 +51,13 @@ export default class OseliaThreadWidgetOptionsComponent extends VueComponentBase
         }
 
         return new OseliaThreadWidgetOptions();
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 }

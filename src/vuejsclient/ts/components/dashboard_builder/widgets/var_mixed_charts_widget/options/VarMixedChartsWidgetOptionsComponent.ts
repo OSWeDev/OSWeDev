@@ -1,6 +1,6 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import VarMixedChartWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -38,6 +38,7 @@ import VarChartScalesOptionsVO from '../../../../../../../shared/modules/Dashboa
     }
 })
 export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     // --------------------------------------------------------------------------
     // Props et injections du store
@@ -451,6 +452,14 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         this.next_update_options.dimension_custom_filter_name = this.tmp_selected_custom_filter;
 
         await this.throttled_update_options();
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     /**

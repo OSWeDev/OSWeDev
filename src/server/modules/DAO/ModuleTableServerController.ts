@@ -183,16 +183,19 @@ export default class ModuleTableServerController {
                     .select_vo<ModuleTableVO>();
 
                 let merged_db_table = table;
+                let insert_or_update = false;
                 if (!db_table) {
                     db_table = table;
                     db_table.definition_type = ModuleTableVO.DEFINITION_TYPE_CODE; // On est en train de créer la table depuis la conf issue du code, on est donc en code first
+                    insert_or_update = true;
                 } else {
                     merged_db_table = Object.assign(db_table, table);
                     merged_db_table.id = db_table.id;
+                    insert_or_update = JSON.stringify(merged_db_table) !== JSON.stringify(db_table);
                 }
 
                 // On check qu'on a des mises à jour à faire sinon on ne fait rien
-                if (JSON.stringify(merged_db_table) !== JSON.stringify(db_table)) {
+                if (insert_or_update) {
                     ConsoleHandler.log('ModuleTableController.push_ModuleTableVOs_to_db: updating table for vo_type ' + vo_type + ' with id ' + merged_db_table.id);
                     await ModuleDAOServer.instance.insertOrUpdateVO_as_server(merged_db_table);
                 }

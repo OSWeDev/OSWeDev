@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import SupervisionTypeWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
 import SupervisionTypeWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/SupervisionTypeWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -28,6 +28,7 @@ import SupervisedProbeGroupVO from '../../../../../../shared/modules/Supervision
     components: {},
 })
 export default class SupervisionTypeWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -332,6 +333,14 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             console.debug('onchange_supervision_api_type_ids load_counter');
             this.throttled_load_counter();
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private async mounted() {

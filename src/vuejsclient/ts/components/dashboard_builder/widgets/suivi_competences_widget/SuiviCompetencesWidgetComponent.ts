@@ -1,6 +1,6 @@
 import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
 import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
@@ -59,6 +59,7 @@ import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
     }
 })
 export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleDAOAction
     private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
@@ -178,6 +179,14 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                 .filter_by_id(this.selected_rapport.suivi_comp_grille_id)
                 .select_vo();
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private async mounted() {

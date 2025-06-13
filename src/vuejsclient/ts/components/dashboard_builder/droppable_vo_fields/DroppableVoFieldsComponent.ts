@@ -1,14 +1,13 @@
 import Component from 'vue-class-component';
-import { Prop, Vue, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Vue, Watch } from 'vue-property-decorator';
+import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
+import { reflect } from '../../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../VueComponentBase';
-import { ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import './DroppableVoFieldsComponent.scss';
 import DroppableVoFieldsController from './DroppableVoFieldsController';
 import { ModuleDroppableVoFieldsAction, ModuleDroppableVoFieldsGetter } from './DroppableVoFieldsStore';
 import DroppableVoFieldComponent from './field/DroppableVoFieldComponent';
-import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./DroppableVoFieldsComponent.pug'),
@@ -18,35 +17,26 @@ import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTable
 })
 export default class DroppableVoFieldsComponent extends VueComponentBase {
 
+    @Inject('storeNamespace') readonly storeNamespace!: string;
+
+    @Prop()
+    private dashboard: DashboardVO;
+
     @ModuleDroppableVoFieldsGetter
     private get_filter_by_field_id_or_api_type_id: string;
 
     @ModuleDroppableVoFieldsAction
     private set_filter_by_field_id_or_api_type_id: (filter_by_field_id_or_api_type_id: string) => void;
 
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
+    @ModuleDroppableVoFieldsGetter
+    private get_selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } };
+
 
     private filter_value: string = null;
     private closed_api_type_id: { [api_type_id: string]: boolean } = {};
 
-    @Prop()
-    private dashboard: DashboardVO;
-
-    @ModuleDroppableVoFieldsGetter
-    private get_selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } };
-
-    private switch_open_closed(api_type_id: string) {
-        Vue.set(this.closed_api_type_id, api_type_id, !this.closed_api_type_id[api_type_id]);
-    }
-
-    @Watch("get_filter_by_field_id_or_api_type_id", { immediate: true })
-    private onchange_store_filter() {
-        this.filter_value = this.get_filter_by_field_id_or_api_type_id;
-    }
-
-    private filter_by_field_id_or_api_type_id(event) {
-        this.set_filter_by_field_id_or_api_type_id(event.srcElement.value);
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
     }
 
     get api_type_ids(): string[] {
@@ -154,5 +144,25 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
         }
 
         return res;
+    }
+
+    @Watch("get_filter_by_field_id_or_api_type_id", { immediate: true })
+    private onchange_store_filter() {
+        this.filter_value = this.get_filter_by_field_id_or_api_type_id;
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    private filter_by_field_id_or_api_type_id(event) {
+        this.set_filter_by_field_id_or_api_type_id(event.srcElement.value);
+    }
+    private switch_open_closed(api_type_id: string) {
+        Vue.set(this.closed_api_type_id, api_type_id, !this.closed_api_type_id[api_type_id]);
     }
 }

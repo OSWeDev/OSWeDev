@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import OseliaThreadFeedbackVO from '../../../../../../../shared/modules/Oselia/vos/OseliaThreadFeedbackVO';
@@ -16,6 +16,7 @@ import './OseliaFeedbackEditorComponent.scss';
     components: {}
 })
 export default class OseliaFeedbackEditorComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
@@ -49,6 +50,14 @@ export default class OseliaFeedbackEditorComponent extends VueComponentBase {
     @Watch('current_user_feedback_type')
     private async onchange_action_url_id() {
         this.throttle_load_feedback();
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private async beforeDestroy() {

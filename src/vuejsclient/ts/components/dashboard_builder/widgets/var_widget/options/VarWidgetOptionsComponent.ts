@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -26,6 +26,7 @@ import ModuleTableController from '../../../../../../../shared/modules/DAO/Modul
     }
 })
 export default class VarWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -55,6 +56,15 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
     private bg_color: string = null;
 
     private widget_options: VarWidgetOptions = null;
+
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
 
     private async update_colors() {
         if (!this.widget_options) {

@@ -1,6 +1,6 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import DashboardPageWidgetVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
 import MonthFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/MonthFilterWidgetManager';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -22,6 +22,7 @@ import './MonthFilterWidgetOptionsButtonSetterComponent.scss';
     }
 })
 export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO; // TODO: find the page_widget_id and then configure the widget_options
@@ -317,6 +318,14 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
 
             this.throttled_update_page_widget();
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private update_page_widget() {

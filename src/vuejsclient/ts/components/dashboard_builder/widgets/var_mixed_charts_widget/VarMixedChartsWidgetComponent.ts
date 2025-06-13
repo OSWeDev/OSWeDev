@@ -1,6 +1,6 @@
 import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
@@ -51,6 +51,7 @@ import './VarMixedChartsWidgetComponent.scss';
     template: require('./VarMixedChartsWidgetComponent.pug')
 })
 export default class VarMixedChartsWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     // --------------------------------------------------------------------------
     //  Props et injections du store
@@ -811,6 +812,14 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         await this.throttled_update_visible_options();
     }
 
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
     // --------------------------------------------------------------------------
     //  Hooks
     // --------------------------------------------------------------------------
@@ -1507,7 +1516,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             } else {
                 // On pioche dans la palette
                 const index_for_color: number = parseInt(key) + parseInt(j);
-                let color = var_chart_options.color_palette.colors?var_chart_options.color_palette.colors[index_for_color] : null;
+                let color = var_chart_options.color_palette.colors ? var_chart_options.color_palette.colors[index_for_color] : null;
                 let border_color = var_chart_options.color_palette.border_colors ? var_chart_options.color_palette.border_colors[index_for_color] : null;
                 if (!border_color) {
                     border_color = this.getDefaultColor();

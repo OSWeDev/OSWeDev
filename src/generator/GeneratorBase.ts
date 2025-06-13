@@ -39,10 +39,12 @@ import CheckExtensions from './inits/premodules/CheckExtensions';
 // import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
 import VersionUpdater from './version_updater/VersionUpdater';
 // import Patch20241129PreCreateEventsConfs from './patchs/premodules/Patch20241129PreCreateEventsConfs';
-import GeneratorPatchsListHandler from './GeneratorPatchsListHandler';
+import StackContext from '../server/StackContext';
+import ModuleTableFieldServerController from '../server/modules/DAO/ModuleTableFieldServerController';
+import ModuleTableServerController from '../server/modules/DAO/ModuleTableServerController';
 import IDatabaseHolder from '../server/modules/IDatabaseHolder';
 import EventsController from '../shared/modules/Eventify/EventsController';
-import StackContext from '../server/StackContext';
+import GeneratorPatchsListHandler from './GeneratorPatchsListHandler';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -175,6 +177,10 @@ export default abstract class GeneratorBase {
 
         console.log("configure_server_modules...");
         await this.modulesService.configure_server_modules(null, true);
+
+        // Ensuite on pousse les confs de moduletable et moduletablefield en bdd
+        await ModuleTableServerController.push_ModuleTableVO_conf_to_db();
+        await ModuleTableFieldServerController.push_ModuleTableFieldVO_conf_to_db();
 
         if (envParam.launch_init) {
             console.log("INIT post modules initialization workers...");

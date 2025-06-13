@@ -1,6 +1,6 @@
 import Component from 'vue-class-component';
 import { GridItem, GridLayout } from "vue-grid-layout";
-import { Prop, Vue, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Vue, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -28,7 +28,7 @@ import CRUDCreateModalComponent from '../widgets/table_widget/crud_modals/create
 import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent';
 import './DashboardBuilderBoardComponent.scss';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
-import { field_names } from '../../../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -55,44 +55,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     public static GridLayout_TOTAL_COLUMNS: number = 128;
     public static GridLayout_ELT_WIDTH: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_WIDTH / DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
 
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleDashboardPageAction
-    private delete_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleDashboardPageAction
-    private set_Checklistitemmodalcomponent: (Checklistitemmodalcomponent: ChecklistItemModalComponent) => void;
-
-    @ModuleDashboardPageAction
-    private set_Supervisionitemmodal: (Supervisionitemmodal: SupervisionItemModalComponent) => void;
-
-    @ModuleDashboardPageAction
-    private set_Favoritesfiltersmodalcomponent: (Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent) => void;
-
-    @ModuleDashboardPageAction
-    private set_Crudupdatemodalcomponent: (Crudupdatemodalcomponent: CRUDUpdateModalComponent) => void;
-
-    @ModuleDashboardPageAction
-    private set_Crudcreatemodalcomponent: (Crudcreatemodalcomponent: CRUDCreateModalComponent) => void;
-
-    @ModuleDashboardPageAction
-    private set_Dashboardcopywidgetcomponent: (Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) => void;
-
-    @ModuleDashboardPageGetter
-    private get_widgets_invisibility: { [w_id: number]: boolean };
-
-    @ModuleDashboardPageGetter
-    private get_dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number };
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-
-    @ModuleDashboardPageAction
-    private set_active_field_filters: (param: FieldFiltersVO) => void;
-
-    @ModuleDashboardPageAction
-    private clear_active_field_filters: () => void;
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop()
     private dashboard_page: DashboardPageVO;
@@ -140,6 +103,19 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         return this.editable;
     }
 
+    get get_widgets_invisibility(): { [w_id: number]: boolean } {
+        return this.vuexGet<{ [w_id: number]: boolean }>(reflect<this>().get_widgets_invisibility);
+    }
+
+    get get_dashboard_navigation_history(): { current_dashboard_id: number, previous_dashboard_id: number } {
+        return this.vuexGet<{ current_dashboard_id: number, previous_dashboard_id: number }>(reflect<this>().get_dashboard_navigation_history);
+    }
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+
     @Watch("dashboard", { immediate: true })
     private async onchange_dashboard() {
         // We should load the shared_filters with the current dashboard
@@ -168,6 +144,54 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private async onchange_get_widgets_invisibility() {
 
         this.throttled_rebuild_page_layout();
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
+    public delete_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().delete_page_widget, page_widget);
+    }
+
+    public set_Checklistitemmodalcomponent(Checklistitemmodalcomponent: ChecklistItemModalComponent) {
+        return this.vuexAct(reflect<this>().set_Checklistitemmodalcomponent, Checklistitemmodalcomponent);
+    }
+
+    public set_Supervisionitemmodal(Supervisionitemmodal: SupervisionItemModalComponent) {
+        return this.vuexAct(reflect<this>().set_Supervisionitemmodal, Supervisionitemmodal);
+    }
+
+    public set_Favoritesfiltersmodalcomponent(Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent) {
+        return this.vuexAct(reflect<this>().set_Favoritesfiltersmodalcomponent, Favoritesfiltersmodalcomponent);
+    }
+
+    public set_Crudupdatemodalcomponent(Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
+        return this.vuexAct(reflect<this>().set_Crudupdatemodalcomponent, Crudupdatemodalcomponent);
+    }
+
+    public set_Crudcreatemodalcomponent(Crudcreatemodalcomponent: CRUDCreateModalComponent) {
+        return this.vuexAct(reflect<this>().set_Crudcreatemodalcomponent, Crudcreatemodalcomponent);
+    }
+
+    public set_Dashboardcopywidgetcomponent(Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) {
+        return this.vuexAct(reflect<this>().set_Dashboardcopywidgetcomponent, Dashboardcopywidgetcomponent);
+    }
+
+    public set_active_field_filters(param: FieldFiltersVO) {
+        return this.vuexAct(reflect<this>().set_active_field_filters, param);
+    }
+
+    public clear_active_field_filters() {
+        return this.vuexAct(reflect<this>().clear_active_field_filters);
     }
 
     public async update_layout_widget(widget: DashboardPageWidgetVO) {

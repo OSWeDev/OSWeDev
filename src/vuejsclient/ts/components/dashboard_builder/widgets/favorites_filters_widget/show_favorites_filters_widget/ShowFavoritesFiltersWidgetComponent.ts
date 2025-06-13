@@ -1,6 +1,6 @@
 import { cloneDeep, isEmpty, isEqual } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
@@ -39,6 +39,7 @@ import './ShowFavoritesFiltersWidgetComponent.scss';
 export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBase {
 
     private static TESTUID = 0;
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleDashboardPageGetter
     private get_Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent;
@@ -210,6 +211,15 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
     //     this.set_active_field_filters(field_filters);
     // }
+
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
 
     private async update_active_field_filters(): Promise<void> {
         const favorites_filters: FavoritesFiltersVO = this.tmp_active_favorites_filters_option;

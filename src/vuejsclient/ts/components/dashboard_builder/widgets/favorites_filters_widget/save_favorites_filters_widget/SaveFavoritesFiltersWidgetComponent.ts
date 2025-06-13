@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
+import { Inject, Prop } from 'vue-property-decorator';
 import FavoritesFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FavoritesFiltersVOManager';
 import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
@@ -32,6 +32,7 @@ import './SaveFavoritesFiltersWidgetComponent.scss';
     components: {}
 })
 export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleDashboardPageGetter
     private get_Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent;
@@ -52,6 +53,15 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     private dashboard: DashboardVO;
 
     private start_update: boolean = false;
+
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
 
     /**
      * Handle Open Modal

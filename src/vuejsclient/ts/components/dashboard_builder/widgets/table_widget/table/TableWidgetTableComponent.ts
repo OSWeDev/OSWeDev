@@ -4,7 +4,7 @@ import 'jquery-contextmenu/dist/jquery.contextMenu.min.css';
 import { cloneDeep, debounce, isEqual } from 'lodash';
 import slug from 'slug';
 import Component from 'vue-class-component';
-import { Prop, Vue, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Vue, Watch } from 'vue-property-decorator';
 import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
@@ -103,6 +103,7 @@ import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSe
     }
 })
 export default class TableWidgetTableComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleDAOAction
     private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
@@ -1506,6 +1507,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             this.can_create_right = await ModuleAccessPolicy.getInstance().testAccess(
                 DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private async open_update(type: string, id: number) {

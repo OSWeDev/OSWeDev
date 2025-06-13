@@ -1,7 +1,7 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Vue from 'vue';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleCheckListBase from '../../../../../../shared/modules/CheckList/ModuleCheckListBase';
 import ICheckListItem from '../../../../../../shared/modules/CheckList/interfaces/ICheckListItem';
@@ -54,6 +54,7 @@ import APIControllerWrapper from '../../../../../../shared/modules/API/APIContro
     }
 })
 export default class ChecklistWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleDashboardPageGetter
     private get_Checklistitemmodalcomponent: ChecklistItemModalComponent;
@@ -196,6 +197,14 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     @Watch('checklist_shared_module')
     private watchers() {
         this.throttled_update_visible_options();
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private async onchangevo(vo: ICheckListItem) {

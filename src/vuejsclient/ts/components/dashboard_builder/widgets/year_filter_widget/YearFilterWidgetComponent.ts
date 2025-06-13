@@ -1,6 +1,6 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import YearFilterWidgetHandler from '../../../../../../shared/modules/DashboardBuilder/handlers/YearFilterWidgetHandler';
@@ -27,6 +27,7 @@ import './YearFilterWidgetComponent.scss';
     }
 })
 export default class YearFilterWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     public selected_years: { [year: number]: boolean } = {};
 
@@ -70,6 +71,14 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     private relative_page_widget: DashboardPageWidgetVO = null;
 
     private widget_options: YearFilterWidgetOptionsVO = null;
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
 
     protected async mounted() {
         this.set_page_widget_component_by_pwid({

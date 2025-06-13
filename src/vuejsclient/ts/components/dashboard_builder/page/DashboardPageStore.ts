@@ -59,7 +59,7 @@ export interface IDashboardPageState {
 }
 
 export default class DashboardPageStore implements IStoreModule<IDashboardPageState, DashboardPageContext> {
-    private static instance: DashboardPageStore;
+    public static instance: DashboardPageStore;
 
     public module_name: string;
     public state: any;
@@ -271,7 +271,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
     public actions: ActionTree<IDashboardPageState, DashboardPageContext>;
     public namespaced: boolean = true;
 
-    protected constructor() {
+    public constructor() {
         this.module_name = "DashboardPageStore";
 
 

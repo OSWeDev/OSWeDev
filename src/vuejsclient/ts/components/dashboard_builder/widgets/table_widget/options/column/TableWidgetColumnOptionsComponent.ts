@@ -1,6 +1,6 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import AccessPolicyVO from '../../../../../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import { query } from '../../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../../../../../../../shared/modules/DAO/ModuleTableController';
@@ -42,6 +42,7 @@ import './TableWidgetColumnOptionsComponent.scss';
     }
 })
 export default class TableWidgetColumnOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleDashboardPageGetter
     private get_custom_filters: string[];
@@ -763,6 +764,14 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.object_column.column_dynamic_time_segment = this.tmp_column_dynamic_time_segment?.id;
 
         this.$emit('update_column', this.object_column);
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private async switch_kanban_use_weight() {

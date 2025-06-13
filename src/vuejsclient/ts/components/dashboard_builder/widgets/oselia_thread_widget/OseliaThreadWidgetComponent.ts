@@ -2,7 +2,7 @@ import Cookies from "js-cookie";
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import VueJsonPretty from 'vue-json-pretty';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import Throttle from "../../../../../../shared/annotations/Throttle";
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
@@ -65,6 +65,7 @@ import './OseliaThreadWidgetComponent.scss';
     }
 })
 export default class OseliaThreadWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleOseliaGetter
     public get_too_many_assistants: boolean;
@@ -421,6 +422,15 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     //         }
     //     }
     // }
+
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
 
     private select_thread_id(thread_id: number) {
         this.set_active_field_filter({

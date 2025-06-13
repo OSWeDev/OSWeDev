@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import VarRadarChartWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -28,6 +28,7 @@ import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/Modu
     }
 })
 export default class VarRadarChartWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -647,6 +648,14 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
         } catch (error) {
             ConsoleHandler.error(error);
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private async update_colors() {

@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import AdvancedDateFilterOptDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/AdvancedDateFilterOptDescVO';
@@ -29,6 +29,8 @@ import ModuleTableController from '../../../../../../../shared/modules/DAO/Modul
     }
 })
 export default class AdvancedDateFilterWidgetOptionsComponent extends VueComponentBase {
+
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -200,6 +202,14 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
 
             this.throttled_update_options();
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private async switch_is_vo_field_ref() {

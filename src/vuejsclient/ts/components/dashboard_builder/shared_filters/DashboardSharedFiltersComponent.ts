@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import DashboardPageFieldFiltersVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageFieldFiltersVOManager';
 import DashboardPageVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
 import SharedFiltersVOManager from '../../../../../shared/modules/DashboardBuilder/manager/SharedFiltersVOManager';
@@ -16,6 +16,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/Da
 import './DashboardSharedFiltersComponent.scss';
 import ISelectionnableFieldFilters from './interface/ISelectionnableFieldFilters';
 import SharedFiltersModalComponent from './modal/SharedFiltersModalComponent';
+import { reflect } from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DashboardSharedFiltersComponent.pug'),
@@ -25,8 +26,7 @@ import SharedFiltersModalComponent from './modal/SharedFiltersModalComponent';
 })
 export default class DashboardSharedFiltersComponent extends VueComponentBase {
 
-    @ModuleDashboardPageGetter
-    private get_Sharedfiltersmodalcomponent: SharedFiltersModalComponent;
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop()
     private dashboard: DashboardVO;
@@ -73,6 +73,10 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
         false
     );
 
+    get get_Sharedfiltersmodalcomponent(): SharedFiltersModalComponent {
+        return this.vuexGet<SharedFiltersModalComponent>(reflect<this>().get_Sharedfiltersmodalcomponent);
+    }
+
     @Watch('dashboard', { immediate: true })
     private async onchange_dashboard() {
         this.is_loading = true;
@@ -95,6 +99,16 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
         this.throttled_load_dashboard_pages_field_filters_map();
         this.throttled_load_all_shared_filters();
     }
+
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
 
     /**
      * mounted

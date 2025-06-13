@@ -1,7 +1,7 @@
 import Component from 'vue-class-component';
 import VueComponentBase from '../../../../VueComponentBase';
 import './BlocTextWidgetOptionsComponent.scss';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
@@ -21,6 +21,7 @@ import WidgetOptionsVOManager from '../../../../../../../shared/modules/Dashboar
     template: require('./BlocTextWidgetOptionsComponent.pug')
 })
 export default class BlocTextWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
@@ -78,6 +79,14 @@ export default class BlocTextWidgetOptionsComponent extends VueComponentBase {
 
             await this.throttled_update_options();
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private async mounted() {

@@ -37,6 +37,7 @@ import FavoritesFiltersVO from './vos/FavoritesFiltersVO';
 import SharedFiltersVO from './vos/SharedFiltersVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
 import VOFieldRefVO from './vos/VOFieldRefVO';
+import { CRUDDBLinkVO } from './vos/crud/CRUDDBLinkVO';
 
 export default class ModuleDashboardBuilder extends Module {
 
@@ -106,6 +107,18 @@ export default class ModuleDashboardBuilder extends Module {
         this.initialize_SimpleDatatableFieldVO();
         this.initialize_VarDatatableFieldVO();
         this.initialize_DashboardGraphColorPaletteVO();
+
+        this.initialize_CRUDDBLinkVO();
+    }
+
+    private initialize_CRUDDBLinkVO() {
+        ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().crud_step_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type d\'action sur l\'objet', true).setEnumValues(CRUDDBLinkVO.CRUD_STEP_TYPE_LABELS);
+        ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().moduletable_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'ModuleTable', true)
+            .set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().db_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', false)
+            .set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);
+
+        ModuleTableController.create_new(this.name, CRUDDBLinkVO, null, "CRUD DB Link");
     }
 
     private init_DashboardVO(): ModuleTableVO {

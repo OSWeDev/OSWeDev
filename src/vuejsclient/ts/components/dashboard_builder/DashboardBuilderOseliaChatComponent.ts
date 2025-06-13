@@ -1,5 +1,5 @@
 import { query } from "express";
-import { Prop, Watch } from "vue-property-decorator";
+import { Inject, Prop, Watch } from "vue-property-decorator";
 import Vue from "vue/types/umd";
 import ModuleDAO from "../../../../shared/modules/DAO/ModuleDAO";
 import InsertOrDeleteQueryResult from "../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult";
@@ -14,7 +14,7 @@ import DashboardWidgetVO from "../../../../shared/modules/DashboardBuilder/vos/D
 import FieldFiltersVO from "../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO";
 import VOsTypesManager from "../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
-import { field_names } from "../../../../shared/tools/ObjectHandler";
+import { field_names, reflect } from "../../../../shared/tools/ObjectHandler";
 import { all_promises } from "../../../../shared/tools/PromiseTools";
 import ThrottleHelper from "../../../../shared/tools/ThrottleHelper";
 import InlineTranslatableText from "../InlineTranslatableText/InlineTranslatableText";
@@ -56,41 +56,7 @@ export default class DashboardBuilderOseliaChatComponent extends VueComponentBas
     public static GridLayout_TOTAL_COLUMNS: number = 128;
     public static GridLayout_ELT_WIDTH: number = DashboardBuilderOseliaChatComponent.GridLayout_TOTAL_WIDTH / DashboardBuilderOseliaChatComponent.GridLayout_TOTAL_COLUMNS;
 
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleDashboardPageAction
-    private delete_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleDashboardPageAction
-    private set_Checklistitemmodalcomponent: (Checklistitemmodalcomponent: ChecklistItemModalComponent) => void;
-
-    @ModuleDashboardPageAction
-    private set_Supervisionitemmodal: (Supervisionitemmodal: SupervisionItemModalComponent) => void;
-
-    @ModuleDashboardPageAction
-    private set_Favoritesfiltersmodalcomponent: (Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent) => void;
-
-    @ModuleDashboardPageAction
-    private set_Crudupdatemodalcomponent: (Crudupdatemodalcomponent: CRUDUpdateModalComponent) => void;
-
-    @ModuleDashboardPageAction
-    private set_Crudcreatemodalcomponent: (Crudcreatemodalcomponent: CRUDCreateModalComponent) => void;
-
-    @ModuleDashboardPageAction
-    private set_Dashboardcopywidgetcomponent: (Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) => void;
-
-    @ModuleDashboardPageGetter
-    private get_widgets_invisibility: { [w_id: number]: boolean };
-
-    @ModuleDashboardPageGetter
-    private get_dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number };
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-
-    @ModuleDashboardPageAction
-    private set_active_field_filters: (param: FieldFiltersVO) => void;
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop()
     private dashboard_page: DashboardPageVO;
@@ -125,6 +91,19 @@ export default class DashboardBuilderOseliaChatComponent extends VueComponentBas
         'DashboardBuilderOseliaChatComponent.throttled_rebuild_page_layout',
         this.rebuild_page_layout.bind(this), 200);
 
+    get get_widgets_invisibility(): { [w_id: number]: boolean } {
+        return this.vuexGet<{ [w_id: number]: boolean }>(reflect<this>().get_widgets_invisibility);
+    }
+
+    get get_dashboard_navigation_history(): { current_dashboard_id: number, previous_dashboard_id: number } {
+        return this.vuexGet<{ current_dashboard_id: number, previous_dashboard_id: number }>(reflect<this>().get_dashboard_navigation_history);
+    }
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
         const sorted_widgets = DashboardBuilderWidgetsController.getInstance().sorted_widgets;
         return VOsTypesManager.vosArray_to_vosByIds(sorted_widgets);
@@ -137,6 +116,51 @@ export default class DashboardBuilderOseliaChatComponent extends VueComponentBas
     get resizable(): boolean {
         return this.editable;
     }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO): void {
+        this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
+    public delete_page_widget(page_widget: DashboardPageWidgetVO): void {
+        this.vuexAct(reflect<this>().delete_page_widget, page_widget);
+    }
+
+    public set_Checklistitemmodalcomponent(Checklistitemmodalcomponent: ChecklistItemModalComponent): void {
+        this.vuexAct(reflect<this>().set_Checklistitemmodalcomponent, Checklistitemmodalcomponent);
+    }
+
+    public set_Supervisionitemmodal(Supervisionitemmodal: SupervisionItemModalComponent): void {
+        this.vuexAct(reflect<this>().set_Supervisionitemmodal, Supervisionitemmodal);
+    }
+
+    public set_Favoritesfiltersmodalcomponent(Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent): void {
+        this.vuexAct(reflect<this>().set_Favoritesfiltersmodalcomponent, Favoritesfiltersmodalcomponent);
+    }
+
+    public set_Crudupdatemodalcomponent(Crudupdatemodalcomponent: CRUDUpdateModalComponent): void {
+        this.vuexAct(reflect<this>().set_Crudupdatemodalcomponent, Crudupdatemodalcomponent);
+    }
+
+    public set_Crudcreatemodalcomponent(Crudcreatemodalcomponent: CRUDCreateModalComponent): void {
+        this.vuexAct(reflect<this>().set_Crudcreatemodalcomponent, Crudcreatemodalcomponent);
+    }
+
+    public set_Dashboardcopywidgetcomponent(Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent): void {
+        this.vuexAct(reflect<this>().set_Dashboardcopywidgetcomponent, Dashboardcopywidgetcomponent);
+    }
+
+    public set_active_field_filters(param: FieldFiltersVO): void {
+        this.vuexAct(reflect<this>().set_active_field_filters, param);
+    }
+
 
     public async update_layout_widget(widget: DashboardPageWidgetVO) {
         if ((!this.editable_dashboard_page?.layout)) {

@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Prop, Provide, Watch } from 'vue-property-decorator';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
@@ -28,7 +28,7 @@ import TranslationVO from '../../../../shared/modules/Translation/vos/Translatio
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
-import ObjectHandler, { field_names } from '../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
@@ -41,7 +41,7 @@ import DashboardBuilderBoardComponent from './board/DashboardBuilderBoardCompone
 import DroppableVoFieldsComponent from './droppable_vo_fields/DroppableVoFieldsComponent';
 import { ModuleDroppableVoFieldsAction } from './droppable_vo_fields/DroppableVoFieldsStore';
 import DashboardMenuConfComponent from './menu_conf/DashboardMenuConfComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from './page/DashboardPageStore';
+import DashboardPageStore from './page/DashboardPageStore';
 import DashboardSharedFiltersComponent from './shared_filters/DashboardSharedFiltersComponent';
 import TablesGraphComponent from './tables_graph/TablesGraphComponent';
 import MaxGraphMapper from './tables_graph/graph_mapper/MaxGraphMapper';
@@ -65,70 +65,27 @@ import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
 })
 export default class DashboardBuilderComponent extends VueComponentBase {
 
-    @ModuleDashboardPageAction
-    private set_discarded_field_paths: (discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) => void;
-
-    @ModuleDashboardPageAction
-    private set_dashboard_api_type_ids: (dashboard_api_type_ids: string[]) => void;
-
-    @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
 
     @Prop({ default: null })
-    private dashboard_id: string;
+    private readonly dashboard_id: string;
 
     @Prop({ default: null })
-    private dashboard_vo_action: string;
+    private readonly dashboard_vo_action: string;
 
     @Prop({ default: null })
-    private dashboard_vo_id: string;
+    private readonly dashboard_vo_id: string;
 
     @Prop({ default: null })
-    private api_type_id_action: string;
-
-    @ModuleDashboardPageAction
-    private set_page_widgets_components_by_pwid: (page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) => void;
-
-    @ModuleDashboardPageGetter
-    private get_page_history: DashboardPageVO[];
-
-    @ModuleDashboardPageAction
-    private set_page_widgets: (page_widgets: DashboardPageWidgetVO[]) => void;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleDashboardPageAction
-    private delete_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleDashboardPageAction
-    private add_page_history: (page_history: DashboardPageVO) => void;
-
-    @ModuleDashboardPageAction
-    private set_page_history: (page_history: DashboardPageVO[]) => void;
-
-    @ModuleDashboardPageAction
-    private set_dashboard_navigation_history: (
-        dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }
-    ) => void;
-
-    @ModuleDashboardPageGetter
-    private get_dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number };
-
-    @ModuleDashboardPageAction
-    private pop_page_history: (fk) => void;
-
-    @ModuleDashboardPageAction
-    private set_custom_filters: (custom_filters: string[]) => void;
-
-    @ModuleDashboardPageAction
-    private add_shared_filters_to_map: (shared_filters: SharedFiltersVO[]) => void;
+    private readonly api_type_id_action: string;
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
+
+    // namespace dynamique
+    private storeNamespace: string = `dashboardStore_${this._uid}`;
+    // eslint-disable-next-line @typescript-eslint/member-ordering
+    @Provide('storeNamespace')
+    private providedNamespace: string;
 
     private dashboards: DashboardVO[] = [];
     private dashboard: DashboardVO = null;
@@ -234,6 +191,23 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         return res;
     }
 
+    get get_page_history(): DashboardPageVO[] {
+        return this.vuexGet<DashboardPageVO[]>(reflect<this>().get_page_history);
+    }
+
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
+    get get_dashboard_navigation_history(): { current_dashboard_id: number, previous_dashboard_id: number } {
+        return this.vuexGet<{ current_dashboard_id: number, previous_dashboard_id: number }>(reflect<this>().get_dashboard_navigation_history);
+    }
+
+
     @Watch('page')
     private onchange_page() {
         this.select_widget(null);
@@ -287,6 +261,80 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         this.throttle_on_dashboard_loaded();
+    }
+
+    public set_discarded_field_paths(discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }): void {
+        this.vuexAct(reflect<this>().set_discarded_field_paths, discarded_field_paths);
+    }
+
+
+    public set_dashboard_api_type_ids(dashboard_api_type_ids: string[]): void {
+        this.vuexAct(reflect<this>().set_dashboard_api_type_ids, dashboard_api_type_ids);
+    }
+
+
+    public set_page_widgets_components_by_pwid(page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }): void {
+        this.vuexAct(reflect<this>().set_page_widgets_components_by_pwid, page_widgets_components_by_pwid);
+    }
+
+
+    public set_page_widgets(page_widgets: DashboardPageWidgetVO[]): void {
+        this.vuexAct(reflect<this>().set_page_widgets, page_widgets);
+    }
+
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO): void {
+        this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
+
+    public delete_page_widget(page_widget: DashboardPageWidgetVO): void {
+        this.vuexAct(reflect<this>().delete_page_widget, page_widget);
+    }
+
+
+    public add_page_history(page_history: DashboardPageVO): void {
+        this.vuexAct(reflect<this>().add_page_history, page_history);
+    }
+
+
+    public set_page_history(page_history: DashboardPageVO[]): void {
+        this.vuexAct(reflect<this>().set_page_history, page_history);
+    }
+
+    public set_dashboard_navigation_history(dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }): void {
+        this.vuexAct(reflect<this>().set_dashboard_navigation_history, dashboard_navigation_history);
+    }
+
+    public pop_page_history(fk): void {
+        this.vuexAct(reflect<this>().pop_page_history, fk);
+    }
+
+
+    public set_custom_filters(custom_filters: string[]): void {
+        this.vuexAct(reflect<this>().set_custom_filters, custom_filters);
+    }
+
+
+    public add_shared_filters_to_map(shared_filters: SharedFiltersVO[]): void {
+        this.vuexAct(reflect<this>().add_shared_filters_to_map, shared_filters);
+    }
+
+    // Accès dynamiques Vuex
+    private vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    private vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    // registre/déréf module
+    private created() {
+        // TODO FIXME DELETE TEST TEMPORAIRE :
+        const instance = DashboardPageStore.getInstance();  //new DashboardPageStore();
+        this.$store.registerModule(this.storeNamespace, instance);
+
+        // DashboardPageStore.instance = instance;
     }
 
     private dashboard_label(dashboard: DashboardVO): string {
@@ -1168,6 +1216,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         if (body) {
             body.classList.remove("sidenav-toggled");
         }
+
+        this.$store.unregisterModule(this.storeNamespace);
     }
 
     private reverse_collapse_fields_wrapper() {

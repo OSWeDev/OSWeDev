@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
@@ -41,6 +41,7 @@ import CRUDCreateModalComponent from '../../table_widget/crud_modals/create/CRUD
     }
 })
 export default class SuiviCompetencesWidgetContainerComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
@@ -220,6 +221,14 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
         this.reload_all_rapport_item_by_ids();
         this.reload_indicateur_option_rapport_item_by_ids();
         this.reload_filtered_groupes();
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private async onchange_indicateur(item: SuiviCompetencesItemVO) {

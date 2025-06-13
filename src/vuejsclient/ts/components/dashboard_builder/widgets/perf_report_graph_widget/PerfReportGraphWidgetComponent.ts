@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
@@ -25,6 +25,7 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
     components: {},
 })
 export default class PerfReportGraphWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -85,6 +86,14 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
     @Watch('get_discarded_field_paths', { deep: true, immediate: true })
     private on_change_filters() {
         this.throttle_select_perf_report();
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private async select_perf_report() {

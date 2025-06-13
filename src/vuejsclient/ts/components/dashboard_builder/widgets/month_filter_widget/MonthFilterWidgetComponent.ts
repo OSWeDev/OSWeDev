@@ -1,6 +1,6 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import MonthFilterWidgetHandler from '../../../../../../shared/modules/DashboardBuilder/handlers/MonthFilterWidgetHandler';
@@ -29,6 +29,7 @@ import './MonthFilterWidgetComponent.scss';
     }
 })
 export default class MonthFilterWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     public selected_months: { [month: number]: boolean } = {};
 
@@ -80,6 +81,15 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     private is_month_cumulated_selected: boolean = false;
 
     private widget_options: MonthFilterWidgetOptionsVO = null;
+
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
 
     protected async mounted() {
         this.set_page_widget_component_by_pwid({

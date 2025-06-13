@@ -295,6 +295,8 @@ export default class VueComponentBase extends Vue
     public segment_type_week: number = TimeSegment.TYPE_WEEK;
     public segment_type_day: number = TimeSegment.TYPE_DAY;
 
+    public readonly _uid!: number; // déclare explicitement la propriété interne
+
     protected data_user = VueAppController.getInstance().data_user;
 
     /**

@@ -259,16 +259,19 @@ export default class ModuleTableFieldServerController {
                         .select_vo<ModuleTableFieldVO>();
 
                     let merged_db_field = field;
+                    let insert_or_update = false;
                     if (!db_field) {
                         db_field = field;
                         db_field.module_table_id = db_table.id;
+                        insert_or_update = true;
                     } else {
                         merged_db_field = Object.assign(db_field, field);
                         merged_db_field.id = db_field.id;
+                        insert_or_update = JSON.stringify(merged_db_field) !== JSON.stringify(db_field);
                     }
 
                     // On check qu'on a des mises à jour à faire sinon on ne fait rien
-                    if (JSON.stringify(merged_db_field) !== JSON.stringify(db_field)) {
+                    if (insert_or_update) {
                         ConsoleHandler.log('ModuleTableFieldController.push_ModuleTableFieldVO_conf_to_db: updating field ' + field_name + ' for vo_type ' + vo_type);
                         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(merged_db_field);
                     }
