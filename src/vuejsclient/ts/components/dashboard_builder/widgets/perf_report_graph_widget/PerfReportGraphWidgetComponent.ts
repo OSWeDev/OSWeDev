@@ -19,6 +19,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './PerfReportGraphWidgetComponent.scss';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./PerfReportGraphWidgetComponent.pug'),
@@ -29,19 +30,6 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-    @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
-
-    @ModuleDashboardPageGetter
-    private get_active_api_type_ids: string[];
-
-    @ModuleDashboardPageGetter
-    private get_query_api_type_ids: string[];
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -66,6 +54,29 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
     private throttle_redraw = ThrottleHelper.declare_throttle_without_args(
         'PerfReportGraphWidgetComponent.throttle_redraw',
         this.redraw.bind(this), 200);
+
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
+    get get_active_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_active_api_type_ids);
+    }
+
+    get get_query_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_query_api_type_ids);
+    }
+
+
 
     @Watch('filter_text')
     private on_filter_text_change() {

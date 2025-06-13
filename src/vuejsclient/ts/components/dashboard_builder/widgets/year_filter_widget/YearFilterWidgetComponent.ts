@@ -19,6 +19,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import YearFilterInputComponent from '../../../year_filter_input/YearFilterInputComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './YearFilterWidgetComponent.scss';
+import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./YearFilterWidgetComponent.pug'),
@@ -39,9 +40,6 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
@@ -71,6 +69,10 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     private relative_page_widget: DashboardPageWidgetVO = null;
 
     private widget_options: YearFilterWidgetOptionsVO = null;
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
 
     // Accès dynamiques Vuex
     public vuexGet<T>(getter: string): T {

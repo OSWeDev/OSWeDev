@@ -84,8 +84,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     @ModuleOseliaGetter
     public get_left_panel_open: boolean;
 
-    @ModuleDashboardPageGetter
-    public get_active_field_filters: FieldFiltersVO;
     @ModuleDashboardPageAction
     public set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
 
@@ -103,12 +101,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     @Prop({ default: null })
     public all_page_widget: DashboardPageWidgetVO[];
-
-    @ModuleDashboardPageGetter
-    public get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageGetter
-    public get_dashboard_api_type_ids: string[];
 
     @ModuleOseliaAction
     private set_too_many_assistants: (too_many_assistants: boolean) => void;
@@ -186,6 +178,19 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     get role_assistant_avatar_url() {
         return '/public/vuejsclient/img/avatars/oselia.png';
     }
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
 
     get file_system_url() {
         const { protocol, hostname, port } = window.location;

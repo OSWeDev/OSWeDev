@@ -26,8 +26,6 @@ import './FieldValueFilterBooleanWidgetComponent.scss';
 export default class FieldValueFilterBooleanWidgetComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
@@ -60,6 +58,10 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
         BooleanFilter.FILTER_TYPE_FALSE,
         BooleanFilter.FILTER_TYPE_VIDE
     ];
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
 
     get placeholder(): string {
         if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)])) {

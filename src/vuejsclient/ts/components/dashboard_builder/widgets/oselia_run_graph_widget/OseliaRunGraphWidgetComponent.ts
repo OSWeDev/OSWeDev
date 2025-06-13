@@ -23,7 +23,7 @@ import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilt
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 
 import VueComponentBase from '../../../VueComponentBase';
-import { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 
 import CRUDUpdateModalComponent from '../table_widget/crud_modals/update/CRUDUpdateModalComponent';
 import { ModuleDAOAction } from '../../../dao/store/DaoStore';
@@ -55,13 +55,8 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     @ModuleOseliaGetter
     private get_left_panel_open: boolean;
 
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
-
-    @ModuleDashboardPageGetter
-    private get_Crudupdatemodalcomponent: CRUDUpdateModalComponent;
 
     @ModuleDAOAction
     private storeDatas!: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
@@ -83,12 +78,6 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private readonly thread_id: number;
-
-    @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
 
     /**
      * Ancienne logique : on utilisait choices_of_item pour stocker un ensemble de templates (ou runs).
@@ -133,6 +122,25 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     private reDraw: boolean = false;
     private localThreadId: number = null;
     private executeAutofit: boolean = false;
+
+
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_Crudupdatemodalcomponent(): CRUDUpdateModalComponent {
+        return this.vuexGet<CRUDUpdateModalComponent>(reflect<this>().get_Crudupdatemodalcomponent);
+    }
+
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
 
     get showClearButton(): boolean {
         return Object.keys(this.items).length > 0;

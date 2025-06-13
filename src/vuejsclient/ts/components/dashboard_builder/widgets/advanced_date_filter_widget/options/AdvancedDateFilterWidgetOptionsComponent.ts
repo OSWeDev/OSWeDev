@@ -18,6 +18,7 @@ import './AdvancedDateFilterWidgetOptionsComponent.scss';
 import AdvancedDateFilterWidgetOptionsOptComponent from './opt/AdvancedDateFilterWidgetOptionsOptComponent';
 import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./AdvancedDateFilterWidgetOptionsComponent.pug'),
@@ -41,11 +42,6 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
-    @ModuleDashboardPageGetter
-    private get_custom_filters: string[];
-    @ModuleDashboardPageGetter
-    private get_page_widgets: DashboardPageWidgetVO[];
-
     @ModuleDashboardPageAction
     private set_custom_filters: (custom_filters: string[]) => void;
 
@@ -63,12 +59,20 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     private auto_select_relative_date_max: number = null;
 
     private next_update_options: AdvancedDateFilterWidgetOptions = null;
+
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
         'AdvancedDateFilterWidgetOptionsComponent.throttled_update_options',
         this.update_options.bind(this), 50, false);
 
     private custom_filter_name: string = null;
     private is_vo_field_ref: boolean = true;
+
+    get get_custom_filters(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
+    }
+    get get_page_widgets(): DashboardPageWidgetVO[] {
+        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_page_widgets);
+    }
 
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {

@@ -20,6 +20,7 @@ import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import './FavoritesFiltersWidgetOptionsComponent.scss';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./FavoritesFiltersWidgetOptionsComponent.pug'),
@@ -36,9 +37,6 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
 
     @Prop({ default: null })
     private dashboard: DashboardVO;
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
@@ -73,6 +71,10 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
         this.update_visible_options.bind(this), 300, false);
 
     private last_launch_cpt: number = 0;
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
 
     /**
      * Watch on page_widget

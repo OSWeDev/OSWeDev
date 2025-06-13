@@ -108,15 +108,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     @ModuleDAOAction
     private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
-
-    @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
 
@@ -131,12 +122,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
-
-    @ModuleDashboardPageGetter
-    private get_Crudupdatemodalcomponent: CRUDUpdateModalComponent;
-
-    @ModuleDashboardPageGetter
-    private get_Crudcreatemodalcomponent: CRUDCreateModalComponent;
 
     @Prop({ default: false })
     private is_edit_mode: boolean;
@@ -239,6 +224,26 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     get can_getquerystr() {
         return this.is_edit_mode;
+    }
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    }
+
+    get get_Crudupdatemodalcomponent(): CRUDUpdateModalComponent {
+        return this.vuexGet<CRUDUpdateModalComponent>(reflect<this>().get_Crudupdatemodalcomponent);
+    }
+
+    get get_Crudcreatemodalcomponent(): CRUDCreateModalComponent {
+        return this.vuexGet<CRUDCreateModalComponent>(reflect<this>().get_Crudcreatemodalcomponent);
     }
 
 

@@ -26,9 +26,6 @@ export default class OseliaThreadMessageFeedbackComponent extends VueComponentBa
 
     public current_user_feedbacks: OseliaThreadMessageFeedbackVO[] = null;
 
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
 
@@ -44,6 +41,11 @@ export default class OseliaThreadMessageFeedbackComponent extends VueComponentBa
     private throttle_load_feedback = ThrottleHelper.declare_throttle_without_args(
         'OseliaThreadMessageFeedbackComponent.throttle_load_feedback',
         this.load_feedback, 10);
+
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
 
     @Watch('thread', { immediate: true })
     private async onchange_action_url_id() {

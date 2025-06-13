@@ -27,6 +27,7 @@ import ValidationFiltersCallUpdaters from '../../validation_filters_widget/Valid
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import './FieldValueFilterEnumWidgetComponent.scss';
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./FieldValueFilterEnumWidgetComponent.pug'),
@@ -35,21 +36,6 @@ import FieldValueFilterWidgetController from '../FieldValueFilterWidgetControlle
 })
 export default class FieldValueFilterEnumWidgetComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
-
-    @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-
-    @ModuleDashboardPageGetter
-    private get_active_api_type_ids: string[];
-
-    @ModuleDashboardPageGetter
-    private get_query_api_type_ids: string[];
 
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
@@ -70,7 +56,6 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private dashboard_page: DashboardPageVO;
 
     private default_values_changed: boolean = false; //Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
-
 
     private tmp_active_filter_options: DataFilterOption[] = []; // Local active filter options
 
@@ -125,6 +110,27 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
     }
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
+    get get_active_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_active_api_type_ids);
+    }
+
+    get get_query_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_query_api_type_ids);
+    }
+
 
     get field(): ModuleTableFieldVO {
         if (!this.vo_field_ref) {

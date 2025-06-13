@@ -1,14 +1,15 @@
 import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
-import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
 import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -17,39 +18,36 @@ import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/D
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import SuiviCompetencesWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/SuiviCompetencesWidgetOptionsVO';
 import ExportHistoricVO from '../../../../../../shared/modules/DataExport/vos/ExportHistoricVO';
+import DataFilterOption from '../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleSuiviCompetences from '../../../../../../shared/modules/SuiviCompetences/ModuleSuiviCompetences';
-import ExportSuiviCompetencesRapportHandlerParam from '../../../../../../shared/modules/SuiviCompetences/exports/ExportSuiviCompetencesRapportHandlerParam';
-import SuiviCompetencesGrilleVO from '../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGrilleVO';
-import SuiviCompetencesRapportVO from '../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesRapportVO';
-import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../../../../shared/tools/ObjectHandler';
-import RangeHandler from '../../../../../../shared/tools/RangeHandler';
-import VueComponentBase from '../../../VueComponentBase';
-import CRUDComponentManager from '../../../crud/CRUDComponentManager';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import CRUDCreateModalComponent from '../table_widget/crud_modals/create/CRUDCreateModalComponent';
-import './SuiviCompetencesWidgetComponent.scss';
-import SuiviCompetencesWidgetController from './SuiviCompetencesWidgetController';
-import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
-import SuiviCompetencesWidgetContainerComponent from './container/SuiviCompetencesWidgetContainerComponent';
-import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
-import SuiviCompetencesItemRapportVO from '../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesItemRapportVO';
-import DataFilterOption from '../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import SuiviCompetencesItemVO from '../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesItemVO';
-import SuiviCompetencesIndicateurVO from '../../../../../../shared/modules/SuiviCompetences/fields/indicateur/vos/SuiviCompetencesIndicateurVO';
 import SuiviCompetencesGroupeResult from '../../../../../../shared/modules/SuiviCompetences/apis/SuiviCompetencesGroupeResult';
 import NiveauMaturiteStyle from '../../../../../../shared/modules/SuiviCompetences/class/NiveauMaturiteStyle';
+import ExportSuiviCompetencesRapportHandlerParam from '../../../../../../shared/modules/SuiviCompetences/exports/ExportSuiviCompetencesRapportHandlerParam';
 import SuiviCompetencesIndicateurTableFieldTypeController from '../../../../../../shared/modules/SuiviCompetences/fields/indicateur/SuiviCompetencesIndicateurTableFieldTypeController';
+import SuiviCompetencesIndicateurVO from '../../../../../../shared/modules/SuiviCompetences/fields/indicateur/vos/SuiviCompetencesIndicateurVO';
 import SuiviCompetencesVarsNamesHolder from '../../../../../../shared/modules/SuiviCompetences/vars/SuiviCompetencesVarsNamesHolder';
 import SuiviCompetencesRapportGroupeDataRangesVO from '../../../../../../shared/modules/SuiviCompetences/vars/vos/SuiviCompetencesRapportGroupeDataRangesVO';
 import SuiviCompetencesRapportSousGroupeDataRangesVO from '../../../../../../shared/modules/SuiviCompetences/vars/vos/SuiviCompetencesRapportSousGroupeDataRangesVO';
+import SuiviCompetencesGrilleVO from '../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGrilleVO';
 import SuiviCompetencesGroupeVO from '../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGroupeVO';
+import SuiviCompetencesItemRapportVO from '../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesItemRapportVO';
+import SuiviCompetencesItemVO from '../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesItemVO';
+import SuiviCompetencesRapportVO from '../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesRapportVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
+import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
+import VueComponentBase from '../../../VueComponentBase';
+import CRUDComponentManager from '../../../crud/CRUDComponentManager';
 import { ModuleDAOAction } from '../../../dao/store/DaoStore';
-import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import CRUDCreateModalComponent from '../table_widget/crud_modals/create/CRUDCreateModalComponent';
+import './SuiviCompetencesWidgetComponent.scss';
+import SuiviCompetencesWidgetController from './SuiviCompetencesWidgetController';
+import SuiviCompetencesWidgetContainerComponent from './container/SuiviCompetencesWidgetContainerComponent';
 
 @Component({
     template: require('./SuiviCompetencesWidgetComponent.pug'),
@@ -63,18 +61,6 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
 
     @ModuleDAOAction
     private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
-
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
-
-    @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-
-    @ModuleDashboardPageGetter
-    private get_Crudcreatemodalcomponent: CRUDCreateModalComponent;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -110,6 +96,23 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     private create_action_rapport: number = SuiviCompetencesWidgetController.CREATE_ACTION_RAPPORT;
     private duplicate_action_rapport: number = SuiviCompetencesWidgetController.DUPLICATE_ACTION_RAPPORT;
     private edit_action_rapport: number = SuiviCompetencesWidgetController.EDIT_ACTION_RAPPORT;
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    }
+
+    get get_Crudcreatemodalcomponent(): CRUDCreateModalComponent {
+        return this.vuexGet<CRUDCreateModalComponent>(reflect<this>().get_Crudcreatemodalcomponent);
+    }
+
 
     get plan_action_editable_field() {
         return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().plan_action).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesItemRapportVO.API_TYPE_ID]);

@@ -15,6 +15,7 @@ import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsCont
 import BulkOpsWidgetOptions from './BulkOpsWidgetOptions';
 import './BulkOpsWidgetOptionsComponent.scss';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./BulkOpsWidgetOptionsComponent.pug'),
@@ -34,9 +35,6 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
-
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
@@ -48,6 +46,11 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
     private api_type_id_selected: string = null;
 
     private editable_columns: TableColumnDescVO[] = null;
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
 
     get api_type_id_select_options(): string[] {
         return this.get_dashboard_api_type_ids;

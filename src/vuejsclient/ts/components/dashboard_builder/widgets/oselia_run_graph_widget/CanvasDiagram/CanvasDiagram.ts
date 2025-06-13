@@ -21,6 +21,7 @@ import DiagramDataService from './DiagramDataService/DiagramDataService';
 import DiagramLayout, { BlockPosition, LinkDrawInfo } from './DiagramLayout/DiagramLayout';
 import DiagramLink from './DiagramLink/DiagramLink';
 import VueComponentBase from '../../../../VueComponentBase';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 /**
  * Structure pour le menu "+"
@@ -84,8 +85,6 @@ export default class CanvasDiagram extends VueComponentBase {
     // --------------------------------------------------------------------------
     // STORE GETTERS / ACTIONS
     // --------------------------------------------------------------------------
-    @ModuleDashboardPageGetter
-    private get_Crudcreatemodalcomponent!: CRUDCreateModalComponent;
 
     @ModuleDAOAction
     private storeDatas!: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
@@ -157,6 +156,11 @@ export default class CanvasDiagram extends VueComponentBase {
     get hasData(): boolean {
         return !!this.items && Object.keys(this.items).length > 0;
     }
+
+    get get_Crudcreatemodalcomponent(): CRUDCreateModalComponent {
+        return this.vuexGet<CRUDCreateModalComponent>(reflect<this>().get_Crudcreatemodalcomponent);
+    }
+
 
     get blockPositions(): { [id: string]: BlockPosition } {
         if (this.isRunVo) {

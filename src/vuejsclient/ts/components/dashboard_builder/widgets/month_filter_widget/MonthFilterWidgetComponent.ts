@@ -21,6 +21,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import MonthFilterInputComponent from '../../../month_filter_input/MonthFilterInputComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './MonthFilterWidgetComponent.scss';
+import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./MonthFilterWidgetComponent.pug'),
@@ -33,9 +34,6 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
     public selected_months: { [month: number]: boolean } = {};
 
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
 
@@ -47,9 +45,6 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageAction
     private set_page_widget_component_by_pwid: (param: { pwid: number, page_widget_component: VueComponentBase }) => void;
-
-    @ModuleDashboardPageGetter
-    private get_page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -81,6 +76,16 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     private is_month_cumulated_selected: boolean = false;
 
     private widget_options: MonthFilterWidgetOptionsVO = null;
+
+
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_page_widgets_components_by_pwid(): { [pwid: number]: VueComponentBase } {
+        return this.vuexGet<{ [pwid: number]: VueComponentBase }>(reflect<this>().get_page_widgets_components_by_pwid);
+    }
 
 
     // Accès dynamiques Vuex

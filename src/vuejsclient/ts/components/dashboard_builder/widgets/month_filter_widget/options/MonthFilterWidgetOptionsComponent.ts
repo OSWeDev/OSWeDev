@@ -13,6 +13,7 @@ import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_fi
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import './MonthFilterWidgetOptionsComponent.scss';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./MonthFilterWidgetOptionsComponent.pug'),
@@ -32,14 +33,8 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
-    @ModuleDashboardPageGetter
-    private get_custom_filters: string[];
-
     @ModuleDashboardPageAction
     private set_custom_filters: (custom_filters: string[]) => void;
-
-    @ModuleDashboardPageGetter
-    private get_page_widgets: DashboardPageWidgetVO[];
 
     private is_vo_field_ref: boolean = true;
     private month_relative_mode: boolean = true;
@@ -71,6 +66,15 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
     private is_month_cumulated_selected: boolean = false;
 
     private widget_options: MonthFilterWidgetOptionsVO = null;
+
+    get get_custom_filters(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
+    }
+
+    get get_page_widgets(): DashboardPageWidgetVO[] {
+        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_page_widgets);
+    }
+
 
     get other_filters_by_name(): { [filter_name: string]: DashboardPageWidgetVO } {
         if (!this.get_page_widgets) {

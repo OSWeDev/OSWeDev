@@ -20,7 +20,7 @@ import VarsController from '../../../../../../shared/modules/Var/VarsController'
 import VarRadarDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarRadarDataSetDescriptor';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
@@ -45,9 +45,6 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -80,6 +77,11 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
     private current_var_params_by_datasets: { [dataset_label: string]: VarDataBaseVO[] } = null;
     private current_var_dataset_descriptor = null;
     private current_options = null;
+
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
 
     get var_filter(): () => string {
         if (!this.widget_options) {

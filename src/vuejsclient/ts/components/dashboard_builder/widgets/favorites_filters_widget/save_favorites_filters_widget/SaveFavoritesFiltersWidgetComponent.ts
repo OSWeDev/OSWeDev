@@ -26,6 +26,7 @@ import MonthFilterWidgetOptions from '../../month_filter_widget/options/MonthFil
 import ReloadFiltersWidgetController from '../../reload_filters_widget/RealoadFiltersWidgetController';
 import FavoritesFiltersModalComponent from '../modal/FavoritesFiltersModalComponent';
 import './SaveFavoritesFiltersWidgetComponent.scss';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./SaveFavoritesFiltersWidgetComponent.pug'),
@@ -33,12 +34,6 @@ import './SaveFavoritesFiltersWidgetComponent.scss';
 })
 export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
-
-    @ModuleDashboardPageGetter
-    private get_Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent;
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -53,6 +48,14 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     private dashboard: DashboardVO;
 
     private start_update: boolean = false;
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_Favoritesfiltersmodalcomponent(): FavoritesFiltersModalComponent {
+        return this.vuexGet<FavoritesFiltersModalComponent>(reflect<this>().get_Favoritesfiltersmodalcomponent);
+    }
 
 
     // Accès dynamiques Vuex

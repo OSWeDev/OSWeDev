@@ -2,10 +2,11 @@ import Component from 'vue-class-component';
 import { Inject, Prop } from 'vue-property-decorator';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import OseliaThreadWidgetOptions from './OseliaThreadWidgetOptions';
 import './OseliaThreadWidgetOptionsComponent.scss';
 
@@ -27,9 +28,6 @@ export default class OseliaThreadWidgetOptionsComponent extends VueComponentBase
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
-
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
@@ -40,6 +38,11 @@ export default class OseliaThreadWidgetOptionsComponent extends VueComponentBase
 
         return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
 
     get default_title_translation(): string {
         return 'OseliaThreadWidget#' + this.page_widget.id;

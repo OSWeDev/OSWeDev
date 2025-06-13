@@ -14,6 +14,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import DOWFilterWidgetOptions from './DOWFilterWidgetOptions';
 import './DOWFilterWidgetOptionsComponent.scss';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DOWFilterWidgetOptionsComponent.pug'),
@@ -33,9 +34,6 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
-    @ModuleDashboardPageGetter
-    private get_custom_filters: string[];
-
     @ModuleDashboardPageAction
     private set_custom_filters: (custom_filters: string[]) => void;
 
@@ -54,6 +52,11 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
 
         return this.other_custom_filters.length > 0;
     }
+
+    get get_custom_filters(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
+    }
+
 
     get other_custom_filters(): string[] {
         if (!this.get_custom_filters) {

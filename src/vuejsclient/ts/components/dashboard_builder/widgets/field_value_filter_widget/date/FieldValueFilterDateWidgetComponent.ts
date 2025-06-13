@@ -22,6 +22,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import './FieldValueFilterDateWidgetComponent.scss';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./FieldValueFilterDateWidgetComponent.pug'),
@@ -32,8 +33,6 @@ import ModuleTableController from '../../../../../../../shared/modules/DAO/Modul
 export default class FieldValueFilterDateWidgetComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
@@ -63,6 +62,10 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
     private auto_select_date_max: number = null;
     private auto_select_date_relative_mode: boolean = null;
     private relative_to_other_filter_id: number = null;
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
 
     get vo_field_ref_label(): string {
         if ((!this.widget_options) || (!this.vo_field_ref)) {

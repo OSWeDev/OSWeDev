@@ -17,6 +17,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './DOWFilterWidgetComponent.scss';
 import DOWFilterWidgetOptions from './options/DOWFilterWidgetOptions';
+import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DOWFilterWidgetComponent.pug'),
@@ -27,9 +28,6 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
@@ -66,6 +64,10 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
             this.label('label.day.samedi'),
             this.label('label.day.dimanche'),
         ];
+    }
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
     }
 
     private switch_selection(i: string) {

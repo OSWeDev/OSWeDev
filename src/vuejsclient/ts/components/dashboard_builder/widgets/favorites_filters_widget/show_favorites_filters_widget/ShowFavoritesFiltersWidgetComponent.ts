@@ -21,7 +21,7 @@ import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/v
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
@@ -40,12 +40,6 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
     private static TESTUID = 0;
     @Inject('storeNamespace') readonly storeNamespace!: string;
-
-    @ModuleDashboardPageGetter
-    private get_Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent;
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
@@ -108,6 +102,14 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         false
     );
 
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_Favoritesfiltersmodalcomponent(): FavoritesFiltersModalComponent {
+        return this.vuexGet<FavoritesFiltersModalComponent>(reflect<this>().get_Favoritesfiltersmodalcomponent);
+    }
 
 
     /**

@@ -26,7 +26,7 @@ import SuiviCompetencesItemVO from '../../../../../../../shared/modules/SuiviCom
 import SuiviCompetencesRapportVO from '../../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesRapportVO';
 import VarDataValueResVO from '../../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler, { field_names } from '../../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import VarDataRefComponent from '../../../../Var/components/dataref/VarDataRefComponent';
@@ -42,9 +42,6 @@ import CRUDCreateModalComponent from '../../table_widget/crud_modals/create/CRUD
 })
 export default class SuiviCompetencesWidgetContainerComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
 
     @Prop({ default: null })
     private selected_rapport: SuiviCompetencesRapportVO;
@@ -79,6 +76,10 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
         }
 
         return options;
+    }
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
     }
 
     get plan_action_editable_field() {

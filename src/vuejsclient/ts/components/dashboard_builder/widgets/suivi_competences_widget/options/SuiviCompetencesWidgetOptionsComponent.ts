@@ -21,6 +21,7 @@ import { isEqual } from 'lodash';
 import SuiviCompetencesGrilleVO from '../../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGrilleVO';
 import PromisePipeline from '../../../../../../../shared/tools/PromisePipeline/PromisePipeline';
 import EnvHandler from '../../../../../../../shared/tools/EnvHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./SuiviCompetencesWidgetOptionsComponent.pug')
@@ -28,26 +29,11 @@ import EnvHandler from '../../../../../../../shared/tools/EnvHandler';
 export default class SuiviCompetencesWidgetOptionsComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
-
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: null })
     private dashboard: DashboardVO;
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-
-    @ModuleDashboardPageGetter
-    private get_active_api_type_ids: string[];
-
-    @ModuleDashboardPageGetter
-    private get_query_api_type_ids: string[];
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
@@ -65,6 +51,27 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
         'SuiviCompetencesWidgetOptionsComponent.throttled_update_options',
         this.update_options.bind(this), 50, false);
+
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
+    get get_active_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_active_api_type_ids);
+    }
+
+    get get_query_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_query_api_type_ids);
+    }
 
 
     get widget_options(): SuiviCompetencesWidgetOptionsVO {

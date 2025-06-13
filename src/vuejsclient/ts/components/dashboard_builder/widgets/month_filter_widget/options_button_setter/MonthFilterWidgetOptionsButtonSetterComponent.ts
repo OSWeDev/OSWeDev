@@ -14,6 +14,7 @@ import VueComponentBase from '../../../../VueComponentBase';
 import MonthFilterInputComponent from '../../../../month_filter_input/MonthFilterInputComponent';
 import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './MonthFilterWidgetOptionsButtonSetterComponent.scss';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./MonthFilterWidgetOptionsButtonSetterComponent.pug'),
@@ -29,9 +30,6 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
-
-    @ModuleDashboardPageGetter
-    private get_page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
 
     private next_update_options: MonthFilterWidgetOptionsVO = null;
 
@@ -86,6 +84,11 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         50,
         false
     );
+
+    get get_page_widgets_components_by_pwid(): { [pwid: number]: VueComponentBase } {
+        return this.vuexGet<{ [pwid: number]: VueComponentBase }>(reflect<this>().get_page_widgets_components_by_pwid);
+    }
+
 
     get vo_field_ref(): VOFieldRefVO {
         const options: MonthFilterWidgetOptionsVO = this.widget_options;

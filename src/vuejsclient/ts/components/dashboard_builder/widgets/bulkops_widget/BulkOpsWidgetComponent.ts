@@ -50,9 +50,6 @@ import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleT
 export default class BulkOpsWidgetComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
 
@@ -67,12 +64,6 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private all_page_widget: DashboardPageWidgetVO[];
-
-    @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
 
     private data_rows: any[] = [];
 
@@ -97,6 +88,19 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
     private data_rows_after: any[] = [];
     private last_calculation_cpt: number = 0;
     private old_widget_options: BulkOpsWidgetOptions = null;
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
 
     get tablecolumn_field_id() {
         if (!this.field) {

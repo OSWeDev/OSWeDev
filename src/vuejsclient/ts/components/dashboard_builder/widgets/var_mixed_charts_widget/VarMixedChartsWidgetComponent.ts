@@ -31,7 +31,7 @@ import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseV
 
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import Filters from '../../../../../../shared/tools/Filters';
-import ObjectHandler, { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 
@@ -56,11 +56,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
     // --------------------------------------------------------------------------
     //  Props et injections du store
     // --------------------------------------------------------------------------
-    @ModuleDashboardPageGetter private get_dashboard_api_type_ids: string[];
-    @ModuleDashboardPageGetter private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-    @ModuleDashboardPageGetter private get_active_field_filters: FieldFiltersVO;
     @ModuleTranslatableTextGetter private get_flat_locale_translations: { [code_text: string]: string };
-    @ModuleDashboardPageGetter private get_custom_filters: string[];
 
     @Prop({ default: null }) private all_page_widget: DashboardPageWidgetVO[];
     @Prop({ default: null }) private page_widget: DashboardPageWidgetVO;
@@ -150,6 +146,23 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         }
         return options;
     }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    }
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_custom_filters(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
+    }
+
 
     /**
      * Filtre Var => s'il est défini (var_filter)

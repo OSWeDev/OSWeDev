@@ -48,9 +48,6 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-
     @ModuleOseliaGetter
     private get_show_hidden_messages: boolean;
 
@@ -100,6 +97,11 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     private throttle_load_thread_message_attachments = ThrottleHelper.declare_throttle_without_args(
         'OseliaThreadMessageComponent.throttle_load_thread_message_attachments',
         this.load_thread_message_attachments.bind(this), 10);
+
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
 
     get is_default_avatar() {
         return (!this.avatar_url) || (this.avatar_url == ModuleAccessPolicy.AVATAR_DEFAULT_URL);

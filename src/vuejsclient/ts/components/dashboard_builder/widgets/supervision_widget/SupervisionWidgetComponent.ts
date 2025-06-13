@@ -59,9 +59,6 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     private set_query_api_type_ids: (query_api_type_ids: string[]) => void;
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-
-    @ModuleDashboardPageGetter
     private get_Supervisionitemmodal: SupervisionItemModalComponent;
 
     @ModuleDashboardPageGetter
@@ -106,6 +103,10 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
     get show_bulk_edit(): boolean {
         return this.widget_options && this.widget_options.show_bulk_edit;
+    }
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
     }
 
     get limit(): number {

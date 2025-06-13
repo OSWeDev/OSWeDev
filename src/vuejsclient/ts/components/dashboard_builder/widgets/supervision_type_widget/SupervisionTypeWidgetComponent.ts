@@ -15,7 +15,7 @@ import './SupervisionTypeWidgetComponent.scss';
 import SupervisedProbeVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeVO';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ObjectHandler, { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
@@ -32,9 +32,6 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleDashboardPageGetter
     private get_active_api_type_ids: string[];
@@ -102,6 +99,10 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         50,
         false
     );
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
 
     get title_name_code_text() {
         if (!this.widget_options) {

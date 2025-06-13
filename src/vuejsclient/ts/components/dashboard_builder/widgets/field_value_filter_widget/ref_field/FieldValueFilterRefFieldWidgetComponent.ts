@@ -40,6 +40,7 @@ import FieldValueFilterWidgetController from '../FieldValueFilterWidgetControlle
 import AdvancedRefFieldFilter from './AdvancedRefFieldFilter';
 import './FieldValueFilterRefFieldWidgetComponent.scss';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./FieldValueFilterRefFieldWidgetComponent.pug'),
@@ -49,23 +50,12 @@ import ModuleTableController from '../../../../../../../shared/modules/DAO/Modul
 export default class FieldValueFilterRefFieldWidgetComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
 
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
-
-    @ModuleDashboardPageGetter
-    private get_widgets_invisibility: { [w_id: number]: boolean };
 
     @ModuleDashboardPageAction
     private set_widgets_invisibility: (widgets_invisibility: { [w_id: number]: boolean }) => void;
@@ -137,6 +127,23 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
         AdvancedRefFieldFilter.FILTER_TYPE_EST_NULL,
         AdvancedRefFieldFilter.FILTER_TYPE_NEST_PAS_NULL,
     ];
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
+    get get_widgets_invisibility(): { [w_id: number]: boolean } {
+        return this.vuexGet<{ [w_id: number]: boolean }>(reflect<this>().get_widgets_invisibility);
+    }
+
 
     // Accès dynamiques Vuex
     public vuexGet<T>(getter: string): T {
